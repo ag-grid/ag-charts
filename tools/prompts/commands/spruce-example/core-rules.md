@@ -123,7 +123,7 @@ Gallery examples are used by thousands of developers who:
 
 ### Financial data:
 
--   Conservative styling + currency formatters + reference lines
+-   Conservative styling + currency formatters + reference lines + right-side Y-axis positioning
 
 ### Radial/Polar charts:
 

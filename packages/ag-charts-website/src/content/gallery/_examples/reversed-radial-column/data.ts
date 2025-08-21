@@ -1,4 +1,11 @@
-export function getData() {
+export interface RevenueData {
+    quarter: string;
+    software: number;
+    hardware: number;
+    services: number;
+}
+
+export function getData(): RevenueData[] {
     return [
         {
             quarter: `Q1'22`,

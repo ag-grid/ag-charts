@@ -55,7 +55,6 @@ function setNumberAxis() {
         },
         label: {
             format: ',.0f',
-            fontSize: 10,
         },
     };
     chart.update(options);
@@ -73,7 +72,6 @@ function setLogAxis() {
         },
         label: {
             format: ',.0f',
-            fontSize: 10,
         },
     };
     chart.update(options);

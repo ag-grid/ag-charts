@@ -1,17 +1,25 @@
-import { AgChartOptions, AgCharts, AgRangeAreaSeriesLabelFormatterParams } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-const dateFormatter = Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' });
+const dateFormatter = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short' });
+const yearFormatter = new Intl.DateTimeFormat('en-US', { year: 'numeric' });
 
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: `Understanding Japan's Seismic Hazard`,
     },
     subtitle: {
-        text: `Magnitude of Earthquakes from 1958 to 2023`,
+        text: `Earthquake Magnitude Range from 1958 to 2023`,
+    },
+    animation: {
+        enabled: true,
+        duration: 800,
+    },
+    tooltip: {
+        mode: 'compact',
     },
     series: [
         {
@@ -20,16 +28,32 @@ const options: AgChartOptions<DataType> = {
             xName: 'Year',
             yLowKey: 'magnitudeLow',
             yHighKey: 'magnitudeHigh',
-            strokeWidth: 0,
-            fillOpacity: 1,
-            label: {
-                formatter: ({ value, datum }) => {
-                    return value === 9.1
-                        ? `${datum.magnitudeHighRegion}, ${String(datum.year).substring(0, 15)}`
-                        : value === 4.6
-                          ? `${datum.magnitudeLowRegion}, ${String(datum.year).substring(0, 15)}`
-                          : '';
-                },
+            yLowName: 'Minimum Magnitude',
+            yHighName: 'Maximum Magnitude',
+            strokeWidth: 2,
+            fillOpacity: 0.5,
+            interpolation: {
+                type: 'smooth',
+            },
+            // tooltip: {
+            //     renderer: ({ datum, xKey, yLowKey, yHighKey }) => {
+            //         const year = datum[xKey];
+            //         const minMagnitude = datum[yLowKey];
+            //         const maxMagnitude = datum[yHighKey];
+            //         const deaths = datum.deathTotal;
+
+            //         return {
+            //             title: `Statistics`,
+            //             data: [
+            //                 { label: 'Magnitude Range', value: `${minMagnitude} - ${maxMagnitude}` },
+            //                 { label: 'Deaths', value: deaths.toLocaleString() },
+            //             ],
+            //         };
+            //     },
+            // },
+            marker: {
+                enabled: true,
+                size: 6,
             },
         },
     ],
@@ -37,30 +61,64 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'unit-time',
             position: 'bottom',
-            interval: {
-                values: [new Date(1958, 0, 1), new Date(2007, 0, 1), new Date(2011, 0, 1), new Date(2023, 0, 1)],
-            },
             gridLine: {
-                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
             title: {
                 text: 'Year',
             },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: new Date(2011, 2, 11),
+                    strokeWidth: 2,
+                    lineDash: [5, 5],
+                    label: {
+                        text: '2011 Tōhoku Earthquake',
+                    },
+                },
+                {
+                    type: 'line',
+                    value: new Date(1995, 0, 17),
+                    strokeWidth: 2,
+                    lineDash: [5, 5],
+                    label: {
+                        text: '1995 Kobe Earthquake',
+                    },
+                },
+            ],
         },
         {
             type: 'number',
             position: 'left',
-            interval: { values: [4.6, 9.1] },
+            min: 4,
+            max: 10,
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
             title: {
-                text: 'Magnitude',
+                text: 'Magnitude (Richter Scale)',
             },
         },
     ],
-    formatter: {
-        x: (params) =>
-            params.source === 'axis-label'
-                ? `'${String((params.value as Date).getFullYear()).slice(2)}`
-                : dateFormatter.format(params.value as Date),
+    legend: {
+        enabled: false,
     },
 };
 

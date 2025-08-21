@@ -1,24 +1,47 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const formatter = new Intl.DateTimeFormat('en-GB', {
-    month: 'short',
-    year: '2-digit',
-});
+const data = getData();
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    data,
     title: {
-        text: 'House Price Index In London',
+        text: 'London Property Price Index Divergence',
     },
     subtitle: {
-        text: 'Price Indices of Flats and Terraced Houses from 2020 to 2023',
+        text: 'Comparing Price Spread Between Property Types (2020-2023)',
         spacing: 45,
     },
     footnote: {
-        text: 'Source: UK Gov Land Registry',
+        text: 'Source: UK Gov Land Registry | Base Index: 100 (2015)',
+    },
+    formatter: {
+        y: ({ value }) => {
+            if (typeof value === 'number') {
+                return value.toFixed(0);
+            }
+            return String(value);
+        },
+    },
+    theme: {
+        overrides: {
+            'range-area': {
+                series: {
+                    fillOpacity: 0.35,
+                    strokeWidth: 2,
+                    strokeOpacity: 0.8,
+                    label: {
+                        enabled: true,
+                        placement: 'outside',
+                    },
+                    tooltip: {
+                        enabled: true,
+                    },
+                },
+            },
+        },
     },
     series: [
         {
@@ -26,9 +49,33 @@ const options: AgChartOptions = {
             xKey: 'Date',
             yLowKey: 'Flats and maisonettes',
             yHighKey: 'Terraced houses',
-            fillOpacity: 0.2,
+            yLowName: 'Flats',
+            yHighName: 'Terraced',
             label: {
                 formatter: ({ value }) => `${value === 113.4 ? value : ''}`,
+            },
+            tooltip: {
+                renderer: ({ datum, yLowKey, yHighKey, yLowName, yHighName }) => {
+                    const date = new Date(datum.Date);
+                    const formattedDate = date.toLocaleDateString('en-GB', {
+                        month: 'short',
+                        year: 'numeric',
+                    });
+
+                    const lowValue = datum[yLowKey];
+                    const highValue = datum[yHighKey];
+                    const spread = highValue - lowValue;
+
+                    return {
+                        heading: formattedDate,
+                        title: `${yLowName} → ${yHighName}`,
+                        data: [
+                            { label: yLowName || yLowKey, value: lowValue.toFixed(1) },
+                            { label: yHighName || yHighKey, value: highValue.toFixed(1) },
+                            { label: 'Spread', value: `Δ${spread.toFixed(1)}` },
+                        ],
+                    };
+                },
             },
         },
         {
@@ -36,9 +83,33 @@ const options: AgChartOptions = {
             xKey: 'Date',
             yLowKey: 'Terraced houses',
             yHighKey: 'Semi-detached houses',
-            fillOpacity: 0.2,
+            yLowName: 'Terraced',
+            yHighName: 'Semi-detached',
             label: {
                 formatter: ({ value }) => `${value === 149.9 ? value : ''}`,
+            },
+            tooltip: {
+                renderer: ({ datum, yLowKey, yHighKey, yLowName, yHighName }) => {
+                    const date = new Date(datum.Date);
+                    const formattedDate = date.toLocaleDateString('en-GB', {
+                        month: 'short',
+                        year: 'numeric',
+                    });
+
+                    const lowValue = datum[yLowKey];
+                    const highValue = datum[yHighKey];
+                    const spread = highValue - lowValue;
+
+                    return {
+                        heading: formattedDate,
+                        title: `${yLowName} → ${yHighName}`,
+                        data: [
+                            { label: yLowName || yLowKey, value: lowValue.toFixed(1) },
+                            { label: yHighName || yHighKey, value: highValue.toFixed(1) },
+                            { label: 'Spread', value: `Δ${spread.toFixed(1)}` },
+                        ],
+                    };
+                },
             },
         },
     ],
@@ -46,27 +117,35 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'right',
-            gridLine: {
-                enabled: false,
+            title: {
+                text: 'Price Index (2015 = 100)',
             },
-
+            gridLine: {
+                style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
+            },
             nice: false,
             min: 100,
             max: 160,
+            interval: { step: 20 },
         },
         {
             type: 'unit-time',
             position: 'bottom',
-            tick: {
-                size: 14,
-            },
             gridLine: {
                 enabled: true,
+                style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
     ],
     legend: {
-        enabled: false,
+        position: 'bottom',
+    },
+    tooltip: {
+        mode: 'single',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+        delay: 100,
     },
 };
 

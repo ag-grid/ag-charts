@@ -2,73 +2,87 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const month = new Intl.DateTimeFormat('en-GB', {
-    month: 'short',
-});
-
-const day = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-});
-
-const numberFormatter = new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-});
-
-const options: AgChartOptions = {
+const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'FTSE 100 Index',
+        text: 'FTSE 100 Index Daily Performance',
     },
     subtitle: {
-        text: 'October (2023)',
+        text: 'October 2023 Trading Days',
     },
     footnote: {
-        text: 'Net Variation: -4.12%',
+        text: 'Source: London Stock Exchange | Monthly Net Change: -4.12%',
     },
     series: [
         {
             type: 'waterfall',
             xKey: 'date',
-            xName: 'Date',
+            xName: 'Trading Date',
             yKey: 'percentageChange',
-            yName: 'Change',
+            yName: 'Daily Change %',
             line: {
-                lineDash: [2],
-                strokeOpacity: 0.5,
+                lineDash: [5, 3],
+                strokeWidth: 1.5,
             },
             totals: [
                 {
                     totalType: 'total',
                     index: 10,
-                    axisLabel: 'Net\nVariation',
+                    axisLabel: 'Monthly Net',
                 },
             ],
             item: {
                 positive: {
-                    name: '+',
+                    name: 'Gain',
+                    strokeWidth: 2,
+                    fillOpacity: 0.9,
                     label: {
-                        formatter: ({ value }) => `↑${value}`,
+                        enabled: true,
+
+                        formatter: ({ value }) => (value ? `+${value.toFixed(1)}%` : ''),
                     },
-                    fillOpacity: 0.7,
-                    strokeWidth: 1,
                 },
                 negative: {
-                    name: '-',
+                    name: 'Loss',
+                    strokeWidth: 2,
+                    fillOpacity: 0.9,
                     label: {
-                        formatter: ({ value }) => `↓${value}`,
+                        enabled: true,
+                        formatter: ({ value }) => (value ? `${value.toFixed(1)}%` : ''),
                     },
-                    fillOpacity: 0.7,
-                    strokeWidth: 1,
                 },
                 total: {
+                    name: 'Net Total',
+                    strokeWidth: 2.5,
+                    fillOpacity: 0.95,
                     label: {
+                        enabled: true,
                         placement: 'inside-center',
-                        fontSize: 11,
-                        formatter: ({ value }) => `↓${Math.abs(value)}`,
+                        formatter: ({ value }) => (value ? `${value.toFixed(2)}%` : ''),
                     },
-                    fillOpacity: 0.3,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum, yKey, title }) => {
+                    const change = (datum[yKey] as number) ?? 0;
+                    const closePrice = datum.closePrice;
+                    return {
+                        title: title,
+                        data: [
+                            {
+                                label: 'Daily Change',
+                                value: `${change > 0 ? '+' : ''}${change.toFixed(2)}%`,
+                            },
+                            {
+                                label: 'Close Price',
+                                value: `£${closePrice.toLocaleString('en-GB', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                })}`,
+                            },
+                        ],
+                    };
                 },
             },
         },
@@ -77,33 +91,96 @@ const options: AgChartOptions = {
         {
             position: 'right',
             type: 'number',
+            title: {
+                text: 'Daily Change (%)',
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 0,
+                    strokeWidth: 0,
+                    lineDash: [6, 4],
+                    label: {
+                        text: 'Break Even',
+                        position: 'bottom',
+                        padding: 5,
+                    },
+                },
+                {
+                    type: 'range',
+                    range: [-2, 0],
+                    fillOpacity: 0.05,
+                    label: {
+                        position: 'inside-bottom',
+                        text: 'Acceptable Loss Zone',
+                    },
+                },
+                {
+                    type: 'range',
+                    range: [0, 1],
+                    fillOpacity: 0.05,
+                    label: {
+                        position: 'inside-top',
+                        text: 'Gain Zone',
+                    },
+                },
+            ],
             label: {
-                spacing: 20,
+                formatter: ({ value }) => `${value > 0 ? '+' : ''}${value.toFixed(1)}%`,
             },
         },
         {
             position: 'bottom',
-            type: 'category',
-            line: {
-                enabled: false,
+            type: 'category' as any,
+            bandHighlight: {
+                enabled: true,
             },
             label: {
-                autoRotate: false,
-                spacing: 20,
-                formatter: ({ value }) =>
-                    `${
-                        value === 'Net\nVariation'
-                            ? value
-                            : new Date(value).toLocaleString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                              })
-                    }`,
+                formatter: ({ value }) => {
+                    if (value === 'Monthly Net') {
+                        return value;
+                    }
+                    const date = new Date(value);
+                    return date.toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                    });
+                },
             },
         },
     ],
+    legend: {
+        position: {
+            floating: true,
+            placement: 'top-right',
+            xOffset: -20,
+            yOffset: 20,
+        },
+        maxWidth: 300,
+    },
     formatter: {
         y: '#{~f}%',
+        x: ({ value }) => {
+            if (value instanceof Date) {
+                return value.toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                });
+            }
+
+            return String(value);
+        },
     },
 };
 

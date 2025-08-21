@@ -1,8 +1,13 @@
-export function getData() {
+export interface DepartmentData {
+    department: string;
+    efficiency: number;
+}
+
+export function getData(): DepartmentData[] {
     return [
         {
             department: 'Development',
-            efficiency: 75,
+            efficiency: 78,
         },
         {
             department: 'Sales',
@@ -10,31 +15,31 @@ export function getData() {
         },
         {
             department: 'Research',
-            efficiency: 60,
+            efficiency: 62,
         },
         {
             department: 'Engineering',
-            efficiency: 60,
+            efficiency: 71,
         },
         {
             department: 'HR',
-            efficiency: 50,
+            efficiency: 54,
         },
         {
             department: 'Finance',
-            efficiency: 45,
+            efficiency: 48,
         },
         {
             department: 'Marketing',
-            efficiency: 35,
+            efficiency: 41,
         },
         {
             department: 'Operations',
-            efficiency: 29,
+            efficiency: 33,
         },
         {
             department: 'Legal',
-            efficiency: 37,
+            efficiency: 39,
         },
     ];
 }

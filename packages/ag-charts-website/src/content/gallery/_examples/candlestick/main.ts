@@ -2,28 +2,62 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-const numberFormatter = new Intl.NumberFormat('en-US', {
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+});
+
+const priceFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
 });
 
-const volumeNumberFormatter = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+const volumeFormatter = new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    compactDisplay: 'short',
 });
 
-const options: AgChartOptions<DataType> = {
+const percentFormatter = new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    signDisplay: 'always',
+});
+
+const data = getData();
+const avgVolume = data.reduce((sum, d) => sum + d.volume, 0) / data.length;
+
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    data,
+    theme: {
+        overrides: {
+            candlestick: {
+                series: {
+                    item: {
+                        up: {
+                            fillOpacity: 0.9,
+                            strokeWidth: 1,
+                        },
+                        down: {
+                            fillOpacity: 0.9,
+                            strokeWidth: 1,
+                        },
+                    },
+                },
+            },
+        },
+    },
     title: {
-        text: 'NASDAQ 100 (^NDX)',
+        text: 'NASDAQ 100 Index (^NDX)',
     },
     subtitle: {
-        text: 'Nasdaq GIDS - Nasdaq GIDS Historical Prices. Currency in USD',
-        spacing: 50,
+        text: 'Daily Price Movement with 20 & 50 Day Moving Averages',
     },
     footnote: {
-        text: 'Sep 11, 2023 - Mar 22, 2024',
+        text: 'Sep 11, 2023 - Mar 22, 2024 • Data: Historical Prices',
+        fontStyle: 'italic',
     },
     series: [
         {
@@ -38,27 +72,91 @@ const options: AgChartOptions<DataType> = {
             openName: 'Open',
             closeKey: 'close',
             closeName: 'Close',
+            yName: 'Price ($)',
             tooltip: {
-                renderer({ datum }) {
+                renderer({ datum, xKey }: any) {
+                    const change = datum.close - datum.open;
+                    const dayChange = ((datum.close - datum.open) / datum.open) * 100;
+                    const volumeClass = datum.volume > avgVolume ? 'high' : 'normal';
+                    const changeClass = change >= 0 ? 'positive' : 'negative';
+
                     return [
-                        `<div class="status-bar">`,
-                        `<div class="status-bar-row">`,
-                        `<span class="label">O</span>`,
-                        `<span class="value">${numberFormatter.format(datum.open)}</span>`,
-                        `<span class="label">H</span>`,
-                        `<span class="value">${numberFormatter.format(datum.high)}</span>`,
-                        `<span class="label">L</span>`,
-                        `<span class="value">${numberFormatter.format(datum.low)}</span>`,
-                        `<span class="label">C</span>`,
-                        `<span class="value">${numberFormatter.format(datum.close)}</span>`,
+                        `<div class="trading-tooltip">`,
+                        `<div class="date-header">${dateFormatter.format(datum[xKey])}</div>`,
+                        `<div class="price-section">`,
+                        `<div class="price-row">`,
+                        `<span class="label">Open:</span>`,
+                        `<span class="value">${priceFormatter.format(datum.open)}</span>`,
                         `</div>`,
-                        `<div class="status-bar-row">`,
-                        `<span class="label">Volume</span>`,
-                        `<span class="value">${volumeNumberFormatter.format(datum.volume)}</span>`,
+                        `<div class="price-row">`,
+                        `<span class="label">High:</span>`,
+                        `<span class="value">${priceFormatter.format(datum.high)}</span>`,
                         `</div>`,
+                        `<div class="price-row">`,
+                        `<span class="label">Low:</span>`,
+                        `<span class="value">${priceFormatter.format(datum.low)}</span>`,
+                        `</div>`,
+                        `<div class="price-row">`,
+                        `<span class="label">Close:</span>`,
+                        `<span class="value">${priceFormatter.format(datum.close)}</span>`,
+                        `</div>`,
+                        `</div>`,
+                        `<div class="change-section ${changeClass}">`,
+                        `<span class="change-icon">${change >= 0 ? '▲' : '▼'}</span>`,
+                        `<span class="change-value">${priceFormatter.format(Math.abs(change))}</span>`,
+                        `<span class="change-percent">(${dayChange.toFixed(2)}%)</span>`,
+                        `</div>`,
+                        `<div class="volume-section">`,
+                        `<span class="label">Volume:</span>`,
+                        `<span class="value volume-${volumeClass}">${volumeFormatter.format(datum.volume)}</span>`,
+                        `</div>`,
+                        datum.sma20
+                            ? `<div class="indicator-section">
+                            <div class="indicator-row">
+                                <span class="label">SMA 20:</span>
+                                <span class="value">${priceFormatter.format(datum.sma20)}</span>
+                            </div>
+                            ${
+                                datum.sma50
+                                    ? `<div class="indicator-row">
+                                <span class="label">SMA 50:</span>
+                                <span class="value">${priceFormatter.format(datum.sma50)}</span>
+                            </div>`
+                                    : ''
+                            }
+                        </div>`
+                            : '',
                         `</div>`,
                     ].join('');
                 },
+            },
+        },
+        {
+            type: 'line',
+            xKey: 'date',
+            yKey: 'sma20',
+            yName: '20 Day SMA',
+            strokeWidth: 2,
+            strokeOpacity: 0.8,
+            marker: {
+                enabled: false,
+            },
+            tooltip: {
+                enabled: false,
+            },
+        },
+        {
+            type: 'line',
+            xKey: 'date',
+            yKey: 'sma50',
+            yName: '50 Day SMA',
+            strokeWidth: 2,
+            strokeOpacity: 0.8,
+            marker: {
+                enabled: false,
+            },
+            tooltip: {
+                enabled: false,
             },
         },
     ],
@@ -73,39 +171,53 @@ const options: AgChartOptions<DataType> = {
             line: {
                 enabled: false,
             },
-            crossLines: [
-                {
-                    type: 'range',
-                    range: [new Date(2023, 9, 1), new Date(2023, 10, 1)],
-                    strokeWidth: 0,
-                    fillOpacity: 0.05,
-                },
-                {
-                    type: 'range',
-                    range: [new Date(2023, 11, 1), new Date(2024, 0, 1)],
-                    strokeWidth: 0,
-                    fillOpacity: 0.05,
-                },
-                {
-                    type: 'range',
-                    range: [new Date(2024, 1, 1), new Date(2024, 2, 1)],
-                    strokeWidth: 0,
-                    fillOpacity: 0.05,
-                },
-            ],
+            gridLine: {
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        fill: 'lightgray',
+                        fillOpacity: 0.2,
+                        lineDash: [2, 2],
+                    },
+                    { strokeWidth: 0 },
+                ],
+            },
         },
         {
             type: 'number',
             position: 'right',
+            keys: ['low', 'high', 'open', 'close', 'sma20', 'sma50'],
+            title: {
+                text: 'Price ($)',
+            },
             interval: { step: 500 },
+            gridLine: {
+                enabled: true,
+            },
         },
     ],
     tooltip: {
+        range: 'nearest',
         position: {
-            anchorTo: 'chart',
-            placement: 'top-left',
-            xOffset: 10,
-            yOffset: 60,
+            anchorTo: 'pointer',
+            placement: ['top', 'bottom'],
+        },
+    },
+    legend: {
+        position: {
+            placement: 'left-top',
+            floating: true,
+            xOffset: 20,
+            yOffset: 20,
+        },
+        item: {
+            paddingX: 16,
+            paddingY: 8,
+            marker: {
+                shape: 'square',
+                size: 12,
+            },
         },
     },
     formatter: {
@@ -117,4 +229,5 @@ const options: AgChartOptions<DataType> = {
         y: '#{,.0f}',
     },
 };
+
 AgCharts.create(options);

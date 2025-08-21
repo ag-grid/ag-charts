@@ -1,5 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import type { AgWaterfallSeriesItemStylerParams } from 'ag-charts-types';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -10,7 +9,7 @@ const formatter = new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 1,
 });
 
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -45,6 +44,10 @@ const options: AgChartOptions<DataType> = {
                     }),
                 },
             },
+            line: {
+                strokeWidth: 2,
+                lineDash: [3, 3],
+            },
         },
     ],
     axes: [
@@ -52,18 +55,33 @@ const options: AgChartOptions<DataType> = {
             type: 'number',
             position: 'left',
             interval: { values: [0, -148.1] },
+            gridLine: {
+                style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
+            },
         },
         {
             type: 'category',
             position: 'top',
             gridLine: { enabled: true },
+            bandHighlight: {
+                enabled: true,
+            },
         },
     ],
     legend: {
-        position: 'top',
+        position: {
+            floating: true,
+            placement: 'bottom-right',
+            xOffset: -20,
+            yOffset: -20,
+        },
     },
     formatter: {
-        y: (params) => `${formatter.format(params.value as number)}M`,
+        y: ({ value }) => {
+            if (typeof value !== 'number') return;
+            if (value === 0) return '£0';
+            return value > 0 ? `+£${value}M` : `-£${Math.abs(value)}M`;
+        },
     },
 };
 
