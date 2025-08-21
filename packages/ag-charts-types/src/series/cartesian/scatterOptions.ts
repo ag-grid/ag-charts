@@ -1,4 +1,9 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -23,6 +28,14 @@ export interface AgScatterSeriesTooltipRendererParams<TDatum = DatumDefault, TCo
 
 export type AgScatterSeriesLabelFormatterParams<TDatum = DatumDefault> = AgScatterSeriesOptionsKeys<TDatum> &
     AgScatterSeriesOptionsNames;
+
+export interface AgScatterSeriesStylerParams<TDatum, TContext>
+    extends AgScatterSeriesOptionsKeys<TDatum>,
+        SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        AgSeriesMarkerStyle {}
+
+export interface AgScatterSeriesStylerResult extends AgSeriesMarkerStyle {}
 
 export type AgScatterSeriesItemStylerParams<
     TDatum = DatumDefault,
@@ -53,6 +66,8 @@ export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext
     label?: AgScatterSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams<TDatum, TContext>>;
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgScatterSeriesStylerParams<TDatum, TContext>, AgScatterSeriesStylerResult>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgScatterSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
     /** Configuration for the Error Bars. */

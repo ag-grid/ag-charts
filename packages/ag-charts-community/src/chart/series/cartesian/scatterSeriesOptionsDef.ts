@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     boolean,
+    callbackDefs,
     constant,
     multiSeriesHighlightOptionsDef,
     number,
@@ -9,7 +10,11 @@ import {
     string,
     union,
 } from 'ag-charts-core';
-import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from 'ag-charts-types';
+import type {
+    AgScatterSeriesOptions,
+    AgScatterSeriesStylerResult,
+    AgScatterSeriesThemeableOptions,
+} from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import {
@@ -31,6 +36,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     },
     tooltip: tooltipOptionsDefs,
     errorBar: errorBarThemeableOptionsDefs,
+    styler: callbackDefs<AgScatterSeriesStylerResult>(markerOptionsDefs),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
