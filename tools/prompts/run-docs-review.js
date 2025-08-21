@@ -1143,6 +1143,10 @@ class DocsReviewOrchestrator {
     async runPhase1(page) {
         const prompt = `I need you to run Phase 1 of the documentation review for the page: ${page.path}
 
+EXECUTION CONTEXT: ORCHESTRATED
+Session ID: ${this.sessionId}
+REQUIREMENT: All MCP tools are REQUIRED - no fallbacks allowed
+
 This is the planning phase. Create a detailed, page-specific review plan using the expensive model for sophisticated reasoning.
 
 Please use the documentation review prompt from tools/prompts/commands/docs-review.md to create a comprehensive review plan. Focus on the Phase 1 requirements: read the documentation page, identify key validation targets, and create a structured plan with prioritized testing tasks.
@@ -1163,6 +1167,10 @@ ${buildPromptInstructions(PHASES.PLANNING, page.name, this.dryRun)}`;
         const planExists = fs.existsSync(planPath);
 
         const prompt = `I need you to run Phase 2 of the documentation review for the page: ${page.path}
+
+EXECUTION CONTEXT: ORCHESTRATED
+Session ID: ${this.sessionId}
+REQUIREMENT: All MCP tools are REQUIRED - no fallbacks allowed
 
 This is the execution phase. Execute the review plan systematically using the cheaper model for systematic tasks.
 
@@ -1256,6 +1264,10 @@ ${buildPromptInstructions(PHASES.EXECUTION, page.name, this.dryRun)}`;
 
     async createBatchSummary(batch, batchNum) {
         const prompt = `I need you to analyze a batch of documentation review reports and create a structured summary.
+
+EXECUTION CONTEXT: ORCHESTRATED
+Session ID: ${this.sessionId}
+REQUIREMENT: All MCP tools are REQUIRED - no fallbacks allowed
 
 This is batch ${batchNum} of the summary phase. You need to:
 
@@ -1361,6 +1373,10 @@ Read each report from: packages/ag-charts-website/src/content/docs/{pageName}/re
             .join('\n\n');
 
         const prompt = `I need you to create the final comprehensive summary report from the batch summaries.
+
+EXECUTION CONTEXT: ORCHESTRATED
+Session ID: ${this.sessionId}
+REQUIREMENT: All MCP tools are REQUIRED - no fallbacks allowed
 
 You have ${batchSummaries.length} batch summaries to aggregate. Your task:
 
