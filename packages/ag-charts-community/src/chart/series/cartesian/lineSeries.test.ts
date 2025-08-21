@@ -829,14 +829,16 @@ describe('LineSeries', () => {
                     styler.expect().nthCalledWithContext(6, c1);
                     styler.expect().nthCalledWithContext(7, c1);
                     styler.expect().nthCalledWithContext(8, c1);
-                    styler.expect().nthCalledWithContext(9, c2);
+                    styler.expect().nthCalledWithContext(9, c1);
                     styler.expect().nthCalledWithContext(10, c2);
                     styler.expect().nthCalledWithContext(11, c2);
                     styler.expect().nthCalledWithContext(12, c2);
                     styler.expect().nthCalledWithContext(13, c2);
                     styler.expect().nthCalledWithContext(14, c2);
                     styler.expect().nthCalledWithContext(15, c2);
-                    styler.expect().toHaveBeenCalledTimes(16);
+                    styler.expect().nthCalledWithContext(16, c2);
+                    styler.expect().nthCalledWithContext(17, c2);
+                    styler.expect().toHaveBeenCalledTimes(18);
                 });
                 test('params', () => {
                     const p1 = {
@@ -894,16 +896,17 @@ describe('LineSeries', () => {
                     expect(mock).nthCalledWith(5, params(p1, false, 'highlighted-series'));
                     expect(mock).nthCalledWith(6, params(p1, false, 'unhighlighted-series'));
                     expect(mock).nthCalledWith(7, params(p1, false, 'unhighlighted-item'));
-                    expect(mock).nthCalledWith(8, params(p1, true, 'none'));
-                    expect(mock).nthCalledWith(9, params(p1, false, 'none'));
-                    expect(mock).nthCalledWith(10, params(p2, true, 'none'));
-                    expect(mock).nthCalledWith(11, params(p2, false, 'highlighted-item'));
-                    expect(mock).nthCalledWith(12, params(p2, false, 'highlighted-series'));
-                    expect(mock).nthCalledWith(13, params(p2, false, 'unhighlighted-series'));
-                    expect(mock).nthCalledWith(14, params(p2, false, 'unhighlighted-item'));
-                    expect(mock).nthCalledWith(15, params(p2, true, 'none'));
+                    expect(mock).nthCalledWith(8, params(p1, false, 'none'));
+                    expect(mock).nthCalledWith(9, params(p1, true, 'none'));
+                    expect(mock).nthCalledWith(10, params(p1, false, 'none'));
+                    expect(mock).nthCalledWith(11, params(p2, true, 'none'));
+                    expect(mock).nthCalledWith(12, params(p2, false, 'highlighted-item'));
+                    expect(mock).nthCalledWith(13, params(p2, false, 'highlighted-series'));
+                    expect(mock).nthCalledWith(14, params(p2, false, 'unhighlighted-series'));
+                    expect(mock).nthCalledWith(15, params(p2, false, 'unhighlighted-item'));
                     expect(mock).nthCalledWith(16, params(p2, false, 'none'));
-                    styler.expect().toHaveBeenCalledTimes(16);
+                    expect(mock).nthCalledWith(17, params(p2, true, 'none'));
+                    styler.expect().toHaveBeenCalledTimes(18);
                 });
             });
         });

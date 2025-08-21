@@ -542,10 +542,13 @@ export class LineSeries extends CartesianSeries<
         let { nodeData } = opts;
         const { datumSelection } = opts;
         const { contextNodeData, processedData, axes, properties } = this;
-        const { marker } = properties;
+        const { marker, styler } = properties;
+
+        const markerStyle = styler ? this.getStyle(false).marker : undefined;
+
         const markersEnabled =
             contextNodeData?.crossFiltering === true ||
-            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
+            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
 
         nodeData = markersEnabled ? nodeData : [];
 

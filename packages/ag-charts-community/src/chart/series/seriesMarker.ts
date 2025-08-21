@@ -47,9 +47,6 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     lineDashOffset: number = 0;
 
     @Property
-    autoHide: boolean | undefined = undefined;
-
-    @Property
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
     itemStyler?: Styler<
         AgSeriesMarkerStylerParams<unknown, unknown> & RequireOptional<Omit<TParams, 'context'>>,

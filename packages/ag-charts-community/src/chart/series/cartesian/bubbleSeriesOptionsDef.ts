@@ -40,7 +40,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     styler: callbackDefs<AgBubbleSeriesStylerResult>(markerOptionsDefs),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
-    ...without(markerOptionsDefs, ['enabled', 'autoHide']),
+    ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 

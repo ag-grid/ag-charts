@@ -33,7 +33,6 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             xKey: 'timestamp',
             yKey: 'close',
-            marker: { enabled: false },
         },
     ],
     axes: [
@@ -55,19 +54,12 @@ function setSeries(type: string) {
     let series: AgCartesianSeriesOptions;
     switch (type) {
         case 'bar':
-            series = {
-                type,
-                xKey: 'timestamp',
-                yKey: 'close',
-            };
-            break;
         case 'area':
         case 'line':
             series = {
                 type,
                 xKey: 'timestamp',
                 yKey: 'close',
-                marker: { enabled: false },
             };
             break;
         case 'range-area':

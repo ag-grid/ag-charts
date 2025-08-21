@@ -33,14 +33,12 @@ const options: AgCartesianChartOptions = {
             type: 'area',
             xKey: 'timestamp',
             yKey: 'petrol',
-            marker: { enabled: false },
             stacked: true,
         },
         {
             type: 'area',
             xKey: 'timestamp',
             yKey: 'diesel',
-            marker: { enabled: false },
             stacked: true,
         },
     ],
@@ -63,40 +61,22 @@ function setSeries(type: string) {
     let series: AgCartesianSeriesOptions[];
     switch (type) {
         case 'bar':
-            series = [
-                {
-                    type: 'bar',
-                    xKey: 'timestamp',
-                    yKey: 'petrol',
-                    stacked: true,
-                },
-                {
-                    type: 'bar',
-                    xKey: 'timestamp',
-                    yKey: 'diesel',
-                    stacked: true,
-                },
-            ];
-            break;
         case 'area':
         case 'line':
-            series = [
+            const series: AgCartesianSeriesOptions[] = [
                 {
-                    type: type,
+                    type,
                     xKey: 'timestamp',
                     yKey: 'petrol',
-                    marker: { enabled: false },
                     stacked: true,
                 },
                 {
-                    type: type,
+                    type,
                     xKey: 'timestamp',
                     yKey: 'diesel',
-                    marker: { enabled: false },
                     stacked: true,
                 },
             ];
-            break;
         default:
             return;
     }

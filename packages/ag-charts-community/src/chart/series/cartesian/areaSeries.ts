@@ -1013,12 +1013,11 @@ export class AreaSeries extends CartesianSeries<
         const { contextNodeData, processedData, axes, properties } = this;
         const { marker, styler } = properties;
 
-        const resolvedMarkerEnabled: boolean = styler ? this.getStyle(false).marker.enabled : marker.enabled;
+        const markerStyle = styler ? this.getStyle(false).marker : undefined;
 
         const markersEnabled =
-            resolvedMarkerEnabled ||
             contextNodeData?.crossFiltering === true ||
-            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
+            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
 
         if (marker.isDirty()) {
             datumSelection.clear();
