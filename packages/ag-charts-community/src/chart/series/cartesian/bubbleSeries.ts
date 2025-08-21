@@ -1,8 +1,11 @@
 import { type Point, type RequireOptional, cachedTextMeasurer, clamp } from 'ag-charts-core';
 import {
+    type AgBubbleSeriesItemStylerParams,
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
     type AgBubbleSeriesOptionsKeys,
+    type AgBubbleSeriesStylerParams,
+    type AgBubbleSeriesStylerResult,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
     type FillOptions,
@@ -20,6 +23,7 @@ import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
+import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { formatValue } from '../../../util/format.util';
 import { rescaleVisibleRange } from '../../../util/visibleRange';
@@ -36,7 +40,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { HighlightState } from '../seriesProperties';
+import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
@@ -58,7 +62,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { computeMarkerFocusBounds, getMarkerStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, getMarkerOnlyStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
 
@@ -484,13 +488,15 @@ export class BubbleSeries extends CartesianSeries<
             }
         }
 
+        type StylerParams = AgBubbleSeriesStylerParams<unknown, unknown>;
+        type ItemStylerParams = AgBubbleSeriesItemStylerParams<unknown, unknown>;
         return {
             itemId: yKey,
             nodeData,
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: getMarkerStyles<unknown, AgBubbleSeriesOptionsKeys>(this, marker),
+            styles: getMarkerOnlyStyles<StylerParams, ItemStylerParams>(this, marker),
         };
     }
 
@@ -533,10 +539,16 @@ export class BubbleSeries extends CartesianSeries<
 
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
-                datum.style = this.getMarkerStyle(marker, datum, params, {
-                    isHighlight,
-                    resolveItemStylerMarkerPath: false,
-                });
+                datum.style = this.getMarkerStyle(
+                    marker,
+                    datum,
+                    params,
+                    {
+                        isHighlight,
+                        resolveItemStylerMarkerPath: false,
+                    },
+                    this.getStyle(false)
+                );
             }
         });
     }
@@ -643,8 +655,49 @@ export class BubbleSeries extends CartesianSeries<
         });
     }
 
-    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: HighlightState): never {
-        throw new Error('not implemented');
+    makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: HighlightState
+    ): AgBubbleSeriesStylerParams<unknown, unknown> {
+        const {
+            id: seriesId,
+            properties: {
+                size,
+                shape,
+                fill,
+                fillOpacity,
+                lineDash,
+                lineDashOffset,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                xKey,
+                yKey,
+                sizeKey,
+                labelKey,
+            },
+        } = this;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type ResultRules = CallbackParamRules<ReturnType<BubbleSeries['makeStylerParams']>>;
+        return {
+            highlightState,
+            highlighted,
+            size,
+            shape,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yKey,
+            sizeKey,
+            labelKey,
+        } satisfies ResultRules;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
@@ -759,11 +812,18 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(this.properties.marker, {}, undefined, {
-            isHighlight: false,
-            checkForHighlight: false,
-            resolveItemStylerMarkerPath: false,
-        });
+        const style = this.getStyle(false);
+        const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(
+            this.properties.marker,
+            {},
+            undefined,
+            {
+                isHighlight: false,
+                checkForHighlight: false,
+                resolveItemStylerMarkerPath: false,
+            },
+            style satisfies RequireOptional<AgSeriesMarkerStyle>
+        );
         return {
             marker,
         };
@@ -804,6 +864,34 @@ export class BubbleSeries extends CartesianSeries<
 
     protected nodeFactory() {
         return new Marker();
+    }
+
+    public getStyle(highlighted: boolean, highlightState?: HighlightState): Required<AgBubbleSeriesStylerResult> {
+        const { properties } = this;
+
+        let stylerResult: AgBubbleSeriesStylerResult = {};
+        if (properties.styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const cbResult = this.callWithContext(properties.styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            stylerResult = resolved ?? {};
+        }
+
+        return {
+            fill: stylerResult.fill ?? properties.fill!,
+            fillOpacity: stylerResult.fillOpacity ?? properties.fillOpacity,
+            lineDash: stylerResult.lineDash ?? properties.lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? properties.lineDashOffset,
+            shape: stylerResult.shape ?? properties.shape,
+            size: stylerResult.size ?? properties.size,
+            stroke: stylerResult.stroke ?? properties.stroke!,
+            strokeOpacity: stylerResult.strokeOpacity ?? properties.strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? properties.strokeWidth,
+        };
     }
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {

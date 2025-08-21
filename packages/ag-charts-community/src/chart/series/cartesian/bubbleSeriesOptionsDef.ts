@@ -2,6 +2,7 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
+    callbackDefs,
     constant,
     multiSeriesHighlightOptionsDef,
     number,
@@ -11,7 +12,11 @@ import {
     string,
     union,
 } from 'ag-charts-core';
-import type { AgBubbleSeriesOptions, AgBubbleSeriesThemeableOptions } from 'ag-charts-types';
+import type {
+    AgBubbleSeriesOptions,
+    AgBubbleSeriesStylerResult,
+    AgBubbleSeriesThemeableOptions,
+} from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import {
@@ -32,6 +37,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
         ...seriesLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
+    styler: callbackDefs<AgBubbleSeriesStylerResult>(markerOptionsDefs),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled', 'autoHide']),
