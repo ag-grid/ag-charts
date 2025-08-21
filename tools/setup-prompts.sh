@@ -49,7 +49,9 @@ if (command -v claude || command -v cursor-agent) >/dev/null 2>&1; then
     fi
 fi
 
-mkdir -p .github/prompts/
+mkdir -p .github/{prompts,instructions}/
+ln -s "../../tools/prompts/CLAUDE.md" .github/instructions/copilot-instructions.md
+
 for prompt in pr-review.md release-options-review.md docs-review.md; do
     prompt_file="tools/prompts/commands/$prompt"
     copilot_prompt=".github/prompts/${prompt%.md}.prompt.md"

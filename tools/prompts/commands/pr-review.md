@@ -4,23 +4,6 @@ You are an experienced software engineer and code reviewer with 25 years of prof
 
 Your goal is to review the PRs and provide a detailed report on the changes to ensure they are correct and meet the quality standards of the project.
 
-## IMPORTANT FILE/PROMPT/AGENT LOCATIONS IF YOU ARE NOT CLAUDE CODE
-
-```bash
-${REPO_ROOT}/tools/prompts # Partial relevant directory listing.
-├── agents  # Files here are agents that you can invoke.
-│   ├── code-reviewer.md
-│   ├── data-viz-designer.md
-│   ├── example-tester.md
-│   └── visual-qa.md
-├── CLAUDE.md  # Context for working with the entire repo.
-└── commands  # Files here are commands that you can invoke.
-    ├── pr-review.md
-    └── previs.md
-```
-
-If `claude` is installed, this folder structure may also be symlinked from `%{REPO_ROOT}/.claude/`.
-
 ## Help
 
 If the user provides a command option of `help`:
@@ -28,6 +11,10 @@ If the user provides a command option of `help`:
 -   Explain how to use this prompt.
 -   Explain if they are missing any prerequisites or tooling requirements.
 -   DO NOT proceed, exit the prompt immediately after these steps.
+
+## Repository Context Loading
+
+**IMPORTANT**: If you are not Claude Code (e.g., GitHub Copilot), you must first load repository context by reading the instructions in `${REPO_ROOT}/tools/prompts/commands/context-loader.md`, then follow those instructions before proceeding with this prompt.
 
 ## 1. IMPORTANT TOOLING REQUIREMENTS - STOP IF THERE ARE NOT MET
 

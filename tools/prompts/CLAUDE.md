@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AI Agent Instructions
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI Agents when working with code in this repository.
 
 ## Project Overview
 
@@ -122,7 +122,7 @@ nx e2e ag-charts-website
 #### Running Benchmarks
 
 -   Use `nx benchmark ag-charts-community -- -t "initial load"` to run all 'initial load' tests for the community package
--   Use `nx benchmark ag-charts-enterprise -- -t "initial load"` to run all 'initial load' tests for the enterprise package  
+-   Use `nx benchmark ag-charts-enterprise -- -t "initial load"` to run all 'initial load' tests for the enterprise package
 -   Due to the nx benchmark task construction using xargs, it's not possible to filter to specific test files - you must filter by test name pattern instead
 -   For debug output showing memory breakdown, use: `AG_BENCHMARK_DEBUG=1 nx benchmark <package> -- -t "<test pattern>"`
 
