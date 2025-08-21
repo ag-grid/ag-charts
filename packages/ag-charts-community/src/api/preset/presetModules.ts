@@ -173,6 +173,9 @@ const commonSparklineOptionsDef: OptionsDefs<
     yKey: string,
 };
 
+// @ts-expect-error undocumented option
+commonSparklineOptionsDef.overrideDevicePixelRatio = undocumented(number);
+
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
     name: 'price-volume',
