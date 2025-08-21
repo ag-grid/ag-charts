@@ -1044,7 +1044,8 @@ export abstract class Series<
                 resolveStylerMarkerPath === 'marker'
                     ? ['series', `${this.declarationOrder}`, 'marker']
                     : ['series', `${this.declarationOrder}`];
-            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, defaultOverrideStyle);
+            const resolveOpt = { permissivePath: true };
+            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, defaultOverrideStyle, resolveOpt);
             if (resolved) {
                 defaultOverrideStyle = { ...resolved, size: resolved.size ?? defaultOverrideStyle.size };
             }

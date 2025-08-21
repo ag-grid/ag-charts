@@ -303,10 +303,14 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     resolvePartial(
         path: Array<string>,
         partialOptions?: PlainObject,
-        opts?: { proxyPaths?: Record<string, Array<string>>; pick?: boolean }
+        opts?: {
+            permissivePath?: boolean;
+            pick?: boolean;
+            proxyPaths?: Record<string, Array<string>>;
+        }
     ) {
         if (!partialOptions) return;
-        const { proxyPaths } = opts ?? {};
+        const { permissivePath = false, proxyPaths } = opts ?? {};
 
         const partialKeys = Object.keys(partialOptions);
 
@@ -319,7 +323,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         const parentVertex = this.findVertexAtPath(path);
         if (!parentVertex) {
-            throw new Error(`Could not find vertex in OptionsGraph at path [${path.join('.')}].`);
+            if (permissivePath) {
+                return undefined;
+            } else {
+                throw new Error(`Could not find vertex in OptionsGraph at path [${path.join('.')}].`);
+            }
         }
         const pathArrayVertex = this.findNeighbour(parentVertex, PATH_ARRAY_EDGE);
 
