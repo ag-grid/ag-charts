@@ -15,7 +15,7 @@ describe('range bar benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 205, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRetainedSizeMB: 224, expectedCanvasCount: 2, autoSnapshot: false },
         async () => {
             await ctx.create();
         },
@@ -30,7 +30,7 @@ describe('range bar benchmark', () => {
         benchmark(
             '20x zoom',
             ctx,
-            { expectedRelativeMB: 6.5, expectedCanvasCount: 4, autoSnapshot: false },
+            { expectedRelativeMB: 1, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
                 for (let i = 0; i < 20; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);

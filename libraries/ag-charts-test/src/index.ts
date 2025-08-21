@@ -4,4 +4,5 @@ export * from './canvas/to-match-image';
 export * from './examples/load-example';
 export * from './console/mock-console';
 export * from './benchmarks/timing';
+export * from './benchmarks/size-of';
 export * from './caster';

@@ -17,6 +17,7 @@ import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
+import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { simpleMemorize2 } from '../../../util/memo';
@@ -76,6 +77,7 @@ import {
 } from './cartesianSeries';
 import { calculateDataDiff } from './diffUtil';
 import { areScalingEqual } from './scaling';
+import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -104,6 +106,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
     styles: SeriesNodeStyleContext<AgBarSeriesStyle>;
+    segments?: Segment[];
 }
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
@@ -255,6 +258,10 @@ export class BarSeries extends AbstractBarSeries<
         this.animationState.transition('updateData');
     }
 
+    private yCumulativeKey(dataModel: DataModel<any, any>) {
+        return dataModel.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
 
@@ -269,7 +276,7 @@ export class BarSeries extends AbstractBarSeries<
             return this.padBandExtent(keys);
         }
 
-        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.yCumulativeKey(dataModel);
         let yExtent = this.domainForClippedRange(direction, [yKey], 'xValue');
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
@@ -290,7 +297,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.yCumulativeKey(this.dataModel!);
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
@@ -300,7 +307,7 @@ export class BarSeries extends AbstractBarSeries<
         yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): { x: [number, number]; y: [number, number] | undefined } | undefined {
-        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.yCumulativeKey(this.dataModel!);
         return this.zoomFittingVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
@@ -309,7 +316,7 @@ export class BarSeries extends AbstractBarSeries<
         yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
-        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.yCumulativeKey(this.dataModel!);
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
@@ -683,6 +690,14 @@ export class BarSeries extends AbstractBarSeries<
             }
         }
 
+        // @todo(AG-8108): move to theme
+        const style = this.getStyle(false);
+        const { width, height } = this.ctx.scene;
+        const segments = calculateSegments(this.properties.segmentation, xAxis, yAxis, this.chart!.seriesRect!, {
+            width,
+            height,
+        })?.map((segment) => ({ ...segment, ...mergeDefaults(segment, style) }));
+
         return {
             itemId: yKey,
             nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
@@ -691,6 +706,7 @@ export class BarSeries extends AbstractBarSeries<
             visible: this.visible || animationEnabled,
             groupScale: this.getScaling(this.groupScale),
             styles: getItemStyles(this.getItemStyle.bind(this)),
+            segments,
         };
     }
 
@@ -766,10 +782,9 @@ export class BarSeries extends AbstractBarSeries<
 
         const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
-        const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
-            xDomain: this.getSeriesDomain(ChartAxisDirection.X),
-            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
-        }))!;
+        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
+        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData);
+
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
@@ -863,8 +878,11 @@ export class BarSeries extends AbstractBarSeries<
         datumSelection: Selection<BarShape, BarNodeDatum>;
         isHighlight: boolean;
     }) {
-        opts.datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight);
+        const { datumSelection, isHighlight } = opts;
+        datumSelection.each((node, datum) => {
+            if (!datumSelection.isGarbage(node)) {
+                datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+            }
         });
     }
 

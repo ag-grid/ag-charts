@@ -3,6 +3,7 @@ import type { AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
+import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeStyleContext } from '../series';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -51,6 +52,7 @@ export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContex
     strokeData: LineStrokePathDatum;
     crossFiltering: boolean;
     styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    segments?: Segment[];
 }
 
 export function interpolatePoints(
@@ -116,6 +118,13 @@ export function prepareLinePathStrokeAnimationFns(
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
 
+interface PathAnimation {
+    phase: 'none' | 'initial' | 'remove' | 'update' | 'add' | 'trailing' | 'end';
+    segments?: Array<unknown>;
+    start?: { visible: boolean };
+    finish?: { visible: boolean };
+}
+
 export function prepareLinePathPropertyAnimation(
     status: NodeUpdateState,
     visibleToggleMode: 'fade' | 'none'
@@ -123,31 +132,43 @@ export function prepareLinePathPropertyAnimation(
     const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
 
     const result = {
-        fromFn: (_path: Path) => {
-            let mixin;
-            if (status === 'removed') {
-                mixin = { finish: { visible: false } };
-            } else if (status === 'added') {
-                mixin = { start: { visible: true } };
-            } else {
-                mixin = {};
+        fromFn(path: Path, datum: any) {
+            const out: PathAnimation = { phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[phase] };
+
+            const segments = path.previousDatum ?? datum;
+            if (segments != null) {
+                out.segments = segments;
             }
-            return { phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[phase], ...mixin };
+
+            if (status === 'removed') {
+                out.finish = { visible: false };
+            } else if (status === 'added') {
+                out.start = { visible: true };
+            }
+
+            return out;
         },
-        toFn: (_path: Path) => {
-            return { phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[phase] };
+        toFn(_path: Path, datum: any) {
+            const out: PathAnimation = { phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[phase] };
+
+            const segments = datum;
+            if (segments != null) {
+                out.segments = segments;
+            }
+
+            return out;
         },
     };
 
     if (visibleToggleMode === 'fade') {
         return {
-            fromFn: (path: Path) => {
+            fromFn(path: Path, datum) {
                 const opacity = status === 'added' ? 0 : path.opacity;
-                return { opacity, ...result.fromFn(path) };
+                return { opacity, ...result.fromFn(path, datum) };
             },
-            toFn: (path: Path) => {
+            toFn(path: Path, datum) {
                 const opacity = status === 'removed' ? 0 : 1;
-                return { opacity, ...result.toFn(path) };
+                return { opacity, ...result.toFn(path, datum) };
             },
         };
     }

@@ -958,4 +958,321 @@ describe('LineSeries', () => {
             });
         });
     });
+
+    describe('segmentation', () => {
+        it('should render line series with segmentation styling on x-axis', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 25 },
+                    { x: 4, y: 30 },
+                    { x: 5, y: 35 },
+                    { x: 6, y: 40 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 0, stop: 2, stroke: 'red', strokeWidth: 3 },
+                                { start: 2, stop: 4, stroke: 'blue', strokeWidth: 2 },
+                                { start: 4, stroke: 'green', strokeWidth: 4 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render line series with segmentation styling on y-axis', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 15 },
+                    { x: 'D', y: 25 },
+                    { x: 'E', y: 30 },
+                    { x: 'F', y: 35 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                { start: 10, stop: 20, stroke: 'orange', strokeWidth: 2, lineDash: [5, 5] },
+                                { start: 20, stop: 30, stroke: 'purple', strokeWidth: 3 },
+                                { start: 30, stroke: 'cyan', strokeWidth: 4, lineDash: [10, 2] },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render multiple line series with different segmentation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y1: 10, y2: 5 },
+                    { x: 1, y1: 20, y2: 15 },
+                    { x: 2, y1: 15, y2: 25 },
+                    { x: 3, y1: 25, y2: 20 },
+                    { x: 4, y1: 30, y2: 35 },
+                    { x: 5, y1: 35, y2: 30 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y1',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 0, stop: 2.5, stroke: 'red', strokeWidth: 2 },
+                                { start: 2.5, stroke: 'blue', strokeWidth: 3 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 0, stop: 3, stroke: 'green', strokeWidth: 2, lineDash: [3, 3] },
+                                { start: 3, stroke: 'purple', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render line series with dashed segmentation from specific month', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { month: 'Jan', value: 30 },
+                    { month: 'Feb', value: 72 },
+                    { month: 'Mar', value: 105 },
+                    { month: 'Apr', value: 130 },
+                    { month: 'May', value: 145 },
+                    { month: 'Jun', value: 175 },
+                    { month: 'Jul', value: 140 },
+                    { month: 'Aug', value: 150 },
+                    { month: 'Sep', value: 220 },
+                    { month: 'Oct', value: 195 },
+                    { month: 'Nov', value: 95 },
+                    { month: 'Dec', value: 55 },
+                ],
+                title: {
+                    text: 'Zone with dash style',
+                },
+                subtitle: {
+                    text: 'Dotted line typically signifies prognosis',
+                },
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'value',
+                        yName: 'Series 1',
+                        marker: {
+                            enabled: true,
+                            size: 11,
+                        },
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'Sep',
+                                    strokeWidth: 3,
+                                    lineDash: [3, 9],
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    {
+                        type: 'category',
+                        position: 'bottom',
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                        title: {
+                            text: 'Values',
+                        },
+                        nice: true,
+                    },
+                ],
+                legend: {
+                    position: 'bottom',
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render line series with financial data segmentation and special marker', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { month: "Jan '24", value: 13.5e6 },
+                    { month: "Feb '24", value: 12.9e6 },
+                    { month: "Mar '24", value: 12.2e6 },
+                    { month: "Apr '24", value: 11.6e6 },
+                    { month: "May '24", value: 10.2e6 },
+                    { month: "Jun '24", value: 9.0e6 },
+                    { month: "Jul '24", value: 8.8e6 },
+                    { month: "Aug '24", value: 8.3e6 },
+                    { month: "Sep '24", value: 8.0e6 },
+                    { month: "Oct '24", value: 7.6e6 },
+                    { month: "Nov '24", value: 7.2e6 },
+                    { month: "Dec '24", value: 7.0e6 },
+                    { month: "Jan '25", value: 17.8e6 },
+                    { month: "Feb '25", value: 17.0e6 },
+                    { month: "Mar '25", value: 16.0e6 },
+                    { month: "Apr '25", value: 15.2e6 },
+                    { month: "May '25", value: 14.0e6 },
+                    { month: "Jun '25", value: 12.5e6 },
+                    { month: "Jul '25", value: 9.0e6 },
+                ],
+                padding: { top: 40, right: 10, bottom: 40, left: 60 },
+                title: { text: 'Cash' },
+                subtitle: {
+                    text: '$8.241M • LAST CLOSE',
+                    color: 'rgb(185, 192, 204)',
+                    fontSize: 15,
+                    fontWeight: 'bold',
+                },
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'value',
+                        yName: 'Cash',
+                        stroke: '#3b3743',
+                        strokeWidth: 3,
+                        strokeOpacity: 1,
+                        marker: {
+                            itemStyler: ({ datum }) => {
+                                if (datum.month === "Aug '24") {
+                                    return {
+                                        size: 15,
+                                        fill: '#3b3743',
+                                        strokeWidth: 3,
+                                        stroke: '#faf1f8',
+                                    };
+                                }
+                                return {
+                                    size: 0,
+                                };
+                            },
+                        },
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: "Aug '24",
+                                    stroke: 'rgb(92, 123, 187)',
+                                    lineDash: [8, 6],
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    {
+                        type: 'category',
+                        position: 'bottom',
+                        paddingOuter: 0.8,
+                        interval: {
+                            values: ["Jan '24", "Apr '24", "Jul '24", "Oct '24", "Jan '25", "Apr '25", "Jul '25"],
+                        },
+                        line: {
+                            enabled: false,
+                        },
+                        crossLines: [
+                            {
+                                type: 'range',
+                                range: ["Jan '24", "Jul '25"],
+                                fill: '#faf1f8',
+                                fillOpacity: 0.7,
+                                strokeWidth: 0,
+                            },
+                        ],
+                        label: {
+                            color: 'rgb(185, 192, 204)',
+                            fontSize: 15,
+                            fontWeight: 'bold',
+                        },
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                        nice: false,
+                        min: 0,
+                        max: 18e6,
+                        interval: { values: [0, 4.5e6, 9e6, 13.5e6, 18e6] },
+                        label: {
+                            color: 'rgb(185, 192, 204)',
+                            fontSize: 15,
+                            fontWeight: 'bold',
+                            formatter: ({ value }) => `${value / 1e6}M`,
+                        },
+                        gridLine: {
+                            style: [
+                                {
+                                    stroke: 'grey',
+                                    lineDash: [4, 6],
+                                },
+                            ],
+                        },
+                        line: {
+                            enabled: false,
+                        },
+                    },
+                ],
+                legend: { enabled: false },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

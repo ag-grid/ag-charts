@@ -56,8 +56,13 @@ export class OhlcBaseNode<D = any> extends Path<D> implements _ModuleSupport.Dis
 
         if (crisp && width > 1) {
             centerX = this.align(centerX);
-            yOpen = this.align(yOpen);
-            yClose = this.align(yClose);
+            if (yOpen <= yClose) {
+                yOpen = this.align(yOpen);
+                yClose = yOpen + this.align(yOpen, yClose - yOpen);
+            } else {
+                yOpen = yClose + this.align(yClose, yOpen - yClose);
+                yClose = this.align(yClose);
+            }
 
             // AG-13372 (1.25dpr comment)
             const halfWidth = this.align(width / 2);

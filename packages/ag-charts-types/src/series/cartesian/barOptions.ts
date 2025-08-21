@@ -13,6 +13,8 @@ import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgMultiSeriesHighlightOptions,
+    AgSeriesSegmentation,
+    AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -102,6 +104,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     errorBar?: AgErrorBarThemeableOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgBarHighlightStyleOptions, AgBarHighlightStyleOptions>;
+    segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
 }
 
 export interface AgBarHighlightStyleOptions extends AgBarSeriesStyle {

@@ -3,6 +3,7 @@ import { isDefined } from 'ag-charts-core';
 import {
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgLineSeriesLabelFormatterParams,
+    type AgLineSeriesMarkerItemStylerParams,
     type AgLineSeriesOptions,
     type AgLineSeriesStylerParams,
     type AgLineSeriesStylerResult,
@@ -17,6 +18,7 @@ import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
+import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
@@ -74,6 +76,7 @@ import {
     resetMarkerPositionFn,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { calculateSegments } from './util';
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
@@ -114,6 +117,7 @@ export class LineSeries extends CartesianSeries<
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
             datumSelectionGarbageCollection: false,
+            segmentedDataNodes: false,
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
@@ -455,6 +459,16 @@ export class LineSeries extends CartesianSeries<
         const crossFiltering =
             selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;
 
+        const { width, height } = this.ctx.scene;
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            { width, height },
+            false
+        );
+
         return {
             itemId: yKey,
             nodeData,
@@ -464,6 +478,7 @@ export class LineSeries extends CartesianSeries<
             visible: this.visible,
             crossFiltering,
             styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
+            segments,
         };
     }
 
@@ -471,7 +486,7 @@ export class LineSeries extends CartesianSeries<
         return this.properties.marker.isDirty();
     }
 
-    protected override updatePathNodes(opts: { paths: Path[]; visible: boolean; animationEnabled: boolean }) {
+    protected override updatePathNodes(opts: { paths: SegmentedPath[]; visible: boolean; animationEnabled: boolean }) {
         const {
             paths: [lineNode],
             visible,
@@ -482,7 +497,24 @@ export class LineSeries extends CartesianSeries<
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
 
+        const segments = this.contextNodeData?.segments;
+
+        // @todo(AG-8108): move to theme
+        const lineStyle = {
+            fill: undefined,
+            stroke,
+            strokeWidth,
+            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR : 1),
+            lineDash,
+            lineDashOffset,
+        };
+        const lineSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
+            clipRect,
+            ...mergeDefaults(segmentStyle, lineStyle),
+        }));
+
         lineNode.setProperties({
+            segments: lineSegments,
             fill: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -493,6 +525,8 @@ export class LineSeries extends CartesianSeries<
             lineDash,
             lineDashOffset,
         });
+
+        lineNode.datum = lineSegments;
 
         if (!animationEnabled) {
             lineNode.visible = visible;
@@ -528,21 +562,24 @@ export class LineSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { xKey, yKey, marker } = this.properties;
+        const { marker } = this.properties;
         const stylerStyle = this.getStyle(isHighlight);
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
-        datumSelection.each((_, datum) => {
-            const { xValue, yValue } = datum;
-
-            const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
-            datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
+        datumSelection.each((node, datum) => {
+            if (!datumSelection.isGarbage(node)) {
+                const params = this.makeItemStylerParams(
+                    this.dataModel!,
+                    this.processedData!,
+                    datum.datumIndex,
+                    stylerStyle.marker
+                );
+                datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                });
+            }
         });
     }
 
@@ -650,6 +687,27 @@ export class LineSeries extends CartesianSeries<
         } satisfies ResultRules;
     }
 
+    private makeItemStylerParams(
+        dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        style: Required<AgSeriesMarkerStyle>
+    ): AgLineSeriesMarkerItemStylerParams<unknown, unknown> {
+        const { xKey, yKey } = this.properties;
+
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
+        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+
+        return {
+            ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
+            xValue,
+            yValue,
+            ...style,
+        } satisfies CallbackParamRules<AgLineSeriesMarkerItemStylerParams<unknown, unknown>>;
+    }
+
     private makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
         const { xKey, xName, yKey, yName, legendItemName } = this.properties;
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
@@ -669,18 +727,15 @@ export class LineSeries extends CartesianSeries<
 
         if (xValue == null) return;
 
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
+        const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
         const format = this.getMarkerStyle(
             this.properties.marker,
             { datumIndex, datum },
             params,
-            {
-                isHighlight: false,
-            },
-            this.getStyle(false).marker
+            { isHighlight: false },
+            stylerStyle.marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(
@@ -933,15 +988,18 @@ export class LineSeries extends CartesianSeries<
     }
 
     public getFormattedMarkerStyle(datum: LineNodeDatum) {
-        const { xKey, yKey } = this.properties;
-        const { xValue, yValue } = datum;
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(
+            this.dataModel!,
+            this.processedData!,
+            datum.datumIndex,
+            stylerStyle.marker
+        );
+
         return this.getMarkerStyle(
             this.properties.marker,
             datum,
-            datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
+            params,
             { isHighlight: true },
             undefined,
             stylerStyle

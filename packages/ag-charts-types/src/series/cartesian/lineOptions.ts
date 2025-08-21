@@ -10,6 +10,8 @@ import type {
     AgBaseSeriesOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
+    AgSeriesLineSegmentOptions,
+    AgSeriesSegmentation,
 } from '../seriesOptions';
 import type {
     AgCartesianSeriesTooltipRendererParams,
@@ -47,6 +49,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     connectMissingData?: boolean;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgLineHighlightStyleOptions>;
+    segmentation?: AgSeriesSegmentation<AgSeriesLineSegmentOptions>;
 }
 
 export interface AgLineHighlightStyleOptions extends StrokeOptions, LineDashOptions {
@@ -78,7 +81,8 @@ export interface AgLineSeriesStylerResult extends StrokeOptions, LineDashOptions
 
 export interface AgLineSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgLineSeriesOptionsKeys<TDatum>,
-        ContextCallbackParams<TContext> {
+        ContextCallbackParams<TContext>,
+        Required<AgSeriesMarkerStyle> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */

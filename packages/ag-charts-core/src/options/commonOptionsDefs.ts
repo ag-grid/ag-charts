@@ -10,6 +10,9 @@ import type {
     AgImageFill,
     AgLineHighlightStyleOptions,
     AgPatternColor,
+    AgSeriesLineSegmentOptions,
+    AgSeriesSegmentation,
+    AgSeriesShapeSegmentOptions,
     BorderOptions,
     CssColor,
     FillOptions,
@@ -27,10 +30,12 @@ import {
     and,
     arrayLength,
     arrayOf,
+    arrayOfDefs,
     attachDescription,
     boolean,
     color,
     constant,
+    defined,
     number,
     optionsDefs,
     or,
@@ -288,6 +293,30 @@ export function multiSeriesHighlightOptionsDef<I, S>(itemHighlightOptionsDef: I,
         bringToFront: boolean,
     };
 }
+
+export const shapeSegmentOptions: OptionsDefs<AgSeriesShapeSegmentOptions> = {
+    start: defined,
+    stop: defined,
+    ...strokeOptionsDef,
+    ...fillOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+export const lineSegmentOptions: OptionsDefs<AgSeriesLineSegmentOptions> = {
+    start: defined,
+    stop: defined,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+export const shapeSegmentation: OptionsDefs<AgSeriesSegmentation<AgSeriesShapeSegmentOptions>> = {
+    key: required(union('x', 'y')),
+    segments: arrayOfDefs<AgSeriesShapeSegmentOptions>(shapeSegmentOptions, 'path segments array'),
+};
+export const lineSegmentation: OptionsDefs<AgSeriesSegmentation<AgSeriesLineSegmentOptions>> = {
+    key: required(union('x', 'y')),
+    segments: arrayOfDefs<AgSeriesLineSegmentOptions>(lineSegmentOptions, 'path segments array'),
+};
 
 export const googleFont = optionsDefs<GoogleFontFamily>({ googleFont: string }, 'google font');
 export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(string, googleFont)));

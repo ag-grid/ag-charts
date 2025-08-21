@@ -6,6 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AG Charts is a sophisticated TypeScript monorepo providing canvas-based JavaScript charting library with both community (MIT) and enterprise (commercial) versions. Built with Nx, it supports React, Angular, and Vue 3 frameworks.
 
+## Technology Stack
+
+For detailed information about preferred technologies and architectural constraints, see [`tools/prompts/technology-stack.md`](tools/prompts/technology-stack.md).
+
+**Key Constraint:** The main AG Charts libraries must have ZERO third-party runtime dependencies.
+
 ## Repository Conventions
 
 -   The main branch of this repo is `latest`
@@ -112,6 +118,13 @@ nx e2e ag-charts-website
 -   Benchmarks include visual snapshot comparisons by default
 -   The `BENCHMARK_SOFT_FAIL` environment variable is used in CI to disable snapshot comparisons for performance-only benchmark runs
 -   Enterprise benchmarks re-export community benchmark utilities via `packages/ag-charts-enterprise/benchmarks/benchmark.ts`
+
+#### Running Benchmarks
+
+-   Use `nx benchmark ag-charts-community -- -t "initial load"` to run all 'initial load' tests for the community package
+-   Use `nx benchmark ag-charts-enterprise -- -t "initial load"` to run all 'initial load' tests for the enterprise package  
+-   Due to the nx benchmark task construction using xargs, it's not possible to filter to specific test files - you must filter by test name pattern instead
+-   For debug output showing memory breakdown, use: `AG_BENCHMARK_DEBUG=1 nx benchmark <package> -- -t "<test pattern>"`
 
 ## Technical Requirements
 
