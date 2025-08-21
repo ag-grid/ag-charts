@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgPieSeriesOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -14,7 +14,7 @@ const usdFullFormatter = new Intl.NumberFormat('en-US', {
 const data = getData();
 const totalGDP = data.reduce((sum, d) => sum + d.population * d.gdpPerCapita, 0);
 
-const options: AgChartOptions<DataType> = {
+const options: AgPolarChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Baltic States Economic Comparison',
@@ -42,16 +42,6 @@ const options: AgChartOptions<DataType> = {
                 avoidCollisions: true,
             },
             strokeWidth: 2,
-            innerRadiusRatio: 0.2,
-            innerLabels: [
-                {
-                    text: 'Total GDP',
-                    margin: 10,
-                },
-                {
-                    text: usdShortFormatter.format(totalGDP),
-                },
-            ],
             tooltip: {
                 renderer: ({ datum }) => {
                     const gdp = datum.population * datum.gdpPerCapita;
@@ -70,7 +60,7 @@ const options: AgChartOptions<DataType> = {
                     };
                 },
             },
-        } as AgPieSeriesOptions<DataType>,
+        },
     ],
     legend: {
         enabled: false,

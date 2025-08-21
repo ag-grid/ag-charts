@@ -15,8 +15,8 @@ const sharedSeriesOptions: AgPolarSeriesOptions = {
     fillOpacity: 0.9,
     strokeWidth: 2,
     strokeOpacity: 1,
-    highlightStyle: {
-        item: {
+    highlight: {
+        highlightedItem: {
             fillOpacity: 1,
             strokeWidth: 3,
         },

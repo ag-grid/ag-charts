@@ -27,8 +27,8 @@ const options: AgCartesianChartOptions = {
         yHighName: 'Import',
         yName: country,
         cornerRadius: 4,
-        highlightStyle: {
-            item: {
+        highlight: {
+            highlightedItem: {
                 strokeWidth: 2,
             },
         },

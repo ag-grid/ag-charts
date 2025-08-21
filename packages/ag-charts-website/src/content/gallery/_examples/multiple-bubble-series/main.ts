@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getCoffeeIndustryData, getFoodIndustryData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'The Food & Coffee Industries',
@@ -37,12 +37,6 @@ const options: AgChartOptions = {
             fillOpacity: 0.75,
             strokeWidth: 2,
             strokeOpacity: 0.9,
-            shadow: {
-                enabled: true,
-                xOffset: 2,
-                yOffset: 2,
-                blur: 5,
-            },
             label: {
                 enabled: true,
                 formatter: (params: any) => {
@@ -73,7 +67,7 @@ const options: AgChartOptions = {
                     ],
                 }),
             },
-        } as any,
+        },
         {
             type: 'bubble',
             data: getCoffeeIndustryData(),
@@ -89,12 +83,6 @@ const options: AgChartOptions = {
             fillOpacity: 0.75,
             strokeWidth: 2,
             strokeOpacity: 0.9,
-            shadow: {
-                enabled: true,
-                xOffset: 2,
-                yOffset: 2,
-                blur: 5,
-            },
             label: {
                 enabled: true,
                 formatter: (params: any) => {
@@ -125,7 +113,7 @@ const options: AgChartOptions = {
                     ],
                 }),
             },
-        } as any,
+        },
     ],
     axes: [
         {

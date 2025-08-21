@@ -33,8 +33,8 @@ const options: AgCartesianChartOptions<DataType> = {
             marker: {
                 enabled: false,
             },
-            highlightStyle: {
-                item: {
+            highlight: {
+                highlightedItem: {
                     strokeWidth: 3,
                 },
             },
