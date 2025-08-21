@@ -27,8 +27,6 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupp
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
 
-    minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
-
     override get primaryLabel(): _ModuleSupport.AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }

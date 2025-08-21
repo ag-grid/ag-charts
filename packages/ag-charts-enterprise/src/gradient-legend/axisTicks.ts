@@ -30,7 +30,7 @@ interface DataProvider {
     data: _ModuleSupport.GradientLegendDatum[];
 }
 
-export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
+export class AxisTicks {
     static readonly DefaultTickCount = 5;
     static readonly DefaultMinSpacing = 10;
 

@@ -5,7 +5,6 @@ import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/extent';
 import { Property } from '../../util/properties';
-import { tickFormat } from '../../util/ticks';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
@@ -34,14 +33,6 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 
         return { domain: extent, clipped };
-    }
-
-    protected override createDatumFormatter(
-        _domain: number[],
-        ticks: number[]
-    ): ((value: any) => string | undefined) | undefined {
-        const { format } = this.label;
-        return typeof format === 'number' ? tickFormat(ticks, format) : undefined;
     }
 
     override tickFormatParams(_domain: number[], _ticks: number[], fractionDigits?: number): AxisTickFormatParams {

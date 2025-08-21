@@ -1,4 +1,4 @@
-import type { Size } from '../boxBounds';
+import type { Point, Size } from '../boxBounds';
 
 /**
  * Calculates the maximum width and height of an inner rectangle that can be
@@ -39,5 +39,24 @@ export function getMaxInnerRectSize(
     return {
         width: Math.abs((W * cos - H * sin) / denominator),
         height: Math.abs((H * cos - W * sin) / denominator),
+    };
+}
+
+export function rotatePoint(
+    x: number,
+    y: number,
+    angle: number, // in radians
+    originX: number = 0,
+    originY: number = 0
+): Point {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+
+    const dx = x - originX;
+    const dy = y - originY;
+
+    return {
+        x: originX + dx * cos - dy * sin,
+        y: originY + dx * sin + dy * cos,
     };
 }

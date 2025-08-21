@@ -57,8 +57,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @ProxyPropertyOnWrite('_unit')
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
 
-    minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
-
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
     }

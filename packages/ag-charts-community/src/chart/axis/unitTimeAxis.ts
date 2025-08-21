@@ -1,4 +1,3 @@
-import { buildDateFormatter } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -12,13 +11,11 @@ import {
     lowestGranularityUnitForValue,
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
-import { labelSpecifier } from '../label';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
 import { TimeAxisParentLevel, calculateDefaultUnit, normaliseTimeDataDomain } from './timeAxis';
-import { deriveTimeSpecifier } from './timeFormatUtil';
 
 export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     static override readonly className = 'UnitTimeAxis' as const;
@@ -88,21 +85,6 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
         return normaliseTimeDataDomain(domain, this.min, this.max);
     }
 
-    protected override createDatumFormatter(
-        _domain: any[],
-        _ticks: any[]
-    ): ((value: any) => string | undefined) | undefined {
-        const timeInterval = this.scale.interval;
-        const { format } = this.label;
-        if (format == null) return;
-        const specifier = labelSpecifier(
-            timeInterval != null ? deriveTimeSpecifier(format, intervalUnit(timeInterval)) : format,
-            timeInterval
-        );
-        if (specifier == null) return;
-        return buildDateFormatter(specifier);
-    }
-
     override tickFormatParams(
         domain: (number | Date)[],
         ticks: (number | Date)[],
@@ -126,8 +108,6 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     ): FormatterParams<any> {
         const interval = this.unit ?? this.defaultUnit ?? 'millisecond';
 
-        value = intervalFloor(interval, value); // Align to scale
-        if (typeof value === 'number') value = new Date(value);
         timeInterval ??= interval;
 
         const { datum, seriesId, legendItemName, key, source, property, domain, boundSeries } = params;
@@ -137,7 +117,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
 
         return {
             type: 'date',
-            value,
+            value: intervalFloor(interval, value),
             datum,
             seriesId,
             legendItemName,

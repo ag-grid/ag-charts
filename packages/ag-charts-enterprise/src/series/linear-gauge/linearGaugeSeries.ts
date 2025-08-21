@@ -3,8 +3,6 @@ import {
     type AgLinearGaugeOptions,
     type AgLinearGaugeTargetPlacement,
     type AgSeriesMarkerStyle,
-    type AgTimeInterval,
-    type AgTimeIntervalUnit,
     type FontStyle,
     type FontWeight,
     _ModuleSupport,
@@ -49,7 +47,7 @@ const {
     TransformableText,
     Marker,
     LinearScale,
-    AxisTickGenerator,
+    generateTicks,
     NiceMode,
     easing,
     findRangeExtent,
@@ -114,53 +112,6 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
     after: -90,
 };
 
-class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSupport.LinearScale, number> {
-    constructor(
-        private readonly gauge: LinearGaugeSeries,
-        private readonly ctx: _ModuleSupport.ModuleContext
-    ) {}
-
-    get scale() {
-        return this.gauge.scale;
-    }
-
-    get label() {
-        return this.gauge.properties.scale.label;
-    }
-
-    get interval() {
-        return this.gauge.properties.scale.interval;
-    }
-
-    tickFormatter(
-        domain: number[],
-        ticks: number[],
-        _primary: boolean,
-        _fractionDigits?: number,
-        _timeInterval?: AgTimeInterval | AgTimeIntervalUnit
-    ): (value: number, index: number) => string {
-        const { format } = this.label;
-        let tickFormatter: ((value: number) => string) | undefined;
-        if (format != null) {
-            tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
-        }
-
-        return (value: number, index: number): string => {
-            const { formatter } = this.label;
-            let r: string | undefined = undefined;
-            if (formatter) {
-                r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
-            }
-            r ??= tickFormatter?.(value);
-            return r ?? this.gauge.formatLabel(value);
-        };
-    }
-
-    inRange(): boolean {
-        return true;
-    }
-}
-
 export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeNodeDatumIndex,
     LinearGaugeNodeDatum,
@@ -178,8 +129,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     private gaugeRect = BBox.NaN;
 
     public scale = new LinearScale();
-    private readonly axis: LinearGaugeAxis;
-    private readonly tickGenerator: _ModuleSupport.AxisTickGenerator<_ModuleSupport.LinearScale, number>;
 
     public get range(): [number, number] {
         return this.horizontal ? [0, this.gaugeRect.width] : [0, this.gaugeRect.height];
@@ -233,9 +182,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
-        this.axis = new LinearGaugeAxis(this, moduleCtx);
-        this.tickGenerator = new AxisTickGenerator<_ModuleSupport.LinearScale, number>(this.axis);
-
         this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
             empty: {
                 update: {
@@ -503,6 +449,23 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return label.spacing + labelSize;
     }
 
+    private tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => string {
+        const { format, formatter } = this.properties.scale.label;
+        let tickFormatter: ((value: number) => string) | undefined;
+        if (format != null) {
+            tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
+        }
+
+        return (value: number, index: number): string => {
+            let r: string | undefined = undefined;
+            if (formatter) {
+                r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
+            }
+            r ??= tickFormatter?.(value);
+            return r ?? this.formatLabel(value);
+        };
+    }
+
     override createNodeData() {
         const { id: seriesId, properties, horizontal, scale, seriesRect } = this;
         const {
@@ -521,20 +484,18 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         // Required to generate ticks in horizontalLabelInset
         scale.range = horizontal ? [0, seriesRect.width] : [seriesRect.height, 0];
 
-        let parallelFlipRotation: number;
+        let axisRotation: number;
         let sideFlag: 1 | -1;
         if (horizontal) {
             sideFlag = 1;
-            parallelFlipRotation = Math.PI / 2;
+            axisRotation = Math.PI / 2;
         } else if (scaleProps.label.placement === 'before') {
             sideFlag = 1;
-            parallelFlipRotation = 0;
+            axisRotation = 0;
         } else {
             sideFlag = -1;
-            parallelFlipRotation = 0;
+            axisRotation = 0;
         }
-
-        const regularFlipRotation = parallelFlipRotation - Math.PI / 2;
 
         let x0: number;
         let x1: number;
@@ -572,7 +533,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         scale.domain = [scaleProps.min, scaleProps.max];
         scale.range = horizontal ? [x0, x1] : [y0, y1];
 
-        const { ticks: tickData } = this.tickGenerator.generateTicks({
+        const {
+            tickData: { ticks: tickData },
+        } = generateTicks({
+            scale,
+            label: this.properties.scale.label,
+            interval: this.properties.scale.interval,
+            tickFormatter: (domain: number[], ticks: number[]) => this.tickFormatter(domain, ticks),
             domain: scale.domain,
             range: this.range,
             reverse: false,
@@ -580,12 +547,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             defaultTickMinSpacing: 0,
             visibleRange: [0, 1],
             niceMode: NiceMode.Off,
-            labelX: 0,
-            parallelFlipRotation,
-            regularFlipRotation,
+            labelOffset: 0,
+            axisRotation,
             sideFlag,
-            sizeLimit: undefined,
-        }).tickData;
+        });
 
         const isReversed = false; // Can this be removed?
 

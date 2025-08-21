@@ -1,11 +1,9 @@
-import { type ITextMeasurer, type RequireOptional, buildDateFormatter, isPlainObject } from 'ag-charts-core';
+import { type RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
     AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
-    AgTimeInterval,
-    AgTimeIntervalUnit,
     ContextDefault,
     FontStyle,
     FontWeight,
@@ -16,14 +14,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { ContextFormatter } from '../module/axisContext';
-import { BBox } from '../scene/bbox';
-import type { Matrix } from '../scene/matrix';
-import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
-import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
-import { intervalHierarchy, intervalRange, intervalUnit } from '../util/time';
-import type { TickDatum } from './axis/axisUtil';
-import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 import { FormatManager } from './formatter/formatManager';
 
 interface FormatterCache {
@@ -138,198 +129,4 @@ export function expandLabelPadding(label: LabelBoxingMixin | undefined): Require
         const { bottom = 0, left = 0, right = 0, top = 0 } = padding satisfies PaddingOptions;
         return { bottom, left, right, top };
     }
-}
-
-export function calculateLabelRotation(
-    rotation?: number,
-    parallel?: boolean,
-    regularFlipRotation: number = 0,
-    parallelFlipRotation: number = 0
-): {
-    configuredRotation: number;
-    defaultRotation: number;
-    parallelFlipFlag: ChartAxisLabelFlipFlag;
-    regularFlipFlag: ChartAxisLabelFlipFlag;
-} {
-    const configuredRotation = normalizeAngle360FromDegrees(rotation);
-    const parallelFlipFlag =
-        !configuredRotation && parallelFlipRotation >= 0 && parallelFlipRotation <= Math.PI ? -1 : 1;
-    // Flip if the axis rotation angle is in the top hemisphere.
-    const regularFlipFlag = !configuredRotation && regularFlipRotation >= 0 && regularFlipRotation <= Math.PI ? -1 : 1;
-
-    let defaultRotation = 0;
-    if (parallel) {
-        defaultRotation = (parallelFlipFlag * Math.PI) / 2;
-    } else if (regularFlipFlag === -1) {
-        defaultRotation = Math.PI;
-    }
-
-    return { configuredRotation, defaultRotation, parallelFlipFlag, regularFlipFlag };
-}
-
-export function getLabelSpacing(minSpacing?: number, rotated?: boolean): number {
-    if (minSpacing != null) {
-        return minSpacing;
-    }
-    return rotated ? 0 : 10;
-}
-
-export function getTextBaseline(
-    parallel: boolean,
-    labelRotation: number,
-    sideFlag: ChartAxisLabelFlipFlag,
-    parallelFlipFlag: ChartAxisLabelFlipFlag
-): CanvasTextBaseline {
-    if (parallel && !labelRotation) {
-        return sideFlag * parallelFlipFlag === -1 ? 'top' : 'bottom';
-    }
-    return 'middle';
-}
-
-export function getTextAlign(
-    parallel: boolean,
-    labelRotation: number,
-    labelAutoRotation: number,
-    sideFlag: ChartAxisLabelFlipFlag,
-    regularFlipFlag: ChartAxisLabelFlipFlag
-): CanvasTextAlign {
-    const labelRotated = labelRotation > 0 && labelRotation <= Math.PI;
-    const labelAutoRotated = labelAutoRotation > 0 && labelAutoRotation <= Math.PI;
-    const alignFlag = labelRotated || labelAutoRotated ? -1 : 1;
-
-    if (parallel) {
-        if (labelRotation || labelAutoRotation) {
-            if (sideFlag * alignFlag === -1) {
-                return 'end';
-            }
-        } else {
-            return 'center';
-        }
-    } else if (sideFlag * regularFlipFlag === -1) {
-        return 'end';
-    }
-
-    return 'start';
-}
-
-export function labelSpecifier(
-    format: ChartAxisLabel['format'] | undefined,
-    timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined
-): string | undefined {
-    if (format == null) return;
-
-    if (typeof format === 'string') {
-        return format;
-    } else if (isPlainObject(format) && timeInterval != null) {
-        return format[intervalUnit(timeInterval)];
-    }
-}
-
-export function timeIntervalMaxLabelSize(
-    label: ChartAxisLabel,
-    primaryLabel: ChartAxisLabel | undefined,
-    domain: Date[],
-    timeInterval: AgTimeInterval | AgTimeIntervalUnit,
-    textMeasurer: ITextMeasurer
-) {
-    const specifier =
-        labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
-    if (specifier == null) return { width: 0, height: 0 };
-
-    const labelFormatter = buildDateFormatter(specifier);
-    const hierarchy = timeInterval ? intervalHierarchy(timeInterval) : undefined;
-    const primarySpecifier = labelSpecifier(primaryLabel?.format, hierarchy);
-    const primaryLabelFormatter = primarySpecifier ? buildDateFormatter(primarySpecifier) : labelFormatter;
-
-    const d0 = new Date(domain[0] as any);
-    const d1 = new Date(domain[domain.length - 1] as any);
-
-    const hierarchyRange = hierarchy
-        ? intervalRange(hierarchy, new Date(domain[0] as any), new Date(domain[domain.length - 1] as any), {
-              extend: true,
-          })
-        : undefined;
-
-    let maxWidth = 0;
-    let maxHeight = 0;
-    if (labelFormatter != null) {
-        const padding = expandLabelPadding(label);
-        const xPadding = padding.left + padding.right;
-        const yPadding = padding.top + padding.bottom;
-        let l0: Date;
-        let l1: Date;
-        if (hierarchyRange != null && hierarchyRange.length > 1) {
-            l0 = hierarchyRange[0];
-            l1 = hierarchyRange[1];
-        } else {
-            l0 = d0;
-            l1 = d1;
-        }
-        const labelRange = intervalRange(timeInterval, l0, l1, { limit: 50 });
-        for (const date of labelRange) {
-            const text = labelFormatter(date);
-            const { width, height } = textMeasurer.measureLines(text);
-            maxWidth = Math.max(maxWidth, width + xPadding);
-            maxHeight = Math.max(maxHeight, height + yPadding);
-        }
-    }
-
-    if (primaryLabelFormatter != null && hierarchyRange != null) {
-        const padding = expandLabelPadding(primaryLabel);
-        const xPadding = padding.left + padding.right;
-        const yPadding = padding.top + padding.bottom;
-        for (const date of hierarchyRange) {
-            const text = primaryLabelFormatter(date);
-            const { width, height } = textMeasurer.measureLines(text);
-
-            maxWidth = Math.max(maxWidth, width + xPadding);
-            maxHeight = Math.max(maxHeight, height + yPadding);
-        }
-    }
-
-    return {
-        width: Math.ceil(maxWidth),
-        height: Math.ceil(maxHeight),
-    };
-}
-
-export function createLabelData(tickData: TickDatum[], labelX: number, labelMatrix: Matrix, label: ChartAxisLabel) {
-    const padding = expandLabelPadding(label);
-    const labelData: PlacedLabelDatum[] = [];
-
-    const xPadding = padding.left + padding.right;
-    const yPadding = padding.top + padding.bottom;
-
-    for (const { tickLabel, textMetrics, translation } of tickData) {
-        if (!tickLabel) continue;
-
-        const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translation, 0, 0));
-        const width = textMetrics.width + xPadding;
-        const height = textMetrics.height + yPadding;
-
-        labelData.push({
-            label: tickLabel,
-            bounds: { x, y, width, height },
-        });
-    }
-
-    return labelData;
-}
-
-export function createFixedLabelData(
-    { width, height, spacing }: { width: number; height: number; spacing: number },
-    labelOffset: number,
-    labelMatrix: Matrix
-): PlacedLabelDatum[] {
-    const labelData: PlacedLabelDatum[] = [];
-
-    for (const translation of [0, spacing]) {
-        const { x, y } = labelMatrix.transformBBox(new BBox(labelOffset, translation, 0, 0));
-        labelData.push({
-            label: undefined,
-            bounds: { x, y, width, height },
-        });
-    }
-
-    return labelData;
 }

@@ -15,7 +15,6 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
-import { normalizeAngle360 } from '../../util/angle';
 import { findMinMax } from '../../util/number';
 import { Property } from '../../util/properties';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
@@ -27,8 +26,6 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
-import type { AxisLabel } from './axisLabel';
-import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
     type AxisFillDatum,
     type AxisLabelDatum,
@@ -43,6 +40,7 @@ import {
     resetAxisLineSelectionFn,
 } from './axisUtil';
 import { CartesianAxisLabel } from './cartesianAxisLabel';
+import { generateTicks } from './generateTicks';
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
@@ -76,6 +74,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     @Property
     position!: AgCartesianAxisPosition;
 
+    minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
+
     protected animationManager: AnimationManager;
 
     protected readonly headingLabelGroup = this.axisGroup.appendChild(
@@ -93,8 +93,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private readonly tempText = new TransformableText({ debugDirty: false });
     private readonly tempCaption = new Caption();
-
-    private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
 
     protected readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
@@ -215,19 +213,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         layout: GeneratedTicks;
     } {
         const sideFlag = this.label.getSideFlag();
-        const rotation = this.horizontal ? -0.5 * Math.PI : 0;
-        // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
-        // flip the labels to avoid upside-down text, when the axis is rotated
-        // such that it is in the right hemisphere, i.e. the angle of rotation
-        // is in the [0, π] interval.
-        // The rotation angle is normalized, so that we have an easier time checking
-        // if it's in the said interval. Since the axis is always rendered vertically
-        // and then rotated, zero rotation means 12 (not 3) o-clock.
-        // -1 = flip
-        //  1 = don't flip (default)
-        const parallelFlipRotation = normalizeAngle360(rotation);
-        const regularFlipRotation = normalizeAngle360(rotation - Math.PI / 2);
-
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         if (
@@ -258,20 +243,29 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             };
         }
 
-        const { range, reverse, defaultTickMinSpacing } = this;
-        const tickGenerationResult = this.tickGenerator.generateTicks({
+        const { label, primaryLabel, scale, range, interval, reverse, defaultTickMinSpacing, minimumTimeGranularity } =
+            this;
+
+        const tickGenerationResult = generateTicks({
+            label,
+            scale,
+            interval,
+            primaryLabel,
             domain,
             range,
             reverse,
             niceMode,
             visibleRange,
-            primaryTickCount: initialPrimaryTickCount,
             defaultTickMinSpacing,
-            parallelFlipRotation,
-            regularFlipRotation,
-            labelX,
+            minimumTimeGranularity,
             sideFlag,
+            labelOffset: labelX,
+            primaryTickCount: initialPrimaryTickCount,
+            axisRotation: this.horizontal ? -0.5 * Math.PI : 0,
+            isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
+            inRange: (translation: number) => this.inRange(translation, 0.001),
+            tickFormatter: (...args) => this.tickFormatter(...args),
         });
 
         const { tickData } = tickGenerationResult;
@@ -647,27 +641,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         };
     }
 
-    private getLabelBorderOffset(label: AxisLabel): number {
-        const padding = expandLabelPadding(label);
-
-        function unreachable(a: never): never {
-            return a;
-        }
-        switch (this.position) {
-            case 'top':
-                return padding.bottom;
-            case 'right':
-                return padding.left;
-            case 'bottom':
-                return padding.top;
-            case 'left':
-                return padding.right;
-            default:
-                unreachable(this.position);
-        }
-    }
-
-    private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
+    private getTickLabelProps(
+        datum: TickDatum,
+        tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
+    ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
         const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.label;
@@ -675,8 +652,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
         const sideFlag = this.label.getSideFlag();
-        const borderOffset = -this.getLabelBorderOffset(label);
-        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding) + borderOffset;
+        const borderOffset = expandLabelPadding(label)[this.position];
+        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding) - borderOffset;
         const visible = text !== '';
 
         const x = horizontal ? translation : labelOffset;

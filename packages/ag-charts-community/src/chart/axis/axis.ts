@@ -47,9 +47,9 @@ import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
-import type { AnyTimeInterval } from './axisTickGenerator';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
+import type { AnyTimeInterval } from './generateTicksUtils';
 
 export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties {
     color?: CssColor;
@@ -420,10 +420,6 @@ export abstract class Axis<
         if (value < min) return value - min;
         if (value > max) return value - max;
         return 0;
-    }
-
-    protected createDatumFormatter(_domain: D[], _ticks: D[]): ((value: any) => string | undefined) | undefined {
-        return;
     }
 
     protected onGridLengthChange(value: number, prevValue: number) {

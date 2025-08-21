@@ -16,7 +16,7 @@ const {
     Path,
     Line,
     Selection,
-    AxisTickGenerator,
+    generateTicks,
     AxisGroupZIndexMap,
 } = _ModuleSupport;
 
@@ -48,7 +48,6 @@ export abstract class RadiusAxis<
         false
     );
 
-    private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
     private generatedTicks: GeneratedTicks | undefined = undefined;
 
     protected readonly headingLabelGroup = this.axisGroup.appendChild(
@@ -154,27 +153,27 @@ export abstract class RadiusAxis<
         fractionDigits: number;
         timeInterval: undefined;
     } {
-        const parallelFlipRotation = 0;
-        const regularFlipRotation = -Math.PI / 2;
-
         const visibleRange: [number, number] = [0, 1];
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         const { range, reverse, defaultTickMinSpacing } = this;
-        const tickGenerationResult = this.tickGenerator.generateTicks({
+        const tickGenerationResult = generateTicks({
+            scale: this.scale,
+            label: this.label,
+            interval: this.interval,
+            tickFormatter: (...args) => this.tickFormatter(...args),
             domain,
             range,
             reverse,
             niceMode,
             visibleRange,
-            primaryTickCount: undefined,
             defaultTickMinSpacing,
-            parallelFlipRotation,
-            regularFlipRotation,
-            labelX,
+            labelOffset: labelX,
             sideFlag,
+            axisRotation: 0,
             sizeLimit: undefined,
+            primaryTickCount: undefined,
         });
 
         const { tickData } = tickGenerationResult;
@@ -351,7 +350,7 @@ export abstract class RadiusAxis<
     // TODO - abstract out (shared with cartesian axis)
     private getTickLabelProps(
         datum: _ModuleSupport.TickDatum,
-        tickGenerationResult: _ModuleSupport.TickGenerationResult
+        tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
     ): _ModuleSupport.LabelNodeDatum {
         const { label } = this;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
