@@ -27,7 +27,7 @@ const options: AgCartesianChartOptions = {
             enabled: false,
         },
         highlight: {
-            highlightedDatum: {
+            highlightedItem: {
                 strokeWidth: 2,
                 fillOpacity: 0.6,
             },
