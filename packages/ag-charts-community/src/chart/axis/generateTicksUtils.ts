@@ -215,7 +215,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             const isPrimary = primaryTicksIndices?.has(i) ?? false;
             const inputText = axisFormatter(isPrimary, tick, i);
-            const wrappedLabel = label.avoidCollisions && wrapOptions ? wrapText(inputText, wrapOptions) || null : null;
+            const wrappedLabel = label.avoidCollisions ? wrapText(inputText, wrapOptions) || null : null;
             const tickLabel = wrappedLabel ?? inputText;
 
             const tickValue = isContinuous ? tick?.valueOf() : null;
@@ -243,8 +243,8 @@ export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>,
     callback: () => void
 ): void {
     const originalDomain = scale.domain;
-    scale.domain = temporaryDomain;
     try {
+        scale.domain = temporaryDomain;
         callback();
     } finally {
         scale.domain = originalDomain;
@@ -556,7 +556,7 @@ export function calculateLabelRotation(
 
     let defaultRotation = 0;
     if (parallel) {
-        defaultRotation = (parallelFlipFlag * Math.PI) / 2;
+        defaultRotation = parallelFlipFlag * (Math.PI / 2);
     } else if (regularFlipFlag === -1) {
         defaultRotation = Math.PI;
     }
