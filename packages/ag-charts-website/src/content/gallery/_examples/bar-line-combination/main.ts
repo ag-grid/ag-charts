@@ -9,16 +9,19 @@ const options: AgCartesianChartOptions = {
         text: 'Ad Campaign Impact',
     },
     subtitle: {
-        text: 'Yearly Percentage Change in Advertisement Engagement',
-    },
-    footnote: {
-        text: '2018 to 2023',
+        text: 'Yearly Percentage Change in Advertisement Engagement (2018 to 2023)',
     },
     formatter: {
         y: ({ value }) => `${(Number(value) * 100).toFixed(1)}%`,
     },
     tooltip: {
         mode: 'shared',
+        position: {
+            xOffset: -30,
+            yOffset: -75,
+            anchorTo: 'chart',
+            placement: ['bottom-right'],
+        },
     },
     theme: {
         overrides: {

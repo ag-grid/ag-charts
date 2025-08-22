@@ -12,6 +12,7 @@ const options: AgLinearGaugeOptions = {
                     fillOpacity: 0,
                     shape: 'circle',
                     strokeWidth: 3,
+                    stroke: 'orange',
                 },
             },
         },
@@ -72,10 +73,12 @@ const options: AgLinearGaugeOptions = {
         {
             value: 80,
             text: 'Optimal 66-80 mol/L',
+            stroke: 'green',
         },
         {
             value: 89,
             text: 'Threshold Limit >80 mol/L',
+            stroke: 'red',
             placement: 'after',
             shape: 'line',
             size: 25,

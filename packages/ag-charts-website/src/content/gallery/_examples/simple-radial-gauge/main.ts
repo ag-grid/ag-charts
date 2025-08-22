@@ -30,8 +30,19 @@ const options: AgGaugeOptions = {
     },
     bar: {
         fillMode: 'discrete',
+        fills: [
+            { color: '#ef5452' },
+            { color: '#F38B06' },
+            { color: '#e1cc00' },
+            { color: '#92B83C' },
+            { color: '#459d55' },
+        ],
     },
-    label: {},
+    label: {
+        formatter: ({ value }) => {
+            return `${value.toFixed(0)}%`;
+        },
+    },
     secondaryLabel: {
         text: 'Grid Performance',
     },

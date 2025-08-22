@@ -72,6 +72,7 @@ const options: AgCartesianChartOptions = {
                     },
                 ],
             },
+            thickness: 30,
             label: {
                 enabled: false,
             },

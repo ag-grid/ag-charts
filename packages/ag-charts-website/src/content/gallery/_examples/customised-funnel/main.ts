@@ -51,19 +51,13 @@ const options: AgChartOptions<DataType> = {
                     placement: ['top-right', 'bottom-right', 'top-left', 'bottom-left'],
                 },
                 renderer: ({ datum }) => {
-                    const { q2_2024, q1_2024, target } = datum;
-                    const growth = (((q2_2024 - q1_2024) / q1_2024) * 100).toFixed(1);
+                    const { q2_2024, target } = datum;
                     const targetAchievement = ((q2_2024 / target) * 100).toFixed(1);
                     const conversionRate = data[0].q2_2024 > 0 ? ((q2_2024 / data[0].q2_2024) * 100).toFixed(1) : '0';
 
                     return {
                         title: datum.description,
                         data: [
-                            {
-                                label: 'Q2 vs Q1 2024',
-                                value: `${q2_2024.toLocaleString()} vs ${q1_2024.toLocaleString()}`,
-                            },
-                            { label: 'QoQ Growth', value: `${Number(growth) >= 0 ? '+' : ''}${growth}%` },
                             {
                                 label: 'Target Achievement',
                                 value: `${targetAchievement}% of ${target.toLocaleString()}`,

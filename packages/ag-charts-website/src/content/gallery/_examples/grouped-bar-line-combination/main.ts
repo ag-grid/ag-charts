@@ -1,8 +1,13 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const data = getData();
+
+const bar = ({ x, y, path, size }: AgMarkerShapeFnParams) => {
+    const halfSize = size / 2;
+    path.rect(x - halfSize / 2, y - halfSize, halfSize, size);
+};
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -31,6 +36,7 @@ const options: AgCartesianChartOptions = {
                         paddingY: 8,
                         marker: {
                             size: 12,
+                            shape: bar,
                         },
                     },
                 },
@@ -94,6 +100,7 @@ const options: AgCartesianChartOptions = {
                         enabled: true,
                         size: 6,
                         strokeWidth: 2,
+                        shape: bar,
                     },
                     highlight: {
                         highlightedItem: {
@@ -157,10 +164,8 @@ const options: AgCartesianChartOptions = {
             yKey: 'funding',
             yName: 'Funding ($M)',
             strokeWidth: 3,
-            lineDash: [6, 3],
             marker: {
                 size: 7,
-                shape: 'diamond',
             },
         },
     ],

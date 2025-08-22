@@ -13,9 +13,6 @@ const options: AgChartOptions<DataType> = {
     subtitle: {
         text: 'Cross-Technology Interest from StackOverflow Developer Survey 2024',
     },
-    footnote: {
-        text: 'Chord width represents the number of developers interested in learning the target technology',
-    },
     data: getData(),
     series: [
         {
@@ -25,13 +22,10 @@ const options: AgChartOptions<DataType> = {
             sizeKey: 'frequency',
             link: {
                 fillOpacity: 0.6,
-                strokeWidth: 1,
-                strokeOpacity: 0.3,
             },
             node: {
                 spacing: 3,
                 width: 15,
-                strokeWidth: 2,
             },
             label: {
                 spacing: 8,
@@ -65,32 +59,6 @@ const options: AgChartOptions<DataType> = {
     animation: {
         enabled: true,
         duration: 800,
-    },
-    theme: {
-        palette: {
-            fills: [
-                'steelblue',
-                'coral',
-                'forestgreen',
-                'crimson',
-                'darkorange',
-                'mediumpurple',
-                'darkturquoise',
-                'brown',
-                'slategray',
-            ],
-            strokes: [
-                'darkblue',
-                'darkred',
-                'darkgreen',
-                'maroon',
-                'chocolate',
-                'indigo',
-                'darkcyan',
-                'saddlebrown',
-                'darkslategray',
-            ],
-        },
     },
 };
 

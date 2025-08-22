@@ -6,9 +6,6 @@ const options: AgGaugeOptions = {
     title: {
         text: 'Vehicle Speed Monitor',
     },
-    footnote: {
-        text: 'Real-time dashboard indicator',
-    },
     value: 89,
     startAngle: 270,
     endAngle: 540,
@@ -73,6 +70,7 @@ const options: AgGaugeOptions = {
             text: 'LIMIT',
             label: {
                 spacing: 5,
+                fontSize: 18,
             },
         },
     ],

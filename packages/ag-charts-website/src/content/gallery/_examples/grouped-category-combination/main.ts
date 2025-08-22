@@ -12,19 +12,11 @@ const options: AgCartesianChartOptions = {
     },
     subtitle: {
         text: 'Detailed Profile per 100g Serving',
-    },
-    tooltip: {
-        mode: 'shared',
-        position: {
-            placement: ['right', 'left', 'top', 'bottom'],
-        },
+        spacing: 50,
     },
     theme: {
         overrides: {
             common: {
-                legend: {
-                    position: 'top',
-                },
                 axes: {
                     'grouped-category': {
                         groupPaddingInner: 0,
@@ -111,15 +103,8 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             xKey: 'food',
             xName: 'Food',
-            yKey: 'protein',
-            yName: 'Protein',
-        },
-        {
-            type: 'bar',
-            xKey: 'food',
-            xName: 'Food',
-            yKey: 'fat',
-            yName: 'Fat',
+            yKey: 'fiber',
+            yName: 'Fiber',
         },
         {
             type: 'bar',
@@ -132,8 +117,15 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             xKey: 'food',
             xName: 'Food',
-            yKey: 'fiber',
-            yName: 'Fiber',
+            yKey: 'protein',
+            yName: 'Protein',
+        },
+        {
+            type: 'bar',
+            xKey: 'food',
+            xName: 'Food',
+            yKey: 'fat',
+            yName: 'Fat',
         },
     ],
     axes: [
@@ -177,6 +169,28 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
+    legend: {
+        maxWidth: 300,
+        position: {
+            floating: true,
+            placement: 'top-left',
+            xOffset: 20,
+            yOffset: 20,
+        },
+        border: {
+            enabled: true,
+        },
+    },
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            anchorTo: 'chart',
+            placement: ['top-right'],
+            xOffset: -80,
+            yOffset: 20,
+        },
+    },
 };
 
 AgCharts.create(options);
