@@ -43,7 +43,7 @@ legend: {
 #### Right Position (RARE - 5% of cases)
 
 -   ✅ Very narrow charts
--   ✅ When vertical space is premium
+-   ✅ When vertical space is premium (consider removing footnotes first before using right position)
 -   ✅ Long series names that need room
 
 ## ⚠️ CRITICAL: Floating Legend Verification
@@ -281,5 +281,6 @@ const legendConfig = {
 -   **Never hardcode colors** in legend configuration
 -   **Always verify floating positions** with screenshots
 -   **Default to bottom position** when in doubt
+-   **Minimize footnotes first** - Before using right position for vertical space, consider removing non-essential footnotes
 -   **Test legend interaction** (clicking to hide/show series)
 -   **Consider mobile viewports** for responsive design

@@ -3,44 +3,74 @@ import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
 const options: AgGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
-    title: { text: 'Speed' },
+    title: {
+        text: 'Vehicle Speed Monitor',
+    },
     value: 89,
-    startAngle: 180 + 90,
-    endAngle: 360 + 180,
+    startAngle: 270,
+    endAngle: 540,
+    animation: {
+        enabled: true,
+        duration: 1000,
+    },
+    tooltip: {
+        enabled: true,
+        renderer: ({ value }) => {
+            const status = value >= 70 ? 'EXCEEDING LIMIT' : 'WITHIN LIMIT';
+            const risk = value >= 85 ? 'HIGH RISK' : value >= 65 ? 'MODERATE RISK' : 'SAFE';
+
+            return {
+                heading: 'Current Speed',
+                title: `${value} mph`,
+                data: [
+                    { label: 'Status', value: status },
+                    { label: 'Risk Level', value: risk },
+                    { label: 'Speed Limit', value: '70 mph' },
+                    { label: 'Safety Zone', value: '≤ 65 mph' },
+                ],
+            };
+        },
+    },
     scale: {
         min: 0,
         max: 120,
         interval: {
             step: 10,
         },
-        fillOpacity: 0.8,
+        fillOpacity: 0.85,
+        label: {
+            enabled: true,
+            // Theme handles fontSize and fontFamily
+        },
     },
     segmentation: {
         interval: {
-            values: [65, 75],
+            values: [65, 85, 100],
         },
     },
     bar: {
-        fillOpacity: 0.6,
+        fillOpacity: 0.8,
     },
-    innerRadiusRatio: 0.9,
+    innerRadiusRatio: 0.8,
+    label: {
+        // Theme handles typography
+    },
     secondaryLabel: {
         text: 'mph',
     },
-    cornerRadius: 50,
+    cornerRadius: 40,
     targets: [
         {
             value: 70,
             shape: 'triangle',
             placement: 'inside',
-            spacing: 5,
-            fill: '#8884',
+            spacing: 12,
+            size: 16,
+            strokeWidth: 2,
             text: 'LIMIT',
             label: {
-                color: '#8888',
-                fontSize: 8,
-                fontWeight: 'bold',
-                spacing: 2,
+                spacing: 5,
+                fontSize: 18,
             },
         },
     ],

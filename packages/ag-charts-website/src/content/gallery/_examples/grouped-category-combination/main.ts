@@ -12,13 +12,11 @@ const options: AgCartesianChartOptions = {
     },
     subtitle: {
         text: 'Detailed Profile per 100g Serving',
+        spacing: 50,
     },
     theme: {
         overrides: {
             common: {
-                legend: {
-                    position: 'top',
-                },
                 axes: {
                     'grouped-category': {
                         groupPaddingInner: 0,
@@ -40,6 +38,17 @@ const options: AgCartesianChartOptions = {
                         tick: {
                             enabled: true,
                         },
+                        gridLine: {
+                            style: [
+                                {
+                                    strokeWidth: 1,
+                                    lineDash: [2, 2],
+                                },
+                                {
+                                    strokeWidth: 0,
+                                },
+                            ],
+                        },
                     },
                 },
             },
@@ -58,6 +67,12 @@ const options: AgCartesianChartOptions = {
                         size: 0,
                         shape: 'triangle',
                     },
+                },
+            },
+            bar: {
+                series: {
+                    cornerRadius: 3,
+                    strokeWidth: 1,
                 },
             },
         },
@@ -88,15 +103,8 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             xKey: 'food',
             xName: 'Food',
-            yKey: 'protein',
-            yName: 'Protein',
-        },
-        {
-            type: 'bar',
-            xKey: 'food',
-            xName: 'Food',
-            yKey: 'fat',
-            yName: 'Fat',
+            yKey: 'fiber',
+            yName: 'Fiber',
         },
         {
             type: 'bar',
@@ -109,8 +117,15 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             xKey: 'food',
             xName: 'Food',
-            yKey: 'fiber',
-            yName: 'Fiber',
+            yKey: 'protein',
+            yName: 'Protein',
+        },
+        {
+            type: 'bar',
+            xKey: 'food',
+            xName: 'Food',
+            yKey: 'fat',
+            yName: 'Fat',
         },
     ],
     axes: [
@@ -148,10 +163,34 @@ const options: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'grouped-category',
-            label: { fontSize: 10 },
             depthOptions: [{ tick: { enabled: false } }, { tick: { enabled: false } }],
+            bandHighlight: {
+                enabled: true,
+            },
         },
     ],
+    legend: {
+        maxWidth: 300,
+        position: {
+            floating: true,
+            placement: 'top-left',
+            xOffset: 20,
+            yOffset: 20,
+        },
+        border: {
+            enabled: true,
+        },
+    },
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            anchorTo: 'chart',
+            placement: ['top-right'],
+            xOffset: -80,
+            yOffset: 20,
+        },
+    },
 };
 
 AgCharts.create(options);

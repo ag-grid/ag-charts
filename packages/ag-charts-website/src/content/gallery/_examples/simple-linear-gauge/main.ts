@@ -8,10 +8,10 @@ const options: AgLinearGaugeOptions = {
             'linear-gauge': {
                 targets: {
                     placement: 'before',
-                    size: 10,
+                    size: 12,
                     fillOpacity: 0,
                     shape: 'circle',
-                    strokeWidth: 2,
+                    strokeWidth: 3,
                     stroke: 'orange',
                 },
             },
@@ -43,7 +43,19 @@ const options: AgLinearGaugeOptions = {
         fillMode: 'discrete',
         strokeWidth: 1,
         strokeOpacity: 0.2,
-        fillOpacity: 0.7,
+        fillOpacity: 0.8,
+    },
+    tooltip: {
+        enabled: true,
+        renderer: ({ value }) => ({
+            heading: `Current Level: ${value} mol/L`,
+            title: 'Chemical Concentration',
+            data: [
+                { label: 'Measured Value', value: `${value} mol/L` },
+                { label: 'Status', value: getStatusForValue(value) },
+                { label: 'Range', value: getRangeForValue(value) },
+            ],
+        }),
     },
     targets: [
         {
@@ -69,12 +81,28 @@ const options: AgLinearGaugeOptions = {
             stroke: 'red',
             placement: 'after',
             shape: 'line',
-            size: 20,
+            size: 25,
         },
     ],
     label: {
         enabled: false,
     },
 };
+
+function getStatusForValue(value: number): string {
+    if (value <= 20) return 'Low Level';
+    if (value <= 33) return 'Suboptimal';
+    if (value <= 65) return 'Operational';
+    if (value <= 80) return 'Optimal';
+    return 'Above Threshold';
+}
+
+function getRangeForValue(value: number): string {
+    if (value <= 20) return '0-20 mol/L';
+    if (value <= 33) return '21-33 mol/L';
+    if (value <= 65) return '34-65 mol/L';
+    if (value <= 80) return '66-80 mol/L';
+    return '>80 mol/L';
+}
 
 AgCharts.createGauge(options);

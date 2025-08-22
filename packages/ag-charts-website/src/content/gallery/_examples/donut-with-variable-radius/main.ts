@@ -8,7 +8,7 @@ const numFormatter = new Intl.NumberFormat('en-US');
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Oxford Street Selfridges',
+        text: 'Oxford Street Department Store',
     },
     subtitle: {
         text: 'Total Product Value by Department',

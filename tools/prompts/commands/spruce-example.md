@@ -95,6 +95,7 @@ The intent is to load instructions about how to improve the example based on the
 -   Let theme handle ALL visual styling
 -   Use `highlight.*` properties (not deprecated `highlightStyle`)
 -   Add `heading` to all tooltip configurations
+-   **Minimize footnotes** - Only add if absolutely essential to explain the example (footnotes reduce vertical space for visualization, especially critical for polar/radar charts)
 
 ### STEP 4: Validation (MANDATORY)
 
@@ -132,6 +133,7 @@ The intent is to load instructions about how to improve the example based on the
 
 -   [ ] PREVis score maintained or improved
 -   [ ] NO hardcoded colors or fonts
+-   [ ] **Footnotes minimized** - Only essential footnotes kept (to maximize visualization space)
 -   [ ] nx run ag-charts-website-gallery\_[example-name]\_main.ts:typecheck PASSED
     -   [ ] TypeScript compiles without errors
 -   [ ] Thumbnails generated successfully
