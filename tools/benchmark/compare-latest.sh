@@ -68,7 +68,7 @@ function logStarBox() {
 echo "Running benchmarks on ${branch} against ${base_name}"
 echo "${base} (${base_name}) vs ${head} (${branch})"
 
-./tools/benchmark/collect-version-benchmark.sh -l ${head} ${base}
+./tools/benchmark/collect-version-benchmark.sh -l ${head} ${base} || (if [[ $AG_BENCHMARK_SOFT_FAIL == "true" ]] ; then echo "Failed to run benchmarks, continuing..." ; else exit 1 ; fi)
 
 output=${root}/reports/benchmark.log
 if [[ ${format} == "json" ]] ; then
