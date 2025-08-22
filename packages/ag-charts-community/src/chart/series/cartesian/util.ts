@@ -1,5 +1,5 @@
 import type { Size } from 'ag-charts-core';
-import type { AgSeriesSegmentation } from 'ag-charts-types';
+import type { AgSeriesSegmentation, AgSeriesShapeSegmentOptions } from 'ag-charts-types';
 
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
@@ -34,7 +34,6 @@ export function calculateSegments(
     const horizontalMargin = Math.max(seriesRect.x, chartSize.width - (seriesRect.x + seriesRect.width));
     const verticalMargin = Math.max(seriesRect.y, chartSize.height - (seriesRect.y + seriesRect.height));
 
-    // Helper function to get default bounds
     const getDefaultStart = () => {
         if (isAxisReversed(isXDirection ? xAxis : yAxis)) {
             return isXDirection ? seriesRect.width + horizontalMargin : seriesRect.height + verticalMargin;
@@ -49,16 +48,38 @@ export function calculateSegments(
         return isXDirection ? seriesRect.width + horizontalMargin : seriesRect.height + verticalMargin;
     };
 
-    return segmentation.segments.map(({ stop, start, ...style }) => {
-        // Calculate start and stop positions
-        const startPos = start == null ? getDefaultStart() : scale.convert(start) - offset;
-        const stopPos = stop == null ? getDefaultStop() : scale.convert(stop) + 2 * offset;
+    const getSegments = (segments: AgSeriesShapeSegmentOptions[]) => {
+        const result: AgSeriesShapeSegmentOptions[] = [];
 
+        let previousDefinedStopIndex = -1;
+        for (let i = 0; i < segments.length; i++) {
+            const { start, stop, ...styles } = segments[i];
+
+            const startFallback = segments[previousDefinedStopIndex]?.stop;
+            const stopFallback = segments.slice(i + 1).find((s) => s.start != null)?.start;
+
+            let startPosition = scale.convert(start ?? startFallback) - offset;
+            let stopPosition = scale.convert(stop ?? stopFallback) + 2 * offset;
+
+            if (isNaN(startPosition)) startPosition = getDefaultStart();
+            if (isNaN(stopPosition)) stopPosition = getDefaultStop();
+
+            if (stop != null) {
+                previousDefinedStopIndex = i;
+            }
+
+            result.push({ start: startPosition, stop: stopPosition, ...styles });
+        }
+
+        return result;
+    };
+
+    return getSegments(segmentation.segments).map(({ stop, start, ...style }) => {
         // Calculate dimensions based on direction
-        const x0 = isXDirection ? startPos : -horizontalMargin;
-        const y0 = isXDirection ? -verticalMargin : startPos;
-        const x1 = isXDirection ? stopPos + bandwidth : seriesRect.width + horizontalMargin;
-        const y1 = isXDirection ? seriesRect.height + verticalMargin : stopPos + bandwidth;
+        const x0 = isXDirection ? start : -horizontalMargin;
+        const y0 = isXDirection ? -verticalMargin : start;
+        const x1 = isXDirection ? stop + bandwidth : seriesRect.width + horizontalMargin;
+        const y1 = isXDirection ? seriesRect.height + verticalMargin : stop + bandwidth;
 
         return { clipRect: { x0, y0, x1, y1 }, ...style };
     });
