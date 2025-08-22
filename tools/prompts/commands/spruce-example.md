@@ -32,7 +32,7 @@ PROMPT_ROOT=${REPO_ROOT}/tools/prompts/commands/spruce-example
 
 -   [ ] Navigate to `https://localhost:4600/charts/gallery/examples/[example-name]` with Puppeteer
 -   [ ] Take initial screenshot
--   [ ] Run PREVis evaluation via data-viz-designer agent
+-   [ ] Run PREVis evaluation via data-viz-designer agent, ensuring to provide the [example-name] and screenshot as context.
 -   [ ] Record baseline PREVis score: **\_**
 -   [ ] Document identified issues: **\_**
 

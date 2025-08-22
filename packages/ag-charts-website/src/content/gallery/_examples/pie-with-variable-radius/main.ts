@@ -60,7 +60,7 @@ const options: AgPolarChartOptions<DataType> = {
                     };
                 },
             },
-        },
+        } as AgPieSeriesOptions<DataType>,
     ],
     legend: {
         enabled: false,

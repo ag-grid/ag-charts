@@ -1,20 +1,68 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Efficiency KPI',
+        text: 'Department Efficiency KPI',
+    },
+    subtitle: {
+        text: 'Lower values indicate better efficiency (reversed scale: 100% at center, 0% at edge)',
+    },
+    tooltip: {
+        enabled: true,
     },
     series: [
         {
             type: 'radar-area',
             angleKey: 'department',
             radiusKey: 'efficiency',
-            radiusName: 'Efficiency',
+            radiusName: 'Efficiency Score',
             fillOpacity: 0.2,
+            strokeWidth: 2,
+            marker: {
+                enabled: true,
+                size: 8,
+                strokeWidth: 2,
+            },
+            highlight: {
+                highlightedSeries: {
+                    strokeWidth: 3,
+                    fillOpacity: 0.4,
+                },
+                highlightedItem: {
+                    strokeWidth: 3,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum, radiusKey, radiusName }) => ({
+                    heading: datum.department,
+                    title: radiusName,
+                    data: [
+                        {
+                            label: 'Efficiency',
+                            value: `${datum[radiusKey]}%`,
+                        },
+                        {
+                            label: 'Performance',
+                            value:
+                                datum[radiusKey] >= 70
+                                    ? 'Excellent'
+                                    : datum[radiusKey] >= 50
+                                      ? 'Good'
+                                      : datum[radiusKey] >= 30
+                                        ? 'Average'
+                                        : 'Needs Improvement',
+                        },
+                        {
+                            label: 'Status',
+                            value: datum[radiusKey] < 50 ? 'Below Target' : 'Meeting Target',
+                        },
+                    ],
+                }),
+            },
         },
     ],
     axes: [
@@ -27,7 +75,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
-                spacing: 5,
+                spacing: 12,
             },
         },
         {
@@ -36,6 +84,7 @@ const options: AgChartOptions = {
             positionAngle: 180,
             label: {
                 rotation: 180,
+                formatter: ({ value }) => `${value}%`,
             },
             reverse: true,
         },

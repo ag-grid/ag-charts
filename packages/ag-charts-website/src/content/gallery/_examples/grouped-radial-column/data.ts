@@ -1,4 +1,11 @@
-export function getData() {
+export interface RevenueData {
+    quarter: string;
+    software: number;
+    hardware: number;
+    services: number;
+}
+
+export function getData(): RevenueData[] {
     return [
         {
             quarter: `Q1'22`,
@@ -26,27 +33,27 @@ export function getData() {
         },
         {
             quarter: `Q1'23`,
-            software: 3.35,
+            software: 3.85,
             hardware: 3.14,
             services: 3.91,
         },
         {
             quarter: `Q2'23`,
-            software: 3.28,
-            hardware: 3.13,
+            software: 4.12,
+            hardware: 3.43,
             services: 3.54,
         },
         {
             quarter: `Q3'23`,
-            software: 3.14,
+            software: 4.34,
             hardware: 2.84,
-            services: 3.18,
+            services: 3.78,
         },
         {
             quarter: `Q4'23`,
-            software: 2.48,
-            hardware: 2.46,
-            services: 3.21,
+            software: 4.48,
+            hardware: 2.96,
+            services: 4.21,
         },
     ];
 }

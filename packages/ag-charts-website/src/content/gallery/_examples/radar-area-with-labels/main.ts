@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -11,13 +11,16 @@ const options: AgChartOptions = {
     subtitle: {
         text: 'Millions USD',
     },
+    tooltip: {
+        mode: 'shared',
+    },
     series: [
         {
             type: 'radar-area',
             angleKey: 'quarter',
             radiusKey: 'software',
             radiusName: 'Software',
-            fillOpacity: 0.1,
+            fillOpacity: 0.4,
             label: {
                 enabled: true,
             },
@@ -30,7 +33,7 @@ const options: AgChartOptions = {
             angleKey: 'quarter',
             radiusKey: 'hardware',
             radiusName: 'Hardware',
-            fillOpacity: 0.3,
+            fillOpacity: 0.6,
             marker: {
                 enabled: true,
             },

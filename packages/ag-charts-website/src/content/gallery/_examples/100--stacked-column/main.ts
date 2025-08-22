@@ -11,6 +11,9 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Source: Department for Education',
     },
+    tooltip: {
+        mode: 'shared',
+    },
     series: [
         {
             type: 'bar',
@@ -65,6 +68,9 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
+            bandHighlight: {
+                enabled: true,
+            },
         },
         {
             type: 'number',
@@ -74,6 +80,9 @@ const options: AgChartOptions = {
             },
         },
     ],
+    legend: {
+        position: 'bottom',
+    },
 };
 
 AgCharts.create(options);

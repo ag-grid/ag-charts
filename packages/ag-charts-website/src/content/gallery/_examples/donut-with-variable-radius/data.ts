@@ -2,7 +2,7 @@ export function getData() {
     return {
         stores: [
             {
-                store: 'Selfridges',
+                store: 'Department Store',
                 total: 4000000000,
             },
         ],
