@@ -4,10 +4,10 @@ import { getCurrencyData } from './data';
 import { cables, capitals, topology } from './topology';
 
 const currencyLayers: Record<string, { title: string; symbol: string; countries: number }> = {
-    dollar: { title: 'US Dollar ($)', symbol: '$', countries: 11 },
-    pound: { title: 'Pound Sterling (£)', symbol: '£', countries: 4 },
     euro: { title: 'Euro (€)', symbol: '€', countries: 20 },
+    dollar: { title: 'Dollar ($)', symbol: '$', countries: 11 },
     franc: { title: 'Franc', symbol: 'Fr', countries: 8 },
+    pound: { title: 'Pound Sterling (£)', symbol: '£', countries: 4 },
     dinar: { title: 'Dinar', symbol: 'د', countries: 11 },
     peso: { title: 'Peso', symbol: '₱', countries: 8 },
     rupee: { title: 'Rupee', symbol: '₹', countries: 7 },
@@ -15,8 +15,6 @@ const currencyLayers: Record<string, { title: string; symbol: string; countries:
 };
 
 const options: AgTopologyChartOptions = {
-    // FIXME: Restore old series colors.
-    // FIXME: Investigate why Australia is not showing as using dollars.
     container: document.getElementById('myChart'),
     title: {
         text: 'Global Currency Zones & Financial Centers',
@@ -31,6 +29,34 @@ const options: AgTopologyChartOptions = {
             fillOpacity: 0.05,
             strokeWidth: 0.5,
             strokeOpacity: 0.3,
+        },
+        {
+            type: 'map-shape',
+            title: 'Other Currency',
+            legendItemName: 'Currencies',
+            showInLegend: true,
+            data: topology.features
+                .map((t: any) => ({
+                    name: t.properties.name,
+                    currency: 'Various local currencies',
+                }))
+                .filter(({ name }: { name: string }) => {
+                    // Check if this country is already included in any currency layer
+                    return !Object.keys(currencyLayers).some((currency) =>
+                        getCurrencyData(currency).some((d) => d.name === name)
+                    );
+                }),
+            idKey: 'name',
+            fillOpacity: 0.2,
+            strokeWidth: 0.5,
+            strokeOpacity: 0.3,
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 0.6,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                },
+            },
         },
         ...Object.entries(currencyLayers).map(([currency, { title, symbol, countries }]) => ({
             type: 'map-shape' as const,
@@ -54,29 +80,6 @@ const options: AgTopologyChartOptions = {
                 },
             },
         })),
-        {
-            type: 'map-shape',
-            title: 'Other Currency',
-            legendItemName: 'Currencies',
-            showInLegend: true,
-            data: topology.features
-                .map((t: any) => ({
-                    name: t.properties.name,
-                    currency: 'Various local currencies',
-                }))
-                .filter(({ name }: { name: string }) => currencyLayers[name] == null),
-            idKey: 'name',
-            fillOpacity: 0.2,
-            strokeWidth: 0.5,
-            strokeOpacity: 0.3,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 0.6,
-                    strokeWidth: 2,
-                    strokeOpacity: 1,
-                },
-            },
-        },
         {
             type: 'map-line',
             topology: cables,

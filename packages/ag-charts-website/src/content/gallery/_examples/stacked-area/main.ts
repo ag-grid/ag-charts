@@ -123,9 +123,16 @@ const options: AgCartesianChartOptions = {
         },
     },
     tooltip: {
-        // FIXME: Make format higher precision.
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
+    formatter: {
+        y: (params) => {
+            if (params.source === 'tooltip') {
+                return `${(Number(params.value) / 1000).toFixed(1)}k`;
+            }
+            return undefined;
         },
     },
     theme: {

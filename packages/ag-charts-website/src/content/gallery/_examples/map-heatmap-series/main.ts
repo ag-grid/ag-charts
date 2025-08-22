@@ -18,14 +18,12 @@ const gdpFormatter = new Intl.NumberFormat('en-US', {
 });
 
 const options: AgTopologyChartOptions = {
-    // FIXME: Reinstate series labels.
     container: document.getElementById('myChart'),
     title: {
         text: 'United States GDP by State',
     },
     subtitle: {
         text: '2023 Economic Output in USD',
-        spacing: 8,
     },
     data,
     topology,
@@ -39,25 +37,19 @@ const options: AgTopologyChartOptions = {
             labelName: 'State Code',
             label: {
                 enabled: true,
+                fontSize: 9,
+                padding: 0,
             },
             tooltip: {
                 renderer: (params) => {
                     const datum = params.datum as any;
                     const gdpValue = datum.gdp * 1000000; // Convert from millions
                     return {
-                        heading: datum.name,
-                        title: 'Economic Data',
+                        heading: gdpFormatter.format(gdpValue),
+                        title: `${datum.name} (${datum.code})`,
                         data: [
                             {
-                                label: 'State Code',
-                                value: datum.code,
-                            },
-                            {
-                                label: 'GDP',
-                                value: gdpFormatter.format(gdpValue),
-                            },
-                            {
-                                label: 'Share of US Economy',
+                                label: 'Share',
                                 value: `${((datum.gdp / 28000000) * 100).toFixed(2)}%`,
                             },
                         ],

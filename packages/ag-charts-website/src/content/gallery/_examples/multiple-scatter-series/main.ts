@@ -2,15 +2,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-// Define professional colors and shapes for each continent
-const continentStyles = {
-    Asia: { shape: 'diamond', fill: '#A23B72', stroke: '#7A2C55' },
-    Europe: { shape: 'circle', fill: '#2E86AB', stroke: '#236A89' },
-    Africa: { shape: 'triangle', fill: '#F18F01', stroke: '#C47301' },
-    'South America': { shape: 'cross', fill: '#6A994E', stroke: '#517A3C' },
-    Oceania: { shape: 'star', fill: '#BC4B51', stroke: '#9A3A3F' },
-    'North America': { shape: 'square', fill: '#C73E1D', stroke: '#A13118' },
-} as const;
+// Use star shape for all continents to maintain consistent visual style
 
 // Notable countries to label
 const notableCountries = [
@@ -67,14 +59,7 @@ const notableCountries = [
 ];
 
 const options: AgChartOptions = {
-    // FIXME: Change back to star markers with default colours.
     container: document.getElementById('myChart'),
-    theme: {
-        palette: {
-            fills: Object.values(continentStyles).map((s) => s.fill),
-            strokes: Object.values(continentStyles).map((s) => s.stroke),
-        },
-    },
     title: {
         text: 'The Wealth-Happiness Paradox',
     },
@@ -85,7 +70,6 @@ const options: AgChartOptions = {
         text: 'Source: World Happiness Report 2018',
     },
     series: Object.entries(getData()).map(([continent, data]) => {
-        const style = continentStyles[continent as keyof typeof continentStyles];
         return {
             data,
             type: 'scatter',
@@ -102,20 +86,10 @@ const options: AgChartOptions = {
                     return notableCountries.includes(value) ? value : '';
                 },
             },
-            marker: {
-                shape: style.shape as any,
-                size: 8,
-                fill: style.fill,
-                stroke: style.stroke,
-                strokeWidth: 1.5,
-                fillOpacity: 0.7,
-            },
-            highlightStyle: {
-                item: {
-                    fillOpacity: 1,
-                    strokeWidth: 3,
-                },
-            },
+            shape: 'star',
+            size: 8,
+            strokeWidth: 1.5,
+            fillOpacity: 0.7,
             tooltip: {
                 enabled: true,
                 showArrow: true,
@@ -185,7 +159,6 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Low',
                         position: 'inside-bottom-right',
-                        fontStyle: 'italic',
                         padding: 5,
                     },
                 },
@@ -197,7 +170,6 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Middle',
                         position: 'inside-bottom-right',
-                        fontStyle: 'italic',
                         padding: 5,
                     },
                 },
@@ -209,7 +181,6 @@ const options: AgChartOptions = {
                     label: {
                         text: 'High',
                         position: 'inside-bottom-right',
-                        fontStyle: 'italic',
                         padding: 5,
                     },
                 },
@@ -245,7 +216,6 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Global Average',
                         position: 'right',
-                        fontStyle: 'italic',
                         padding: 5,
                     },
                 },

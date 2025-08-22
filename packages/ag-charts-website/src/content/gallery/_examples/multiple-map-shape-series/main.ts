@@ -33,8 +33,13 @@ function convertLowerCamelCaseToTitleCase(str: string) {
     }, '');
 }
 
+const numberFormatter = new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    compactDisplay: 'short', // Uses M, B, T instead of million, billion, trillion
+    maximumFractionDigits: 1,
+});
+
 const options: AgTopologyChartOptions = {
-    // FIXME: Add labels back to series.
     container: document.getElementById('myChart'),
     title: {
         text: 'World Map',
@@ -58,8 +63,6 @@ const options: AgTopologyChartOptions = {
             labelKey: 'iso2',
             labelName: 'Country Code',
             label: {},
-            // colorKey: 'gdp_md',
-            // colorName: 'GDP (Million USD)',
             fillOpacity: 0.85,
             strokeWidth: 0.5,
             highlight: {
@@ -72,16 +75,19 @@ const options: AgTopologyChartOptions = {
                 renderer: ({ datum }: { datum: CountryData }) => {
                     const gdpPerCapita =
                         datum.gdp_md > 0 && datum.pop_est > 0
-                            ? Math.round((datum.gdp_md * 1000000) / datum.pop_est).toLocaleString()
+                            ? numberFormatter.format(Math.round((datum.gdp_md * 1000000) / datum.pop_est))
                             : 'N/A';
 
+                    let heading = `${datum.iso3} - ${datum.name}`;
+                    if (datum.name.length > 15) {
+                        heading = `${datum.iso3}\n${datum.name}`;
+                    }
                     return {
-                        // title: datum.name,
+                        heading,
+                        title: `Population ${numberFormatter.format(datum.pop_est)}`,
                         data: [
-                            { label: 'Population', value: datum.pop_est.toLocaleString() },
-                            { label: 'GDP', value: `$${datum.gdp_md.toLocaleString()}M` },
-                            { label: 'GDP per Capita', value: gdpPerCapita !== 'N/A' ? `$${gdpPerCapita}` : 'N/A' },
-                            { label: 'ISO Code', value: datum.iso3 },
+                            { label: 'GDP', value: `$${numberFormatter.format(datum.gdp_md)}` },
+                            { label: 'per Capita', value: gdpPerCapita !== 'N/A' ? `$${gdpPerCapita}` : 'N/A' },
                         ],
                     };
                 },

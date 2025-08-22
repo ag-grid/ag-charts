@@ -5,7 +5,6 @@ import { NameData, getData } from './data';
 const data = getData();
 
 const options: AgCartesianChartOptions<NameData> = {
-    // FIXME: Fix positioning of the annotations.
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -142,8 +141,15 @@ const options: AgCartesianChartOptions<NameData> = {
         },
     ],
     legend: {
-        position: 'right',
-        spacing: 20,
+        position: {
+            placement: 'right-bottom',
+            floating: true,
+            xOffset: -20,
+            yOffset: -20,
+        },
+        border: {
+            enabled: true,
+        },
         item: {
             marker: {
                 size: 12,
