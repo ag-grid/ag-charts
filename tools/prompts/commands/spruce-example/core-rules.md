@@ -74,6 +74,7 @@ Gallery examples are used by thousands of developers who:
 -   **Add no-op formatters** - NEVER use formatters that just call `toLocaleString()` without additional formatting
 -   **Use deeply nested formatters** - ALWAYS prefer root-level `formatter.x` and `formatter.y` over duplicating formatters
 -   **Over-decorate radial/polar charts** - Avoid adding cross lines, excessive grid lines, or axis labels unless absolutely necessary
+-   **Add unnecessary footnotes** - Only add footnotes if absolutely essential to explain the example (footnotes reduce vertical space for the visualization, especially critical for polar/radar charts)
 
 ## ⛔ CRITICAL EXIT CRITERIA - MUST PASS ALL
 
@@ -130,6 +131,7 @@ Gallery examples are used by thousands of developers who:
 -   **MINIMAL axis decoration** - Avoid cluttering with cross lines and labels
 -   Only add grid lines if they enhance data readability
 -   Keep axis labels sparse or remove entirely if not essential
+-   **Maximize visualization space** - Avoid footnotes unless absolutely essential (vertical space is already constrained in circular layouts)
 -   Focus on the data visualization, not the coordinate system
 
 ## Quick Wins (2-5 minutes, High Impact)
