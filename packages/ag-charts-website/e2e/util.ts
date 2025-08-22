@@ -58,14 +58,18 @@ export function toGalleryPageUrls(example: string) {
     return [{ framework: 'vanilla', url: `${baseUrl}/gallery/examples/${example}`, example }];
 }
 
-export function setupIntrinsicAssertions() {
+export function setupIntrinsicAssertions({ viewportSize }: { viewportSize?: { width: number; height: number } } = {}) {
     let consoleWarnOrErrors: string[] = [];
     const config = { ignore404s: false, ignoreConsoleWarnings: false };
 
-    test.beforeEach(({ page }) => {
+    test.beforeEach(async ({ page }) => {
         consoleWarnOrErrors = [];
         config.ignore404s = false;
         config.ignoreConsoleWarnings = false;
+
+        if (viewportSize) {
+            await page.setViewportSize(viewportSize);
+        }
 
         page.on('console', (msg) => {
             // We only care about warnings/errors.
