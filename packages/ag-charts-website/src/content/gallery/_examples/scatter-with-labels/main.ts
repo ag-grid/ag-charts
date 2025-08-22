@@ -1,68 +1,165 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgScatterSeriesTooltipRendererParams } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { NameData, getData } from './data';
 
 const data = getData();
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions<NameData> = {
+    // FIXME: Fix positioning of the annotations.
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'British Names',
+        text: 'British Baby Names: Popularity vs Trend Analysis',
     },
-    footnote: {
-        text: 'Source: Completely made up and random',
-    },
-    padding: {
-        left: 35,
+    animation: {
+        enabled: true,
+        duration: 800,
     },
     series: [
         {
-            data: data.filter((d) => d.gender === 'Girl'),
+            data: data.filter((d: NameData) => d.gender === 'Girl'),
             type: 'scatter',
             xKey: 'popularity',
-            xName: 'Popularity',
+            xName: 'Popularity Index',
             yKey: 'trend',
+            yName: 'Girl Names',
             labelKey: 'name',
             labelName: 'Name',
-            yName: 'Girl Names',
-            label: { enabled: true },
+            label: {
+                enabled: true,
+                placement: 'top',
+            },
+            size: 8,
+            strokeWidth: 2,
+            fillOpacity: 0.8,
+            tooltip: {
+                renderer: ({ datum, xKey, yKey }) => {
+                    const nameData = datum as NameData;
+                    return {
+                        title: nameData.name,
+                        data: [
+                            { label: 'Popularity Index', value: nameData[xKey as keyof NameData].toString() },
+                            { label: 'Trend Score', value: nameData[yKey as keyof NameData].toString() },
+                        ],
+                    };
+                },
+            },
         },
         {
-            data: data.filter((d) => d.gender === 'Boy'),
-            type: 'scatter',
+            data: data.filter((d: NameData) => d.gender === 'Boy'),
+            type: 'scatter' as const,
             xKey: 'popularity',
-            xName: 'Popularity',
+            xName: 'Popularity Index',
             yKey: 'trend',
             yName: 'Boy Names',
             labelKey: 'name',
             labelName: 'Name',
-            label: { enabled: true },
+            label: {
+                enabled: true,
+                placement: 'top',
+            },
+            shape: 'square',
+            size: 8,
+            strokeWidth: 2,
+            fillOpacity: 0.8,
+            tooltip: {
+                renderer: ({ datum, xKey, yKey }: AgScatterSeriesTooltipRendererParams<NameData>) => {
+                    return {
+                        title: datum.name,
+                        data: [
+                            { label: 'Popularity Index', value: datum[xKey].toString() },
+                            { label: 'Trend Score', value: datum[yKey].toString() },
+                        ],
+                    };
+                },
+            },
         },
     ],
     axes: [
         {
             position: 'bottom',
             type: 'number',
-            nice: false,
+            title: {
+                text: 'Popularity Index →',
+            },
+            nice: true,
+            min: 0,
+            max: 100,
             gridLine: {
-                enabled: false,
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                ],
+            },
+            crosshair: {
+                enabled: true,
+                strokeWidth: 1,
+                lineDash: [5, 5],
+                label: {
+                    enabled: true,
+                    format: '.0f',
+                },
             },
             label: {
-                enabled: false,
+                enabled: true,
+                formatter: ({ value }) => (value === 0 ? 'Rare' : value === 100 ? 'Popular' : `${value}`),
             },
         },
         {
             position: 'left',
             type: 'number',
+            title: {
+                text: 'Trend Score',
+            },
+            nice: true,
+            min: 0,
+            max: 10,
             gridLine: {
-                enabled: false,
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                ],
+            },
+            crosshair: {
+                enabled: true,
+                strokeWidth: 1,
+                lineDash: [5, 5],
+                label: {
+                    enabled: true,
+                    format: '.1f',
+                },
             },
             label: {
-                enabled: false,
+                enabled: true,
+                formatter: ({ value }) => (value === 0 ? 'Declining' : value === 10 ? 'Rising' : `${value}`),
             },
         },
     ],
+    legend: {
+        position: 'right',
+        spacing: 20,
+        item: {
+            marker: {
+                size: 12,
+                strokeWidth: 2,
+            },
+            label: {},
+            paddingY: 8,
+        },
+    },
+    tooltip: {
+        enabled: true,
+        delay: 100,
+        position: {
+            anchorTo: 'pointer',
+        },
+    },
 };
 
 AgCharts.create(options);
