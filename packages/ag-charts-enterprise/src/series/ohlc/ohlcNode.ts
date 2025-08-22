@@ -75,7 +75,6 @@ export class OhlcBaseNode<D = any> extends Path<D> implements _ModuleSupport.Dis
         const centerY = (y0 + y1) / 2;
 
         // Align to an assumed 1px stroke width
-        centerX += strokeAlignment;
         x0 += strokeAlignment;
         x1 += strokeAlignment;
         y0 -= strokeAlignment;

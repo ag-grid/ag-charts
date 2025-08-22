@@ -117,7 +117,6 @@ export class BoxPlotNode extends Scalable(Path) {
         const crossCenter = (min + max) / 2;
 
         // Align to an assumed 1px stroke thickness
-        center += strokeAlignment;
         x0 += strokeAlignment;
         x1 += strokeAlignment;
         min += min < crossCenter ? strokeAlignment : -strokeAlignment;
@@ -185,12 +184,13 @@ export class BoxPlotNode extends Scalable(Path) {
         moveTo(wickPath, horizontal, capX0, wickBottom);
         lineTo(wickPath, horizontal, capX1, wickBottom);
 
-        const boxStrokeAdjustment = strokeAlignment + strokeWidth / 2;
-        const rectHeight = boxBottom - boxTop - 2 * boxStrokeAdjustment;
+        const horizontalBoxStrokeAdjustment = strokeWidth / 2 + strokeAlignment;
+        const verticalBoxStrokeAdjustment = strokeWidth / 2 - strokeAlignment;
+        const rectHeight = boxBottom - boxTop - 2 * verticalBoxStrokeAdjustment;
         if (rectHeight > 0) {
-            const rectX = x0 + boxStrokeAdjustment;
-            const rectY = boxTop + boxStrokeAdjustment;
-            const rectWidth = x1 - x0 - 2 * boxStrokeAdjustment;
+            const rectX = x0 + horizontalBoxStrokeAdjustment;
+            const rectY = boxTop + verticalBoxStrokeAdjustment;
+            const rectWidth = x1 - x0 - 2 * horizontalBoxStrokeAdjustment;
             const cornerRadii = {
                 topLeft: cornerRadius,
                 topRight: cornerRadius,
