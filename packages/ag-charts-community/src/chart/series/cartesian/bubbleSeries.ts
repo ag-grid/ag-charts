@@ -26,6 +26,7 @@ import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { formatValue } from '../../../util/format.util';
+import { dateToNumber } from '../../../util/timeFormatDefaults';
 import { rescaleVisibleRange } from '../../../util/visibleRange';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -301,15 +302,15 @@ export class BubbleSeries extends CartesianSeries<
             if (ContinuousScale.is(xScale)) {
                 xVisibleRange = rescaleVisibleRange(
                     xVisibleRange,
-                    xScale.domain as [number, number],
-                    dataModel.getDomain(this, `xValue`, 'value', processedData) as [number, number]
+                    xScale.domain.map(dateToNumber) as [number, number],
+                    dataModel.getDomain(this, `xValue`, 'value', processedData).map(dateToNumber) as [number, number]
                 );
             }
             if (ContinuousScale.is(yScale)) {
                 yVisibleRange = rescaleVisibleRange(
                     yVisibleRange,
-                    yScale.domain as [number, number],
-                    dataModel.getDomain(this, `yValue`, 'value', processedData) as [number, number]
+                    yScale.domain.map(dateToNumber) as [number, number],
+                    dataModel.getDomain(this, `yValue`, 'value', processedData).map(dateToNumber) as [number, number]
                 );
             }
         }
