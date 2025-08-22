@@ -15,7 +15,24 @@ const options: AgChartOptions = {
             valueKey: 'value',
             spacingRatio: 0.3,
             stageLabel: {
-                enabled: false,
+                enabled: true,
+            },
+            label: {
+                enabled: true,
+            },
+            tooltip: {
+                renderer: (params: any) => {
+                    const value = params.datum[params.valueKey];
+                    const percentage = ((value / 10000) * 100).toFixed(1);
+                    return {
+                        heading: 'Conversion Funnel',
+                        title: params.datum[params.stageKey],
+                        data: [
+                            { label: 'Count', value: value.toLocaleString() },
+                            { label: 'Conversion Rate', value: `${percentage}%` },
+                        ],
+                    };
+                },
             },
         },
     ],

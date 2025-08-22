@@ -6,7 +6,10 @@ const numberFormatter = new Intl.NumberFormat('en-US', { useGrouping: true });
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Busiest Flights',
+        text: 'Busiest International Flight Routes',
+    },
+    subtitle: {
+        text: 'Annual passenger traffic between major airports',
     },
     data: [
         { from: 'HKG', to: 'TPE', passengers: 7566000 },
@@ -20,6 +23,15 @@ const options: AgChartOptions = {
         { from: 'LHR', to: 'DXB', passengers: 2338127 },
         { from: 'LAX', to: 'LHR', passengers: 1645002 },
     ],
+    tooltip: {
+        enabled: true,
+        position: {
+            anchorTo: 'pointer',
+            placement: ['right', 'left', 'top', 'bottom'],
+            xOffset: 10,
+            yOffset: -10,
+        },
+    },
     series: [
         {
             type: 'chord',
@@ -28,20 +40,39 @@ const options: AgChartOptions = {
             sizeKey: 'passengers',
             sizeName: 'Passengers',
             node: {
-                width: 40,
-                strokeWidth: 1,
+                width: 45,
             },
             link: {
-                fill: '#888',
-                fillOpacity: 0.225,
-                stroke: '#888',
-                strokeOpacity: 0.55,
+                fillOpacity: 0.4,
+                strokeOpacity: 0.7,
                 strokeWidth: 1,
+                itemStyler: ({ datum, sizeKey }) => {
+                    const value = Number(datum[sizeKey!]);
+                    const maxValue = 7566000;
+                    const minValue = 1645002;
+                    const numberValue = !isNaN(value) ? value : 0;
+                    const opacity = 0.5 + 0.6 * ((numberValue - minValue) / (maxValue - minValue));
+                    return {
+                        fillOpacity: opacity,
+                        strokeOpacity: opacity + 0.2,
+                    };
+                },
             },
             label: {
-                fontWeight: 'bold',
-                color: '#888',
-                spacing: 10,
+                spacing: 12,
+            },
+            tooltip: {
+                renderer: (params) => {
+                    const { datum, sizeKey, sizeName } = params;
+                    const value = datum[sizeKey!];
+                    return {
+                        data: [
+                            { label: 'Route', value: `${datum.from} → ${datum.to}` },
+                            { label: sizeName!, value: numberFormatter.format(value) },
+                            { label: 'Traffic', value: `${(value / 1000000).toFixed(2)}M passengers/year` },
+                        ],
+                    };
+                },
             },
         },
     ],

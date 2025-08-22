@@ -1,18 +1,27 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'Ad Campaign Impact',
     },
     subtitle: {
-        text: 'Yearly Percentage Change in Advertisement Engagement',
+        text: 'Yearly Percentage Change in Advertisement Engagement (2018 to 2023)',
     },
-    footnote: {
-        text: '2018 to 2023',
+    formatter: {
+        y: ({ value }) => `${(Number(value) * 100).toFixed(1)}%`,
+    },
+    tooltip: {
+        mode: 'shared',
+        position: {
+            xOffset: -30,
+            yOffset: -75,
+            anchorTo: 'chart',
+            placement: ['bottom-right'],
+        },
     },
     theme: {
         overrides: {
@@ -78,6 +87,18 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             gridLine: {
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            bandHighlight: {
                 enabled: true,
             },
         },
