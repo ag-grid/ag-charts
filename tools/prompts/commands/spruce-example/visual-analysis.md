@@ -42,6 +42,7 @@ await puppeteer_navigate({
 -   [ ] Current features cataloged (what's already implemented)
 -   [ ] Multi-series vs single-series determined
 -   [ ] Target audience considered (enterprise/finance focus)
+-   [ ] **Footnote necessity assessed** - Only add if absolutely essential (footnotes reduce visualization space, especially for polar/radar charts)
 -   [ ] Visual goals defined (3-5 specific improvements max)
 
 ### During Implementation:
@@ -75,6 +76,7 @@ await puppeteer_navigate({
     -   [ ] Verified with data at chart edges/corners
     -   [ ] Tested with maximum data values that might extend upward
 -   [ ] All themes tested (light/dark mode switching works)
+-   [ ] **Footnote minimization verified** - Only essential footnotes remain (to maximize visualization space)
 -   [ ] Chart loads correctly in development server
 -   [ ] Before/after comparison confirms improvements without regressions
 

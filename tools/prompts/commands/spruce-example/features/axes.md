@@ -413,6 +413,7 @@ axes: [
 -   **Avoid cross lines**: They rarely add value in circular coordinates
 -   **Limit grid circles**: Too many concentric circles create visual noise
 -   **Consider removing axis labels**: The data itself often provides sufficient context
+-   **Maximize visualization space**: Avoid footnotes unless absolutely essential (circular layouts already have constrained vertical space)
 -   **Use tooltips instead**: Let tooltips provide precise values rather than cluttering with labels
 
 ## Important Notes
@@ -421,4 +422,4 @@ axes: [
 -   **Never hardcode colors**: Let the theme handle all color properties
 -   **Avoid font overrides**: Don't set fontSize, fontWeight, or fontFamily
 -   **Test with both themes**: Ensure bands and highlights work in light/dark mode
--   **For radial/polar charts**: Less is more - minimize axis decorations
+-   **For radial/polar charts**: Less is more - minimize axis decorations and avoid non-essential footnotes
