@@ -4,6 +4,7 @@ import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, HighlightState
 import type { Text } from '../scene/shape/text';
 import { mergeDefaults } from '../util/object';
 import type { Label } from './label';
+import type { SeriesNodeDatum } from './series/seriesTypes';
 
 interface SeriesLike {
     id: string;
@@ -20,7 +21,6 @@ type Bounds = {
 export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
 type LabelDatum = Point & {
-    datum?: unknown;
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
@@ -28,7 +28,7 @@ type LabelDatum = Point & {
 
 export function getLabelStyles<TParams>(
     series: SeriesLike,
-    nodeDatum: { datum?: unknown } | undefined,
+    nodeDatum: SeriesNodeDatum<unknown> | undefined,
     params: TParams,
     label: Label<TParams>,
     highlighted?: boolean,
@@ -74,7 +74,7 @@ export function updateLabelNode<TParams, D extends LabelDatum>(
 
 export function updateLabelNode<TParams>(
     series: SeriesLike,
-    textNode: Text,
+    textNode: Text<SeriesNodeDatum<unknown>>,
     params: TParams,
     label: Label<TParams, unknown>,
     labelDatum: LabelDatum | undefined,
@@ -82,7 +82,7 @@ export function updateLabelNode<TParams>(
     highlightState?: HighlightState
 ) {
     if (label.enabled && labelDatum) {
-        const style = getLabelStyles<TParams>(series, labelDatum, params, label, highlighted, highlightState);
+        const style = getLabelStyles<TParams>(series, textNode.datum, params, label, highlighted, highlightState);
         textNode.visible = true;
         textNode.x = labelDatum.x;
         textNode.y = labelDatum.y;
