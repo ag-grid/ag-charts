@@ -171,24 +171,24 @@ benchmark() {
 
             # Run the benchmark with the current version of the files
             if (
-                run_silent node \
+                ! run_silent node \
                     --expose-gc ./node_modules/jest/bin/jest.js \
                     --config packages/ag-charts-community/jest.config.ts \
                     --runInBand \
-                    --testPathPattern '.*/benchmarks/.*' && \
-                run_silent node \
+                    --testPathPattern '.*/benchmarks/.*' || \
+                ! run_silent node \
                     --expose-gc ./node_modules/jest/bin/jest.js \
                     --config packages/ag-charts-enterprise/jest.config.ts \
                     --runInBand \
                     --testPathPattern '.*/benchmarks/.*'
             ) ; then
-                run_silent node "$(dirname $0)/collate-reports.js" --name "$(echo "$version" | sed 's/^origin\///')"
-                run_silent git add ${data_file}
-            else
                 failed=true
                 log_warning "Benchmarks failed, continuing..."
                 repeat=false
             fi
+
+            run_silent node "$(dirname $0)/collate-reports.js" --name "$(echo "$version" | sed 's/^origin\///')"
+            run_silent git add ${data_file}
         done
 
         repeat=false
