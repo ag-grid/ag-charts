@@ -3,7 +3,17 @@ import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 import { getData } from './data';
 
 const data = getData();
-const numFormatter = new Intl.NumberFormat('en-US');
+const currencyFormatter = new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+    notation: 'compact',
+});
+
+// Calculate total value from actual data
+const totalValue = data.categories.reduce((sum, item) => sum + item.value, 0);
+const formattedTotal = currencyFormatter.format(totalValue);
 
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
@@ -11,48 +21,82 @@ const options: AgPolarChartOptions = {
         text: 'Oxford Street Department Store',
     },
     subtitle: {
-        text: 'Total Product Value by Department',
+        text: 'Revenue Distribution vs. Profit Margin',
     },
     series: [
         {
-            data: data['categories'],
+            data: data.categories,
             type: 'donut',
             calloutLabelKey: 'category',
             calloutLabel: {
-                offset: 10,
+                offset: 12,
+                avoidCollisions: true,
+                minAngle: 10,
             },
             angleKey: 'value',
-            radiusKey: 'value',
-            outerRadiusRatio: 0.8,
-            innerRadiusRatio: 0.6,
-            fillOpacity: 0.4,
-        },
-        {
-            data: data['departments'],
-            type: 'donut',
-            sectorLabelKey: 'department',
-            angleKey: 'value',
-            outerRadiusRatio: 0.6,
-            innerRadiusRatio: 0.4,
-            fillOpacity: 0.6,
-        },
-        {
-            data: data['stores'],
-            type: 'donut',
-            sectorLabelKey: 'store',
-            angleKey: 'total',
-            outerRadiusRatio: 0.4,
-            innerRadiusRatio: 0,
+            radiusKey: 'profitMargin',
+            innerRadiusRatio: 0.35,
+            fillOpacity: 0.85,
+            innerLabels: [
+                {
+                    text: 'Total Revenue',
+                    spacing: 4,
+                },
+                {
+                    text: formattedTotal,
+                    spacing: 4,
+                },
+            ],
+            legendItemKey: 'category',
+            cornerRadius: 5,
+            strokeWidth: 1,
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 3,
+                    fillOpacity: 1,
+                },
+            },
+            tooltip: {
+                enabled: true,
+                renderer: (params) => {
+                    const value = params.datum[params.angleKey!] as number;
+                    const profitMargin = params.datum[params.radiusKey!] as number;
+                    const category = params.datum[params.calloutLabelKey || 'category'];
+                    const percentage = ((value / totalValue) * 100).toFixed(1);
+                    const formattedValue = currencyFormatter.format(value);
+                    const marginPercent = (profitMargin * 100).toFixed(0);
+
+                    // Determine department based on category
+                    let department = 'Other';
+                    if (['Smartphones', 'Laptops', 'Cameras'].includes(category)) {
+                        department = 'Electronics';
+                    } else if (["Men's", "Women's", "Children's"].includes(category)) {
+                        department = 'Clothing';
+                    } else if (['Furniture', 'Appliances', 'Decor'].includes(category)) {
+                        department = 'Home';
+                    }
+
+                    return {
+                        heading: formattedValue,
+                        title: `${category} (${department})`,
+                        data: [
+                            {
+                                label: 'Revenue Share',
+                                value: `${percentage}%`,
+                            },
+                            {
+                                label: 'Profit Margin',
+                                value: `${marginPercent}%`,
+                            },
+                        ],
+                    };
+                },
+            },
         },
     ],
     legend: {
-        enabled: false,
-    },
-    formatter: {
-        angle: (params) => {
-            const value = params.value as number;
-            return value < 1e9 ? `${numFormatter.format(value / 1e6)}M` : `${numFormatter.format(value / 1e9)}B`;
-        },
+        position: 'right',
+        spacing: 30,
     },
 };
 

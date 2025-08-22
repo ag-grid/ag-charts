@@ -12,15 +12,18 @@ export function getData() {
             { department: 'Home', value: 15000000 },
         ],
         categories: [
-            { category: 'Smartphones', value: 4000000 },
-            { category: 'Laptops', value: 6000000 },
-            { category: 'Cameras', value: 5000000 },
-            { category: "Men's", value: 3000000 },
-            { category: "Women's", value: 5000000 },
-            { category: "Children's", value: 2000000 },
-            { category: 'Furniture', value: 8000000 },
-            { category: 'Appliances', value: 6000000 },
-            { category: 'Decor', value: 1000000 },
+            // Electronics: Lower margins due to competitive market
+            { category: 'Smartphones', value: 4200000, profitMargin: 0.12 },
+            { category: 'Laptops', value: 5800000, profitMargin: 0.08 },
+            { category: 'Cameras', value: 4700000, profitMargin: 0.18 },
+            // Clothing: Medium to high margins for fashion items
+            { category: "Men's", value: 3300000, profitMargin: 0.42 },
+            { category: "Women's", value: 5100000, profitMargin: 0.48 },
+            { category: "Children's", value: 1900000, profitMargin: 0.35 },
+            // Home: Variable margins based on product type
+            { category: 'Furniture', value: 8500000, profitMargin: 0.38 },
+            { category: 'Appliances', value: 5500000, profitMargin: 0.22 },
+            { category: 'Decor', value: 1100000, profitMargin: 0.55 },
         ],
     };
 }

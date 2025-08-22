@@ -1,20 +1,51 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
 
 import { africaData, asiaData, europeData, gdpData, northAmericaData, oceaniaData, southAmericaData } from './data';
 import { topology } from './topology';
 
-const labelOptions = {
-    labelKey: 'iso2',
-    labelName: 'Country Code',
-    label: {
-        fontWeight: 'lighter' as const,
-    },
+interface CountryData {
+    pop_est: number;
+    pop_rank: number;
+    gdp_md: number;
+    iso2: string;
+    iso3: string;
+    name: string;
+}
+
+const datasets = {
+    europe: europeData,
+    asia: asiaData,
+    africa: africaData,
+    northAmerica: northAmericaData,
+    southAmerica: southAmericaData,
+    oceania: oceaniaData,
 };
 
-const options: AgChartOptions = {
+function convertLowerCamelCaseToTitleCase(str: string) {
+    return [...str].reduce((acc, char, index) => {
+        if (index === 0) {
+            return char.toLocaleUpperCase();
+        }
+        if (char === char.toLocaleUpperCase()) {
+            return acc + ' ' + char;
+        }
+        return acc + char;
+    }, '');
+}
+
+const numberFormatter = new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    compactDisplay: 'short', // Uses M, B, T instead of million, billion, trillion
+    maximumFractionDigits: 1,
+});
+
+const options: AgTopologyChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'World Map',
+    },
+    subtitle: {
+        text: 'Hover over countries to see detailed economic data',
     },
     topology,
     series: [
@@ -22,68 +53,60 @@ const options: AgChartOptions = {
             type: 'map-shape-background',
             topology,
         },
-        {
-            type: 'map-shape',
+        ...Object.entries(datasets).map(([key, data]) => ({
+            type: 'map-shape' as const,
             topology,
-            data: europeData,
-            title: 'Europe',
+            data,
+            title: convertLowerCamelCaseToTitleCase(key),
             idKey: 'name',
             topologyIdKey: 'NAME_ENGL',
-            ...labelOptions,
-        },
-        {
-            type: 'map-shape',
-            topology,
-            data: asiaData,
-            title: 'Asia',
-            idKey: 'name',
-            topologyIdKey: 'NAME_ENGL',
-            ...labelOptions,
-        },
-        {
-            type: 'map-shape',
-            topology,
-            data: africaData,
-            title: 'Africa',
-            idKey: 'name',
-            topologyIdKey: 'NAME_ENGL',
-            ...labelOptions,
-        },
-        {
-            type: 'map-shape',
-            topology,
-            data: northAmericaData,
-            title: 'North America',
-            idKey: 'name',
-            topologyIdKey: 'NAME_ENGL',
-            ...labelOptions,
-        },
-        {
-            type: 'map-shape',
-            topology,
-            data: southAmericaData,
-            title: 'South America',
-            idKey: 'name',
-            topologyIdKey: 'NAME_ENGL',
-            ...labelOptions,
-        },
-        {
-            type: 'map-shape',
-            topology,
-            data: oceaniaData,
-            title: 'Oceania',
-            idKey: 'name',
-            topologyIdKey: 'NAME_ENGL',
-            ...labelOptions,
-        },
+            labelKey: 'iso2',
+            labelName: 'Country Code',
+            label: {},
+            fillOpacity: 0.85,
+            strokeWidth: 0.5,
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 2,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum }: { datum: CountryData }) => {
+                    const gdpPerCapita =
+                        datum.gdp_md > 0 && datum.pop_est > 0
+                            ? numberFormatter.format(Math.round((datum.gdp_md * 1000000) / datum.pop_est))
+                            : 'N/A';
+
+                    let heading = `${datum.iso3} - ${datum.name}`;
+                    if (datum.name.length > 15) {
+                        heading = `${datum.iso3}\n${datum.name}`;
+                    }
+                    return {
+                        heading,
+                        title: `Population ${numberFormatter.format(datum.pop_est)}`,
+                        data: [
+                            { label: 'GDP', value: `$${numberFormatter.format(datum.gdp_md)}` },
+                            { label: 'per Capita', value: gdpPerCapita !== 'N/A' ? `$${gdpPerCapita}` : 'N/A' },
+                        ],
+                    };
+                },
+            },
+        })),
     ],
+    zoom: {
+        enabled: true,
+        buttons: {
+            visible: 'zoomed',
+        },
+    },
     legend: {
         enabled: true,
-        item: {
-            marker: {
-                shape: 'circle',
-            },
-        },
+        position: 'right',
+        item: { marker: { shape: 'circle' } },
+    },
+    animation: {
+        enabled: true,
     },
 };
 
