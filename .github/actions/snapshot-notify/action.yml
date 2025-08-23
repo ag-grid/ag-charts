@@ -55,33 +55,36 @@ runs:
           run: |
               set -eux
 
-              pr_count=$(
-                gh pr list \
-                    --base ${{ github.ref }} \
-                    --head ${{ inputs.branch }} \
-                    --json title \
-                    --jq 'length'
-              )
+              echo "url=https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{inputs.branch}}" >> $GITHUB_OUTPUT
 
-              if ((pr_count > 0)); then
-                  echo "Existing PRs for snapshots, skipping PR creation."
-                  echo "skip=true" >> "$GITHUB_OUTPUT"
-                  exit
-              fi
+                # TODO: Uncomment this when we have a way to create PRs on the latest branch that GHA will run against.
+                #   pr_count=$(
+                #     gh pr list \
+                #         --base ${{ github.ref }} \
+                #         --head ${{ inputs.branch }} \
+                #         --json title \
+                #         --jq 'length'
+                #   )
 
-              gh pr create \
-                --base ${{ github.ref }} \
-                --head ${{ inputs.branch }} \
-                --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
-                --body "Automatically generated for review."
+                #   if ((pr_count > 0)); then
+                #       echo "Existing PRs for snapshots, skipping PR creation."
+                #       echo "skip=true" >> "$GITHUB_OUTPUT"
+                #       exit
+                #   fi
 
-              url=$(
-                gh pr view \
-                    ${{ inputs.branch }} \
-                    --json url | jq -r .url
-              )
+                #   gh pr create \
+                #     --base ${{ github.ref }} \
+                #     --head ${{ inputs.branch }} \
+                #     --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
+                #     --body "Automatically generated for review."
 
-              echo "url=${url}" >> $GITHUB_OUTPUT
+                #   url=$(
+                #     gh pr view \
+                #         ${{ inputs.branch }} \
+                #         --json url | jq -r .url
+                #   )
+
+                #   echo "url=${url}" >> $GITHUB_OUTPUT
 
         - name: Slack Notification
           uses: rtCamp/action-slack-notify@v2
