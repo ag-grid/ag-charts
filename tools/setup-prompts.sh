@@ -19,64 +19,101 @@ while getopts "u" opt; do
     esac
 done
 
-# Check if claude command exists
-if (command -v claude || command -v cursor-agent) >/dev/null 2>&1; then
-    # Create .claude/{commands,agents}/ directory if it doesn't exist
-    mkdir -p .claude/{commands,agents}/
+function setup_commands() {
+    local target_dir=$1
+    local format=${2:-md}
 
-    # Symlink CLAUDE.md to root
-    if [[ -f "tools/prompts/CLAUDE.md" && ! -f "CLAUDE.md" ]] ; then
-        ln -sf "tools/prompts/CLAUDE.md" "CLAUDE.md"
+    mkdir -p $target_dir
+    if [[ "$format" == "md" ]]; then
+        for file in tools/prompts/commands/*.md; do
+            ln -sf "$(pwd)/$file" "$target_dir/$(basename "$file")"
+        done
+    elif [[ "$format" == "toml" ]]; then
+        for file in tools/prompts/commands/*.md; do
+            cat > "$target_dir/$(basename ${file%.md}).toml" <<EOF
+prompt = """
+$(cat "$file")
+"""
+EOF
+        done
     fi
+}
 
-    # Symlink .mcp.json to root
-    if [[ -f "tools/prompts/.mcp.json" && ! -f ".mcp.json" ]] ; then
-        ln -sf "tools/prompts/.mcp.json" ".mcp.json"
-    fi
+function setup_agents() {
+    local target_dir=$1
 
-    # Symlink other .md files to .claude/{commands,agents}/
-    for file in tools/prompts/commands/*.md; do
-        ln -sf "../../$file" ".claude/commands/$(basename "$file")"
-    done
-
-    # Symlink other .md files to .claude/commands/
+    mkdir -p $target_dir
     for file in tools/prompts/agents/*.md; do
-        ln -sf "../../$file" ".claude/agents/$(basename "$file")"
+        ln -sf "$(pwd)/$file" "$target_dir/$(basename "$file")"
     done
+}
 
-    if command -v direnv >/dev/null 2>&1 && [ -d "$HOME/.claude-ag-grid/" ]; then
-        direnv allow
-    fi
+function setup_instructions() {
+    local target_file=$1
+
+    mkdir -p $(dirname $target_file)
+    ln -sf "$(pwd)/tools/prompts/CLAUDE.md" "$target_file"
+}
+
+function setup_mcp() {
+    local target_file=$1
+
+    ln -sf "$(pwd)/tools/prompts/.mcp.json" "$target_file"
+}
+
+if (command -v claude >/dev/null 2>&1) ; then
+    setup_commands .claude/commands
+    setup_agents .claude/agents
+    setup_instructions CLAUDE.md
+    setup_mcp .mcp.json
 fi
 
-mkdir -p .github/{prompts,instructions}/
-ln -s "../../tools/prompts/CLAUDE.md" .github/instructions/copilot-instructions.md
+if (command -v gemini >/dev/null 2>&1) ; then
+    setup_commands .gemini/commands toml
+    setup_instructions GEMINI.md
+    setup_mcp .gemini/settings.json
+fi
 
-for prompt in pr-review.md release-options-review.md docs-review.md; do
-    prompt_file="tools/prompts/commands/$prompt"
-    copilot_prompt=".github/prompts/${prompt%.md}.prompt.md"
-    if [[ -f "$prompt_file" && ! -f "$copilot_prompt" ]] ; then
-        ln -sf "../../$prompt_file" "$copilot_prompt"
-    fi
-done
+if (command -v cursor-agent >/dev/null 2>&1) ; then
+    setup_instructions .cursorrules
+    setup_mcp .mcp.json
+fi
 
-function add_mcp() {
-    local name=$1
-    local scope=$2
-    local command=$3
-    shift 3
-    local args=$@
-    if (claude mcp get "$name" 2>&1 | grep -q "Scope: Project") ; then
-        claude mcp remove "$name" -s project
-    fi
-    if (claude mcp get "$name" 2>&1 | grep -q "Scope: Local") ; then
-        claude mcp remove "$name" -s local
-    fi
-    claude mcp add "$name" -s $scope -- "$command" $args
-}
+# Copilot setup - not sure if there is a better way to detect?
+if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+    setup_instructions .github/instructions/copilot-instructions.md
+    mkdir -p .github/prompts
+    for prompt in pr-review.md release-options-review.md docs-review.md; do
+        prompt_file="tools/prompts/commands/$prompt"
+        copilot_prompt=".github/prompts/${prompt%.md}.prompt.md"
+        if [[ -f "$prompt_file" && ! -f "$copilot_prompt" ]] ; then
+            ln -sf "../../$prompt_file" "$copilot_prompt"
+        fi
+    done
+fi
+
+# Enable direnv if it is installed and the .claude-ag-grid directory exists
+if command -v direnv >/dev/null 2>&1 && [ -d "$HOME/.claude-ag-grid/" ]; then
+    direnv allow
+fi
 
 # Add MCPs if UPDATE_MCP_CONFIG is enabled
 if [ "$UPDATE_MCP_CONFIG" = true ]; then
+    function add_mcp() {
+        local name=$1
+        local scope=$2
+        local command=$3
+        shift 3
+        local args=$@
+        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Project") ; then
+            claude mcp remove "$name" -s project
+        fi
+        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Local") ; then
+            claude mcp remove "$name" -s local
+        fi
+        claude mcp add "$name" -s $scope -- "$command" $args
+    }
+
     add_mcp fetch project yarn run mcp-fetch
     add_mcp sequential-thinking project yarn run mcp-server-sequential-thinking
     add_mcp context7 project yarn run context7-mcp

@@ -64,8 +64,11 @@ vitest.config.*.timestamp*
 
 # Ignore local AI.
 /.claude/
+/.gemini/
 /.github/prompts/
 /.github/instructions/
 /.mcp.json
 CLAUDE.md
 .tmp
+GEMINI.md
+.cursorrules
