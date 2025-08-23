@@ -55,7 +55,7 @@ runs:
           run: |
               set -eux
 
-              echo "url=https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{inputs.branch}}" >> $GITHUB_OUTPUT
+              echo "url=https://github.com/ag-grid/ag-charts/compare/${{github.ref}}...${{inputs.branch}}" >> $GITHUB_OUTPUT
 
                 # TODO: Uncomment this when we have a way to create PRs on the latest branch that GHA will run against.
                 #   pr_count=$(
