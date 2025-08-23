@@ -80,7 +80,7 @@ if (command -v cursor-agent >/dev/null 2>&1) ; then
 fi
 
 # Copilot setup - not sure if there is a better way to detect?
-if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+if [[ "${TERM_PROGRAM:-}" == "vscode" ]]; then
     setup_instructions .github/instructions/copilot-instructions.md
     mkdir -p .github/prompts
     for prompt in pr-review.md release-options-review.md docs-review.md; do
