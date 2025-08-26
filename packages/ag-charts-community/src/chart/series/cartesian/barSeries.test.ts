@@ -1413,5 +1413,231 @@ describe('BarSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('should render bar series with missing start values in segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Q1', y: 150 },
+                    { x: 'Q2', y: 200 },
+                    { x: 'Q3', y: 180 },
+                    { x: 'Q4', y: 220 },
+                    { x: 'Q5', y: 250 },
+                    { x: 'Q6', y: 275 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'Q1', stop: 'Q2', fill: 'crimson', stroke: 'darkred', strokeWidth: 2 },
+                                { stop: 'Q4', fill: 'royalblue', stroke: 'darkblue', strokeWidth: 3 }, // Missing start - should use 'Q2'
+                                { stop: 'Q6', fill: 'forestgreen', stroke: 'darkgreen', strokeWidth: 2 }, // Missing start - should use 'Q4'
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bar series with missing stop values in segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Jan', y: 100 },
+                    { x: 'Feb', y: 120 },
+                    { x: 'Mar', y: 110 },
+                    { x: 'Apr', y: 140 },
+                    { x: 'May', y: 160 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'Jan', fill: '#ff6b6b', stroke: '#e55555', strokeWidth: 2 }, // Missing stop - should use 'Feb'
+                                { start: 'Feb', fill: '#4ecdc4', stroke: '#3db5ac', strokeWidth: 2 }, // Missing stop - should use 'May'
+                                { start: 'May', stop: 'May', fill: '#45b7d1', stroke: '#3a9bc1', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bar series with Y-axis segmentation and missing values', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Product A', y: 50 },
+                    { x: 'Product B', y: 150 },
+                    { x: 'Product C', y: 250 },
+                    { x: 'Product D', y: 350 },
+                    { x: 'Product E', y: 450 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                { start: 0, stop: 200, fill: 'orange', stroke: 'darkorange', strokeWidth: 1 },
+                                { stop: 400, fill: 'purple', stroke: 'darkmagenta', strokeWidth: 2 }, // Missing start - should use 200
+                                { start: 400, fill: 'gold', stroke: 'darkgoldenrod', strokeWidth: 1 }, // Missing stop - should extend to max
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bar series with complex missing values pattern', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Week 1', y: 80 },
+                    { x: 'Week 2', y: 120 },
+                    { x: 'Week 3', y: 100 },
+                    { x: 'Week 4', y: 140 },
+                    { x: 'Week 5', y: 160 },
+                    { x: 'Week 6', y: 180 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'Week 1',
+                                    stop: 'Week 2',
+                                    fill: 'lightcoral',
+                                    stroke: 'indianred',
+                                    strokeWidth: 2,
+                                },
+                                { fill: 'lightblue', stroke: 'steelblue', strokeWidth: 2 }, // Missing both start/stop - should bridge from 'Week 2' to 'Week 4'
+                                { start: 'Week 4', fill: 'lightgreen', stroke: 'forestgreen', strokeWidth: 2 }, // Missing stop - should extend to end
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render horizontal bar series with missing segmentation values', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Alpha', y: 85 },
+                    { x: 'Beta', y: 125 },
+                    { x: 'Gamma', y: 105 },
+                    { x: 'Delta', y: 145 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        direction: 'horizontal',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                { start: 80, stop: 110, fill: 'mediumorchid', stroke: 'darkorchid', strokeWidth: 2 },
+                                { stop: 150, fill: 'mediumseagreen', stroke: 'seagreen', strokeWidth: 2 }, // Missing start - should use 110
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'left' },
+                    { type: 'number', position: 'bottom' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render grouped bar series with missing segmentation values', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'A', y1: 30, y2: 50 },
+                    { x: 'B', y1: 40, y2: 60 },
+                    { x: 'C', y1: 35, y2: 55 },
+                    { x: 'D', y1: 45, y2: 65 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y1',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'A', stop: 'B', fill: 'tomato', stroke: 'darkred', strokeWidth: 1 },
+                                { stop: 'D', fill: 'dodgerblue', stroke: 'darkblue', strokeWidth: 1 }, // Missing start - should use 'B'
+                            ],
+                        },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'A', fill: 'limegreen', stroke: 'darkgreen', strokeWidth: 1 }, // Missing stop - should extend to end
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 });
