@@ -91,7 +91,7 @@ const options: AgChartOptions<DataType> = {
         text: 'S&P 500 Index Stocks by Sector Performance',
     },
     subtitle: {
-        text: `Market capitalization shown by tile size • Daily price change shown by color\nData as of ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+        text: `Market capitalization shown by tile size • Daily price change shown by color`,
     },
 };
 
