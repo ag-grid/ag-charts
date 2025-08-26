@@ -415,6 +415,7 @@ export const LEGEND_CONTAINER_THEME: any = {
 };
 
 export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
+    enabled: false,
     key: 'x',
     segments: {
         $apply: [
@@ -422,18 +423,18 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 fill: {
                     $applySwitch: [
                         { $path: 'type' },
-                        { $path: '../../../fill' },
+                        { $path: '/series/$index/fill' },
                         ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
                         ['image', FILL_IMAGE_DEFAULTS],
                         ['pattern', FILL_PATTERN_DEFAULTS],
                     ],
                 },
-                stroke: { $path: '../../../stroke' },
-                fillOpacity: { $path: '../../../fillOpacity' },
-                strokeWidth: { $path: '../../../strokeWidth' },
-                strokeOpacity: { $path: '../../../strokeOpacity' },
-                lineDash: { $path: '../../../lineDash' },
-                lineDashOffset: { $path: '../../../lineDashOffset' },
+                stroke: { $path: '/series/$index/stroke' },
+                fillOpacity: { $path: '/series/$index/fillOpacity' },
+                strokeWidth: { $path: '/series/$index/strokeWidth' },
+                strokeOpacity: { $path: '/series/$index/strokeOpacity' },
+                lineDash: { $path: '/series/$index/lineDash' },
+                lineDashOffset: { $path: '/series/$index/lineDashOffset' },
             },
         ],
     },
