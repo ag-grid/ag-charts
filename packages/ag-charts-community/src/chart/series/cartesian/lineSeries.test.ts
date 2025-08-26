@@ -1277,5 +1277,169 @@ describe('LineSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('should render line series with missing start values in segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Jan', y: 10 },
+                    { x: 'Feb', y: 15 },
+                    { x: 'Mar', y: 12 },
+                    { x: 'Apr', y: 18 },
+                    { x: 'May', y: 22 },
+                    { x: 'Jun', y: 25 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'Jan', stop: 'Feb', stroke: 'red', strokeWidth: 3 },
+                                { stop: 'Apr', stroke: 'blue', strokeWidth: 4, lineDash: [5, 3] }, // Missing start - should use 'Feb'
+                                { stop: 'Jun', stroke: 'green', strokeWidth: 2, lineDash: [3, 2] }, // Missing start - should use 'Apr'
+                            ],
+                        },
+                        marker: {
+                            enabled: true,
+                            fill: 'orange',
+                            stroke: 'darkorange',
+                            strokeWidth: 2,
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render line series with missing stop values in segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Q1', y: 100 },
+                    { x: 'Q2', y: 120 },
+                    { x: 'Q3', y: 110 },
+                    { x: 'Q4', y: 140 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'Q1', stroke: '#ff4444', strokeWidth: 5 }, // Missing stop - should use 'Q2'
+                                { start: 'Q2', stroke: '#4444ff', strokeWidth: 3, lineDash: [4, 4] }, // Missing stop - should use 'Q4'
+                                { start: 'Q4', stop: 'Q4', stroke: '#44ff44', strokeWidth: 2 },
+                            ],
+                        },
+                        marker: {
+                            enabled: true,
+                            shape: 'diamond',
+                            size: 8,
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render line series with Y-axis segmentation and missing values', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'A', y: 5 },
+                    { x: 'B', y: 15 },
+                    { x: 'C', y: 25 },
+                    { x: 'D', y: 35 },
+                    { x: 'E', y: 45 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                { start: 0, stop: 20, stroke: 'crimson', strokeWidth: 4 },
+                                { stop: 40, stroke: 'mediumblue', strokeWidth: 3, lineDash: [6, 2] }, // Missing start - should use 20
+                                { start: 40, stroke: 'forestgreen', strokeWidth: 5 }, // Missing stop - should extend to max
+                            ],
+                        },
+                        marker: {
+                            enabled: true,
+                            fill: 'gold',
+                            stroke: 'orange',
+                            strokeWidth: 1,
+                            shape: 'triangle',
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render line series with complex missing values pattern', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 15 },
+                    { x: 4, y: 25 },
+                    { x: 5, y: 30 },
+                    { x: 6, y: 28 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 1, stop: 2, stroke: 'red', strokeWidth: 3 },
+                                { stroke: 'blue', strokeWidth: 4 }, // Missing both start/stop - should bridge from 2 to 4
+                                { start: 4, stroke: 'green', strokeWidth: 2, lineDash: [5, 5] }, // Missing stop - should extend to end
+                            ],
+                        },
+                        marker: {
+                            enabled: true,
+                            size: 6,
+                            shape: 'square',
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 });
