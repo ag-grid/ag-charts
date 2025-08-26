@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import type { Point, RequireOptional } from 'ag-charts-core';
 import { isDefined } from 'ag-charts-core';
 import {
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -20,6 +20,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { simpleMemorize2 } from '../../../util/memo';
@@ -45,9 +46,10 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
+import type { SeriesNodeDatum } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -76,6 +78,7 @@ import {
     resetMarkerPositionFn,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 import { calculateSegments } from './util';
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
@@ -1015,5 +1018,18 @@ export class LineSeries extends CartesianSeries<
 
     protected override hasItemStylers(): boolean {
         return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+    }
+
+    protected override initQuadTree(quadtree: QuadtreeNearest<LineNodeDatum>) {
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+    }
+
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+        const item = findQuadtreeMatch(this, point);
+        return item != null && item.distance <= 0 ? [item.datum] : [];
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
     }
 }
