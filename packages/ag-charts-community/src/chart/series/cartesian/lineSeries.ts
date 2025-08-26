@@ -49,7 +49,6 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { SeriesNodeDatum } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -1023,12 +1022,7 @@ export class LineSeries extends CartesianSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
-        const item = findQuadtreeMatch(this, point);
-        return item != null && item.distance <= 0 ? [item.datum] : [];
-    }
-
-    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+    protected override pickNodeDataClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return findQuadtreeMatch(this, point);
     }
 }

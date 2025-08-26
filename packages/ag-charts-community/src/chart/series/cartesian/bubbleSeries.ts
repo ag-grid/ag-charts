@@ -48,7 +48,7 @@ import {
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
     type BubbleAggregationOptions,
@@ -925,12 +925,7 @@ export class BubbleSeries extends CartesianSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
-        const item = findQuadtreeMatch(this, point);
-        return item != null && item.distance <= 0 ? [item.datum] : [];
-    }
-
-    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+    protected override pickNodeDataClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return findQuadtreeMatch(this, point);
     }
 }
