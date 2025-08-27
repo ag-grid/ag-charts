@@ -285,10 +285,6 @@
         }
       }
     },
-    "@nx/vite:test": {
-      "cache": true,
-      "inputs": ["default", "buildOutputExcludes", "^production"]
-    },
     "nx:noop": {
       "cache": true,
       "inputs": [],
