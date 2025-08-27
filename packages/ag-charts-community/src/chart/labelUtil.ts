@@ -8,6 +8,7 @@ import type { SeriesNodeDatum } from './series/seriesTypes';
 
 interface SeriesLike {
     id: string;
+    get visible(): boolean;
     callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
 }
 
@@ -34,7 +35,7 @@ export function getLabelStyles<TParams>(
     highlighted?: boolean,
     highlightState?: HighlightState
 ): AgChartLabelStyleOptions & { fontSize: number } {
-    if (label.itemStyler) {
+    if (series.visible && label.itemStyler) {
         const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
             fontSize: number;
         } = {
@@ -81,7 +82,7 @@ export function updateLabelNode<TParams>(
     highlighted?: boolean,
     highlightState?: HighlightState
 ) {
-    if (label.enabled && labelDatum) {
+    if (series.visible && label.enabled && labelDatum) {
         const style = getLabelStyles<TParams>(series, textNode.datum, params, label, highlighted, highlightState);
         textNode.visible = true;
         textNode.x = labelDatum.x;
