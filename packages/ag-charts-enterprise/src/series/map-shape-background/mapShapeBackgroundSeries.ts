@@ -62,7 +62,7 @@ export class MapShapeBackgroundSeries
 
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
-    private datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeBackgroundNodeDatum> = Selection.select(
+    private datumSelection: _ModuleSupport.Selection<MapShapeBackgroundNodeDatum, GeoGeometry> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
@@ -177,13 +177,13 @@ export class MapShapeBackgroundSeries
 
     private updateDatumSelection(opts: {
         nodeData: MapShapeBackgroundNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeBackgroundNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<MapShapeBackgroundNodeDatum, GeoGeometry>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.index));
     }
 
     private updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeBackgroundNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<MapShapeBackgroundNodeDatum, GeoGeometry>;
     }) {
         const { datumSelection } = opts;
 

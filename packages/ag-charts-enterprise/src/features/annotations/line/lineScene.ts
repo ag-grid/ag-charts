@@ -21,7 +21,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
     type = 'line';
 
     private readonly line = new CollidableLine();
-    public text?: CollidableText;
+    public text?: CollidableText<never>;
     private startCap?: CapScene;
     private endCap?: CapScene;
 
@@ -68,7 +68,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
     }
 
     private updateText(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
-        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }
 

@@ -64,7 +64,7 @@ import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
-type HistogramAnimationData = CartesianAnimationData<Rect<HistogramNodeDatum>, HistogramNodeDatum>;
+type HistogramAnimationData = CartesianAnimationData<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
 
 interface CalculatedBin {
     domain: [number, number];
@@ -79,10 +79,10 @@ interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
 }
 
 export class HistogramSeries extends CartesianSeries<
+    HistogramNodeDatum,
     Rect<HistogramNodeDatum>,
     AgHistogramSeriesOptions,
     HistogramSeriesProperties,
-    HistogramNodeDatum,
     HistogramNodeDatum,
     HistogramSeriesNodeDataContext
 > {
@@ -426,12 +426,12 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     protected override nodeFactory() {
-        return new Rect();
+        return new Rect<HistogramNodeDatum>();
     }
 
     protected override updateDatumSelection(opts: {
         nodeData: HistogramNodeDatum[];
-        datumSelection: Selection<Rect, HistogramNodeDatum>;
+        datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
 
@@ -452,7 +452,7 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     protected override updateDatumStyles(opts: {
-        datumSelection: Selection<Rect, HistogramNodeDatum>;
+        datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -464,7 +464,7 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: Selection<Rect, HistogramNodeDatum>;
+        datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -496,7 +496,7 @@ export class HistogramSeries extends CartesianSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: HistogramNodeDatum[];
-        labelSelection: Selection<Text, HistogramNodeDatum>;
+        labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -507,7 +507,7 @@ export class HistogramSeries extends CartesianSeries<
         });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>> }) {
         const labelEnabled = this.isLabelEnabled();
 
         opts.labelSelection.each((text, datum) => {
@@ -534,7 +534,7 @@ export class HistogramSeries extends CartesianSeries<
     protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
         const { value: childNode } = this.contentGroup.children().next();
         if (childNode instanceof Group) {
-            addHitTestersToQuadtree(quadtree, childNode.children() as Iterable<Rect>);
+            addHitTestersToQuadtree(quadtree, childNode.children() as Iterable<Rect<HistogramNodeDatum>>);
         }
     }
 

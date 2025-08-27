@@ -51,12 +51,12 @@ export abstract class AngleAxis<
     @Property
     endAngle: number | undefined = undefined;
 
-    protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line, AngleAxisTickDatum<TDomain>>(
+    protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
         this.tickLineGroup,
         Line,
         false
     );
-    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line, AngleAxisTickDatum<TDomain>>(
+    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
         this.gridLineGroup,
         Line,
         false

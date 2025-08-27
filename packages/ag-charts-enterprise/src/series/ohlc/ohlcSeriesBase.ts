@@ -443,7 +443,7 @@ export abstract class OhlcSeriesBase<
 
     protected override updateDatumSelection(opts: {
         nodeData: OhlcNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<TNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, TNode>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
@@ -451,7 +451,7 @@ export abstract class OhlcSeriesBase<
     }
 
     protected updateLabelNodes(_opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, OhlcNodeDatum>;
+        labelSelection: _ModuleSupport.Selection<OhlcNodeDatum, _ModuleSupport.Text>;
         seriesIdx: number;
     }) {
         // Labels unsupported
@@ -459,7 +459,7 @@ export abstract class OhlcSeriesBase<
 
     protected override updateLabelSelection(opts: {
         labelData: OhlcNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, OhlcNodeDatum>;
+        labelSelection: _ModuleSupport.Selection<OhlcNodeDatum, _ModuleSupport.Text>;
         seriesIdx: number;
     }) {
         const { labelData, labelSelection } = opts;

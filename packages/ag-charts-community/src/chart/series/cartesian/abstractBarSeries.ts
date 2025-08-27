@@ -35,22 +35,22 @@ export interface AbstractBarSeriesNodeDataContext<
 }
 
 export type AbstractBarSeriesAnimationData<
-    TNode extends QuadtreeCompatibleNode,
     TDatum extends CartesianSeriesNodeDatum,
+    TNode extends QuadtreeCompatibleNode<TDatum>,
     TLabel extends SeriesNodeDatum<number> = TDatum,
-> = CartesianAnimationData<TNode, TDatum, TLabel, AbstractBarSeriesNodeDataContext<TDatum, TLabel>>;
+> = CartesianAnimationData<TDatum, TNode, TLabel, AbstractBarSeriesNodeDataContext<TDatum, TLabel>>;
 
 export abstract class AbstractBarSeries<
-    TNode extends QuadtreeCompatibleNode,
+    TDatum extends CartesianSeriesNodeDatum,
+    TNode extends QuadtreeCompatibleNode<TDatum>,
     TOpts extends object,
     TProps extends AbstractBarSeriesProperties<TOpts>,
-    TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends AbstractBarSeriesNodeDataContext<TDatum, TLabel> = AbstractBarSeriesNodeDataContext<
         TDatum,
         TLabel
     >,
-> extends CartesianSeries<TNode, TOpts, TProps, TDatum, TLabel, TContext> {
+> extends CartesianSeries<TDatum, TNode, TOpts, TProps, TLabel, TContext> {
     /**
      * Used to get the position of bars within each group.
      */

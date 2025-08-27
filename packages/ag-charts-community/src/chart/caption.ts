@@ -12,11 +12,22 @@ import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
 import { FONT_SIZE } from './themes/constants';
 
+type CaptionNodeDatum = {
+    visible: boolean;
+    text: string | undefined;
+    textBaseline: string;
+    x: number;
+    y: number;
+    rotationCenterX: number;
+    rotationCenterY: number;
+    rotation: number;
+};
+
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
 
     readonly id = createId(this);
-    readonly node = new RotatableText({ zIndex: 1 }).setProperties({
+    readonly node = new RotatableText<CaptionNodeDatum>({ zIndex: 1 }).setProperties({
         textAlign: 'center',
         pointerEvents: PointerEvents.None,
     });

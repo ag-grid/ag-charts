@@ -506,7 +506,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -559,7 +559,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect>;
         isHighlight: boolean;
     }) {
         datumSelection.each((node, datum) => {
@@ -573,7 +573,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -610,7 +610,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeBarNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<RangeBarNodeLabelDatum, _ModuleSupport.Text>;
     }) {
         const params: RequireOptional<AgRangeBarSeriesLabelFormatterParams> = {
             xKey: this.properties.xKey,

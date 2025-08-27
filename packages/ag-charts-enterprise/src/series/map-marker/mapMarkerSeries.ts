@@ -91,12 +91,12 @@ export class MapMarkerSeries
         _ModuleSupport.Text,
         _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
     > = Selection.select(this.labelGroup, Text, false);
-    private markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> = Selection.select(
+    private markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker> = Selection.select(
         this.markerGroup,
         Marker,
         false
     );
-    private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
+    private highlightMarkerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker> =
         Selection.select(this.highlightGroup, Marker);
 
     private contextNodeData?: MapMarkerNodeDataContext;
@@ -583,7 +583,7 @@ export class MapMarkerSeries
 
     private updateMarkerSelection(opts: {
         markerData: MapMarkerNodeDatum[];
-        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
+        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker>;
     }) {
         const { markerData, markerSelection } = opts;
 
@@ -639,7 +639,7 @@ export class MapMarkerSeries
     }
 
     private updateMarkerNodes(opts: {
-        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
+        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker>;
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
     }) {

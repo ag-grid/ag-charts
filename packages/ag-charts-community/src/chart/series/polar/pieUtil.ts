@@ -38,7 +38,7 @@ export function preparePieSeriesAnimationFunctions(
         return { innerRadius: oldScale[0], outerRadius: oldScale[0] + (oldScale[1] - oldScale[0]) * radius };
     };
 
-    const fromFn: FromToMotionPropFn<Sector, any, AnimatableSectorDatum> = (
+    const fromFn: FromToMotionPropFn<AnimatableSectorDatum, Sector, any> = (
         sect,
         datum,
         status: NodeUpdateState,
@@ -78,7 +78,7 @@ export function preparePieSeriesAnimationFunctions(
 
         return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke, phase };
     };
-    const toFn: FromToMotionPropFn<Sector, any, AnimatableSectorDatum> = (
+    const toFn: FromToMotionPropFn<AnimatableSectorDatum, Sector, any> = (
         _sect: Sector,
         datum: AnimatableSectorDatum,
         status: NodeUpdateState,
@@ -105,10 +105,10 @@ export function preparePieSeriesAnimationFunctions(
         return { startAngle, endAngle, outerRadius, innerRadius, stroke, fill };
     };
 
-    const innerCircleFromFn: FromToMotionPropFn<Marker, any, { radius: number }> = (node, _) => {
-        return { size: node.previousDatum?.radius ?? node.size ?? 0, phase };
+    const innerCircleFromFn: FromToMotionPropFn<{ radius: number }, Marker, any> = (node, _) => {
+        return { size: node.unsafePreviousDatum?.radius ?? node.size ?? 0, phase };
     };
-    const innerCircleToFn: FromToMotionPropFn<Marker, any, { radius: number }> = (_, datum) => {
+    const innerCircleToFn: FromToMotionPropFn<{ radius: number }, Marker, any> = (_, datum) => {
         return { size: datum.radius ?? 0 };
     };
 

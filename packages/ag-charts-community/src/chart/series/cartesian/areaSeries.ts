@@ -87,8 +87,8 @@ const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
 const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
 
 type AreaAnimationData = CartesianAnimationData<
-    Marker,
     MarkerSelectionDatum,
+    Marker<MarkerSelectionDatum>,
     LabelSelectionDatum,
     AreaSeriesNodeDataContext
 >;
@@ -109,10 +109,10 @@ interface AreaSeriesStackContext {
 const memoizedAggregateAreaData = simpleMemorize2(aggregateAreaData);
 
 export class AreaSeries extends CartesianSeries<
-    Marker,
+    MarkerSelectionDatum,
+    Marker<MarkerSelectionDatum>,
     AgAreaSeriesOptions,
     AreaSeriesProperties,
-    MarkerSelectionDatum,
     LabelSelectionDatum,
     AreaSeriesNodeDataContext,
     AreaSeriesStackContext
@@ -1008,7 +1008,7 @@ export class AreaSeries extends CartesianSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: MarkerSelectionDatum[];
-        datumSelection: Selection<Marker, MarkerSelectionDatum>;
+        datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const { contextNodeData, processedData, axes, properties } = this;
@@ -1029,7 +1029,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override updateDatumStyles(opts: {
-        datumSelection: Selection<Marker, MarkerSelectionDatum>;
+        datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -1058,7 +1058,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: Selection<Marker, MarkerSelectionDatum>;
+        datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -1085,12 +1085,15 @@ export class AreaSeries extends CartesianSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: LabelSelectionDatum[];
-        labelSelection: Selection<Text, LabelSelectionDatum>;
+        labelSelection: Selection<LabelSelectionDatum, Text<LabelSelectionDatum>>;
     }) {
         return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum>; isHighlight?: boolean }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: Selection<LabelSelectionDatum, Text<LabelSelectionDatum>>;
+        isHighlight?: boolean;
+    }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params: AgAreaSeriesLabelFormatterParams = this.makeLabelFormatterParams();
@@ -1394,7 +1397,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected nodeFactory() {
-        return new Marker();
+        return new Marker<MarkerSelectionDatum>();
     }
 
     public getStyle(

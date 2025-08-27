@@ -164,16 +164,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
     protected phantomGroup = this.backgroundGroup.appendChild(new Group({ name: 'phantom' }));
-    private readonly phantomSelection: Selection<Sector, PieDonutNodeDatum> = Selection.select(
+    private readonly phantomSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomGroup,
         () => this.nodeFactory(),
         false
     );
     private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
-    private readonly calloutLabelSelection: Selection<Group, PieDonutNodeDatum> = new Selection(
-        this.calloutLabelGroup,
-        Group
-    );
+    private readonly calloutLabelSelection = Selection.select<Group<PieDonutNodeDatum>>(this.calloutLabelGroup, Group);
 
     // AG-6193 If the sum of all datums is 0, then we'll draw 1 or 2 rings to represent the empty series.
     readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
@@ -182,8 +179,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
     readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels' }));
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
-    readonly innerLabelsSelection: Selection<Text, DonutInnerLabel> = Selection.select(this.innerLabelsGroup, Text);
-    readonly innerCircleSelection: Selection<Marker, { radius: number }> = Selection.select(
+    readonly innerLabelsSelection = Selection.select<Text<DonutInnerLabel>>(this.innerLabelsGroup, Text);
+    readonly innerCircleSelection = Selection.select<Marker<{ radius: number }>>(
         this.innerCircleGroup,
         () => new Marker({ shape: 'circle' })
     );
@@ -1024,7 +1021,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine).forEach((line) => {
-            const datum = line.closestDatum() as PieDonutNodeDatum;
+            const datum = line.unsafeClosestDatum();
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
             if (label?.text && !label.hidden && outerRadius !== 0) {
@@ -1265,7 +1262,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const tempTextNode = new Text();
 
         this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel).forEach((text) => {
-            const datum: PieDonutNodeDatum = text.closestDatum();
+            const datum = text.unsafeClosestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
             const outerRadius = Math.max(0, radius);

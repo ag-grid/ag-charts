@@ -135,29 +135,29 @@ export abstract class FlowProportionSeries<
     private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightGroup.appendChild(new Group({ name: 'nodeGroup' }));
 
-    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel> = Selection.select(
+    private labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText> = Selection.select(
         this.labelGroup,
         TransformableText
     );
-    public linkSelection: _ModuleSupport.Selection<TLink, TLinkDatum> = Selection.select(this.linkGroup, () =>
+    public linkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
     );
-    public nodeSelection: _ModuleSupport.Selection<TNode, TNodeDatum> = Selection.select(this.nodeGroup, () =>
+    public nodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.select(this.nodeGroup, () =>
         this.nodeFactory()
     );
-    private focusLinkSelection: _ModuleSupport.Selection<TLink, TLinkDatum> = Selection.select(
+    private focusLinkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.select(
         this.focusLinkGroup,
         () => this.linkFactory()
     );
-    private focusNodeSelection: _ModuleSupport.Selection<TNode, TNodeDatum> = Selection.select(
+    private focusNodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.select(
         this.focusNodeGroup,
         () => this.nodeFactory()
     );
-    private highlightLinkSelection: _ModuleSupport.Selection<TLink, TLinkDatum> = Selection.select(
+    private highlightLinkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.select(
         this.highlightLinkGroup,
         () => this.linkFactory()
     );
-    private highlightNodeSelection: _ModuleSupport.Selection<TNode, TNodeDatum> = Selection.select(
+    private highlightNodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.select(
         this.highlightNodeGroup,
         () => this.nodeFactory()
     );
@@ -515,30 +515,30 @@ export abstract class FlowProportionSeries<
 
     protected abstract updateLabelSelection(opts: {
         labelData: TLabel[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel>;
-    }): _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel>;
+        labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText>;
+    }): _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText>;
 
     protected abstract updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, TLabel>;
+        labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.Text>;
     }): void;
 
     protected abstract updateNodeSelection(opts: {
         nodeData: TNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<TNode, TNodeDatum>;
-    }): _ModuleSupport.Selection<TNode, TNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<TNodeDatum, TNode>;
+    }): _ModuleSupport.Selection<TNodeDatum, TNode>;
 
     protected abstract updateNodeNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<TNode, TNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<TNodeDatum, TNode>;
         isHighlight: boolean;
     }): void;
 
     protected abstract updateLinkSelection(opts: {
         nodeData: TLinkDatum[];
-        datumSelection: _ModuleSupport.Selection<TLink, TLinkDatum>;
-    }): _ModuleSupport.Selection<TLink, TLinkDatum>;
+        datumSelection: _ModuleSupport.Selection<TLinkDatum, TLink>;
+    }): _ModuleSupport.Selection<TLinkDatum, TLink>;
 
     protected abstract updateLinkNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<TLink, TLinkDatum>;
+        datumSelection: _ModuleSupport.Selection<TLinkDatum, TLink>;
         isHighlight: boolean;
     }): void;
 

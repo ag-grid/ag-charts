@@ -122,13 +122,13 @@ type RectDatum = {
     crisp: boolean;
 };
 type BarRect = Rect<RectDatum>;
-export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initPos: InitialPosition<T>) {
-    const isRemoved = (datum?: T) => datum == null || isNaN(datum.x) || isNaN(datum.y);
+export function prepareBarAnimationFunctions(initPos: InitialPosition<AnimatableBarDatum>) {
+    const isRemoved = (datum?: AnimatableBarDatum) => datum == null || isNaN(datum.x) || isNaN(datum.y);
 
-    const fromFn: FromToMotionPropFn<BarRect, AnimatableBarDatum, T> = (rect, datum, status) => {
-        if (status === 'updated' && isRemoved(datum)) {
+    const fromFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
+        if (status === 'updated' && isRemoved(rect.unsafeDatum)) {
             status = 'removed';
-        } else if (status === 'updated' && isRemoved(rect.previousDatum)) {
+        } else if (status === 'updated' && isRemoved(rect.unsafePreviousDatum)) {
             status = 'added';
         }
 
@@ -141,7 +141,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
                 opacity: 0,
             };
         } else if (status === 'unknown' || status === 'added') {
-            source = initPos.calculate(datum, rect.previousDatum);
+            source = initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
         } else {
             source = {
                 x: rect.x,
@@ -156,12 +156,12 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
         return { ...source, phase };
     };
-    const toFn: FromToMotionPropFn<BarRect, AnimatableBarDatum, T> = (rect, datum, status) => {
+    const toFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {
             // Handle series remove case, after initial load. This is distinct from legend toggle off.
             return { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
-        } else if (status === 'removed' || isRemoved(datum)) {
-            return initPos.calculate(datum, rect.previousDatum);
+        } else if (status === 'removed' || isRemoved(rect.unsafeDatum)) {
+            return initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
         } else {
             return {
                 x: datum.x,

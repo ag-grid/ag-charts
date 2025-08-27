@@ -8,7 +8,7 @@ const { Vec4 } = _ModuleSupport;
 
 export class WithBackgroundScene {
     static updateBackground<Datum extends { background: FillOptions }>(
-        this: AnnotationScene & {
+        this: AnnotationScene<Datum> & {
             background: _ModuleSupport.Path;
             getBackgroundStyles?(datum: Datum): FillOptions;
             getBackgroundPoints(

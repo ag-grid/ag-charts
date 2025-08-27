@@ -21,10 +21,10 @@ type Mutable<T> = {
 };
 
 type HierarchyAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type HierarchyAnimationEvent<TNode extends Node, TDatum> = {
+type HierarchyAnimationEvent<TDatum, TNode extends Node<TDatum>> = {
     update: HierarchyAnimationData<TNode, TDatum>;
     updateData: undefined;
-    highlight: Selection<TNode, TDatum>;
+    highlight: Selection<TDatum, TNode>;
     resize: HierarchyAnimationData<TNode, TDatum>;
     clear: HierarchyAnimationData<TNode, TDatum>;
     reset: undefined;
@@ -88,10 +88,10 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
 }
 
 export abstract class HierarchySeries<
-    TNode extends Node,
+    TNodeClass extends HierarchyNode,
+    TNode extends Node<TNodeClass>,
     TOpts extends object,
     TProps extends HierarchySeriesProperties<TOpts>,
-    TNodeClass extends HierarchyNode,
 > extends Series<number[], TNodeClass, TOpts, TProps> {
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
 
@@ -101,7 +101,7 @@ export abstract class HierarchySeries<
 
     protected colorScale = new ColorScale();
 
-    protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNode, TNodeClass>>;
+    protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNodeClass, TNode>>;
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -109,7 +109,7 @@ export abstract class HierarchySeries<
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
 
-        this.animationState = new StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNode, TNodeClass>>(
+        this.animationState = new StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNodeClass, TNode>>(
             'empty',
             {
                 empty: {
@@ -250,7 +250,7 @@ export abstract class HierarchySeries<
         this.resetAllAnimation(data);
     }
 
-    protected animateReadyHighlight(_data: Selection<TNode, TNodeClass>) {
+    protected animateReadyHighlight(_data: Selection<TNodeClass, TNode>) {
         // No-op
     }
 
@@ -332,7 +332,7 @@ export abstract class HierarchySeries<
         return 0;
     }
 
-    protected abstract datumSelection: Selection<any, TNodeClass>;
+    protected abstract datumSelection: Selection<TNodeClass, any>;
 
     protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 

@@ -114,7 +114,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     protected readonly datumSelection = Selection.select<_ModuleSupport.Rect, TreemapNode>(this.rectGroup, Rect);
     private readonly labelSelection = Selection.select<_ModuleSupport.Group, TreemapNode>(this.labelGroup, Group);
-    private readonly highlightSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, TreemapNode> = Selection.select(
+    private readonly highlightSelection: _ModuleSupport.Selection<TreemapNode, _ModuleSupport.Rect> = Selection.select(
         this.rectGroup,
         Rect
     );

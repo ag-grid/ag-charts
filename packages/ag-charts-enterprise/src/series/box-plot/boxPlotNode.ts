@@ -1,5 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import type { BoxPlotNodeDatum } from './boxPlotTypes';
+
 const {
     Path,
     Scalable,
@@ -10,7 +12,7 @@ const {
     clippedRoundRect: baseClippedRoundRect,
 } = _ModuleSupport;
 
-export class BoxPlotNode extends Scalable(Path) {
+export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     private readonly wickPath = new ExtendedPath2D();
 
     @SceneChangeDetection()

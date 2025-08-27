@@ -48,7 +48,7 @@ import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
-import { NiceMode } from './axisUtil';
+import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
 import type { AnyTimeInterval } from './generateTicksUtils';
 
 export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties {
@@ -226,10 +226,16 @@ export abstract class Axis<
 
     // Order is important to apply the correct z-index.
     protected readonly tickLineGroup = this.axisGroup.appendChild(
-        new TransformableGroup({ name: `${this.id}-Axis-tick-lines`, zIndex: AxisGroupZIndexMap.TickLines })
+        new TransformableGroup<AxisGroupDatumTranslation>({
+            name: `${this.id}-Axis-tick-lines`,
+            zIndex: AxisGroupZIndexMap.TickLines,
+        })
     );
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
-        new TransformableGroup({ name: `${this.id}-Axis-tick-labels`, zIndex: AxisGroupZIndexMap.TickLabels })
+        new TransformableGroup<AxisGroupDatumTranslation>({
+            name: `${this.id}-Axis-tick-labels`,
+            zIndex: AxisGroupZIndexMap.TickLabels,
+        })
     );
     protected readonly labelGroup = new Group({
         name: `${this.id}-Labels`,
@@ -240,20 +246,20 @@ export abstract class Axis<
     protected readonly gridFillGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridFills` }));
     protected readonly gridLineGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridLines` }));
 
-    protected readonly crossLineRangeGroup = new TransformableGroup({
+    protected readonly crossLineRangeGroup = new TransformableGroup<never>({
         name: `${this.id}-CrossLines-Range`,
         zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
     });
-    protected readonly crossLineLineGroup = new TransformableGroup({
+    protected readonly crossLineLineGroup = new TransformableGroup<never>({
         name: `${this.id}-CrossLines-Line`,
         zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
     });
-    protected readonly crossLineLabelGroup = new TransformableGroup({
+    protected readonly crossLineLabelGroup = new TransformableGroup<never>({
         name: `${this.id}-CrossLines-Label`,
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
-    protected tickLabelGroupSelection = Selection.select<TransformableText, LabelNodeDatum>(
+    protected tickLabelGroupSelection = Selection.select<TransformableText<LabelNodeDatum>>(
         this.tickLabelGroup,
         TransformableText,
         false
@@ -313,7 +319,7 @@ export abstract class Axis<
 
     private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
         const node = this.tickLabelGroup.pickNode(event.currentX, event.currentY);
-        const datum: LabelNodeDatum | undefined = node?.datum;
+        const datum: LabelNodeDatum | undefined = node?.unsafeDatum;
         const { textUntruncated: title = undefined } = datum ?? {};
 
         if (title != null) {

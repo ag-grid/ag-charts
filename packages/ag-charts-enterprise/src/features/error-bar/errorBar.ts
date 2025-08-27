@@ -44,7 +44,7 @@ type PropertyDefinitionOpts = Parameters<_ModuleSupport.SeriesOptionInstance['ge
 export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.SeriesOptionInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
-    private readonly selection: _ModuleSupport.Selection<ErrorBarNode>;
+    private readonly selection: _ModuleSupport.Selection<ErrorBarNodeDatum, ErrorBarNode>;
 
     readonly properties = new ErrorBarProperties();
 

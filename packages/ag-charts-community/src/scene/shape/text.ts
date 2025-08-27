@@ -21,7 +21,7 @@ import { Group } from '../group';
 import type { IScene, NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
-import { Rotatable, Translatable } from '../transformable';
+import { Rotatable, type RotatableType, Translatable, type TranslatableType } from '../transformable';
 import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
 import { setSvgFontAttributes } from './svgUtils';
@@ -45,7 +45,7 @@ export interface TextBoxingProperties {
     };
 }
 
-export class Text<D = any> extends Shape<D> {
+export class Text<D = unknown> extends Shape<D> {
     static readonly className = 'Text';
 
     private static readonly debug = Debug.create(true, DebugSelectors.SCENE_TEXT);
@@ -457,5 +457,9 @@ export class Text<D = any> extends Shape<D> {
     }
 }
 
-export class RotatableText extends Rotatable(Text) {}
-export class TransformableText extends Rotatable(Translatable(Text)) {}
+export type RotatableText<D = unknown> = RotatableType<Text<D>>;
+export type TransformableText<D = unknown> = RotatableType<TranslatableType<Text<D>>>;
+
+type P = ConstructorParameters<typeof Text>[0];
+export const RotatableText: new <D = unknown>(p?: P) => RotatableText<D> = Rotatable(Text<any>);
+export const TransformableText: new <D = unknown>(p?: P) => TransformableText<D> = Rotatable(Translatable(Text<any>));

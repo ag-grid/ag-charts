@@ -526,7 +526,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker>;
     }) {
         const { nodeData, datumSelection } = opts;
         const { processedData, axes, properties } = this;
@@ -544,7 +544,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker>;
         isHighlight: boolean;
     }) {
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
@@ -562,7 +562,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -589,7 +589,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: RangeAreaLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -599,7 +599,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text>;
     }) {
         const params: RequireOptional<AgRangeAreaSeriesLabelFormatterParams> = {
             xKey: this.properties.xKey,
@@ -740,8 +740,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     override animateEmptyUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
+            _ModuleSupport.Marker<RangeAreaLabelDatum>,
             RangeAreaLabelDatum,
             RangeAreaContext
         >
@@ -758,8 +758,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override animateReadyResize(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
+            _ModuleSupport.Marker<RangeAreaMarkerDatum>,
             RangeAreaLabelDatum,
             RangeAreaContext
         >

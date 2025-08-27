@@ -21,7 +21,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcNode>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -33,7 +33,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcNode>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;

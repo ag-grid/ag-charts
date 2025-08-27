@@ -36,7 +36,7 @@ export function prepareMapMarkerAnimationFunctions() {
 
 type SomeMapSeries<TDatum> = {
     contextNodeData?: { nodeData: TDatum[] };
-    datumSelection: _ModuleSupport.Selection<GeoGeometry, TDatum>;
+    datumSelection: _ModuleSupport.Selection<TDatum, GeoGeometry>;
 };
 
 export function findFocusedGeoGeometry<TDatum>(

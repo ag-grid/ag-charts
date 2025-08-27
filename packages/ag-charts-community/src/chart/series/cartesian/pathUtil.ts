@@ -25,12 +25,12 @@ export function pathSwipeInAnimation(
     );
 }
 
-export function pathFadeInAnimation<T>(
+export function pathFadeInAnimation<D>(
     { id }: { id: string },
     subId: string,
     animationManager: AnimationManager,
     phase: 'add' | 'trailing' = 'add',
-    ...selection: Selection<Path, T>[] | Path[]
+    ...selection: Selection<D, Path<D>>[] | Path<D>[]
 ) {
     staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase });
 }

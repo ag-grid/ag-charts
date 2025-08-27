@@ -82,17 +82,22 @@ import { calculateSegments } from './util';
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
-type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
+type LineAnimationData = CartesianAnimationData<
+    LineNodeDatum,
+    Marker<LineNodeDatum>,
+    LineNodeDatum,
+    LineSeriesNodeDataContext
+>;
 
 type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
 
 const memoizedAggregateLineData = simpleMemorize2(aggregateLineData);
 
 export class LineSeries extends CartesianSeries<
-    Marker,
+    LineNodeDatum,
+    Marker<LineNodeDatum>,
     AgLineSeriesOptions,
     LineSeriesProperties,
-    LineNodeDatum,
     LineNodeDatum,
     LineSeriesNodeDataContext
 > {
@@ -538,7 +543,7 @@ export class LineSeries extends CartesianSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: LineNodeDatum[];
-        datumSelection: Selection<Marker, LineNodeDatum>;
+        datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
     }) {
         let { nodeData } = opts;
         const { datumSelection } = opts;
@@ -562,7 +567,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected override updateDatumStyles(opts: {
-        datumSelection: Selection<Marker, LineNodeDatum>;
+        datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -588,7 +593,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: Selection<Marker, LineNodeDatum>;
+        datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -620,12 +625,15 @@ export class LineSeries extends CartesianSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: LineNodeDatum[];
-        labelSelection: Selection<Text, LineNodeDatum>;
+        labelSelection: Selection<LineNodeDatum, Text<LineNodeDatum>>;
     }) {
         return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum>; isHighlight?: boolean }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: Selection<LineNodeDatum, Text<LineNodeDatum>>;
+        isHighlight?: boolean;
+    }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params: AgLineSeriesLabelFormatterParams = this.makeLabelFormatterParams();
@@ -956,7 +964,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected nodeFactory() {
-        return new Marker();
+        return new Marker<LineNodeDatum>();
     }
 
     public getStyle(

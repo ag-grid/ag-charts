@@ -153,7 +153,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Line, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Line>;
         isHighlight: boolean;
     }) {
         const highlightStyle = this.getHighlightStyle(opts.isHighlight);

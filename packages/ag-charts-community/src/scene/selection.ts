@@ -4,16 +4,25 @@ import { Node } from './node';
 
 type ValidId = string | number;
 type NodeConstructor<TNode extends Node> = new () => TNode;
-type NodeFactory<TNode extends Node, TDatum> = (datum: TDatum) => TNode;
-type NodeConstructorOrFactory<TNode extends Node, TDatum> = NodeConstructor<TNode> | NodeFactory<TNode, TDatum>;
+type NodeFactory<TDatum, TNode extends Node<TDatum>> = (datum: TDatum) => TNode;
+type NodeConstructorOrFactory<TDatum, TNode extends Node<TDatum>> = NodeConstructor<TNode> | NodeFactory<TDatum, TNode>;
 
-export class Selection<TChild extends Node = Node, TDatum = any> {
-    static select<TChild extends Node = Node, TDatum = any>(
+export class Selection<TDatum, TChild extends Node<TDatum>> {
+    static select<N extends Node<any>>(
         parent: Group,
-        classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
+        classOrFactory: NodeConstructorOrFactory<any, N>,
         garbageCollection: boolean = true
     ) {
-        return new Selection(parent, classOrFactory, garbageCollection);
+        type DImplicit = N extends Node<infer Datum> ? Datum : never;
+        return new Selection<DImplicit, N>(parent, classOrFactory, garbageCollection);
+    }
+
+    static selectNoInference<DExplicit, N extends Node<DExplicit>>(
+        parent: Group,
+        classOrFactory: NodeConstructorOrFactory<DExplicit, N>,
+        garbageCollection: boolean = true
+    ) {
+        return new Selection<DExplicit, N>(parent, classOrFactory, garbageCollection);
     }
 
     static selectAll<TChild extends Node = Node>(parent: Node, predicate: (node: Node) => node is TChild) {
@@ -40,7 +49,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         return Selection.selectAll(node, (n: Node): n is TChild => n.tag === tag);
     }
 
-    private readonly nodeFactory: NodeFactory<TChild, TDatum>;
+    private readonly nodeFactory: NodeFactory<TDatum, TChild>;
     private readonly garbageBin = new Set<TChild>();
 
     private readonly _nodesMap = new Map<TChild, ValidId>();
@@ -51,12 +60,12 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
 
     constructor(
         private readonly parentNode: Group,
-        classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
+        classOrFactory: NodeConstructorOrFactory<TDatum, TChild>,
         private readonly autoCleanup: boolean = true
     ) {
         this.nodeFactory = Object.prototype.isPrototypeOf.call(Node, classOrFactory)
             ? () => new (classOrFactory as NodeConstructor<TChild>)()
-            : (classOrFactory as NodeFactory<TChild, TDatum>);
+            : (classOrFactory as NodeFactory<TDatum, TChild>);
     }
 
     private createNode(datum: TDatum, initializer?: (node: TChild) => void, idx?: number) {
@@ -163,7 +172,8 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
 
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
         for (const entry of this._nodes.entries()) {
-            iterate(entry[1], entry[1].datum, entry[0]);
+            const datum = entry[1].datum!;
+            iterate(entry[1], datum, entry[0]);
         }
         return this;
     }
@@ -171,19 +181,20 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     *[Symbol.iterator](): IterableIterator<{ node: TChild; datum: TDatum; index: number }> {
         for (let index = 0; index < this._nodes.length; index++) {
             const node = this._nodes[index];
-            yield { node, datum: node.datum, index };
+            const datum = node.datum!;
+            yield { node, datum, index };
         }
     }
 
-    select<TChild2 extends Node = Node>(predicate: (node: Node) => node is TChild2): TChild2[] {
+    select<TChild2 extends Node>(predicate: (node: Node) => node is TChild2): TChild2[] {
         return Selection.selectAll(this.parentNode, predicate);
     }
 
-    selectByClass<TChild2 extends Node = Node>(Class: new () => TChild2): TChild2[] {
+    selectByClass<TChild2 extends Node>(Class: new () => TChild2): TChild2[] {
         return Selection.selectByClass(this.parentNode, Class);
     }
 
-    selectByTag<TChild2 extends Node = Node>(tag: number): TChild2[] {
+    selectByTag<TChild2 extends Node>(tag: number): TChild2[] {
         return Selection.selectByTag(this.parentNode, tag);
     }
 

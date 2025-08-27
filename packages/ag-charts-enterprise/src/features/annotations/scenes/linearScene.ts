@@ -17,7 +17,7 @@ export abstract class LinearScene<
         extendEnd?: boolean;
         locked?: boolean;
     },
-> extends AnnotationScene {
+> extends AnnotationScene<Datum> {
     protected dragState?: {
         offset: _ModuleSupport.Vec2;
         start: _ModuleSupport.Vec2;

@@ -179,7 +179,7 @@ export type RotatableType<T> = MatrixTransformType<
 >;
 
 /** Mixin type for scene Nodes that are rotatable. */
-export function Rotatable<N extends Node>(Parent: Constructor<N>): Constructor<RotatableType<N>> {
+export function Rotatable<N extends Node<any>>(Parent: Constructor<N>): Constructor<RotatableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
     const ROTATABLE_MATRIX = Symbol('matrix_rotation');
     class RotatableInternal extends MatrixTransform(ParentNode) {
@@ -219,7 +219,7 @@ export type ScalableType<T> = MatrixTransformType<
 >;
 
 /** Mixin type for scene Nodes that are scalable. */
-export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<ScalableType<N>> {
+export function Scalable<N extends Node<any>>(Parent: Constructor<N>): Constructor<ScalableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
     const SCALABLE_MATRIX = Symbol('matrix_scale');
     class ScalableInternal extends MatrixTransform(ParentNode) {
@@ -259,7 +259,7 @@ export type TranslatableType<T> = MatrixTransformType<
 >;
 
 /** Mixin type for scene Nodes that are translatable. */
-export function Translatable<N extends Node>(Parent: Constructor<N>): Constructor<TranslatableType<N>> {
+export function Translatable<N extends Node<any>>(Parent: Constructor<N>): Constructor<TranslatableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
     const TRANSLATABLE_MATRIX = Symbol('matrix_translation');
     class TranslatableInternal extends MatrixTransform(ParentNode) {

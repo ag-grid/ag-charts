@@ -460,7 +460,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected updateSectorSelection(
-        selection: _ModuleSupport.Selection<ItemPathType, RadialColumnNodeDatum>,
+        selection: _ModuleSupport.Selection<RadialColumnNodeDatum, ItemPathType>,
         isHighlight: boolean
     ) {
         const { contextNodeData } = this;

@@ -81,8 +81,8 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
     connectorData: FunnelConnectorDatum[];
 }
 
-export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
-    extends _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext> {}
+export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>>
+    extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
 
 class FunnelSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -98,7 +98,7 @@ class FunnelSeriesNodeEvent<
 }
 
 export abstract class BaseFunnelSeries<
-    TNode extends _ModuleSupport.QuadtreeCompatibleNode,
+    TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>,
     TOpts extends object,
 > extends _ModuleSupport.AbstractBarSeries<
     TNode,
@@ -117,7 +117,7 @@ export abstract class BaseFunnelSeries<
             zIndex: SeriesZIndexMap.BACKGROUND,
         })
     );
-    protected connectorSelection = Selection.select<FunnelConnector, FunnelConnectorDatum>(
+    protected connectorSelection = Selection.select<FunnelConnector<FunnelConnectorDatum>>(
         this.connectorNodeGroup,
         () => this.connectionFactory()
     );
@@ -448,7 +448,7 @@ export abstract class BaseFunnelSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: FunnelNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<TNode, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, TNode>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -457,7 +457,7 @@ export abstract class BaseFunnelSeries<
 
     private updateConnectorSelection(opts: {
         connectorData: FunnelConnectorDatum[];
-        connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
+        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector>;
     }) {
         const { connectorData, connectorSelection } = opts;
         return connectorSelection.update(this.connectorEnabled() ? connectorData : [], undefined, (connector) =>
@@ -466,7 +466,7 @@ export abstract class BaseFunnelSeries<
     }
 
     private updateConnectorNodes(opts: {
-        connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
+        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector>;
     }) {
         const fillBBox = this.getShapeFillBBox();
 
@@ -503,7 +503,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, FunnelNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<FunnelNodeLabelDatum, _ModuleSupport.Text>;
     }) {
         const params: RequireOptional<AgFunnelSeriesLabelFormatterParams> = {
             stageKey: this.properties.stageKey,
@@ -547,7 +547,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override resetAllAnimation(
-        data: _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext>
+        data: _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext>
     ): void {
         super.resetAllAnimation(data);
 

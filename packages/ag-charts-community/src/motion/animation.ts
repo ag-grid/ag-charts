@@ -52,9 +52,10 @@ export const PHASE_METADATA: Record<AnimationPhase, AnimationMetadata> = {
 export type AnimationValue =
     | number
     | string
+    | boolean
     | Interpolating
     | undefined
-    | Record<string, number | string | Interpolating | undefined>;
+    | Record<string, number | string | boolean | Interpolating | undefined>;
 
 export enum RepeatType {
     Loop = 'loop',
@@ -110,9 +111,9 @@ function isNodeArray<N extends Node>(array: (object | N)[]): array is N[] {
     return array.every((n) => n instanceof Node);
 }
 
-export function deconstructSelectionsOrNodes<N extends Node, D>(
-    selectionsOrNodes: Selection<N, D>[] | N[]
-): { nodes: N[]; selections: Selection<N, D>[] } {
+export function deconstructSelectionsOrNodes<D, N extends Node<D>>(
+    selectionsOrNodes: Selection<D, N>[] | N[]
+): { nodes: N[]; selections: Selection<D, N>[] } {
     return isNodeArray(selectionsOrNodes)
         ? { nodes: selectionsOrNodes, selections: [] }
         : { nodes: [], selections: selectionsOrNodes };

@@ -70,8 +70,8 @@ interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataConte
 }
 
 type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
-    _ModuleSupport.Rect,
     WaterfallNodeDatum,
+    _ModuleSupport.Rect<WaterfallNodeDatum>,
     WaterfallNodeDatum,
     WaterfallContext
 >;
@@ -530,7 +530,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: WaterfallNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -589,7 +589,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -601,7 +601,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -629,7 +629,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: WaterfallNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
+        labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -646,7 +646,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
+        labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text>;
     }) {
         const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {
             itemId: 'positive',

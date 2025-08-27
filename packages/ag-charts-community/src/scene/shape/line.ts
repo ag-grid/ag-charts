@@ -7,7 +7,7 @@ import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
-export class Line extends Shape implements DistantObject {
+export class Line<D = unknown> extends Shape<D> implements DistantObject {
     static readonly className = 'Line';
 
     constructor(opts: NodeOptions = {}) {

@@ -60,7 +60,7 @@ export class MapLineSeries extends TopologySeries<
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    public datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
+    public datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry> = Selection.select(
         this.contentGroup,
         () => this.nodeFactory()
     );
@@ -68,7 +68,7 @@ export class MapLineSeries extends TopologySeries<
         _ModuleSupport.Text,
         _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
     > = Selection.select(this.labelGroup, Text);
-    private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
+    private highlightDatumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry> = Selection.select(
         this.highlightGroup,
         () => this.nodeFactory()
     );
@@ -386,7 +386,7 @@ export class MapLineSeries extends TopologySeries<
 
     private updateDatumSelection(opts: {
         nodeData: MapLineNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
@@ -433,7 +433,7 @@ export class MapLineSeries extends TopologySeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -444,7 +444,7 @@ export class MapLineSeries extends TopologySeries<
     private updateDatumNodes({
         datumSelection,
     }: {
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry>;
         isHighlight: boolean;
     }) {
         datumSelection.each((geoGeometry, nodeDatum) => {

@@ -11,6 +11,8 @@ const { Property } = _ModuleSupport;
 export abstract class LineTypeProperties extends Localisable(
     Cappable(Extendable(Stroke(LineStyle(StartEndProperties))))
 ) {
+    abstract type: AnnotationType;
+
     @Property
     text = new LineTextProperties();
 
@@ -42,7 +44,7 @@ export class ArrowProperties extends LineTypeProperties {
     }
 
     @Property
-    type = AnnotationType.Arrow as const;
+    override type = AnnotationType.Arrow as const;
 
     override endCap = 'arrow' as const;
 }
@@ -53,5 +55,5 @@ export class LineProperties extends LineTypeProperties {
     }
 
     @Property
-    type = AnnotationType.Line as const;
+    override type = AnnotationType.Line as const;
 }

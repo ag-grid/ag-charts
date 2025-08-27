@@ -12,7 +12,7 @@ export class RadarAreaSeries extends RadarSeries {
     override properties = new RadarAreaSeriesProperties();
 
     private readonly areaGroup = this.contentGroup.appendChild(new Group({ name: 'radar-area' }));
-    protected areaSelection: _ModuleSupport.Selection<_ModuleSupport.Path, boolean> = Selection.select(
+    protected areaSelection: _ModuleSupport.Selection<boolean, _ModuleSupport.Path> = Selection.select(
         this.areaGroup,
         Path
     );

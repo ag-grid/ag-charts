@@ -25,9 +25,9 @@ export type ExtraOpts<T> = {
     finish?: Partial<T>;
 };
 export type FromToMotionPropFn<
+    D,
     N extends Node,
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
-    D,
 > = (node: N, datum: D, state: NodeUpdateState, ctx: FromToMotionPropFnContext<N>) => T & Partial<ExtraOpts<N>>;
 export type ApplyFn<
     N extends Node,
@@ -49,12 +49,12 @@ export interface FromToDiff {
 }
 
 export interface FromToFns<
-    N extends Node,
-    T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
     D,
+    N extends Node<D>,
+    T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
 > {
-    fromFn: FromToMotionPropFn<N, T, D>;
-    toFn: FromToMotionPropFn<N, T, D>;
+    fromFn: FromToMotionPropFn<D, N, T>;
+    toFn: FromToMotionPropFn<D, N, T>;
     applyFn?: ApplyFn<N, T>;
 }
 
@@ -83,15 +83,15 @@ export interface FromToFns<
  * @param diff (Optional) Diff data model used for detecting changes in the node state (added, moved, removed).
  */
 export function fromToMotion<
-    N extends Node,
-    T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
     D,
+    N extends Node<any>,
+    T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
 >(
     groupId: string,
     subId: string,
     animationManager: AnimationManager,
-    selectionsOrNodes: Selection<N, D>[] | N[],
-    fns: FromToFns<N, T, D>,
+    selectionsOrNodes: Selection<D, N>[] | N[],
+    fns: FromToFns<D, N, T>,
     getDatumId?: (node: N, datum: D) => string,
     diff?: FromToDiff
 ) {
@@ -121,12 +121,12 @@ export function fromToMotion<
             if (!isLive) {
                 status = 'removed';
             } else if (getDatumId && diff) {
-                status = calculateStatus(node, node.datum, getDatumId, diff);
+                status = calculateStatus(node, node.unsafeDatum as D, getDatumId, diff);
             }
 
             node.transitionOut = status === 'removed';
 
-            const { phase, start, finish, delay, duration, ...from } = fromFn(node, node.datum, status, ctx);
+            const { phase, start, finish, delay, duration, ...from } = fromFn(node, node.unsafeDatum as D, status, ctx);
             const {
                 phase: toPhase,
                 start: toStart,
@@ -134,7 +134,7 @@ export function fromToMotion<
                 delay: toDelay,
                 duration: toDuration,
                 ...to
-            } = toFn(node, node.datum, status, ctx);
+            } = toFn(node, node.unsafeDatum as D, status, ctx);
 
             const collapsable = finish == null;
             animationManager.animate({
@@ -219,11 +219,11 @@ export function fromToMotion<
  *                  - finish: Properties to apply when the animation ends.
  *                  - phase: Animation phase (e.g., 'update', 'enter', 'exit').
  */
-export function staticFromToMotion<N extends Node, T extends AnimationValue & Partial<N> & object, D>(
+export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValue & Partial<N> & object>(
     groupId: string,
     subId: string,
     animationManager: AnimationManager,
-    selectionsOrNodes: Selection<N, D>[] | N[],
+    selectionsOrNodes: Selection<D, N>[] | N[],
     from: T,
     to: T,
     extraOpts: ExtraOpts<N>
@@ -275,7 +275,7 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
     });
 }
 
-function calculateStatus<N extends Node, D>(
+function calculateStatus<D, N extends Node<D>>(
     node: N,
     datum: D,
     getDatumId: (node: N, datum: D) => string,

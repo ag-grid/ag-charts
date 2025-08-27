@@ -5,7 +5,15 @@ import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, PointerEvents, SceneChangeDetection } from './node';
 import { type CanvasContext, Shape } from './shape/shape';
-import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
+import {
+    Rotatable,
+    type RotatableType,
+    Scalable,
+    type ScalableType,
+    Transformable,
+    Translatable,
+    type TranslatableType,
+} from './transformable';
 import { alignBefore } from './util/pixel';
 import { type ZIndex, compareZIndex } from './zIndex';
 
@@ -483,7 +491,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 }
 
-export class ScalableGroup extends Scalable(Group) {}
-export class RotatableGroup extends Rotatable(Group) {}
-export class TranslatableGroup extends Translatable(Group) {}
-export class TransformableGroup extends Rotatable(Translatable(Group)) {}
+export type ScalableGroup<D = unknown> = ScalableType<Group<D>>;
+export type RotatableGroup<D = unknown> = RotatableType<Group<D>>;
+export type TranslatableGroup<D = unknown> = TranslatableType<Group<D>>;
+export type TransformableGroup<D = unknown> = RotatableType<TranslatableType<D>>;
+
+type P = ConstructorParameters<typeof Group>[0];
+export const ScalableGroup: new <D = unknown>(p?: P) => ScalableGroup<D> = Scalable(Group<any>);
+export const RotatableGroup: new <D = unknown>(p?: P) => RotatableGroup<D> = Rotatable(Group<any>);
+export const TranslatableGroup: new <D = unknown>(p?: P) => TranslatableGroup<D> = Translatable(Group<any>);
+export const TransformableGroup: new <D = unknown>(p?: P) => TranslatableGroup<D> = Rotatable(Translatable(Group<any>));

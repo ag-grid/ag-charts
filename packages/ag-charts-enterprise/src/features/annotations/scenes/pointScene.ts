@@ -9,7 +9,7 @@ import { DivariantHandle } from './handle';
 
 const { Vec2 } = _ModuleSupport;
 
-export abstract class PointScene<Datum extends PointProperties> extends AnnotationScene {
+export abstract class PointScene<Datum extends PointProperties> extends AnnotationScene<Datum> {
     override activeHandle?: string;
 
     protected readonly handle = new DivariantHandle();

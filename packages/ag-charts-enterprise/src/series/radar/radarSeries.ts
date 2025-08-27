@@ -73,7 +73,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
     private readonly lineGroup = this.contentGroup.appendChild(new Group({ name: 'radar-line' }));
-    protected lineSelection: _ModuleSupport.Selection<_ModuleSupport.Path, boolean> = Selection.select(
+    protected lineSelection: _ModuleSupport.Selection<boolean, _ModuleSupport.Path> = Selection.select(
         this.lineGroup,
         Path
     );
@@ -348,7 +348,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateDatumStyles(
-        selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
+        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker>,
         isHighlight: boolean
     ) {
         const { marker, stroke, strokeWidth, strokeOpacity } = this.properties;
@@ -370,7 +370,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateMarkers(
-        selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
+        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker>,
         isHighlight: boolean
     ) {
         const fillBBox = this.getShapeFillBBox();

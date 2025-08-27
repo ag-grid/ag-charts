@@ -26,12 +26,16 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
+import type {
+    AxisFillDatum,
+    AxisGroupDatumTranslation,
+    AxisLabelDatum,
+    AxisLineDatum,
+    AxisLineDatumCoords,
+    TickDatum,
+} from './axisUtil';
 import {
-    type AxisFillDatum,
-    type AxisLabelDatum,
-    type AxisLineDatum,
     NiceMode,
-    type TickDatum,
     prepareAxisAnimationContext,
     prepareAxisAnimationFunctions,
     resetAxisFillSelectionFn,
@@ -79,17 +83,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     protected animationManager: AnimationManager;
 
     protected readonly headingLabelGroup = this.axisGroup.appendChild(
-        new TranslatableGroup({ name: `${this.id}-Axis-heading` })
+        new TranslatableGroup<AxisGroupDatumTranslation>({ name: `${this.id}-Axis-heading` })
     );
-
     protected readonly lineNodeGroup = this.axisGroup.appendChild(
-        new TranslatableGroup({ name: `${this.id}-Axis-line` })
+        new TranslatableGroup<AxisGroupDatumTranslation>({ name: `${this.id}-Axis-line` })
     );
-    protected readonly lineNode = this.lineNodeGroup.appendChild(new Line({ zIndex: AxisGroupZIndexMap.AxisLine }));
+    protected readonly lineNode = this.lineNodeGroup.appendChild(
+        new Line<AxisLineDatumCoords>({ zIndex: AxisGroupZIndexMap.AxisLine })
+    );
 
-    protected tickLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.tickLineGroup, Line, false);
-    protected gridLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.gridLineGroup, Line, false);
-    protected gridFillGroupSelection = Selection.select<Rect, AxisFillDatum>(this.gridFillGroup, Rect, false);
+    protected tickLineGroupSelection = Selection.select<Line<AxisLineDatum>>(this.tickLineGroup, Line, false);
+    protected gridLineGroupSelection = Selection.select<Line<AxisLineDatum>>(this.gridLineGroup, Line, false);
+    protected gridFillGroupSelection = Selection.select<Rect<AxisFillDatum>>(this.gridFillGroup, Rect, false);
 
     private readonly tempText = new TransformableText({ debugDirty: false });
     private readonly tempCaption = new Caption();
@@ -400,7 +405,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     override update() {
         this.updateDirection();
 
-        const previousTicksIds = Array.from(this.tickLabelGroupSelection.nodes(), (node) => node.datum.tickId);
+        const previousTicksIds = Array.from(this.tickLabelGroupSelection.nodes(), (node) => node.unsafeDatum.tickId);
 
         super.update();
 
@@ -769,15 +774,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             (_, d) => d.tickId,
             diff
         );
-        fromToMotion(
-            this.id,
-            'title',
-            animationManager,
-            [this.title.caption.node],
-            fns.label,
-            (_, d) => d.tickId,
-            diff
-        );
+        fromToMotion(this.id, 'title', animationManager, [this.title.caption.node], fns.label, undefined, diff);
     }
 
     protected resetSelectionNodes() {

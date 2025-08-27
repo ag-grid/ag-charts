@@ -139,7 +139,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Rect>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;

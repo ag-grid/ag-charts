@@ -42,7 +42,7 @@ export abstract class RadiusAxis<
     @Property
     positionAngle: number = 0;
 
-    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line, _ModuleSupport.TickDatum>(
+    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<_ModuleSupport.TickDatum>>(
         this.gridLineGroup,
         Line,
         false

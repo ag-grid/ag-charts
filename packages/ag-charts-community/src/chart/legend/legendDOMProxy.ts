@@ -16,7 +16,7 @@ import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
-type ItemSelection = Selection<LegendMarkerLabel, CategoryLegendDatum>;
+type ItemSelection = Selection<CategoryLegendDatum, LegendMarkerLabel>;
 type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): string | undefined };
 
 interface ButtonListener {
@@ -88,7 +88,7 @@ export class LegendDOMProxy {
             markerLabel.proxyButton = ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
                 textContent: this.getItemAriaText(lm, datumReader.getItemLabel(datum), index, count),
-                ariaChecked: !!markerLabel.datum.enabled,
+                ariaChecked: !!markerLabel.datum!.enabled,
                 ariaDescribedBy: this.itemDescription.id,
                 parent: this.itemList,
             });
@@ -96,8 +96,8 @@ export class LegendDOMProxy {
             // The method parameter `datum` gets destroyed when the data is refreshed
             // using Series.getLegendData(). But the scene node will stay the same.
             const button = markerLabel.proxyButton;
-            button.addListener('click', (ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum, button));
-            button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum));
+            button.addListener('click', (ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum!, button));
+            button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum!));
             button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             button.addListener('mouseleave', () => itemListener.onLeave());
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));

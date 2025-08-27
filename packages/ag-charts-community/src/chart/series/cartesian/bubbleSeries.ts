@@ -72,7 +72,7 @@ import {
 import { computeMarkerFocusBounds, getMarkerOnlyStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
-type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
+type BubbleScatterAnimationData = CartesianAnimationData<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
@@ -104,10 +104,10 @@ interface BubbleSeriesNodeDataContext
 }
 
 export class BubbleSeries extends CartesianSeries<
-    Marker,
+    BubbleScatterNodeDatum,
+    Marker<BubbleScatterNodeDatum>,
     AgBubbleSeriesOptions,
     BubbleSeriesProperties,
-    BubbleScatterNodeDatum,
     BubbleScatterNodeDatum,
     BubbleSeriesNodeDataContext
 > {
@@ -519,7 +519,7 @@ export class BubbleSeries extends CartesianSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: BubbleScatterNodeDatum[];
-        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const { sizeKey } = this.properties;
@@ -537,7 +537,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     override updateDatumStyles(opts: {
-        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -562,7 +562,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -631,7 +631,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: Selection<Text, BubbleScatterNodeDatum>;
+        labelSelection: Selection<BubbleScatterNodeDatum, Text<BubbleScatterNodeDatum>>;
         isHighlight?: boolean;
     }) {
         const { isHighlight = false } = opts;
@@ -871,7 +871,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     protected nodeFactory() {
-        return new Marker();
+        return new Marker<BubbleScatterNodeDatum>();
     }
 
     public getStyle(highlighted: boolean, highlightState?: HighlightState): Required<AgBubbleSeriesStylerResult> {

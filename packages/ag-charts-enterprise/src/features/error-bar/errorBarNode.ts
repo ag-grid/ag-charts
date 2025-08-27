@@ -45,7 +45,7 @@ class HierarchicalBBox {
     }
 }
 
-export class ErrorBarNode extends _ModuleSupport.Group {
+export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
     private readonly whiskerPath: _ModuleSupport.Path;
     private readonly capsPath: _ModuleSupport.Path;
     private capLength: number = NaN;

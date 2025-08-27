@@ -357,7 +357,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: HeatmapNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, HeatmapNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -403,7 +403,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, HeatmapNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -414,7 +414,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     protected override updateDatumNodes({
         datumSelection,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, HeatmapNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect>;
         isHighlight: boolean;
     }) {
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -437,7 +437,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: HeatmapLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, HeatmapLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text>;
     }) {
         const { labelData, labelSelection } = opts;
         const { enabled } = this.properties.label;
@@ -447,7 +447,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, HeatmapLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text>;
     }) {
         type TParam = AgHeatmapSeriesLabelFormatterParams;
         type TDatum = HeatmapLabelDatum;

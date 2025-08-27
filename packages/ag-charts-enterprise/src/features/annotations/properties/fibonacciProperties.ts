@@ -6,7 +6,7 @@ import { LineTypeProperties } from '../line/lineProperties';
 
 const { Property } = _ModuleSupport;
 
-export class FibonacciProperties extends LineTypeProperties {
+export abstract class FibonacciProperties extends LineTypeProperties {
     @Property
     label = new LabelTextProperties();
 

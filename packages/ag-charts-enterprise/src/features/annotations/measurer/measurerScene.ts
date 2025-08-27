@@ -30,7 +30,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private readonly horizontalLine = new CollidableLine();
     private readonly verticalLine = new CollidableLine();
-    public text?: CollidableText;
+    public text?: CollidableText<never>;
 
     // These four bounding lines are named after the way they are drawn, e.g. the horizontalStartLine is a horizontal
     // line that is only shown when the measurer has the 'vertical' direction.
@@ -192,7 +192,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             textCoords.y2 = center.y;
         }
 
-        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
 
         const { id } = line;
 

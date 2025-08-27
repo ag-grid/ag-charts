@@ -4,7 +4,7 @@ const { Vec2 } = _ModuleSupport;
 
 type ShapeClipMask = { x: number; y: number; radius: number };
 
-export class CollidableLine extends _ModuleSupport.Line {
+export class CollidableLine<D> extends _ModuleSupport.Line<D> {
     public collisionBBox?: _ModuleSupport.BBox;
     private readonly growCollisionBox = 9;
 

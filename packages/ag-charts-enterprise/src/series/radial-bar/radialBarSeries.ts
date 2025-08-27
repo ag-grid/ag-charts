@@ -424,7 +424,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateSectorSelection(
-        selection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialBarNodeDatum>,
+        selection: _ModuleSupport.Selection<RadialBarNodeDatum, _ModuleSupport.Sector>,
         isHighlight: boolean
     ) {
         let selectionData: RadialBarNodeDatum[] = [];

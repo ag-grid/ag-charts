@@ -30,6 +30,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
+import type { Node } from '../../module-support';
 import type { LayoutContext } from '../../module/baseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
@@ -205,10 +206,8 @@ export class Legend extends BaseProperties {
 
     private readonly group = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
-    private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
-        this.group,
-        LegendMarkerLabel
-    );
+    private readonly itemSelection: Selection<CategoryLegendDatum, LegendMarkerLabel> =
+        Selection.select<LegendMarkerLabel>(this.group, LegendMarkerLabel);
     private readonly containerNode = this.group.appendChild(new Rect({ name: 'legend-container' }));
 
     private readonly oldSize: [number, number] = [0, 0];
@@ -941,7 +940,9 @@ export class Legend extends BaseProperties {
         proxyButton: SwitchWidget;
     } {
         const { datum, proxyButton } =
-            this.itemSelection.select((ml): ml is LegendMarkerLabel => ml.datum?.itemId === params.itemId)[0] ?? {};
+            this.itemSelection.select((ml: Node<any>): ml is LegendMarkerLabel => {
+                return ml.datum?.itemId === params.itemId;
+            })[0] ?? {};
         if (datum === undefined || proxyButton === undefined) {
             throw new Error(
                 `AG Charts - Missing required properties { datum: ${datum}, proxyButton: ${JSON.stringify(proxyButton)} }`
@@ -961,7 +962,7 @@ export class Legend extends BaseProperties {
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         const { sourceEvent } = widgetEvent;
-        const legendItem: CategoryLegendDatum = node.datum;
+        const legendItem: CategoryLegendDatum = node.datum!;
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = false;
         } else {

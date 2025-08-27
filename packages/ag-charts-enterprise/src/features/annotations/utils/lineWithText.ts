@@ -18,11 +18,11 @@ interface Numbers {
 
 export function updateLineText(
     id: string,
-    line: CollidableLine,
+    line: CollidableLine<never>,
     coords: _ModuleSupport.Vec4,
 
     textProperties?: Partial<LineTextProperties>,
-    textNode?: CollidableText,
+    textNode?: CollidableText<never>,
     text?: string,
     lineWidth?: number
 ) {
@@ -61,7 +61,7 @@ export function updateChannelText(
     textProperties: ChannelTextProperties,
     lineWidth?: number,
 
-    textNode?: CollidableText,
+    textNode?: CollidableText<never>,
     text?: string
 ) {
     if (!text || !textNode) return;

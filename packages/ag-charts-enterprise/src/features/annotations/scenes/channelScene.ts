@@ -30,7 +30,7 @@ export abstract class ChannelScene<
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
     public background = new _ModuleSupport.Path({ zIndex: -1 });
-    public text?: CollidableText;
+    public text?: CollidableText<never>;
     private readonly anchor: _ModuleSupport.FloatingToolbarAnchor = { x: 0, y: 0 };
 
     public update(datum: Datum, context: AnnotationContext) {

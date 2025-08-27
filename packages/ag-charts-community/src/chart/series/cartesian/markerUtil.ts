@@ -20,22 +20,22 @@ import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
-type NodeWithOpacity = Node & { opacity: number };
-export function markerFadeInAnimation<T>(
+type NodeWithOpacity<D> = Node<D> & { opacity: number };
+export function markerFadeInAnimation<D>(
     { id }: { id: string },
     animationManager: AnimationManager,
     status?: NodeUpdateState,
-    ...markerSelections: Selection<NodeWithOpacity, T>[]
+    ...markerSelections: Selection<D, NodeWithOpacity<D>>[]
 ) {
     const params = { phase: status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing' };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
     markerSelections.forEach((s) => s.cleanup());
 }
 
-export function markerScaleInAnimation<T>(
+export function markerScaleInAnimation<D>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    ...markerSelections: Selection<Node, T>[]
+    ...markerSelections: Selection<D, Node<D>>[]
 ) {
     staticFromToMotion(
         id,
@@ -49,13 +49,13 @@ export function markerScaleInAnimation<T>(
     markerSelections.forEach((s) => s.cleanup());
 }
 
-export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
+export function markerSwipeScaleInAnimation<D extends CartesianSeriesNodeDatum>(
     { id, nodeDataDependencies }: { id: string } & NodeDataDependant,
     animationManager: AnimationManager,
-    ...markerSelections: Selection<Node, T>[]
+    ...markerSelections: Selection<D, Node<D>>[]
 ) {
     const seriesWidth: number = nodeDataDependencies.seriesRectWidth;
-    const fromFn = (_: Node, datum: T) => {
+    const fromFn = (_: Node, datum: D) => {
         const x = datum.midPoint?.x ?? seriesWidth;
         // Calculate a delay that depends on the X position of the datum, so that nodes appear
         // gradually from left to right.
@@ -75,11 +75,11 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
     fromToMotion(id, 'markers', animationManager, markerSelections, { fromFn, toFn });
 }
 
-export function resetMarkerFn(_node: NodeWithOpacity & Node) {
+export function resetMarkerFn(_node: NodeWithOpacity<unknown>) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
 }
 
-export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
+export function resetMarkerPositionFn<D extends CartesianSeriesNodeDatum>(_node: Node<D>, datum: D) {
     return {
         x: datum.point?.x ?? NaN,
         y: datum.point?.y ?? NaN,

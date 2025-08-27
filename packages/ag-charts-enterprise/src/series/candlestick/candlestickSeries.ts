@@ -25,7 +25,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -37,7 +37,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;

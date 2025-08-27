@@ -27,7 +27,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
     override activeHandle?: ActiveHandle;
 
-    private readonly endRetracementLine = new CollidableLine();
+    private readonly endRetracementLine = new CollidableLine<never>();
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
     protected readonly endRetracement = new DivariantHandle();

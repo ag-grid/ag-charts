@@ -109,15 +109,15 @@ interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarN
     segments?: Segment[];
 }
 
-type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
+type BarAnimationData = AbstractBarSeriesAnimationData<BarNodeDatum, BarShape<BarNodeDatum>>;
 
 const memoizedAggregateBarData = simpleMemorize2(aggregateBarData);
 
 export class BarSeries extends AbstractBarSeries<
+    BarNodeDatum,
     BarShape<BarNodeDatum>,
     AgBarSeriesOptions,
     BarSeriesProperties,
-    BarNodeDatum,
     BarNodeDatum,
     BarSeriesNodeDataContext
 > {
@@ -732,7 +732,7 @@ export class BarSeries extends AbstractBarSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: BarNodeDatum[];
-        datumSelection: Selection<BarShape, BarNodeDatum>;
+        datumSelection: Selection<BarNodeDatum, BarShape>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
@@ -881,7 +881,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     protected override updateDatumStyles(opts: {
-        datumSelection: Selection<BarShape, BarNodeDatum>;
+        datumSelection: Selection<BarNodeDatum, BarShape>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -893,7 +893,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: Selection<BarShape, BarNodeDatum>;
+        datumSelection: Selection<BarNodeDatum, BarShape>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -935,7 +935,7 @@ export class BarSeries extends AbstractBarSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: BarNodeDatum[];
-        labelSelection: Selection<Text, BarNodeDatum>;
+        labelSelection: Selection<BarNodeDatum, Text<BarNodeDatum>>;
     }) {
         const data = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(data, (text) => {
@@ -943,7 +943,10 @@ export class BarSeries extends AbstractBarSeries<
         });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum>; isHighlight?: boolean }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: Selection<BarNodeDatum, Text<BarNodeDatum>>;
+        isHighlight?: boolean;
+    }) {
         const { isHighlight = false } = opts;
         const params: RequireOptional<AgBarSeriesLabelFormatterParams> = {
             xKey: this.properties.xKey,

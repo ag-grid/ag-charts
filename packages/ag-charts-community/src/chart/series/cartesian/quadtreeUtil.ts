@@ -7,12 +7,12 @@ import type { DistantObject } from '../../../util/nearest';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
-export type QuadtreeCompatibleNode = Node & DistantObject & { readonly midPoint: { x: number; y: number } };
+export type QuadtreeCompatibleNode<D> = Node<D> & DistantObject & { readonly midPoint: { x: number; y: number } };
 
-export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TDatum extends SeriesNodeDatum<unknown>>(
-    quadtree: QuadtreeNearest<TDatum>,
-    hitTesters: Iterable<TNode>
-) {
+export function addHitTestersToQuadtree<
+    TDatum extends SeriesNodeDatum<unknown>,
+    TNode extends QuadtreeCompatibleNode<TDatum>,
+>(quadtree: QuadtreeNearest<TDatum>, hitTesters: Iterable<TNode>) {
     for (const node of hitTesters) {
         const datum: TDatum | undefined = node.datum;
         if (datum === undefined) {
