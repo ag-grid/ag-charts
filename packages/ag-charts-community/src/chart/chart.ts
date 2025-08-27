@@ -283,7 +283,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super();
 
-        Logger.warn('cycle detected in array');
         this.chartOptions = options;
 
         const scene: Scene | undefined = resources?.scene;
