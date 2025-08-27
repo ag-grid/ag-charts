@@ -84,7 +84,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     ];
 
     // If any of these keys are present in the resolved object then calling `clearSafe()` will not clear the graph.
-    private static readonly UNSAFE_CLEAR_KEYS = new Set(['itemStyler']);
+    private static readonly UNSAFE_CLEAR_KEYS = new Set(['itemStyler', 'styler']);
 
     // A cache of values that persists between chart updates, use sparingly.
     private static readonly valueCache = new Map();
@@ -98,9 +98,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     private graftEdge = OptionsGraph.GRAFT_EDGE;
 
     // The initial vertices for different branches of the graph that are resolved separately.
-    private readonly root: Vertex<unknown>;
-    private readonly params: Vertex<unknown>;
-    private readonly annotations: Vertex<unknown>;
+    private root?: Vertex<unknown>;
+    private params?: Vertex<unknown>;
+    private annotations?: Vertex<unknown>;
 
     // Store the resolved objects generated from the graph.
     private resolved: PlainObject | undefined;
@@ -239,8 +239,14 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     override clear() {
-        super.clear();
-        this.cachedPathVertices.clear();
+        debug.group('OptionsGraph.clear()', () => {
+            super.clear();
+            this.cachedPathVertices.clear();
+            this.root = undefined;
+            this.params = undefined;
+            this.annotations = undefined;
+            debug('cleared');
+        });
     }
 
     clearSafe() {
@@ -255,12 +261,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             this.resolvedAnnotations = {};
 
             debug('resolve params');
-            this.resolveVertex(this.params, this.resolvedParams);
+            this.resolveVertex(this.params!, this.resolvedParams);
             debug('resolve annotations');
-            this.resolveVertex(this.annotations, this.resolvedAnnotations);
+            this.resolveVertex(this.annotations!, this.resolvedAnnotations);
 
             debug('resolve root');
-            this.resolveVertex(this.root);
+            this.resolveVertex(this.root!);
             debug('resolved root', this.resolved);
 
             debug('vertex count', this.getVertexCount());
@@ -303,14 +309,18 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     resolvePartial(
         path: Array<string>,
         partialOptions?: PlainObject,
-        opts?: {
+        resolveOptions?: {
             permissivePath?: boolean;
             pick?: boolean;
             proxyPaths?: Record<string, Array<string>>;
         }
     ) {
         if (!partialOptions) return;
-        const { permissivePath = false, proxyPaths } = opts ?? {};
+
+        // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
+        if (!this.root) return;
+
+        const { permissivePath, proxyPaths } = resolveOptions ?? {};
 
         const partialKeys = Object.keys(partialOptions);
 
@@ -393,7 +403,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const pathed = getPathSafe(resolved, path) as PlainObject;
 
         // Only pick the keys that have been requested to prevent overwriting other values with the graph.
-        const shouldPick: boolean = opts?.pick ?? true;
+        const shouldPick: boolean = resolveOptions?.pick ?? true;
         const partial = shouldPick ? pick(getPathSafe(resolved, path) as PlainObject, partialKeys) : pathed;
 
         debug('vertex count', this.getVertexCount());
@@ -413,7 +423,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (this.cachedPathVertices.has(key)) {
             return this.cachedPathVertices.get(key);
         }
-        const vertex = this.findVertexAlongEdge(this.root, path, PATH_EDGE);
+        const vertex = this.findVertexAlongEdge(this.root!, path, PATH_EDGE);
         if (!vertex) return;
         this.cachedPathVertices.set(key, vertex);
         return vertex;
@@ -476,7 +486,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             return this.resolvedParams[path];
         }
 
-        const paramVertex = this.findVertexAlongEdge(this.params, [path], PATH_EDGE);
+        const paramVertex = this.findVertexAlongEdge(this.params!, [path], PATH_EDGE);
         if (!paramVertex) return;
 
         const defaultValueVertex = this.findNeighbour(paramVertex, DEFAULTS_EDGE);
