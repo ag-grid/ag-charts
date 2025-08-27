@@ -5093,19 +5093,6 @@
   resolved "https://registry.yarnpkg.com/@nx/nx-win32-x64-msvc/-/nx-win32-x64-msvc-20.3.1.tgz#5738879920952de8228edbb3dc45ba4bd9378d1a"
   integrity sha512-Os8iCamvHhE5noQKFE9D9xkiI529918tufTYmEhJ9ZmLU/ybVA0We6r7gXjYzdNfA3DtwfGXvNvUpy3u+pZXOg==
 
-"@nx/vite@20.3.1":
-  version "20.3.1"
-  resolved "https://registry.yarnpkg.com/@nx/vite/-/vite-20.3.1.tgz#54863116735b627f394716507ebcdc78d81c67a9"
-  integrity sha512-/x6rs4H88M1+YJo7bRXbZ7ZYKx6jyKBb5QL9qC3oU10gqGVJFWc7+94t9JF/IClbI6cWKwpad6IOv/nixlLnyg==
-  dependencies:
-    "@nx/devkit" "20.3.1"
-    "@nx/js" "20.3.1"
-    "@phenomnomnominal/tsquery" "~5.0.1"
-    "@swc/helpers" "~0.5.0"
-    enquirer "~2.3.6"
-    minimatch "9.0.3"
-    tsconfig-paths "^4.1.2"
-
 "@nx/workspace@20.3.1":
   version "20.3.1"
   resolved "https://registry.yarnpkg.com/@nx/workspace/-/workspace-20.3.1.tgz#ed1cd250e84c518f31061b501beec4689f6b33eb"
@@ -6513,7 +6500,7 @@
   dependencies:
     tslib "^2.8.0"
 
-"@swc/helpers@0.5.3", "@swc/helpers@~0.5.0":
+"@swc/helpers@0.5.3":
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@swc/helpers/-/helpers-0.5.3.tgz#98c6da1e196f5f08f977658b80d6bd941b5f294f"
   integrity sha512-FaruWX6KdudYloq1AHD/4nU+UsMTdNE8CKyrseXWEcgjDAbvkwJg2QGPAnfIJLIWsjZOSPLOAykK6fuYp4vp4A==
