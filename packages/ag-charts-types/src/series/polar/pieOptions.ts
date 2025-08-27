@@ -1,6 +1,6 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelOptions, AgChartLabelStylerParams } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
     ContextDefault,
@@ -67,13 +67,23 @@ export interface AgPieTitleOptions extends Toggleable, FontOptions {
     showInLegend?: boolean;
 }
 
-export interface AgPieSeriesCalloutOptions {
+export interface AgPieCalloutLineStyle {
     /** The colours to cycle through for the strokes of the callouts. */
     colors?: CssColor[];
     /** The length in pixels of the callout lines. */
     length?: PixelSize;
     /** The width in pixels of the stroke for callout lines. */
     strokeWidth?: PixelSize;
+}
+
+export interface AgPieCalloutLineItemStylerParams<TDatum, TContext>
+    extends AgChartLabelStylerParams<TDatum, TContext>,
+        AgPieSeriesLabelFormatterParams<TDatum> {}
+
+export interface AgPieSeriesCalloutOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgPieCalloutLineStyle {
+    /** Function used to style individual callout lines. */
+    itemStyler?: Styler<AgPieCalloutLineItemStylerParams<TDatum, TContext>, AgPieCalloutLineStyle>;
 }
 
 export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -86,7 +96,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the labels used inside the sectors. */
     sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the callout lines used with the labels for the sectors. */
-    calloutLine?: AgPieSeriesCalloutOptions;
+    calloutLine?: AgPieSeriesCalloutOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the sectors. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the sectors. */
