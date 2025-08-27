@@ -1,6 +1,12 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    AgChartCallbackParams,
+    ContextCallbackParams,
+    DatumCallbackParams,
+    HighlightState,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions, AgChartLabelStylerParams } from '../../chart/labelOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
     ContextDefault,
@@ -77,8 +83,13 @@ export interface AgDonutCalloutLineStyle {
 }
 
 export interface AgDonutCalloutLineItemStylerParams<TDatum, TContext>
-    extends AgChartLabelStylerParams<TDatum, TContext>,
-        AgDonutSeriesLabelFormatterParams<TDatum> {}
+    extends AgChartCallbackParams<TDatum, TContext>,
+        AgDonutSeriesLabelFormatterParams<TDatum> {
+    /** Indicates whether the element is highlighted. */
+    highlighted?: boolean;
+    /** The specific highlight state of the element. */
+    highlightState?: HighlightState;
+}
 
 export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgDonutCalloutLineStyle {
