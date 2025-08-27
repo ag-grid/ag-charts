@@ -9,13 +9,6 @@ on:
     pull_request:
     workflow_dispatch:
         inputs:
-            # run_e2e:
-            #     type: 'choice'
-            #     required: true
-            #     default: 'false'
-            #     options:
-            #         - 'true'
-            #         - 'false'
             clean_checkout:
                 description: 'Disable all caching'
                 type: 'choice'
@@ -31,6 +24,10 @@ on:
                 options:
                     - 'affected'
                     - 'run-many'
+
+permissions:
+    contents: read
+    actions: read
 
 env:
     NX_NO_CLOUD: true
