@@ -696,11 +696,13 @@ export class BarSeries extends AbstractBarSeries<
 
         // @todo(AG-8108): move to theme
         const style = this.getStyle(false);
-        const { width, height } = this.ctx.scene;
-        const segments = calculateSegments(this.properties.segmentation, xAxis, yAxis, this.chart!.seriesRect!, {
-            width,
-            height,
-        })?.map((segment) => ({ ...segment, ...mergeDefaults(segment, style) }));
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            this.ctx.scene
+        )?.map((segment) => ({ ...segment, ...mergeDefaults(segment, style) }));
 
         console.log(dataAggregationFilter, nodes);
 

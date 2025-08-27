@@ -1737,5 +1737,248 @@ describe('AreaSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('should render area series with missing start values in segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Jan', y: 10 },
+                    { x: 'Feb', y: 15 },
+                    { x: 'Mar', y: 12 },
+                    { x: 'Apr', y: 18 },
+                    { x: 'May', y: 22 },
+                    { x: 'Jun', y: 16 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'Jan',
+                                    stop: 'Feb',
+                                    fill: 'rgba(255, 0, 0, 0.6)',
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                { stop: 'Apr', fill: 'rgba(0, 0, 255, 0.6)', stroke: 'blue', strokeWidth: 2 }, // Missing start - should use 'Feb'
+                                { stop: 'Jun', fill: 'rgba(0, 255, 0, 0.6)', stroke: 'green', strokeWidth: 2 }, // Missing start - should use 'Apr'
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render area series with missing stop values in segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Q1', y: 100 },
+                    { x: 'Q2', y: 120 },
+                    { x: 'Q3', y: 110 },
+                    { x: 'Q4', y: 140 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'Q1', fill: 'rgba(255, 100, 100, 0.7)', stroke: '#ff4444', strokeWidth: 3 }, // Missing stop - should use 'Q2'
+                                { start: 'Q2', fill: 'rgba(100, 100, 255, 0.7)', stroke: '#4444ff', strokeWidth: 3 }, // Missing stop - should use 'Q4'
+                                {
+                                    start: 'Q4',
+                                    stop: 'Q4',
+                                    fill: 'rgba(100, 255, 100, 0.7)',
+                                    stroke: '#44ff44',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render area series with Y-axis segmentation and missing values', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'A', y: 5 },
+                    { x: 'B', y: 15 },
+                    { x: 'C', y: 25 },
+                    { x: 'D', y: 35 },
+                    { x: 'E', y: 45 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 0,
+                                    stop: 20,
+                                    fill: 'rgba(220, 20, 60, 0.5)',
+                                    stroke: 'crimson',
+                                    strokeWidth: 2,
+                                },
+                                { stop: 40, fill: 'rgba(0, 100, 200, 0.5)', stroke: 'mediumblue', strokeWidth: 2 }, // Missing start - should use 20
+                                { start: 40, fill: 'rgba(34, 139, 34, 0.5)', stroke: 'forestgreen', strokeWidth: 2 }, // Missing stop - should extend to max
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render stacked area series with missing segmentation values', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y1: 10, y2: 5 },
+                    { x: 2, y1: 15, y2: 8 },
+                    { x: 3, y1: 12, y2: 6 },
+                    { x: 4, y1: 18, y2: 10 },
+                    { x: 5, y1: 22, y2: 12 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y1',
+                        yName: 'Series 1',
+                        stackGroup: 'stack1',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 1, stop: 2, fill: 'rgba(255, 0, 0, 0.7)', stroke: 'red' },
+                                { fill: 'rgba(0, 255, 0, 0.7)', stroke: 'green' }, // Missing both - should bridge from 2 to 4
+                                { start: 4, fill: 'rgba(0, 0, 255, 0.7)', stroke: 'blue' }, // Missing stop - should extend to end
+                            ],
+                        },
+                    },
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        yName: 'Series 2',
+                        stackGroup: 'stack1',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { stop: 3, fill: 'rgba(255, 165, 0, 0.7)', stroke: 'orange' }, // Missing start - should start from beginning
+                                { start: 3, fill: 'rgba(128, 0, 128, 0.7)', stroke: 'purple' }, // Missing stop - should extend to end
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render area series with pattern fills and missing segmentation values', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Mon', y: 20 },
+                    { x: 'Tue', y: 25 },
+                    { x: 'Wed', y: 18 },
+                    { x: 'Thu', y: 30 },
+                    { x: 'Fri', y: 35 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'Mon',
+                                    stop: 'Tue',
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'vertical-lines',
+                                        fill: 'red',
+                                        stroke: 'darkred',
+                                        strokeWidth: 1,
+                                    },
+                                    stroke: 'darkred',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    stop: 'Thu', // Missing start - should use 'Tue'
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'horizontal-lines',
+                                        fill: 'blue',
+                                        stroke: 'darkblue',
+                                        strokeWidth: 1,
+                                    },
+                                    stroke: 'darkblue',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 'Thu', // Missing stop - should extend to end
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'circles',
+                                        fill: 'green',
+                                        stroke: 'darkgreen',
+                                        strokeWidth: 1,
+                                    },
+                                    stroke: 'darkgreen',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 });

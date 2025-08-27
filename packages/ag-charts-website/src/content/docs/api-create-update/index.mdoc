@@ -22,8 +22,8 @@ Use `AgChartInstance.updateDelta()` to apply partial updates.
 {% /note %}
 
 {% warning %}
-We expect immutable data for `data` elements, as this enables efficient change detection. If `data`
-elements are mutated in-place, we cannot guarantee to detect the changes.
+We expect immutable data for `data` elements and `theme` options, as this enables efficient change detection. If `data`
+elements or `theme` options are mutated in-place, we cannot guarantee to detect the changes.
 {% /warning %}
 
 {% tabs %}

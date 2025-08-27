@@ -20,7 +20,7 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, T
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
     /** Hovered marker */
-    itemId: 'up' | 'down' | 'unknown';
+    itemId: 'up' | 'down';
 }
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
