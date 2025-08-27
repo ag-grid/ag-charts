@@ -570,13 +570,7 @@ export abstract class CartesianSeries<
         // Override point for subclasses
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
-        const result = super.pickNodesExactShape(point);
-
-        if (result.length !== 0) {
-            return result;
-        }
-
+    protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<unknown>[] | undefined {
         const { x, y } = point;
 
         const { dataNodeGroup } = this;
@@ -586,7 +580,9 @@ export abstract class CartesianSeries<
             const datums = matches.map((match) => match.datum);
             return datums;
         }
+    }
 
+    protected pickModulesExactShape(point: Point): SeriesNodeDatum<unknown>[] | undefined {
         for (const mod of this.moduleMap.modules()) {
             const { datum } = mod.pickNodeExact(point) ?? {};
             if (datum == null) continue;
@@ -594,11 +590,19 @@ export abstract class CartesianSeries<
 
             return [datum];
         }
-
-        return [];
     }
 
-    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+        const result = super.pickNodesExactShape(point);
+
+        if (result.length !== 0) {
+            return result;
+        }
+
+        return this.pickNodeDataExactShape(point) ?? this.pickModulesExactShape(point) ?? [];
+    }
+
+    protected pickNodeDataClosestDatum(point: Point) {
         const { x, y } = point;
         const { axes, _contextNodeData: contextNodeData } = this;
         if (!contextNodeData) return;
@@ -608,7 +612,7 @@ export abstract class CartesianSeries<
 
         const hitPoint = { x, y };
 
-        let minDistance = Infinity;
+        let minDistanceSquared = Infinity;
         let closestDatum: SeriesNodeDatum<unknown> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
@@ -624,23 +628,53 @@ export abstract class CartesianSeries<
 
             // No need to use Math.sqrt() since x < y implies Math.sqrt(x) < Math.sqrt(y) for
             // values > 1
-            const distance = Math.max((hitPoint.x - datumX) ** 2 + (hitPoint.y - datumY) ** 2, 0);
-            if (distance < minDistance) {
-                minDistance = distance;
+            const distanceSquared = Math.max((hitPoint.x - datumX) ** 2 + (hitPoint.y - datumY) ** 2, 0);
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
                 closestDatum = datum;
             }
         }
+
+        if (minDistanceSquared != null) {
+            return { datum: closestDatum, distance: Math.sqrt(minDistanceSquared) };
+        }
+    }
+
+    private pickModulesClosestDatum(point: Point) {
+        let minDistanceSquared = Infinity;
+        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+
         for (const mod of this.moduleMap.modules()) {
             const modPick = mod.pickNodeNearest(point);
-            if (modPick !== undefined && modPick.distanceSquared < minDistance) {
-                minDistance = modPick.distanceSquared;
+            if (modPick !== undefined && modPick.distanceSquared < minDistanceSquared) {
+                minDistanceSquared = modPick.distanceSquared;
                 closestDatum = modPick.datum;
-                break;
             }
         }
 
+        if (minDistanceSquared != null) {
+            return { datum: closestDatum, distance: Math.sqrt(minDistanceSquared) };
+        }
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        let minDistance = Infinity;
+        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+
+        const pick = this.pickNodeDataClosestDatum(point);
+        if (pick != null && pick.distance < minDistance) {
+            minDistance = pick.distance;
+            closestDatum = pick.datum;
+        }
+
+        const modPick = this.pickModulesClosestDatum(point);
+        if (modPick != null && modPick.distance < minDistance) {
+            minDistance = modPick.distance;
+            closestDatum = modPick.datum;
+        }
+
         if (closestDatum) {
-            const distance = Math.max(Math.sqrt(minDistance) - (closestDatum.point?.size ?? 0) / 2, 0);
+            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0) / 2, 0);
             return { datum: closestDatum, distance };
         }
     }
