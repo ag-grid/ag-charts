@@ -30,6 +30,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         this._edgeCount = 0;
         this.pendingProcessingEdgesFrom = [];
         this.pendingProcessingEdgesTo = [];
+        this.singleValueEdges?.clear();
     }
 
     getVertexCount() {
