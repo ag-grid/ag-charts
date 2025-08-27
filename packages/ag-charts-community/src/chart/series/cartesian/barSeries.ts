@@ -704,8 +704,6 @@ export class BarSeries extends AbstractBarSeries<
             this.ctx.scene
         )?.map((segment) => ({ ...segment, ...mergeDefaults(segment, style) }));
 
-        console.log(dataAggregationFilter, nodes);
-
         return {
             itemId: yKey,
             nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
