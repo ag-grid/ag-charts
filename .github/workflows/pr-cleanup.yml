@@ -1,8 +1,12 @@
 name: Cleanup caches on PR close
 on:
-    pull_request:
-        types:
-            - closed
+    push:
+        branches:
+            - 'ossf-scorecard'
+#on:
+#    pull_request:
+#        types:
+#            - closed
 
 jobs:
     cleanup:
@@ -17,7 +21,7 @@ jobs:
               run: |
                   gh extension install actions/gh-actions-cache
 
-                  echo "SNAPSHOT_BRANCH: ${env.SNAPSHOT_BRANCH}"
+                  echo "SNAPSHOT_BRANCH: ${{env.SNAPSHOT_BRANCH}}"
                   REPO=${{ github.repository }}
                   BRANCH="refs/pull/${{ github.event.pull_request.number }}/merge"
 
@@ -35,8 +39,8 @@ jobs:
                   echo "Done"
 
                   echo "Cleaning up any auto-generated branches."
-                  if (git ls-remote --exit-code --heads origin ${env.SNAPSHOT_BRANCH} >/dev/null) ; then
-                      git push -d origin ${env.SNAPSHOT_BRANCH}
+                  if (git ls-remote --exit-code --heads origin ${{env.SNAPSHOT_BRANCH}} >/dev/null) ; then
+                      git push -d origin ${{env.SNAPSHOT_BRANCH}}
                   fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
