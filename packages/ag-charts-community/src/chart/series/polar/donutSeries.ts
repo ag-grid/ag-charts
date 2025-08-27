@@ -1147,7 +1147,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
     private computeCalloutLabelCollisionOffsets() {
         const { radiusScale } = this;
-        const { calloutLabel, calloutLine } = this.properties;
+        const { calloutLabel } = this.properties;
         const { offset, minSpacing } = calloutLabel;
         const innerRadius = radiusScale.convert(0);
 
@@ -1186,8 +1186,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
             const style = this.getLabelStyle(datum, calloutLabel);
             const padding = expandLabelPadding(style);
+            const calloutLength = this.getCalloutLineStyle(datum, false).length;
 
-            const labelRadius = datum.outerRadius + calloutLine.length + offset;
+            const labelRadius = datum.outerRadius + calloutLength + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
 
@@ -1295,7 +1296,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
     private updateCalloutLabelNodes(seriesRect: BBox) {
         const { radiusScale } = this;
-        const { calloutLabel, calloutLine } = this.properties;
+        const { calloutLabel } = this.properties;
 
         const tempTextNode = new Text();
 
@@ -1311,8 +1312,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             }
 
             const style = this.getLabelStyle(datum, calloutLabel);
+            const calloutLength = this.getCalloutLineStyle(datum, false).length;
 
-            const labelRadius = outerRadius + calloutLine.length + calloutLabel.offset;
+            const labelRadius = outerRadius + calloutLength + calloutLabel.offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
 
@@ -1349,9 +1351,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         });
     }
 
-    override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
-        const { calloutLabel, calloutLine } = this.properties;
-        const calloutLength = calloutLine.length;
+    override computeLabelsBBox(
+        nodeDatum: PieDonutNodeDatum,
+        options: { hideWhenNecessary: boolean },
+        seriesRect: BBox
+    ) {
+        const { calloutLabel } = this.properties;
+        const calloutLength = this.getCalloutLineStyle(nodeDatum, false).length;
         const { offset, maxCollisionOffset, minSpacing } = calloutLabel;
 
         if (!calloutLabel.avoidCollisions) {
