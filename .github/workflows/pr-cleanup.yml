@@ -7,6 +7,8 @@ on:
 jobs:
     cleanup:
         runs-on: ubuntu-24.04
+        env:
+            SNAPSHOT_BRANCH: 'gha/snapshots-${{ github.head_ref }}'
         steps:
             - name: Check out code
               uses: actions/checkout@v4
@@ -31,8 +33,7 @@ jobs:
                   echo "Done"
 
                   echo "Cleaning up any auto-generated branches."
-                  snapshotBranch=gha/snapshots-${{ github.head_ref }}
-                  if (git ls-remote --exit-code --heads origin ${snapshotBranch} >/dev/null) ; then
+                  if (git ls-remote --exit-code --heads origin ${{env.SNAPSHOT_BRANCH}} >/dev/null) ; then
                       git push -d origin gha/snapshots-${{ github.head_ref }}
                   fi
               env:
