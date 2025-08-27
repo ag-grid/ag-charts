@@ -8,7 +8,6 @@ jobs:
     cleanup:
         runs-on: ubuntu-24.04
         env:
-            HEAD_REF: github.head_ref
             SNAPSHOT_BRANCH: 'gha/snapshots-'${ github.head_ref }
         steps:
             - name: Check out code
@@ -36,7 +35,7 @@ jobs:
 
                   echo "Cleaning up any auto-generated branches."
                   if (git ls-remote --exit-code --heads origin ${env.SNAPSHOT_BRANCH} >/dev/null) ; then
-                      git push -d origin gha/snapshots-${ env.HEAD_REF }
+                      git push -d origin ${env.SNAPSHOT_BRANCH}
                   fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
