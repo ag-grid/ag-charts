@@ -23,6 +23,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
+    AgPieCalloutLineStyle,
     AgPieSeriesOptions,
     AgPieSeriesStyle,
     AgPieSeriesThemeableOptions,
@@ -37,6 +38,12 @@ import {
 } from '../../commonOptionsDefs';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
+
+export const calloutLineStyleOptionsDef: OptionsDefs<AgPieCalloutLineStyle> = {
+    colors: arrayOf(color),
+    length: positiveNumber,
+    strokeWidth: positiveNumber,
+};
 
 export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
@@ -91,9 +98,8 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         ...fontOptionsDef,
     },
     calloutLine: {
-        colors: arrayOf(color),
-        length: positiveNumber,
-        strokeWidth: positiveNumber,
+        ...calloutLineStyleOptionsDef,
+        itemStyler: callbackDefs<AgPieCalloutLineStyle>(calloutLineStyleOptionsDef),
     },
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
