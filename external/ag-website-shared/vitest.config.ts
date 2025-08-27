@@ -1,5 +1,5 @@
-import { getViteConfig } from 'astro/config';
 import path from 'node:path';
+import { defineConfig } from 'vitest/config';
 
 import packageJson from '../../package.json';
 
@@ -11,7 +11,7 @@ function resolvePath(srcPath) {
     return path.resolve(__dirname, pathPrefix, srcPath);
 }
 
-export default getViteConfig({
+export default defineConfig({
     root: __dirname,
     test: {
         globals: true,
@@ -22,6 +22,8 @@ export default getViteConfig({
     },
     resolve: {
         alias: {
+            '@ag-website-shared': `${__dirname}/src`,
+
             // Matches `tsconfig.json`
             '@astro': resolvePath('src/astro'),
             '@components': resolvePath('src/components'),
