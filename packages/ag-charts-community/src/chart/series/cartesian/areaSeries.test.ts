@@ -1599,6 +1599,119 @@ describe('AreaSeries', () => {
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
+        it('should render area series with gradient fill segmentation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 20 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 25 },
+                    { x: 3, y: 35 },
+                    { x: 4, y: 40 },
+                    { x: 5, y: 45 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 0,
+                                    stop: 2,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 2,
+                                    stop: 4,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: 'blue',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 4,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: 'green',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render area series with inherited gradient fill segmentation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 20 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 25 },
+                    { x: 3, y: 35 },
+                    { x: 4, y: 40 },
+                    { x: 5, y: 45 },
+                ],
+
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        fill: {
+                            type: 'gradient',
+                        },
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 0,
+                                    stop: 2,
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 2,
+                                    stop: 4,
+                                    stroke: 'blue',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 4,
+                                    stroke: 'green',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
         it('should render area series with positive/negative segmentation', async () => {
             const options: AgChartOptions = {
                 title: { text: 'Total PnL' },
@@ -1935,7 +2048,6 @@ describe('AreaSeries', () => {
                                     fill: {
                                         type: 'pattern',
                                         pattern: 'vertical-lines',
-                                        fill: 'red',
                                         stroke: 'darkred',
                                         strokeWidth: 1,
                                     },
@@ -1947,7 +2059,6 @@ describe('AreaSeries', () => {
                                     fill: {
                                         type: 'pattern',
                                         pattern: 'horizontal-lines',
-                                        fill: 'blue',
                                         stroke: 'darkblue',
                                         strokeWidth: 1,
                                     },
@@ -1959,7 +2070,6 @@ describe('AreaSeries', () => {
                                     fill: {
                                         type: 'pattern',
                                         pattern: 'circles',
-                                        fill: 'green',
                                         stroke: 'darkgreen',
                                         strokeWidth: 1,
                                     },

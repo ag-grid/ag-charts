@@ -3386,6 +3386,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3458,6 +3462,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3530,6 +3538,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3602,6 +3614,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3674,6 +3690,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -7990,6 +8010,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8070,6 +8094,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8150,6 +8178,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8230,6 +8262,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8310,6 +8346,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8390,6 +8430,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8470,6 +8514,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -9902,6 +9950,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -9968,6 +10020,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -10034,6 +10090,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -10100,6 +10160,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -11801,6 +11865,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -11877,6 +11945,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -11953,6 +12025,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -12029,6 +12105,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -12105,6 +12185,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -12181,6 +12265,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
