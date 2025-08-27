@@ -1,12 +1,8 @@
 name: Cleanup caches on PR close
 on:
-    push:
-        branches:
-            - 'ossf-scorecard'
-#on:
-#    pull_request:
-#        types:
-#            - closed
+    pull_request:
+        types:
+            - closed
 
 jobs:
     cleanup:
@@ -25,7 +21,7 @@ jobs:
                   REPO=${{ github.repository }}
                   BRANCH="refs/pull/${{ github.event.pull_request.number }}/merge"
 
-                  echo "Fetching list of cache key"
+                  echo "Fetching list of cache keys"
                   cacheKeysForPR=$(gh actions-cache list -R $REPO -B $BRANCH -L 100 | cut -f 1 )
 
                   ## Setting this to not fail the workflow while deleting cache keys.
