@@ -462,6 +462,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -525,6 +529,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -588,6 +596,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -651,6 +663,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -843,6 +859,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -906,6 +926,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -969,6 +993,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -1032,6 +1060,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -1224,6 +1256,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
@@ -1287,6 +1323,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
@@ -1350,6 +1390,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
@@ -1413,6 +1457,10 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
+    "segmentation": {
+      "enabled": false,
+      "key": "x",
+    },
     "seriesGrouping": {
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
