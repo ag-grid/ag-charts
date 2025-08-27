@@ -95,4 +95,8 @@ export class Marker extends Rotatable(Scalable(Translatable(InternalMarker))) {
             this.shape = options.shape;
         }
     }
+
+    get midPoint(): { x: number; y: number } {
+        return { x: this.x, y: this.y };
+    }
 }

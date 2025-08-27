@@ -1,4 +1,4 @@
-import { type RequireOptional } from 'ag-charts-core';
+import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
