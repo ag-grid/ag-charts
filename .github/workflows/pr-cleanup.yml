@@ -8,7 +8,7 @@ jobs:
     cleanup:
         runs-on: ubuntu-24.04
         env:
-            SNAPSHOT_BRANCH: 'gha/snapshots-${ github.head_ref }'
+            SNAPSHOT_BRANCH: 'gha/snapshots-${{ github.head_ref }}'
         steps:
             - name: Check out code
               uses: actions/checkout@v4
@@ -17,11 +17,11 @@ jobs:
               run: |
                   gh extension install actions/gh-actions-cache
 
-                  echo "SNAPSHOT_BRANCH: ${env.SNAPSHOT_BRANCH}"
+                  echo "SNAPSHOT_BRANCH: ${{env.SNAPSHOT_BRANCH}}"
                   REPO=${{ github.repository }}
                   BRANCH="refs/pull/${{ github.event.pull_request.number }}/merge"
 
-                  echo "Fetching list of cache key"
+                  echo "Fetching list of cache keys"
                   cacheKeysForPR=$(gh actions-cache list -R $REPO -B $BRANCH -L 100 | cut -f 1 )
 
                   ## Setting this to not fail the workflow while deleting cache keys.
@@ -29,14 +29,14 @@ jobs:
                   echo "Deleting caches..."
                   for cacheKey in $cacheKeysForPR
                   do
-                      echo "Deleting cache... ${cacheKeysForPR}"
+                      echo "Deleting cache... $cacheKey"
                       gh actions-cache delete $cacheKey -R $REPO -B $BRANCH --confirm
                   done
                   echo "Done"
 
                   echo "Cleaning up any auto-generated branches."
-                  if (git ls-remote --exit-code --heads origin ${env.SNAPSHOT_BRANCH} >/dev/null) ; then
-                      git push -d origin ${env.SNAPSHOT_BRANCH}
+                  if (git ls-remote --exit-code --heads origin ${{env.SNAPSHOT_BRANCH}} >/dev/null) ; then
+                      git push -d origin ${{env.SNAPSHOT_BRANCH}}
                   fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
