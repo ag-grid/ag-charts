@@ -23,6 +23,7 @@ import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { formatValue } from '../../../util/format.util';
@@ -39,7 +40,12 @@ import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
+import {
+    type PickFocusInputs,
+    type SeriesNodePickMatch,
+    SeriesNodePickMode,
+    type SeriesNodeStyleContext,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
@@ -64,6 +70,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { computeMarkerFocusBounds, getMarkerOnlyStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
 
@@ -912,5 +919,13 @@ export class BubbleSeries extends CartesianSeries<
     protected override hasItemStylers(): boolean {
         const { itemStyler, marker, label } = this.properties;
         return !!(itemStyler ?? marker.itemStyler ?? label.itemStyler);
+    }
+
+    protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+    }
+
+    protected override pickNodeDataClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
     }
 }
