@@ -50,7 +50,7 @@ export function getLabelStyles<TParams>(
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
-            itemId: undefined,
+            itemId: nodeDatum?.itemId,
             seriesId: series.id,
             padding: label.padding,
             highlighted,
