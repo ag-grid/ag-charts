@@ -8,7 +8,7 @@ jobs:
     cleanup:
         runs-on: ubuntu-24.04
         env:
-            SNAPSHOT_BRANCH: 'gha/snapshots-${ github.head_ref }'
+            SNAPSHOT_BRANCH: 'gha/snapshots-${{ github.head_ref }}'
         steps:
             - name: Check out code
               uses: actions/checkout@v4
