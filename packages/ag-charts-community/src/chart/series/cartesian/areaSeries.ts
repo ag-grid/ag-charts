@@ -22,6 +22,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { simpleMemorize2 } from '../../../util/memo';
@@ -46,7 +47,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
@@ -79,6 +80,7 @@ import {
     resetMarkerPositionFn,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 import { calculateSegments } from './util';
 
 const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
@@ -1462,5 +1464,13 @@ export class AreaSeries extends CartesianSeries<
 
     protected override hasItemStylers(): boolean {
         return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+    }
+
+    protected override initQuadTree(quadtree: QuadtreeNearest<MarkerSelectionDatum>) {
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+    }
+
+    protected override pickNodeDataClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
     }
 }

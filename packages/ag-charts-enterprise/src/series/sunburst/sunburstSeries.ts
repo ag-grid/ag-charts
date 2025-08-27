@@ -18,6 +18,7 @@ const {
     BBox,
     applyShapeStyle,
     mergeDefaults,
+    formatValue,
 } = _ModuleSupport;
 
 class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
@@ -546,9 +547,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, properties } = this;
+        const { id: seriesId, properties, ctx } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
+        const { formatManager } = ctx;
         const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
         if (nodeDatum == null) return;
         const { datum, depth } = nodeDatum;
@@ -558,12 +560,40 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
         if (datumSize != null) {
-            data.push({ label: sizeName, fallbackLabel: sizeKey!, value: datumSize });
+            const sizeDomain = [0, this.rootNode?.sumSize ?? 0];
+            const content = formatManager.format(this.callWithContext.bind(this), {
+                type: 'number',
+                value: datumSize,
+                datum,
+                seriesId,
+                legendItemName: undefined,
+                key: sizeKey,
+                source: 'tooltip',
+                property: 'size',
+                boundSeries: this.getFormatterContext('size'),
+                domain: sizeDomain,
+                fractionDigits: undefined,
+            });
+            data.push({ label: sizeName, fallbackLabel: sizeKey!, value: content ?? formatValue(datumSize) });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: datumColor });
+            const { colorDomain } = this;
+            const content = formatManager.format(this.callWithContext.bind(this), {
+                type: 'number',
+                value: datumColor,
+                datum,
+                seriesId,
+                legendItemName: undefined,
+                key: colorKey,
+                source: 'tooltip',
+                property: 'color',
+                boundSeries: this.getFormatterContext('color'),
+                domain: colorDomain,
+                fractionDigits: undefined,
+            });
+            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(datumColor) });
         }
 
         const format = this.getItemStyle(
