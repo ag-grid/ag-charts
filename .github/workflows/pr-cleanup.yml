@@ -8,7 +8,7 @@ jobs:
     cleanup:
         runs-on: ubuntu-24.04
         env:
-            SNAPSHOT_BRANCH: 'gha/snapshots-${{ github.head_ref }}'
+            SNAPSHOT_BRANCH: 'gha/snapshots-${ github.head_ref }'
         steps:
             - name: Check out code
               uses: actions/checkout@v4
@@ -28,6 +28,7 @@ jobs:
                   echo "Deleting caches..."
                   for cacheKey in $cacheKeysForPR
                   do
+                      echo "Deleting cache... ${cacheKeysForPR}"
                       gh actions-cache delete $cacheKey -R $REPO -B $BRANCH --confirm
                   done
                   echo "Done"
