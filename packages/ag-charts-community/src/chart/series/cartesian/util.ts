@@ -1,9 +1,13 @@
 import type { Size } from 'ag-charts-core';
-import type { AgSeriesSegmentation } from 'ag-charts-types';
+import type { AgSeriesSegmentation, AgSeriesShapeSegmentOptions } from 'ag-charts-types';
 
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+
+function isAxisReversed(axis: ChartAxis) {
+    return axis.isReversed() !== axis.range[1] < axis.range[0];
+}
 
 export function calculateSegments(
     segmentation: AgSeriesSegmentation,
@@ -23,36 +27,60 @@ export function calculateSegments(
     const isXDirection = direction === ChartAxisDirection.X;
     const bandwidth = scale.bandwidth ?? 0;
     const offset = applyOffset ? ((scale.step ?? 0) - bandwidth) / 2 : 0;
-    const isReversed = axis.isReversed() || axis.range[1] < axis.range[0];
+
+    // The margin to use to ensure a clip path touches one side of the canvas,
+    // and either exceeds or touches the other side.
+    // It's required to use a margin here so a reverse-axis animation animates with the same center
+    const horizontalMargin = Math.max(seriesRect.x, chartSize.width - (seriesRect.x + seriesRect.width));
+    const verticalMargin = Math.max(seriesRect.y, chartSize.height - (seriesRect.y + seriesRect.height));
 
     const getDefaultStart = () => {
-        if (isReversed) {
-            return isXDirection ? chartSize.width : chartSize.height;
+        if (isAxisReversed(isXDirection ? xAxis : yAxis)) {
+            return isXDirection ? seriesRect.width + horizontalMargin : seriesRect.height + verticalMargin;
         }
-        return isXDirection ? -seriesRect.x : -seriesRect.y;
+        return isXDirection ? -horizontalMargin : -verticalMargin;
     };
 
     const getDefaultStop = () => {
-        if (isReversed) {
-            return isXDirection ? -seriesRect.x : -seriesRect.y;
+        if (isAxisReversed(isXDirection ? xAxis : yAxis)) {
+            return isXDirection ? -horizontalMargin : -verticalMargin;
         }
-        return isXDirection ? chartSize.width : chartSize.height;
+        return isXDirection ? seriesRect.width + horizontalMargin : seriesRect.height + verticalMargin;
     };
 
-    return segmentation.segments.map(({ stop, start, ...style }) => {
-        const startPos = start == null ? getDefaultStart() : scale.convert(start) - offset;
-        const stopPos = stop == null ? getDefaultStop() : scale.convert(stop) + 2 * offset;
+    const getSegments = (segments: AgSeriesShapeSegmentOptions[]) => {
+        const result: AgSeriesShapeSegmentOptions[] = [];
 
-        const x = isXDirection ? startPos : -seriesRect.x;
-        const y = isXDirection ? -seriesRect.y : startPos;
-        const width = isXDirection ? stopPos + bandwidth - startPos : chartSize.width;
-        const height = isXDirection ? chartSize.height : stopPos + bandwidth - startPos;
+        let previousDefinedStopIndex = -1;
+        for (let i = 0; i < segments.length; i++) {
+            const { start, stop, ...styles } = segments[i];
 
-        const finalX = width < 0 ? x + width : x;
-        const finalY = height < 0 ? y + height : y;
-        const finalWidth = Math.abs(width);
-        const finalHeight = Math.abs(height);
+            const startFallback = segments[previousDefinedStopIndex]?.stop;
+            const stopFallback = segments.slice(i + 1).find((s) => s.start != null)?.start;
 
-        return { clipRect: new BBox(finalX, finalY, finalWidth, finalHeight), ...style };
+            let startPosition = scale.convert(start ?? startFallback) - offset;
+            let stopPosition = scale.convert(stop ?? stopFallback) + 2 * offset;
+
+            if (isNaN(startPosition)) startPosition = getDefaultStart();
+            if (isNaN(stopPosition)) stopPosition = getDefaultStop();
+
+            if (stop != null) {
+                previousDefinedStopIndex = i;
+            }
+
+            result.push({ start: startPosition, stop: stopPosition, ...styles });
+        }
+
+        return result;
+    };
+
+    return getSegments(segmentation.segments).map(({ stop, start, ...style }) => {
+        // Calculate dimensions based on direction
+        const x0 = isXDirection ? start : -horizontalMargin;
+        const y0 = isXDirection ? -verticalMargin : start;
+        const x1 = isXDirection ? stop + bandwidth : seriesRect.width + horizontalMargin;
+        const y1 = isXDirection ? seriesRect.height + verticalMargin : stop + bandwidth;
+
+        return { clipRect: { x0, y0, x1, y1 }, ...style };
     });
 }

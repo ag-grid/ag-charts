@@ -861,13 +861,12 @@ export class AreaSeries extends CartesianSeries<
             handleDatum(datumIndex);
         }
 
-        const { width, height } = this.ctx.scene;
         const segments = calculateSegments(
             this.properties.segmentation,
             xAxis,
             yAxis,
             this.chart!.seriesRect!,
-            { width, height },
+            this.ctx.scene,
             false
         );
 

@@ -632,6 +632,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumIndex: number,
         removeThisDatum: RangeAreaMarkerDatum | undefined
     ): _ModuleSupport.TooltipContent | undefined {
+        if (removeThisDatum?.itemId == null) return;
+
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -664,7 +666,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId,
                 datum,
                 title: yName,
-                itemId: removeThisDatum?.itemId ?? 'unknown',
+                itemId: removeThisDatum.itemId,
                 xName,
                 yName,
                 yLowKey,
