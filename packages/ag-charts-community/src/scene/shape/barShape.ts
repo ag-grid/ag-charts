@@ -27,8 +27,9 @@ export class BarShape<D = any> extends Rect<D> {
             return;
         }
 
-        const { path, x, y, width, height, direction, featherRatio } = this;
+        const { path, borderPath, x, y, width, height, direction, featherRatio } = this;
         path.clear();
+        borderPath.clear();
 
         if (direction === 'x') {
             const featherInsetX = Math.abs(featherRatio) * width;
@@ -66,6 +67,39 @@ export class BarShape<D = any> extends Rect<D> {
                 path.lineTo(x, y + height - featherInsetY);
                 path.closePath();
             }
+        }
+    }
+
+    override renderStroke(ctx: CanvasRenderingContext2D & { setLineDash(lineDash: readonly number[]): void }) {
+        if (!this.feathered) {
+            super.renderStroke(ctx);
+            return;
+        }
+
+        const { stroke, strokeWidth } = this;
+
+        if (stroke && strokeWidth) {
+            const { globalAlpha } = ctx;
+            const { lineDash, lineDashOffset, lineCap, lineJoin, path } = this;
+
+            this.applyStrokeAndAlpha(ctx);
+            ctx.lineWidth = strokeWidth;
+
+            if (lineDash) {
+                ctx.setLineDash(lineDash);
+            }
+            if (lineDashOffset) {
+                ctx.lineDashOffset = lineDashOffset;
+            }
+            if (lineCap) {
+                ctx.lineCap = lineCap;
+            }
+            if (lineJoin) {
+                ctx.lineJoin = lineJoin;
+            }
+
+            ctx.stroke(path.getPath2D());
+            ctx.globalAlpha = globalAlpha;
         }
     }
 }

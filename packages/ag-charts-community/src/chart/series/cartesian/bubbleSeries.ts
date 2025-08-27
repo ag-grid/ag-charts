@@ -636,19 +636,13 @@ export class BubbleSeries extends CartesianSeries<
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const params: AgBubbleSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
             const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
             const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
 
-            const style = getLabelStyles<AgBubbleSeriesLabelFormatterParams>(
-                this,
-                datum,
-                this.properties,
-                this.properties.label,
-                highlighted,
-                highlightState
-            );
+            const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
             text.text = datum.label.text;
             text.fill = style.color;
             text.x = datum.point?.x ?? 0;
@@ -706,6 +700,20 @@ export class BubbleSeries extends CartesianSeries<
             sizeKey,
             labelKey,
         } satisfies ResultRules;
+    }
+
+    private makeLabelFormatterParams(): AgBubbleSeriesLabelFormatterParams {
+        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName } = this.properties;
+        return {
+            xKey,
+            xName,
+            yKey,
+            yName,
+            sizeKey,
+            sizeName,
+            labelKey,
+            labelName,
+        } satisfies RequireOptional<AgBubbleSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

@@ -610,6 +610,10 @@ export class BarSeries extends AbstractBarSeries<
                     const x = xPosition(((xMinIndex + xMaxIndex) / 2) | 0);
                     // The width of the shape is the width from the left of the first bar to the right of the second bar
                     const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + barWidth;
+
+                    // start & end may be incorrect when there's a lot of missing data
+                    if (x - width < 0 || x > range) continue;
+
                     const bandCount = Math.abs(xMaxIndex - xMinIndex) + 1;
                     // This means the density of the fill is higher than it would be if we drew the bars individually.
                     // Adjust the opacity to account for this
