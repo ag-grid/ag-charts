@@ -4,9 +4,12 @@ import {
     type InternalAgGradientColor,
     Logger,
     type Point,
+    type RequireOptional,
     modulus,
 } from 'ag-charts-core';
 import type {
+    AgDonutCalloutLineItemStylerParams,
+    AgDonutCalloutLineStyle,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
@@ -747,6 +750,40 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         };
     }
 
+    private getCalloutLineStyle(nodeDatum: PieDonutNodeDatum, highlighted: boolean) {
+        const { properties } = this;
+        let itemStylerResult: AgDonutCalloutLineStyle = {};
+        if (properties.calloutLine.itemStyler) {
+            const highlightState = this.getHighlightStateString(
+                this.ctx.highlightManager?.getActiveHighlight(),
+                highlighted,
+                nodeDatum.datumIndex
+            );
+            const params: RequireOptional<Omit<AgDonutCalloutLineItemStylerParams<unknown, unknown>, 'context'>> = {
+                angleKey: properties.angleKey,
+                angleName: properties.angleName ?? properties.angleKey,
+                calloutLabelKey: properties.calloutLabelKey,
+                calloutLabelName: properties.calloutLabelName ?? properties.calloutLabelKey,
+                datum: nodeDatum.datum,
+                highlighted,
+                highlightState,
+                itemId: nodeDatum.itemId,
+                legendItemKey: properties.legendItemKey,
+                radiusKey: properties.radiusKey,
+                radiusName: properties.radiusName ?? properties.radiusKey,
+                sectorLabelKey: properties.sectorLabelKey,
+                sectorLabelName: properties.sectorLabelName ?? properties.sectorLabelKey,
+                seriesId: this.id,
+            };
+            itemStylerResult = this.callWithContext(properties.calloutLine.itemStyler, params) ?? {};
+        }
+        return {
+            length: itemStylerResult.length ?? properties.calloutLine.length,
+            strokeWidth: itemStylerResult.strokeWidth ?? properties.calloutLine.strokeWidth,
+            colors: itemStylerResult.colors ?? properties.calloutLine.colors,
+        } satisfies RequireOptional<AgDonutCalloutLineStyle>;
+    }
+
     override getInnerRadius() {
         const { radius } = this;
         const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.properties;
@@ -1015,16 +1052,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     updateCalloutLineNodes() {
-        const {
-            calloutLine: { length: calloutLength, strokeWidth, colors },
-            strokes,
-        } = this.properties;
-        const calloutStrokeWidth = strokeWidth;
-        const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
+        const { strokes } = this.properties;
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine).forEach((line) => {
             const datum = line.closestDatum() as PieDonutNodeDatum;
+            const { length: calloutLength, strokeWidth, colors } = this.getCalloutLineStyle(datum, false);
+            const calloutStrokeWidth = strokeWidth;
+            const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
             if (label?.text && !label.hidden && outerRadius !== 0) {

@@ -1,5 +1,7 @@
 import type { InternalAgColorType } from 'ag-charts-core';
 import type {
+    AgDonutCalloutLineItemStylerParams,
+    AgDonutCalloutLineStyle,
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
@@ -68,13 +70,16 @@ class DonutSeriesSectorLabel extends Label<AgDonutSeriesLabelFormatterParams> {
 
 class DonutSeriesCalloutLine extends BaseProperties {
     @Property
-    colors?: InternalAgColorType[];
+    colors?: Exclude<InternalAgColorType, object>[];
 
     @Property
     length: number = 10;
 
     @Property
     strokeWidth: number = 1;
+
+    @Property
+    itemStyler?: Styler<AgDonutCalloutLineItemStylerParams<unknown, unknown>, AgDonutCalloutLineStyle>;
 }
 
 export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions> {
