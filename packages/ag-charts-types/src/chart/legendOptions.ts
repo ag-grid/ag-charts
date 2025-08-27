@@ -72,14 +72,20 @@ export interface AgChartLegendLineOptions {
     length?: PixelSize;
 }
 
-export interface AgChartLegendLabelFormatterParams {
+export interface AgChartLegendLabelFormatterParams<TContext = ContextDefault> {
+    /** Series id */
     seriesId: string;
+    /** Legend item id - usually yKey value for cartesian series. */
     itemId: any;
+    /** The default title of this legend item. */
     value: string;
+    /** Datum associated with this legend item. */
     datum?: any;
+    /** Callback context for this formatter. */
+    context?: TContext;
 }
 
-export interface AgChartLegendLabelOptions {
+export interface AgChartLegendLabelOptions<TContext = ContextDefault> {
     /** If the label text exceeds the specified number of characters, it will be truncated and an ellipsis will be appended to indicate this. */
     maxLength?: number;
     /** The colour of the text. */
@@ -93,16 +99,16 @@ export interface AgChartLegendLabelOptions {
     /** The font family to use for the legend. */
     fontFamily?: FontFamilyFull;
     /** Function used to render legend labels. Where `id` is a series ID, `itemId` is component ID within a series, such as a field name or an item index. */
-    formatter?: Formatter<AgChartLegendLabelFormatterParams>;
+    formatter?: Formatter<AgChartLegendLabelFormatterParams<TContext>>;
 }
 
-export interface AgChartLegendItemOptions {
+export interface AgChartLegendItemOptions<TContext = ContextDefault> {
     /** Configuration for the legend markers. */
     marker?: AgChartLegendMarkerOptions;
     /** Configuration for the legend lines. */
     line?: AgChartLegendLineOptions;
     /** Configuration for the legend labels. */
-    label?: AgChartLegendLabelOptions;
+    label?: AgChartLegendLabelOptions<TContext>;
     /** Used to constrain the width of legend items. */
     maxWidth?: PixelSize;
     /** The horizontal spacing in pixels to use between legend items. */
@@ -173,7 +179,7 @@ export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOpt
      * Default: `30` */
     spacing?: PixelSize;
     /** Configuration for the legend items that consist of a marker and a label. */
-    item?: AgChartLegendItemOptions;
+    item?: AgChartLegendItemOptions<TContext>;
     /** Reverse the display order of legend items if `true`. */
     reverseOrder?: boolean;
     /** Optional callbacks for specific legend-related events. */
