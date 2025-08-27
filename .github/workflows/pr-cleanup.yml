@@ -17,6 +17,7 @@ jobs:
               run: |
                   gh extension install actions/gh-actions-cache
 
+                  echo "SNAPSHOT_BRANCH: ${env.SNAPSHOT_BRANCH}"
                   REPO=${{ github.repository }}
                   BRANCH="refs/pull/${{ github.event.pull_request.number }}/merge"
 
