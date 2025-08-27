@@ -356,7 +356,8 @@ jobs:
         runs-on: ubuntu-24.04
         permissions:
             contents: write
-            pull-requests: write
+            actions: read
+            checks: write
         needs: [init, build_lint, test, e2e, sonarqube, fw_pkg_test]
         if: cancelled() != true
         steps:
