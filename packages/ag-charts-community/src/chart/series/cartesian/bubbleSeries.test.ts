@@ -572,12 +572,18 @@ describe('BubbleSeries', () => {
                         .nthCalledWithContext(4, c1)
                         .nthCalledWithContext(5, c1)
                         .nthCalledWithContext(6, c1)
-                        .nthCalledWithContext(7, c2)
-                        .nthCalledWithContext(8, c2)
-                        .nthCalledWithContext(9, c2)
+                        .nthCalledWithContext(7, c1)
+                        .nthCalledWithContext(8, c1)
+                        .nthCalledWithContext(9, c1)
                         .nthCalledWithContext(10, c2)
                         .nthCalledWithContext(11, c2)
-                        .toHaveBeenCalledTimes(12);
+                        .nthCalledWithContext(12, c2)
+                        .nthCalledWithContext(13, c2)
+                        .nthCalledWithContext(14, c2)
+                        .nthCalledWithContext(15, c2)
+                        .nthCalledWithContext(16, c2)
+                        .nthCalledWithContext(17, c2)
+                        .toHaveBeenCalledTimes(18);
                 });
                 test('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
