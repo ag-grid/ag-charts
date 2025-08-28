@@ -17,7 +17,6 @@ const options: AgChartOptions<DataType> = {
     },
     subtitle: {
         text: 'United Kingdom - Annual Statistics',
-        spacing: 20,
     },
     footnote: {
         text: 'Source: UK Home Office Fire Statistics',
@@ -42,12 +41,8 @@ const options: AgChartOptions<DataType> = {
     series: [
         {
             type: 'donut',
-            calloutLabelKey: 'type',
             angleKey: 'count',
             sectorLabelKey: 'count',
-            calloutLabel: {
-                enabled: false,
-            },
             innerLabels: [
                 {
                     text: numFormatter.format(total),

@@ -23,12 +23,10 @@ const options: AgCartesianChartOptions = {
                     marker: {
                         enabled: false,
                     },
-                    strokeWidth: 2,
                 },
             },
         },
     },
-    // Shared tooltips for multi-series comparison - CRITICAL
     tooltip: {
         enabled: true,
         mode: 'shared',
@@ -37,7 +35,6 @@ const options: AgCartesianChartOptions = {
             placement: ['top-left', 'bottom-left', 'top-right', 'bottom-right'],
         },
     },
-    // Legend positioning with border for professional appearance
     legend: {
         position: {
             placement: 'left-top',
@@ -113,9 +110,6 @@ const options: AgCartesianChartOptions = {
             },
             crosshair: {
                 enabled: true,
-                label: {
-                    enabled: true,
-                },
                 strokeWidth: 0,
             },
         },
@@ -125,7 +119,6 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: `ktoe`,
             },
-            // Add alternating bands for better readability
             gridLine: {
                 style: [
                     {
@@ -133,7 +126,7 @@ const options: AgCartesianChartOptions = {
                         lineDash: [2, 2],
                     },
                     {
-                        strokeWidth: 0, // Alternating bands
+                        strokeWidth: 0,
                     },
                 ],
             },
@@ -142,7 +135,6 @@ const options: AgCartesianChartOptions = {
     formatter: {
         y: (params) => `${(params.value as number) / 1000}K`,
     },
-    // Zoom and pan capabilities for detailed exploration
     zoom: {
         enabled: true,
         enableAxisDragging: true,

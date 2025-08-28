@@ -13,7 +13,6 @@ const options: AgCartesianChartOptions<DataType> = {
     },
     footnote: {
         text: 'Source: Statistics Online Computational Resource',
-        spacing: 20,
     },
     series: [
         {
@@ -24,7 +23,6 @@ const options: AgCartesianChartOptions<DataType> = {
             yName: 'Height',
             size: 6,
             fillOpacity: 0.6,
-            strokeWidth: 1,
             strokeOpacity: 0.8,
             tooltip: {
                 enabled: true,

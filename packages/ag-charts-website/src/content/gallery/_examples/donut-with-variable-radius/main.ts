@@ -30,8 +30,6 @@ const options: AgPolarChartOptions = {
             calloutLabelKey: 'category',
             calloutLabel: {
                 offset: 12,
-                avoidCollisions: true,
-                minAngle: 10,
             },
             angleKey: 'value',
             radiusKey: 'profitMargin',
@@ -47,7 +45,6 @@ const options: AgPolarChartOptions = {
                     spacing: 4,
                 },
             ],
-            legendItemKey: 'category',
             cornerRadius: 5,
             strokeWidth: 1,
             highlight: {

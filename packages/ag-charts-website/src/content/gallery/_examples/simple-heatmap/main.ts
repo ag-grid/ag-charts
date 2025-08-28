@@ -64,7 +64,6 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'left',
-            label: {},
             line: {
                 enabled: false,
             },

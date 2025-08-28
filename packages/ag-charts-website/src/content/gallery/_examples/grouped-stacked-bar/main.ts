@@ -30,7 +30,6 @@ const options: AgCartesianChartOptions = {
             enabled: true,
             strokeWidth: 1,
         },
-        fillOpacity: 1,
         cornerRadius: 8,
     },
     series: [
@@ -102,7 +101,6 @@ const options: AgCartesianChartOptions = {
             interval: {
                 placement: 'between',
             },
-            label: {},
         },
         {
             position: 'left',
@@ -133,7 +131,6 @@ const options: AgCartesianChartOptions = {
                 text: 'Number of Looks',
             },
             keys: ['numberOfLooksTM', 'numberOfLooksYM'],
-            label: {},
             gridLine: {
                 style: [
                     {

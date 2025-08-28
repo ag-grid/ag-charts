@@ -21,7 +21,6 @@ const options: AgChartOptions = {
         size: 7,
         strokeWidth: 1.5,
         fillOpacity: 0.8,
-        strokeOpacity: 1,
         tooltip: {
             renderer: ({ datum, yName }) => {
                 const region = datum.region;

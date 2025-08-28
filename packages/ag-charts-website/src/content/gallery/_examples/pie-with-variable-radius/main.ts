@@ -37,20 +37,9 @@ const options: AgPolarChartOptions<DataType> = {
                     return `${usdShortFormatter.format(gdp)}\n(${percentage}%)`;
                 },
             },
-            calloutLabel: {
-                minAngle: 0,
-                avoidCollisions: true,
-            },
             strokeWidth: 2,
             tooltip: {
                 renderer: ({ datum }) => {
-                    const gdp = datum.population * datum.gdpPerCapita;
-                    const percentage = ((gdp / totalGDP) * 100).toFixed(1);
-                    const gdpPerCapitaRank =
-                        data
-                            .sort((a, b) => b.gdpPerCapita - a.gdpPerCapita)
-                            .findIndex((d) => d.country === datum.country) + 1;
-
                     return {
                         title: datum.country,
                         data: [

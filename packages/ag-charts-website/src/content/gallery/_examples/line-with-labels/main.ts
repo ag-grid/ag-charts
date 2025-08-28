@@ -15,7 +15,6 @@ const options: AgChartOptions = {
     },
     tooltip: {
         enabled: true,
-        mode: 'shared',
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
         },
@@ -50,17 +49,11 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            label: {
-                autoRotate: true,
-            },
             line: {
                 enabled: false,
             },
             bandHighlight: {
                 enabled: true,
-            },
-            crosshair: {
-                enabled: false,
             },
         },
         {
@@ -95,19 +88,12 @@ const options: AgChartOptions = {
                     lineDash: [6, 4],
                     label: {
                         text: '1 hour',
-                        padding: 5,
                         position: 'right',
                     },
                 },
             ],
         },
     ],
-    seriesArea: {
-        padding: {
-            left: 10,
-            bottom: 10,
-        },
-    },
     formatter: {
         y(params) {
             const value = params.value as number;
@@ -119,6 +105,7 @@ const options: AgChartOptions = {
             const hours = Math.floor(value);
             const minutes = Math.round((value % 1) * 60);
             const minutesString = String(minutes).padStart(2, '0');
+
             if (params.source !== 'axis-label') {
                 return `${hours}h ${minutesString}m`;
             }

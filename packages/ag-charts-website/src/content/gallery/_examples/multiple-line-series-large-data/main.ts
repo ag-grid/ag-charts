@@ -91,12 +91,6 @@ const options: AgCartesianChartOptions = {
             type: 'number',
             min: -3,
             max: 3,
-            crosshair: {
-                enabled: true,
-                label: {
-                    enabled: true,
-                },
-            },
             crossLines: [
                 {
                     type: 'line',
@@ -119,12 +113,6 @@ const options: AgCartesianChartOptions = {
             type: 'number',
             nice: false,
             interval: { step: Math.PI },
-            crosshair: {
-                enabled: true,
-                label: {
-                    enabled: true,
-                },
-            },
             crossLines: [
                 {
                     type: 'line',
@@ -138,16 +126,6 @@ const options: AgCartesianChartOptions = {
             ],
         },
     ],
-    legend: {
-        position: 'bottom',
-        item: {
-            paddingX: 16,
-            paddingY: 8,
-            marker: {
-                strokeWidth: 0,
-            },
-        },
-    },
     formatter: {
         x(params) {
             const value = params.value as number;

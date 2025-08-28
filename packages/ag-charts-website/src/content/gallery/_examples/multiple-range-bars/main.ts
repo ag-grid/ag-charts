@@ -161,7 +161,6 @@ const options: AgCartesianChartOptions = {
                 shape: 'square',
                 strokeWidth: 0,
             },
-            label: {},
         },
     },
 };

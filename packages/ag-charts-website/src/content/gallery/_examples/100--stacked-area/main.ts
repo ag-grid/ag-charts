@@ -1,8 +1,6 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { EnergyData, getData } from './data';
-
-const interpolation = { type: 'smooth' } as const;
+import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -20,12 +18,7 @@ const options: AgCartesianChartOptions = {
                 series: {
                     strokeWidth: 1.5,
                     fillOpacity: 0.88,
-                    highlight: {
-                        highlightedItem: {
-                            fillOpacity: 0.95,
-                            strokeWidth: 2,
-                        },
-                    },
+                    interpolation: { type: 'smooth' },
                 },
             },
         },
@@ -38,7 +31,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Coal',
             normalizedTo: 1,
             stacked: true,
-            interpolation,
             fill: {
                 type: 'pattern',
             },
@@ -50,7 +42,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Petroleum',
             normalizedTo: 1,
             stacked: true,
-            interpolation,
         },
         {
             type: 'area',
@@ -59,7 +50,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Natural gas',
             normalizedTo: 1,
             stacked: true,
-            interpolation,
         },
         {
             type: 'area',
@@ -68,7 +58,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Bioenergy & waste',
             normalizedTo: 1,
             stacked: true,
-            interpolation,
         },
         {
             type: 'area',
@@ -77,7 +66,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Nuclear',
             normalizedTo: 1,
             stacked: true,
-            interpolation,
             fill: {
                 type: 'pattern',
             },
@@ -89,7 +77,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Wind, solar & hydro',
             normalizedTo: 1,
             stacked: true,
-            interpolation,
         },
         {
             type: 'area',
@@ -98,7 +85,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Imported',
             normalizedTo: 1,
             stacked: true,
-            interpolation,
         },
     ],
     axes: [
@@ -107,11 +93,7 @@ const options: AgCartesianChartOptions = {
             position: 'bottom',
             crosshair: {
                 enabled: true,
-                strokeWidth: 1,
                 lineDash: [3, 3],
-                label: {
-                    enabled: true,
-                },
             },
         },
         {
@@ -129,11 +111,8 @@ const options: AgCartesianChartOptions = {
         },
     ],
     legend: {
-        position: 'bottom',
         item: {
             showSeriesStroke: false,
-            paddingX: 10,
-            paddingY: 8,
         },
     },
     tooltip: {

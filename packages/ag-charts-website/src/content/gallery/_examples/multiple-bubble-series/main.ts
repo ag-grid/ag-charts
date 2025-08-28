@@ -13,9 +13,7 @@ const options: AgCartesianChartOptions = {
     footnote: {
         text: 'Comparative Analysis of UK Food and Coffee Franchises',
     },
-    // Shared tooltips for better multi-series comparison
     tooltip: {
-        enabled: true,
         mode: 'shared',
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
@@ -196,12 +194,9 @@ const options: AgCartesianChartOptions = {
             ],
         },
     ],
-    // Legend configuration for better series identification
     legend: {
-        position: 'bottom',
         item: {
             marker: {
-                shape: 'circle',
                 size: 12,
                 strokeWidth: 0,
             },

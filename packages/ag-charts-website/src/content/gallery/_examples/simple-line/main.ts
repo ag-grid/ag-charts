@@ -10,7 +10,6 @@ const options: AgCartesianChartOptions<DataType> = {
         overrides: {
             line: {
                 series: {
-                    strokeWidth: 2,
                     marker: {
                         size: 6,
                     },
@@ -37,10 +36,6 @@ const options: AgCartesianChartOptions<DataType> = {
         },
     },
     data: getData(),
-    animation: {
-        enabled: true,
-        duration: 800,
-    },
     title: {
         text: 'UK Road Fuel Prices 2019',
     },
@@ -67,14 +62,8 @@ const options: AgCartesianChartOptions<DataType> = {
             yKey: 'petrol',
             yName: 'Petrol',
             errorBar: {
-                visible: true,
                 yLowerKey: 'lowerPetrol',
                 yUpperKey: 'upperPetrol',
-                strokeWidth: 1,
-                cap: {
-                    length: 6,
-                    lengthRatio: 0.5,
-                },
             },
         },
         {
@@ -83,14 +72,8 @@ const options: AgCartesianChartOptions<DataType> = {
             yKey: 'diesel',
             yName: 'Diesel',
             errorBar: {
-                visible: true,
                 yLowerKey: 'lowerDiesel',
                 yUpperKey: 'upperDiesel',
-                strokeWidth: 1,
-                cap: {
-                    length: 6,
-                    lengthRatio: 0.5,
-                },
             },
         },
     ],
@@ -98,7 +81,6 @@ const options: AgCartesianChartOptions<DataType> = {
         {
             position: 'bottom',
             type: 'unit-time',
-            label: {},
             bandHighlight: {
                 enabled: true,
             },
@@ -128,7 +110,6 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    tooltip: {},
 };
 
 AgCharts.create(options);
