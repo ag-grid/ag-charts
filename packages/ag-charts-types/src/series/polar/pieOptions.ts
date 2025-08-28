@@ -73,15 +73,6 @@ export interface AgPieTitleOptions extends Toggleable, FontOptions {
     showInLegend?: boolean;
 }
 
-export interface AgPieCalloutLineStyle {
-    /** The colours to cycle through for the strokes of the callouts. */
-    colors?: CssColor[];
-    /** The length in pixels of the callout lines. */
-    length?: PixelSize;
-    /** The width in pixels of the stroke for callout lines. */
-    strokeWidth?: PixelSize;
-}
-
 export interface AgPieCalloutLineItemStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>,
         AgPieSeriesLabelFormatterParams<TDatum> {
@@ -91,10 +82,24 @@ export interface AgPieCalloutLineItemStylerParams<TDatum, TContext>
     highlightState?: HighlightState;
 }
 
-export interface AgPieSeriesCalloutOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgPieCalloutLineStyle {
+export interface AgPieCalloutLineItemStylerResult {
+    /** The colour for this callout line. */
+    color?: CssColor;
+    /** The length in pixels of the callout lines. */
+    length?: PixelSize;
+    /** The width in pixels of the stroke for callout lines. */
+    strokeWidth?: PixelSize;
+}
+
+export interface AgPieSeriesCalloutOptions<TDatum = DatumDefault, TContext = ContextDefault> {
+    /** The colours to cycle through for the strokes of the callouts. */
+    colors?: CssColor[];
+    /** The length in pixels of the callout lines. */
+    length?: PixelSize;
+    /** The width in pixels of the stroke for callout lines. */
+    strokeWidth?: PixelSize;
     /** Function used to style individual callout lines. */
-    itemStyler?: Styler<AgPieCalloutLineItemStylerParams<TDatum, TContext>, AgPieCalloutLineStyle>;
+    itemStyler?: Styler<AgPieCalloutLineItemStylerParams<TDatum, TContext>, AgPieCalloutLineItemStylerResult>;
 }
 
 export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>

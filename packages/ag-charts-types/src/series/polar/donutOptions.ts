@@ -73,15 +73,6 @@ export interface AgDonutTitleOptions extends Toggleable, FontOptions {
     showInLegend?: boolean;
 }
 
-export interface AgDonutCalloutLineStyle {
-    /** The colours to cycle through for the strokes of the callouts. */
-    colors?: CssColor[];
-    /** The length in pixels of the callout lines. */
-    length?: PixelSize;
-    /** The width in pixels of the stroke for callout lines. */
-    strokeWidth?: PixelSize;
-}
-
 export interface AgDonutCalloutLineItemStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>,
         AgDonutSeriesLabelFormatterParams<TDatum> {
@@ -91,10 +82,24 @@ export interface AgDonutCalloutLineItemStylerParams<TDatum, TContext>
     highlightState?: HighlightState;
 }
 
-export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgDonutCalloutLineStyle {
+export interface AgDonutCalloutLineItemStylerResult {
+    /** The colour for this callout line. */
+    color?: CssColor;
+    /** The length in pixels of the callout lines. */
+    length?: PixelSize;
+    /** The width in pixels of the stroke for callout lines. */
+    strokeWidth?: PixelSize;
+}
+
+export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = ContextDefault> {
+    /** The colours to cycle through for the strokes of the callouts. */
+    colors?: CssColor[];
+    /** The length in pixels of the callout lines. */
+    length?: PixelSize;
+    /** The width in pixels of the stroke for callout lines. */
+    strokeWidth?: PixelSize;
     /** Function used to style individual callout lines. */
-    itemStyler?: Styler<AgDonutCalloutLineItemStylerParams<TDatum, TContext>, AgDonutCalloutLineStyle>;
+    itemStyler?: Styler<AgDonutCalloutLineItemStylerParams<TDatum, TContext>, AgDonutCalloutLineItemStylerResult>;
 }
 
 export interface AgDonutInnerLabel extends FontOptions {
