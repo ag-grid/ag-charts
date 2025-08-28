@@ -9,7 +9,8 @@ import {
 } from 'ag-charts-core';
 import type {
     AgDonutCalloutLineItemStylerParams,
-    AgDonutCalloutLineStyle,
+    AgDonutCalloutLineItemStylerResult,
+    AgDonutSeriesCalloutOptions,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
@@ -751,8 +752,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     private getCalloutLineStyle(nodeDatum: PieDonutNodeDatum, highlighted: boolean) {
+        type TResult = AgDonutCalloutLineItemStylerResult & Pick<AgDonutSeriesCalloutOptions<unknown, unknown>, 'colors'>;
         const { properties } = this;
-        let itemStylerResult: AgDonutCalloutLineStyle = {};
+        let itemStylerResult: AgDonutCalloutLineItemStylerResult = {};
         if (properties.calloutLine.itemStyler) {
             const highlightState = this.getHighlightStateString(
                 this.ctx.highlightManager?.getActiveHighlight(),
@@ -780,8 +782,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         return {
             length: itemStylerResult.length ?? properties.calloutLine.length,
             strokeWidth: itemStylerResult.strokeWidth ?? properties.calloutLine.strokeWidth,
-            colors: itemStylerResult.colors ?? properties.calloutLine.colors,
-        } satisfies RequireOptional<AgDonutCalloutLineStyle>;
+            color: itemStylerResult.color,
+            colors: properties.calloutLine.colors,
+        } satisfies RequireOptional<TResult>;
     }
 
     override getInnerRadius() {
@@ -1057,15 +1060,15 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine).forEach((line) => {
             const datum = line.closestDatum() as PieDonutNodeDatum;
-            const { length: calloutLength, strokeWidth, colors } = this.getCalloutLineStyle(datum, false);
+            const { length: calloutLength, strokeWidth, color, colors } = this.getCalloutLineStyle(datum, false);
             const calloutStrokeWidth = strokeWidth;
-            const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
+            const calloutColors: string[] = isStringFillArray(colors) ? colors : strokes;
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
             if (label?.text && !label.hidden && outerRadius !== 0) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
-                line.stroke = calloutColors[datumIndex % calloutColors.length];
+                line.stroke = color ?? calloutColors[datumIndex % calloutColors.length];
                 line.strokeOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 line.fill = undefined;
 
