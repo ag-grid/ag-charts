@@ -28,6 +28,7 @@ const {
     motion,
     getItemStyles,
     applyShapeFillBBox,
+    calculateSegments,
 } = _ModuleSupport;
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
@@ -167,6 +168,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { groupScale } = this;
         const isVertical = this.isVertical();
 
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            this.ctx.scene
+        );
+
         const context = {
             itemId: xKey,
             nodeData,
@@ -175,6 +184,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
             styles: getItemStyles(this.getItemStyle.bind(this)),
+            segments,
         };
 
         if (!visible) return context;

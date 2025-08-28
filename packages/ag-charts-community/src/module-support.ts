@@ -88,6 +88,7 @@ export * from './chart/series/seriesTooltip';
 export * from './chart/series/seriesTypes';
 export * from './chart/series/seriesZIndexMap';
 export * from './chart/series/util';
+export * from './chart/series/cartesian/util';
 export * from './chart/series/cartesian/barSeries';
 export * from './chart/series/cartesian/barSeriesModule';
 export * from './chart/series/cartesian/scaling';
