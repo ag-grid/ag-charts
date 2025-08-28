@@ -1,4 +1,10 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    AgChartCallbackParams,
+    ContextCallbackParams,
+    DatumCallbackParams,
+    HighlightState,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -67,13 +73,33 @@ export interface AgPieTitleOptions extends Toggleable, FontOptions {
     showInLegend?: boolean;
 }
 
-export interface AgPieSeriesCalloutOptions {
+export interface AgPieCalloutLineItemStylerParams<TDatum, TContext>
+    extends AgChartCallbackParams<TDatum, TContext>,
+        AgPieSeriesLabelFormatterParams<TDatum> {
+    /** Indicates whether the element is highlighted. */
+    highlighted?: boolean;
+    /** The specific highlight state of the element. */
+    highlightState?: HighlightState;
+}
+
+export interface AgPieCalloutLineItemStylerResult {
+    /** The colour for this callout line. */
+    color?: CssColor;
+    /** The length in pixels of the callout lines. */
+    length?: PixelSize;
+    /** The width in pixels of the stroke for callout lines. */
+    strokeWidth?: PixelSize;
+}
+
+export interface AgPieSeriesCalloutOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** The colours to cycle through for the strokes of the callouts. */
     colors?: CssColor[];
     /** The length in pixels of the callout lines. */
     length?: PixelSize;
     /** The width in pixels of the stroke for callout lines. */
     strokeWidth?: PixelSize;
+    /** Function used to style individual callout lines. */
+    itemStyler?: Styler<AgPieCalloutLineItemStylerParams<TDatum, TContext>, AgPieCalloutLineItemStylerResult>;
 }
 
 export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -86,7 +112,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the labels used inside the sectors. */
     sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the callout lines used with the labels for the sectors. */
-    calloutLine?: AgPieSeriesCalloutOptions;
+    calloutLine?: AgPieSeriesCalloutOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the sectors. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the sectors. */

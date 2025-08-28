@@ -1,4 +1,10 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    AgChartCallbackParams,
+    ContextCallbackParams,
+    DatumCallbackParams,
+    HighlightState,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -67,13 +73,33 @@ export interface AgDonutTitleOptions extends Toggleable, FontOptions {
     showInLegend?: boolean;
 }
 
-export interface AgDonutSeriesCalloutOptions {
+export interface AgDonutCalloutLineItemStylerParams<TDatum, TContext>
+    extends AgChartCallbackParams<TDatum, TContext>,
+        AgDonutSeriesLabelFormatterParams<TDatum> {
+    /** Indicates whether the element is highlighted. */
+    highlighted?: boolean;
+    /** The specific highlight state of the element. */
+    highlightState?: HighlightState;
+}
+
+export interface AgDonutCalloutLineItemStylerResult {
+    /** The colour for this callout line. */
+    color?: CssColor;
+    /** The length in pixels of the callout lines. */
+    length?: PixelSize;
+    /** The width in pixels of the stroke for callout lines. */
+    strokeWidth?: PixelSize;
+}
+
+export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** The colours to cycle through for the strokes of the callouts. */
     colors?: CssColor[];
     /** The length in pixels of the callout lines. */
     length?: PixelSize;
     /** The width in pixels of the stroke for callout lines. */
     strokeWidth?: PixelSize;
+    /** Function used to style individual callout lines. */
+    itemStyler?: Styler<AgDonutCalloutLineItemStylerParams<TDatum, TContext>, AgDonutCalloutLineItemStylerResult>;
 }
 
 export interface AgDonutInnerLabel extends FontOptions {
@@ -102,7 +128,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     /** Configuration for the labels used inside the sectors. */
     sectorLabel?: AgDonutSeriesSectorLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the callout lines used with the labels for the sectors. */
-    calloutLine?: AgDonutSeriesCalloutOptions;
+    calloutLine?: AgDonutSeriesCalloutOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the sectors. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the sectors. */
