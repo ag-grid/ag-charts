@@ -296,7 +296,9 @@ export class BarSeries extends AbstractBarSeries<
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] | [] {
+        const selfDirection = this.properties.direction === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+        if (selfDirection !== direction) return [];
         const yKey = this.yCumulativeKey(this.dataModel!);
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
         return [Math.min(y0, 0), Math.max(y1, 0)];

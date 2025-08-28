@@ -543,12 +543,18 @@ export class ZoomManager extends BaseManager {
         if (!autoScaleYAxis.enabled || autoScaleYAxis.manuallyAdjusted) return;
 
         const { padding } = autoScaleYAxis;
-        if (zoomX.min === 0 && zoomX.max === 1) {
-            return { min: 0, max: 1 };
-        } else if (independentAxes) {
-            return this.primaryAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
+        let yZoom: ZoomState | undefined;
+        if (independentAxes) {
+            yZoom = this.primaryAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
         } else {
-            return this.combinedAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
+            yZoom = this.combinedAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
+        }
+
+        if (zoomX.min === 0 && zoomX.max === 1) {
+            // If autoScaling is not possible (i.e. horizontal bar series), do not autoscale when zoomed out
+            return yZoom != null ? { min: 0, max: 1 } : undefined;
+        } else {
+            return yZoom;
         }
     }
 
