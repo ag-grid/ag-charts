@@ -675,6 +675,7 @@ export class BubbleSeries extends CartesianSeries<
             id: seriesId,
             properties: {
                 size,
+                maxSize,
                 shape,
                 fill,
                 fillOpacity,
@@ -697,6 +698,7 @@ export class BubbleSeries extends CartesianSeries<
                 highlightState,
                 highlighted,
                 size,
+                maxSize,
                 shape,
                 fill,
                 fillOpacity,
@@ -938,6 +940,7 @@ export class BubbleSeries extends CartesianSeries<
             lineDashOffset: stylerResult.lineDashOffset ?? properties.lineDashOffset,
             shape: stylerResult.shape ?? properties.shape,
             size: stylerResult.size ?? properties.size,
+            maxSize: stylerResult.maxSize ?? properties.maxSize,
             stroke: stylerResult.stroke ?? properties.stroke!,
             strokeOpacity: stylerResult.strokeOpacity ?? properties.strokeOpacity,
             strokeWidth: stylerResult.strokeWidth ?? properties.strokeWidth,

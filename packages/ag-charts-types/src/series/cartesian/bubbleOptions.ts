@@ -42,9 +42,15 @@ export interface AgBubbleSeriesStylerParams<TDatum, TContext>
     extends AgBubbleSeriesOptionsKeys<TDatum>,
         SeriesCallbackParams,
         ContextCallbackParams<TContext>,
-        AgBubbleSeriesStyle {}
+        AgBubbleSeriesStyle {
+    /** The largest size a marker can be in pixels. */
+    maxSize: PixelSize;
+}
 
-export interface AgBubbleSeriesStylerResult extends AgBubbleSeriesStyle {}
+export interface AgBubbleSeriesStylerResult extends AgBubbleSeriesStyle {
+    /** The largest size a marker can be in pixels. */
+    maxSize?: PixelSize;
+}
 
 export type BubbleSeriesItemStylerParams<
     TDatum = DatumDefault,

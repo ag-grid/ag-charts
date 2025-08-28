@@ -37,7 +37,10 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
         ...seriesLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
-    styler: callbackDefs<AgBubbleSeriesStylerResult>(markerOptionsDefs),
+    styler: callbackDefs<AgBubbleSeriesStylerResult>({
+        ...markerOptionsDefs,
+        maxSize: positiveNumber,
+    }),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
