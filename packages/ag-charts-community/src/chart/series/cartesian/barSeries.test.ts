@@ -997,6 +997,39 @@ describe('BarSeries', () => {
                 await compare();
             });
         });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                fill: { type: 'gradient' },
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                fill: { type: 'pattern' },
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
     });
 
     describe('segmentation', () => {
