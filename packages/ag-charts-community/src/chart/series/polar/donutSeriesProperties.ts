@@ -1,7 +1,7 @@
 import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgDonutCalloutLineItemStylerParams,
-    AgDonutCalloutLineStyle,
+    AgDonutCalloutLineItemStylerResult,
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
@@ -79,7 +79,7 @@ class DonutSeriesCalloutLine extends BaseProperties {
     strokeWidth: number = 1;
 
     @Property
-    itemStyler?: Styler<AgDonutCalloutLineItemStylerParams<unknown, unknown>, AgDonutCalloutLineStyle>;
+    itemStyler?: Styler<AgDonutCalloutLineItemStylerParams<unknown, unknown>, AgDonutCalloutLineItemStylerResult>;
 }
 
 export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions> {
