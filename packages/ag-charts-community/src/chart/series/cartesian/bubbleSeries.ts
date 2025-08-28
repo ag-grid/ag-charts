@@ -302,11 +302,12 @@ export class BubbleSeries extends CartesianSeries<
         yVisibleRange: [number, number] = yAxis.visibleRange
     ): BubbleAggregationOptions {
         const { processedData, dataModel } = this;
-        const { sizeKey, marker } = this.properties;
+        const { sizeKey } = this.properties;
+        const [markerSize, markerMaxSize] = this.getSizeRange();
         const xRange = Math.abs(xAxis.range[1] - xAxis.range[0]);
         const yRange = Math.abs(yAxis.range[1] - yAxis.range[0]);
-        const minSize = Math.max(marker.size, 1);
-        const maxSize = sizeKey ? Math.max(marker.maxSize, 1) : minSize;
+        const minSize = Math.max(markerSize, 1);
+        const maxSize = sizeKey ? Math.max(markerMaxSize, 1) : minSize;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -389,7 +390,7 @@ export class BubbleSeries extends CartesianSeries<
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const nodeData: BubbleScatterNodeDatum[] = [];
 
-        sizeScale.range = [marker.size, marker.maxSize];
+        sizeScale.range = this.getSizeRange();
 
         const textMeasurer = cachedTextMeasurer(label);
         const rawData = processedData.dataSources.get(this.id);
@@ -578,9 +579,8 @@ export class BubbleSeries extends CartesianSeries<
         const { contextNodeData } = this;
         if (!contextNodeData) return;
         const { datumSelection, isHighlight } = opts;
-        const { marker } = this.properties;
 
-        this.sizeScale.range = [marker.size, marker.maxSize];
+        this.sizeScale.range = this.getSizeRange();
         const fillBBox = this.getShapeFillBBox();
 
         const aggregated = this.dataAggregation != null;
@@ -945,6 +945,11 @@ export class BubbleSeries extends CartesianSeries<
             strokeOpacity: stylerResult.strokeOpacity ?? properties.strokeOpacity,
             strokeWidth: stylerResult.strokeWidth ?? properties.strokeWidth,
         };
+    }
+
+    public getSizeRange(): [number, number] {
+        const { size, maxSize } = this.getStyle(false);
+        return [size, maxSize];
     }
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
