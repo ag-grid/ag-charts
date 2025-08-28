@@ -128,7 +128,7 @@ nx e2e ag-charts-website
 
 ## Technical Requirements
 
--   **Node.js**: ^20.10.0
+-   **Node.js**: ^20.19.4
 -   **Package Manager**: Yarn v1.22.21
 -   **Build Target**: ES2020 (excludes IE)
 -   **TypeScript**: Strict mode enabled across all packages
