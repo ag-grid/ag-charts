@@ -752,7 +752,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     private getCalloutLineStyle(nodeDatum: PieDonutNodeDatum, highlighted: boolean) {
-        type TResult = AgDonutCalloutLineItemStylerResult & Pick<AgDonutSeriesCalloutOptions<unknown, unknown>, 'colors'>;
+        type TResult = AgDonutCalloutLineItemStylerResult &
+            Pick<AgDonutSeriesCalloutOptions<unknown, unknown>, 'colors'>;
         const { properties } = this;
         let itemStylerResult: AgDonutCalloutLineItemStylerResult = {};
         if (properties.calloutLine.itemStyler) {
