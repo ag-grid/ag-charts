@@ -728,6 +728,7 @@ enum TransformOperation {
     Omit = '$omit',
     Size = '$size',
     Shallow = '$shallow',
+    ShallowSimple = '$shallowSimple',
     Value = '$value',
 }
 
@@ -742,6 +743,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
     $omit: omitOperation,
     $size: sizeOperation,
     $shallow: shallowOperation,
+    $shallowSimple: shallowSimpleOperation,
     $value: valueOperation,
 };
 
@@ -973,6 +975,19 @@ function sizeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     if (!isObjectLike(value)) return 0;
     if ('length' in value) return value.length;
     return Object.keys(value).length;
+}
+
+// TODO: combine $shallow and $shallowSimple into a single operation
+function shallowSimpleOperation(
+    graph: OptionsGraphInterface,
+    _vertex: VertexInterface,
+    values: Array<VertexInterface>
+) {
+    const shallowValues = [];
+    for (const valueVertex of values) {
+        shallowValues.push(graph.getVertexValue(valueVertex));
+    }
+    return shallowValues;
 }
 
 function shallowOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
