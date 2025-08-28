@@ -415,6 +415,7 @@ export const LEGEND_CONTAINER_THEME: any = {
 };
 
 export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
+    enabled: false,
     key: 'x',
     segments: {
         $apply: [

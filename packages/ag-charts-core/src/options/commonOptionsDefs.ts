@@ -310,10 +310,12 @@ export const lineSegmentOptions: OptionsDefs<AgSeriesLineSegmentOptions> = {
 };
 
 export const shapeSegmentation: OptionsDefs<AgSeriesSegmentation<AgSeriesShapeSegmentOptions>> = {
+    enabled: boolean,
     key: required(union('x', 'y')),
     segments: arrayOfDefs<AgSeriesShapeSegmentOptions>(shapeSegmentOptions, 'path segments array'),
 };
 export const lineSegmentation: OptionsDefs<AgSeriesSegmentation<AgSeriesLineSegmentOptions>> = {
+    enabled: boolean,
     key: required(union('x', 'y')),
     segments: arrayOfDefs<AgSeriesLineSegmentOptions>(lineSegmentOptions, 'path segments array'),
 };

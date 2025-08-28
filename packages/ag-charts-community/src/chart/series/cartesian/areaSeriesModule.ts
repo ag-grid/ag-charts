@@ -11,6 +11,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    SEGMENTATION_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
@@ -93,6 +94,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 },
             },
             highlight: multiSeriesHighlightStyle(),
+            segmentation: SEGMENTATION_DEFAULTS,
         },
     },
 };

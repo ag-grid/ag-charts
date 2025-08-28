@@ -198,6 +198,9 @@ export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegme
 
 export class Segmentation implements AgSeriesSegmentation {
     @Property
+    enabled?: boolean;
+
+    @Property
     key: 'x' | 'y' = 'x';
 
     @Property

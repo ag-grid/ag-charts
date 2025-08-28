@@ -498,22 +498,8 @@ export class LineSeries extends CartesianSeries<
 
         const segments = this.contextNodeData?.segments;
 
-        // @todo(AG-8108): move to theme
-        const lineStyle = {
-            fill: undefined,
-            stroke,
-            strokeWidth,
-            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR : 1),
-            lineDash,
-            lineDashOffset,
-        };
-        const lineSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
-            clipRect,
-            ...mergeDefaults(segmentStyle, lineStyle),
-        }));
-
         lineNode.setProperties({
-            segments: lineSegments,
+            segments,
             fill: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -525,7 +511,7 @@ export class LineSeries extends CartesianSeries<
             lineDashOffset,
         });
 
-        lineNode.datum = lineSegments;
+        lineNode.datum = segments;
 
         if (!animationEnabled) {
             lineNode.visible = visible;
