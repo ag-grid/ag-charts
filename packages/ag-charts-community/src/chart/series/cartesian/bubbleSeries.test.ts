@@ -501,7 +501,7 @@ describe('BubbleSeries', () => {
                             stroke: 'lime', // not ignored (but no effect)
                         };
                     } else if (params.seriesId === 'BubbleSeries-2') {
-                        return { shape: 'heart', fill: 'fuchsia', lineDash: [5, 3] };
+                        return { shape: 'heart', fill: 'fuchsia', size: 2, maxSize: 200, lineDash: [5, 3] };
                     }
                     return {};
                 }
