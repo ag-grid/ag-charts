@@ -1355,13 +1355,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         });
     }
 
-    override computeLabelsBBox(
-        nodeDatum: PieDonutNodeDatum,
-        options: { hideWhenNecessary: boolean },
-        seriesRect: BBox
-    ) {
+    override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
         const { calloutLabel } = this.properties;
-        const calloutLength = this.getCalloutLineStyle(nodeDatum, false).length;
         const { offset, maxCollisionOffset, minSpacing } = calloutLabel;
 
         if (!calloutLabel.avoidCollisions) {
@@ -1401,6 +1396,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             }
 
             const style = this.getLabelStyle(datum, calloutLabel);
+            const calloutLength = this.getCalloutLineStyle(datum, false).length;
             const labelRadius = datum.outerRadius + calloutLength + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
