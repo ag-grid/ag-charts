@@ -7,6 +7,8 @@ import {
     type AgBubbleSeriesStylerParams,
     type AgBubbleSeriesStylerResult,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgScatterSeriesItemStylerParams,
+    type AgScatterSeriesStylerParams,
     type AgSeriesMarkerStyle,
     type FillOptions,
     type FormatterPropertyType,
@@ -124,6 +126,10 @@ export class BubbleSeries extends CartesianSeries<
 
     override get pickModeAxis() {
         return 'main-category' as const;
+    }
+
+    override get type() {
+        return super.type as 'bubble' | 'scatter';
     }
 
     constructor(moduleCtx: ModuleContext) {
@@ -496,8 +502,12 @@ export class BubbleSeries extends CartesianSeries<
             }
         }
 
-        type StylerParams = AgBubbleSeriesStylerParams<unknown, unknown>;
-        type ItemStylerParams = AgBubbleSeriesItemStylerParams<unknown, unknown>;
+        type StylerParams =
+            | AgBubbleSeriesStylerParams<unknown, unknown>
+            | AgScatterSeriesStylerParams<unknown, unknown>;
+        type ItemStylerParams =
+            | AgBubbleSeriesItemStylerParams<unknown, unknown>
+            | AgScatterSeriesItemStylerParams<unknown, unknown>;
         return {
             itemId: yKey,
             nodeData,
@@ -660,7 +670,7 @@ export class BubbleSeries extends CartesianSeries<
     makeStylerParams(
         highlighted: boolean,
         highlightStateEnum?: HighlightState
-    ): AgBubbleSeriesStylerParams<unknown, unknown> {
+    ): AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown> {
         const {
             id: seriesId,
             properties: {
@@ -681,25 +691,49 @@ export class BubbleSeries extends CartesianSeries<
         } = this;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
 
-        type ResultRules = CallbackParamRules<ReturnType<BubbleSeries['makeStylerParams']>>;
-        return {
-            highlightState,
-            highlighted,
-            size,
-            shape,
-            fill,
-            fillOpacity,
-            lineDash,
-            lineDashOffset,
-            seriesId,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            xKey,
-            yKey,
-            sizeKey,
-            labelKey,
-        } satisfies ResultRules;
+        if (this.type === 'bubble') {
+            type ResultRules = CallbackParamRules<AgBubbleSeriesStylerParams<unknown, unknown>>;
+            return {
+                highlightState,
+                highlighted,
+                size,
+                shape,
+                fill,
+                fillOpacity,
+                lineDash,
+                lineDashOffset,
+                seriesId,
+                sizeKey,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                xKey,
+                yKey,
+                labelKey,
+            } satisfies ResultRules;
+        } else if (this.type === 'scatter') {
+            type ResultRules = CallbackParamRules<AgScatterSeriesStylerParams<unknown, unknown>>;
+            return {
+                highlightState,
+                highlighted,
+                size,
+                shape,
+                fill,
+                fillOpacity,
+                lineDash,
+                lineDashOffset,
+                seriesId,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                xKey,
+                yKey,
+                labelKey,
+            } satisfies ResultRules;
+        } else {
+            // verify that the else branch is unreachable.
+            return this.type satisfies never;
+        }
     }
 
     private makeLabelFormatterParams(): AgBubbleSeriesLabelFormatterParams {
