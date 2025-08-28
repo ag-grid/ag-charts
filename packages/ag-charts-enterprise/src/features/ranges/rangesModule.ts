@@ -16,7 +16,7 @@ export const RangesModule: _ModuleSupport.Module = {
         ranges: {
             enabled: false,
             buttons: {
-                $shallow: [
+                $shallowSimple: [
                     {
                         label: 'toolbarRange1Month',
                         ariaLabel: 'toolbarRange1MonthAria',
