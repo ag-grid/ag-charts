@@ -960,6 +960,37 @@ describe('LineSeries', () => {
                 await compare();
             });
         });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'line',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                styler: () => {
+                                    return { marker: { size: 50, fill: { type: 'gradient' } } };
+                                },
+                            },
+                            {
+                                type: 'line',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                styler: () => {
+                                    return { marker: { size: 50, fill: { type: 'pattern' } } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
     });
 
     describe('segmentation', () => {
