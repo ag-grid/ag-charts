@@ -42,8 +42,6 @@ function memoryUsage() {
 }
 
 function debugFps(debugSplitTimes: Record<string, number>, ctx: CanvasRenderingContext2D, seriesRect = BBox.zero) {
-    if (!Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_FPS)) return;
-
     const end = performance.now();
     const { start } = debugSplitTimes;
     const duration = Math.round(end - start);
