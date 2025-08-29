@@ -11,9 +11,11 @@ import type {
     AgRadialGaugeOptions,
     AgStandaloneSeriesOptions,
     AgTopologySeriesOptions,
+    DatumDefault,
     WithThemeParams,
 } from 'ag-charts-types';
 
+import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartType } from '../chart/factory/chartTypes';
 import type { ChartLegend, ChartLegendType } from '../chart/legend/legendDatum';
 import type { Series } from '../chart/series/series';
@@ -79,6 +81,16 @@ type Axes = Record<Required<AgCartesianSeriesOptions>['type'], AgCartesianChartO
 
 export type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = WithThemeParams<Axes[SeriesType]>;
 
+type Axis = Record<Required<AgCartesianSeriesOptions>['type'], NonNullable<AgCartesianChartOptions['axes']>[number]> &
+    Record<Required<AgPolarSeriesOptions>['type'], NonNullable<AgPolarChartOptions['axes']>[number]> &
+    Record<Required<AgHierarchySeriesOptions>['type'], never> &
+    Record<Required<AgTopologySeriesOptions>['type'], never> &
+    Record<Required<AgFlowProportionSeriesOptions>['type'], never> &
+    Record<Required<AgStandaloneSeriesOptions>['type'], never> &
+    Record<'radial-gauge' | 'linear-gauge', never>;
+
+export type SeriesPredictAxis<SeriesType extends RequiredSeriesType> = Axis[SeriesType];
+
 export type SeriesTooltipDefaults = {
     range: 'exact' | 'nearest' | number;
 };
@@ -93,6 +105,11 @@ export interface SeriesModule<
     moduleFactory: SeriesFactory;
     hidden?: boolean;
 
+    predictAxis?: (
+        direction: ChartAxisDirection,
+        datum: DatumDefault,
+        seriesOptions: any
+    ) => SeriesPredictAxis<RequiredSeriesType> | undefined;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
     solo?: boolean;

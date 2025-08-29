@@ -11,6 +11,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
+import { BubbleSeriesModule } from './bubbleSeriesModule';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 
@@ -22,6 +23,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
 
     identifier: 'scatter',
     moduleFactory: (ctx) => new ScatterSeries(ctx),
+    predictAxis: BubbleSeriesModule.predictAxis,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

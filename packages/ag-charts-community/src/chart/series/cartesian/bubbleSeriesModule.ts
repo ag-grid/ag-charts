@@ -1,8 +1,9 @@
-import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBubbleSeriesOptions } from 'ag-charts-types';
+import { type SeriesModuleDefinition, isObject } from 'ag-charts-core';
+import type { AgBubbleSeriesOptions, AgScatterSeriesOptions, DatumDefault } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -22,6 +23,39 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
 
     identifier: 'bubble',
     moduleFactory: (ctx) => new BubbleSeries(ctx),
+    predictAxis: (
+        direction: ChartAxisDirection,
+        datum: DatumDefault,
+        seriesOptions: AgBubbleSeriesOptions | AgScatterSeriesOptions
+    ) => {
+        if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
+        if (!isObject(datum)) return;
+
+        const key = direction === ChartAxisDirection.X ? seriesOptions.xKey : seriesOptions.yKey;
+        if (!(key in datum)) return;
+
+        const value = datum[key];
+        const position = direction === ChartAxisDirection.X ? CARTESIAN_POSITION.BOTTOM : CARTESIAN_POSITION.LEFT;
+
+        if (typeof value === 'number') {
+            return {
+                type: CARTESIAN_AXIS_TYPE.NUMBER,
+                position,
+            };
+        }
+
+        if (value instanceof Date) {
+            return {
+                type: CARTESIAN_AXIS_TYPE.UNIT_TIME,
+                position,
+            };
+        }
+
+        return {
+            type: CARTESIAN_AXIS_TYPE.CATEGORY,
+            position,
+        };
+    },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
