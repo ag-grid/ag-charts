@@ -1007,7 +1007,6 @@ describe('BarSeries', () => {
                                 type: 'bar',
                                 xKey: 'month',
                                 yKey: 'sales',
-                                fill: { type: 'gradient' },
                                 styler: () => {
                                     return { fill: { type: 'gradient' } };
                                 },
@@ -1016,7 +1015,6 @@ describe('BarSeries', () => {
                                 type: 'bar',
                                 xKey: 'month',
                                 yKey: 'expenses',
-                                fill: { type: 'pattern' },
                                 styler: () => {
                                     return { fill: { type: 'pattern' } };
                                 },
