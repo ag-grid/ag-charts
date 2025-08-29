@@ -29,11 +29,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Product Revenue',
             fillOpacity: 0.7,
             strokeWidth: 2,
-            highlight: {
-                highlightedItem: {
-                    strokeWidth: 3,
-                },
-            },
         },
         {
             type: 'area',
@@ -43,11 +38,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Service Revenue',
             fillOpacity: 0.7,
             strokeWidth: 2,
-            highlight: {
-                highlightedItem: {
-                    strokeWidth: 3,
-                },
-            },
         },
         {
             type: 'area',
@@ -57,11 +47,6 @@ const options: AgCartesianChartOptions = {
             yName: 'Operating Costs',
             fillOpacity: 0.7,
             strokeWidth: 2,
-            highlight: {
-                highlightedItem: {
-                    strokeWidth: 3,
-                },
-            },
         },
         {
             type: 'area',
@@ -71,20 +56,12 @@ const options: AgCartesianChartOptions = {
             yName: 'R&D Investment',
             fillOpacity: 0.7,
             strokeWidth: 2,
-            highlight: {
-                highlightedItem: {
-                    strokeWidth: 3,
-                },
-            },
         },
     ],
     axes: [
         {
             type: 'grouped-category',
             position: 'bottom',
-            keys: ['quarter'],
-            paddingInner: 0,
-            groupPaddingInner: 0,
             gridLine: {
                 style: [
                     {
@@ -96,7 +73,7 @@ const options: AgCartesianChartOptions = {
                     },
                 ],
             },
-            depthOptions: [{ label: { rotation: 0 } }, { label: { rotation: 0 } }],
+            label: { rotation: 0 },
             crossLines: [
                 {
                     type: 'range',

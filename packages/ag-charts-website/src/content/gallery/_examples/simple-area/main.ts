@@ -28,11 +28,8 @@ const options: AgCartesianChartOptions<DataType> = {
             xKey: 'date',
             yKey: 'newSignups',
             yName: 'Sign Ups',
-            fillOpacity: 0.7,
             strokeWidth: 2,
-            marker: {
-                enabled: false,
-            },
+            fillOpacity: 0.7,
             highlight: {
                 highlightedItem: {
                     strokeWidth: 3,
@@ -48,7 +45,7 @@ const options: AgCartesianChartOptions<DataType> = {
                         title: 'Engagement',
                         heading: longDateFormat.format(datum.date),
                         data: [
-                            { label: yName || 'Sign Ups', value: datum[yKey].toString() },
+                            { label: yName!, value: datum[yKey].toString() },
                             { label: 'Active Users', value: datum.activeUsers.toLocaleString() },
                         ],
                     };
@@ -70,13 +67,6 @@ const options: AgCartesianChartOptions<DataType> = {
                         strokeWidth: 0,
                     },
                 ],
-            },
-            crosshair: {
-                enabled: true,
-                snap: true,
-                label: {
-                    enabled: true,
-                },
             },
         },
         {

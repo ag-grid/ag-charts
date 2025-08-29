@@ -30,7 +30,6 @@ const options: AgPolarChartOptions = {
             angleKey: 'revenue',
             calloutLabel: {
                 offset: 20,
-                minAngle: 5,
             },
             sectorLabel: {
                 positionOffset: 30,

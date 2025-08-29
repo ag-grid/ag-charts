@@ -27,7 +27,6 @@ const options: AgChartOptions<DataType> = {
                     },
                     group: {
                         gap: 4,
-                        label: {},
                     },
                 },
             },

@@ -97,7 +97,9 @@ const options: AgChartOptions = {
                     enabled: true,
                 },
             },
-            bandHighlight: {},
+            bandHighlight: {
+                enabled: true,
+            },
         },
         {
             type: 'number',

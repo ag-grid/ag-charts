@@ -111,7 +111,6 @@ const options: AgChartOptions<DataType> = {
             gridLine: {
                 enabled: true,
             },
-            label: {},
         },
         {
             type: 'number',
@@ -123,21 +122,8 @@ const options: AgChartOptions<DataType> = {
             title: {
                 text: 'Number of Games',
             },
-            label: {
-                enabled: true,
-                formatter: ({ value }) => (Math.abs(value) > 0 ? `${Math.abs(value)}` : '0'),
-            },
             gridLine: {
-                style: [
-                    {
-                        strokeWidth: 2,
-                        lineDash: [0],
-                    },
-                    {
-                        strokeWidth: 1,
-                        lineDash: [3, 3],
-                    },
-                ],
+                width: 2,
             },
             crossLines: [
                 {

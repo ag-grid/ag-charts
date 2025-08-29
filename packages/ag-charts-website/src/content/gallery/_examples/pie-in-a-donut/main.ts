@@ -14,22 +14,15 @@ const sharedSeriesOptions: AgPolarSeriesOptions = {
     legendItemKey: 'browser',
     fillOpacity: 0.9,
     strokeWidth: 2,
-    strokeOpacity: 1,
     highlight: {
         highlightedItem: {
             fillOpacity: 1,
             strokeWidth: 3,
         },
     },
-    sectorLabel: {
-        formatter: ({ value }) => {
-            return value >= 0.1 ? `${(value * 100).toFixed(0)}%` : '';
-        },
-    },
 };
 
 const options: AgPolarChartOptions = {
-    // Investigate missing sectorLabels.
     container: document.getElementById('myChart'),
     title: {
         text: 'Desktop Browser Market Share Evolution',
@@ -45,6 +38,11 @@ const options: AgPolarChartOptions = {
             showInLegend: false,
             title: {
                 text: '2020',
+            },
+            sectorLabel: {
+                formatter: ({ value }) => {
+                    return value >= 0.1 ? `${(value * 100).toFixed(0)}%` : '';
+                },
             },
             tooltip: {
                 renderer: (params: any) => {
@@ -64,6 +62,11 @@ const options: AgPolarChartOptions = {
                 text: '2022',
             },
             calloutLabelKey: 'browser',
+            sectorLabel: {
+                formatter: ({ value }) => {
+                    return `${(value * 100).toFixed(0)}%`;
+                },
+            },
             tooltip: {
                 renderer: (params) => {
                     const { datum } = params;

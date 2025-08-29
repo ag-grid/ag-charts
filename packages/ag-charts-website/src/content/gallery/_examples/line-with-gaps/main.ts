@@ -29,7 +29,6 @@ const options: AgCartesianChartOptions = {
             xOffset: 10,
             yOffset: -10,
         },
-        wrapping: 'hyphenate',
     },
     series: [
         {
@@ -42,7 +41,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -54,7 +52,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -66,7 +63,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -78,7 +74,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -90,7 +85,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -102,7 +96,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -114,7 +107,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -126,7 +118,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -138,7 +129,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
         {
             type: 'line',
@@ -150,7 +140,6 @@ const options: AgCartesianChartOptions = {
                 size: 7,
                 strokeWidth: 2,
             },
-            connectMissingData: false,
         },
     ],
     axes: [

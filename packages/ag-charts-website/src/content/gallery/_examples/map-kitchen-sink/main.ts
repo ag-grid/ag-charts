@@ -54,7 +54,6 @@ const options: AgTopologyChartOptions = {
                 highlightedItem: {
                     fillOpacity: 0.6,
                     strokeWidth: 2,
-                    strokeOpacity: 1,
                 },
             },
         },
@@ -76,7 +75,6 @@ const options: AgTopologyChartOptions = {
                 highlightedItem: {
                     fillOpacity: 1,
                     strokeWidth: 2,
-                    strokeOpacity: 1,
                 },
             },
         })),
@@ -94,7 +92,6 @@ const options: AgTopologyChartOptions = {
             idKey: 'name',
             title: 'Submarine Cables',
             stroke: '#666',
-            strokeWidth: 1,
             strokeOpacity: 0.4,
             lineDash: [2, 2],
             highlight: {
@@ -123,7 +120,6 @@ const options: AgTopologyChartOptions = {
             topologyIdKey: 'city',
             size: 3,
             fillOpacity: 0.6,
-            strokeWidth: 1,
             strokeOpacity: 0.8,
             highlight: {
                 highlightedItem: {
@@ -191,7 +187,6 @@ const options: AgTopologyChartOptions = {
                 enabled: true,
                 border: {
                     enabled: true,
-                    strokeWidth: 1,
                 },
                 padding: { top: 2, right: 5, bottom: 2, left: 5 },
                 fill: '#888',
@@ -203,7 +198,6 @@ const options: AgTopologyChartOptions = {
             fill: '#EF5452',
             fillOpacity: 0.9,
             strokeWidth: 2,
-            strokeOpacity: 1,
             highlight: {
                 highlightedItem: {
                     fillOpacity: 1,
@@ -226,7 +220,6 @@ const options: AgTopologyChartOptions = {
         enabled: true,
         position: 'right',
         item: {
-            showSeriesStroke: true,
             paddingY: 5,
             marker: {
                 size: 12,
@@ -235,9 +228,6 @@ const options: AgTopologyChartOptions = {
     },
     zoom: {
         enabled: true,
-        enableAxisDragging: false,
-        enablePanning: true,
-        enableScrolling: true,
     },
 };
 

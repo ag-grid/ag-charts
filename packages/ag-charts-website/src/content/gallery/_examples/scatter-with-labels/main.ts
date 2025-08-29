@@ -16,35 +16,6 @@ const options: AgCartesianChartOptions<NameData> = {
     },
     series: [
         {
-            data: data.filter((d: NameData) => d.gender === 'Girl'),
-            type: 'scatter',
-            xKey: 'popularity',
-            xName: 'Popularity Index',
-            yKey: 'trend',
-            yName: 'Girl Names',
-            labelKey: 'name',
-            labelName: 'Name',
-            label: {
-                enabled: true,
-                placement: 'top',
-            },
-            size: 8,
-            strokeWidth: 2,
-            fillOpacity: 0.8,
-            tooltip: {
-                renderer: ({ datum, xKey, yKey }) => {
-                    const nameData = datum as NameData;
-                    return {
-                        title: nameData.name,
-                        data: [
-                            { label: 'Popularity Index', value: nameData[xKey as keyof NameData].toString() },
-                            { label: 'Trend Score', value: nameData[yKey as keyof NameData].toString() },
-                        ],
-                    };
-                },
-            },
-        },
-        {
             data: data.filter((d: NameData) => d.gender === 'Boy'),
             type: 'scatter' as const,
             xKey: 'popularity',
@@ -73,6 +44,35 @@ const options: AgCartesianChartOptions<NameData> = {
                 },
             },
         },
+        {
+            data: data.filter((d: NameData) => d.gender === 'Girl'),
+            type: 'scatter',
+            xKey: 'popularity',
+            xName: 'Popularity Index',
+            yKey: 'trend',
+            yName: 'Girl Names',
+            labelKey: 'name',
+            labelName: 'Name',
+            label: {
+                enabled: true,
+                placement: 'top',
+            },
+            size: 8,
+            strokeWidth: 2,
+            fillOpacity: 0.8,
+            tooltip: {
+                renderer: ({ datum, xKey, yKey }) => {
+                    const nameData = datum as NameData;
+                    return {
+                        title: nameData.name,
+                        data: [
+                            { label: 'Popularity Index', value: nameData[xKey as keyof NameData].toString() },
+                            { label: 'Trend Score', value: nameData[yKey as keyof NameData].toString() },
+                        ],
+                    };
+                },
+            },
+        },
     ],
     axes: [
         {
@@ -81,7 +81,6 @@ const options: AgCartesianChartOptions<NameData> = {
             title: {
                 text: 'Popularity Index →',
             },
-            nice: true,
             min: 0,
             max: 100,
             gridLine: {
@@ -113,7 +112,6 @@ const options: AgCartesianChartOptions<NameData> = {
             title: {
                 text: 'Trend Score',
             },
-            nice: true,
             min: 0,
             max: 10,
             gridLine: {
@@ -155,7 +153,6 @@ const options: AgCartesianChartOptions<NameData> = {
                 size: 12,
                 strokeWidth: 2,
             },
-            label: {},
             paddingY: 8,
         },
     },

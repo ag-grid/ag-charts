@@ -17,7 +17,6 @@ const options: AgCartesianChartOptions<DataType> = {
     // Shared tooltips for better data comparison
     tooltip: {
         enabled: true,
-        mode: 'shared',
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
         },
@@ -88,7 +87,6 @@ const options: AgCartesianChartOptions<DataType> = {
                     formatter: ({ value }) => `${Math.round(value).toLocaleString('en-GB')}`,
                 },
             },
-            // interval: { values: [338984, 715246] },
             label: {
                 formatter: ({ value }) => `${Math.round(value).toLocaleString('en-GB')}`,
             },

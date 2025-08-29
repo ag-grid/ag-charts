@@ -2,8 +2,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-// Use star shape for all continents to maintain consistent visual style
-
 // Notable countries to label
 const notableCountries = [
     'Singapore',
@@ -92,7 +90,6 @@ const options: AgChartOptions = {
             fillOpacity: 0.7,
             tooltip: {
                 enabled: true,
-                showArrow: true,
                 renderer: ({ datum, xKey, yKey }) => {
                     const gdp = datum[xKey as keyof typeof datum] as number;
                     const happiness = datum[yKey as keyof typeof datum] as number;
@@ -143,7 +140,6 @@ const options: AgChartOptions = {
                 },
             },
             gridLine: {
-                width: 1,
                 style: [
                     {
                         lineDash: [2, 2],
@@ -159,7 +155,6 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Low',
                         position: 'inside-bottom-right',
-                        padding: 5,
                     },
                 },
                 {
@@ -170,7 +165,6 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Middle',
                         position: 'inside-bottom-right',
-                        padding: 5,
                     },
                 },
                 {
@@ -181,7 +175,6 @@ const options: AgChartOptions = {
                     label: {
                         text: 'High',
                         position: 'inside-bottom-right',
-                        padding: 5,
                     },
                 },
             ],
@@ -199,7 +192,6 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => value.toFixed(1),
             },
             gridLine: {
-                width: 1,
                 style: [
                     {
                         lineDash: [2, 2],
@@ -223,8 +215,6 @@ const options: AgChartOptions = {
         },
     ],
     legend: {
-        position: 'bottom',
-        orientation: 'horizontal',
         spacing: 10,
         item: {
             marker: {

@@ -4,6 +4,17 @@ import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
+    theme: {
+        overrides: {
+            area: {
+                series: {
+                    interpolation: { type: 'smooth' },
+                    strokeWidth: 2,
+                    fillOpacity: 0.7,
+                },
+            },
+        },
+    },
     data: getData(),
     title: {
         text: 'Science Museums Visitors',
@@ -18,7 +29,6 @@ const options: AgCartesianChartOptions = {
             yKey: 'Science Museum',
             yName: 'Science Museum',
             stacked: true,
-            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -26,7 +36,6 @@ const options: AgCartesianChartOptions = {
             yKey: 'National Media Museum',
             yName: 'National Media Museum',
             stacked: true,
-            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -34,7 +43,6 @@ const options: AgCartesianChartOptions = {
             yKey: 'National Railway Museum',
             yName: 'National Railway Museum',
             stacked: true,
-            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -42,7 +50,6 @@ const options: AgCartesianChartOptions = {
             yKey: 'Locomotion',
             yName: 'Locomotion',
             stacked: true,
-            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -50,7 +57,6 @@ const options: AgCartesianChartOptions = {
             yKey: 'Museum of Science and Industry, Manchester',
             yName: 'Museum of Science and Industry, Manchester',
             stacked: true,
-            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -58,7 +64,6 @@ const options: AgCartesianChartOptions = {
             yKey: 'National Coal Mining Museum for England',
             yName: 'National Coal Mining Museum for England',
             stacked: true,
-            interpolation: { type: 'smooth' },
         },
     ],
     axes: [
@@ -83,7 +88,6 @@ const options: AgCartesianChartOptions = {
                 {
                     type: 'range',
                     range: [new Date(2019, 6, 1), new Date(2019, 6, 31)],
-                    fillOpacity: 0.1,
                     label: {
                         text: 'Peak Season\nJuly-August',
                         position: 'top',
@@ -117,7 +121,6 @@ const options: AgCartesianChartOptions = {
         },
     ],
     legend: {
-        position: 'bottom',
         item: {
             showSeriesStroke: false,
         },
@@ -132,20 +135,6 @@ const options: AgCartesianChartOptions = {
             if (params.source === 'tooltip') {
                 return `${(Number(params.value) / 1000).toFixed(1)}k`;
             }
-            return undefined;
-        },
-    },
-    theme: {
-        overrides: {
-            area: {
-                series: {
-                    fillOpacity: 0.7,
-                    strokeWidth: 2,
-                    highlight: {
-                        enabled: true,
-                    },
-                },
-            },
         },
     },
 };

@@ -8,8 +8,6 @@ import { tubeData } from './tubeData';
 import { tubeTopology } from './tubeTopology';
 
 const sizeDomain = [0, 141537];
-const strokeWidth = 1;
-const maxStrokeWidth = 5;
 
 const tubeLineColours = {
     Bakerloo: '#B26300',
@@ -105,8 +103,8 @@ const options: AgTopologyChartOptions = {
             sizeKey: 'passengers',
             stroke: tubeLineColours[line as keyof typeof tubeLineColours],
             sizeDomain,
-            strokeWidth: strokeWidth + 0.5,
-            maxStrokeWidth: maxStrokeWidth + 1,
+            strokeWidth: 1.5,
+            maxStrokeWidth: 6,
             highlight: {
                 highlightedItem: {
                     strokeWidth: 8,
