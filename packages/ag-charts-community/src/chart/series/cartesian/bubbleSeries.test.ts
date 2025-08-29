@@ -501,7 +501,7 @@ describe('BubbleSeries', () => {
                             stroke: 'lime', // not ignored (but no effect)
                         };
                     } else if (params.seriesId === 'BubbleSeries-2') {
-                        return { shape: 'heart', fill: 'fuchsia', lineDash: [5, 3] };
+                        return { shape: 'heart', fill: 'fuchsia', size: 2, maxSize: 200, lineDash: [5, 3] };
                     }
                     return {};
                 }
@@ -572,12 +572,18 @@ describe('BubbleSeries', () => {
                         .nthCalledWithContext(4, c1)
                         .nthCalledWithContext(5, c1)
                         .nthCalledWithContext(6, c1)
-                        .nthCalledWithContext(7, c2)
-                        .nthCalledWithContext(8, c2)
-                        .nthCalledWithContext(9, c2)
+                        .nthCalledWithContext(7, c1)
+                        .nthCalledWithContext(8, c1)
+                        .nthCalledWithContext(9, c1)
                         .nthCalledWithContext(10, c2)
                         .nthCalledWithContext(11, c2)
-                        .toHaveBeenCalledTimes(12);
+                        .nthCalledWithContext(12, c2)
+                        .nthCalledWithContext(13, c2)
+                        .nthCalledWithContext(14, c2)
+                        .nthCalledWithContext(15, c2)
+                        .nthCalledWithContext(16, c2)
+                        .nthCalledWithContext(17, c2)
+                        .toHaveBeenCalledTimes(18);
                 });
                 test('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
