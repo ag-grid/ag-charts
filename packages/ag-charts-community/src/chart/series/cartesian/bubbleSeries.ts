@@ -356,10 +356,9 @@ export class BubbleSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(dataModel && processedData && visible && xAxis && yAxis)) {
-            return;
-        }
+        if (!(dataModel && processedData && xAxis && yAxis)) return;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yDataValues = dataModel.resolveColumnById(this, `yValue`, processedData);
         const sizeDataValues =
@@ -477,7 +476,9 @@ export class BubbleSeries extends CartesianSeries<
         };
 
         const { dataAggregation } = this;
-        if (dataAggregation == null) {
+        if (!visible) {
+            // Don't create node data
+        } else if (dataAggregation == null) {
             for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
                 handleDatum(datumIndex, 1, 1, 0);
             }
@@ -514,7 +515,7 @@ export class BubbleSeries extends CartesianSeries<
             nodeData,
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
-            visible: this.visible,
+            visible: this.visible || animationEnabled,
             styles: getMarkerOnlyStyles<StylerParams, ItemStylerParams>(this, marker),
         };
     }
