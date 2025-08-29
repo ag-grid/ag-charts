@@ -115,6 +115,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
+    private postUpdateFns: Array<() => void> = [];
+
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.state = this.setupStateMachine();
@@ -508,7 +510,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             optionsToolbar.events.on('pressed-settings', ({ sourceEvent }) => {
                 this.state.transition('toolbarPressSettings', sourceEvent);
             }),
-            optionsToolbar.events.on('pressed-lock', () => {
+            optionsToolbar.events.on('pressed-lock', ({ locked }) => {
+                this.recordActionAfterNextUpdate(locked ? 'Locked' : 'Unlocked');
                 this.update();
             }),
             optionsToolbar.events.on('hid-overlays', () => {
@@ -889,8 +892,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.postUpdateFns.forEach((fn) => fn());
         this.postUpdateFns = [];
     }
-
-    private postUpdateFns: Array<() => void> = [];
 
     private getAnnotationContext(): AnnotationContext | undefined {
         const { seriesRect, xAxis, yAxis, snap } = this;
