@@ -113,6 +113,8 @@ const options: AgCartesianChartOptions = {
     legend: {
         item: {
             showSeriesStroke: false,
+            paddingX: 10,
+            paddingY: 8,
         },
     },
     tooltip: {

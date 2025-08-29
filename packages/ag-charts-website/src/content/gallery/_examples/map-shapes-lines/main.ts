@@ -28,6 +28,12 @@ const options: AgTopologyChartOptions = {
     subtitle: {
         text: 'Passenger traffic by line section (daily ridership)',
     },
+    padding: {
+        top: 0,
+        bottom: 0,
+        right: 0,
+        left: 0,
+    },
     legend: {
         enabled: true,
         position: {

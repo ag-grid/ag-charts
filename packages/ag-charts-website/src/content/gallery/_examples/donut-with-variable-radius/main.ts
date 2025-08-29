@@ -28,9 +28,6 @@ const options: AgPolarChartOptions = {
             data: data.categories,
             type: 'donut',
             calloutLabelKey: 'category',
-            calloutLabel: {
-                offset: 12,
-            },
             angleKey: 'value',
             radiusKey: 'profitMargin',
             innerRadiusRatio: 0.35,

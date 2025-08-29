@@ -29,6 +29,7 @@ const options: AgCartesianChartOptions<DataType> = {
             yKey: 'newSignups',
             yName: 'Sign Ups',
             strokeWidth: 2,
+            fillOpacity: 0.7,
             highlight: {
                 highlightedItem: {
                     strokeWidth: 3,

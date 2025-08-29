@@ -10,6 +10,7 @@ const options: AgCartesianChartOptions = {
                 series: {
                     interpolation: { type: 'smooth' },
                     strokeWidth: 2,
+                    fillOpacity: 0.7,
                 },
             },
         },
