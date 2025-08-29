@@ -6,12 +6,10 @@ import { OptionsGraph } from './optionsGraph';
 describe('OptionsGraph', () => {
     beforeEach(() => {
         seriesRegistry.cloneDefaultAxes = jest.fn().mockImplementation(() => {
-            return {
-                axes: [
-                    { type: 'number', position: 'left' },
-                    { type: 'category', position: 'bottom' },
-                ],
-            };
+            return [
+                { type: 'number', position: 'left' },
+                { type: 'category', position: 'bottom' },
+            ];
         }) as any;
     });
 

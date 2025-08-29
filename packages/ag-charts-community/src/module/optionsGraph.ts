@@ -140,12 +140,13 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.palette.type = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
-        const DEFAULT_SERIES_TYPE = 'line';
-        const seriesType = userOptions.series?.[0]?.type ?? DEFAULT_SERIES_TYPE;
+        const seriesType = userOptions.series?.[0]?.type ?? 'line';
 
         // Apply the default axes of the primary series type if none are provided by the user.
-        const defaultAxes = seriesRegistry.cloneDefaultAxes(seriesType);
-        userOptions.axes ??= defaultAxes?.axes ?? [];
+        userOptions.axes ??=
+            seriesRegistry.predictAxes(seriesType, userOptions.series?.[0], userOptions.data) ??
+            seriesRegistry.cloneDefaultAxes(seriesType) ??
+            [];
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');

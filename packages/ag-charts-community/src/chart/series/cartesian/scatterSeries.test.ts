@@ -686,4 +686,93 @@ describe('ScatterSeries', () => {
             });
         });
     });
+
+    describe('predict axes', () => {
+        it('number', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: 1,
+                        iphone: 140,
+                    },
+                    {
+                        quarter: 2,
+                        iphone: 124,
+                    },
+                    {
+                        quarter: 3,
+                        iphone: 112,
+                    },
+                    {
+                        quarter: 4,
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('category', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('unit-time', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: new Date('2018-01-01'),
+                        iphone: 140,
+                    },
+                    {
+                        quarter: new Date('2018-04-01'),
+                        iphone: 124,
+                    },
+                    {
+                        quarter: new Date('2018-07-01'),
+                        iphone: 112,
+                    },
+                    {
+                        quarter: new Date('2018-10-01'),
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });
