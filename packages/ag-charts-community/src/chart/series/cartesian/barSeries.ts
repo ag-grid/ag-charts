@@ -825,7 +825,10 @@ export class BarSeries extends AbstractBarSeries<
         let stylerResult: AgBarSeriesStyle = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+            stylerResult = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                this.callWithContext(styler, stylerParams) ?? {}
+            ) as AgBarSeriesStyle;
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
@@ -846,20 +849,10 @@ export class BarSeries extends AbstractBarSeries<
         highlightState?: HighlightState
     ): Required<AgBarSeriesStyle> {
         const { properties, dataModel, processedData } = this;
-        const { styler, itemStyler } = properties;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         let style = mergeDefaults(highlightStyle, this.getStyle(isHighlight, highlightState));
-
-        if (styler) {
-            const overrides = this.ctx.optionsGraphService.resolvePartial(
-                ['series', `${this.declarationOrder}`],
-                style
-            );
-            if (overrides) {
-                style = mergeDefaults(overrides, style);
-            }
-        }
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
