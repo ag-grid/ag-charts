@@ -9,6 +9,8 @@ export class SegmentedGroup extends TranslatableGroup {
     segments?: Segment[] = [];
 
     protected override renderInContext(childRenderCtx: RenderContext) {
+        if (!this.visible) return;
+
         const { ctx } = childRenderCtx;
 
         if (!this.segments || this.segments?.length === 0) {
