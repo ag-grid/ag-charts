@@ -771,7 +771,11 @@ export class LineSeries extends CartesianSeries<
                 fill: marker.fill,
                 fillOpacity: marker.fillOpacity,
                 stroke: marker.stroke,
-            }
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            } satisfies RequireOptional<AgSeriesMarkerStyle>
         );
 
         return {
