@@ -828,7 +828,7 @@ export class BarSeries extends AbstractBarSeries<
             stylerResult = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
                 this.callWithContext(styler, stylerParams) ?? {}
-            ) as AgBarSeriesStyle;
+            ) ?? {};
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
