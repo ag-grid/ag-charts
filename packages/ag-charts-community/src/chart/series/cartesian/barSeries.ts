@@ -829,7 +829,7 @@ export class BarSeries extends AbstractBarSeries<
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.callWithContext(styler, stylerParams) ?? {},
-                    { pick: false },
+                    { pick: false }
                 ) ?? {};
         }
         return {
