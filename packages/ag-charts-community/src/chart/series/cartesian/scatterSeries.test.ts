@@ -685,5 +685,28 @@ describe('ScatterSeries', () => {
                 await compare();
             });
         });
+        describe('size', () => {
+            beforeEach(async () => {
+                const opts: AgCartesianChartOptions<D, C> = {
+                    series: [
+                        {
+                            type: 'scatter',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            size: 4,
+                            styler: () => {
+                                return { size: 45 };
+                            },
+                        },
+                    ],
+                };
+                chart = AgCharts.create(prepareTestOptions(opts));
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
     });
 });
