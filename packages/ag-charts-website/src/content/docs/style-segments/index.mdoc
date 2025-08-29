@@ -1,0 +1,72 @@
+---
+title: 'Style Segments'
+---
+
+Style Segments customise a series’ look for specific ranges of an axis.
+
+{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" /%}
+
+## Segmentation
+
+Use `series.segmentation` to define segments for a single series.
+
+-   **`segmentation.key`** determines which axis to segment along.
+-   **`segmentation.segments`** is an array of segment definitions listed in axis domain order.
+
+Each segment in the `segments` array is defined by bounds and optional style overrides:
+
+-   **`start` / `stop`**
+
+    -   The axis range for the segment.
+    -   Omit `start` to begin at the axis minimum or the previous segment’s `stop`.
+    -   Omit `stop` to end at the next segment’s `start` or the axis maximum.
+
+-   **Style properties**
+
+    -   The same keys as on the series (e.g. `stroke`, `fill`, etc.)
+    -   Unspecified properties fall back to the series defaults.
+
+```js
+series: [
+    {
+        type: 'area',
+        yKey: 'variance',
+        xKey: 'dept',
+        strokeWidth: 2,
+        fillOpacity: 0.3,
+        segmentation: {
+            key: 'y',
+            segments: [
+                { stop: 0, fill: 'red', stroke: 'red' },
+                { start: 0, fill: 'green', stroke: 'green' },
+            ],
+        },
+    },
+];
+```
+
+In this configuration:
+
+-   The series `fill` and `stroke` will be red if it falls below 0 on the y-axis.
+-   The series `fill` and `stroke` will be green if it is 0 or above on the y-axis.
+-   Properties `fillOpacity` and `strokeWidth` are inherited from the series.
+
+Please use the [Options Reference](/options) to learn more about Segmentation, the inputs they receive and the attributes that can be customised.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgAreaSegmentOptions" label="Area Segment Options" %}
+{% apiReference id="AgSeriesShapeSegmentOptions" hideRequired=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgSeriesLineSegmentOptions" label="Line Segment Options" %}
+{% apiReference id="AgSeriesLineSegmentOptions" hideRequired=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgBarSegmentOptions" label="Bar Segment Options" %}
+{% apiReference id="AgSeriesShapeSegmentOptions" hideRequired=true /%}
+{% /tabItem %}
+
+{% /tabs %}

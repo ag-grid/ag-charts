@@ -154,6 +154,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Style Segments",
+                            "path": "style-segments"
+                        },
+                        {
+                            "type": "item",
                             "title": "Annotations",
                             "path": "annotations",
                             "isEnterprise": true
