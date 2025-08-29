@@ -449,7 +449,7 @@ export class BubbleSeries extends CartesianSeries<
                 nodeLabel = { text: '', width: 0, height: 0 };
             }
 
-            const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : marker.size;
+            const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : sizeScale.range[0];
             const point = { x, y, size: Math.sqrt(dilation) * markerSize };
 
             nodeData.push({
