@@ -760,7 +760,11 @@ export class LineSeries extends CartesianSeries<
             this.properties.marker,
             {},
             undefined,
-            { isHighlight: false, checkForHighlight: false },
+            {
+                isHighlight: false,
+                checkForHighlight: false,
+                resolveStylerMarkerPath: 'marker',
+            },
             {
                 size: marker.size,
                 shape: marker.shape,
