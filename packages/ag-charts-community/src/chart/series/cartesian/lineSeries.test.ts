@@ -991,6 +991,56 @@ describe('LineSeries', () => {
                 await compare();
             });
         });
+        describe('stroke options', () => {
+            beforeEach(async () => {
+                const options = prepareTestOptions({
+                    data: [
+                        { month: 'Jan', subscriptions: 222 },
+                        { month: 'Feb', subscriptions: 240 },
+                        { month: 'Mar', subscriptions: 280 },
+                        { month: 'Apr', subscriptions: 300 },
+                        { month: 'May', subscriptions: 350 },
+                        { month: 'Jun', subscriptions: 420 },
+                        { month: 'Jul', subscriptions: 300 },
+                        { month: 'Aug', subscriptions: 270 },
+                        { month: 'Sep', subscriptions: 260 },
+                        { month: 'Oct', subscriptions: 385 },
+                        { month: 'Nov', subscriptions: 320 },
+                        { month: 'Dec', subscriptions: 330 },
+                    ],
+                    legend: { item: { line: { length: 120 }, marker: { size: 40 } } },
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'month',
+                            yKey: 'subscriptions',
+                            marker: { size: 35 },
+                            styler: () => {
+                                return {
+                                    strokeWidth: 4,
+                                    strokeOpacity: 0.5,
+                                    stroke: 'fuchsia',
+                                    lineDash: [9, 5, 4, 6],
+                                    lineDashOffset: 7,
+                                    marker: {
+                                        strokeWidth: 7,
+                                        strokeOpacity: 0.8,
+                                        stroke: 'lime',
+                                        lineDash: [7, 3, 2, 3],
+                                        lineDashOffset: 7,
+                                    },
+                                };
+                            },
+                        },
+                    ],
+                });
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
     });
 
     describe('segmentation', () => {
