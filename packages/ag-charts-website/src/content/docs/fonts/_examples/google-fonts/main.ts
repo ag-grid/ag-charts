@@ -6,6 +6,7 @@ const options: AgChartOptions = {
         text: 'Title in Pacifico',
         fontFamily: { googleFont: 'Pacifico' },
         fontSize: 25,
+        maxHeight: 50,
     },
     subtitle: {
         text: 'Subtitle in DM Serif Text',
