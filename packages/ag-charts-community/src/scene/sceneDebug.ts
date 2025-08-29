@@ -12,6 +12,7 @@ export enum DebugSelectors {
     SCENE = 'scene',
     SCENE_STATS = 'scene:stats',
     SCENE_STATS_VERBOSE = 'scene:stats:verbose',
+    SCENE_FPS = 'scene:fps',
     SCENE_DIRTY_TREE = 'scene:dirtyTree',
     SCENE_TEXT = 'scene:text',
 }
@@ -40,6 +41,42 @@ function memoryUsage() {
     return `Heap ${result.join(' / ')}`;
 }
 
+function debugFps(debugSplitTimes: Record<string, number>, ctx: CanvasRenderingContext2D, seriesRect = BBox.zero) {
+    if (!Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_FPS)) return;
+
+    const end = performance.now();
+    const { start } = debugSplitTimes;
+    const duration = Math.round(end - start);
+
+    const measurer = new TextMeasurer(ctx);
+    const text = `${duration}ms`;
+
+    ctx.save();
+    try {
+        ctx.font = '14px sans-serif';
+
+        const height = 18;
+        const horizontalInset = 6;
+        const right = seriesRect.x + seriesRect.width;
+        const textWidth = measurer.measureText(text).width;
+
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'right';
+
+        ctx.beginPath();
+        ctx.roundRect(right - (textWidth + horizontalInset * 2), 0, textWidth + horizontalInset * 2, height, 10);
+        ctx.fillStyle = '#0e4491';
+        ctx.fill();
+
+        ctx.fillStyle = 'white';
+        ctx.fillText(text, right - horizontalInset, height / 2);
+    } catch (e) {
+        Logger.warnOnce('Error during debug stats rendering', e);
+    } finally {
+        ctx.restore();
+    }
+}
+
 export function debugStats(
     layersManager: LayersManager,
     debugSplitTimes: Record<string, number>,
@@ -48,6 +85,11 @@ export function debugStats(
     extraDebugStats = {},
     seriesRect = BBox.zero
 ) {
+    if (!Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_FPS)) {
+        debugFps(debugSplitTimes, ctx, seriesRect);
+        return;
+    }
+
     if (!Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE)) return;
 
     const {

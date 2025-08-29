@@ -3,7 +3,7 @@ import { AgCartesianChartOptions, AgCartesianSeriesOptions, AgCharts } from 'ag-
 import { getData } from './data';
 
 // @ts-expect-error Undocumented option
-window.agChartsDebug = 'scene:stats';
+window.agChartsDebug = 'scene:fps';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
