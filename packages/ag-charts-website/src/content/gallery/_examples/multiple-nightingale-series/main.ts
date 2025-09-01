@@ -11,12 +11,8 @@ const options: AgPolarChartOptions = {
     subtitle: {
         text: 'Quarterly Performance (Millions USD)',
     },
-    // Root-level formatter for consistent value formatting
     formatter: {
-        y: ({ value }) => `$${Number(value).toFixed(1)}M`,
-    },
-    tooltip: {
-        enabled: true,
+        radius: ({ value }) => `$${Number(value).toFixed(0)}M`,
     },
     theme: {
         overrides: {
@@ -26,7 +22,6 @@ const options: AgPolarChartOptions = {
                     strokeWidth: 1.5,
                     highlight: {
                         highlightedItem: {
-                            fillOpacity: 1,
                             strokeWidth: 2.5,
                         },
                     },
@@ -69,9 +64,6 @@ const options: AgPolarChartOptions = {
         {
             type: 'radius-number',
             innerRadiusRatio: 0.15,
-            label: {
-                enabled: true,
-            },
             interval: {
                 step: 2,
             },
@@ -115,15 +107,8 @@ const options: AgPolarChartOptions = {
             line: {
                 enabled: false,
             },
-            label: {
-                enabled: true,
-            },
         },
     ],
-    legend: {
-        position: 'bottom',
-        spacing: 20,
-    },
 };
 
 AgCharts.create(options);

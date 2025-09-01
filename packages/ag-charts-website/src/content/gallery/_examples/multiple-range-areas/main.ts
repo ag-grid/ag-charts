@@ -27,10 +27,6 @@ const options: AgCartesianChartOptions = {
             enabled: false,
         },
         highlight: {
-            highlightedItem: {
-                strokeWidth: 2,
-                fillOpacity: 0.6,
-            },
             highlightedSeries: {
                 strokeWidth: 2,
                 fillOpacity: 0.5,
@@ -44,14 +40,12 @@ const options: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'left',
-            nice: true,
             label: {
                 formatter: ({ value }) => `${value}%`,
             },
             gridLine: {
                 style: [
                     {
-                        strokeWidth: 1,
                         lineDash: [3, 3],
                     },
                 ],
@@ -100,24 +94,6 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    seriesArea: {
-        padding: {
-            left: 10,
-            bottom: 10,
-            right: 10,
-            top: 10,
-        },
-    },
-    legend: {
-        position: 'bottom',
-        item: {
-            paddingX: 16,
-            paddingY: 8,
-        },
-    },
-    tooltip: {
-        mode: 'shared',
-    },
     formatter: {
         y: '#{.1f}%',
     },

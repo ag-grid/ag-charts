@@ -81,11 +81,6 @@ const options: AgTopologyChartOptions = {
                 enabled: true,
                 minimumFontSize: 8,
             },
-            highlight: {
-                highlightedItem: {
-                    strokeWidth: 2,
-                },
-            },
             tooltip: {
                 renderer: ({ datum }) => {
                     const borough = datum['name'];

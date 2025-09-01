@@ -62,14 +62,14 @@ const options: AgChartOptions = {
                 spacing: 12,
             },
             tooltip: {
-                renderer: (params) => {
-                    const { datum, sizeKey, sizeName } = params;
-                    const value = datum[sizeKey!];
+                renderer: ({ datum, size, sizeName }) => {
+                    const passengers = { label: sizeName ?? '', value: numberFormatter.format(size) };
+                    if (!datum) return { data: [passengers] };
                     return {
                         data: [
                             { label: 'Route', value: `${datum.from} → ${datum.to}` },
-                            { label: sizeName!, value: numberFormatter.format(value) },
-                            { label: 'Traffic', value: `${(value / 1000000).toFixed(2)}M passengers/year` },
+                            passengers,
+                            { label: 'Traffic', value: `${(size / 1e6).toFixed(2)}M passengers/year` },
                         ],
                     };
                 },

@@ -27,9 +27,6 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'angle-number',
-            label: {
-                spacing: 0,
-            },
             line: {
                 enabled: false,
             },
@@ -46,9 +43,6 @@ const options: AgChartOptions = {
             },
         },
     ],
-    legend: {
-        enabled: false,
-    },
 };
 
 AgCharts.create(options);

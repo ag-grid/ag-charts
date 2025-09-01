@@ -11,39 +11,6 @@ const options: AgCartesianChartOptions = {
     subtitle: {
         text: 'All values in £ billions',
     },
-    tooltip: {
-        enabled: true,
-    },
-    axes: [
-        {
-            type: 'category',
-            position: 'left',
-            bandHighlight: {
-                enabled: true,
-            },
-        },
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                formatter: (params) => {
-                    const value = params.value as number;
-                    return `${value < 0 ? '-' : ''}£${Math.abs(value)}B`;
-                },
-            },
-            gridLine: {
-                style: [
-                    {
-                        strokeWidth: 1,
-                        lineDash: [2, 2],
-                    },
-                    {
-                        strokeWidth: 0,
-                    },
-                ],
-            },
-        },
-    ],
     series: [
         {
             type: 'waterfall',
@@ -130,6 +97,36 @@ const options: AgCartesianChartOptions = {
                             : [],
                     };
                 },
+            },
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'left',
+            bandHighlight: {
+                enabled: true,
+            },
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+            label: {
+                formatter: (params) => {
+                    const value = params.value as number;
+                    return `${value < 0 ? '-' : ''}£${Math.abs(value)}B`;
+                },
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
         },
     ],

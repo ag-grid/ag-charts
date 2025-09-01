@@ -16,12 +16,6 @@ const shared = {
     maxKey: 'max',
     maxName: 'Max',
     cornerRadius: 4,
-    strokeWidth: 2,
-    strokeOpacity: 1,
-    whisker: {
-        strokeWidth: 2,
-        strokeOpacity: 1,
-    },
     cap: {
         lengthRatio: 0,
     },
@@ -58,11 +52,7 @@ const options: AgCartesianChartOptions = {
         left: 50,
         right: 20,
     },
-    legend: {
-        position: 'bottom',
-    },
     tooltip: {
-        mode: 'single',
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
         },
@@ -114,9 +104,6 @@ const options: AgCartesianChartOptions = {
             nice: false,
             title: {
                 text: 'Number of Arrivals',
-            },
-            line: {
-                enabled: false,
             },
             label: {
                 enabled: true,

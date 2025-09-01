@@ -53,11 +53,6 @@ const options: AgCartesianChartOptions = {
                     };
                 },
             },
-            highlight: {
-                highlightedItem: {
-                    strokeWidth: 2,
-                },
-            },
         },
     ],
     axes: [
@@ -68,7 +63,7 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
             crosshair: {
-                strokeWidth: 0,
+                enabled: false,
             },
             line: {
                 enabled: false,
@@ -94,7 +89,7 @@ const options: AgCartesianChartOptions = {
             label: {
                 formatter: ({ value }) => `$${value.toLocaleString()}`,
             },
-            nice: false, // Fit data snugly
+            nice: false,
             gridLine: {
                 style: [
                     {

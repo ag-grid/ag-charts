@@ -12,10 +12,7 @@ const options: AgPolarChartOptions = {
         text: 'Millions USD',
     },
     formatter: {
-        y: ({ value }) => `$${typeof value === 'number' ? value.toFixed(1) : value}M`,
-    },
-    tooltip: {
-        enabled: true,
+        angle: ({ value }) => `$${typeof value === 'number' ? value.toFixed(1) : value}M`,
     },
     series: [
         {
@@ -45,9 +42,6 @@ const options: AgPolarChartOptions = {
             type: 'radius-category',
             innerRadiusRatio: 0,
             paddingOuter: 0.2,
-            label: {
-                enabled: true,
-            },
             gridLine: {
                 enabled: false,
             },

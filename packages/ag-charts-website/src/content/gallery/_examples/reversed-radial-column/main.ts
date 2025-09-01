@@ -12,11 +12,10 @@ const options: AgPolarChartOptions<RevenueData> = {
         text: 'Quarterly Performance (Millions USD)',
     },
     formatter: {
-        y: ({ value }) => {
+        radius: ({ value }) => {
             if (typeof value === 'number') {
                 return `$${value.toFixed(1)}M`;
             }
-            return String(value);
         },
     },
     series: [
@@ -26,12 +25,6 @@ const options: AgPolarChartOptions<RevenueData> = {
             radiusKey: 'software',
             radiusName: 'Software',
             stacked: true,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 1,
-                    strokeWidth: 2,
-                },
-            },
         },
         {
             type: 'radial-column',
@@ -39,12 +32,6 @@ const options: AgPolarChartOptions<RevenueData> = {
             radiusKey: 'hardware',
             radiusName: 'Hardware',
             stacked: true,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 1,
-                    strokeWidth: 2,
-                },
-            },
         },
         {
             type: 'radial-column',
@@ -52,12 +39,6 @@ const options: AgPolarChartOptions<RevenueData> = {
             radiusKey: 'services',
             radiusName: 'Services',
             stacked: true,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 1,
-                    strokeWidth: 2,
-                },
-            },
         },
     ],
     axes: [
@@ -75,7 +56,6 @@ const options: AgPolarChartOptions<RevenueData> = {
         },
     ],
     legend: {
-        position: 'bottom',
         item: {
             marker: {
                 size: 16,

@@ -34,10 +34,6 @@ const options: AgCartesianChartOptions = {
                     strokeOpacity: 0.8,
                     label: {
                         enabled: true,
-                        placement: 'outside',
-                    },
-                    tooltip: {
-                        enabled: true,
                     },
                 },
             },
@@ -137,11 +133,7 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    legend: {
-        position: 'bottom',
-    },
     tooltip: {
-        mode: 'single',
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
         },

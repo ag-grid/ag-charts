@@ -27,11 +27,6 @@ const options: AgCartesianChartOptions = {
         yHighName: 'Import',
         yName: country,
         cornerRadius: 4,
-        highlight: {
-            highlightedItem: {
-                strokeWidth: 2,
-            },
-        },
         tooltip: {
             renderer: (params) => {
                 const { datum, yLowKey, yHighKey, yName } = params;
@@ -114,14 +109,6 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    legend: {
-        position: 'bottom',
-        spacing: 20,
-        item: {
-            paddingX: 16,
-            paddingY: 8,
-        },
-    },
 };
 
 AgCharts.create(options);

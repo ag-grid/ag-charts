@@ -29,11 +29,6 @@ const options: AgChartOptions<DataType> = {
                     sectorSpacing: 2,
                     innerRadiusRatio: 0.6,
                     outerRadiusRatio: 0.95,
-                    highlight: {
-                        highlightedItem: {
-                            strokeWidth: 2,
-                        },
-                    },
                 },
             },
         },

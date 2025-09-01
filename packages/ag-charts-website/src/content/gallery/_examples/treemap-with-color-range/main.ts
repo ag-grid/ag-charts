@@ -14,20 +14,6 @@ const options: AgChartOptions<DataType> = {
                             strokeWidth: 3,
                         },
                     },
-                    tile: {
-                        gap: 2,
-                        label: {
-                            overflowStrategy: 'hide',
-                            minimumFontSize: 10,
-                        },
-                        secondaryLabel: {
-                            overflowStrategy: 'hide',
-                            minimumFontSize: 8,
-                        },
-                    },
-                    group: {
-                        gap: 4,
-                    },
                 },
             },
         },
@@ -52,12 +38,7 @@ const options: AgChartOptions<DataType> = {
             },
             tile: {
                 cornerRadius: 4,
-                label: {
-                    overflowStrategy: 'hide',
-                    wrapping: 'hyphenate',
-                },
                 secondaryLabel: {
-                    overflowStrategy: 'hide',
                     formatter(params) {
                         const value = params.value || 0;
                         const symbol = value >= 0 ? '+' : '';
@@ -70,7 +51,6 @@ const options: AgChartOptions<DataType> = {
     ],
     gradientLegend: {
         enabled: true,
-        position: 'bottom',
         gradient: {
             thickness: 15,
             preferredLength: 400,

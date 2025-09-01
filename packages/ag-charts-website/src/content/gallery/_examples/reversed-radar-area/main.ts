@@ -11,9 +11,6 @@ const options: AgPolarChartOptions = {
     subtitle: {
         text: 'Lower values indicate better efficiency (reversed scale: 100% at center, 0% at edge)',
     },
-    tooltip: {
-        enabled: true,
-    },
     series: [
         {
             type: 'radar-area',

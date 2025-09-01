@@ -19,9 +19,6 @@ const options: AgChartOptions = {
         enabled: true,
         duration: 800,
     },
-    tooltip: {
-        enabled: true,
-    },
     series: [
         {
             type: 'nightingale',
@@ -30,7 +27,6 @@ const options: AgChartOptions = {
             radiusName: 'Hardware',
             fillOpacity: 0.85,
             cornerRadius: 4,
-            strokeWidth: 1,
             itemStyler: (params) => {
                 const value = params.datum[params.radiusKey!];
                 if (value >= avgRevenue * 1.2) {
@@ -39,12 +35,6 @@ const options: AgChartOptions = {
                     return { fillOpacity: 0.6 };
                 }
                 return undefined;
-            },
-            highlight: {
-                highlightedItem: {
-                    strokeWidth: 2,
-                    fillOpacity: 1,
-                },
             },
             tooltip: {
                 renderer: (params: any) => {

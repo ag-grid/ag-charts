@@ -26,7 +26,6 @@ const options: AgPolarChartOptions = {
             strokeOpacity: 0.2,
             highlight: {
                 highlightedItem: {
-                    fillOpacity: 1,
                     strokeWidth: 3,
                     strokeOpacity: 0.5,
                 },
@@ -61,7 +60,6 @@ const options: AgPolarChartOptions = {
             strokeOpacity: 0.15,
             highlight: {
                 highlightedItem: {
-                    fillOpacity: 1,
                     strokeWidth: 3,
                     strokeOpacity: 0.4,
                 },

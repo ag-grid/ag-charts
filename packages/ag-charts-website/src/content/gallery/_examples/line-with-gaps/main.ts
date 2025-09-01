@@ -150,7 +150,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Week of Year',
             },
             label: {
-                rotation: 0,
+                autoRotate: false,
                 minSpacing: 70,
                 formatter: (params) => {
                     return `Week ${params.value}`;

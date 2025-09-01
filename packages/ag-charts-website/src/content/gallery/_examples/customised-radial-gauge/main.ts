@@ -9,10 +9,6 @@ const options: AgGaugeOptions = {
     value: 89,
     startAngle: 270,
     endAngle: 540,
-    animation: {
-        enabled: true,
-        duration: 1000,
-    },
     tooltip: {
         enabled: true,
         renderer: ({ value }) => {
@@ -38,10 +34,6 @@ const options: AgGaugeOptions = {
             step: 10,
         },
         fillOpacity: 0.85,
-        label: {
-            enabled: true,
-            // Theme handles fontSize and fontFamily
-        },
     },
     segmentation: {
         interval: {
@@ -52,9 +44,7 @@ const options: AgGaugeOptions = {
         fillOpacity: 0.8,
     },
     innerRadiusRatio: 0.8,
-    label: {
-        // Theme handles typography
-    },
+
     secondaryLabel: {
         text: 'mph',
     },
@@ -69,7 +59,6 @@ const options: AgGaugeOptions = {
             strokeWidth: 2,
             text: 'LIMIT',
             label: {
-                spacing: 5,
                 fontSize: 18,
             },
         },

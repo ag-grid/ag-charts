@@ -39,7 +39,6 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     fillOpacity: 0.9,
                     label: {
                         enabled: true,
-
                         formatter: ({ value }) => (value ? `+${value.toFixed(1)}%` : ''),
                     },
                 },
@@ -114,7 +113,6 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     label: {
                         text: 'Break Even',
                         position: 'bottom',
-                        padding: 5,
                     },
                 },
                 {
@@ -142,21 +140,9 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
         },
         {
             position: 'bottom',
-            type: 'category' as any,
+            type: 'category',
             bandHighlight: {
                 enabled: true,
-            },
-            label: {
-                formatter: ({ value }) => {
-                    if (value === 'Monthly Net') {
-                        return value;
-                    }
-                    const date = new Date(value);
-                    return date.toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                    });
-                },
             },
         },
     ],

@@ -32,8 +32,6 @@ const options: AgCartesianChartOptions = {
                     position: 'bottom',
                     spacing: 40,
                     item: {
-                        paddingX: 16,
-                        paddingY: 8,
                         marker: {
                             size: 12,
                             shape: bar,
@@ -45,6 +43,7 @@ const options: AgCartesianChartOptions = {
                         groupPaddingInner: 0.2,
                         paddingInner: 0.3,
                         label: {
+                            //formatter is used here for the series tooltip
                             formatter: (params) => {
                                 const parts = params.value;
                                 if (Array.isArray(parts) && parts.length === 3) {
@@ -84,21 +83,14 @@ const options: AgCartesianChartOptions = {
             bar: {
                 series: {
                     fillOpacity: 0.85,
-                    strokeWidth: 0,
-                    highlight: {
-                        highlightedItem: {
-                            fillOpacity: 1,
-                        },
-                    },
                 },
             },
             line: {
                 series: {
                     strokeWidth: 3,
-                    strokeOpacity: 1,
                     marker: {
                         enabled: true,
-                        size: 6,
+                        size: 7,
                         strokeWidth: 2,
                         shape: bar,
                     },
@@ -119,7 +111,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'researchInstitutions',
             yName: 'Research Institutions',
-            grouped: true,
         },
         {
             type: 'bar',
@@ -127,7 +118,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'incubators',
             yName: 'Incubators',
-            grouped: true,
         },
         {
             type: 'bar',
@@ -135,7 +125,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'accelerators',
             yName: 'Accelerators',
-            grouped: true,
         },
         {
             type: 'bar',
@@ -143,7 +132,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'coWorkingSpaces',
             yName: 'Co-working Spaces',
-            grouped: true,
         },
         // Line series - Growth metrics
         {
@@ -152,10 +140,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'startups',
             yName: 'Startups (Count)',
-            strokeWidth: 3,
-            marker: {
-                size: 7,
-            },
         },
         {
             type: 'line',
@@ -163,10 +147,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'funding',
             yName: 'Funding ($M)',
-            strokeWidth: 3,
-            marker: {
-                size: 7,
-            },
         },
     ],
     axes: [
@@ -177,8 +157,6 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Infrastructure Count',
             },
-            min: 0,
-            nice: true,
             gridLine: {
                 style: [
                     {
@@ -199,7 +177,6 @@ const options: AgCartesianChartOptions = {
                 text: 'Startups & Funding',
             },
             min: 0,
-            nice: true,
             label: {
                 formatter: (params) => {
                     const value = params.value;
@@ -219,8 +196,6 @@ const options: AgCartesianChartOptions = {
         },
     ],
     legend: {
-        position: 'bottom',
-        orientation: 'horizontal',
         item: {
             paddingX: 12,
             paddingY: 8,

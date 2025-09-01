@@ -3,6 +3,7 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { getData } from './data';
 
 const data = getData();
+
 // Calculate overall median for reference line
 const allMedians = data.map((d) => d.median);
 const overallMedian = allMedians.reduce((a, b) => a + b, 0) / allMedians.length;
@@ -77,14 +78,10 @@ const options: AgCartesianChartOptions = {
             position: 'bottom',
             type: 'number',
             nice: true,
-            line: {
-                enabled: false,
-            },
             gridLine: {
                 enabled: true,
                 style: [
                     {
-                        strokeWidth: 1,
                         lineDash: [3, 3],
                     },
                 ],
@@ -129,14 +126,5 @@ const options: AgCartesianChartOptions = {
             ],
         },
     ],
-    formatter: {
-        x: ({ value }) => {
-            const numValue = typeof value === 'number' ? value : 0;
-            return `£${(numValue / 1000).toFixed(0)}k`;
-        },
-    },
-    legend: {
-        enabled: false,
-    },
 };
 AgCharts.create(options);
