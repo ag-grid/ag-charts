@@ -25,7 +25,7 @@ const { Color, FloatingToolbar, Menu, PropertiesArray, ToolbarButtonProperties, 
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
-    'pressed-lock': null;
+    'pressed-lock': { locked: boolean };
     'hid-overlays': null;
     'saved-color': {
         type: HasColorAnnotationType;
@@ -340,7 +340,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             case AnnotationOptions.Lock: {
                 datum.locked = !datum.locked;
                 this.refreshButtons(datum);
-                this.events.emit('pressed-lock', null);
+                this.events.emit('pressed-lock', { locked: datum.locked });
                 break;
             }
 
