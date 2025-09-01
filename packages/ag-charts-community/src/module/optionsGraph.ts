@@ -1,20 +1,12 @@
-import {
-    AdjacencyListGraph,
-    type PlainObject,
-    type Vertex,
-    isObject,
-    isObjectLike,
-    isPlainObject,
-} from 'ag-charts-core';
+import { AdjacencyListGraph, type PlainObject, type Vertex, isObject, isObjectLike } from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { Debug } from '../util/debug';
-import { deepClone } from '../util/json';
 import { simpleMemorize } from '../util/memo';
 import { pick, without } from '../util/object';
-import { paletteType } from './coreModulesTypes';
+import { type PaletteType, paletteType } from './coreModulesTypes';
 import { type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
 import {
     AUTO_ENABLE_EDGE,
@@ -89,7 +81,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     // A cache of values that persists between chart updates, use sparingly.
     private static readonly valueCache = new Map();
 
-    public readonly palette: PlainObject;
+    public readonly paletteType: PaletteType;
 
     // The current priority order in which to resolve options values.
     private edgePriority = [...OptionsGraph.EDGE_PRIORITY];
@@ -125,7 +117,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
         params: PlainObject | undefined = undefined,
-        palette: PlainObject | undefined = undefined,
+        public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map()
     ) {
@@ -135,9 +127,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.params = this.addVertex('params');
         this.annotations = this.addVertex('annotations');
 
-        // TODO: Remove `deepClone()` which is just used to workaround the freezing.
-        this.palette = palette ? deepClone(palette) : {};
-        this.palette.type = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
+        this.paletteType = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
         const seriesType = userOptions.series?.[0]?.type ?? 'line';
