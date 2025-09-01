@@ -8,6 +8,7 @@ import {
     type RequireOptional,
     createId,
     isEmptyObject,
+    type AreExact,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -785,11 +786,37 @@ export abstract class Series<
     }
 
     protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
-        const datums: any[] = [];
+        const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
-            const datum = node.closestDatum();
-            if (datum != null && datum.missing !== true) {
-                datums.push(datum);
+            const closestDatum: unknown = node.closestDatum();
+
+            // Sanitize the unsafe `closestDatum: any` type (as much as possible).
+            type D = (typeof datums)[number];
+            let safeDatum: D | undefined;
+            if (typeof closestDatum === 'object' && closestDatum != null) {
+                // Find required keys in SeriesNodeDatum and convert them to options unknowns:
+                type RequiredKeys<T> = { [K in keyof T]-?: object extends { [P in K]: T[K] } ? never : K }[keyof T];
+                type UnsafeRequired<T> = { [K in RequiredKeys<T>]?: unknown };
+                const unsafeDatum: UnsafeRequired<D> = closestDatum;
+
+                // Extract all required keys (with an assertion to check exhaustiveness).
+                const { datum, datumIndex, series, ...optionals } = unsafeDatum;
+                true satisfies RequiredKeys<typeof optionals> extends never ? true : false;
+
+                if (
+                    datum != null &&
+                    datumIndex != null &&
+                    series != null &&
+                    (typeof datumIndex === 'object' || typeof datumIndex === 'number') &&
+                    series instanceof Series
+                ) {
+                    true satisfies AreExact<typeof datumIndex, DatumIndexType>;
+                    safeDatum = { datum, datumIndex, series, ...optionals };
+                }
+            }
+
+            if (safeDatum != null && safeDatum.missing !== true) {
+                datums.push(safeDatum);
             }
         }
         return datums;
