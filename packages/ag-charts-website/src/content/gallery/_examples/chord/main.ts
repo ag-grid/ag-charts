@@ -53,12 +53,6 @@ const options: AgChartOptions<DataType> = {
             if (Math.abs(value) >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
             return value.toLocaleString();
         }
-
-        return String(value);
-    },
-    animation: {
-        enabled: true,
-        duration: 800,
     },
 };
 

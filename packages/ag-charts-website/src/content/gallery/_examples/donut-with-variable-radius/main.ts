@@ -47,7 +47,6 @@ const options: AgPolarChartOptions = {
             highlight: {
                 highlightedItem: {
                     strokeWidth: 3,
-                    fillOpacity: 1,
                 },
             },
             tooltip: {

@@ -21,12 +21,6 @@ const options: AgPolarChartOptions = {
                 series: {
                     strokeWidth: 1,
                     fillOpacity: 0.85,
-                    highlight: {
-                        highlightedItem: {
-                            fillOpacity: 1,
-                            strokeWidth: 2,
-                        },
-                    },
                 },
             },
         },
@@ -64,9 +58,6 @@ const options: AgPolarChartOptions = {
             label: {
                 enabled: false,
             },
-            gridLine: {
-                style: [{ strokeWidth: 1 }],
-            },
         },
         {
             type: 'angle-category',
@@ -76,22 +67,13 @@ const options: AgPolarChartOptions = {
     ],
     legend: {
         enabled: true,
-        position: 'bottom',
         spacing: 40,
         item: {
             marker: {
                 size: 16,
                 strokeWidth: 1.5,
             },
-            paddingX: 16,
-            paddingY: 8,
         },
-    },
-    padding: {
-        top: 20,
-        right: 20,
-        bottom: 20,
-        left: 20,
     },
 };
 

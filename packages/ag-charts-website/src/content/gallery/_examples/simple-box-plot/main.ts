@@ -32,7 +32,6 @@ const options: AgCartesianChartOptions = {
             maxName: 'Maximum',
             cornerRadius: 4,
             fillOpacity: 0.7,
-            strokeWidth: 2,
             whisker: {
                 strokeWidth: 1,
             },
@@ -64,7 +63,6 @@ const options: AgCartesianChartOptions = {
             },
             highlight: {
                 highlightedItem: {
-                    fillOpacity: 1,
                     strokeWidth: 3,
                 },
             },
@@ -82,7 +80,7 @@ const options: AgCartesianChartOptions = {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
             label: {
-                rotation: 0,
+                autoRotate: false,
             },
         },
         {

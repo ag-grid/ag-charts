@@ -41,12 +41,6 @@ const options: AgCartesianChartOptions = {
                     };
                 },
             },
-            highlight: {
-                enabled: true,
-                highlightedItem: {
-                    strokeWidth: 2,
-                },
-            },
         },
     ],
     axes: [

@@ -12,15 +12,11 @@ const options: AgChartOptions = {
         text: 'Millions USD',
     },
     formatter: {
-        y: ({ value }) => `$${typeof value === 'number' ? value.toFixed(1) : value}M`,
+        angle: ({ value }) => `$${typeof value === 'number' ? value.toFixed(1) : value}M`,
     },
     tooltip: {
         enabled: true,
         mode: 'shared',
-    },
-    legend: {
-        enabled: true,
-        position: 'bottom',
     },
     series: [
         {
@@ -58,7 +54,6 @@ const options: AgChartOptions = {
                     left: 4,
                     right: 4,
                 },
-                cornerRadius: 4,
             },
         },
         {
@@ -69,7 +64,7 @@ const options: AgChartOptions = {
             },
             gridLine: {
                 enabled: true,
-                style: [{ strokeWidth: 1, lineDash: [2, 2] }],
+                style: [{ lineDash: [2, 2] }],
             },
         },
     ],

@@ -35,7 +35,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 text: 'Year',
             },
             label: {
-                rotation: 0,
+                autoRotate: false,
             },
             bandHighlight: {
                 enabled: true,

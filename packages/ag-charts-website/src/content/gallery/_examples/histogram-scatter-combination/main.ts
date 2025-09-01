@@ -11,9 +11,6 @@ const options: AgCartesianChartOptions = {
     subtitle: {
         text: 'USA 1987',
     },
-    tooltip: {
-        mode: 'shared',
-    },
     series: [
         {
             type: 'histogram',

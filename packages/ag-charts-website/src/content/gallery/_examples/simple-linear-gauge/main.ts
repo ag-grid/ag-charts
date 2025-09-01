@@ -32,9 +32,6 @@ const options: AgLinearGaugeOptions = {
     scale: {
         min: 0,
         max: 100,
-        interval: {
-            step: 33,
-        },
         label: {
             enabled: false,
         },
@@ -84,9 +81,6 @@ const options: AgLinearGaugeOptions = {
             size: 25,
         },
     ],
-    label: {
-        enabled: false,
-    },
 };
 
 function getStatusForValue(value: number): string {

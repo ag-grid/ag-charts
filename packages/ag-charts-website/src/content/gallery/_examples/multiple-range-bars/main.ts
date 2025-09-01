@@ -35,9 +35,7 @@ const options: AgCartesianChartOptions = {
             fillOpacity: 0.85,
             highlight: {
                 highlightedItem: {
-                    fillOpacity: 1,
                     strokeWidth: 2,
-                    strokeOpacity: 1,
                 },
                 highlightedSeries: {
                     fillOpacity: 0.3,
@@ -151,15 +149,12 @@ const options: AgCartesianChartOptions = {
         },
     ],
     legend: {
-        position: 'bottom',
         spacing: 40,
         item: {
             paddingX: 16,
             paddingY: 8,
             marker: {
                 size: 18,
-                shape: 'square',
-                strokeWidth: 0,
             },
         },
     },

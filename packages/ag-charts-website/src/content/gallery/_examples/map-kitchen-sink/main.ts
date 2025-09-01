@@ -53,7 +53,6 @@ const options: AgTopologyChartOptions = {
             highlight: {
                 highlightedItem: {
                     fillOpacity: 0.6,
-                    strokeWidth: 2,
                 },
             },
         },
@@ -71,12 +70,6 @@ const options: AgTopologyChartOptions = {
             fillOpacity: 0.6,
             strokeWidth: 0.5,
             strokeOpacity: 0.8,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 1,
-                    strokeWidth: 2,
-                },
-            },
         })),
         {
             type: 'map-line',
@@ -97,7 +90,6 @@ const options: AgTopologyChartOptions = {
             highlight: {
                 highlightedItem: {
                     strokeWidth: 1.5,
-                    strokeOpacity: 1,
                 },
             },
         },
@@ -121,12 +113,6 @@ const options: AgTopologyChartOptions = {
             size: 3,
             fillOpacity: 0.6,
             strokeOpacity: 0.8,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 1,
-                    strokeWidth: 2,
-                },
-            },
             tooltip: {
                 renderer: ({ datum }) => ({
                     data: [{ label: `Country`, value: datum.country }],
@@ -200,7 +186,6 @@ const options: AgTopologyChartOptions = {
             strokeWidth: 2,
             highlight: {
                 highlightedItem: {
-                    fillOpacity: 1,
                     strokeWidth: 3,
                 },
             },

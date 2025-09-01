@@ -29,9 +29,6 @@ const options: AgCartesianChartOptions = {
                         },
                     },
                     number: {
-                        label: {
-                            formatter: ({ value }) => value.toLocaleString(),
-                        },
                         line: {
                             enabled: true,
                         },
@@ -163,7 +160,7 @@ const options: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'grouped-category',
-            depthOptions: [{ tick: { enabled: false } }, { tick: { enabled: false } }],
+            tick: { enabled: false },
             bandHighlight: {
                 enabled: true,
             },

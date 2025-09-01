@@ -10,9 +10,6 @@ const options: AgGaugeOptions = {
     container: document.getElementById('myChart'),
     value: 89,
     segmentation: {
-        interval: {
-            count: 4,
-        },
         spacing: 4,
     },
     innerRadiusRatio: 0.7,

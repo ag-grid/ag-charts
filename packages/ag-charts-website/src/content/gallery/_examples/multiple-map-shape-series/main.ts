@@ -64,12 +64,6 @@ const options: AgTopologyChartOptions = {
             labelName: 'Country Code',
             fillOpacity: 0.85,
             strokeWidth: 0.5,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 1,
-                    strokeWidth: 2,
-                },
-            },
             tooltip: {
                 renderer: ({ datum }: { datum: CountryData }) => {
                     const gdpPerCapita =

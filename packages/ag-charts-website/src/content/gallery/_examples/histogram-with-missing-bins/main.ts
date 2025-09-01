@@ -51,7 +51,6 @@ const options: AgChartOptions = {
             },
             highlight: {
                 highlightedItem: {
-                    fillOpacity: 1,
                     strokeWidth: 3,
                 },
             },
@@ -69,20 +68,15 @@ const options: AgChartOptions = {
                 enabled: true,
                 text: 'Engine Displacement (Cubic Inches)',
             },
-            label: {
-                formatter: ({ value }) => `${value}`,
-            },
             crossLines: [
                 {
                     type: 'line',
                     value: 200,
-                    strokeWidth: 1,
                     lineDash: [6, 3],
                     strokeOpacity: 0.4,
                     label: {
                         text: 'Large Engines',
                         fontStyle: 'italic',
-                        padding: 5,
                         position: 'inside-bottom-right',
                     },
                 },
@@ -120,15 +114,6 @@ const options: AgChartOptions = {
             ],
         },
     ],
-    legend: {
-        enabled: false,
-    },
-    padding: {
-        top: 20,
-        right: 20,
-        bottom: 20,
-        left: 20,
-    },
     tooltip: {
         position: {
             xOffset: 20,

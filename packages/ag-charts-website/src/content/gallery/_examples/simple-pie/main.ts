@@ -55,12 +55,6 @@ const options: AgPolarChartOptions = {
                     };
                 },
             },
-            highlight: {
-                enabled: true,
-                highlightedItem: {
-                    strokeWidth: 2,
-                },
-            },
         },
     ],
     legend: {

@@ -12,7 +12,6 @@ const options: AgChartOptions<DataType> = {
     },
     subtitle: {
         text: 'Q2 2024 vs Q1 2024 | Quarterly Comparison',
-        spacing: 20,
     },
     series: [
         {
@@ -21,13 +20,11 @@ const options: AgChartOptions<DataType> = {
             valueKey: 'q2_2024',
             direction: 'horizontal',
             dropOff: {
-                enabled: true,
                 fillOpacity: 0.3,
             },
             spacingRatio: 0.02,
             strokeWidth: 2,
             strokeOpacity: 0.3,
-            fillOpacity: 0.95,
             itemStyler: ({ datum }) => {
                 const performance = datum.q2_2024 / datum.target;
 

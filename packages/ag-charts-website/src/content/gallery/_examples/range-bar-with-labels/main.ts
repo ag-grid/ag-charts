@@ -7,7 +7,6 @@ const data = getData();
 // Calculate statistics for reference lines
 const allSalaries = data.flatMap((d) => [d.low, d.high]);
 const avgSalary = allSalaries.reduce((a, b) => a + b, 0) / allSalaries.length;
-const medianSalary = allSalaries.sort((a, b) => a - b)[Math.floor(allSalaries.length / 2)];
 
 const formatter = ({ value }: { value: number | Date | string | string[] }) =>
     value.toLocaleString('en-GB', {
@@ -29,12 +28,6 @@ const options: AgCartesianChartOptions<DataType> = {
     // Root-level formatter for consistent currency formatting
     formatter: {
         y: formatter,
-    },
-    tooltip: {
-        enabled: true,
-        position: {
-            placement: ['right', 'left', 'top', 'bottom'],
-        },
     },
     series: [
         {
@@ -60,6 +53,9 @@ const options: AgCartesianChartOptions<DataType> = {
                 color: 'rgb(118,118,118)',
             },
             tooltip: {
+                position: {
+                    placement: ['right', 'left', 'top', 'bottom'],
+                },
                 renderer: ({ datum }) => {
                     const low = datum['low'] as number;
                     const high = datum['high'] as number;
@@ -118,15 +114,11 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
                 strokeWidth: 1,
                 lineDash: [5, 5],
-                label: {
-                    enabled: true,
-                },
             },
             crossLines: [
                 {
                     type: 'line',
                     value: avgSalary,
-                    strokeWidth: 1,
                     lineDash: [4, 4],
                     label: {
                         text: `Average (${avgSalary.toLocaleString('en-GB', {
@@ -134,7 +126,6 @@ const options: AgCartesianChartOptions<DataType> = {
                             currency: 'GBP',
                         })})`,
                         position: 'left',
-                        padding: 5,
                     },
                 },
             ],
