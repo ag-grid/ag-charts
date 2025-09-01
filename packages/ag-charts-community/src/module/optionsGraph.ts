@@ -554,7 +554,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const targetConfigObject = getPathSafe(this.config, configPathArray);
         const targetPathArrayVertex = this.findNeighbour(target, PATH_ARRAY_EDGE);
 
-        if (isPlainObject(targetConfigObject)) {
+        if (isObject(targetConfigObject)) {
             this.buildGraphFromObject(
                 target,
                 DEFAULTS_EDGE,
@@ -567,7 +567,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         if (this.overrides) {
             const targetOverridesObject = getPathSafe(this.overrides, configPathArray);
-            if (isPlainObject(targetOverridesObject)) {
+            if (isObject(targetOverridesObject)) {
                 this.buildGraphFromObject(
                     target,
                     OVERRIDES_EDGE,
@@ -579,7 +579,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             }
 
             const commonOverridesObject = getPathSafe(this.overrides, ['common', ...configPathArray.slice(1)]);
-            if (isPlainObject(commonOverridesObject)) {
+            if (isObject(commonOverridesObject)) {
                 this.buildGraphFromObject(
                     target,
                     OVERRIDES_EDGE,
@@ -944,7 +944,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             } else {
                 // TODO: breaks toBe of context values
                 // Clone object values to prevent nodes from affecting other nodes
-                // const safeValue = isPlainObject(value) ? deepClone(value) : value;
+                // const safeValue = isObject(value) ? deepClone(value) : value;
                 setPathSafe(object, pathArray, value);
             }
             break;
@@ -1047,7 +1047,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             const orphanChildPathArrayVertex = this.addVertex(childContextPathArray);
             this.addEdge(orphanChildPathVertex, orphanChildPathArrayVertex, PATH_ARRAY_EDGE);
 
-            if (isPlainObject(defaultValue)) {
+            if (isObject(defaultValue)) {
                 this.buildGraphFromObject(
                     orphanChildPathVertex,
                     DEFAULTS_EDGE,
