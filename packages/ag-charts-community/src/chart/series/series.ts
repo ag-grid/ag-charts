@@ -739,7 +739,7 @@ export abstract class Series<
 
         const { x, y } = point;
         const key = JSON.stringify({ x, y, maxDistance, selectedPickModes });
-        if (this._pickNodeCache.has(key)) {
+        if (false && this._pickNodeCache.has(key)) {
             return this._pickNodeCache.get(key);
         }
 

@@ -1,4 +1,4 @@
-import { EventEmitter } from 'ag-charts-core';
+import { EventEmitter, type PickPartial } from 'ag-charts-core';
 import type { AgAnnotation, AgContextMenuItemShowOn, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
@@ -105,7 +105,7 @@ export interface ZoomPanStartEvent {
     readonly callerId: string;
 }
 
-export interface HighlightNodeDatum extends SeriesNodeDatum<DatumIndexType> {
+export interface HighlightNodeDatum extends PickPartial<SeriesNodeDatum<DatumIndexType>, 'datumIndex'> {
     readonly xKey?: string;
     readonly yKey?: string;
     readonly angleKey?: string;
