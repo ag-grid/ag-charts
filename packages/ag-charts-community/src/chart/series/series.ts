@@ -811,6 +811,8 @@ export abstract class Series<
                     series instanceof Series
                 ) {
                     true satisfies AreExact<typeof datumIndex, DatumIndexType>;
+                    // Note: this isn't a perfect sanitization. The `...optionals` expansion can still potentionally
+                    // violate type-rule of SeriesNodeDatum<DatumIndexType> or any of its derived types.
                     safeDatum = { datum, datumIndex, series, ...optionals };
                 }
             }
