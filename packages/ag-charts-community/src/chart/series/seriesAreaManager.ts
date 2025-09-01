@@ -77,7 +77,7 @@ type PickedNodes = {
 
 interface PickedNode {
     series: UnknownSeries;
-    datum: SeriesNodeDatum<any>;
+    datum: SeriesNodeDatum<unknown>;
     datumIndex: unknown;
 }
 
@@ -185,7 +185,9 @@ export class SeriesAreaManager extends BaseManager {
         datum: undefined as SeriesNodeDatum<unknown> | undefined,
     };
 
-    private cachedTooltipContent: { series: any; datumIndex: any; content: TooltipContent[] } | undefined = undefined;
+    private cachedTooltipContent:
+        | { series: UnknownSeries; datumIndex: unknown; content: TooltipContent[] }
+        | undefined = undefined;
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
@@ -1028,21 +1030,21 @@ export class SeriesAreaManager extends BaseManager {
     // (CRT-869, CRT-901, CRT-871, CRT-909).
     private getTooltipContent(
         series: UnknownSeries,
-        datumIndex: any,
+        datumIndex: unknown,
         datum: SeriesNodeDatum<unknown>,
         purpose: 'aria-label'
     ): TooltipContent[];
 
     private getTooltipContent(
         series: UnknownSeries,
-        datumIndex: any,
+        datumIndex: unknown,
         datum: SeriesNodeDatum<unknown>,
         purpose: 'tooltip'
     ): TooltipContent[] | undefined;
 
     private getTooltipContent(
         series: UnknownSeries,
-        datumIndex: any,
+        datumIndex: unknown,
         datum: SeriesNodeDatum<unknown>,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] | undefined {
