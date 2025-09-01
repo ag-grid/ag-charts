@@ -1028,6 +1028,39 @@ describe('BarSeries', () => {
                 await compare();
             });
         });
+        describe('stroke-strokeWidth-defaults', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                styler: () => {
+                                    // check that default `strokeWidth: 2` is resolved.
+                                    return { stroke: 'lime' };
+                                },
+                            },
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                styler: () => {
+                                    // check that theme-default `stroke` is resolved.
+                                    return { strokeWidth: 4 };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
     });
 
     describe('segmentation', () => {
