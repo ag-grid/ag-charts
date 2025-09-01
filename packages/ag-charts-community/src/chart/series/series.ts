@@ -811,9 +811,19 @@ export abstract class Series<
                     series instanceof Series
                 ) {
                     true satisfies AreExact<typeof datumIndex, DatumIndexType>;
-                    // Note: this isn't a perfect sanitization. The `...optionals` expansion can still potentionally
-                    // violate type-rule of SeriesNodeDatum<DatumIndexType> or any of its derived types.
-                    safeDatum = { datum, datumIndex, series, ...optionals };
+                    // Note: this isn't a perfect sanitization. The optionals can still potentionally violate type-rule
+                    // of SeriesNodeDatum<DatumIndexType> or any of its derived types.
+                    //
+                    // Creating is a new object that satisfies `D` is the preferred way to assign `safeDatum`
+                    // TypeScript, because it ensures that compiler checks the types. However, is not good for memory
+                    // performance because we're duplicating datum objects.
+                    //
+                    // As a compromise, use the redundant `unsafeDatum` condition (always true) to use a `as` keyword in
+                    // the truthy-branch without losing the TypeScript compiler checks (which are checked on the
+                    // unreachable falsy-branch).
+                    safeDatum = unsafeDatum
+                        ? (unsafeDatum as D)
+                        : ({ datum, datumIndex, series, ...optionals } satisfies D);
                 }
             }
 
