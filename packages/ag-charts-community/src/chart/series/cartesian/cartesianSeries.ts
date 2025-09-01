@@ -36,7 +36,7 @@ import {
 import type { SeriesDirectionKeysMapping, SeriesNodePickMatch } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { Segmentation, SeriesProperties } from '../seriesProperties';
-import type { ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { DatumIndexType, ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
@@ -570,7 +570,7 @@ export abstract class CartesianSeries<
         // Override point for subclasses
     }
 
-    protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<unknown>[] | undefined {
+    protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
         const { x, y } = point;
 
         const { dataNodeGroup } = this;
@@ -582,7 +582,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected pickModulesExactShape(point: Point): SeriesNodeDatum<unknown>[] | undefined {
+    protected pickModulesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
         for (const mod of this.moduleMap.modules()) {
             const { datum } = mod.pickNodeExact(point) ?? {};
             if (datum == null) continue;
@@ -592,7 +592,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const result = super.pickNodesExactShape(point);
 
         if (result.length !== 0) {
@@ -613,7 +613,7 @@ export abstract class CartesianSeries<
         const hitPoint = { x, y };
 
         let minDistanceSquared = Infinity;
-        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
@@ -642,7 +642,7 @@ export abstract class CartesianSeries<
 
     private pickModulesClosestDatum(point: Point) {
         let minDistanceSquared = Infinity;
-        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         for (const mod of this.moduleMap.modules()) {
             const modPick = mod.pickNodeNearest(point);
@@ -659,7 +659,7 @@ export abstract class CartesianSeries<
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         let minDistance = Infinity;
-        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         const pick = this.pickNodeDataClosestDatum(point);
         if (pick != null && pick.distance < minDistance) {
@@ -703,7 +703,7 @@ export abstract class CartesianSeries<
         if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];
-        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};

@@ -3,7 +3,7 @@ import type { EventEmitter } from 'ag-charts-core';
 import type { EventsHubMap } from '../../core/eventsHub';
 import type { BBox } from '../../scene/bbox';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import type { ISeries } from '../series/seriesTypes';
+import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { UpdateService } from '../updateService';
 import type { HighlightManager } from './highlightManager';
@@ -42,7 +42,7 @@ export type SyncChartLike = {
         zoomManager: ZoomManager;
     };
     getTooltipContent(
-        series: ISeries<unknown, unknown, unknown>,
+        series: ISeries<DatumIndexType, unknown, unknown>,
         datumIndex: unknown,
         removeThisDatum: unknown,
         purpose: 'aria-label' | 'tooltip'

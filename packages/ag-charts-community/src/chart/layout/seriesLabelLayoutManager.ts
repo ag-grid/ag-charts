@@ -1,12 +1,16 @@
 import { BBox } from '../../scene/bbox';
 import { type PointLabelDatum, isPointLabelDatum, placeLabels } from '../../scene/util/labelPlacement';
 import type { Padding } from '../../util/padding';
-import type { ISeries } from '../series/seriesTypes';
+import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 
 export class SeriesLabelLayoutManager {
     private readonly labelData: Map<string, PointLabelDatum[]> = new Map();
 
-    updateLabels(placedLabelSeries: ISeries<unknown, unknown, unknown>[], padding: Padding, seriesRect = BBox.zero) {
+    updateLabels(
+        placedLabelSeries: ISeries<DatumIndexType, unknown, unknown>[],
+        padding: Padding,
+        seriesRect = BBox.zero
+    ) {
         const bounds = {
             x: -padding.left,
             y: -padding.top,

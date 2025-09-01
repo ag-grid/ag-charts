@@ -15,7 +15,7 @@ import {
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import type { ISeries } from '../series/seriesTypes';
+import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
@@ -149,7 +149,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 }
 
 export function minimumTimeAxisDatumGranularity(
-    boundSeries: ISeries<unknown, unknown, unknown, unknown>[],
+    boundSeries: ISeries<DatumIndexType, unknown, unknown, unknown>[],
     direction: ChartAxisDirection,
     // eslint-disable-next-line sonarjs/use-type-alias
     min: Date | number | undefined,
@@ -167,7 +167,7 @@ export function minimumTimeAxisDatumGranularity(
 }
 
 export function calculateDefaultUnit(
-    boundSeries: ISeries<unknown, unknown, unknown, unknown>[],
+    boundSeries: ISeries<DatumIndexType, unknown, unknown, unknown>[],
     direction: ChartAxisDirection,
     min: Date | number | undefined,
     max: Date | number | undefined

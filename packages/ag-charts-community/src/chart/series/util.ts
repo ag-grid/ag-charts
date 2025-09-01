@@ -2,7 +2,7 @@ import { type BoxBounds, findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import { Transformable } from '../../scene/transformable';
 import { type HighlightState, highlightStates } from './seriesProperties';
-import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
 
 function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
     if (datum == null || domain.length === 0) {
@@ -81,7 +81,7 @@ export function visibleRangeIndices(
 
 export function getDatumRefPoint(
     series: ISeries<any, any, any>,
-    datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
+    datum: SeriesNodeDatum<DatumIndexType> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
     movedBounds: BoxBounds | undefined
 ): { canvasX: number; canvasY: number } | undefined {
     if (movedBounds) {

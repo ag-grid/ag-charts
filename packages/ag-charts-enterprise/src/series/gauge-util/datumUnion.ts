@@ -1,6 +1,9 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
-export class DatumUnion<TNode extends _ModuleSupport.Shape, TDatum extends _ModuleSupport.SeriesNodeDatum<unknown>> {
+export class DatumUnion<
+    TNode extends _ModuleSupport.Shape,
+    TDatum extends _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>,
+> {
     node?: TNode;
     datum?: TDatum;
 

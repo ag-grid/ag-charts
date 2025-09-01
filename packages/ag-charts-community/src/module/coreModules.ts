@@ -19,12 +19,13 @@ import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartType } from '../chart/factory/chartTypes';
 import type { ChartLegend, ChartLegendType } from '../chart/legend/legendDatum';
 import type { Series } from '../chart/series/series';
+import type { DatumIndexType } from '../chart/series/seriesTypes';
 import type { BaseModule, BaseOptionsModule, ModuleInstance } from './baseModule';
 import type { RequiredSeriesType } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
 type ModuleInstanceFactory<M> = (moduleContext: ModuleContext) => M;
-export type SeriesFactory = ModuleInstanceFactory<Series<unknown, any, object, any>>;
+export type SeriesFactory = ModuleInstanceFactory<Series<DatumIndexType, any, object, any>>;
 export type LegendFactory = ModuleInstanceFactory<ChartLegend>;
 
 export interface RemovableModule {
