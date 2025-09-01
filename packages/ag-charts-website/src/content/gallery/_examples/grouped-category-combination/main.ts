@@ -160,7 +160,7 @@ const options: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'grouped-category',
-            tick: { enabled: false },
+            depthOptions: [{ tick: { enabled: false } }, { tick: { enabled: false } }],
             bandHighlight: {
                 enabled: true,
             },

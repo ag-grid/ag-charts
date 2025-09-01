@@ -12,7 +12,7 @@ const options: AgPolarChartOptions = {
         text: 'Quarterly Performance (Millions USD)',
     },
     formatter: {
-        radius: ({ value }) => `$${Number(value).toFixed(1)}M`,
+        radius: ({ value }) => `$${Number(value).toFixed(0)}M`,
     },
     theme: {
         overrides: {

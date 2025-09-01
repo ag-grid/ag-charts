@@ -18,6 +18,7 @@ const options: AgChartOptions<DataType> = {
             lineDash: [5],
             label: {
                 formatter: ({ value, datum }) => (datum.group === 'INITIAL CONTACT' ? '' : value.toLocaleString()),
+                spacing: 20,
             },
         },
     ],

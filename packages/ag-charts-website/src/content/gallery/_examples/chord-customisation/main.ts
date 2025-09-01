@@ -63,9 +63,8 @@ const options: AgChartOptions = {
             },
             tooltip: {
                 renderer: ({ datum, size, sizeName }) => {
-                    const passengers = { label: sizeName, value: numberFormatter.format(size) };
+                    const passengers = { label: sizeName ?? '', value: numberFormatter.format(size) };
                     if (!datum) return { data: [passengers] };
-
                     return {
                         data: [
                             { label: 'Route', value: `${datum.from} → ${datum.to}` },
