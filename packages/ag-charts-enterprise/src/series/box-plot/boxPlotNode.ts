@@ -224,8 +224,11 @@ export class BoxPlotNode extends Scalable(Path) {
         }
     }
 
-    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        super.drawPath(ctx);
+    override drawPath(
+        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+        path: Path2D = this.path.getPath2D()
+    ) {
+        super.drawPath(ctx, path);
 
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
