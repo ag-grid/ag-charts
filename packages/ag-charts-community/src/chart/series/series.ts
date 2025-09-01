@@ -1,5 +1,6 @@
 import {
     type AnyFn,
+    type AreExact,
     CleanupRegistry,
     EventEmitter,
     LRUCache,
@@ -8,7 +9,6 @@ import {
     type RequireOptional,
     createId,
     isEmptyObject,
-    type AreExact,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
