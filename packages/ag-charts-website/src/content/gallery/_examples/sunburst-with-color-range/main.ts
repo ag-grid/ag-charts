@@ -2,8 +2,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
-const formatNumber = (value) => `£${(value / 1e3).toFixed(0)}k`;
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
