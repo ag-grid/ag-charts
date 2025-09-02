@@ -58,12 +58,17 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
 function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
     const lines: string[] = text.split(LineSplitter);
     const measurer = cachedTextMeasurer(options.font);
+    const result: string[] = [];
 
     if (options.textWrap === 'never') {
-        return lines.map((line) => truncateLine(line.trimEnd(), measurer, options.maxWidth));
+        for (const line of lines) {
+            const truncatedLine = truncateLine(line.trimEnd(), measurer, options.maxWidth);
+            if (!truncatedLine) break;
+            result.push(truncatedLine);
+        }
+        return result;
     }
 
-    const result: string[] = [];
     const wrapHyphenate = options.textWrap === 'hyphenate';
     const wrapOnSpace = options.textWrap == null || options.textWrap === 'on-space';
 
