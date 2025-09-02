@@ -39,4 +39,3 @@ export function guardTextEdges(str: string) {
 export function unguardTextEdges(str: string) {
     return str.replaceAll(TrimEdgeGuard, '');
 }
-
