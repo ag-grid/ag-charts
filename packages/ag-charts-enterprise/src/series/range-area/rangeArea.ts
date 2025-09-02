@@ -204,7 +204,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(data && xAxis && yAxis && dataModel && processedData)) return;
+        if (!(data && xAxis && yAxis && dataModel && processedData && this.chart?.seriesRect)) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -351,7 +351,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             this.properties.segmentation,
             xAxis,
             yAxis,
-            this.chart!.seriesRect!,
+            this.chart.seriesRect,
             this.ctx.scene,
             false
         );

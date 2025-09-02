@@ -241,7 +241,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(data && xAxis && yAxis && dataModel && processedData?.dataSources)) return;
+        if (!(data && xAxis && yAxis && dataModel && processedData?.dataSources && this.chart?.seriesRect)) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -255,7 +255,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             this.properties.segmentation,
             xAxis,
             yAxis,
-            this.chart!.seriesRect!,
+            this.chart.seriesRect,
             this.ctx.scene
         );
 
