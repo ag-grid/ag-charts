@@ -454,7 +454,7 @@ export abstract class Axis<
     }
 
     protected getLabelStyles(
-        params: { value: string | undefined; depth?: number },
+        params: { value: string | TextSegment[] | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
         label: AxisLabel = this.label
     ) {

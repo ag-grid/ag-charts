@@ -1,7 +1,8 @@
-import type { MultilineTextMetricsBox } from 'ag-charts-core';
+import type { Size } from 'ag-charts-core';
+import type { TextSegment } from 'ag-charts-types';
 
-import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { FromToFns } from '../../motion/fromToMotion';
+import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { Group, TranslatableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import type { Rect } from '../../scene/shape/rect';
@@ -16,13 +17,13 @@ export enum NiceMode {
 
 export interface TickDatum {
     index: number;
-    tickLabel: string | undefined;
+    tickLabel: string | TextSegment[] | undefined;
     tick: any;
     tickId: string;
     translation: number;
     textUntruncated: string | undefined;
     isPrimary: boolean;
-    textMetrics: MultilineTextMetricsBox;
+    textMetrics: Size;
 }
 
 export interface AxisLineDatum {
