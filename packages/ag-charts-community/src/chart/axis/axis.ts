@@ -40,7 +40,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { ISeries } from '../series/seriesTypes';
+import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
@@ -217,7 +217,7 @@ export abstract class Axis<
         unit: 'percent',
     };
 
-    boundSeries: ISeries<unknown, unknown, unknown>[] = [];
+    boundSeries: ISeries<DatumIndexType, unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;

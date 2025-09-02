@@ -78,7 +78,7 @@ import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
-import type { ISeries } from './series/seriesTypes';
+import type { DatumIndexType, ISeries } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
@@ -405,7 +405,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
-        const getTooltipContent = <DatumIndex = unknown>(
+        const getTooltipContent = <DatumIndex extends DatumIndexType>(
             series: ISeries<DatumIndex, unknown, unknown>,
             datumIndex: DatumIndex,
             removeThisDatum: unknown,
@@ -432,8 +432,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     abstract getChartType(): ChartType;
 
     public getTooltipContent(
-        series: ISeries<unknown, any, any>,
-        datumIndex: unknown,
+        series: ISeries<DatumIndexType, any, any>,
+        datumIndex: DatumIndexType,
         removeMeDatum: unknown,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] {
@@ -851,7 +851,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<unknown, any, any, any>[] = [];
+    series: Series<DatumIndexType, any, any, any>[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
@@ -1134,7 +1134,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
-    protected async updateSeries(seriesToUpdate: ISeries<unknown, unknown, unknown>[]) {
+    protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
         const { seriesRect } = this;
 
         await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));

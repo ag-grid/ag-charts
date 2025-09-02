@@ -10,7 +10,12 @@ type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemS
 
 const { Property, ContextMenuRegistry, callWithContext, getIconClassNames } = _ModuleSupport;
 
-type UnknownSeries = _ModuleSupport.ISeries<unknown, unknown, _ModuleSupport.SeriesProperties<object>, unknown>;
+type UnknownSeries = _ModuleSupport.ISeries<
+    _ModuleSupport.DatumIndexType,
+    unknown,
+    _ModuleSupport.SeriesProperties<object>,
+    unknown
+>;
 type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
@@ -29,7 +34,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly interactionManager: _ModuleSupport.InteractionManager;
 
     // State
-    private pickedNode: _ModuleSupport.SeriesNodeDatum<unknown> | undefined = undefined;
+    private pickedNode: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;

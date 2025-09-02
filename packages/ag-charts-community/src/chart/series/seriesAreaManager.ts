@@ -1,7 +1,7 @@
 import { type Point, clamp, createId } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
-import type { HighlightChangeEvent, LayoutCompleteEvent } from '../../core/eventsHub';
+import type { HighlightChangeEvent, HighlightNodeDatum, LayoutCompleteEvent } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
 import { BBox } from '../../scene/bbox';
@@ -41,7 +41,7 @@ import {
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
-import type { SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -55,7 +55,7 @@ enum PickedFocusStatus {
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
-    getTooltipContent: <DatumIndex = unknown>(
+    getTooltipContent: <DatumIndex extends DatumIndexType>(
         series: UnknownSeries,
         datumIndex: DatumIndex,
         removeThisDatum: unknown,
@@ -77,7 +77,7 @@ type PickedNodes = {
 
 interface PickedNode {
     series: UnknownSeries;
-    datum: SeriesNodeDatum<any>;
+    datum: SeriesNodeDatum<DatumIndexType>;
     datumIndex: unknown;
 }
 
@@ -182,10 +182,12 @@ export class SeriesAreaManager extends BaseManager {
         series: undefined as UnknownSeries | undefined,
         seriesIndex: 0,
         datumIndex: 0,
-        datum: undefined as SeriesNodeDatum<unknown> | undefined,
+        datum: undefined as SeriesNodeDatum<DatumIndexType> | undefined,
     };
 
-    private cachedTooltipContent: { series: any; datumIndex: any; content: TooltipContent[] } | undefined = undefined;
+    private cachedTooltipContent:
+        | { series: UnknownSeries; datumIndex: unknown; content: TooltipContent[] }
+        | undefined = undefined;
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
@@ -339,7 +341,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        let pickedNode: SeriesNodeDatum<unknown> | undefined;
+        let pickedNode: HighlightNodeDatum | undefined;
         let position: { x: number; y: number } | undefined;
         if (this.focusIndicator?.isFocusVisible()) {
             pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
@@ -363,11 +365,12 @@ export class SeriesAreaManager extends BaseManager {
         this.clearAll();
         const canvasX = event.currentX + current.cssLeft();
         const canvasY = event.currentY + current.cssTop();
-        if (pickedSeries && pickedNode) {
+        const { datumIndex } = pickedNode ?? {};
+        if (pickedSeries && pickedNode && datumIndex != null) {
             this.chart.ctx.contextMenuRegistry.dispatchContext(
                 'series-node',
                 { widgetEvent: event, canvasX, canvasY },
-                { pickedSeries, pickedNode },
+                { pickedSeries, pickedNode: { ...pickedNode, datumIndex } },
                 position
             );
         } else {
@@ -811,7 +814,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private getDatumAriaText(datum: SeriesNodeDatum<unknown>, tooltipContent: TooltipContent[]): string {
+    private getDatumAriaText(datum: SeriesNodeDatum<DatumIndexType>, tooltipContent: TooltipContent[]): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
         return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
@@ -1028,22 +1031,22 @@ export class SeriesAreaManager extends BaseManager {
     // (CRT-869, CRT-901, CRT-871, CRT-909).
     private getTooltipContent(
         series: UnknownSeries,
-        datumIndex: any,
-        datum: SeriesNodeDatum<unknown>,
+        datumIndex: unknown,
+        datum: SeriesNodeDatum<DatumIndexType>,
         purpose: 'aria-label'
     ): TooltipContent[];
 
     private getTooltipContent(
         series: UnknownSeries,
-        datumIndex: any,
-        datum: SeriesNodeDatum<unknown>,
+        datumIndex: unknown,
+        datum: SeriesNodeDatum<DatumIndexType>,
         purpose: 'tooltip'
     ): TooltipContent[] | undefined;
 
     private getTooltipContent(
         series: UnknownSeries,
-        datumIndex: any,
-        datum: SeriesNodeDatum<unknown>,
+        datumIndex: DatumIndexType,
+        datum: SeriesNodeDatum<DatumIndexType>,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] | undefined {
         let result: TooltipContent[] | undefined;

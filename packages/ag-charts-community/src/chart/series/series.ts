@@ -56,7 +56,14 @@ import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
+import type {
+    DatumIndexType,
+    INodeEvent,
+    ISeries,
+    NodeDataDependencies,
+    SeriesNodeDatum,
+    SeriesNodeEventTypes,
+} from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
 
@@ -78,7 +85,7 @@ export enum SeriesNodePickMode {
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
 export type SeriesNodePickMatch = {
-    datum: SeriesNodeDatum<unknown>;
+    datum: SeriesNodeDatum<DatumIndexType>;
     distance: number;
 };
 
@@ -94,7 +101,7 @@ export type PickFocusInputs = {
 
 export type PickFocusOutputs = {
     datumIndex: number;
-    datum: SeriesNodeDatum<unknown>;
+    datum: SeriesNodeDatum<DatumIndexType>;
     otherIndex?: number;
     bounds: BBox | Path;
     movedBounds?: BBox;
@@ -103,12 +110,12 @@ export type PickFocusOutputs = {
 
 export type PickResult = {
     pickMode: SeriesNodePickMode;
-    datums: SeriesNodeDatum<unknown>[];
+    datums: SeriesNodeDatum<DatumIndexType>[];
     distance: number;
 };
 
 export type INodeEventConstructor<
-    TDatum extends SeriesNodeDatum<unknown>,
+    TDatum extends SeriesNodeDatum<DatumIndexType>,
     TSeries extends Series<any, TDatum, object, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > = new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries) => INodeEvent<T>;
@@ -116,8 +123,10 @@ export type INodeEventConstructor<
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
-export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent extends string = SeriesNodeEventTypes>
-    implements INodeEvent<TEvent>
+export class SeriesNodeEvent<
+    TDatum extends SeriesNodeDatum<DatumIndexType>,
+    TEvent extends string = SeriesNodeEventTypes,
+> implements INodeEvent<TEvent>
 {
     readonly datum: unknown;
     readonly seriesId: string;
@@ -127,7 +136,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent ext
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: ISeries<unknown, TDatum, unknown, unknown>
+        series: ISeries<DatumIndexType, TDatum, unknown, unknown>
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
@@ -138,7 +147,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent ext
     }
 }
 
-export type SeriesNodeDataContext<I, S = SeriesNodeDatum<I>, L = S> = {
+export type SeriesNodeDataContext<I extends DatumIndexType, S = SeriesNodeDatum<I>, L = S> = {
     itemId: string;
     nodeData: S[];
     labelData: L[];
@@ -162,7 +171,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     type = 'groupingChanged';
 
     constructor(
-        public series: Series<unknown, any, object, any>,
+        public series: Series<DatumIndexType, any, object, any>,
         public seriesGrouping: SeriesGrouping | undefined
     ) {}
 }
@@ -204,10 +213,10 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
-export type UnknownSeries = Series<unknown, SeriesNodeDatum<unknown>, object, SeriesProperties<object>>;
+export type UnknownSeries = Series<DatumIndexType, SeriesNodeDatum<DatumIndexType>, object, SeriesProperties<object>>;
 
 export abstract class Series<
-        TDatumIndex,
+        TDatumIndex extends DatumIndexType,
         TDatum extends SeriesNodeDatum<TDatumIndex>,
         TOpts extends object,
         TProps extends SeriesProperties<TOpts>,
@@ -735,7 +744,7 @@ export abstract class Series<
         }
 
         for (const pickMode of selectedPickModes) {
-            let result: { datums: SeriesNodeDatum<unknown>[]; distance: number } | undefined;
+            let result: { datums: SeriesNodeDatum<DatumIndexType>[]; distance: number } | undefined;
 
             switch (pickMode) {
                 case SeriesNodePickMode.EXACT_SHAPE_MATCH: {
@@ -775,8 +784,8 @@ export abstract class Series<
         return this._pickNodeCache.set(key, undefined);
     }
 
-    protected pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
-        const datums: any[] = [];
+    protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
+        const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
             const datum = node.closestDatum();
             if (datum != null && datum.missing !== true) {

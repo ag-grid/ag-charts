@@ -4,7 +4,7 @@ import type { AgAnnotation, AgContextMenuItemShowOn, AgTimeInterval, AgTimeInter
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
-import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
+import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
@@ -105,7 +105,7 @@ export interface ZoomPanStartEvent {
     readonly callerId: string;
 }
 
-export interface HighlightNodeDatum extends SeriesNodeDatum<unknown> {
+export interface HighlightNodeDatum extends SeriesNodeDatum<DatumIndexType> {
     readonly xKey?: string;
     readonly yKey?: string;
     readonly angleKey?: string;

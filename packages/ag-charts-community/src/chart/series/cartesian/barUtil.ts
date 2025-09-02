@@ -10,7 +10,7 @@ import type { Rect } from '../../../scene/shape/rect';
 import { Transformable } from '../../../scene/transformable';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { ISeries } from '../seriesTypes';
+import type { DatumIndexType, ISeries } from '../seriesTypes';
 
 export function checkCrisp(
     scale: Scale<any, any> | undefined,
@@ -208,7 +208,7 @@ export function resetBarSelectionsFn(
 }
 
 export function computeBarFocusBounds(
-    series: ISeries<unknown, unknown, unknown>,
+    series: ISeries<DatumIndexType, unknown, unknown>,
     datum: { x: number; y: number; width: number; height: number } | undefined
 ): BBox | undefined {
     if (datum === undefined) return undefined;

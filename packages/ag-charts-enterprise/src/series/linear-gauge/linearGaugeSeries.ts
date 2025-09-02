@@ -1217,9 +1217,12 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return [];
     }
 
-    override getTooltipContent(datumIndex: LinearGaugeNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(
+        datumIndex: LinearGaugeNodeDatumIndex | undefined
+    ): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
+        if (datumIndex == null) return;
 
         let value: number | undefined;
         let text: string | undefined;

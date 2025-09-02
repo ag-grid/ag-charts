@@ -702,7 +702,7 @@ export class MapMarkerSeries
         const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
 
         this.contextNodeData?.nodeData.forEach((datum) => {
             const { x, y, size } = datum.point;
