@@ -1,3 +1,4 @@
+import { isArray } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -10,6 +11,7 @@ import type {
     FormatterParams,
     Padding,
     Styler,
+    TextSegment,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -173,7 +175,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
             dateStyle: 'long',
             truncateDate: undefined,
         }
-    ) {
+    ): string | TextSegment[] | undefined {
         const { formatter, format } = this;
         const { type, value, domain, boundSeries } = params;
         const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
@@ -210,6 +212,6 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
             result = valueFormatter.formatter?.(value, fractionDigits);
         }
 
-        return result != null ? String(result) : undefined;
+        return result == null || isArray(result) ? result : String(result);
     }
 }

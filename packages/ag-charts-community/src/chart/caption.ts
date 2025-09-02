@@ -1,4 +1,4 @@
-import { EllipsisChar, createId, isArray, toPlainText, wrapText } from 'ag-charts-core';
+import { EllipsisChar, createId, isArray, toPlainText, wrapText, wrapTextSegments } from 'ag-charts-core';
 import type { FontStyle, FontWeight, TextAlign, TextSegment, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
@@ -80,18 +80,24 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
         const { text, padding, wrapping } = this;
-
-        if (isArray(text)) return;
-
         const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth) - padding * 2;
         const maxHeight = this.maxHeight ?? containerHeight - padding * 2;
+        const options = { maxWidth, maxHeight, font: this, textWrap: wrapping };
+
         if (!isFinite(maxWidth) && !isFinite(maxHeight)) {
             this.node.text = text;
             return;
         }
-        const wrappedText = wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
+
+        let wrappedText;
+        if (isArray(text)) {
+            wrappedText = wrapTextSegments(text, options);
+            this.truncated = wrappedText.some((s) => s.text.endsWith(EllipsisChar));
+        } else {
+            wrappedText = wrapText(text ?? '', options);
+            this.truncated = wrappedText.endsWith(EllipsisChar);
+        }
         this.node.text = wrappedText;
-        this.truncated = wrappedText.includes(EllipsisChar);
     }
 
     private updateA11yText(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {

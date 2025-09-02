@@ -2,19 +2,19 @@ import {
     type BoxBounds,
     type FontOptions,
     type LineMetricsBox,
+    LineSplitter,
     type RequireOptional,
     cachedTextMeasurer,
-    calcLineHeight,
     createSvgElement,
     isArray,
     isString,
+    measureTextSegments,
     toFontString,
     toPlainText,
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextSegment } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
-import { mergeDefaults } from '../../util/object';
 import { BBox } from '../bbox';
 import { SceneRefChangeDetection } from '../changeDetectable';
 import { Group } from '../group';
@@ -70,7 +70,12 @@ export class Text<D = any> extends Shape<D> {
             this.lines = [];
             this.richText ??= new Group();
             this.richText.setScene(this.scene);
-            this.richText.append(this.text.map(() => new Text({ trimText: false })));
+            this.richText.append(
+                this.text
+                    .flatMap((s) => s.text.split(LineSplitter))
+                    .filter(Boolean)
+                    .map(() => new Text({ trimText: false }))
+            );
         } else {
             const lines = this.text?.split('\n') ?? [];
             this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
@@ -218,35 +223,20 @@ export class Text<D = any> extends Shape<D> {
 
         this.textMap ??= new Map();
 
-        let index = 0;
-        let totalWidth = 0;
         let offsetY = 0;
-        const mainStyle = {
-            fill: this.fill,
-            fontSize: this.fontSize,
-            fontFamily: this.fontFamily,
-            fontStyle: this.fontStyle,
-            fontWeight: this.fontWeight,
-        };
-
-        for (const textNode of this.richText!.children() as Iterable<Text>) {
-            const { color, ...textSegment } = this.text[index++];
-            textNode.x = 0;
-            textNode.y = 0;
-            textNode.setProperties(mergeDefaults({ fill: color }, textSegment, mainStyle));
-            const textBBox = textNode.getBBox();
-            this.textMap.set(textNode, textBBox);
-            offsetY = Math.max(
-                offsetY,
-                textBBox.y + textBBox.height / 2 + (textNode.lineHeight ?? calcLineHeight(textNode.fontSize))
-            );
-            totalWidth += textBBox.x + textBBox.width;
-        }
-        let offsetX = this.x - totalWidth / 2;
-        for (const [textNode, bbox] of this.textMap) {
-            textNode.x += offsetX;
-            textNode.y += offsetY;
-            offsetX += bbox.width;
+        const textNodes = this.richText!.children();
+        for (const { width, height, ascent, segments } of measureTextSegments(this.text, this)) {
+            let offsetX = 0;
+            for (const { color, textMetrics, ...segment } of segments) {
+                const textNode = textNodes.next().value as Text;
+                textNode.x = this.x - width / 2 + offsetX;
+                textNode.y = ascent + offsetY;
+                textNode.setProperties({ ...segment, fill: color ?? this.fill });
+                const textBBox = textNode.getBBox();
+                this.textMap.set(textNode, textBBox);
+                offsetX += textMetrics.width;
+            }
+            offsetY += height;
         }
     }
 
@@ -342,13 +332,13 @@ export class Text<D = any> extends Shape<D> {
     }
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
-        const { x, y } = this;
+        const { x, y, lines } = this;
 
         if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
         const measurer = cachedTextMeasurer(this);
-        const { lines, textBaseline, lineHeight = calcLineHeight(this.fontSize) } = this;
         const { lineMetrics } = measurer.measureLines(lines);
+        const { textBaseline, lineHeight = lineMetrics[0].height } = this;
 
         let offsetY = 0;
         if (textBaseline === 'top') {

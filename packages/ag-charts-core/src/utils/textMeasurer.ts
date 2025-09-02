@@ -1,5 +1,8 @@
+import type { TextSegment } from 'ag-charts-types';
+
 import { LRUCache } from '../classes/lruCache';
 import type { Writeable } from '../interfaces/globalTypes';
+import type { Size } from './boxBounds';
 import { createCanvasContext } from './canvas';
 import { type FontOptions, LineSplitter, toFontString } from './textUtils';
 
@@ -20,6 +23,17 @@ export interface MultilineTextMetricsBox {
     lineMetrics: LineMetricsBox[];
 }
 
+export interface MeasuredSegment extends TextSegment {
+    fontSize: number;
+    textMetrics: TextMetricsBox;
+}
+
+export interface SegmentsLineMetrics extends Size {
+    ascent: number;
+    descent: number;
+    segments: MeasuredSegment[];
+}
+
 export interface LegacyTextMetrics extends Writeable<TextMetrics> {
     emHeightAscent: number;
     emHeightDescent: number;
@@ -31,32 +45,6 @@ export interface ITextMeasurer {
     baselineDistance(textBaseline: CanvasTextBaseline): number;
     textWidth(text: string, estimate?: boolean): number;
 }
-
-const instanceMap = new LRUCache<TextMeasurer>(50);
-export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
-    if (typeof font === 'object') {
-        font = toFontString(font);
-    }
-
-    let cachedMeasurer = instanceMap.get(font);
-    if (cachedMeasurer) return cachedMeasurer;
-
-    const cachedTextMetrics = new LRUCache<LegacyTextMetrics>(10_000);
-    const ctx = createCanvasContext();
-    ctx.font = font;
-
-    cachedMeasurer = new TextMeasurer(ctx, (text) => {
-        let textMetrics = cachedTextMetrics.get(text);
-        if (textMetrics) return textMetrics;
-        textMetrics = ctx.measureText(text);
-        cachedTextMetrics.set(text, textMetrics);
-        return textMetrics;
-    });
-    instanceMap.set(font, cachedMeasurer);
-    return cachedMeasurer;
-}
-
-cachedTextMeasurer.clear = () => instanceMap.clear();
 
 // Manages text measurement and wrapping functionalities.
 export class TextMeasurer implements ITextMeasurer {
@@ -126,4 +114,69 @@ export class TextMeasurer implements ITextMeasurer {
         this.charMap.set(char, width);
         return width;
     }
+}
+
+const instanceMap = new LRUCache<TextMeasurer>(50);
+export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
+    if (typeof font === 'object') {
+        font = toFontString(font);
+    }
+
+    let cachedMeasurer = instanceMap.get(font);
+    if (cachedMeasurer) return cachedMeasurer;
+
+    const cachedTextMetrics = new LRUCache<LegacyTextMetrics>(10_000);
+    const ctx = createCanvasContext();
+    ctx.font = font;
+
+    cachedMeasurer = new TextMeasurer(ctx, (text) => {
+        let textMetrics = cachedTextMetrics.get(text);
+        if (textMetrics) return textMetrics;
+        textMetrics = ctx.measureText(text);
+        cachedTextMetrics.set(text, textMetrics);
+        return textMetrics;
+    });
+    instanceMap.set(font, cachedMeasurer);
+    return cachedMeasurer;
+}
+
+cachedTextMeasurer.clear = () => instanceMap.clear();
+
+export function measureTextSegments(textSegments: TextSegment[], defaultFont: FontOptions) {
+    let currentLine: SegmentsLineMetrics = { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
+    const lines: SegmentsLineMetrics[] = [currentLine];
+
+    for (const segment of textSegments) {
+        const {
+            text,
+            fontSize = defaultFont.fontSize,
+            fontStyle = defaultFont.fontStyle,
+            fontWeight = defaultFont.fontWeight,
+            fontFamily = defaultFont.fontFamily,
+            ...rest
+        } = segment;
+
+        const font = { fontSize, fontStyle, fontWeight, fontFamily };
+        const measurer = cachedTextMeasurer(font);
+        const textLines = text.split(LineSplitter);
+
+        for (let i = 0; i < textLines.length; i++) {
+            const textLine = textLines[i];
+            const textMetrics = measurer.measureText(textLine);
+            // On new line, push a new line metrics object
+            if (i > 0) {
+                currentLine = { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
+                lines.push(currentLine);
+            }
+            if (textLine) {
+                currentLine.width += textMetrics.width;
+                currentLine.ascent = Math.max(currentLine.ascent, textMetrics.ascent);
+                currentLine.descent = Math.max(currentLine.descent, textMetrics.descent);
+                currentLine.height = Math.max(currentLine.height, currentLine.ascent + currentLine.descent);
+                currentLine.segments.push({ ...font, ...rest, text: textLine, textMetrics });
+            }
+        }
+    }
+
+    return lines;
 }

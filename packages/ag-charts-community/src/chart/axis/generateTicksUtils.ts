@@ -7,8 +7,11 @@ import {
     cachedTextMeasurer,
     dropFirstWhile,
     dropLastWhile,
+    isArray,
     isPlainObject,
+    toPlainText,
     wrapText,
+    wrapTextSegments,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
@@ -215,11 +218,24 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             const isPrimary = primaryTicksIndices?.has(i) ?? false;
             const inputText = axisFormatter(isPrimary, tick, i);
-            const wrappedLabel = label.avoidCollisions ? wrapText(inputText, wrapOptions) || null : null;
-            const tickLabel = wrappedLabel ?? inputText;
 
-            const tickValue = isContinuous ? tick?.valueOf() : null;
-            const tickId = Number.isFinite(tickValue) ? idGenerator(`v:${tickValue}`) : idGenerator(`l:${tickLabel}`);
+            let wrappedLabel: string | any | null = null;
+            if (label.avoidCollisions) {
+                wrappedLabel = isArray(inputText)
+                    ? wrapTextSegments(inputText as any, wrapOptions)
+                    : wrapText(inputText, wrapOptions) || null;
+            }
+
+            const tickLabel: any = wrappedLabel ?? inputText;
+
+            let tickId: string;
+            if (isContinuous) {
+                const tickValue = tick?.valueOf();
+                if (Number.isFinite(tickValue)) {
+                    tickId = idGenerator(`v:${tickValue}`);
+                }
+            }
+            tickId ??= idGenerator(`l:${isArray(tickLabel) ? toPlainText(tickLabel.flat()) : tickLabel}`);
 
             ticks.push({
                 tick,
@@ -228,7 +244,14 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: tickLabel === inputText ? undefined : inputText,
-                textMetrics: measurer.measureLines(tickLabel),
+                textMetrics: isArray(tickLabel)
+                    ? tickLabel.reduce((textMetrics, labelSegment) => {
+                          if (textMetrics == null) {
+                              return labelSegment.textMetrics;
+                          }
+                          return textMetrics;
+                      }, null)
+                    : measurer.measureLines(tickLabel),
                 translation: Math.floor(translation),
             });
         }
