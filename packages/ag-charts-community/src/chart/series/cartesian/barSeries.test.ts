@@ -27,6 +27,7 @@ import {
     cartesianChartAssertions,
     expectWarningsCalls,
     extractImageData,
+    hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
@@ -1010,6 +1011,68 @@ describe('BarSeries', () => {
             });
             test('snapshot', async () => {
                 await compare();
+            });
+        });
+        describe('highlights', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                highlight: { highlightedSeries: { fill: 'yellow' } },
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+
+            const miss = { x: 300, y: 150 } as const;
+            const series0datum0 = { x: 133, y: 333 } as const;
+            const series0datum2 = { x: 620, y: 333 } as const;
+            const series1datum0 = { x: 222, y: 400 } as const;
+            const legendItem0 = { x: 360, y: 570 } as const;
+            const legendItem1 = { x: 440, y: 570 } as const;
+
+            describe('single', () => {
+                async function testHover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                }
+                test('miss', async () => testHover(miss));
+                test('series[0].datum[0]', async () => testHover(series0datum0));
+                test('series[0].datum[2]', async () => testHover(series0datum2));
+                test('series[1].datum[0]', async () => testHover(series1datum0));
+                test('legendItem[0]', async () => testHover(legendItem0));
+                test('legendItem[1]', async () => testHover(legendItem1));
+            });
+            describe('sequenced', () => {
+                async function hover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                }
+                test('1', async () => {
+                    await hover(miss);
+                    await hover(series0datum0);
+                    await hover(miss);
+                    await hover(series0datum2);
+                    await hover(miss);
+                    await hover(series1datum0);
+                    await hover(miss);
+                    await hover(legendItem0);
+                    await hover(legendItem1);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
             });
         });
     });
