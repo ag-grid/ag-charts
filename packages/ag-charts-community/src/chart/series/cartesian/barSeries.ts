@@ -890,10 +890,10 @@ export class BarSeries extends AbstractBarSeries<
         datumSelection: Selection<BarShape, BarNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
-        datumSelection.each((node, datum) => {
-            if (!datumSelection.isGarbage(node)) {
-                datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        opts.datumSelection.each((node, datum) => {
+            if (!opts.datumSelection.isGarbage(node)) {
+                datum.style = readDatumStyle(this, datum, highlightedDatum, opts);
             }
         });
     }
