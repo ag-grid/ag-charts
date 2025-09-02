@@ -1,6 +1,5 @@
 import {
     type AnyFn,
-    type AreExact,
     CleanupRegistry,
     EventEmitter,
     LRUCache,
@@ -788,47 +787,9 @@ export abstract class Series<
     protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
-            const closestDatum: unknown = node.closestDatum();
-
-            // Sanitize the unsafe `closestDatum: any` type (as much as possible).
-            type D = (typeof datums)[number];
-            let safeDatum: D | undefined;
-            if (typeof closestDatum === 'object' && closestDatum != null) {
-                // Find required keys in SeriesNodeDatum and convert them to options unknowns:
-                type RequiredKeys<T> = { [K in keyof T]-?: object extends { [P in K]: T[K] } ? never : K }[keyof T];
-                type UnsafeRequired<T> = { [K in RequiredKeys<T>]?: unknown };
-                const unsafeDatum: UnsafeRequired<D> = closestDatum;
-
-                // Extract all required keys (with an assertion to check exhaustiveness).
-                const { datum, datumIndex, series, ...optionals } = unsafeDatum;
-                true satisfies RequiredKeys<typeof optionals> extends never ? true : false;
-
-                if (
-                    datum != null &&
-                    datumIndex != null &&
-                    series != null &&
-                    (typeof datumIndex === 'object' || typeof datumIndex === 'number') &&
-                    series instanceof Series
-                ) {
-                    true satisfies AreExact<typeof datumIndex, DatumIndexType>;
-                    // Note: this isn't a perfect sanitization. The optionals can still potentionally violate type-rules
-                    // of SeriesNodeDatum<DatumIndexType> or any of its derived types.
-                    //
-                    // Creating is a new object that satisfies `D` is the preferred way to assign `safeDatum` in
-                    // TypeScript, because it ensures that compiler checks the types. However, it's not good for memory
-                    // performance because we're duplicating datum objects.
-                    //
-                    // As a compromise, use the redundant `unsafeDatum` condition (always true) with the `as` keyword in
-                    // the truthy-branch without losing the TypeScript compiler checks (which are checked on the
-                    // unreachable falsy-branch).
-                    safeDatum = unsafeDatum
-                        ? (unsafeDatum as D)
-                        : ({ datum, datumIndex, series, ...optionals } satisfies D);
-                }
-            }
-
-            if (safeDatum != null && safeDatum.missing !== true) {
-                datums.push(safeDatum);
+            const datum = node.closestDatum();
+            if (datum != null && datum.missing !== true) {
+                datums.push(datum);
             }
         }
         return datums;
