@@ -2987,50 +2987,50 @@ export const LINE_STACKED_DATA_PER_SERIES: AgCartesianChartOptions = {
         {
             data: [
                 {
-                    time: 1,
+                    step: 1,
                     sensor: 25,
                 },
                 {
-                    time: 2,
+                    step: 2,
                     sensor: 24,
                 },
                 {
-                    time: 3,
+                    step: 3,
                     sensor: 24,
                 },
                 {
-                    time: 4,
+                    step: 4,
                     sensor: 23,
                 },
             ],
             type: 'line',
             stacked: true,
-            xKey: 'time',
+            xKey: 'step',
             yKey: 'sensor',
             yName: 'Lounge',
         },
         {
             data: [
                 {
-                    time: 1,
+                    step: 1,
                     sensor: 21,
                 },
                 {
-                    time: 2,
+                    step: 2,
                     sensor: 22,
                 },
                 {
-                    time: 3,
+                    step: 3,
                     sensor: 22,
                 },
                 {
-                    time: 4,
+                    step: 4,
                     sensor: 22,
                 },
             ],
             type: 'line',
             stacked: true,
-            xKey: 'time',
+            xKey: 'step',
             yKey: 'sensor',
             yName: 'Office',
         },

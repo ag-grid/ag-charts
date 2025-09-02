@@ -15,6 +15,7 @@ import {
 } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
+import { predictCartesianTimeAxis } from './util';
 
 export const LineSeriesModule: SeriesModule<'line'> = {
     type: 'series',
@@ -25,6 +26,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     identifier: 'line',
     moduleFactory: (ctx) => new LineSeries(ctx),
     stackable: true,
+    predictAxis: predictCartesianTimeAxis,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

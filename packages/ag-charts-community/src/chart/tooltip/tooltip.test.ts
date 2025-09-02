@@ -83,25 +83,25 @@ describe('Tooltip', () => {
             // See AG-10409: The tooltip should update when the mouse stays in place but the data is updated.
             const opts: AgChartOptions = prepareTestOptions({});
             opts.data = [
-                { time: 0, voltage: 1.362460821419385 },
-                { time: 1, voltage: 1.3072694395877953 },
-                { time: 2, voltage: 1.1967684308904354 },
-                { time: 3, voltage: 1.2362572382997417 },
-                { time: 4, voltage: 1.479504186572628 },
-                { time: 5, voltage: 1.401144010767596 },
-                { time: 6, voltage: 1.2192725536972913 },
-                { time: 7, voltage: 1.1097886105628154 },
-                { time: 8, voltage: 1.4869931693640273 },
-                { time: 9, voltage: 1.1720928254975662 },
+                { step: 0, voltage: 1.362460821419385 },
+                { step: 1, voltage: 1.3072694395877953 },
+                { step: 2, voltage: 1.1967684308904354 },
+                { step: 3, voltage: 1.2362572382997417 },
+                { step: 4, voltage: 1.479504186572628 },
+                { step: 5, voltage: 1.401144010767596 },
+                { step: 6, voltage: 1.2192725536972913 },
+                { step: 7, voltage: 1.1097886105628154 },
+                { step: 8, voltage: 1.4869931693640273 },
+                { step: 9, voltage: 1.1720928254975662 },
             ];
-            opts.series = [{ type: 'line', xKey: 'time', yKey: 'voltage' }];
+            opts.series = [{ type: 'line', xKey: 'step', yKey: 'voltage' }];
 
             chart = AgCharts.create(opts) as AgChartProxy;
             await waitForChartStability(chart);
 
-            const nextValue = async (time: number, voltage: number) => {
+            const nextValue = async (step: number, voltage: number) => {
                 opts.data = opts.data?.slice(1);
-                opts.data?.push({ time, voltage });
+                opts.data?.push({ step, voltage });
                 await (chart as AgChartProxy).update(opts);
                 await waitForChartStability(chart);
             };
