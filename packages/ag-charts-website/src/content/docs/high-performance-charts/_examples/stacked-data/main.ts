@@ -63,7 +63,7 @@ function setSeries(type: string) {
         case 'bar':
         case 'area':
         case 'line':
-           series = [
+            series = [
                 {
                     type,
                     xKey: 'timestamp',
