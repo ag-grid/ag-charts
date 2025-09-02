@@ -36,5 +36,5 @@ export function calcLineHeight(fontSize: number, lineHeightRatio = 1.15) {
 }
 
 export function appendEllipsis(text: string) {
-    return text.replace(/[.,]{1,5}$/, '') + EllipsisChar;
+    return text.replace(/[^\p{L}\p{Nd}]{1,5}$/u, '') + EllipsisChar;
 }

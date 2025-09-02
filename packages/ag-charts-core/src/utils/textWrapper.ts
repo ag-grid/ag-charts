@@ -1,11 +1,12 @@
 import type { OverflowStrategy, TextSegment, TextWrap } from 'ag-charts-types';
 
-import { type ITextMeasurer, cachedTextMeasurer, measureTextSegments } from './textMeasurer';
+import { type ITextMeasurer, type MeasuredSegment, cachedTextMeasurer, measureTextSegments } from './textMeasurer';
 import {
     EllipsisChar,
     type FontOptions,
     LineSplitter,
     TrimEdgeGuard,
+    appendEllipsis,
     guardTextEdges,
     unguardTextEdges,
 } from './textUtils';
@@ -45,13 +46,13 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
         estimatedWidth += charWidth;
     }
     if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-        return ellipsisForce ? text + EllipsisChar : text;
+        return ellipsisForce ? appendEllipsis(text) : text;
     }
     text = text.slice(0, i).trimEnd();
     while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
         text = text.slice(0, -1).trimEnd();
     }
-    return text.length ? text + EllipsisChar : '';
+    return text.length ? appendEllipsis(text) : '';
 }
 
 function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
@@ -228,13 +229,26 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
 
 export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptions) {
     const { maxHeight = Infinity } = options;
-    const result = [];
+    const result: MeasuredSegment[] = [];
 
     let lineWidth = 0;
     let totalHeight = 0;
 
+    function truncateLastSegment() {
+        const lastSegment = result.pop()!;
+        const measurer = cachedTextMeasurer(lastSegment);
+        const truncatedText = truncateLine(lastSegment.text, measurer, options.maxWidth, true);
+        const textMetrics = measurer.measureText(truncatedText);
+        result.push({ ...lastSegment, text: truncatedText, textMetrics });
+    }
+
     for (const { width, height, segments } of measureTextSegments(textSegments, options.font)) {
-        if (totalHeight + height > maxHeight) break;
+        if (totalHeight + height > maxHeight) {
+            if (result.length) {
+                truncateLastSegment();
+            }
+            break;
+        }
 
         if (lineWidth + width <= options.maxWidth) {
             lineWidth += width;
@@ -264,7 +278,10 @@ export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptio
                 }
             }
 
-            if (wrappedLines.length === 0) break;
+            if (wrappedLines.length === 0) {
+                truncateLastSegment();
+                break;
+            }
 
             const truncationIndex = wrappedLines.findIndex((l) => l.endsWith(EllipsisChar));
 
