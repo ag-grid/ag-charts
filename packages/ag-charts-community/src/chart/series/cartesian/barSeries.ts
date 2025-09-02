@@ -75,7 +75,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { readDatumStyle } from './datumUtils';
+import { readDatumStyle } from './datumUtil';
 import { calculateDataDiff } from './diffUtil';
 import { areScalingEqual } from './scaling';
 import { calculateSegments } from './util';

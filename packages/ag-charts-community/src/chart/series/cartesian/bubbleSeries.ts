@@ -66,7 +66,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { readDatumStyle } from './datumUtils';
+import { readDatumStyle } from './datumUtil';
 import { computeMarkerFocusBounds, getMarkerOnlyStyle, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 

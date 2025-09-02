@@ -55,7 +55,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { readDatumStyle } from './datumUtils';
+import { readDatumStyle } from './datumUtil';
 import { type LineSeriesDataAggregationFilter, aggregateLineData } from './lineAggregation';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import {
