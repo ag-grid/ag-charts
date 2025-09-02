@@ -27,7 +27,7 @@ export function calcLineHeight(fontSize: number, lineHeightRatio = 1.15) {
     return Math.round(fontSize * lineHeightRatio);
 }
 
-const TrimCharsRegex = /[.,;:-]{1,5}$/;
+const TrimCharsRegex = /[\s.,;:-]{1,5}$/;
 export function appendEllipsis(text: string) {
     return text.replace(TrimCharsRegex, '') + EllipsisChar;
 }
