@@ -3,10 +3,13 @@ import { TranslatableGroup } from './group';
 import { type RenderContext } from './node';
 import { Path } from './shape/path';
 import { type Segment, rect } from './shape/segmentedPath';
+import { Scalable, isScalable } from './transformable';
 
 export class SegmentedGroup extends TranslatableGroup {
     @SceneRefChangeDetection()
     segments?: Segment[] = [];
+
+    private readonly scalablePath = new (Scalable(Path))();
 
     protected override renderInContext(childRenderCtx: RenderContext) {
         if (!this.visible) return;
@@ -33,7 +36,7 @@ export class SegmentedGroup extends TranslatableGroup {
         ctx.restore();
 
         // Draw the segments
-        const segment = new Path();
+        const { scalablePath } = this;
         for (const { clipRect, ...styles } of this.segments) {
             ctx.save();
 
@@ -41,18 +44,24 @@ export class SegmentedGroup extends TranslatableGroup {
             rect(clipPath, clipRect);
             ctx.clip(clipPath);
 
-            segment.setProperties(styles);
+            scalablePath.setProperties(styles);
 
             for (const child of this.children()) {
                 if (!child.visible || !(child instanceof Path)) continue;
-                segment.path = child.path; // needed for computing bbox for gradient fills
-                segment.setProperties({
+                scalablePath.path = child.path; // needed for computing bbox for gradient fills
+                scalablePath.setProperties({
                     opacity: child.opacity,
                     lineCap: child.lineCap,
                     lineJoin: child.lineJoin,
+                    ...(isScalable(child) && {
+                        scalingX: child.scalingX,
+                        scalingY: child.scalingY,
+                        scalingCenterX: child.scalingCenterX,
+                        scalingCenterY: child.scalingCenterY,
+                    }),
                 });
 
-                segment.drawPath(ctx, child.path.getPath2D());
+                scalablePath.render(childRenderCtx);
             }
 
             ctx.restore();

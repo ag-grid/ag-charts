@@ -14,6 +14,7 @@ import {
     positiveNumber,
     ratio,
     shapeHighlightOptionsDef,
+    shapeSegmentation,
     string,
     strokeOptionsDef,
     union,
@@ -118,6 +119,7 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...boxPlotStyleOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
+    segmentation: shapeSegmentation,
 };
 
 const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {

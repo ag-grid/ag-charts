@@ -5,6 +5,8 @@ import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgMultiSeriesHighlightOptions,
+    AgSeriesSegmentation,
+    AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -84,6 +86,7 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgBoxPlotHighlightStyleOptions, AgBoxPlotHighlightStyleOptions>;
+    segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
 }
 export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

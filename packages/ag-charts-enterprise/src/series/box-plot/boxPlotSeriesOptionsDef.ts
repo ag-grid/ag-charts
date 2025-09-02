@@ -1,5 +1,5 @@
 import { type AgBoxPlotSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, boolean, constant, required, string } from 'ag-charts-core';
+import { type OptionsDefs, boolean, constant, required, shapeSegmentation, string } from 'ag-charts-core';
 
 const { boxPlotSeriesThemeableOptionsDef, commonSeriesOptionsDefs } = _ModuleSupport;
 
@@ -22,4 +22,5 @@ export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     maxName: string,
     grouped: boolean,
     legendItemName: string,
+    segmentation: shapeSegmentation,
 };
