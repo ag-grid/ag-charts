@@ -153,6 +153,7 @@ export type SeriesNodeDataContext<I extends DatumIndexType, S = SeriesNodeDatum<
     labelData: L[];
 };
 
+// TODO(AG-15782) remove this type (still used by Enterprise series)x
 export type SeriesNodeStyleContext<TStyle> = {
     [HighlightState.None]: TStyle;
     [HighlightState.Item]: TStyle;
@@ -608,7 +609,7 @@ export abstract class Series<
         return opacity;
     }
 
-    protected getHighlightState(
+    public getHighlightState(
         highlightedDatum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,

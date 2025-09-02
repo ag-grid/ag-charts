@@ -5,7 +5,6 @@ import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { Segment } from '../../../scene/shape/segmentedPath';
-import type { SeriesNodeStyleContext } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { SpanJoin, spanRange } from './lineInterpolation';
@@ -55,7 +54,6 @@ export interface AreaSeriesNodeDataContext
     strokeData: AreaStrokePathDatum;
     stackVisible: boolean;
     crossFiltering: boolean;
-    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
     segments?: Segment[];
 }
 

@@ -68,10 +68,11 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
+import { readDatumStyle } from './datumUtils';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
-    getMarkerStyles,
+    getMarkerStyle,
     markerEnabled,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -729,8 +730,6 @@ export class AreaSeries extends CartesianSeries<
             label,
             fill: seriesFill,
             stroke: seriesStroke,
-            strokeWidth,
-            strokeOpacity,
         } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -880,7 +879,6 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
-            styles: getMarkerStyles(this, marker, { stroke: seriesStroke, strokeWidth, strokeOpacity }),
             segments,
         };
 
@@ -1046,9 +1044,7 @@ export class AreaSeries extends CartesianSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const style = readDatumStyle(this, datum, highlightedDatum, opts);
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
         });
 
@@ -1411,6 +1407,10 @@ export class AreaSeries extends CartesianSeries<
                 strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
             } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
         } satisfies RequireOptional<AgAreaSeriesStylerResult> & { marker: { enabled: boolean } };
+    }
+
+    public getItemStyle(_datumIndex: number | undefined, _isHighlight: boolean, highlightState: HighlightState) {
+        return getMarkerStyle(this, this.properties.marker, highlightState);
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
