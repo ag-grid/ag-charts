@@ -15,7 +15,7 @@ import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
-import { HighlightState } from '../seriesProperties';
+import { HighlightState, highlightStates } from '../seriesProperties';
 import type { DatumIndexType, ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -165,9 +165,14 @@ function getMarkerStyleImpl<TStylerParams, TStylerResult, TItemStylerParams>(
     resolveStylerMarkerPath: 'marker' | 'marker-only',
     series: MarkerSeriesStylerProps<TStylerParams, TStylerResult>,
     marker: SeriesMarker<TItemStylerParams>,
-    highlightState: HighlightState
+    highlightState: HighlightState,
+    inheritedStyle?: AgSeriesMarkerStyle
 ): AgSeriesMarkerStyle {
-    const { stroke, strokeOpacity, strokeWidth } = series.properties;
+    inheritedStyle ??= {
+        stroke: series.properties.stroke,
+        strokeOpacity: series.properties.strokeOpacity,
+        strokeWidth: series.properties.strokeWidth,
+    };
 
     let defaultOverrideStyle: DefaultOverrideStyle | undefined;
     if (series.properties.styler) {
@@ -185,7 +190,7 @@ function getMarkerStyleImpl<TStylerParams, TStylerResult, TItemStylerParams>(
             resolveStylerMarkerPath,
         },
         defaultOverrideStyle,
-        { stroke, strokeOpacity, strokeWidth }
+        inheritedStyle
     );
 }
 
@@ -193,14 +198,15 @@ type MarkerStylerResult = { marker?: AgSeriesMarkerStyle } | undefined;
 export function getMarkerStyle<TStylerParams, TItemStylerParams>(
     series: MarkerSeriesStylerProps<TStylerParams, MarkerStylerResult>,
     marker: SeriesMarker<TItemStylerParams>,
-    highlightState: HighlightState
+    highlightState: HighlightState,
+    inheritedStyle?: AgSeriesMarkerStyle
 ) {
     function readResult(result: MarkerStylerResult): DefaultOverrideStyle | undefined {
         if (result?.marker != null) {
             return { ...result.marker, size: result.marker.size ?? marker.size };
         }
     }
-    return getMarkerStyleImpl(readResult, 'marker', series, marker, highlightState);
+    return getMarkerStyleImpl(readResult, 'marker', series, marker, highlightState, inheritedStyle);
 }
 
 type MarkerOnlyStylerResult = AgSeriesMarkerStyle | undefined;
@@ -215,4 +221,19 @@ export function getMarkerOnlyStyle<TStylerParams, TItemStylerParams>(
         }
     }
     return getMarkerStyleImpl(readResult, 'marker-only', series, marker, highlightState);
+}
+
+/** @deprecated (AG-15782) remove when enterprise series implement `styler` property */
+export function getMarkerStyles<TStylerParams, TItemStylerParams>(
+    series: MarkerSeriesStylerProps<TStylerParams, MarkerStylerResult>,
+    marker: SeriesMarker<TItemStylerParams>,
+    inheritedStyle?: AgSeriesMarkerStyle
+) {
+    return highlightStates.reduce(
+        (styles, state) => {
+            styles[state] = getMarkerStyle(series, marker, state, inheritedStyle);
+            return styles;
+        },
+        {} as Record<HighlightState, AgSeriesMarkerStyle>
+    );
 }
