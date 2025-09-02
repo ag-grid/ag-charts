@@ -63,7 +63,7 @@ function setSeries(type: string) {
         case 'bar':
         case 'area':
         case 'line':
-            const series: AgCartesianSeriesOptions[] = [
+            series = [
                 {
                     type,
                     xKey: 'timestamp',
@@ -77,6 +77,7 @@ function setSeries(type: string) {
                     stacked: true,
                 },
             ];
+            break;
         default:
             return;
     }
