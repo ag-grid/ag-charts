@@ -11,7 +11,7 @@ In the above example:
 -   A border is drawn around the series area with a corner radius and no padding.
 -   A border, fill and corner radius are applied to the [Legend](./legend), with padding between the border and items provided as a single number.
 -   A border, fill and corner radius are applied to the series labels and [axis labels](./axes-labels) with padding defined for each of the top, right, bottom and left.
--   A item styler to used to override the styling of names starting with the letter 'D' and 'E'.
+-   An [item styler](./stylers/#item-stylers) is used to override the styling of series labels for names starting with the letter 'D' and 'E'.
 
 ## Fills
 
@@ -54,7 +54,7 @@ padding: {
 
 ### Item Styler
 
-Individual labels can be customised using a [Styler](./stylers) callback.
+Individual axis and series labels can be customised using a [Styler](./stylers/#item-stylers) callback.
 
 ```js
 itemStyler: (params) => {

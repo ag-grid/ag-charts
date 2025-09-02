@@ -739,7 +739,7 @@ export const maleHeightWeight = [
     },
     {
         height: 177.8,
-        weight: 116.4,
+        weight: 110.4,
         age: 27,
         name: 'Donovan',
     },

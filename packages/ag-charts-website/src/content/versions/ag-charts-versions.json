@@ -1,18 +1,15 @@
 [
     {
         "version": "12.2.0",
-        "date": "September 10th, 2025",
+        "date": "September 9th, 2025",
         "highlights": [
             {
-                "text": "Performance improvements for large datasets"
-            },
-            {
-                "text": "Label Stylers",
-                "path": "./stylers"
+                "text": "Label Item Stylers",
+                "path": "./stylers/#item-stylers"
             },
             {
                 "text": "Series Stylers",
-                "path": "./stylers"
+                "path": "./stylers/#series-stylers"
             },
             {
                 "text": "Style Segments",
@@ -21,6 +18,9 @@
             {
                 "text": "Axis Type Detection",
                 "path": "./axes-types"
+            },
+            {
+                "text": "Performance Improvements for Large Datasets"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-12-2"
