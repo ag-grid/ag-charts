@@ -15,6 +15,7 @@ import {
 } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
+import { predictCartesianTimeAxis } from './util';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
@@ -26,6 +27,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     moduleFactory: (ctx) => new BarSeries(ctx),
     stackable: true,
     groupable: true,
+    predictAxis: predictCartesianTimeAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     themeTemplate: {
         series: {

@@ -9,6 +9,7 @@ import { mergeDefaults } from '../../util/object';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
+import { CARTESIAN_AXIS_TYPE } from '../themes/constants';
 import { chartTypes, publicChartTypes } from './chartTypes';
 
 interface SeriesRegistryRecord {
@@ -68,11 +69,7 @@ class SeriesRegistry {
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
 
-    predictAxes(
-        seriesType: RequiredSeriesType,
-        userSeriesOptions?: any,
-        data?: DatumDefault[]
-    ): SeriesPredictAxis<RequiredSeriesType>[] | undefined {
+    predictAxes(seriesType: RequiredSeriesType, userSeriesOptions?: any, data?: DatumDefault[]) {
         const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
         if (!seriesData?.length) return;
 
@@ -102,6 +99,23 @@ class SeriesRegistry {
                     }
                 }
             }
+        }
+
+        // If we couldn't predict any axes, fallback to the defaults.
+        if (axes.size === 0) return;
+
+        // If we predicted a single axis, merge this with the defaults by replacing the category axis.
+        if (axes.size === 1) {
+            const defaultAxes = this.cloneDefaultAxes(seriesType);
+            if (!defaultAxes) return;
+
+            const [predictedAxis] = axes.values();
+            return defaultAxes.map((axis) => {
+                if (axis.type === CARTESIAN_AXIS_TYPE.CATEGORY) {
+                    return predictedAxis;
+                }
+                return axis;
+            });
         }
 
         return Array.from(axes.values());

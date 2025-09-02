@@ -769,7 +769,7 @@ describe('ScatterSeries', () => {
             await compare();
         });
 
-        it('unit-time', async () => {
+        it('time', async () => {
             const options: AgChartOptions = {
                 data: [
                     {

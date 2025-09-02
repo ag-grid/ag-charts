@@ -1,4 +1,4 @@
-import { arraysEqual, circularSliceArray, groupBy, sortBasedOnArray, toArray, unique } from './arrays';
+import { arraysEqual, circularSliceArray, distribute, groupBy, sortBasedOnArray, toArray, unique } from './arrays';
 
 describe('Arrays Utilities', () => {
     describe('toArray', () => {
@@ -87,5 +87,13 @@ describe('Arrays Utilities', () => {
         it('returns an empty array when the base array is empty', () => {
             expect(sortBasedOnArray([], ['a', 'b', 'c'])).toEqual([]);
         });
+    });
+
+    it('distribute', () => {
+        expect(distribute(0, 3, 5)).toEqual([0, 1, 2, 3]);
+        expect(distribute(0, 4, 5)).toEqual([0, 1, 2, 3, 4]);
+        expect(distribute(0, 5, 5)).toEqual([0, 1, 2, 3, 5]);
+        expect(distribute(0, 6, 5)).toEqual([0, 2, 4, 6]);
+        expect(distribute(0, 2000, 5)).toEqual([0, 500, 1000, 1500, 2000]);
     });
 });
