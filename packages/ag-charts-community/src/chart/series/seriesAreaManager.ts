@@ -366,7 +366,7 @@ export class SeriesAreaManager extends BaseManager {
         const canvasX = event.currentX + current.cssLeft();
         const canvasY = event.currentY + current.cssTop();
         const { datumIndex } = pickedNode ?? {};
-        if (pickedSeries && pickedNode && datumIndex) {
+        if (pickedSeries && pickedNode && datumIndex != null) {
             this.chart.ctx.contextMenuRegistry.dispatchContext(
                 'series-node',
                 { widgetEvent: event, canvasX, canvasY },
