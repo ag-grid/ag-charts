@@ -30,6 +30,7 @@ export interface ITextMeasurer {
     measureLines(text: string | string[]): MultilineTextMetricsBox;
     baselineDistance(textBaseline: CanvasTextBaseline): number;
     textWidth(text: string, estimate?: boolean): number;
+    lineHeight(): number;
 }
 
 const instanceMap = new LRUCache<TextMeasurer>(50);
@@ -62,6 +63,7 @@ cachedTextMeasurer.clear = () => instanceMap.clear();
 export class TextMeasurer implements ITextMeasurer {
     private readonly baselineMap = new Map<string, number>();
     private readonly charMap = new Map<string, number>();
+    private lineHeightCache: number | null = null;
 
     constructor(
         private readonly ctx: CanvasRenderingContext2D,
@@ -78,6 +80,11 @@ export class TextMeasurer implements ITextMeasurer {
         this.baselineMap.set(textBaseline, alphabeticBaseline);
         this.ctx.textBaseline = 'alphabetic';
         return alphabeticBaseline; // Distance from the alphabetic baseline to the specified baseline.
+    }
+
+    lineHeight() {
+        this.lineHeightCache ??= this.measureText('').height;
+        return this.lineHeightCache;
     }
 
     measureText(text: string): TextMetricsBox {

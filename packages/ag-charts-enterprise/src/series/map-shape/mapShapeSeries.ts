@@ -294,7 +294,9 @@ export class MapShapeSeries
             meta: untruncatedX,
         };
         const labelFormatting = formatSingleLabel<number>(labelText, label, { padding }, (height, allowTruncation) => {
-            if (!allowTruncation) return maxSizeWithoutTruncation;
+            if (!allowTruncation) {
+                return maxSizeWithoutTruncation;
+            }
 
             const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
             return {
