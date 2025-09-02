@@ -15,6 +15,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.7,
         nodeClickRange: 'nearest',
+        strokeWidth: 1,
         marker: {
             enabled: false,
             fill: {
@@ -47,6 +48,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
         highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        segmentation: _ModuleSupport.SEGMENTATION_DEFAULTS,
     },
     axes: {
         [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {

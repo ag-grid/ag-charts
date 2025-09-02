@@ -45,6 +45,7 @@ const {
     mergeDefaults,
     simpleMemorize2,
     getItemStyles,
+    calculateSegments,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeBarData = simpleMemorize2(aggregateRangeBarData);
@@ -250,6 +251,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const itemId = `${yLowKey}-${yHighKey}`;
 
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            this.ctx.scene
+        );
+
         const context: RangeBarSeriesNodeDataContext = {
             itemId,
             nodeData: [],
@@ -258,6 +267,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
             styles: getItemStyles(this.getItemStyle.bind(this)),
+            segments,
         };
         if (!visible) return context;
 

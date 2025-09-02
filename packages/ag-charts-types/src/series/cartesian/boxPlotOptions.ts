@@ -86,6 +86,7 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgBoxPlotHighlightStyleOptions, AgBoxPlotHighlightStyleOptions>;
+    /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
 }
 export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
