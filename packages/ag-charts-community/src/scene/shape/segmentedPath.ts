@@ -59,7 +59,7 @@ export class SegmentedPath<D = any> extends Path<D> {
             rect(clipPath, clipRect);
             ctx.clip(clipPath);
 
-            segmentPath.drawPath(ctx, this.path.getPath2D());
+            segmentPath.drawPath(ctx);
 
             ctx.restore();
         }
