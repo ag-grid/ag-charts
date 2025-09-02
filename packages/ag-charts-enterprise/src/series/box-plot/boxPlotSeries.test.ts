@@ -330,4 +330,169 @@ describe('BoxPlotSeries', () => {
             await compareSnapshot(AgCharts.create(options as AgChartOptions));
         });
     });
+
+    describe('segmentation', () => {
+        it('should render box-plot series with segmentation styling on x-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', min: 3.07, q1: 4.78, median: 5.3, q3: 6.3, max: 7.27 },
+                    { category: 'B', min: 4.87, q1: 5.8, median: 6.13, q3: 6.66, max: 7.09 },
+                    { category: 'C', min: 4.4, q1: 4.41, median: 4.64, q3: 4.96, max: 5.2 },
+                    { category: 'D', min: 7.31, q1: 7.32, median: 7.32, q3: 7.33, max: 7.33 },
+                    { category: 'E', min: 5.1, q1: 6.2, median: 7.0, q3: 8.1, max: 9.0 },
+                ],
+                series: [
+                    {
+                        type: 'box-plot',
+                        xKey: 'category',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'A', stop: 'B', fill: 'rgba(255, 0, 0, 0.3)', stroke: 'red', strokeWidth: 2 },
+                                { start: 'C', stop: 'D', fill: 'rgba(0, 0, 255, 0.3)', stroke: 'blue', strokeWidth: 3 },
+                                { start: 'E', fill: 'rgba(0, 255, 0, 0.3)', stroke: 'green', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            await compareSnapshot(AgCharts.create(options));
+        });
+
+        it('should render box-plot series with segmentation styling on y-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, min: 3, q1: 5, median: 7, q3: 9, max: 12 },
+                    { x: 1, min: 8, q1: 10, median: 13, q3: 16, max: 20 },
+                    { x: 2, min: 15, q1: 18, median: 22, q3: 25, max: 30 },
+                    { x: 3, min: 28, q1: 32, median: 35, q3: 38, max: 42 },
+                ],
+                series: [
+                    {
+                        type: 'box-plot',
+                        xKey: 'x',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 5,
+                                    stop: 15,
+                                    fill: 'rgba(255, 165, 0, 0.3)',
+                                    stroke: 'orange',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 15,
+                                    stop: 25,
+                                    fill: 'rgba(128, 0, 128, 0.3)',
+                                    stroke: 'purple',
+                                    strokeWidth: 3,
+                                },
+                                { start: 25, fill: 'rgba(0, 255, 255, 0.3)', stroke: 'cyan', strokeWidth: 4 },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            await compareSnapshot(AgCharts.create(options));
+        });
+
+        it('should render horizontal box-plot series with segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', min: 3.07, q1: 4.78, median: 5.3, q3: 6.3, max: 7.27 },
+                    { category: 'B', min: 4.87, q1: 5.8, median: 6.13, q3: 6.66, max: 7.09 },
+                    { category: 'C', min: 4.4, q1: 4.41, median: 4.64, q3: 4.96, max: 5.2 },
+                    { category: 'D', min: 7.31, q1: 7.32, median: 7.32, q3: 7.33, max: 7.33 },
+                ],
+                series: [
+                    {
+                        type: 'box-plot',
+                        direction: 'horizontal',
+                        xKey: 'category',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'A',
+                                    stop: 'B',
+                                    fill: 'rgba(255, 192, 203, 0.4)',
+                                    stroke: 'hotpink',
+                                    strokeWidth: 2,
+                                },
+                                { start: 'C', fill: 'rgba(173, 216, 230, 0.4)', stroke: 'lightblue', strokeWidth: 3 },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            await compareSnapshot(AgCharts.create(options));
+        });
+
+        it('should render box-plot series with pattern fill segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', min: 3.07, q1: 4.78, median: 5.3, q3: 6.3, max: 7.27 },
+                    { category: 'B', min: 4.87, q1: 5.8, median: 6.13, q3: 6.66, max: 7.09 },
+                    { category: 'C', min: 4.4, q1: 4.41, median: 4.64, q3: 4.96, max: 5.2 },
+                ],
+                series: [
+                    {
+                        type: 'box-plot',
+                        xKey: 'category',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'A',
+                                    stop: 'B',
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'vertical-lines',
+                                        strokeWidth: 3,
+                                    },
+                                    stroke: '#ff6b6b',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 'C',
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'forward-slanted-lines',
+                                    },
+                                    stroke: '#4ecdc4',
+                                    strokeWidth: 3,
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+        });
+    });
 });
