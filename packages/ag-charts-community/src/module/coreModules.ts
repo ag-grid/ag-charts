@@ -109,8 +109,8 @@ export interface SeriesModule<
     predictAxis?: (
         direction: ChartAxisDirection,
         datum: DatumDefault,
-        seriesOptions: any
-    ) => SeriesPredictAxis<RequiredSeriesType> | undefined;
+        seriesOptions: SeriesTypeOptions<SeriesType>
+    ) => SeriesPredictAxis<SeriesType> | undefined;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
     solo?: boolean;

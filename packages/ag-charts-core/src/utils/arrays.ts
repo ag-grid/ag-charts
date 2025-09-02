@@ -123,10 +123,11 @@ export function dropLastWhile<T>(array: T[], cond: (value: T) => boolean) {
  */
 export function distribute(min: number, max: number, maxCount: number) {
     const values = [min];
-    const step = Math.max(maxCount, Math.floor((max - min) / (maxCount - 1)));
+    const step = Math.round((max - min) / (maxCount - 1));
     if (step > 0) {
-        for (let i = min + step; i < max - step + 1; i += step) {
-            values.push(i);
+        for (let i = min + step; i < max; i += step) {
+            const length = values.push(i);
+            if (length >= maxCount - 1) break;
         }
     }
     values.push(max);

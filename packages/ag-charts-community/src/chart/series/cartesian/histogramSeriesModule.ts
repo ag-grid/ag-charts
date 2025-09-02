@@ -14,6 +14,7 @@ import {
 } from '../../themes/util';
 import { HistogramSeries } from './histogramSeries';
 import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
+import { predictCartesianTimeAxis } from './util';
 
 export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     type: 'series',
@@ -23,6 +24,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
 
     identifier: 'histogram',
     moduleFactory: (ctx) => new HistogramSeries(ctx),
+    predictAxis: predictCartesianTimeAxis,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

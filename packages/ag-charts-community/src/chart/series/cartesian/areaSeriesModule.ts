@@ -16,6 +16,7 @@ import {
 } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
+import { predictCartesianTimeAxis } from './util';
 
 export const AreaSeriesModule: SeriesModule<'area'> = {
     type: 'series',
@@ -26,6 +27,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     moduleFactory: (ctx) => new AreaSeries(ctx),
     stackable: true,
+    predictAxis: predictCartesianTimeAxis,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

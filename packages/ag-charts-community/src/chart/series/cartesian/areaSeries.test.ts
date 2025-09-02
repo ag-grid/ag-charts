@@ -1716,26 +1716,22 @@ describe('AreaSeries', () => {
             const options: AgChartOptions = {
                 title: { text: 'Total PnL' },
                 data: [
-                    { date: '2019-04-05', pnl: 60 },
-                    { date: '2019-04-10', pnl: -110 },
-                    { date: '2019-04-15', pnl: -240 },
-                    { date: '2019-04-18', pnl: -585 },
-                    { date: '2019-04-21', pnl: -210 },
-                    { date: '2019-04-24', pnl: -595 },
-                    { date: '2020-03-17', pnl: -320 },
-                    { date: '2020-03-18', pnl: -165 },
-                    { date: '2020-03-19', pnl: -95 },
-                    { date: '2020-03-20', pnl: 15 },
-                    { date: '2020-03-26', pnl: 40 },
-                    { date: '2020-04-05', pnl: 90 },
-                    { date: '2020-04-12', pnl: 180 },
-                    { date: '2020-04-19', pnl: 420 },
-                    { date: '2020-05-03', pnl: 150 },
-                    { date: '2020-05-22', pnl: 170 },
-                ],
-                axes: [
-                    { type: 'ordinal-time', position: 'bottom', label: { rotation: 45 } },
-                    { type: 'number', position: 'left', min: -600, max: 600 },
+                    { key: '2019-04-05', pnl: 60 },
+                    { key: '2019-04-10', pnl: -110 },
+                    { key: '2019-04-15', pnl: -240 },
+                    { key: '2019-04-18', pnl: -585 },
+                    { key: '2019-04-21', pnl: -210 },
+                    { key: '2019-04-24', pnl: -595 },
+                    { key: '2020-03-17', pnl: -320 },
+                    { key: '2020-03-18', pnl: -165 },
+                    { key: '2020-03-19', pnl: -95 },
+                    { key: '2020-03-20', pnl: 15 },
+                    { key: '2020-03-26', pnl: 40 },
+                    { key: '2020-04-05', pnl: 90 },
+                    { key: '2020-04-12', pnl: 180 },
+                    { key: '2020-04-19', pnl: 420 },
+                    { key: '2020-05-03', pnl: 150 },
+                    { key: '2020-05-22', pnl: 170 },
                 ],
                 series: [
                     {
@@ -1743,7 +1739,7 @@ describe('AreaSeries', () => {
                         interpolation: {
                             type: 'smooth',
                         },
-                        xKey: 'date',
+                        xKey: 'key',
                         xName: 'Date',
                         yKey: 'pnl',
                         yName: 'PnL',
@@ -2087,6 +2083,95 @@ describe('AreaSeries', () => {
             };
 
             prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('predict axes', () => {
+        it('number', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: 1,
+                        iphone: 140,
+                    },
+                    {
+                        quarter: 2,
+                        iphone: 124,
+                    },
+                    {
+                        quarter: 3,
+                        iphone: 112,
+                    },
+                    {
+                        quarter: 4,
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('category', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('time', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: new Date('2018-01-01'),
+                        iphone: 140,
+                    },
+                    {
+                        quarter: new Date('2018-04-01'),
+                        iphone: 124,
+                    },
+                    {
+                        quarter: new Date('2018-07-01'),
+                        iphone: 112,
+                    },
+                    {
+                        quarter: new Date('2018-10-01'),
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
             chart = AgCharts.create(options);
             await compare();
         });

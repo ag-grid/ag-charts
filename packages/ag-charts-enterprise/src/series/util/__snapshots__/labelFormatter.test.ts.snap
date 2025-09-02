@@ -2,19 +2,19 @@
 
 exports[`label formatter formatStackedLabels formats stacked labels without shrinking within large bounds 1`] = `
 {
-  "height": 45,
+  "height": 44.4970703125,
   "label": {
     "fontSize": 20,
-    "height": 23,
-    "lineHeight": 23,
+    "height": 22.998046875,
+    "lineHeight": 22.998046875,
     "text": "Hello",
     "width": 45.58000183105469,
   },
   "meta": undefined,
   "secondaryLabel": {
     "fontSize": 10,
-    "height": 12,
-    "lineHeight": 12,
+    "height": 11.4990234375,
+    "lineHeight": 11.4990234375,
     "text": "World",
     "width": 25.93000030517578,
   },
@@ -24,19 +24,19 @@ exports[`label formatter formatStackedLabels formats stacked labels without shri
 
 exports[`label formatter formatStackedLabels ignores minimumFontSizes greater than fontSize 1`] = `
 {
-  "height": 45,
+  "height": 44.4970703125,
   "label": {
     "fontSize": 20,
-    "height": 23,
-    "lineHeight": 23,
+    "height": 22.998046875,
+    "lineHeight": 22.998046875,
     "text": "Hello",
     "width": 45.58000183105469,
   },
   "meta": undefined,
   "secondaryLabel": {
     "fontSize": 10,
-    "height": 12,
-    "lineHeight": 12,
+    "height": 11.4990234375,
+    "lineHeight": 11.4990234375,
     "text": "World",
     "width": 25.93000030517578,
   },
@@ -46,19 +46,19 @@ exports[`label formatter formatStackedLabels ignores minimumFontSizes greater th
 
 exports[`label formatter formatStackedLabels shrinks stacked labels to fit within smaller bounds 1`] = `
 {
-  "height": 30,
+  "height": 29.54833984375,
   "label": {
     "fontSize": 12,
-    "height": 14,
-    "lineHeight": 14,
+    "height": 13.798828125,
+    "lineHeight": 13.798828125,
     "text": "Hello",
     "width": 27.350000381469727,
   },
   "meta": undefined,
   "secondaryLabel": {
     "fontSize": 5,
-    "height": 6,
-    "lineHeight": 6,
+    "height": 5.74951171875,
+    "lineHeight": 5.74951171875,
     "text": "World",
     "width": 12.970000267028809,
   },
