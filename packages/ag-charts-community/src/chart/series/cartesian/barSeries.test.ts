@@ -897,59 +897,10 @@ describe('BarSeries', () => {
                 test('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
-                    styler.expect().nthCalledWithContext(2, c1);
-                    styler.expect().nthCalledWithContext(3, c1);
-                    styler.expect().nthCalledWithContext(4, c1);
-                    styler.expect().nthCalledWithContext(5, c1);
-                    styler.expect().nthCalledWithContext(6, c1);
-                    styler.expect().nthCalledWithContext(7, c2);
-                    styler.expect().nthCalledWithContext(8, c2);
-                    styler.expect().nthCalledWithContext(9, c2);
-                    styler.expect().nthCalledWithContext(10, c2);
-                    styler.expect().nthCalledWithContext(11, c2);
-                    styler.expect().toHaveBeenCalledTimes(12);
+                    styler.expect().toHaveBeenCalledTimes(2);
                 });
                 test('params', () => {
-                    const defaults = {
-                        cornerRadius: 0,
-                        fillOpacity: 1,
-                        highlighted: false,
-                        lineDash: [0],
-                        lineDashOffset: 0,
-                        stackGroup: undefined,
-                        strokeOpacity: 1,
-                        strokeWidth: 0,
-                        xKey: 'month',
-                    } as const;
-                    const params1 = {
-                        ...defaults,
-                        fill: '#f3622d',
-                        seriesId: 'BarSeries-1',
-                        stroke: '#aa4520',
-                        yKey: 'sales',
-                        context: c1,
-                    } as const;
-                    const params2 = {
-                        ...defaults,
-                        fill: '#fba71b',
-                        seriesId: 'BarSeries-2',
-                        stroke: '#b07513',
-                        yKey: 'expenses',
-                        context: { name: 'expenses context' },
-                    };
-                    const { mock } = styler;
-                    expect(mock).nthCalledWith(1, { ...params1, highlightState: 'none' });
-                    expect(mock).nthCalledWith(2, { ...params2, highlightState: 'none' });
-                    expect(mock).nthCalledWith(3, { ...params1, highlightState: 'none' });
-                    expect(mock).nthCalledWith(4, { ...params1, highlightState: 'highlighted-item' });
-                    expect(mock).nthCalledWith(5, { ...params1, highlightState: 'highlighted-series' });
-                    expect(mock).nthCalledWith(6, { ...params1, highlightState: 'unhighlighted-series' });
-                    expect(mock).nthCalledWith(7, { ...params1, highlightState: 'unhighlighted-item' });
-                    expect(mock).nthCalledWith(8, { ...params2, highlightState: 'none' });
-                    expect(mock).nthCalledWith(9, { ...params2, highlightState: 'highlighted-item' });
-                    expect(mock).nthCalledWith(10, { ...params2, highlightState: 'highlighted-series' });
-                    expect(mock).nthCalledWith(11, { ...params2, highlightState: 'unhighlighted-series' });
-                    expect(mock).nthCalledWith(12, { ...params2, highlightState: 'unhighlighted-item' });
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
         });

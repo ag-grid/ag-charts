@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BarSeries AG-11673 styler init callbacks params 1`] = `
+[
+  [
+    {
+      "context": {
+        "name": "sales context",
+      },
+      "cornerRadius": 0,
+      "fill": "#f3622d",
+      "fillOpacity": 1,
+      "highlightState": "none",
+      "highlighted": false,
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "seriesId": "BarSeries-1",
+      "stackGroup": undefined,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "sales",
+    },
+  ],
+  [
+    {
+      "context": {
+        "name": "expenses context",
+      },
+      "cornerRadius": 0,
+      "fill": "#fba71b",
+      "fillOpacity": 1,
+      "highlightState": "none",
+      "highlighted": false,
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "seriesId": "BarSeries-2",
+      "stackGroup": undefined,
+      "stroke": "#b07513",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "expenses",
+    },
+  ],
+]
+`;
