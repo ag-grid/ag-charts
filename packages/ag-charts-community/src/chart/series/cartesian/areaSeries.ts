@@ -1377,7 +1377,7 @@ export class AreaSeries extends CartesianSeries<
         let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            const cbResult = this.callWithContext(styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
                 cbResult,

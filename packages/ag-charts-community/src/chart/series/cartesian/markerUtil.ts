@@ -145,7 +145,7 @@ interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
         strokeOpacity: number;
         styler?: SeriesStyler<TStylerParams, TStylerResult>;
     };
-    callWithContext(styler: SeriesStyler<TStylerParams, TStylerResult>, params: TStylerParams): TStylerResult;
+    cachedCallWithContext(styler: SeriesStyler<TStylerParams, TStylerResult>, params: TStylerParams): TStylerResult;
     getMarkerStyle<TParams>(
         marker: SeriesMarker<TParams>,
         nodeDatum: object,
@@ -177,7 +177,7 @@ function getMarkerStyleImpl<TStylerParams, TStylerResult, TItemStylerParams>(
     let defaultOverrideStyle: DefaultOverrideStyle | undefined;
     if (series.properties.styler) {
         const params = series.makeStylerParams(highlightState === HighlightState.None, highlightState);
-        const result = series.callWithContext(series.properties.styler, params);
+        const result = series.cachedCallWithContext(series.properties.styler, params);
         defaultOverrideStyle = readResult(result);
     }
 

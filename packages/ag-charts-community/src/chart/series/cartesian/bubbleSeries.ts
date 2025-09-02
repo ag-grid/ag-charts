@@ -908,7 +908,7 @@ export class BubbleSeries extends CartesianSeries<
         let stylerResult: AgBubbleSeriesStylerResult = {};
         if (properties.styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            const cbResult = this.callWithContext(properties.styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(properties.styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
                 cbResult,

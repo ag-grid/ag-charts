@@ -955,7 +955,7 @@ export class LineSeries extends CartesianSeries<
         let stylerResult: AgLineSeriesStylerResult = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+            stylerResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
         }
         stylerResult.marker ??= {};
         return {
