@@ -18,12 +18,11 @@ const AREA_SERIES: AgAreaSeriesOptions[] = [
         },
         strokeWidth: 2,
         fillOpacity: 0.3,
+        fill: 'green',
+        stroke: 'green',
         segmentation: {
             key: 'y',
-            segments: [
-                { stop: 0, fill: 'red', stroke: 'red' },
-                { start: 0, fill: 'green', stroke: 'green' },
-            ],
+            segments: [{ stop: 0, fill: 'red', stroke: 'red' }],
         },
     },
 ];
@@ -40,12 +39,10 @@ const LINE_SERIES: AgLineSeriesOptions[] = [
             type: 'smooth',
         },
         strokeWidth: 2,
+        stroke: 'green',
         segmentation: {
             key: 'y',
-            segments: [
-                { stop: 0, stroke: 'red' },
-                { start: 0, stroke: 'green' },
-            ],
+            segments: [{ stop: 0, stroke: 'red' }],
         },
     },
 ];
@@ -56,12 +53,11 @@ const BAR_SERIES: AgBarSeriesOptions[] = [
         yKey: 'variance',
         xKey: 'dept',
         fillOpacity: 0.5,
+        fill: 'green',
+        stroke: 'green',
         segmentation: {
             key: 'y',
-            segments: [
-                { stop: 0, fill: 'red', stroke: 'red' },
-                { start: 0, fill: 'green', stroke: 'green' },
-            ],
+            segments: [{ stop: 0, fill: 'red', stroke: 'red' }],
         },
     },
 ];
