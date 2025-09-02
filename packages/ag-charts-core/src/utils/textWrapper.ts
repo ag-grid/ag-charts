@@ -1,11 +1,20 @@
-import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
+import type { OverflowStrategy, TextSegment, TextWrap } from 'ag-charts-types';
 
-import { type ITextMeasurer, cachedTextMeasurer } from './textMeasurer';
-import { EllipsisChar, type FontOptions, LineSplitter } from './textUtils';
+import { type ITextMeasurer, type MeasuredSegment, cachedTextMeasurer, measureTextSegments } from './textMeasurer';
+import {
+    EllipsisChar,
+    type FontOptions,
+    LineSplitter,
+    TrimEdgeGuard,
+    appendEllipsis,
+    guardTextEdges,
+    unguardTextEdges,
+} from './textUtils';
+import { isFiniteNumber } from './typeGuards';
 
 // Extended measurement options including wrapping behaviour.
 export interface WrapOptions {
-    font: string | FontOptions;
+    font: FontOptions;
     maxWidth: number;
     maxHeight?: number;
     lineHeight?: number;
@@ -37,16 +46,16 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
         estimatedWidth += charWidth;
     }
     if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-        return ellipsisForce ? text + EllipsisChar : text;
+        return ellipsisForce ? appendEllipsis(text) : text;
     }
     text = text.slice(0, i).trimEnd();
     while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
         text = text.slice(0, -1).trimEnd();
     }
-    return text.length ? text + EllipsisChar : '';
+    return text.length ? appendEllipsis(text) : '';
 }
 
-function textWrap(text: string, options: WrapOptions) {
+function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
     const lines: string[] = text.split(LineSplitter);
     const measurer = cachedTextMeasurer(options.font);
 
@@ -69,14 +78,19 @@ function textWrap(text: string, options: WrapOptions) {
         let i = 0;
         let estimatedWidth = 0;
         let lastSpaceIndex = 0;
+
+        if (!result.length) {
+            estimatedWidth = widthOffset;
+        }
+
         while (i < line.length) {
             const char = line.charAt(i);
-
-            estimatedWidth += measurer.textWidth(char);
 
             if (char === ' ') {
                 lastSpaceIndex = i;
             }
+
+            estimatedWidth += measurer.textWidth(char);
 
             if (estimatedWidth > options.maxWidth) {
                 // char width is greater than options.maxWidth
@@ -86,7 +100,10 @@ function textWrap(text: string, options: WrapOptions) {
                 }
 
                 // check actual width in case estimation is off
-                const actualWidth = measurer.textWidth(line.slice(0, i + 1));
+                let actualWidth = measurer.textWidth(line.slice(0, i + 1));
+                if (!result.length) {
+                    actualWidth += widthOffset;
+                }
                 if (actualWidth <= options.maxWidth) {
                     estimatedWidth = actualWidth;
                     i++;
@@ -128,9 +145,10 @@ function textWrap(text: string, options: WrapOptions) {
                 while (newLine.length && measurer.textWidth(newLine + postfix) > options.maxWidth) {
                     newLine = newLine.slice(0, -1).trimEnd();
                 }
-                result.push(newLine + postfix);
 
-                if (!newLine.length) {
+                if (newLine && newLine !== TrimEdgeGuard) {
+                    result.push(newLine + postfix);
+                } else {
                     line = '';
                     break;
                 }
@@ -160,7 +178,7 @@ function getWordAt(text: string, position: number) {
 }
 
 export function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
-    if (!options.maxHeight) {
+    if (!isFiniteNumber(options.maxHeight)) {
         return lines;
     }
 
@@ -203,4 +221,88 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
         lines[length - 2] = beforeLast.slice(0, lastSpaceIndex);
         lines[length - 1] = lastWord + ' ' + lastLine;
     }
+}
+
+export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptions) {
+    const { maxHeight = Infinity } = options;
+    const result: MeasuredSegment[] = [];
+
+    let lineWidth = 0;
+    let totalHeight = 0;
+
+    function truncateLastSegment() {
+        const lastSegment = result.pop()!;
+        const measurer = cachedTextMeasurer(lastSegment);
+        const truncatedText = truncateLine(lastSegment.text, measurer, options.maxWidth, true);
+        const textMetrics = measurer.measureText(truncatedText);
+        result.push({ ...lastSegment, text: truncatedText, textMetrics });
+    }
+
+    for (const { width, height, segments } of measureTextSegments(textSegments, options.font)) {
+        if (totalHeight + height > maxHeight) {
+            if (result.length) {
+                truncateLastSegment();
+            }
+            break;
+        }
+
+        if (lineWidth + width <= options.maxWidth) {
+            lineWidth += width;
+            totalHeight += height;
+            result.push(...segments);
+            continue;
+        }
+
+        for (const segment of segments) {
+            if (lineWidth + segment.textMetrics.width <= options.maxWidth) {
+                lineWidth += segment.textMetrics.width;
+                result.push(segment);
+                continue;
+            }
+
+            const measurer = cachedTextMeasurer(segment);
+            const guardedText = guardTextEdges(segment.text);
+            const wrapOptions = { ...options, font: segment, maxHeight: maxHeight - totalHeight };
+
+            let wrappedLines = textWrap(guardedText, wrapOptions, lineWidth);
+            if (wrappedLines.length === 0) {
+                wrappedLines = textWrap(guardedText, wrapOptions);
+                const lastSegment = result.at(-1);
+                if (lastSegment) {
+                    lastSegment.text += '\n';
+                    lineWidth = 0;
+                }
+            }
+
+            if (wrappedLines.length === 0) {
+                truncateLastSegment();
+                break;
+            }
+
+            const truncationIndex = wrappedLines.findIndex((l) => l.endsWith(EllipsisChar));
+
+            if (truncationIndex !== -1) {
+                wrappedLines = wrappedLines.slice(0, truncationIndex + 1);
+            }
+
+            const lastLine = wrappedLines.at(-1);
+            for (const wrappedLine of wrappedLines) {
+                const cleanLine = unguardTextEdges(wrappedLine);
+                const textMetrics = measurer.measureText(cleanLine);
+                const subSegment = { ...segment, text: cleanLine, textMetrics };
+                if (wrappedLine === lastLine) {
+                    lineWidth += textMetrics.width;
+                } else {
+                    subSegment.text += '\n';
+                    lineWidth = 0;
+                }
+                totalHeight += textMetrics.height;
+                result.push(subSegment);
+            }
+
+            if (truncationIndex !== -1) break;
+        }
+    }
+
+    return result;
 }

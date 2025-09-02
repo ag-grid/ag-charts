@@ -768,7 +768,8 @@ export abstract class Axis<
             truncateDate,
         };
 
-        return (value: any, index: number): string => {
+        // TODO replace any with string | TextSegment[]
+        return (value: any, index: number): any => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
