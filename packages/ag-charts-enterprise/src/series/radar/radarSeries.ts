@@ -31,6 +31,7 @@ const {
     Marker,
     mergeDefaults,
     updateLabelNode,
+    // eslint-disable-next-line sonarjs/deprecation
     getMarkerStyles,
 } = _ModuleSupport;
 
@@ -255,6 +256,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
+            // eslint-disable-next-line sonarjs/deprecation
             styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
         };
     }

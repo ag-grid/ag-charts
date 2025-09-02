@@ -46,6 +46,7 @@ const {
     processedDataIsAnimatable,
     simpleMemorize2,
     markerEnabled,
+    // eslint-disable-next-line sonarjs/deprecation
     getMarkerStyles,
     calculateSegments,
 } = _ModuleSupport;
@@ -365,6 +366,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
+            // eslint-disable-next-line sonarjs/deprecation
             styles: getMarkerStyles(this, marker, {
                 fill,
                 fillOpacity,
