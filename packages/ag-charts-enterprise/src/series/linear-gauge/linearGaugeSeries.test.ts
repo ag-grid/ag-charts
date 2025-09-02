@@ -227,22 +227,12 @@ describe('LinearGaugeSeries', () => {
         it('should not throw exceptions', async () => {
             const options: AgLinearGaugeOptions = {
                 type: 'linear-gauge',
-                container: document.getElementById('myChart'),
                 direction: 'horizontal',
-                title: {
-                    text: 'Performance Level',
-                },
+                title: { text: 'Performance Level' },
                 value: 55,
-                scale: {
-                    min: 0,
-                    max: 100,
-                },
-                label: {
-                    placement: 'inside-end',
-                },
-                tooltip: {
-                    enabled: true,
-                },
+                scale: { min: 0, max: 100 },
+                label: { placement: 'inside-end' },
+                tooltip: { enabled: true },
             };
             prepareEnterpriseTestOptions(options);
             chart = deproxy(AgCharts.createGauge(options));
