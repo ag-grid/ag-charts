@@ -11,7 +11,7 @@ import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } f
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
-import type { SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
 export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {}
 
@@ -127,7 +127,7 @@ export abstract class DataModelSeries<
         }
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const datums = super.pickNodesExactShape(point) as DataModelSeriesNodeDatum[];
         datums.sort((a, b) => a.datumIndex - b.datumIndex);
         return datums;

@@ -16,7 +16,7 @@ import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
 import { HighlightState, highlightStates } from '../seriesProperties';
-import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
+import type { DatumIndexType, ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
@@ -88,7 +88,7 @@ export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node:
     };
 }
 
-interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
+interface MarkerNodeDatum extends SeriesNodeDatum<DatumIndexType> {
     readonly point: Point & SizedPoint;
 }
 

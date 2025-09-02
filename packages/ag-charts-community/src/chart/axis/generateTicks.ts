@@ -59,6 +59,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
 
     const initialRotation = configuredRotation + defaultRotation;
     const checkLabelOverlap = (tickData: TickData, rotation = 0) => {
+        // minSpacing defaults to 10 unless label is rotated
         const labelSpacing = label.minSpacing ?? (configuredRotation === 0 && rotation === 0 ? 10 : 0);
         const labelRotation = initialRotation + rotation;
         const labelPadding = expandLabelPadding(label);
@@ -89,7 +90,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     };
 
     while (labelOverlap && index <= maxIterations) {
-        ({ tickData, index } = createTickData(options, tickGenerationType, tickData, index));
+        ({ tickData, index } = buildTickData(options, tickGenerationType, tickData, index));
 
         autoRotation =
             tryAutoRotate && checkLabelOverlap(tickData, 0) ? normalizeAngle360FromDegrees(label.autoRotateAngle) : 0;
@@ -141,7 +142,7 @@ function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterva
     return estimateTickCount(rangeExtent, zoomExtent, minSpacing, maxSpacing, defaultTickCount, defaultTickMinSpacing);
 }
 
-function createTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>,
     tickGenerationType: TickGenerationType,
     previousTickData: TickData,
@@ -162,7 +163,7 @@ function createTickData<TScale extends Scale<TDatum, number, TickInterval<TScale
     // First guess - generate ticks at current index
     const countParams = { minTickCount, maxTickCount, tickCount: countTicks(index) };
 
-    let nextTicks = getTicks(options, tickGenerationType, countParams);
+    let nextTicks = calculateRawTicks(options, tickGenerationType, countParams);
     if (regenerateTicks && ticksEqual(nextTicks.rawTicks, previousTicks)) {
         // Ticks didn't change
         // Use binary search to find the index, as there could be a lot of ticks in some cases
@@ -171,7 +172,7 @@ function createTickData<TScale extends Scale<TDatum, number, TickInterval<TScale
         while (lowerBound <= upperBound) {
             index = ((lowerBound + upperBound) / 2) | 0;
             countParams.tickCount = countTicks(index);
-            const nextTicksCandidate = getTicks(options, tickGenerationType, countParams);
+            const nextTicksCandidate = calculateRawTicks(options, tickGenerationType, countParams);
 
             if (ticksEqual(nextTicksCandidate.rawTicks, previousTicks)) {
                 lowerBound = index + 1;
@@ -218,7 +219,7 @@ function createTickData<TScale extends Scale<TDatum, number, TickInterval<TScale
     };
 }
 
-function getTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>,
     tickGenerationType: TickGenerationType,
     countParams: CountParams

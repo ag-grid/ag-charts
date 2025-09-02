@@ -1,7 +1,7 @@
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
-import type { ISeries } from './series/seriesTypes';
+import type { DatumIndexType, ISeries } from './series/seriesTypes';
 
-export function stackCartesianSeries(series: ISeries<unknown, unknown, unknown>[]) {
+export function stackCartesianSeries(series: ISeries<DatumIndexType, unknown, unknown>[]) {
     const seriesGroups = new Map<string, CartesianSeries<any, any, any, any, any, any, unknown>[]>();
 
     for (const s of series) {

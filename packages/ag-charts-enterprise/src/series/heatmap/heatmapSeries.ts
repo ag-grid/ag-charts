@@ -592,7 +592,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: Point): _ModuleSupport.SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(
+        point: Point
+    ): _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>[] {
         const item = findQuadtreeMatch(this, point);
         return item != null && item.distance <= 0 ? [item.datum] : [];
     }

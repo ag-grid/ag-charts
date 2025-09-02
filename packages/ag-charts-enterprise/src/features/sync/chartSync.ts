@@ -244,7 +244,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
             if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
 
-            const nodeData: _ModuleSupport.SeriesNodeDatum<unknown>[] = (series as any).contextNodeData?.nodeData ?? [];
+            const nodeData: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>[] =
+                (series as any).contextNodeData?.nodeData ?? [];
             if (!nodeData?.length) return;
 
             const firstNode = nodeData[0];

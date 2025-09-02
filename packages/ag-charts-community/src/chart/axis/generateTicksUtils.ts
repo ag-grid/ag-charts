@@ -7,8 +7,11 @@ import {
     cachedTextMeasurer,
     dropFirstWhile,
     dropLastWhile,
+    isArray,
     isPlainObject,
+    toPlainText,
     wrapText,
+    wrapTextSegments,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
@@ -215,11 +218,24 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             const isPrimary = primaryTicksIndices?.has(i) ?? false;
             const inputText = axisFormatter(isPrimary, tick, i);
-            const wrappedLabel = label.avoidCollisions && wrapOptions ? wrapText(inputText, wrapOptions) || null : null;
-            const tickLabel = wrappedLabel ?? inputText;
 
-            const tickValue = isContinuous ? tick?.valueOf() : null;
-            const tickId = Number.isFinite(tickValue) ? idGenerator(`v:${tickValue}`) : idGenerator(`l:${tickLabel}`);
+            let wrappedLabel: string | any | null = null;
+            if (label.avoidCollisions) {
+                wrappedLabel = isArray(inputText)
+                    ? wrapTextSegments(inputText as any, wrapOptions)
+                    : wrapText(inputText, wrapOptions) || null;
+            }
+
+            const tickLabel: any = wrappedLabel ?? inputText;
+
+            let tickId: string;
+            if (isContinuous) {
+                const tickValue = tick?.valueOf();
+                if (Number.isFinite(tickValue)) {
+                    tickId = idGenerator(`v:${tickValue}`);
+                }
+            }
+            tickId ??= idGenerator(`l:${isArray(tickLabel) ? toPlainText(tickLabel.flat()) : tickLabel}`);
 
             ticks.push({
                 tick,
@@ -228,7 +244,14 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: tickLabel === inputText ? undefined : inputText,
-                textMetrics: measurer.measureLines(tickLabel),
+                textMetrics: isArray(tickLabel)
+                    ? tickLabel.reduce((textMetrics, labelSegment) => {
+                          if (textMetrics == null) {
+                              return labelSegment.textMetrics;
+                          }
+                          return textMetrics;
+                      }, null)
+                    : measurer.measureLines(tickLabel),
                 translation: Math.floor(translation),
             });
         }
@@ -243,8 +266,8 @@ export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>,
     callback: () => void
 ): void {
     const originalDomain = scale.domain;
-    scale.domain = temporaryDomain;
     try {
+        scale.domain = temporaryDomain;
         callback();
     } finally {
         scale.domain = originalDomain;
@@ -287,11 +310,11 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
     reverse: boolean,
     minimumTimeGranularity?: AgTimeIntervalUnit
 ) {
-    const parentInterval = intervalHierarchy(timeInterval);
-    if (parentInterval == null) return;
-
     if (!TimeScale.is(scale) && !DiscreteTimeScale.is(scale)) return;
 
+    const parentInterval = intervalHierarchy(timeInterval);
+
+    if (parentInterval == null) return;
     if (reverse) {
         visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
     }
@@ -302,23 +325,25 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
     // Generate at least one tick outside the range on each side
     let [dp0, dp1] = intervalExtent(new Date(dv0), new Date(dv1), visibleRange);
     dp0 = intervalFloor(parentInterval, dp0);
-    if (dp0.valueOf() >= dv0) dp0 = intervalPrevious(parentInterval, dp0);
+    if (dp0.valueOf() >= dv0) {
+        dp0 = intervalPrevious(parentInterval, dp0);
+    }
     dp1 = intervalCeil(parentInterval, dp1);
-    if (dp1.valueOf() <= dv1) dp1 = intervalNext(parentInterval, dp1);
-    const primaryTicks = intervalRange(parentInterval, dp0, dp1);
+    if (dp1.valueOf() <= dv1) {
+        dp1 = intervalNext(parentInterval, dp1);
+    }
 
+    const primaryTicks = intervalRange(parentInterval, dp0, dp1);
     const milliseconds = intervalMilliseconds(timeInterval);
+    const skipFirstPrimaryTick = OrdinalTimeScale.is(scale);
+    const intervalTickParams = { ...tickParams, interval: timeInterval };
+    const ticks = [];
 
     let primaryTicksIndices: Set<number> | undefined;
-    const skipFirstPrimaryTick = OrdinalTimeScale.is(scale);
-    const ticks = [];
-    const intervalTickParams = {
-        ...tickParams,
-        interval: timeInterval,
-    };
     let parentLevelMode: ParentLevelMode;
     let alignment: ScaleAlignment | undefined;
     let ordinalTickStep = 0;
+
     if (OrdinalTimeScale.is(scale)) {
         const timeIntervalGranularity = intervalUnit(timeInterval);
         parentLevelMode =
@@ -371,7 +396,7 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
                 intervalTicks = scaleTicks?.ticks ?? [];
                 break;
             case ParentLevelMode.OrdinalTimeStepTicks:
-                intervalTicks = (scale as any as OrdinalTimeScale).stepTicks(
+                intervalTicks = (scale as unknown as OrdinalTimeScale).stepTicks(
                     ordinalTickStep,
                     [p0, p1],
                     undefined,
@@ -427,22 +452,22 @@ export function timeIntervalMaxLabelSize(
     timeInterval: AgTimeInterval | AgTimeIntervalUnit,
     textMeasurer: ITextMeasurer
 ) {
-    const specifier =
-        labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
-    if (specifier == null) return { width: 0, height: 0 };
+    const specifier = labelSpecifier(label.format, timeInterval);
+
+    if (specifier == null) {
+        return { width: 0, height: 0 };
+    }
 
     const labelFormatter = buildDateFormatter(specifier);
     const hierarchy = timeInterval ? intervalHierarchy(timeInterval) : undefined;
     const primarySpecifier = labelSpecifier(primaryLabel?.format, hierarchy);
     const primaryLabelFormatter = primarySpecifier ? buildDateFormatter(primarySpecifier) : labelFormatter;
 
-    const d0 = new Date(domain[0] as any);
-    const d1 = new Date(domain[domain.length - 1] as any);
+    const d0 = new Date(domain[0]);
+    const d1 = new Date(domain[domain.length - 1]);
 
     const hierarchyRange = hierarchy
-        ? intervalRange(hierarchy, new Date(domain[0] as any), new Date(domain[domain.length - 1] as any), {
-              extend: true,
-          })
+        ? intervalRange(hierarchy, new Date(domain[0]), new Date(domain[domain.length - 1]), { extend: true })
         : undefined;
 
     let maxWidth = 0;
@@ -531,7 +556,6 @@ function labelSpecifier(
     timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined
 ): string | undefined {
     if (format == null) return;
-
     if (typeof format === 'string') {
         return format;
     } else if (isPlainObject(format) && timeInterval != null) {
@@ -556,7 +580,7 @@ export function calculateLabelRotation(
 
     let defaultRotation = 0;
     if (parallel) {
-        defaultRotation = (parallelFlipFlag * Math.PI) / 2;
+        defaultRotation = parallelFlipFlag * (Math.PI / 2);
     } else if (regularFlipFlag === -1) {
         defaultRotation = Math.PI;
     }

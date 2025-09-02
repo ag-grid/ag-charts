@@ -139,7 +139,8 @@ export class AxisTicks {
         const { formatManager } = ctx;
         const boundSeries = this.dataProvider.data.flatMap((d) => d.series);
 
-        return (value, index) => {
+        // TODO replace any with string | TextSegment[]
+        return (value, index): any => {
             const formatParams: FormatterParams<any> = {
                 type: 'number',
                 value,

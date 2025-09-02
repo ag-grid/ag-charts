@@ -40,7 +40,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { ISeries } from '../series/seriesTypes';
+import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
@@ -217,7 +217,7 @@ export abstract class Axis<
         unit: 'percent',
     };
 
-    boundSeries: ISeries<unknown, unknown, unknown>[] = [];
+    boundSeries: ISeries<DatumIndexType, unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
@@ -768,7 +768,8 @@ export abstract class Axis<
             truncateDate,
         };
 
-        return (value: any, index: number): string => {
+        // TODO replace any with string | TextSegment[]
+        return (value: any, index: number): any => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;

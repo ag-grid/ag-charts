@@ -12,7 +12,7 @@ import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import type { DatumIndexType, SeriesNodeDatum } from '../seriesTypes';
 import type {
     CartesianAnimationData,
     CartesianSeriesNodeDataContext,
@@ -175,7 +175,7 @@ export abstract class AbstractBarSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const item = findQuadtreeMatch(this, point);
         return item != null && item.distance <= 0 ? [item.datum] : [];
     }

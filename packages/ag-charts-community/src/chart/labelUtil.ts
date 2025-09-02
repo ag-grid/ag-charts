@@ -4,7 +4,7 @@ import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, HighlightState
 import type { Text } from '../scene/shape/text';
 import { mergeDefaults } from '../util/object';
 import type { Label } from './label';
-import type { SeriesNodeDatum } from './series/seriesTypes';
+import type { DatumIndexType, SeriesNodeDatum } from './series/seriesTypes';
 
 interface SeriesLike {
     id: string;
@@ -29,7 +29,7 @@ type LabelDatum = Point & {
 
 export function getLabelStyles<TParams>(
     series: SeriesLike,
-    nodeDatum: SeriesNodeDatum<unknown> | undefined,
+    nodeDatum: SeriesNodeDatum<DatumIndexType> | undefined,
     params: TParams,
     label: Label<TParams>,
     highlighted?: boolean,
@@ -75,7 +75,7 @@ export function updateLabelNode<TParams, D extends LabelDatum>(
 
 export function updateLabelNode<TParams>(
     series: SeriesLike,
-    textNode: Text<SeriesNodeDatum<unknown>>,
+    textNode: Text<SeriesNodeDatum<DatumIndexType>>,
     params: TParams,
     label: Label<TParams, unknown>,
     labelDatum: LabelDatum | undefined,
