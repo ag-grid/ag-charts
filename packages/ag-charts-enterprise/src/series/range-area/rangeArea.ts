@@ -47,6 +47,7 @@ const {
     simpleMemorize2,
     markerEnabled,
     getMarkerStyles,
+    calculateSegments,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
@@ -203,7 +204,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(data && xAxis && yAxis && dataModel && processedData)) return;
+        if (!(data && xAxis && yAxis && dataModel && processedData && this.chart?.seriesRect)) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -346,6 +347,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             return interpolatePoints(lowPoints, interpolation);
         });
 
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart.seriesRect,
+            this.ctx.scene,
+            false
+        );
+
         const context: RangeAreaContext = {
             itemId: `${yLowKey}-${yHighKey}`,
             labelData,
@@ -362,6 +372,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 strokeWidth,
                 strokeOpacity,
             }),
+            segments,
         };
 
         return context;
@@ -427,12 +438,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override updatePathNodes(opts: {
-        paths: _ModuleSupport.Path[];
+        paths: _ModuleSupport.SegmentedPath[];
         visible: boolean;
         animationEnabled: boolean;
     }) {
         const { visible } = opts;
         const [fill, stroke] = opts.paths;
+
+        const segments = this.contextNodeData?.segments;
 
         const {
             strokeWidth,
@@ -446,6 +459,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         } = mergeDefaults(this.getHighlightStyle(), this.properties);
 
         stroke.setProperties({
+            segments,
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
@@ -458,6 +472,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             opacity,
             visible,
         });
+
+        stroke.datum = segments;
+
         const fillBBox = this.getShapeFillBBox();
 
         applyShapeFillBBox(fill, seriesFill, fillBBox);
@@ -478,12 +495,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         );
 
         fill.setProperties({
+            segments,
             pointerEvents: PointerEvents.None,
             lineJoin: 'round',
             fillShadow: this.properties.shadow,
             opacity,
             visible,
         });
+
+        fill.datum = segments;
 
         updateClipPath(this, stroke);
         updateClipPath(this, fill);

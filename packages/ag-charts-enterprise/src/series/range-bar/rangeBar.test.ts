@@ -792,4 +792,388 @@ describe('RangeBarSeries', () => {
             await compare();
         });
     });
+
+    describe('segmentation', () => {
+        it('should render range-bar series with segmentation styling on x-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', high: 100, low: 50 },
+                    { category: 'B', high: 150, low: 80 },
+                    { category: 'C', high: 120, low: 60 },
+                    { category: 'D', high: 180, low: 110 },
+                    { category: 'E', high: 200, low: 130 },
+                ],
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'category',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'A', stop: 'B', fill: 'rgba(255, 0, 0, 0.3)', stroke: 'red', strokeWidth: 2 },
+                                { start: 'C', stop: 'D', fill: 'rgba(0, 0, 255, 0.3)', stroke: 'blue', strokeWidth: 3 },
+                                { start: 'E', fill: 'rgba(0, 255, 0, 0.3)', stroke: 'green', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render range-bar series with segmentation styling on y-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, high: 100, low: 50 },
+                    { x: 1, high: 180, low: 120 },
+                    { x: 2, high: 150, low: 90 },
+                    { x: 3, high: 220, low: 160 },
+                    { x: 4, high: 250, low: 180 },
+                ],
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 50,
+                                    stop: 150,
+                                    fill: 'rgba(255, 165, 0, 0.3)',
+                                    stroke: 'orange',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 150,
+                                    stop: 200,
+                                    fill: 'rgba(128, 0, 128, 0.3)',
+                                    stroke: 'purple',
+                                    strokeWidth: 3,
+                                },
+                                { start: 200, fill: 'rgba(0, 255, 255, 0.3)', stroke: 'cyan', strokeWidth: 4 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render horizontal range-bar series with segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', high: 100, low: 50 },
+                    { category: 'B', high: 150, low: 80 },
+                    { category: 'C', high: 120, low: 60 },
+                    { category: 'D', high: 180, low: 110 },
+                ],
+                series: [
+                    {
+                        type: 'range-bar',
+                        direction: 'horizontal',
+                        xKey: 'category',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'A',
+                                    stop: 'B',
+                                    fill: 'rgba(255, 192, 203, 0.4)',
+                                    stroke: 'hotpink',
+                                    strokeWidth: 2,
+                                },
+                                { start: 'C', fill: 'rgba(173, 216, 230, 0.4)', stroke: 'lightblue', strokeWidth: 3 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'left' },
+                    { type: 'number', position: 'bottom' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render grouped range-bar series with segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'Q1', high1: 100, low1: 50, high2: 80, low2: 40 },
+                    { category: 'Q2', high1: 150, low1: 80, high2: 120, low2: 70 },
+                    { category: 'Q3', high1: 120, low1: 60, high2: 140, low2: 90 },
+                    { category: 'Q4', high1: 180, low1: 110, high2: 160, low2: 100 },
+                ],
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'category',
+                        yLowKey: 'low1',
+                        yHighKey: 'high1',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'Q1',
+                                    stop: 'Q2',
+                                    fill: 'rgba(255, 0, 0, 0.3)',
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 'Q3',
+                                    stop: 'Q3',
+                                    fill: 'rgba(0, 0, 255, 0.3)',
+                                    stroke: 'blue',
+                                    strokeWidth: 3,
+                                },
+                                { start: 'Q4', fill: 'rgba(0, 255, 0, 0.3)', stroke: 'green', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'range-bar',
+                        xKey: 'category',
+                        yLowKey: 'low2',
+                        yHighKey: 'high2',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'Q1',
+                                    stop: 'Q2',
+                                    fill: 'rgba(255, 165, 0, 0.3)',
+                                    stroke: 'orange',
+                                    strokeWidth: 2,
+                                },
+                                { start: 'Q3', fill: 'rgba(128, 0, 128, 0.3)', stroke: 'purple', strokeWidth: 3 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render range-bar series with pattern fill segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', high: 100, low: 50 },
+                    { category: 'B', high: 150, low: 80 },
+                    { category: 'C', high: 120, low: 60 },
+                    { category: 'D', high: 180, low: 110 },
+                ],
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'category',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'A',
+                                    stop: 'A',
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'vertical-lines',
+                                        strokeWidth: 3,
+                                    },
+                                    stroke: '#ff6b6b',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 'B',
+                                    stop: 'B',
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'horizontal-lines',
+                                        stroke: '#4ecdc4',
+                                        strokeWidth: 2,
+                                    },
+                                    stroke: '#4ecdc4',
+                                    strokeWidth: 3,
+                                },
+                                {
+                                    start: 'C',
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'forward-slanted-lines',
+                                        strokeWidth: 2,
+                                    },
+                                    stroke: '#45b7d1',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render range-bar series with gradient fill segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, high: 100, low: 50 },
+                    { x: 1, high: 150, low: 80 },
+                    { x: 2, high: 120, low: 60 },
+                    { x: 3, high: 180, low: 110 },
+                    { x: 4, high: 200, low: 130 },
+                ],
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: -1,
+                                    stop: 2,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: '#ff6b6b',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 2,
+                                    stop: 4,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: '#4ecdc4',
+                                    strokeWidth: 3,
+                                },
+                                {
+                                    start: 4,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: '#45b7d1',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render range-bar series with time axis segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { date: new Date(2023, 0, 1), high: 1200, low: 800 },
+                    { date: new Date(2023, 1, 1), high: 1500, low: 1000 },
+                    { date: new Date(2023, 2, 1), high: 1100, low: 700 },
+                    { date: new Date(2023, 3, 1), high: 1800, low: 1200 },
+                    { date: new Date(2023, 4, 1), high: 2000, low: 1400 },
+                ],
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'date',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: new Date(2023, 0, 1),
+                                    stop: new Date(2023, 2, 1),
+                                    fill: 'rgba(255, 0, 0, 0.3)',
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: new Date(2023, 2, 1),
+                                    fill: 'rgba(0, 255, 0, 0.3)',
+                                    stroke: 'green',
+                                    strokeWidth: 3,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'time', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
 });

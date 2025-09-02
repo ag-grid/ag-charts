@@ -27,6 +27,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<
             padding: { $isUserOption: ['./spacing', 0, 6] }, // compatibility with old `padding` property (now named `spacing`).
         },
         highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        segmentation: _ModuleSupport.SEGMENTATION_DEFAULTS,
     },
     axes: {
         [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {

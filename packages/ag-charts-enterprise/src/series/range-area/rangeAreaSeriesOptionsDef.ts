@@ -1,5 +1,14 @@
 import { type AgRangeAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, boolean, constant, number, required, string, undocumented } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    boolean,
+    constant,
+    number,
+    required,
+    shapeSegmentation,
+    string,
+    undocumented,
+} from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, rangeAreaSeriesThemeableOptionsDef } = _ModuleSupport;
 
@@ -14,6 +23,7 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     yName: string,
     yLowName: string,
     yHighName: string,
+    segmentation: shapeSegmentation,
 };
 
 // @ts-expect-error undocumented option
