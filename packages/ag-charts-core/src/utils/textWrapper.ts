@@ -93,10 +93,6 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
             estimatedWidth += measurer.textWidth(char);
 
             if (estimatedWidth > options.maxWidth) {
-                if (text === ' for Q1 & Q2 2025') {
-                    // debugger;
-                }
-
                 // char width is greater than options.maxWidth
                 if (i === 0) {
                     line = '';
