@@ -572,6 +572,10 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
         return graph.palette.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
     }
 
+    if (key === 'type') {
+        return graph.paletteType;
+    }
+
     const value = getPathSafe(graph.palette, key.split('.'));
 
     // TODO: what is mutating the palette? see integratedChartsCrossFiltering.test.ts
@@ -620,6 +624,10 @@ function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
 
     if (key === 'gradients') {
         return graph.palette.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
+    }
+
+    if (key === 'type') {
+        return graph.paletteType;
     }
 
     const value = getPathSafe(graph.palette, key.split('.'));

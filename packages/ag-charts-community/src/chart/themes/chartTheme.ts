@@ -642,7 +642,7 @@ export class ChartTheme {
         for (const [nextType, { seriesTypes }] of entries(CHART_TYPE_CONFIG)) {
             const typeDefaults = chartDefaults.get(nextType);
             for (const seriesType of seriesTypes) {
-                config[seriesType as keyof AgChartThemeOverrides] ??= deepClone(typeDefaults);
+                config[seriesType as keyof AgChartThemeOverrides] ??= typeDefaults;
             }
         }
         return config;
@@ -660,7 +660,7 @@ export class ChartTheme {
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
                     seriesRegistry.getThemeTemplate(seriesType),
-                    result[seriesType] ?? deepClone(chartTypeDefaults)
+                    result[seriesType] ?? chartTypeDefaults
                 );
 
                 const { axes } = result[seriesType] as { axes: Record<string, object> };
