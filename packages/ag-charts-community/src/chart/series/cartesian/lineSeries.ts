@@ -340,9 +340,6 @@ export class LineSeries extends CartesianSeries<
             connectMissingData,
             interpolation,
             legendItemName,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
         } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -476,7 +473,7 @@ export class LineSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
-            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker),
             segments,
         };
     }
@@ -960,7 +957,13 @@ export class LineSeries extends CartesianSeries<
         let stylerResult: AgLineSeriesStylerResult = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            stylerResult = resolved ?? {};
         }
         stylerResult.marker ??= {};
         return {
@@ -1007,6 +1010,10 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

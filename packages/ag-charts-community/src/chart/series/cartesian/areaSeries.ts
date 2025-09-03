@@ -729,8 +729,6 @@ export class AreaSeries extends CartesianSeries<
             label,
             fill: seriesFill,
             stroke: seriesStroke,
-            strokeWidth,
-            strokeOpacity,
         } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -880,7 +878,7 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
-            styles: getMarkerStyles(this, marker, { stroke: seriesStroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker),
             segments,
         };
 
@@ -1381,7 +1379,7 @@ export class AreaSeries extends CartesianSeries<
         let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            const cbResult = this.callWithContext(styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
                 cbResult,
@@ -1437,6 +1435,10 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

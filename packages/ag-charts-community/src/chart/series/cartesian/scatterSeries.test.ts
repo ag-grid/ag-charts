@@ -542,27 +542,9 @@ describe('ScatterSeries', () => {
             });
             describe('callbacks', () => {
                 test('context', () => {
-                    styler
-                        .expect()
-                        .nthCalledWithContext(0, c1)
-                        .nthCalledWithContext(1, c2)
-                        .nthCalledWithContext(2, c1)
-                        .nthCalledWithContext(3, c1)
-                        .nthCalledWithContext(4, c1)
-                        .nthCalledWithContext(5, c1)
-                        .nthCalledWithContext(6, c1)
-                        .nthCalledWithContext(7, c1)
-                        .nthCalledWithContext(8, c1)
-                        .nthCalledWithContext(9, c1)
-                        .nthCalledWithContext(10, c2)
-                        .nthCalledWithContext(11, c2)
-                        .nthCalledWithContext(12, c2)
-                        .nthCalledWithContext(13, c2)
-                        .nthCalledWithContext(14, c2)
-                        .nthCalledWithContext(15, c2)
-                        .nthCalledWithContext(16, c2)
-                        .nthCalledWithContext(17, c2)
-                        .toHaveBeenCalledTimes(18);
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
                 });
                 test('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();

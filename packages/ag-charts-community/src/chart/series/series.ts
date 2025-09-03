@@ -1179,7 +1179,7 @@ export abstract class Series<
         }
     }
 
-    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    protected cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, ...params);
     }
 

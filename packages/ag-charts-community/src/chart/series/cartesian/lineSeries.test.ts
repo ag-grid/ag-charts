@@ -9,7 +9,6 @@ import type {
     AgLineSeriesStylerParams,
     AgLineSeriesStylerResult,
     AgSeriesMarkerStyle,
-    HighlightState,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -823,90 +822,11 @@ describe('LineSeries', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().nthCalledWithContext(2, c1);
-                    styler.expect().nthCalledWithContext(3, c1);
-                    styler.expect().nthCalledWithContext(4, c1);
-                    styler.expect().nthCalledWithContext(5, c1);
-                    styler.expect().nthCalledWithContext(6, c1);
-                    styler.expect().nthCalledWithContext(7, c1);
-                    styler.expect().nthCalledWithContext(8, c1);
-                    styler.expect().nthCalledWithContext(9, c1);
-                    styler.expect().nthCalledWithContext(10, c2);
-                    styler.expect().nthCalledWithContext(11, c2);
-                    styler.expect().nthCalledWithContext(12, c2);
-                    styler.expect().nthCalledWithContext(13, c2);
-                    styler.expect().nthCalledWithContext(14, c2);
-                    styler.expect().nthCalledWithContext(15, c2);
-                    styler.expect().nthCalledWithContext(16, c2);
-                    styler.expect().nthCalledWithContext(17, c2);
-                    styler.expect().toHaveBeenCalledTimes(18);
+                    styler.expect().nthCalledWithContext(3, c2);
+                    styler.expect().toHaveBeenCalledTimes(4);
                 });
                 test('params', () => {
-                    const p1 = {
-                        context: { name: 'sales context' },
-                        lineDash: [0],
-                        lineDashOffset: 0,
-                        marker: {
-                            fill: '#f3622d',
-                            fillOpacity: 1,
-                            lineDash: [0],
-                            lineDashOffset: 0,
-                            shape: 'circle',
-                            size: 7,
-                            stroke: '#aa4520',
-                            strokeOpacity: 1,
-                            strokeWidth: 0,
-                        },
-                        seriesId: 'LineSeries-1',
-                        stroke: '#f3622d',
-                        strokeOpacity: 1,
-                        strokeWidth: 2,
-                        xKey: 'month',
-                        yKey: 'sales',
-                    } as const;
-                    const p2 = {
-                        context: { name: 'expenses context' },
-                        lineDash: [0],
-                        lineDashOffset: 0,
-                        marker: {
-                            fill: '#fba71b',
-                            fillOpacity: 1,
-                            lineDash: [0],
-                            lineDashOffset: 0,
-                            shape: 'circle',
-                            size: 7,
-                            stroke: '#b07513',
-                            strokeOpacity: 1,
-                            strokeWidth: 0,
-                        },
-                        seriesId: 'LineSeries-2',
-                        stroke: '#fba71b',
-                        strokeOpacity: 1,
-                        strokeWidth: 2,
-                        xKey: 'month',
-                        yKey: 'expenses',
-                    } as const;
-                    const params = (p: typeof p1 | typeof p2, highlighted: boolean, highlightState: HighlightState) => {
-                        return { ...p, highlighted, highlightState };
-                    };
-                    const { mock } = styler;
-                    expect(mock).nthCalledWith(1, params(p1, false, 'none'));
-                    expect(mock).nthCalledWith(2, params(p2, false, 'none'));
-                    expect(mock).nthCalledWith(3, params(p1, true, 'none'));
-                    expect(mock).nthCalledWith(4, params(p1, false, 'highlighted-item'));
-                    expect(mock).nthCalledWith(5, params(p1, false, 'highlighted-series'));
-                    expect(mock).nthCalledWith(6, params(p1, false, 'unhighlighted-series'));
-                    expect(mock).nthCalledWith(7, params(p1, false, 'unhighlighted-item'));
-                    expect(mock).nthCalledWith(8, params(p1, false, 'none'));
-                    expect(mock).nthCalledWith(9, params(p1, true, 'none'));
-                    expect(mock).nthCalledWith(10, params(p1, false, 'none'));
-                    expect(mock).nthCalledWith(11, params(p2, true, 'none'));
-                    expect(mock).nthCalledWith(12, params(p2, false, 'highlighted-item'));
-                    expect(mock).nthCalledWith(13, params(p2, false, 'highlighted-series'));
-                    expect(mock).nthCalledWith(14, params(p2, false, 'unhighlighted-series'));
-                    expect(mock).nthCalledWith(15, params(p2, false, 'unhighlighted-item'));
-                    expect(mock).nthCalledWith(16, params(p2, false, 'none'));
-                    expect(mock).nthCalledWith(17, params(p2, true, 'none'));
-                    styler.expect().toHaveBeenCalledTimes(18);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
         });

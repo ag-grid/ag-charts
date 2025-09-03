@@ -808,6 +808,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private getStyle(
+        ignoreStylerCallback: boolean,
         highlighted: boolean,
         highlightState?: HighlightState
     ): Required<AgBarSeriesStyle> & { opacity: number } {
@@ -823,12 +824,12 @@ export class BarSeries extends AbstractBarSeries<
             styler,
         } = this.properties;
         let stylerResult: AgBarSeriesStyle = {};
-        if (styler) {
+        if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
-                    this.callWithContext(styler, stylerParams) ?? {},
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
                     { pick: false }
                 ) ?? {};
         }
@@ -854,7 +855,7 @@ export class BarSeries extends AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, this.getStyle(isHighlight, highlightState));
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, isHighlight, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -1012,6 +1013,7 @@ export class BarSeries extends AbstractBarSeries<
     private legendItemSymbol(): LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
+            false,
             HighlightState.None
         );
 
@@ -1111,6 +1113,10 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

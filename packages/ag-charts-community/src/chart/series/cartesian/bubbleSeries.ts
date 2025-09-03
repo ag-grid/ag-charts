@@ -9,6 +9,7 @@ import {
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgScatterSeriesItemStylerParams,
     type AgScatterSeriesStylerParams,
+    type AgScatterSeriesStylerResult,
     type AgSeriesMarkerStyle,
     type FillOptions,
     type FormatterPropertyType,
@@ -71,7 +72,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { computeMarkerFocusBounds, getMarkerOnlyStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, getMarkerStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
@@ -504,6 +505,7 @@ export class BubbleSeries extends CartesianSeries<
             }
         }
 
+        type StylerResult = AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined;
         type StylerParams =
             | AgBubbleSeriesStylerParams<unknown, unknown>
             | AgScatterSeriesStylerParams<unknown, unknown>;
@@ -516,7 +518,7 @@ export class BubbleSeries extends CartesianSeries<
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
-            styles: getMarkerOnlyStyles<StylerParams, ItemStylerParams>(this, marker),
+            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, marker),
         };
     }
 
@@ -925,7 +927,7 @@ export class BubbleSeries extends CartesianSeries<
         let stylerResult: AgBubbleSeriesStylerResult = {};
         if (properties.styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            const cbResult = this.callWithContext(properties.styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(properties.styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
                 cbResult,
@@ -968,8 +970,8 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        const { itemStyler, marker, label } = this.properties;
-        return !!(itemStyler ?? marker.itemStyler ?? label.itemStyler);
+        const { styler, itemStyler, marker, label } = this.properties;
+        return !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler);
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {
