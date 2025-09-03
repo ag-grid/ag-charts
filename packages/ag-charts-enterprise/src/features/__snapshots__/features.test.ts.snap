@@ -209,7 +209,7 @@ HTMLCollection [
         />
       </div>
       <div
-        aria-disabled="true"
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         role="menuitem"
         tabindex="-1"
