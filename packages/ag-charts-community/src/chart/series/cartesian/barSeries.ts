@@ -893,7 +893,8 @@ export class BarSeries extends AbstractBarSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         opts.datumSelection.each((node, datum) => {
             if (!opts.datumSelection.isGarbage(node)) {
-                datum.style = readDatumStyle(this, datum, highlightedDatum, opts);
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
             }
         });
     }
