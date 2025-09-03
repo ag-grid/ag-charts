@@ -9,7 +9,6 @@ import type {
     DateFormatterStyle,
     FormatterParams,
     TextOrSegments,
-    TextSegment,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
@@ -56,7 +55,7 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
     color?: CssColor;
     tickId: string;
     rotation: number;
-    text: string | TextSegment[];
+    text: TextOrSegments;
     textBaseline: CanvasTextBaseline;
     textUntruncated?: string;
     visible: boolean;
@@ -455,7 +454,7 @@ export abstract class Axis<
     }
 
     protected getLabelStyles(
-        params: { value: string | TextSegment[] | undefined; depth?: number },
+        params: { value: TextOrSegments | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
         label: AxisLabel = this.label
     ) {

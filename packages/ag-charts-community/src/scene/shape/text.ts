@@ -12,7 +12,7 @@ import {
     toFontString,
     toPlainText,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextSegment } from 'ag-charts-types';
+import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { BBox } from '../bbox';
@@ -85,7 +85,7 @@ export class Text<D = any> extends Shape<D> {
     @SceneRefChangeDetection({
         changeCb: (o: Text) => o.onTextChange(),
     })
-    text?: string | TextSegment[] = undefined;
+    text?: TextOrSegments = undefined;
 
     fontCache?: string = undefined;
 

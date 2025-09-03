@@ -1,5 +1,5 @@
 import type { Size } from 'ag-charts-core';
-import type { TextSegment } from 'ag-charts-types';
+import type { TextOrSegments } from 'ag-charts-types';
 
 import type { FromToFns } from '../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
@@ -17,7 +17,7 @@ export enum NiceMode {
 
 export interface TickDatum {
     index: number;
-    tickLabel: string | TextSegment[] | undefined;
+    tickLabel: TextOrSegments | undefined;
     tick: any;
     tickId: string;
     translation: number;

@@ -14,7 +14,7 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextSegment } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -73,7 +73,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
         fractionDigits: number | undefined,
         timeInterval: AnyTimeInterval | undefined,
         dateStyle: DateFormatterStyle
-    ): (value: any, index: number) => string | TextSegment[] | undefined;
+    ): (value: any, index: number) => TextOrSegments | undefined;
 }
 
 export interface TickData<D = any> {
@@ -220,14 +220,14 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             const isPrimary = primaryTicksIndices?.has(i) ?? false;
             const inputText = axisFormatter(isPrimary, tick, i);
 
-            let wrappedLabel: string | TextSegment[] | null = null;
+            let wrappedLabel: TextOrSegments | null = null;
             if (label.avoidCollisions) {
                 wrappedLabel = isArray(inputText)
                     ? wrapTextSegments(inputText, wrapOptions)
                     : wrapText(inputText, wrapOptions) || null;
             }
 
-            const tickLabel: string | TextSegment[] = wrappedLabel ?? inputText;
+            const tickLabel = wrappedLabel ?? inputText;
 
             let tickId: string;
             if (isContinuous) {
