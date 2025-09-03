@@ -50,7 +50,7 @@ import {
     type SeriesNodeStyleContext,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, toHighlightString } from '../seriesProperties';
+import { HighlightState, highlightStates, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
@@ -559,17 +559,21 @@ export class BubbleSeries extends CartesianSeries<
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
         const params = { xKey, yKey, sizeKey, labelKey };
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                const stylerStyle = this.getStyle(opts.isHighlight, highlightState);
                 datum.style = this.getMarkerStyle(
                     marker,
                     datum,
                     params,
                     {
                         isHighlight,
+                        highlightState,
                         resolveItemStylerMarkerPath: false,
                     },
-                    this.getStyle(false)
+                    stylerStyle
                 );
             }
         });
