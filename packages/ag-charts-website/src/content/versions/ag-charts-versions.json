@@ -20,7 +20,8 @@
                 "path": "./axes-types"
             },
             {
-                "text": "Performance Improvements for Large Datasets"
+                "text": "Interactivity with Large Datasets",
+                "path": "./large-dataset-interactivity"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-12-2"

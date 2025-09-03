@@ -1,0 +1,29 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>Series Type:</span>
+        <select onchange="setSeries(event.target.value, event.target.selectedOptions[0].text)">
+            <option value="area">Area</option>
+            <option value="bar">Bar</option>
+            <option value="line" selected>Line</option>
+            <hr />
+            <option value="stacked-bar">Stacked Bar</option>
+            <option value="stacked-area">Stacked Area</option>
+            <hr />
+            <option value="range-area">Range Area</option>
+            <option value="range-bar">Range Bar</option>
+            <hr />
+            <option value="candlestick">Candlestick</option>
+            <option value="ohlc">OHLC</option>
+            <hr />
+            <option value="scatter">Scatter</option>
+            <option value="bubble">Bubble</option>
+        </select>
+        <span class="gap-left">Data Size:</span>
+        <button onclick="setData(1e3, '1K')">1K</button>
+        <button onclick="setData(1e4, '10K')">10K</button>
+        <button onclick="setData(1e5, '100K')">100K</button>
+        <button onclick="setData(500_000, '500K')">500K</button>
+        <button onclick="setData(1e6, '1M')">1M</button>
+    </div>
+</div>
+<div id="myChart"></div>

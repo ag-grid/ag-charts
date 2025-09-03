@@ -183,6 +183,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Large Datasets",
+                            "path": "large-dataset-interactivity"
+                        },
+                        {
+                            "type": "item",
                             "title": "Localisation",
                             "path": "localisation"
                         },
