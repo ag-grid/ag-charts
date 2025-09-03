@@ -770,7 +770,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 datum: nodeDatum.datum,
                 highlighted,
                 highlightState,
-                itemId: nodeDatum.itemId,
                 legendItemKey: properties.legendItemKey,
                 radiusKey: properties.radiusKey,
                 radiusName: properties.radiusName ?? properties.radiusKey,

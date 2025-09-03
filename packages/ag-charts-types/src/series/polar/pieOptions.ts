@@ -1,8 +1,6 @@
 import type {
-    AgChartCallbackParams,
     ContextCallbackParams,
     DatumCallbackParams,
-    HighlightState,
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
@@ -74,13 +72,9 @@ export interface AgPieTitleOptions extends Toggleable, FontOptions {
 }
 
 export interface AgPieCalloutLineItemStylerParams<TDatum, TContext>
-    extends AgChartCallbackParams<TDatum, TContext>,
-        AgPieSeriesLabelFormatterParams<TDatum> {
-    /** Indicates whether the element is highlighted. */
-    highlighted?: boolean;
-    /** The specific highlight state of the element. */
-    highlightState?: HighlightState;
-}
+    extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
+        AgPieSeriesLabelFormatterParams<TDatum> {}
 
 export interface AgPieCalloutLineItemStylerResult {
     /** The colour for this callout line. */
