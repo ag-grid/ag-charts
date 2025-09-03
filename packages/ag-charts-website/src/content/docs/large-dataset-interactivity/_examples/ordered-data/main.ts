@@ -160,8 +160,9 @@ function setData(points: number, label: string) {
             break;
         case 'Scatter':
         case 'Bubble':
-        default:
             options.data = getBubbleData(points);
+        default:
+            options.data = getData(points);
             break;
     }
     dataLabel = label;
