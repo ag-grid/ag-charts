@@ -298,7 +298,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
-        if (datum.locked) return;
+        if (!datum.isWriteable()) return;
 
         if (this.activeHandle) {
             this.dragHandle(datum, target, context, snapping);

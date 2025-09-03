@@ -55,12 +55,12 @@ export interface AgAnnotationAxesButtons extends Toggleable {
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
 
 // Lines
-export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
+export interface AgLineAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
     text?: AgLineAnnotationTextStyles;
 }
 
-export interface AgCrossLineAnnotationStyles extends Lockable, Visible, StrokeOptions, LineOptions {
+export interface AgCrossLineAnnotationStyles extends Writeable, Visible, StrokeOptions, LineOptions {
     axisLabel?: AgAnnotationAxisLabel;
     handle?: AgAnnotationHandleStyles;
     text?: AgLineAnnotationTextStyles;
@@ -89,7 +89,7 @@ export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
 }
 
 // Texts
-export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {
+export interface AgTextAnnotationStyles extends FontOptions, Writeable, Visible {
     handle?: AgAnnotationHandleStyles;
 }
 
@@ -103,12 +103,12 @@ export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOp
 }
 
 // Shapes
-export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {
+export interface AgShapeAnnotationStyles extends Writeable, Visible, FillOptions {
     handle?: AgAnnotationHandleStyles;
 }
 
 // Measurers
-export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Lockable, Visible {
+export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Writeable, Visible {
     background?: FillOptions;
     handle?: AgAnnotationHandleStyles;
     statistics?: AgMeasurerAnnotationStatistics;
@@ -170,7 +170,7 @@ export type AgAnnotation =
 export interface AgLineAnnotation
     extends AnnotationLinePoints,
         Extendable,
-        Lockable,
+        Writeable,
         Visible,
         StrokeOptions,
         LineOptions {
@@ -196,7 +196,7 @@ export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
     text?: AgLineAnnotationText;
 }
 
-export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineOptions {
+export interface AgCrossLineAnnotation extends Writeable, Visible, StrokeOptions, LineOptions {
     /** Position of the annotation specified in terms of the axis values. */
     value: AgAnnotationValue;
     /** Configuration for the annotation axis label. */
@@ -212,7 +212,7 @@ export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions,
 export interface AgFibonacciAnnotation
     extends AnnotationLinePoints,
         Extendable,
-        Lockable,
+        Writeable,
         Visible,
         StrokeOptions,
         LineOptions,
@@ -238,7 +238,7 @@ export interface AgFibonacciRetracementTrendBasedAnnotation extends AgFibonacciA
 // ***********************
 // * Channel Annotations *
 // ***********************/
-export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
+export interface AgChannelAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the channel text. */
@@ -312,7 +312,7 @@ export interface AgTextAnnotation extends AgTextAnnotationStyles, AgAnnotationPo
 export interface AgArrowAnnotation
     extends AnnotationLinePoints,
         Extendable,
-        Lockable,
+        Writeable,
         Visible,
         StrokeOptions,
         LineOptions {
@@ -323,7 +323,7 @@ export interface AgArrowAnnotation
     text?: AgLineAnnotationText;
 }
 
-export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, FillOptions {
+export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Writeable, Visible, FillOptions {
     /** Configuration for the arrow mark annotation.*/
     handle?: AgAnnotationHandle;
 }
@@ -380,7 +380,7 @@ export interface AgDatePriceRangeAnnotation extends AgMeasurerAnnotation {
     type: 'date-price-range';
 }
 
-export interface AgMeasurerAnnotation extends AnnotationLinePoints, Lockable, Visible, StrokeOptions, LineOptions {
+export interface AgMeasurerAnnotation extends AnnotationLinePoints, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
@@ -464,13 +464,19 @@ interface LabelOptions<T> extends FontOptions {
     formatter?: Formatter<T>;
 }
 
-interface Lockable {
+interface Writeable {
     /**
      * Whether the annotation should be locked to prevent editing.
      *
      * Default: `false`
      */
     locked?: boolean;
+    /**
+     * Whether the annotation should be read-only to prevent selection, editing and deletion.
+     *
+     * Default: `false`
+     */
+    readOnly?: boolean;
 }
 
 interface Extendable {

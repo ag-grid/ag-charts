@@ -22,6 +22,7 @@ export abstract class ChannelScene<
         bottom: { start: Point; end: Point };
         strokeWidth?: number;
         text?: ChannelTextProperties;
+        isWriteable: () => boolean;
     },
 > extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};

@@ -165,13 +165,15 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         };
     }
 
-    override toggleHovered(hovered: boolean) {
-        super.toggleHovered(hovered);
+    override toggleHovered(hovered: boolean, readOnly: boolean | undefined) {
+        super.toggleHovered(hovered, readOnly);
 
-        this.label.visible = hovered;
-        this.shape.visible = hovered;
+        const hoveredAndWriteable = hovered && readOnly !== true;
 
-        this.zIndex = hovered ? ZIndexMap.CHART_ANNOTATION_FOCUSED : ZIndexMap.CHART_ANNOTATION;
+        this.label.visible = hoveredAndWriteable;
+        this.shape.visible = hoveredAndWriteable;
+
+        this.zIndex = hoveredAndWriteable ? ZIndexMap.CHART_ANNOTATION_FOCUSED : ZIndexMap.CHART_ANNOTATION;
     }
 
     override toggleActive(active: boolean) {

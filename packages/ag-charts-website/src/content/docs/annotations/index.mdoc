@@ -72,6 +72,10 @@ The following keyboard shortcuts can be used.
 
 Drawings and Annotations can be saved, restored and programmatically initialised and modified, using the [Chart State API](./api-state/).
 
+## Read Only
+
+When using the [Chart State API](./api-state/), to prevent selecting, editing or deleting a drawing or annotation, set the `readOnly` option to `true` for the relevant item within the `annotations` array of `initialState`.
+
 ## Customisation
 
 {% chartExampleRunner title="Annotation Customisation" name="annotations-customisation" type="generated" /%}
@@ -79,35 +83,35 @@ Drawings and Annotations can be saved, restored and programmatically initialised
 To customise the initial look of Drawings and Annotations, use [Theme Override Options](/themes-api/#reference-AgChartTheme-overrides-common-annotations).
 
 ```ts
-  theme: {
+theme: {
     overrides: {
-      common: {
-        annotations: {
-          line: {
-            stroke: "lime",
-            strokeWidth: 3,
-            lineDash: [3, 4],
-          },
-          "parallel-channel": {
-            stroke: "red",
-            strokeWidth: 4,
-            background: {
-              fill: "red",
+        common: {
+            annotations: {
+                line: {
+                    stroke: 'lime',
+                    strokeWidth: 3,
+                    lineDash: [3, 4],
+                },
+                'parallel-channel': {
+                    stroke: 'red',
+                    strokeWidth: 4,
+                    background: {
+                        fill: 'red',
+                    },
+                    middle: {
+                        strokeOpacity: 0,
+                    },
+                },
+                comment: {
+                    fill: 'orange',
+                    color: 'blue',
+                    stroke: 'blue',
+                    strokeWidth: 2,
+                },
             },
-            middle: {
-              strokeOpacity: 0,
-            },
-          },
-          comment: {
-            fill: "orange",
-            color: "blue",
-            stroke: "blue",
-            strokeWidth: 2,
-          },
         },
-      },
     },
-  },
+}
 ```
 
 ## API Reference
