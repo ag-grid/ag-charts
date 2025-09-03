@@ -855,10 +855,9 @@ export class BarSeries extends AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style: Required<AgBarSeriesStyle>;
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, isHighlight, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
-            style = mergeDefaults(highlightStyle, this.getStyle(false, isHighlight, highlightState));
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
 
             const overrides = this.cachedDatumCallback(
@@ -882,8 +881,6 @@ export class BarSeries extends AbstractBarSeries<
             if (overrides) {
                 style = mergeDefaults(overrides, style);
             }
-        } else {
-            style = mergeDefaults(highlightStyle, this.getStyle(true, isHighlight, highlightState));
         }
 
         return style;
