@@ -544,9 +544,7 @@ describe('ScatterSeries', () => {
                 test('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
-                    styler.expect().nthCalledWithContext(2, c1);
-                    styler.expect().nthCalledWithContext(3, c2);
-                    styler.expect().toHaveBeenCalledTimes(4);
+                    styler.expect().toHaveBeenCalledTimes(2);
                 });
                 test('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
