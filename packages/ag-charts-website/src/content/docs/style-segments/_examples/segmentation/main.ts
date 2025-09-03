@@ -1,10 +1,4 @@
-import {
-    AgAreaSeriesOptions,
-    AgBarSeriesOptions,
-    AgCartesianChartOptions,
-    AgCharts,
-    AgLineSeriesOptions,
-} from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgCartesianChartOptions, AgCharts, AgLineSeriesOptions } from 'ag-charts-community';
 
 import { DataType, data } from './data';
 
@@ -12,7 +6,7 @@ const AREA_SERIES: AgAreaSeriesOptions[] = [
     {
         type: 'area',
         yKey: 'variance',
-        xKey: 'dept',
+        xKey: 'date',
         interpolation: {
             type: 'smooth',
         },
@@ -31,7 +25,7 @@ const LINE_SERIES: AgLineSeriesOptions[] = [
     {
         type: 'line',
         yKey: 'variance',
-        xKey: 'dept',
+        xKey: 'date',
         marker: {
             enabled: false,
         },
@@ -47,35 +41,26 @@ const LINE_SERIES: AgLineSeriesOptions[] = [
     },
 ];
 
-const BAR_SERIES: AgBarSeriesOptions[] = [
-    {
-        type: 'bar',
-        yKey: 'variance',
-        xKey: 'dept',
-        fillOpacity: 0.5,
-        fill: 'green',
-        stroke: 'green',
-        segmentation: {
-            key: 'y',
-            segments: [{ stop: 0, fill: 'red', stroke: 'red' }],
-        },
-    },
-];
-
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    title: { text: 'Budget Variance by Department' },
+    title: { text: 'Performance Variance' },
     data,
     series: AREA_SERIES,
+    axes: [
+        {
+            type: 'unit-time',
+            position: 'bottom',
+            paddingOuter: 0,
+        },
+        {
+            type: 'number',
+            position: 'left',
+            title: { text: 'Variance ($)' },
+        },
+    ],
 };
 
 const chart = AgCharts.create(options);
-
-function bar() {
-    options.series = BAR_SERIES;
-
-    chart.update(options);
-}
 
 function line() {
     options.series = LINE_SERIES;
