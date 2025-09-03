@@ -30,6 +30,16 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     predictAxis: predictCartesianTimeAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     themeTemplate: {
+        zoom: {
+            autoScaling: {
+                enabled: {
+                    $and: [
+                        { $eq: [{ $path: '../axes' }, 'x'] },
+                        { $not: { $eq: [{ $path: '/series/0/direction' }, 'horizontal'] } },
+                    ],
+                },
+            },
+        },
         series: {
             direction: 'vertical',
             fill: {
