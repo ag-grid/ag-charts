@@ -1017,14 +1017,13 @@ export abstract class CartesianSeries<
             return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
         };
 
-        const crossAxisRange = crossAxis.range;
-        const axisRange = axis.range;
+        const crossAxisRange = crossAxis.range.toSorted();
+        const axisRange = axis.range.toSorted();
 
-        const sortedAxisRange = axisRange.toSorted();
         const crossMin = convert(crossAxisRange, crossAxis.visibleRange, crossVisibleRange[0]);
         const crossMax = convert(crossAxisRange, crossAxis.visibleRange, crossVisibleRange[1]);
-        const axisMin = convert(sortedAxisRange, axis.visibleRange, Math.min(...axisVisibleRange));
-        const axisMax = convert(sortedAxisRange, axis.visibleRange, Math.max(...axisVisibleRange));
+        const axisMin = convert(axisRange, axis.visibleRange, Math.min(...axisVisibleRange));
+        const axisMax = convert(axisRange, axis.visibleRange, Math.max(...axisVisibleRange));
 
         const startIndex = Math.round(
             (crossVisibleRange[0] + (crossVisibleRange[1] - crossVisibleRange[0]) / 2) * crossValues.length
