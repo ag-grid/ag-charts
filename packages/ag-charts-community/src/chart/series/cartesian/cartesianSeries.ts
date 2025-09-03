@@ -971,13 +971,14 @@ export abstract class CartesianSeries<
         const crossValues = this.keysOrValues(crossAxisKey);
         const allAxisValues = axisKeys.map((axisKey) => dataModel.resolveColumnById(this, axisKey, processedData));
 
+        const shouldFlipXY = this.shouldFlipXY();
+
         // The provided visible ranges `[xy]VisibleRange` are relative to the unzoomed axis ranges `[xy]Axis.range`.
         // `[xy]Axis.visibleRange` are relative to the zoomed scale ranges `[xy]Axis.scale.range`.
         // So we need to scale the provided visible ranges relative to the zoomed scale range to find the min and max
         // position in pixels that the visible range ratio covers.
-        const crossAxis = this.axes[ChartAxisDirection.X]!;
-        const axis = this.axes[ChartAxisDirection.Y]!;
-        const shouldFlipXY = this.shouldFlipXY();
+        const crossAxis = shouldFlipXY ? this.axes[ChartAxisDirection.Y]! : this.axes[ChartAxisDirection.X]!;
+        const axis = shouldFlipXY ? this.axes[ChartAxisDirection.X]! : this.axes[ChartAxisDirection.Y]!;
 
         if (yVisibleRange == null) {
             const sortOrder = this.sortOrder(crossAxisKey);
@@ -1016,31 +1017,39 @@ export abstract class CartesianSeries<
             return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
         };
 
-        const crossAxisRange = crossAxis.range;
-        const range = axis.range;
+        const crossVisibleRange = shouldFlipXY ? yVisibleRange : xVisibleRange;
+        const axisVisibleRange = shouldFlipXY ? xVisibleRange : yVisibleRange;
 
-        const crossMin = convert(crossAxisRange, crossAxis.visibleRange, xVisibleRange[0]);
-        const crossMax = convert(crossAxisRange, crossAxis.visibleRange, xVisibleRange[1]);
-        const axisMin = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[0] : yVisibleRange[1]);
-        const axisMax = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[1] : yVisibleRange[0]);
+        const crossAxisRange = crossAxis.range;
+        const axisRange = axis.range;
+
+        const sortedAxisRange = axisRange.toSorted();
+        const crossMin = convert(crossAxisRange, crossAxis.visibleRange, crossVisibleRange[0]);
+        const crossMax = convert(crossAxisRange, crossAxis.visibleRange, crossVisibleRange[1]);
+        const axisMin = convert(sortedAxisRange, axis.visibleRange, Math.min(...axisVisibleRange));
+        const axisMax = convert(sortedAxisRange, axis.visibleRange, Math.max(...axisVisibleRange));
 
         const startIndex = Math.round(
-            (xVisibleRange[0] + (xVisibleRange[1] - xVisibleRange[0]) / 2) * crossValues.length
+            (crossVisibleRange[0] + (crossVisibleRange[1] - crossVisibleRange[0]) / 2) * crossValues.length
         );
         const pixelSize = 0;
 
         return countExpandingSearch(0, crossValues.length - 1, startIndex, minVisibleItems, (index) => {
-            let [x0, x1] = this.xCoordinateRange(crossValues[index], pixelSize, index);
-            let [y0, y1] = this.yCoordinateRange(
+            const [cross0, cross1] = this.xCoordinateRange(crossValues[index], pixelSize, index);
+            const [axis0, axis1] = this.yCoordinateRange(
                 allAxisValues.map((axisValues) => axisValues[index]),
                 pixelSize,
                 index
             );
-            if (!isFiniteNumber(x0) || !isFiniteNumber(x1) || !isFiniteNumber(y0) || !isFiniteNumber(y1)) {
+            if (
+                !isFiniteNumber(cross0) ||
+                !isFiniteNumber(cross1) ||
+                !isFiniteNumber(axis0) ||
+                !isFiniteNumber(axis1)
+            ) {
                 return false;
             }
-            if (shouldFlipXY) [x0, x1, y0, y1] = [y0, y1, x0, x1];
-            return x0 >= crossMin && x1 <= crossMax && y0 >= axisMin && y1 <= axisMax;
+            return cross0 >= crossMin && cross1 <= crossMax && axis0 >= axisMin && axis1 <= axisMax;
         });
     }
 
