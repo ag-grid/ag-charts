@@ -1006,24 +1006,31 @@ export class AreaSeries extends CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.properties;
-        const stylerStyle = this.getStyle(isHighlight);
-        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                const stylerStyle = this.getStyle(isHighlight, highlightState);
+                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
                 const params = this.makeItemStylerParams(
                     this.dataModel!,
                     this.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
-                datum.style = this.getMarkerStyle<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
+                datum.style = this.getMarkerStyle(
                     marker,
                     datum,
                     params,
-                    { isHighlight },
+                    { isHighlight, highlightState },
                     stylerStyle.marker,
-                    { stroke, strokeWidth, strokeOpacity }
+                    {
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                    }
                 );
             }
         });
