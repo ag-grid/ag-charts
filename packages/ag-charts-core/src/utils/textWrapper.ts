@@ -243,7 +243,7 @@ export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptio
         result.push({ ...lastSegment, text: truncatedText, textMetrics });
     }
 
-    for (const { width, height, segments } of measureTextSegments(textSegments, options.font)) {
+    for (const { width, height, segments } of measureTextSegments(textSegments, options.font).lineMetrics) {
         if (totalHeight + height > maxHeight) {
             if (result.length) {
                 truncateLastSegment();

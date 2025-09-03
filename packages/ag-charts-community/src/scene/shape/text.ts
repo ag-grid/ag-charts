@@ -225,7 +225,7 @@ export class Text<D = any> extends Shape<D> {
 
         let offsetY = 0;
         const textNodes = this.richText!.children();
-        for (const { width, height, ascent, segments } of measureTextSegments(this.text, this)) {
+        for (const { width, height, ascent, segments } of measureTextSegments(this.text, this).lineMetrics) {
             let offsetX = 0;
             for (const { color, textMetrics, ...segment } of segments) {
                 const textNode = textNodes.next().value as Text;

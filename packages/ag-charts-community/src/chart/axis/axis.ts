@@ -8,6 +8,7 @@ import type {
     CssColor,
     DateFormatterStyle,
     FormatterParams,
+    TextOrSegments,
     TextSegment,
 } from 'ag-charts-types';
 
@@ -727,7 +728,7 @@ export abstract class Axis<
         inputFractionDigits?: number,
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
-    ): (value: any, index: number) => string {
+    ): (value: any, index: number) => TextOrSegments {
         const { moduleCtx, label } = this;
         const { formatManager } = moduleCtx;
         const primaryLabel = primary ? this.primaryLabel : undefined;
@@ -768,8 +769,7 @@ export abstract class Axis<
             truncateDate,
         };
 
-        // TODO replace any with string | TextSegment[]
-        return (value: any, index: number): any => {
+        return (value: any, index: number): TextOrSegments => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;

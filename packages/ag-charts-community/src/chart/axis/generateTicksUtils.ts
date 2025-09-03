@@ -1,7 +1,6 @@
 import {
     type BoxBounds,
     type ITextMeasurer,
-    type Size,
     type WrapOptions,
     boxCollides,
     buildDateFormatter,
@@ -247,13 +246,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 index: i + rawFirstTickIndex,
                 textUntruncated: tickLabel === inputText ? undefined : toPlainText(inputText),
                 textMetrics: isArray(tickLabel)
-                    ? measureTextSegments(tickLabel, label).reduce<Size>(
-                          (textMetrics, segmentsLine) => ({
-                              width: Math.max(textMetrics.width, segmentsLine.width),
-                              height: textMetrics.height + segmentsLine.height,
-                          }),
-                          { width: 0, height: 0 }
-                      )
+                    ? measureTextSegments(tickLabel, label)
                     : measurer.measureLines(tickLabel),
                 translation: Math.floor(translation),
             });
