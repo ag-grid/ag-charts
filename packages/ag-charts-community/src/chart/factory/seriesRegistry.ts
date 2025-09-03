@@ -91,11 +91,11 @@ class SeriesRegistry {
                 // Check for stability in the predicted axis for this direction, if the prediction is unstable then
                 // return and fallback to the defaults.
                 const prevAxis = axes.get(direction);
-                if (prevAxis) {
-                    for (const key of Object.keys(prevAxis)) {
-                        if ((prevAxis as any)[key] !== (axis as any)[key]) {
-                            return;
-                        }
+                if (!axis && !prevAxis) continue;
+                if (!axis || !prevAxis) return;
+                for (const key of Object.keys(prevAxis)) {
+                    if ((prevAxis as any)[key] !== (axis as any)[key]) {
+                        return;
                     }
                 }
             }
