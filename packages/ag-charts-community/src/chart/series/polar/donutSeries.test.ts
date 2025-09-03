@@ -5,6 +5,7 @@ import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from '
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
+import { MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -691,59 +692,71 @@ describe('DonutSeries', () => {
         await compare();
     });
 
-    test('AG-11672 calloutLine.itemStyler', async () => {
-        const opts: AgChartOptions<{ name: string; size: number }, undefined> = {
-            data: [
-                { name: 'Abu Dhabi', size: 1 },
-                { name: 'Amsterdam', size: 1 },
-                { name: 'Barcelona', size: 1 },
-                { name: 'Berlin', size: 1 },
-                { name: 'Brussels', size: 1 },
-                { name: 'Cairo', size: 1 },
-                { name: 'Dublin', size: 1 },
-                { name: 'Hanoi', size: 1 },
-                { name: 'Kyiv', size: 1 },
-                { name: 'London', size: 1 },
-                { name: 'Madrid', size: 1 },
-                { name: 'New York', size: 1 },
-                { name: 'Paris', size: 1 },
-                { name: 'Rome', size: 1 },
-                { name: 'San Francisco', size: 1 },
-                { name: 'Tokyo', size: 1 },
-                { name: 'Zurich', size: 1 },
-            ],
-            series: [
-                {
-                    type: 'donut',
-                    angleKey: 'size',
-                    calloutLabelKey: 'name',
-                    calloutLine: {
-                        colors: ['#9a1212', '#129a12', '#12129a'],
-                        length: 50,
-                        strokeWidth: 5,
-                        itemStyler: (p) => {
-                            if (p.datum.name === 'Abu Dhabi') {
-                                return { color: 'black' };
-                            }
-                            if (p.datum.name === 'Dublin') {
-                                return { length: 100 };
-                            }
-                            if (p.datum.name === 'Paris') {
-                                return { strokeWidth: 30 };
-                            }
-                            if (p.datum.name === 'Tokyo') {
-                                return { strokeWidth: 15, color: '#00ff00' };
-                            }
-                            if (p.datum.name === 'Zurich') {
-                                return { length: 125, strokeWidth: 20 };
-                            }
+    describe('AG-11672 calloutLine.itemStyler', () => {
+        type D = { name: string; size: number };
+        type C = undefined;
+        type M = MockDonutCalloutLineItemStyler<D, C>;
+        let itemStyler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        beforeEach(async () => {
+            itemStyler = newFreezableMock<D, C, M>((p) => {
+                if (p.datum.name === 'Abu Dhabi') {
+                    return { color: 'black' };
+                }
+                if (p.datum.name === 'Dublin') {
+                    return { length: 100 };
+                }
+                if (p.datum.name === 'Paris') {
+                    return { strokeWidth: 30 };
+                }
+                if (p.datum.name === 'Tokyo') {
+                    return { strokeWidth: 15, color: '#00ff00' };
+                }
+                if (p.datum.name === 'Zurich') {
+                    return { length: 125, strokeWidth: 20 };
+                }
+            });
+            const opts: AgChartOptions<{ name: string; size: number }, undefined> = {
+                data: [
+                    { name: 'Abu Dhabi', size: 1 },
+                    { name: 'Amsterdam', size: 1 },
+                    { name: 'Barcelona', size: 1 },
+                    { name: 'Berlin', size: 1 },
+                    { name: 'Brussels', size: 1 },
+                    { name: 'Cairo', size: 1 },
+                    { name: 'Dublin', size: 1 },
+                    { name: 'Hanoi', size: 1 },
+                    { name: 'Kyiv', size: 1 },
+                    { name: 'London', size: 1 },
+                    { name: 'Madrid', size: 1 },
+                    { name: 'New York', size: 1 },
+                    { name: 'Paris', size: 1 },
+                    { name: 'Rome', size: 1 },
+                    { name: 'San Francisco', size: 1 },
+                    { name: 'Tokyo', size: 1 },
+                    { name: 'Zurich', size: 1 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'size',
+                        calloutLabelKey: 'name',
+                        calloutLine: {
+                            colors: ['#9a1212', '#129a12', '#12129a'],
+                            length: 50,
+                            strokeWidth: 5,
+                            itemStyler: itemStyler.frozen,
                         },
                     },
-                },
-            ],
-        };
-        chart = await createChart(opts);
-        await compare();
+                ],
+            };
+            chart = await createChart(opts);
+        });
+        test('calls', () => {
+            expect(itemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+        test('image', async () => {
+            await compare();
+        });
     });
 
     afterEach(() => {
