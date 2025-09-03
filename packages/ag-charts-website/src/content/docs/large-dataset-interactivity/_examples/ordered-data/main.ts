@@ -119,7 +119,7 @@ function setSeries(type: string, label: string) {
             options.data = getBubbleData(datapoints);
             break;
         case 'bubble':
-            series = [
+            options.series = [
                 {
                     type,
                     xKey: 'x',
@@ -161,6 +161,7 @@ function setData(points: number, label: string) {
         case 'Scatter':
         case 'Bubble':
             options.data = getBubbleData(points);
+            break;
         default:
             options.data = getData(points);
             break;
