@@ -195,7 +195,7 @@ export class Text<D = any> extends Shape<D> {
         this.generateTextMap();
         if (this.textMap?.size) {
             const bbox = BBox.merge(this.textMap.values());
-            bbox.x = this.x;
+            bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign);
             bbox.y = this.y;
             return bbox;
         }
