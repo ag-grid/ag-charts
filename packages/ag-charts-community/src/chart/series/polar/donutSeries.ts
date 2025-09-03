@@ -777,7 +777,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 sectorLabelName: properties.sectorLabelName ?? properties.sectorLabelKey,
                 seriesId: this.id,
             };
-            itemStylerResult = this.callWithContext(properties.calloutLine.itemStyler, params) ?? {};
+            itemStylerResult = this.cachedCallWithContext(properties.calloutLine.itemStyler, params) ?? {};
         }
         return {
             length: itemStylerResult.length ?? properties.calloutLine.length,
