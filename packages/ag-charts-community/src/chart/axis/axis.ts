@@ -1,4 +1,12 @@
-import { type AnyFn, CleanupRegistry, type Point, type RequireOptional, WeakCache, createId } from 'ag-charts-core';
+import {
+    type AnyFn,
+    CleanupRegistry,
+    type Point,
+    type RequireOptional,
+    WeakCache,
+    createId,
+    isArray,
+} from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -825,7 +833,7 @@ export abstract class Axis<
         domain?: any[],
         label?: AxisFormattableLabel<any>,
         params?: any
-    ): string {
+    ): TextOrSegments {
         if (input == null) return '';
 
         const { moduleCtx, direction, dataDomain } = this;
@@ -875,7 +883,7 @@ export abstract class Axis<
             this.label.formatValue(f, formatParams, NaN) ??
             formatManager.defaultFormat(formatParams);
 
-        return String(result);
+        return isArray(result) ? result : String(result);
     }
 
     getBBox(): BBox {

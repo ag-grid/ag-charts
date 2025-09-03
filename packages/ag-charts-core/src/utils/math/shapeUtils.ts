@@ -42,6 +42,35 @@ export function getMaxInnerRectSize(
     };
 }
 
+/**
+ * Calculates the minimum axis-aligned outer rectangle that fully contains
+ * an inner rectangle of the given size when rotated by a specified angle.
+ *
+ * @param rotationDeg - Rotation angle in degrees.
+ * @param innerWidth - Width of the inner rectangle.
+ * @param innerHeight - Height of the inner rectangle (defaults to Infinity).
+ * @returns The smallest outer rectangle that contains the rotated inner rectangle.
+ */
+export function getMinOuterRectSize(rotationDeg: number, innerWidth: number, innerHeight: number = Infinity): Size {
+    const w = innerWidth;
+    const h = innerHeight;
+
+    // Periodic every 180 degrees
+    const angle = (rotationDeg % 180) * (Math.PI / 180);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+
+    // Special cases
+    if (sin === 0) return { width: w, height: h }; // 0 or 180
+    if (cos === 0) return { width: h, height: w }; // 90
+
+    // Bounding-box of a rotated rectangle
+    return {
+        width: w * cos + h * sin,
+        height: w * sin + h * cos,
+    };
+}
+
 export function rotatePoint(
     x: number,
     y: number,

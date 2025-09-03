@@ -58,7 +58,7 @@ import type {
     AgTimeInterval,
 } from 'ag-charts-types';
 
-import { numberFormatValidator } from './commonOptionsDefs';
+import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
 
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 
@@ -228,7 +228,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     maxThicknessRatio: ratio,
     title: {
         enabled: boolean,
-        text: string,
+        text: textOrSegments,
         spacing: positiveNumber,
         formatter: callback,
         ...fontOptionsDef,
