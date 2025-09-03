@@ -957,7 +957,13 @@ export class LineSeries extends CartesianSeries<
         let stylerResult: AgLineSeriesStylerResult = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            stylerResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            stylerResult = resolved ?? {};
         }
         stylerResult.marker ??= {};
         return {
