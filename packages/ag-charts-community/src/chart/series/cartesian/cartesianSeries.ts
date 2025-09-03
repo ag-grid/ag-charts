@@ -980,12 +980,12 @@ export abstract class CartesianSeries<
         const crossAxis = shouldFlipXY ? this.axes[ChartAxisDirection.Y]! : this.axes[ChartAxisDirection.X]!;
         const axis = shouldFlipXY ? this.axes[ChartAxisDirection.X]! : this.axes[ChartAxisDirection.Y]!;
 
+        const crossVisibleRange = shouldFlipXY ? yVisibleRange ?? [0, 1] : xVisibleRange;
+        const axisVisibleRange = shouldFlipXY ? xVisibleRange : yVisibleRange ?? [0, 1];
+
         if (yVisibleRange == null) {
             const sortOrder = this.sortOrder(crossAxisKey);
-
-            if (sortOrder == null) {
-                yVisibleRange = [0, 1];
-            } else {
+            if (sortOrder != null) {
                 // Fast path if we only need to look at the x axis
                 const crossScale = crossAxis.scale;
                 const crossScaleRange = crossScale.range;
@@ -993,15 +993,15 @@ export abstract class CartesianSeries<
 
                 const xValues = this.keysOrValues(crossAxisKey);
 
-                let [r0, r1] = this.visibleRangeIndices(crossAxisKey, xVisibleRange, undefined, { sortOrder });
+                let [r0, r1] = this.visibleRangeIndices(crossAxisKey, crossVisibleRange, undefined, { sortOrder });
                 r1 -= 1;
 
                 // @todo(AG-7083) - figure out how to determine this
                 const pixelSize = 0;
-                if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < xVisibleRange[0]) {
+                if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < crossVisibleRange[0]) {
                     r0 += 1;
                 }
-                if (this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > xVisibleRange[1]) {
+                if (this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > crossVisibleRange[1]) {
                     r1 -= 1;
                 }
 
@@ -1017,17 +1017,13 @@ export abstract class CartesianSeries<
             return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
         };
 
-        const crossVisibleRange = shouldFlipXY ? yVisibleRange : xVisibleRange;
-        const axisVisibleRange = shouldFlipXY ? xVisibleRange : yVisibleRange;
+        const crossAxisRange = crossAxis.range.toSorted();
+        const axisRange = axis.range.toSorted();
 
-        const crossAxisRange = crossAxis.range;
-        const axisRange = axis.range;
-
-        const sortedAxisRange = axisRange.toSorted();
         const crossMin = convert(crossAxisRange, crossAxis.visibleRange, crossVisibleRange[0]);
         const crossMax = convert(crossAxisRange, crossAxis.visibleRange, crossVisibleRange[1]);
-        const axisMin = convert(sortedAxisRange, axis.visibleRange, Math.min(...axisVisibleRange));
-        const axisMax = convert(sortedAxisRange, axis.visibleRange, Math.max(...axisVisibleRange));
+        const axisMin = convert(axisRange, axis.visibleRange, Math.min(...axisVisibleRange));
+        const axisMax = convert(axisRange, axis.visibleRange, Math.max(...axisVisibleRange));
 
         const startIndex = Math.round(
             (crossVisibleRange[0] + (crossVisibleRange[1] - crossVisibleRange[0]) / 2) * crossValues.length
