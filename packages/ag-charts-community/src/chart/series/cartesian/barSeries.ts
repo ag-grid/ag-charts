@@ -808,6 +808,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private getStyle(
+        ignoreStylerCallback: boolean,
         highlighted: boolean,
         highlightState?: HighlightState
     ): Required<AgBarSeriesStyle> & { opacity: number } {
@@ -823,7 +824,7 @@ export class BarSeries extends AbstractBarSeries<
             styler,
         } = this.properties;
         let stylerResult: AgBarSeriesStyle = {};
-        if (styler) {
+        if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
@@ -854,9 +855,10 @@ export class BarSeries extends AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, this.getStyle(isHighlight, highlightState));
+        let style: Required<AgBarSeriesStyle>;
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
+            style = mergeDefaults(highlightStyle, this.getStyle(false, isHighlight, highlightState));
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
 
             const overrides = this.cachedDatumCallback(
@@ -880,6 +882,8 @@ export class BarSeries extends AbstractBarSeries<
             if (overrides) {
                 style = mergeDefaults(overrides, style);
             }
+        } else {
+            style = mergeDefaults(highlightStyle, this.getStyle(true, isHighlight, highlightState));
         }
 
         return style;
@@ -1012,6 +1016,7 @@ export class BarSeries extends AbstractBarSeries<
     private legendItemSymbol(): LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
+            false,
             HighlightState.None
         );
 
@@ -1111,6 +1116,10 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }
