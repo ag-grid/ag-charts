@@ -41,6 +41,7 @@ export class SegmentedPath<D = any> extends Path<D> {
         const { segmentPath } = this;
         segmentPath.setProperties({
             opacity: this.opacity,
+            visible: this.visible,
             lineCap: this.lineCap,
             lineJoin: this.lineJoin,
             pointerEvents: this.pointerEvents,

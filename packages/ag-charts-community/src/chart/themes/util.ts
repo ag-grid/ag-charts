@@ -431,7 +431,13 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 },
                 stroke: { $path: '../../../stroke' },
                 fillOpacity: { $path: '../../../fillOpacity' },
-                strokeWidth: { $path: '../../../strokeWidth' },
+                strokeWidth: {
+                    $isUserOption: [
+                        './stroke',
+                        { $isUserOption: ['../../../strokeWidth', { $path: '../../../strokeWidth' }, 1] },
+                        { $path: '../../../strokeWidth' },
+                    ],
+                },
                 strokeOpacity: { $path: '../../../strokeOpacity' },
                 lineDash: { $path: '../../../lineDash' },
                 lineDashOffset: { $path: '../../../lineDashOffset' },
