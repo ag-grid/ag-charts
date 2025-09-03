@@ -34,12 +34,11 @@ series: [
         xKey: 'dept',
         strokeWidth: 2,
         fillOpacity: 0.3,
+        fill: 'green',
+        stroke: 'green',
         segmentation: {
             key: 'y',
-            segments: [
-                { stop: 0, fill: 'red', stroke: 'red' },
-                { start: 0, fill: 'green', stroke: 'green' },
-            ],
+            segments: [{ stop: 0, fill: 'red', stroke: 'red' }],
         },
     },
 ];
@@ -50,6 +49,36 @@ In this configuration:
 -   The series `fill` and `stroke` will be red if it falls below 0 on the y-axis.
 -   The series `fill` and `stroke` will be green if it is 0 or above on the y-axis.
 -   Properties `fillOpacity` and `strokeWidth` are inherited from the series.
+
+## Segmentation In the X direction
+
+Use `segmentation.key: 'x'` to segment along the x-axis. This is useful for highlighting specific categories or time periods.
+
+```js
+series: [
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value',
+        segmentation: {
+            key: 'x',
+            segments: [
+                {
+                    start: new Date('2025-04-01'),
+                    lineDash: [5, 10],
+                },
+            ],
+        },
+    },
+];
+```
+
+{% chartExampleRunner title="Segmentation" name="segmentation-x-direction" type="generated" /%}
+
+In the example above the series
+
+-   uses default styles for all points that fall before April 1st, 2025.
+-   will be dashed for all points on or after April 1st, 2025, to show a distinction between actual and forecast data.
 
 Please use the [Options Reference](/options) to learn more about Segmentation, the inputs they receive and the attributes that can be customised.
 
