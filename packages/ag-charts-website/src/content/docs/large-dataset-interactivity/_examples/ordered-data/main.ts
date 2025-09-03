@@ -7,9 +7,9 @@ import {
 
 import { getBubbleData, getData, getStackedData } from './data';
 
-let dataLabel = '100K';
+let dataLabel = '1K';
 let seriesType = 'Line';
-let datapoints = 1e6;
+let datapoints = 1e3;
 
 const timeAxes: AgCartesianAxisOptions[] = [
     { type: 'number', position: 'left' },
@@ -24,10 +24,11 @@ const numberAxes: AgCartesianAxisOptions[] = [
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(datapoints),
-    title: { text: `Line series with 100K datapoints` },
+    title: { text: `${seriesType} with ${dataLabel} datapoints` },
     animation: { enabled: false },
     zoom: {
         enabled: true,
+        axes: 'x',
         anchorPointX: 'pointer',
         anchorPointY: 'pointer',
         autoScaling: {
@@ -59,7 +60,7 @@ function setSeries(type: string, label: string) {
         case 'bar':
         case 'area':
         case 'line':
-            series = [
+            options.series = [
                 {
                     type,
                     xKey: 'timestamp',
@@ -67,22 +68,20 @@ function setSeries(type: string, label: string) {
                 },
             ];
             options.data = getData(datapoints);
-            options.axes = timeAxes;
             break;
         case 'stacked-bar':
         case 'stacked-area':
             const stackedType = type === 'stacked-bar' ? 'bar' : 'area';
-            series = [
+            options.series = [
                 { type: stackedType, xKey: 'timestamp', yKey: 'series1', stacked: true },
                 { type: stackedType, xKey: 'timestamp', yKey: 'series2', stacked: true },
             ];
             options.data = getStackedData(datapoints);
-            options.axes = timeAxes;
             break;
 
         case 'range-area':
         case 'range-bar':
-            series = [
+            options.series = [
                 {
                     type,
                     xKey: 'timestamp',
@@ -91,12 +90,11 @@ function setSeries(type: string, label: string) {
                 },
             ];
             options.data = getData(datapoints);
-            options.axes = timeAxes;
 
             break;
         case 'candlestick':
         case 'ohlc':
-            series = [
+            options.series = [
                 {
                     type,
                     xKey: 'timestamp',
@@ -107,10 +105,9 @@ function setSeries(type: string, label: string) {
                 },
             ];
             options.data = getData(datapoints);
-            options.axes = timeAxes;
             break;
         case 'scatter':
-            series = [
+            options.series = [
                 {
                     type,
                     xKey: 'x',
@@ -120,7 +117,6 @@ function setSeries(type: string, label: string) {
                 },
             ];
             options.data = getBubbleData(datapoints);
-            options.axes = numberAxes;
             break;
         case 'bubble':
             series = [
@@ -134,14 +130,25 @@ function setSeries(type: string, label: string) {
                 },
             ];
             options.data = getBubbleData(datapoints);
-            options.axes = numberAxes;
 
             break;
         default:
             return;
     }
 
-    options.series = series;
+    if (type == 'bubble' || type == 'scatter') {
+        options.zoom!.axes = 'xy';
+        options.zoom!.autoScaling!.enabled = false;
+        options.navigator!.enabled = false;
+        options.axes = numberAxes;
+    } else {
+        options.zoom!.axes = 'xy';
+        options.zoom!.autoScaling!.enabled = true;
+        options.navigator!.enabled = true;
+        options.axes = timeAxes;
+    }
+
+    options.title!.text = `${seriesType} with ${dataLabel} datapoints`;
     chart.update(options);
 }
 
@@ -157,8 +164,8 @@ function setData(points: number, label: string) {
             options.data = getBubbleData(points);
             break;
     }
-    options.title!.text = `${seriesType} with ${label} datapoints`;
     dataLabel = label;
     datapoints = points;
+    options.title!.text = `${seriesType} with ${dataLabel} datapoints`;
     chart.update(options);
 }
