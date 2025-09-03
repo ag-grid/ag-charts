@@ -76,15 +76,13 @@ class SeriesRegistry {
         const predictAxis = this.seriesMap.get(seriesType)?.predictAxis;
         if (!predictAxis) return;
 
-        const axes = new Map<ChartAxisDirection, SeriesPredictAxis<RequiredSeriesType>>();
+        const axes = new Map<ChartAxisDirection, SeriesPredictAxis<RequiredSeriesType> | undefined>();
 
         const indices = distribute(0, seriesData.length - 1, 5);
         for (const index of indices) {
             const datum = seriesData[index];
             for (const direction of Object.values(ChartAxisDirection)) {
                 const axis = predictAxis(direction, datum, userSeriesOptions);
-                if (!axis) continue;
-
                 if (!axes.has(direction)) {
                     axes.set(direction, axis);
                     continue;
@@ -92,13 +90,19 @@ class SeriesRegistry {
 
                 // Check for stability in the predicted axis for this direction, if the prediction is unstable then
                 // return and fallback to the defaults.
-                const prevAxis = axes.get(direction)!;
-                for (const key of Object.keys(prevAxis)) {
-                    if ((prevAxis as any)[key] !== (axis as any)[key]) {
-                        return;
+                const prevAxis = axes.get(direction);
+                if (prevAxis) {
+                    for (const key of Object.keys(prevAxis)) {
+                        if ((prevAxis as any)[key] !== (axis as any)[key]) {
+                            return;
+                        }
                     }
                 }
             }
+        }
+
+        for (const [direction, axis] of axes) {
+            if (!axis) axes.delete(direction);
         }
 
         // If we couldn't predict any axes, fallback to the defaults.
