@@ -1435,6 +1435,10 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

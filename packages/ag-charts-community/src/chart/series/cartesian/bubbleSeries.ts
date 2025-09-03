@@ -970,8 +970,8 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        const { itemStyler, marker, label } = this.properties;
-        return !!(itemStyler ?? marker.itemStyler ?? label.itemStyler);
+        const { styler, itemStyler, marker, label } = this.properties;
+        return !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler);
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {
