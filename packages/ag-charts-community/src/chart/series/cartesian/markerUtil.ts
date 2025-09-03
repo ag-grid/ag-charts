@@ -145,7 +145,6 @@ interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
         strokeOpacity: number;
         styler?: SeriesStyler<TStylerParams, TStylerResult>;
     };
-    cachedCallWithContext(styler: SeriesStyler<TStylerParams, TStylerResult>, params: TStylerParams): TStylerResult;
     getMarkerStyle<TParams>(
         marker: SeriesMarker<TParams>,
         nodeDatum: object,
@@ -154,84 +153,29 @@ interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
         defaultOverrideStyle?: DefaultOverrideStyle,
         inheritedStyle?: AgSeriesMarkerStyle
     ): AgSeriesMarkerStyle & { size: number };
-    makeStylerParams(highlighted: boolean, highlightStateEnum?: HighlightState): TStylerParams;
 }
 
-// Bubble/Scatter series do not include `.marker` styling like other marker-based series (line, area, ...), because they
-// do not include other scene nodes like lines/fills; therefore the styler result contains the marker styling properties
-// at the root of the object. That's why we use `readResult` callbacks to convert the callback result to a marker style.
-function getMarkerStyleImpl<TStylerParams, TStylerResult, TItemStylerParams>(
-    readResult: (result: TStylerResult) => DefaultOverrideStyle | undefined,
-    resolveStylerMarkerPath: 'marker' | 'marker-only',
+export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>(
     series: MarkerSeriesStylerProps<TStylerParams, TStylerResult>,
     marker: SeriesMarker<TItemStylerParams>,
-    highlightState: HighlightState,
     inheritedStyle?: AgSeriesMarkerStyle
-): AgSeriesMarkerStyle {
+) {
     inheritedStyle ??= {
         stroke: series.properties.stroke,
         strokeOpacity: series.properties.strokeOpacity,
         strokeWidth: series.properties.strokeWidth,
     };
 
-    let defaultOverrideStyle: DefaultOverrideStyle | undefined;
-    if (series.properties.styler) {
-        const params = series.makeStylerParams(highlightState === HighlightState.None, highlightState);
-        const result = series.cachedCallWithContext(series.properties.styler, params);
-        defaultOverrideStyle = readResult(result);
-    }
-
-    return series.getMarkerStyle(
-        marker,
-        {},
-        undefined,
-        {
-            highlightState,
-            resolveStylerMarkerPath,
-        },
-        defaultOverrideStyle,
-        inheritedStyle
-    );
-}
-
-type MarkerStylerResult = { marker?: AgSeriesMarkerStyle } | undefined;
-export function getMarkerStyle<TStylerParams, TItemStylerParams>(
-    series: MarkerSeriesStylerProps<TStylerParams, MarkerStylerResult>,
-    marker: SeriesMarker<TItemStylerParams>,
-    highlightState: HighlightState,
-    inheritedStyle?: AgSeriesMarkerStyle
-) {
-    function readResult(result: MarkerStylerResult): DefaultOverrideStyle | undefined {
-        if (result?.marker != null) {
-            return { ...result.marker, size: result.marker.size ?? marker.size };
-        }
-    }
-    return getMarkerStyleImpl(readResult, 'marker', series, marker, highlightState, inheritedStyle);
-}
-
-type MarkerOnlyStylerResult = AgSeriesMarkerStyle | undefined;
-export function getMarkerOnlyStyle<TStylerParams, TItemStylerParams>(
-    series: MarkerSeriesStylerProps<TStylerParams, MarkerOnlyStylerResult>,
-    marker: SeriesMarker<TItemStylerParams>,
-    highlightState: HighlightState
-) {
-    function readResult(result: MarkerOnlyStylerResult): DefaultOverrideStyle | undefined {
-        if (result != null) {
-            return { ...result, size: result.size ?? marker.size };
-        }
-    }
-    return getMarkerStyleImpl(readResult, 'marker-only', series, marker, highlightState);
-}
-
-/** @deprecated (AG-15782) remove when enterprise series implement `styler` property */
-export function getMarkerStyles<TStylerParams, TItemStylerParams>(
-    series: MarkerSeriesStylerProps<TStylerParams, MarkerStylerResult>,
-    marker: SeriesMarker<TItemStylerParams>,
-    inheritedStyle?: AgSeriesMarkerStyle
-) {
     return highlightStates.reduce(
         (styles, state) => {
-            styles[state] = getMarkerStyle(series, marker, state, inheritedStyle);
+            styles[state] = series.getMarkerStyle(
+                marker,
+                {},
+                undefined,
+                { highlightState: state },
+                undefined,
+                inheritedStyle
+            );
             return styles;
         },
         {} as Record<HighlightState, AgSeriesMarkerStyle>

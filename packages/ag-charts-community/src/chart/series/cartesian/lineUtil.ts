@@ -5,6 +5,7 @@ import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateStat
 import type { Path } from '../../../scene/shape/path';
 import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
+import type { SeriesNodeStyleContext } from '../series';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import type { InterpolationProperties } from './interpolationProperties';
@@ -50,6 +51,7 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
 export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
     strokeData: LineStrokePathDatum;
     crossFiltering: boolean;
+    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
     segments?: Segment[];
 }
 

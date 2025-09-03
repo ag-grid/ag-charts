@@ -153,7 +153,6 @@ export type SeriesNodeDataContext<I extends DatumIndexType, S = SeriesNodeDatum<
     labelData: L[];
 };
 
-// TODO(AG-15782) remove this type (still used by Enterprise series)x
 export type SeriesNodeStyleContext<TStyle> = {
     [HighlightState.None]: TStyle;
     [HighlightState.Item]: TStyle;
@@ -609,7 +608,7 @@ export abstract class Series<
         return opacity;
     }
 
-    public getHighlightState(
+    protected getHighlightState(
         highlightedDatum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
@@ -1180,7 +1179,7 @@ export abstract class Series<
         }
     }
 
-    public cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    protected cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, ...params);
     }
 

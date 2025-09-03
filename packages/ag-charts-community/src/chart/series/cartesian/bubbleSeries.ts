@@ -9,6 +9,7 @@ import {
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgScatterSeriesItemStylerParams,
     type AgScatterSeriesStylerParams,
+    type AgScatterSeriesStylerResult,
     type AgSeriesMarkerStyle,
     type FillOptions,
     type FormatterPropertyType,
@@ -42,7 +43,12 @@ import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import {
+    type PickFocusInputs,
+    type SeriesNodePickMatch,
+    SeriesNodePickMode,
+    type SeriesNodeStyleContext,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
@@ -66,8 +72,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { readDatumStyle } from './datumUtil';
-import { computeMarkerFocusBounds, getMarkerOnlyStyle, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, getMarkerStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
@@ -97,7 +102,9 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
 }
 
 interface BubbleSeriesNodeDataContext
-    extends CartesianSeriesNodeDataContext<BubbleScatterNodeDatum, BubbleScatterNodeDatum> {}
+    extends CartesianSeriesNodeDataContext<BubbleScatterNodeDatum, BubbleScatterNodeDatum> {
+    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+}
 
 export class BubbleSeries extends CartesianSeries<
     Marker,
@@ -498,12 +505,20 @@ export class BubbleSeries extends CartesianSeries<
             }
         }
 
+        type StylerResult = AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined;
+        type StylerParams =
+            | AgBubbleSeriesStylerParams<unknown, unknown>
+            | AgScatterSeriesStylerParams<unknown, unknown>;
+        type ItemStylerParams =
+            | AgBubbleSeriesItemStylerParams<unknown, unknown>
+            | AgScatterSeriesItemStylerParams<unknown, unknown>;
         return {
             itemId: yKey,
             nodeData,
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
+            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, marker),
         };
     }
 
@@ -582,7 +597,11 @@ export class BubbleSeries extends CartesianSeries<
                 area,
                 dilation,
             } = datum;
-            const style = { ...readDatumStyle(this, datum, highlightedDatum, opts) };
+            let style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+
+            style = { ...style };
             style.size = size;
 
             if (dilation > 1) {
@@ -929,16 +948,6 @@ export class BubbleSeries extends CartesianSeries<
             strokeOpacity: stylerResult.strokeOpacity ?? properties.strokeOpacity,
             strokeWidth: stylerResult.strokeWidth ?? properties.strokeWidth,
         };
-    }
-
-    public getItemStyle(_datumIndex: number | undefined, _isHighlight: boolean, highlightState: HighlightState) {
-        type StylerParams =
-            | AgBubbleSeriesStylerParams<unknown, unknown>
-            | AgScatterSeriesStylerParams<unknown, unknown>;
-        type ItemStylerParams =
-            | AgBubbleSeriesItemStylerParams<unknown, unknown>
-            | AgScatterSeriesItemStylerParams<unknown, unknown>;
-        return getMarkerOnlyStyle<StylerParams, ItemStylerParams>(this, this.properties.marker, highlightState);
     }
 
     public getSizeRange(): [number, number] {

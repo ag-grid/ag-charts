@@ -36,10 +36,16 @@ import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import {
+    type PickFocusInputs,
+    type SeriesNodePickMatch,
+    SeriesNodePickMode,
+    type SeriesNodeStyleContext,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { HighlightState } from '../seriesProperties';
 import { applyShapeStyle } from '../shapeUtil';
+import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
@@ -53,7 +59,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { readDatumStyle } from './datumUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
@@ -69,7 +74,9 @@ interface CalculatedBin {
     total: number;
 }
 
-interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {}
+interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
+    styles: SeriesNodeStyleContext<AgHistogramSeriesStyle>;
+}
 
 export class HistogramSeries extends CartesianSeries<
     Rect<HistogramNodeDatum>,
@@ -343,6 +350,7 @@ export class HistogramSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             animationValid: true,
             visible: this.visible || animationEnabled,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
         };
         if (processedData == null || processedData.type !== 'grouped') {
             return context;
@@ -432,7 +440,7 @@ export class HistogramSeries extends CartesianSeries<
         );
     }
 
-    public getItemStyle(
+    private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
@@ -469,7 +477,9 @@ export class HistogramSeries extends CartesianSeries<
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = readDatumStyle(this, datum, highlightedDatum, opts);
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
             const { cornerRadius = 0 } = style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;

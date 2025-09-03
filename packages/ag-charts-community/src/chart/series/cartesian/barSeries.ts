@@ -43,12 +43,12 @@ import { adjustLabelPlacement, updateLabelNode } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
-import { datumStylerProperties, visibleRangeIndices } from '../util';
+import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -75,7 +75,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { readDatumStyle } from './datumUtil';
 import { calculateDataDiff } from './diffUtil';
 import { areScalingEqual } from './scaling';
 import { calculateSegments } from './util';
@@ -106,6 +105,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 }
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
+    styles: SeriesNodeStyleContext<AgBarSeriesStyle>;
     segments?: Segment[];
 }
 
@@ -711,6 +711,7 @@ export class BarSeries extends AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
             groupScale: this.getScaling(this.groupScale),
+            styles: getItemStyles(this.getItemStyle.bind(this)),
             segments,
         };
     }
@@ -844,7 +845,7 @@ export class BarSeries extends AbstractBarSeries<
         };
     }
 
-    public getItemStyle(
+    private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
@@ -913,7 +914,9 @@ export class BarSeries extends AbstractBarSeries<
         const direction = this.getBarDirection();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = readDatumStyle(this, datum, highlightedDatum, opts);
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
 
             applyShapeStyle(rect, style, fillBBox);
 

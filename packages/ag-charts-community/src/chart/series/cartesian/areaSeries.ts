@@ -68,11 +68,10 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
-import { readDatumStyle } from './datumUtil';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
-    getMarkerStyle,
+    getMarkerStyles,
     markerEnabled,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -879,6 +878,7 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
+            styles: getMarkerStyles(this, marker),
             segments,
         };
 
@@ -1044,7 +1044,9 @@ export class AreaSeries extends CartesianSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
-            const style = readDatumStyle(this, datum, highlightedDatum, opts);
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
         });
 
@@ -1407,10 +1409,6 @@ export class AreaSeries extends CartesianSeries<
                 strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
             } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
         } satisfies RequireOptional<AgAreaSeriesStylerResult> & { marker: { enabled: boolean } };
-    }
-
-    public getItemStyle(_datumIndex: number | undefined, _isHighlight: boolean, highlightState: HighlightState) {
-        return getMarkerStyle(this, this.properties.marker, highlightState);
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
