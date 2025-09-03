@@ -387,7 +387,7 @@ export abstract class CartesianSeries<
             const dataChanged = this.updateSelections();
             const segments = this.contextNodeData?.segments;
             if (this.opts.segmentedDataNodes) {
-                this.dataNodeGroup.segments = segments;
+                this.dataNodeGroup.segments = segments ?? this.dataNodeGroup.segments;
             } else {
                 this.dataNodeGroup.segments = undefined;
             }

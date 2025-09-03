@@ -17,7 +17,7 @@ export function calculateSegments(
     chartSize: Size,
     applyOffset: boolean = true
 ) {
-    if (segmentation.segments.length === 0) {
+    if (xAxis.scale.domain.length === 0 || yAxis.scale.domain.length === 0) {
         return;
     }
 
