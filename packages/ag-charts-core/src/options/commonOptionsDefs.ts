@@ -309,16 +309,25 @@ export const lineSegmentOptions: OptionsDefs<AgSeriesLineSegmentOptions> = {
     ...lineDashOptionsDef,
 };
 
-export const shapeSegmentation: OptionsDefs<AgSeriesSegmentation<AgSeriesShapeSegmentOptions>> = {
-    enabled: boolean,
-    key: required(union('x', 'y')),
-    segments: arrayOfDefs<AgSeriesShapeSegmentOptions>(shapeSegmentOptions, 'path segments array'),
-};
-export const lineSegmentation: OptionsDefs<AgSeriesSegmentation<AgSeriesLineSegmentOptions>> = {
-    enabled: boolean,
-    key: required(union('x', 'y')),
-    segments: arrayOfDefs<AgSeriesLineSegmentOptions>(lineSegmentOptions, 'path segments array'),
-};
+export const shapeSegmentation = optionsDefs<AgSeriesSegmentation<AgSeriesShapeSegmentOptions>>(
+    {
+        enabled: boolean,
+        key: required(union('x', 'y')),
+        segments: arrayOfDefs<AgSeriesShapeSegmentOptions>(shapeSegmentOptions, 'path segments array'),
+    },
+    'a segmentation object',
+    true
+);
+
+export const lineSegmentation = optionsDefs<AgSeriesSegmentation<AgSeriesLineSegmentOptions>>(
+    {
+        enabled: boolean,
+        key: required(union('x', 'y')),
+        segments: arrayOfDefs<AgSeriesLineSegmentOptions>(lineSegmentOptions, 'path segments array'),
+    },
+    'a segmentation object',
+    true
+);
 
 export const googleFont = optionsDefs<GoogleFontFamily>({ googleFont: string }, 'google font');
 export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(string, googleFont)));
