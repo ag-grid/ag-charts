@@ -19,6 +19,12 @@ export class StateTracker<T, K = string> extends Map<K, T> {
         return this;
     }
 
+    override delete(key: K) {
+        delete this.cachedState;
+        delete this.cachedValue;
+        return super.delete(key);
+    }
+
     stateId() {
         this.cachedState ??= Array.from(this.keys()).pop() ?? this.defaultState;
         return this.cachedState;
