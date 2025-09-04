@@ -9,11 +9,12 @@ import {
     dropLastWhile,
     isArray,
     isPlainObject,
+    measureTextSegments,
     toPlainText,
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -72,7 +73,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
         fractionDigits: number | undefined,
         timeInterval: AnyTimeInterval | undefined,
         dateStyle: DateFormatterStyle
-    ): (value: any, index: number) => string | undefined;
+    ): (value: any, index: number) => TextOrSegments | undefined;
 }
 
 export interface TickData<D = any> {
@@ -219,14 +220,14 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             const isPrimary = primaryTicksIndices?.has(i) ?? false;
             const inputText = axisFormatter(isPrimary, tick, i);
 
-            let wrappedLabel: string | any | null = null;
+            let wrappedLabel: TextOrSegments | null = null;
             if (label.avoidCollisions) {
                 wrappedLabel = isArray(inputText)
-                    ? wrapTextSegments(inputText as any, wrapOptions)
+                    ? wrapTextSegments(inputText, wrapOptions)
                     : wrapText(inputText, wrapOptions) || null;
             }
 
-            const tickLabel: any = wrappedLabel ?? inputText;
+            const tickLabel = wrappedLabel ?? inputText;
 
             let tickId: string;
             if (isContinuous) {
@@ -243,14 +244,9 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 tickLabel,
                 isPrimary,
                 index: i + rawFirstTickIndex,
-                textUntruncated: tickLabel === inputText ? undefined : inputText,
+                textUntruncated: tickLabel === inputText ? undefined : toPlainText(inputText),
                 textMetrics: isArray(tickLabel)
-                    ? tickLabel.reduce((textMetrics, labelSegment) => {
-                          if (textMetrics == null) {
-                              return labelSegment.textMetrics;
-                          }
-                          return textMetrics;
-                      }, null)
+                    ? measureTextSegments(tickLabel, label)
                     : measurer.measureLines(tickLabel),
                 translation: Math.floor(translation),
             });

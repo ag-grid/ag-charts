@@ -1,5 +1,5 @@
 import { createElement, isArray } from 'ag-charts-core';
-import type { AgChartOverlayRendererParams, DatumDefault, TextSegment } from 'ag-charts-types';
+import type { AgChartOverlayRendererParams, DatumDefault, TextOrSegments } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -15,7 +15,7 @@ export class Overlay extends BaseProperties {
     enabled = true;
 
     @Property
-    text?: string | TextSegment[];
+    text?: TextOrSegments;
 
     @Property
     renderer?: (params: AgChartOverlayRendererParams<DatumDefault>) => string | HTMLElement;

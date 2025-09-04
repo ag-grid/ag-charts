@@ -34,6 +34,12 @@ export interface SegmentsLineMetrics extends Size {
     segments: MeasuredSegment[];
 }
 
+export interface MultilineSegmentsMetricsBox {
+    width: number;
+    height: number;
+    lineMetrics: SegmentsLineMetrics[];
+}
+
 export interface LegacyTextMetrics extends Writeable<TextMetrics> {
     emHeightAscent: number;
     emHeightDescent: number;
@@ -149,9 +155,12 @@ export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
 
 cachedTextMeasurer.clear = () => instanceMap.clear();
 
-export function measureTextSegments(textSegments: TextSegment[], defaultFont: FontOptions) {
+export function measureTextSegments(
+    textSegments: TextSegment[],
+    defaultFont: FontOptions
+): MultilineSegmentsMetricsBox {
     let currentLine: SegmentsLineMetrics = { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
-    const lines: SegmentsLineMetrics[] = [currentLine];
+    const lineMetrics: SegmentsLineMetrics[] = [currentLine];
 
     for (const segment of textSegments) {
         const {
@@ -173,7 +182,7 @@ export function measureTextSegments(textSegments: TextSegment[], defaultFont: Fo
             // On new line, push a new line metrics object
             if (i > 0) {
                 currentLine = { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
-                lines.push(currentLine);
+                lineMetrics.push(currentLine);
             }
             if (textLine) {
                 currentLine.width += textMetrics.width;
@@ -185,5 +194,12 @@ export function measureTextSegments(textSegments: TextSegment[], defaultFont: Fo
         }
     }
 
-    return lines;
+    let maxWidth = 0;
+    let totalHeight = 0;
+    for (const line of lineMetrics) {
+        maxWidth = Math.max(maxWidth, line.width);
+        totalHeight += line.height;
+    }
+
+    return { width: maxWidth, height: totalHeight, lineMetrics };
 }

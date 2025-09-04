@@ -1,5 +1,12 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { cachedTextMeasurer, countFractionDigits, createId } from 'ag-charts-core';
+import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import {
+    cachedTextMeasurer,
+    countFractionDigits,
+    createId,
+    isArray,
+    measureTextSegments,
+    toPlainText,
+} from 'ag-charts-core';
 import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
@@ -22,7 +29,7 @@ const {
 interface TickDatum {
     tick: any;
     tickId: string;
-    tickLabel: string;
+    tickLabel: TextOrSegments;
     translation: number;
 }
 
@@ -134,13 +141,12 @@ export class AxisTicks {
         _ticks: number[],
         _primary: boolean,
         fractionDigits?: number
-    ): (value: any, index: number) => string | undefined {
+    ): (value: any, index: number) => TextOrSegments | undefined {
         const { ctx } = this;
         const { formatManager } = ctx;
         const boundSeries = this.dataProvider.data.flatMap((d) => d.series);
 
-        // TODO replace any with string | TextSegment[]
-        return (value, index): any => {
+        return (value, index): TextOrSegments => {
             const formatParams: FormatterParams<any> = {
                 type: 'number',
                 value,
@@ -198,7 +204,10 @@ export class AxisTicks {
             let lastTickPosition = -Infinity * direction;
             tickData.ticks = tickData.ticks.filter((data) => {
                 if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
-                lastTickPosition = data.translation + measurer.textWidth(data.tickLabel, true) * direction;
+                const { width: labelWidth } = isArray(data.tickLabel)
+                    ? measureTextSegments(data.tickLabel, this.label)
+                    : measurer.measureLines(data.tickLabel);
+                lastTickPosition = data.translation + labelWidth * direction;
                 return true;
             });
         }
@@ -224,7 +233,7 @@ export class AxisTicks {
             const tickLabel = tickFormatter(tick, index);
             if (tickLabel == null || tickLabel === '') continue;
 
-            const tickId = idGenerator(tickLabel);
+            const tickId = idGenerator(toPlainText(tickLabel));
 
             ticks.push({ tick, tickId, tickLabel, translation });
         }

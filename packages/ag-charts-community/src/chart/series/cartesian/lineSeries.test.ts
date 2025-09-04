@@ -742,7 +742,7 @@ describe('LineSeries', () => {
                             },
                             enabled: true,
                             cornerRadius: 8,
-                            fill: 'rgba(252, 255, 197)',
+                            fill: 'rgb(252, 255, 197)',
                             fillOpacity: 0.7,
                             padding: 10,
                             border: {

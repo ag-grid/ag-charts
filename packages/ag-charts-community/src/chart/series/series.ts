@@ -8,6 +8,7 @@ import {
     type RequireOptional,
     createId,
     isEmptyObject,
+    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -977,9 +978,11 @@ export abstract class Series<
         const formatInContext = this.callWithContext.bind(this);
 
         const format = (formatParams: FormatterParams<any>) =>
-            label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
-            formatManager.format(formatInContext, formatParams) ??
-            String(value);
+            toPlainText(
+                label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
+                    formatManager.format(formatInContext, formatParams) ??
+                    String(value)
+            );
 
         const boundSeries = this.getFormatterContext(property);
         switch (property) {

@@ -1,4 +1,12 @@
-import { type AnyFn, CleanupRegistry, type Point, type RequireOptional, WeakCache, createId } from 'ag-charts-core';
+import {
+    type AnyFn,
+    CleanupRegistry,
+    type Point,
+    type RequireOptional,
+    WeakCache,
+    createId,
+    isArray,
+} from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -8,7 +16,7 @@ import type {
     CssColor,
     DateFormatterStyle,
     FormatterParams,
-    TextSegment,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
@@ -55,7 +63,7 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
     color?: CssColor;
     tickId: string;
     rotation: number;
-    text: string | TextSegment[];
+    text: TextOrSegments;
     textBaseline: CanvasTextBaseline;
     textUntruncated?: string;
     visible: boolean;
@@ -454,7 +462,7 @@ export abstract class Axis<
     }
 
     protected getLabelStyles(
-        params: { value: string | undefined; depth?: number },
+        params: { value: TextOrSegments | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
         label: AxisLabel = this.label
     ) {
@@ -727,7 +735,7 @@ export abstract class Axis<
         inputFractionDigits?: number,
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
-    ): (value: any, index: number) => string {
+    ): (value: any, index: number) => TextOrSegments {
         const { moduleCtx, label } = this;
         const { formatManager } = moduleCtx;
         const primaryLabel = primary ? this.primaryLabel : undefined;
@@ -768,8 +776,7 @@ export abstract class Axis<
             truncateDate,
         };
 
-        // TODO replace any with string | TextSegment[]
-        return (value: any, index: number): any => {
+        return (value: any, index: number): TextOrSegments => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
@@ -826,7 +833,7 @@ export abstract class Axis<
         domain?: any[],
         label?: AxisFormattableLabel<any>,
         params?: any
-    ): string {
+    ): TextOrSegments {
         if (input == null) return '';
 
         const { moduleCtx, direction, dataDomain } = this;
@@ -876,7 +883,7 @@ export abstract class Axis<
             this.label.formatValue(f, formatParams, NaN) ??
             formatManager.defaultFormat(formatParams);
 
-        return String(result);
+        return isArray(result) ? result : String(result);
     }
 
     getBBox(): BBox {

@@ -1,5 +1,5 @@
 import { EllipsisChar, createId, isArray, toPlainText, wrapText, wrapTextSegments } from 'ag-charts-core';
-import type { FontStyle, FontWeight, TextAlign, TextSegment, TextWrap } from 'ag-charts-types';
+import type { FontStyle, FontWeight, TextAlign, TextOrSegments, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -27,7 +27,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     @Property
     @ProxyPropertyOnWrite('node')
-    text?: string | TextSegment[];
+    text?: TextOrSegments;
 
     @Property
     @ProxyPropertyOnWrite('node')

@@ -209,3 +209,5 @@ export interface TextSegment extends FontOptions {
     /** A segment of text. */
     text: string;
 }
+
+export type TextOrSegments = string | TextSegment[];

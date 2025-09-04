@@ -11,7 +11,7 @@ import type {
     FormatterParams,
     Padding,
     Styler,
-    TextSegment,
+    TextOrSegments,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -164,7 +164,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         callWithContext: (
             formatter: (params: AgAxisLabelFormatterParams) => string | undefined,
             params: AgAxisLabelFormatterParams
-        ) => string | undefined,
+        ) => TextOrSegments | undefined,
         params: FormatterParams<any>,
         index: number,
         options: {
@@ -175,13 +175,13 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
             dateStyle: 'long',
             truncateDate: undefined,
         }
-    ): string | TextSegment[] | undefined {
+    ): TextOrSegments | undefined {
         const { formatter, format } = this;
         const { type, value, domain, boundSeries } = params;
         const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
         const unit = params.type === 'date' ? params.unit : undefined;
 
-        let result: string | undefined;
+        let result: TextOrSegments | undefined;
         if (formatter != null) {
             const step = params.type === 'date' ? params.step : undefined;
             result = callWithContext(formatter, { value, index, domain, fractionDigits, unit, step, boundSeries });

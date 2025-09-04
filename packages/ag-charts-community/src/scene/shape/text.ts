@@ -12,7 +12,7 @@ import {
     toFontString,
     toPlainText,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextSegment } from 'ag-charts-types';
+import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { BBox } from '../bbox';
@@ -85,7 +85,7 @@ export class Text<D = any> extends Shape<D> {
     @SceneRefChangeDetection({
         changeCb: (o: Text) => o.onTextChange(),
     })
-    text?: string | TextSegment[] = undefined;
+    text?: TextOrSegments = undefined;
 
     fontCache?: string = undefined;
 
@@ -195,7 +195,7 @@ export class Text<D = any> extends Shape<D> {
         this.generateTextMap();
         if (this.textMap?.size) {
             const bbox = BBox.merge(this.textMap.values());
-            bbox.x = this.x;
+            bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign);
             bbox.y = this.y;
             return bbox;
         }
@@ -225,7 +225,7 @@ export class Text<D = any> extends Shape<D> {
 
         let offsetY = 0;
         const textNodes = this.richText!.children();
-        for (const { width, height, ascent, segments } of measureTextSegments(this.text, this)) {
+        for (const { width, height, ascent, segments } of measureTextSegments(this.text, this).lineMetrics) {
             let offsetX = 0;
             for (const { color, textMetrics, ...segment } of segments) {
                 const textNode = textNodes.next().value as Text;
