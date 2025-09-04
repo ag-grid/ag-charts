@@ -3,7 +3,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 import { DataType, data } from './data';
 
 function lerpColor(t: number, color1: string, color2: string): string {
-    // clamp t
     const tt = Math.max(0, Math.min(1.5, t)) / 1.5;
 
     const hexToRgb = (hex: string) => {
@@ -27,10 +26,6 @@ function lerpColor(t: number, color1: string, color2: string): string {
 
     return rgbToHex(r, g, b);
 }
-
-// Example usage:
-const c = lerpColor(0.0075, '#00ff66', '#ff3300');
-console.log(c); // halfway between greenish and reddish
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
