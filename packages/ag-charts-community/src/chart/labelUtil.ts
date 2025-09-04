@@ -12,7 +12,7 @@ interface SeriesLike {
     ctx: ModuleContext;
     declarationOrder: number;
     get visible(): boolean;
-    callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
+    cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
 }
 
 type Bounds = {
@@ -62,7 +62,7 @@ export function getLabelStyles<TParams>(
         const stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
                 ['series', `${series.declarationOrder}`, 'label'],
-                series.callWithContext(label.itemStyler, { ...params, ...styleParams }),
+                series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
                 { pick: false }
             ) ?? {};
 
