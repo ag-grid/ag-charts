@@ -9,7 +9,7 @@ Stylers allow customisation of the visual appearance of specific items <!-- or s
 An `itemStyler` is a callback function that is called once for each item within the series. These can be found:
 
 -   In the `series` object, for customising primitive properties on the series level.
--   Inside nested series property objects, such as `marker`. <!-- or label -->
+-   Inside nested axes & series property objects, such as `marker` or `label`.
 
 Each `itemStyler` receives a `params` object containing the `datum` of the item, as well as the current styles applied to it.
 It should return an object containing the styles to be applied to the item.
@@ -31,6 +31,11 @@ series: [
                 else return { fill: params.fill, size: params.size };
             },
         },
+        label: {
+            itemStyler: ({ datum: { coal, nuclear } }) => {
+                return { enabled: coal > nuclear };
+            },
+        },
     },
     {
         type: 'bar',
@@ -42,8 +47,35 @@ series: [
                 fill: datum[xKey] === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
             };
         },
+        label: {
+            itemStyler: ({ datum: { month } }) => {
+                return { enabled: month === 'Jul' };
+            },
+        },
     },
-];
+],
+axes: [
+    {
+        type: 'category',
+        position: 'bottom',
+    },
+    {
+        type: 'number',
+        position: 'left',
+        gridLine: {
+            enabled: false,
+        },
+        label: {
+            format: '#{.1f}%',
+            itemStyler: (params) => {
+                return { color: lerpColor(Number.parseFloat(params.value), '#00b347', '#cc2900') };
+            },
+        },
+        title: {
+            text: 'Normalized Percentage Energy',
+        },
+    },
+],
 ```
 
 In this configuration:

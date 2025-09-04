@@ -2,6 +2,36 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { DataType, data } from './data';
 
+function lerpColor(t: number, color1: string, color2: string): string {
+    // clamp t
+    const tt = Math.max(0, Math.min(1.5, t)) / 1.5;
+
+    const hexToRgb = (hex: string) => {
+        const bigint = parseInt(hex.slice(1), 16);
+        return {
+            r: (bigint >> 16) & 255,
+            g: (bigint >> 8) & 255,
+            b: bigint & 255,
+        };
+    };
+
+    const rgbToHex = (r: number, g: number, b: number) =>
+        `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
+
+    const c1 = hexToRgb(color1);
+    const c2 = hexToRgb(color2);
+
+    const r = Math.round(c1.r + (c2.r - c1.r) * tt);
+    const g = Math.round(c1.g + (c2.g - c1.g) * tt);
+    const b = Math.round(c1.b + (c2.b - c1.b) * tt);
+
+    return rgbToHex(r, g, b);
+}
+
+// Example usage:
+const c = lerpColor(0.0075, '#00ff66', '#ff3300');
+console.log(c); // halfway between greenish and reddish
+
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: data,
@@ -22,6 +52,11 @@ const options: AgChartOptions<DataType> = {
                     return coal > nuclear ? { fill: 'red', size: 15 } : { fill, size };
                 },
             },
+            label: {
+                itemStyler: ({ datum: { coal, nuclear } }) => {
+                    return { enabled: coal > nuclear };
+                },
+            },
         },
         {
             type: 'line',
@@ -39,6 +74,11 @@ const options: AgChartOptions<DataType> = {
                     fill: datum.month === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
                 };
             },
+            label: {
+                itemStyler: ({ datum: { month } }) => {
+                    return { enabled: month === 'Jul' };
+                },
+            },
         },
     ],
     axes: [
@@ -54,6 +94,9 @@ const options: AgChartOptions<DataType> = {
             },
             label: {
                 format: '#{.1f}%',
+                itemStyler: (params) => {
+                    return { color: lerpColor(Number.parseFloat(params.value), '#00b347', '#cc2900') };
+                },
             },
             title: {
                 text: 'Normalized Percentage Energy',
