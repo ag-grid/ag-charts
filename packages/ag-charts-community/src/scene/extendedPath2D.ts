@@ -522,7 +522,7 @@ export class ExtendedPath2D {
                     best = lineDistanceSquared(x, y, x0, y0, cx, cy, best);
                     break;
                 }
-                case Command.Curve:
+                case Command.Curve: {
                     const cp0x = cx;
                     const cp0y = cy;
                     const cp1x = params[pi++];
@@ -533,6 +533,7 @@ export class ExtendedPath2D {
                     cy = params[pi++];
                     best = bezier2DDistance(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cx, cy, x, y) ** 2;
                     break;
+                }
                 case Command.ClosePath:
                     best = lineDistanceSquared(x, y, cx, cy, sx, sy, best);
                     break;

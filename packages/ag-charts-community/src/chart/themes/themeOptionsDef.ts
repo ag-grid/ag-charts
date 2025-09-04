@@ -122,19 +122,6 @@ const serializableDate = optionsDefs<AgStateSerializableDate>(
     'a serializable date object'
 );
 
-// const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
-//     'cursor',
-//     'highlightStyle',
-//     'listeners',
-//     'nodeClickRange',
-//     'showInLegend',
-//     'showInMiniChart',
-//     'tooltip',
-//     'visible',
-//     'xName',
-//     'yName',
-// ];
-
 const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
     width: positiveNumber,
     height: positiveNumber,
@@ -179,75 +166,6 @@ const navigatorOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
             ...fontOptionsDef,
         },
         series: defined,
-        // series: {
-        //     area: without(areaSeriesThemeableOptionsDef, commonIgnoredMiniChartProperties),
-        //     bar: without(barSeriesThemeableOptionsDef, [
-        //         ...commonIgnoredMiniChartProperties,
-        //         'errorBar',
-        //         'label',
-        //         'legendItemName',
-        //         'direction',
-        //     ]),
-        //     'box-plot': without(boxPlotSeriesThemeableOptionsDef, [
-        //         ...commonIgnoredMiniChartProperties,
-        //         'direction',
-        //         'legendItemName',
-        //         'minName',
-        //         'q1Name',
-        //         'medianName',
-        //         'q3Name',
-        //         'maxName',
-        //     ]),
-        //     bubble: without(bubbleSeriesThemeableOptionsDef, [
-        //         ...commonIgnoredMiniChartProperties,
-        //         'title',
-        //         'label',
-        //         'labelKey',
-        //         'labelName',
-        //         'sizeName',
-        //     ]),
-        //     candlestick: without(candlestickSeriesThemeableOptionsDef, commonIgnoredMiniChartProperties),
-        //     heatmap: without(heatmapSeriesThemeableOptionsDef, [
-        //         ...commonIgnoredMiniChartProperties,
-        //         'title',
-        //         'label',
-        //         'colorName',
-        //         'textAlign',
-        //         'verticalAlign',
-        //         'itemPadding',
-        //         'colorRange',
-        //     ]),
-        //     histogram: without(histogramSeriesThemeableOptionsDef, [...commonIgnoredMiniChartProperties, 'label']),
-        //     line: without(lineSeriesThemeableOptionsDef, [
-        //         ...commonIgnoredMiniChartProperties,
-        //         'errorBar',
-        //         'title',
-        //         'label',
-        //     ]),
-        //     ohlc: without(ohlcSeriesThemeableOptionsDef, commonIgnoredMiniChartProperties),
-        //     'range-area': without(rangeAreaSeriesThemeableOptionsDef, [
-        //         ...commonIgnoredMiniChartProperties,
-        //         'label',
-        //         'yLowName',
-        //         'yHighName',
-        //     ]),
-        //     'range-bar': without(rangeBarSeriesThemeableOptionsDef, [
-        //         ...commonIgnoredMiniChartProperties,
-        //         'direction',
-        //         'label',
-        //         'yLowName',
-        //         'yHighName',
-        //     ]),
-        //     scatter: without(scatterSeriesThemeableOptionsDef, [
-        //         ...commonIgnoredMiniChartProperties,
-        //         'errorBar',
-        //         'title',
-        //         'label',
-        //         'labelKey',
-        //         'labelName',
-        //     ]),
-        //     waterfall: without(waterfallSeriesThemeableOptionsDef, [...commonIgnoredMiniChartProperties, 'direction']),
-        // },
     },
 };
 

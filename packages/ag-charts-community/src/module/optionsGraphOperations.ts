@@ -652,7 +652,6 @@ function pathOperationDependenciesFactory(
         const pathArray = graph.getPathArray(vertex);
         const path = resolvePath(pathArray, relativePath);
         if (path === UNRESOLVABLE_PATH) {
-            // throw new Error(`Unresolvable path [${relativePath}] at [${pathArray}]`);
             return;
         }
 
@@ -679,7 +678,6 @@ function pathOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     const pathArray = graph.getPathArray(vertex);
     const path = resolvePath(pathArray, relativePath);
     if (path === UNRESOLVABLE_PATH) {
-        // throw new Error(`Unresolvable path [${relativePath}] at [${pathArray.join('.')}]`);
         return;
     }
     const resolved = customBranch ? getPathSafe(customBranch, path) : graph.getResolvedPath(path);
@@ -691,8 +689,6 @@ function pathOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     if (hasDefaultValue) {
         return graph.resolveVertexValue(vertex, defaultValueVertex);
     }
-
-    // throw new Error(`dependency not found`);
 }
 
 function pathStringOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
