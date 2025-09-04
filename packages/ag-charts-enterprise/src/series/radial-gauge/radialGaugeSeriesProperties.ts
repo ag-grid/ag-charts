@@ -1,6 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
