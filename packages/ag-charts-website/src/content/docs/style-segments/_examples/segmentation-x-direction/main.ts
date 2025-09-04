@@ -20,7 +20,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 key: 'x',
                 segments: [
                     {
-                        start: new Date('2025-04-01'),
+                        start: new Date('2025-01-01'),
                         lineDash: [5, 10],
                     },
                 ],
