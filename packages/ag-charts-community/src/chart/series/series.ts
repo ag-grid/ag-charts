@@ -376,7 +376,7 @@ export abstract class Series<
         return { inner: 1, outer: 0 };
     }
 
-    protected readonly ctx: ModuleContext;
+    public readonly ctx: ModuleContext;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
