@@ -146,7 +146,6 @@ The `highlightState` parameter can have the following values:
 
 This parameter works alongside the existing `highlighted` boolean for backward compatibility, providing more detailed information about the highlight context. -->
 
-<!--
 ## Series Stylers
 
 An `styler` is a callback function that is called once for each series.
@@ -158,4 +157,39 @@ Each `styler` receives a `params` object containing information about the series
 It should return an object containing the styles to be applied to the series.
 
 Any styling of nested property objects must be done with an `itemStyler`.
- -->
+
+{% chartExampleRunner title="Series Styler" name="series-styler" type="generated" /%}
+
+```js
+theme: {
+    overrides: {
+        bar: {
+            series: {
+                styler: (params) => {
+                    return { fill: getColor(params) };
+                },
+            },
+        },
+        line: {
+            series: {
+                styler: (params) => {
+                    const color = getColor(params);
+                    return { stroke: color, marker: {fill: color } };
+                },
+            },
+        },
+    },
+},
+```
+
+```ts
+function getColor(params: { yKey: string }): string | undefined {
+    if (params.yKey.includes('AcmeCorp')) return 'skyblue';
+    if (params.yKey.includes('BetaTech')) return 'seagreen';
+    if (params.yKey.includes('CypherSoft')) return 'lightgray';
+    return undefined;
+}
+```
+
+In this configuration, the styling for the Line & Bar Series is dynamically
+determined by `styler` callbacks defined in the theme.
