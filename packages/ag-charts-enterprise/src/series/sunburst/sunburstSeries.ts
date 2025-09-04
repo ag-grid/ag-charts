@@ -19,7 +19,7 @@ const {
     applyShapeStyle,
     mergeDefaults,
     formatValue,
-    getLabelStyles
+    getLabelStyles,
 } = _ModuleSupport;
 
 class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
