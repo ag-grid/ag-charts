@@ -1,11 +1,5 @@
 import type { PlainObject } from 'ag-charts-core';
 
-export type ResolvePartialCallback = (
-    path: Array<string>,
-    partialOptions?: PlainObject,
-    resolveOptions?: ResolvePartialOpts
-) => Resolved;
-
 type Resolved = Pick<PlainObject, string> | undefined;
 type ResolvePartialOpts = {
     permissivePath?: boolean;
@@ -13,14 +7,23 @@ type ResolvePartialOpts = {
     proxyPaths?: Record<string, Array<string>>;
 };
 
-export class OptionsGraphService {
-    private resolvePartialCallback?: ResolvePartialCallback;
+interface GraphInterface {
+    resolvePartial(path: Array<string>, partialOptions?: PlainObject, resolveOptions?: ResolvePartialOpts): Resolved;
+    quickAutoEnable(path: Array<string>, partialOptions?: PlainObject): Resolved;
+}
 
-    updateCallback(resolvePartialCallback: ResolvePartialCallback) {
-        this.resolvePartialCallback = resolvePartialCallback;
+export class OptionsGraphService {
+    private graph?: GraphInterface;
+
+    updateGraph(graph: GraphInterface) {
+        this.graph = graph;
     }
 
     resolvePartial(path: Array<string>, partialOptions?: PlainObject, resolveOptions?: ResolvePartialOpts) {
-        return this.resolvePartialCallback?.(path, partialOptions, resolveOptions);
+        return this.graph?.resolvePartial(path, partialOptions, resolveOptions);
+    }
+
+    quickAutoEnable(path: Array<string>, partialOptions?: PlainObject) {
+        return this.graph?.quickAutoEnable(path, partialOptions);
     }
 }
