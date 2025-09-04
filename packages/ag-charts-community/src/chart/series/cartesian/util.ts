@@ -1,4 +1,4 @@
-import { type Size, isDate, isNumber, isObject } from 'ag-charts-core';
+import { type Size, isDate, isEmptyObject, isNumber, isObject } from 'ag-charts-core';
 import type {
     AgCartesianSeriesOptions,
     AgSeriesSegmentation,
@@ -60,6 +60,11 @@ export function calculateSegments(
 
         let previousDefinedStopIndex = -1;
         for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+            if (isEmptyObject(segment)) {
+                continue;
+            }
+
             const { start, stop, ...styles } = segments[i];
 
             const startFallback = segments[previousDefinedStopIndex]?.stop;
@@ -67,6 +72,12 @@ export function calculateSegments(
 
             let startPosition = scale.convert(start ?? startFallback) - offset;
             let stopPosition = scale.convert(stop ?? stopFallback) + 2 * offset;
+
+            const invalidStart = start != null && isNaN(startPosition);
+            const invalidStop = stop != null && isNaN(stopPosition);
+            if (invalidStart || invalidStop) {
+                continue;
+            }
 
             if (isNaN(startPosition)) startPosition = getDefaultStart();
             if (isNaN(stopPosition)) stopPosition = getDefaultStop();

@@ -329,11 +329,11 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
  * @param description (Optional) A description for the validator, defaulting to 'an object'.
  * @returns A validator function for the given option definitions.
  */
-export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
+export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object', failAll = false): Validator =>
     attachDescription((value, context) => {
         const result = validate(value, defs, context.path);
         const valid = !hasRequiredInPath(result.invalid, context.path);
-        return { valid, cleared: result.cleared, invalid: result.invalid };
+        return { valid, cleared: valid || !failAll ? result.cleared : null, invalid: result.invalid };
     }, description);
 
 export const typeUnion = <T extends { type: string }>(
