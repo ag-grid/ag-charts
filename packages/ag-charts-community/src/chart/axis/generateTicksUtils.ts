@@ -384,13 +384,14 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
                 intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
                 break;
             case ParentLevelMode.UnitTimeScaleTicks:
-            case ParentLevelMode.OrdinalTimeScaleTicks:
+            case ParentLevelMode.OrdinalTimeScaleTicks: {
                 const scaleTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, {
                     extend: true,
                     dropInitial: true,
                 });
                 intervalTicks = scaleTicks?.ticks ?? [];
                 break;
+            }
             case ParentLevelMode.OrdinalTimeStepTicks:
                 intervalTicks = (scale as unknown as OrdinalTimeScale).stepTicks(
                     ordinalTickStep,
