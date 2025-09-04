@@ -186,11 +186,11 @@ function Writeable<T extends Constructor>(Parent: T) {
         readOnly?: boolean;
 
         isWriteable() {
-            return this.locked !== true && this.readOnly !== true;
+            return !this.locked && !this.readOnly;
         }
 
         isHoverable() {
-            return this.readOnly !== true;
+            return !this.readOnly;
         }
     }
     return WriteableInternal;
