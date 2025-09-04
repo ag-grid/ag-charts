@@ -77,7 +77,6 @@ import {
     markerSwipeScaleInAnimation,
     resetMarkerFn,
     resetMarkerPositionFn,
-    updateMarkerDatumStyles,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
@@ -1005,7 +1004,36 @@ export class AreaSeries extends CartesianSeries<
         datumSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
     }) {
-        updateMarkerDatumStyles(this, opts);
+        const { datumSelection, isHighlight } = opts;
+        const { marker } = this.properties;
+
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        datumSelection.each((node, datum) => {
+            if (!datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                const stylerStyle = this.getStyle(isHighlight, highlightState);
+                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
+                const params = this.makeItemStylerParams(
+                    this.dataModel!,
+                    this.processedData!,
+                    datum.datumIndex,
+                    stylerStyle.marker
+                );
+                datum.style = this.getMarkerStyle(
+                    marker,
+                    datum,
+                    params,
+                    { isHighlight, highlightState },
+                    stylerStyle.marker,
+                    {
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                    }
+                );
+            }
+        });
     }
 
     protected override updateDatumNodes(opts: {
