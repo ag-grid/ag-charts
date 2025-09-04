@@ -87,7 +87,9 @@ property which can be used to dynamically customise the chart style based on the
         itemStyler: (params) => {
             switch (params.highlightState) {
                 case 'highlighted-series':
-                    return { fontWeight: 'normal' };
+                    return { fontSize: 10 };
+                case 'unhighlighted-item':
+                    return { color: 'lightgray' };
                 case 'highlighted-item':
                     return { fontWeight: 'bold' };
                 default:
@@ -96,8 +98,6 @@ property which can be used to dynamically customise the chart style based on the
         },
     },
 ```
-
-In this example:
 
 -   The labels are hidden and only shown for the highlighted series.
 -   The label of the currently highlighted item is rendered in bold..
