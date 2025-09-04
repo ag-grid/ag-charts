@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import type {
     AgCartesianChartOptions,
@@ -38,11 +39,11 @@ describe('SunburstSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
+    const compare = async (opts: MatchImageSnapshotOptions = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(opts);
     };
 
     describe('Series Highlighting', () => {
@@ -596,7 +597,7 @@ describe('SunburstSeries', () => {
                 ],
             });
             chart = AgCharts.create(options);
-            await compare();
+            await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
         });
     });
 });
