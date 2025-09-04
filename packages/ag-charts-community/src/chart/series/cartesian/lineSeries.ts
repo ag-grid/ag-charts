@@ -524,13 +524,11 @@ export class LineSeries extends CartesianSeries<
         let { nodeData } = opts;
         const { datumSelection } = opts;
         const { contextNodeData, processedData, axes, properties } = this;
-        const { marker, styler } = properties;
-
-        const markerStyle = styler ? this.getStyle(false).marker : undefined;
+        const { marker } = properties;
 
         const markersEnabled =
             contextNodeData?.crossFiltering === true ||
-            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
+            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
 
         nodeData = markersEnabled ? nodeData : [];
 
@@ -548,22 +546,32 @@ export class LineSeries extends CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.properties;
-        const stylerStyle = this.getStyle(isHighlight);
-        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                const stylerStyle = this.getStyle(isHighlight, highlightState);
+                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
                 const params = this.makeItemStylerParams(
                     this.dataModel!,
                     this.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
-                datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                });
+                datum.style = this.getMarkerStyle(
+                    marker,
+                    datum,
+                    params,
+                    { isHighlight, highlightState },
+                    stylerStyle.marker,
+                    {
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                    }
+                );
             }
         });
     }

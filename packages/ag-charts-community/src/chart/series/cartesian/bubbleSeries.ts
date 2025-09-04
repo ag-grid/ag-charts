@@ -559,17 +559,21 @@ export class BubbleSeries extends CartesianSeries<
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
         const params = { xKey, yKey, sizeKey, labelKey };
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                const stylerStyle = this.getStyle(opts.isHighlight, highlightState);
                 datum.style = this.getMarkerStyle(
                     marker,
                     datum,
                     params,
                     {
                         isHighlight,
+                        highlightState,
                         resolveItemStylerMarkerPath: false,
                     },
-                    this.getStyle(false)
+                    stylerStyle
                 );
             }
         });
