@@ -51,8 +51,6 @@ function offsetTrivialCubicBezier(
     const d1 = Math.hypot(p3y - ty, p3x - tx);
     const s1 = (d1 + offset) / d1;
 
-    // const q0x = tx + (p0x - tx) * s0;
-    // const q0y = ty + (p0y - ty) * s0;
     const q1x = tx + (p1x - tx) * s0;
     const q1y = ty + (p1y - ty) * s0;
     const q2x = tx + (p2x - tx) * s1;

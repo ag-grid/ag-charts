@@ -1294,30 +1294,4 @@ function logProcessedData(processedData: ProcessedData<any>) {
     logValues('Group Domains', processedData.domain.groups ?? []);
     logValues('Value Domains', processedData.domain.values);
     logValues('Aggregate Domains', processedData.domain.aggValues ?? []);
-
-    // TODO
-    // if (processedData.type === 'grouped') {
-    //     const flattenedValues = processedData.data.reduce<any[]>((acc, next) => {
-    //         const keys = next.keys ?? [];
-    //         const aggValues = next.aggValues ?? [];
-    //         const skipKeys = next.keys.map(() => undefined);
-    //         const skipAggValues = aggValues?.map(() => undefined);
-    //         acc.push(
-    //             ...next.values.map((v, i) => [
-    //                 ...(i === 0 ? keys : skipKeys),
-    //                 ...(v ?? []),
-    //                 ...(i == 0 ? aggValues : skipAggValues),
-    //             ])
-    //         );
-    //         return acc;
-    //     }, []);
-    //     logValues('Values', flattenedValues);
-    // } else {
-    //     const flattenedValues = processedData.data.reduce<any[]>((acc, next) => {
-    //         const aggValues = next.aggValues ?? [];
-    //         acc.push([...next.keys, ...next.values, ...aggValues]);
-    //         return acc;
-    //     }, []);
-    //     logValues('Values', flattenedValues);
-    // }
 }

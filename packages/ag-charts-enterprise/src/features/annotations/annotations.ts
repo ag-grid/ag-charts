@@ -56,19 +56,6 @@ type AnnotationAxis = {
 };
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    // TODO: We no longer have a mechanism for detecting if the module was previously disabled and is now enabled.
-    // @ObserveChanges<Annotations>((target, newValue?: boolean, oldValue?: boolean) => {
-    //     const {
-    //         ctx: { annotationManager, stateManager },
-    //     } = target;
-
-    //     if (newValue === oldValue) return;
-
-    //     // Restore the annotations only if this module was previously disabled
-    //     if (oldValue === false && newValue === true) {
-    //         stateManager.restoreState(annotationManager);
-    //     }
-    // })
     @Property
     public enabled: boolean = true;
 
