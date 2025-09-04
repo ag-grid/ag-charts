@@ -434,7 +434,19 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 strokeWidth: {
                     $isUserOption: [
                         './stroke',
-                        { $isUserOption: ['../../../strokeWidth', { $path: '../../../strokeWidth' }, 1] },
+                        {
+                            $isUserOption: [
+                                '../../../strokeWidth',
+                                { $path: '../../../strokeWidth' },
+                                {
+                                    $if: [
+                                        { $greaterThan: [{ $path: '../../../strokeWidth' }, 0] },
+                                        { $path: '../../../strokeWidth' },
+                                        2,
+                                    ],
+                                },
+                            ],
+                        },
                         { $path: '../../../strokeWidth' },
                     ],
                 },
