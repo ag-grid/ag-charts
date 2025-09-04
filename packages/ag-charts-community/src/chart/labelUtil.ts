@@ -12,7 +12,7 @@ interface SeriesLike {
     ctx: ModuleContext;
     declarationOrder: number;
     get visible(): boolean;
-    callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
+    cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined;
 }
 
 type Bounds = {
@@ -59,12 +59,11 @@ export function getLabelStyles<TParams>(
             highlighted,
             highlightState,
         };
-        // AG-8917 TC7 The correct call here should be `resolvePartial(..)` with the `pick: false` option. However, that
-        // has too much of an impact on time-performance. For just optimise the `enabled` property.
         const stylerResult =
-            series.ctx.optionsGraphService.quickAutoEnable(
-                ['series', `${series.declarationOrder}`, 'label', 'border'],
-                series.callWithContext(label.itemStyler, { ...params, ...styleParams })
+            series.ctx.optionsGraphService.resolvePartial(
+                ['series', `${series.declarationOrder}`, 'label'],
+                series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
+                { pick: false }
             ) ?? {};
 
         return mergeDefaults(stylerResult, styleParams);

@@ -242,7 +242,9 @@ class AgChartsInternal {
         }
 
         if (chartOptions.optionsGraph) {
-            chart.ctx.optionsGraphService.updateGraph(chartOptions.optionsGraph);
+            chart.ctx.optionsGraphService.updateCallback((path, partialOptions, resolveOptions) => {
+                return chartOptions.optionsGraph?.resolvePartial(path, partialOptions, resolveOptions);
+            });
         }
 
         styles.forEach(([id, css]) => {

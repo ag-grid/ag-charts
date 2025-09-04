@@ -293,16 +293,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         super.addEdge(from, to, edge);
     }
 
-    quickAutoEnable(path: Array<string>, partialOptions?: PlainObject) {
-        if (partialOptions != null && path.length > 0) {
-            const lastKey: string = path[path.length - 1];
-            if (lastKey in partialOptions && !this.hasUserOption(path)) {
-                partialOptions[lastKey].enabled = true;
-            }
-        }
-        return partialOptions;
-    }
-
     /**
      * Resolve partial options against the existing graph at a given path without overriding the existing user values.
      * Returns an object with only those keys that were also present within `partialOptions`.
