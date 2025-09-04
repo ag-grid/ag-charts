@@ -62,6 +62,7 @@ const annotationHandleStylesDefs: OptionsDefs<AgAnnotationHandleStyles> = {
 export const annotationTextStylesDef: OptionsDefs<AgTextAnnotationStyles> = {
     visible: boolean,
     locked: boolean,
+    readOnly: boolean,
     handle: annotationHandleStylesDefs,
     ...fontOptionsDef,
 };
@@ -112,6 +113,7 @@ const annotationQuickMeasurerDirectionStylesDefs: OptionsDefs<AgQuickMeasurerAnn
 export const annotationLineStyleDefs: OptionsDefs<AgLineAnnotationStyles> = {
     visible: boolean,
     locked: boolean,
+    readOnly: boolean,
     extendStart: boolean,
     extendEnd: boolean,
     handle: annotationHandleStylesDefs,
@@ -123,6 +125,7 @@ export const annotationLineStyleDefs: OptionsDefs<AgLineAnnotationStyles> = {
 export const annotationCrossLineStyleDefs: OptionsDefs<AgCrossLineAnnotationStyles> = {
     visible: boolean,
     locked: boolean,
+    readOnly: boolean,
     axisLabel: annotationAxisLabelOptionsDef,
     handle: annotationHandleStylesDefs,
     text: annotationLineTextDefs,
@@ -133,6 +136,7 @@ export const annotationCrossLineStyleDefs: OptionsDefs<AgCrossLineAnnotationStyl
 export const annotationChannelStyleDefs: OptionsDefs<AgChannelAnnotationStyles> = {
     visible: boolean,
     locked: boolean,
+    readOnly: boolean,
     extendStart: boolean,
     extendEnd: boolean,
     handle: annotationHandleStylesDefs,
@@ -186,6 +190,7 @@ export const annotationNoteStylesDefs: OptionsDefs<AgNoteAnnotationStyles> = {
 export const annotationShapeStylesDefs: OptionsDefs<AgShapeAnnotationStyles> = {
     visible: boolean,
     locked: boolean,
+    readOnly: boolean,
     handle: annotationHandleStylesDefs,
     ...fillOptionsDef,
 };
@@ -193,6 +198,7 @@ export const annotationShapeStylesDefs: OptionsDefs<AgShapeAnnotationStyles> = {
 export const annotationMeasurerStylesDefs: OptionsDefs<AgMeasurerAnnotationStyles> = {
     visible: boolean,
     locked: boolean,
+    readOnly: boolean,
     extendStart: boolean,
     extendEnd: boolean,
     handle: annotationHandleStylesDefs,

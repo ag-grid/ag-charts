@@ -145,12 +145,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number, previousHovered?: number) => {
-                let hovered;
+                let hovered: number | undefined;
 
-                this.annotations.each((annotation, _, index) => {
+                this.annotations.each((annotation, datum, index) => {
+                    if (!datum.isHoverable()) return;
                     const contains = annotation.containsPoint(coords.x, coords.y);
                     if (contains) hovered ??= index;
-                    annotation.toggleHovered(contains || active === index);
+                    annotation.toggleHovered(contains || active === index, datum.readOnly);
                 });
 
                 if (hovered != null) {
@@ -159,10 +160,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ctx.tooltipManager.unsuppressTooltip('annotations');
                 }
 
-                this.ctx.domManager.updateCursor(
-                    'annotations',
-                    hovered == null ? undefined : this.annotations.at(hovered)?.getCursor()
-                );
+                if (hovered == null || this.annotationData.at(hovered)?.readOnly !== true) {
+                    this.ctx.domManager.updateCursor(
+                        'annotations',
+                        hovered == null ? undefined : this.annotations.at(hovered)?.getCursor()
+                    );
+                }
 
                 if (hovered !== previousHovered) {
                     this.update();
@@ -219,6 +222,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 const selectedNode = index != null ? annotations.at(index) : null;
                 const previousNode = previous != null ? annotations.at(previous) : null;
+                const selectedDatum = index != null ? this.annotationData.at(index) : null;
 
                 // Only change anything else if a different node has been selected or when deselecting
                 if (previousNode === selectedNode && selectedNode != null) {
@@ -231,7 +235,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
 
-                if (selectedNode) {
+                if (selectedNode && selectedDatum?.readOnly !== true) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     optionsToolbar.updateButtons(this.annotationData.at(index!)!);
@@ -272,7 +276,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             deleteAll: () => {
+                // Filter the readOnly data and recreate the array since this is not a standard array.
+                const readOnly = this.annotationData.filter((datum) => {
+                    if (datum.readOnly === true) return datum;
+                });
                 this.annotationData.splice(0, this.annotationData.length);
+                for (const datum of readOnly) {
+                    this.annotationData.push(datum);
+                }
             },
 
             validatePoint: (point: Point, options?: { overflowContinuous: boolean }) => {

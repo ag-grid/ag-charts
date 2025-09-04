@@ -41,7 +41,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
 
     public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         const { dragState } = this;
-        if (datum.locked || !dragState) return;
+        if (!datum.isWriteable() || !dragState) return;
 
         const { point } = translate({ point: dragState.handle }, Vec2.sub(target, dragState.offset), context);
         datum.x = point.x;
@@ -49,7 +49,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
     }
 
     public translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
-        if (datum.locked) return;
+        if (!datum.isWriteable()) return;
 
         const { point } = translate({ point: convertPoint(datum, context) }, translation, context);
         datum.x = point.x;

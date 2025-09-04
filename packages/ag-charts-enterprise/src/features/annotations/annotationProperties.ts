@@ -78,7 +78,7 @@ export interface AxisLabelFormatterParams {
  * Annotations specific mixins *
  *******************************/
 export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>(Parent: U) {
-    abstract class AnnotationInternal extends Lockable(Visible(Parent)) {
+    abstract class AnnotationInternal extends Writeable(Visible(Parent)) {
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
         id = generateUUID();
 
@@ -177,12 +177,23 @@ export function Extendable<T extends Constructor>(Parent: T) {
     return ExtendableInternal;
 }
 
-function Lockable<T extends Constructor>(Parent: T) {
-    class LockableInternal extends Parent {
+function Writeable<T extends Constructor>(Parent: T) {
+    class WriteableInternal extends Parent {
         @Property
         locked?: boolean;
+
+        @Property
+        readOnly?: boolean;
+
+        isWriteable() {
+            return this.locked !== true && this.readOnly !== true;
+        }
+
+        isHoverable() {
+            return this.readOnly !== true;
+        }
     }
-    return LockableInternal;
+    return WriteableInternal;
 }
 
 export function Localisable<T extends Constructor>(Parent: T) {

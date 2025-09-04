@@ -93,4 +93,9 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
             y: bbox.y,
         };
     }
+
+    override isHoverable() {
+        // Always allowing hovering to ensure the note text can be made visible
+        return true;
+    }
 }
