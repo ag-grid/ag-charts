@@ -250,19 +250,21 @@ export class Text<D = any> extends Shape<D> {
 
         if (isArray(this.text)) {
             this.generateTextMap();
-            const { width } = this.richText!.getBBox();
+            const richTextBBox = this.richText!.getBBox();
 
             let translateX = 0;
             switch (this.textAlign) {
                 case 'left':
                 case 'start':
-                    translateX = width / 2;
+                    translateX = richTextBBox.width / 2;
                     break;
 
                 case 'right':
                 case 'end':
-                    translateX = width / -2;
+                    translateX = richTextBBox.width / -2;
             }
+
+            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, this.y));
 
             ctx.save();
             ctx.translate(translateX, this.y);
@@ -303,24 +305,27 @@ export class Text<D = any> extends Shape<D> {
 
         ctx.textAlign = textAlign;
 
-        if (this.boxing) {
-            // Use the static version of computeBBox instead of a dynamic version. The `boxing: Rect` shape is drawn
-            // using the same matrix transformation of the text, so we want to ignore translation/rotation/scale
-            // transformations from derived classes. We only need to measure the width/height of the untransformed text
-            const textBBox = Text.computeBBox(this.lines, this.x, this.y, this);
-            if (textBBox.width !== 0 && textBBox.height !== 0) {
-                const { x, y, width, height } = textBBox.grow(this.boxPadding);
-                this.boxing.opacity = this.opacity;
-                this.boxing.x = x;
-                this.boxing.y = y;
-                this.boxing.width = width;
-                this.boxing.height = height;
-                this.boxing.preRender(renderCtx);
-                this.boxing.render(renderCtx);
-            }
-        }
-
+        this.renderBoxing(renderCtx);
         this.fillStroke(ctx);
+    }
+
+    private renderBoxing(renderCtx: RenderContext, bbox?: BBox): void {
+        if (!this.boxing) return;
+
+        // Use the static version of computeBBox instead of a dynamic version. The `boxing: Rect` shape is drawn
+        // using the same matrix transformation of the text, so we want to ignore translation/rotation/scale
+        // transformations from derived classes. We only need to measure the width/height of the untransformed text
+        const textBBox = bbox ?? Text.computeBBox(this.lines, this.x, this.y, this);
+        if (textBBox.width === 0 || textBBox.height === 0) return;
+
+        const { x, y, width, height } = textBBox.grow(this.boxPadding);
+        this.boxing.opacity = this.opacity;
+        this.boxing.x = x;
+        this.boxing.y = y;
+        this.boxing.width = width;
+        this.boxing.height = height;
+        this.boxing.preRender(renderCtx);
+        this.boxing.render(renderCtx);
     }
 
     protected override executeFill(ctx: CanvasRenderingContext2D) {
