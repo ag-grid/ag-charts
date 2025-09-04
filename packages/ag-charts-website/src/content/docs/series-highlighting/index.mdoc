@@ -75,6 +75,76 @@ In the above example we provided the same `highlight` for all of the series, but
 
 For simplicity, we provided the `highlight` once within a chart [Theme](./themes/), rather than repeating it on each series.
 
+## Stylers
+
+The `styler` and `itemStyler` callbacks receive a `param.highlightState`
+property which can be used to dynamically customise the chart style.
+
+{% chartExampleRunner title="Dynamic Highlight" name="balance-sheet" type="generated" /%}
+
+```js
+    series: [
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'cash',
+            yName: 'Cash',
+            highlight: { unhighlightedSeries: { opacity: 0.2 } },
+            label: {
+                itemStyler: myItemStyler,
+            },
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'networth',
+            yName: 'Net Worth',
+            highlight: { unhighlightedSeries: { opacity: 0.2 } },
+            label: {
+                itemStyler: myItemStyler,
+            },
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'assets',
+            yName: 'Assets',
+            highlight: { unhighlightedSeries: { opacity: 0.2 } },
+            label: {
+                itemStyler: myItemStyler,
+            },
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'liabilities',
+            yName: 'Liabilities',
+            highlight: { unhighlightedSeries: { opacity: 0.2 } },
+            label: {
+                itemStyler: myItemStyler,
+            },
+        },
+    ],
+```
+
+```ts
+function myItemStyler(params: AgChartLabelStylerParams<unknown, unknown>): AgChartLabelStyleOptions {
+    switch (params.highlightState) {
+        case 'highlighted-series':
+            return {};
+        case 'highlighted-item':
+            return { fontWeight: 'bold' };
+        default:
+            return { color: 'transparent' };
+    }
+}
+```
+
+In this configuration:
+
+-   The item labels are hidden, and shown only on highlighted series.
+-   The currently highlighted item label is rendered in bold.
+
 ## API Reference
 
 The available options differ between series types. See [the Options API](/options/#reference-AgChartOptions-series) for more details.
