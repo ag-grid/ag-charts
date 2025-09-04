@@ -151,7 +151,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     if (!datum.isHoverable()) return;
                     const contains = annotation.containsPoint(coords.x, coords.y);
                     if (contains) hovered ??= index;
-                    annotation.toggleHovered(contains || active === index, datum.readOnly);
+                    annotation.toggleHovered(contains, active === index, datum.readOnly);
                 });
 
                 if (hovered != null) {
@@ -160,7 +160,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ctx.tooltipManager.unsuppressTooltip('annotations');
                 }
 
-                if (hovered == null || this.annotationData.at(hovered)?.readOnly !== true) {
+                if (hovered == null || !this.annotationData.at(hovered)?.readOnly) {
                     this.ctx.domManager.updateCursor(
                         'annotations',
                         hovered == null ? undefined : this.annotations.at(hovered)?.getCursor()
@@ -235,7 +235,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
 
-                if (selectedNode && selectedDatum?.readOnly !== true) {
+                if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     optionsToolbar.updateButtons(this.annotationData.at(index!)!);
