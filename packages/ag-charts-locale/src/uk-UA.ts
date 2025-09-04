@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Кілька кольорів',
     ariaLabelColorPickerPalette: 'Палітра',
     ariaLabelFinancialCharts: 'Фінансові діаграми',
+    ariaLabelGaugeTarget: 'Ціль',
+    ariaLabelGaugeValue: 'Значення',
     ariaLabelLegend: 'Легенда',
     ariaLabelLegendItem: '${label}, Елемент легенди ${index}[number] з ${count}[number]',
     ariaLabelLegendItemUnknown: 'Невідомий елемент легенди',

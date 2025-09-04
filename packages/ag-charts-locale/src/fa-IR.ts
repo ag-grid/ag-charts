@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'چند رنگ',
     ariaLabelColorPickerPalette: 'پالت',
     ariaLabelFinancialCharts: 'نمودارهای مالی',
+    ariaLabelGaugeTarget: 'هدف',
+    ariaLabelGaugeValue: 'مقدار',
     ariaLabelLegend: 'راهنما',
     ariaLabelLegendItem: '${label}، مورد فهرست ${index}[number] از ${count}[number]',
     ariaLabelLegendItemUnknown: 'مورد ناشناخته در فهرست علائم',

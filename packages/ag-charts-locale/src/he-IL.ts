@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'צבעים מרובים',
     ariaLabelColorPickerPalette: 'פלטה',
     ariaLabelFinancialCharts: 'תרשימים פיננסיים',
+    ariaLabelGaugeTarget: 'יעד',
+    ariaLabelGaugeValue: 'ערך',
     ariaLabelLegend: 'מקרא',
     ariaLabelLegendItem: '${label}, פריט באגדה ${index}[number] מתוך ${count}[number]',
     ariaLabelLegendItemUnknown: 'פריט מקרא לא ידוע',

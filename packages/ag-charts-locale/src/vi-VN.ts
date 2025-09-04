@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Nhiều màu sắc',
     ariaLabelColorPickerPalette: 'Bảng màu',
     ariaLabelFinancialCharts: 'Biểu đồ tài chính',
+    ariaLabelGaugeTarget: 'Mục tiêu',
+    ariaLabelGaugeValue: 'Giá trị',
     ariaLabelLegend: 'Chú giải',
     ariaLabelLegendItem: '${label}, Mục chú giải ${index}[number] của ${count}[number]',
     ariaLabelLegendItemUnknown: 'Mục chú giải không xác định',

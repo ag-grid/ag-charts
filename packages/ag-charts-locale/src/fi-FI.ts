@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Monivärinen',
     ariaLabelColorPickerPalette: 'Värivalitsin',
     ariaLabelFinancialCharts: 'Taloudelliset kaaviot',
+    ariaLabelGaugeTarget: 'Tavoite',
+    ariaLabelGaugeValue: 'Arvo',
     ariaLabelLegend: 'Selite',
     ariaLabelLegendItem: '${label}, Legendan kohde ${index}[number] ${count}[number] kohteesta',
     ariaLabelLegendItemUnknown: 'Tuntematon legenda-esiintymä',

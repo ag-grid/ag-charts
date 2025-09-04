@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Çok Renkli',
     ariaLabelColorPickerPalette: 'Palet',
     ariaLabelFinancialCharts: 'Finansal Grafikler',
+    ariaLabelGaugeTarget: 'Hedef',
+    ariaLabelGaugeValue: 'Değer',
     ariaLabelLegend: 'Efsane',
     ariaLabelLegendItem: '${label}, Lejant öğesi ${index}[number] of ${count}[number]',
     ariaLabelLegendItemUnknown: 'Bilinmeyen efsane öğesi',
