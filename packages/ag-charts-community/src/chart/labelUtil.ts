@@ -12,7 +12,7 @@ interface SeriesLike {
     ctx: ModuleContext;
     declarationOrder: number;
     get visible(): boolean;
-    cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
+    cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined;
 }
 
 type Bounds = {
