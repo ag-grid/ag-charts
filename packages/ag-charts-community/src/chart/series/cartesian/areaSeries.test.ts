@@ -1158,7 +1158,9 @@ describe('AreaSeries', () => {
                 test('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
-                    styler.expect().toHaveBeenCalledTimes(2);
+                    styler.expect().nthCalledWithContext(2, c1);
+                    styler.expect().nthCalledWithContext(3, c2);
+                    styler.expect().toHaveBeenCalledTimes(4);
                 });
                 test('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
