@@ -1,6 +1,7 @@
 import type { AnyFn, IsAny, Point, RequireOptional } from 'ag-charts-core';
 import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, HighlightState, PixelSize } from 'ag-charts-types';
 
+import type { ModuleContext } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { mergeDefaults } from '../util/object';
 import type { Label } from './label';
@@ -8,6 +9,8 @@ import type { DatumIndexType, SeriesNodeDatum } from './series/seriesTypes';
 
 interface SeriesLike {
     id: string;
+    ctx: ModuleContext;
+    declarationOrder: number;
     get visible(): boolean;
     callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
 }
@@ -56,7 +59,14 @@ export function getLabelStyles<TParams>(
             highlighted,
             highlightState,
         };
-        return mergeDefaults(series.callWithContext(label.itemStyler, { ...params, ...styleParams }), styleParams);
+        const stylerResult =
+            series.ctx.optionsGraphService.resolvePartial(
+                ['series', `${series.declarationOrder}`, 'label'],
+                series.callWithContext(label.itemStyler, { ...params, ...styleParams }),
+                { pick: false }
+            ) ?? {};
+
+        return mergeDefaults(stylerResult, styleParams);
     }
 
     return label;
