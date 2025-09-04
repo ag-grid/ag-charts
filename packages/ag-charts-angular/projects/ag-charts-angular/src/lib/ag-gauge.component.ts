@@ -16,7 +16,7 @@ export class AgGauge extends AgChartsBase<AgGaugeOptions> {
     public options: AgGaugeOptions = { type: 'radial-gauge', value: 0 };
 
     @Output()
-    public onChartReady: EventEmitter<AgChartInstance> = new EventEmitter();
+    public chartReady: EventEmitter<AgChartInstance> = new EventEmitter();
 
     constructor(
         elementDef: ElementRef,
