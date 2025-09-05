@@ -1,4 +1,4 @@
-import type { LabelBoxOptions, TextOrSegments } from '../series/cartesian/commonOptions';
+import type { LabelBoxOptions } from '../series/cartesian/commonOptions';
 import type { Formatter, Styler } from './callbackOptions';
 import type {
     ContextDefault,
@@ -36,7 +36,7 @@ export interface AgAxisCaptionOptions {
     /** Whether the title should be shown. */
     enabled?: boolean;
     /** The text to show in the title. */
-    text?: TextOrSegments;
+    text?: string;
     /** The font style to use for the title. */
     fontStyle?: FontStyle;
     /** The font weight to use for the title. */
