@@ -49,7 +49,10 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
         const highlighted = isHighlight || series.isSeriesHighlighted(activeHighlight);
         const highlightState = series.getHighlightStateString(
             activeHighlight,
-            isHighlight || (nodeDatum != null && activeHighlight?.datumIndex === nodeDatum?.datumIndex),
+            isHighlight ||
+                (nodeDatum != null &&
+                    activeHighlight?.series === nodeDatum.series &&
+                    activeHighlight?.datumIndex === nodeDatum.datumIndex),
             nodeDatum?.datumIndex
         );
 
