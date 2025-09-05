@@ -47,7 +47,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, toHighlightString } from '../seriesProperties';
+import { HighlightState, highlightStates, toHighlightString } from '../seriesProperties';
 import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -593,9 +593,10 @@ export class LineSeries extends CartesianSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const highlightState = toHighlightString(state);
+            highlightState satisfies any;
+            const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyTranslation,
                 selected: datum.selected,
@@ -621,7 +622,11 @@ export class LineSeries extends CartesianSeries<
 
         opts.labelSelection.each((text, datum) => {
             const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
-            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
+            const highlightState = this.getHighlightStateString(
+                activeHighlight,
+                isHighlight || activeHighlight?.datumIndex === datum.datumIndex,
+                datum.datumIndex
+            );
 
             const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
