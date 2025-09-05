@@ -2,50 +2,34 @@ import { AgAreaSeriesOptions, AgCartesianChartOptions, AgCharts, AgLineSeriesOpt
 
 import { DataType, data } from './data';
 
-const AREA_SERIES: AgAreaSeriesOptions[] = [
-    {
-        type: 'area',
-        yKey: 'variance',
-        xKey: 'date',
-        interpolation: {
-            type: 'smooth',
-        },
-        strokeWidth: 2,
-        fillOpacity: 0.3,
-        fill: 'green',
-        stroke: 'green',
-        segmentation: {
-            key: 'y',
-            segments: [{ stop: 0, fill: 'red', stroke: 'red' }],
-        },
-    },
-];
-
-const LINE_SERIES: AgLineSeriesOptions[] = [
-    {
-        type: 'line',
-        yKey: 'variance',
-        xKey: 'date',
-        marker: {
-            enabled: false,
-        },
-        interpolation: {
-            type: 'smooth',
-        },
-        strokeWidth: 2,
-        stroke: 'green',
-        segmentation: {
-            key: 'y',
-            segments: [{ stop: 0, stroke: 'red' }],
-        },
-    },
-];
-
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Performance Variance' },
     data,
-    series: AREA_SERIES,
+    series: [
+        {
+            type: 'area',
+            yKey: 'variance',
+            xKey: 'date',
+            interpolation: {
+                type: 'smooth',
+            },
+            strokeWidth: 2,
+            fillOpacity: 0.3,
+            fill: 'green', //used for the series
+            stroke: 'green', //used for the series
+            segmentation: {
+                key: 'y', //segment along the y axis
+                segments: [
+                    {
+                        stop: 0, //domain min until 0
+                        fill: 'red', //used for this segment
+                        stroke: 'red', //used for this segment
+                    },
+                ],
+            },
+        },
+    ],
     axes: [
         {
             type: 'unit-time',
@@ -61,15 +45,3 @@ const options: AgCartesianChartOptions<DataType> = {
 };
 
 const chart = AgCharts.create(options);
-
-function line() {
-    options.series = LINE_SERIES;
-
-    chart.update(options);
-}
-
-function area() {
-    options.series = AREA_SERIES;
-
-    chart.update(options);
-}
