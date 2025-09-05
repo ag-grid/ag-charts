@@ -1862,7 +1862,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     protected override hasItemStylers(): boolean {
-        const { itemStyler, calloutLabel, sectorLabel } = this.properties;
-        return (itemStyler ?? calloutLabel.itemStyler ?? sectorLabel.itemStyler) != null;
+        return !(
+            this.properties.itemStyler == null &&
+            this.properties.calloutLabel.itemStyler == null &&
+            this.properties.sectorLabel.itemStyler == null &&
+            this.properties.innerLabels.every((innerLabel) => innerLabel.itemStyler == null)
+        );
     }
 }

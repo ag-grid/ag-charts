@@ -1265,6 +1265,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     protected override hasItemStylers(): boolean {
-        return false;
+        return this.properties.label.itemStyler != null;
     }
 }

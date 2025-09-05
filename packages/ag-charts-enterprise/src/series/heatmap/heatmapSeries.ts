@@ -605,6 +605,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }
