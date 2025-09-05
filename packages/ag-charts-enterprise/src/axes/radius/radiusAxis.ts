@@ -363,7 +363,7 @@ export abstract class RadiusAxis<
         const combinedRotation = rotation;
 
         return {
-            ...this.getLabelStyles({ value: datum.tickLabel }),
+            ...this.getLabelStyles({ value: datum.tick, formattedValue: datum.tickLabel }),
             tickId: datum.tickId,
             rotation: combinedRotation,
             text,
