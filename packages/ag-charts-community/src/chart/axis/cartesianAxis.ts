@@ -660,7 +660,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const y = horizontal ? -labelOffset : translation;
 
         return {
-            ...this.getLabelStyles({ value: text }, undefined, label),
+            ...this.getLabelStyles({ value: datum.tick, formattedValue: text }, undefined, label),
             tickId,
             rotation,
             text,

@@ -161,8 +161,10 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
 }
 
 export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
-    /** The label value that would be used, after applying formating. */
+    /** The label value that would be used, before applying formating. */
     readonly value: any;
+    /** The label value that would be used, after applying formating. */
+    readonly formattedValue?: TextOrSegments;
     /** Context for this callback. */
     readonly context?: TContext;
 }

@@ -234,7 +234,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
             if (maxWidth < MIN_CATEGORY_SPACING) return false;
 
             let text = tickFormatter(datum.label, index - 1);
-            const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
+            const labelStyles = this.getLabelStyles(
+                { value: datum.index, formattedValue: text, depth },
+                depthOptions[depth]?.label
+            );
 
             if (label.avoidCollisions) {
                 const rotation = optionsMap[depth].rotation;
