@@ -1,4 +1,4 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight, TextSegment } from 'ag-charts-types';
 
 export const EllipsisChar = '\u2026';
 export const LineSplitter = /\r?\n/g;
@@ -38,4 +38,12 @@ export function guardTextEdges(str: string) {
 
 export function unguardTextEdges(str: string) {
     return str.replaceAll(TrimEdgeGuard, '');
+}
+
+export function isTextTruncated(str: string) {
+    return str.endsWith(EllipsisChar);
+}
+
+export function isSegmentTruncated(segment: TextSegment | undefined) {
+    return segment?.text.endsWith(EllipsisChar) ?? false;
 }

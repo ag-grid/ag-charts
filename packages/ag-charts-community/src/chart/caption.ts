@@ -1,4 +1,12 @@
-import { EllipsisChar, createId, isArray, toPlainText, wrapText, wrapTextSegments } from 'ag-charts-core';
+import {
+    createId,
+    isArray,
+    isSegmentTruncated,
+    isTextTruncated,
+    toPlainText,
+    wrapText,
+    wrapTextSegments,
+} from 'ag-charts-core';
 import type { FontStyle, FontWeight, TextAlign, TextOrSegments, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
@@ -92,10 +100,10 @@ export class Caption extends BaseProperties implements CaptionLike {
         let wrappedText;
         if (isArray(text)) {
             wrappedText = wrapTextSegments(text, options);
-            this.truncated = wrappedText.some((s) => s.text.endsWith(EllipsisChar));
+            this.truncated = wrappedText.some(isSegmentTruncated);
         } else {
             wrappedText = wrapText(text ?? '', options);
-            this.truncated = wrappedText.endsWith(EllipsisChar);
+            this.truncated = isTextTruncated(wrappedText);
         }
         this.node.text = wrappedText;
     }

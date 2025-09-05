@@ -1,7 +1,6 @@
 import {
     type AnyFn,
     CleanupRegistry,
-    EllipsisChar,
     type ITextMeasurer,
     Logger,
     type RequiredInternalAgGradientColor,
@@ -10,6 +9,7 @@ import {
     cachedTextMeasurer,
     clamp,
     createId,
+    isTextTruncated,
     truncateLine,
 } from 'ag-charts-core';
 import type {
@@ -613,7 +613,7 @@ export class Legend extends BaseProperties {
 
         const result = truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
 
-        if (result.endsWith(EllipsisChar)) {
+        if (isTextTruncated(result)) {
             this.truncatedItems.add(id);
         } else {
             this.truncatedItems.delete(id);

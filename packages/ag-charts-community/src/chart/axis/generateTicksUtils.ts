@@ -9,6 +9,7 @@ import {
     dropLastWhile,
     isArray,
     isPlainObject,
+    isSegmentTruncated,
     measureTextSegments,
     toPlainText,
     wrapText,
@@ -228,6 +229,8 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             }
 
             const tickLabel = wrappedLabel ?? inputText;
+            const isSegmented = isArray(tickLabel);
+            const isTruncated = tickLabel !== inputText && (!isSegmented || isSegmentTruncated(tickLabel.at(-1)));
 
             let tickId: string;
             if (isContinuous) {
@@ -236,7 +239,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                     tickId = idGenerator(`v:${tickValue}`);
                 }
             }
-            tickId ??= idGenerator(`l:${isArray(tickLabel) ? toPlainText(tickLabel.flat()) : tickLabel}`);
+            tickId ??= idGenerator(`l:${isSegmented ? toPlainText(tickLabel.flat()) : tickLabel}`);
 
             ticks.push({
                 tick,
@@ -244,10 +247,8 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 tickLabel,
                 isPrimary,
                 index: i + rawFirstTickIndex,
-                textUntruncated: tickLabel === inputText ? undefined : toPlainText(inputText),
-                textMetrics: isArray(tickLabel)
-                    ? measureTextSegments(tickLabel, label)
-                    : measurer.measureLines(tickLabel),
+                textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
+                textMetrics: isSegmented ? measureTextSegments(tickLabel, label) : measurer.measureLines(tickLabel),
                 translation: Math.floor(translation),
             });
         }

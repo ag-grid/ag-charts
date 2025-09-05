@@ -8,6 +8,7 @@ import {
     TrimEdgeGuard,
     appendEllipsis,
     guardTextEdges,
+    isTextTruncated,
     unguardTextEdges,
 } from './textUtils';
 import { isFiniteNumber } from './typeGuards';
@@ -29,8 +30,7 @@ export function wrapText(text: string, options: WrapOptions) {
 
 export function wrapLines(text: string, options: WrapOptions) {
     const clippedResult = textWrap(text, options);
-
-    if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(EllipsisChar))) {
+    if (options.overflow === 'hide' && clippedResult.some(isTextTruncated)) {
         return [];
     }
     return clippedResult;
@@ -200,7 +200,7 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
             const clippedResults = lines.slice(0, i);
             const lastLine = clippedResults.pop()!;
             return clippedResults.concat(
-                lastLine.endsWith(EllipsisChar) ? lastLine : truncateLine(lastLine, measurer, options.maxWidth, true)
+                isTextTruncated(lastLine) ? lastLine : truncateLine(lastLine, measurer, options.maxWidth, true)
             );
         }
     }
@@ -284,7 +284,7 @@ export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptio
                 break;
             }
 
-            const truncationIndex = wrappedLines.findIndex((l) => l.endsWith(EllipsisChar));
+            const truncationIndex = wrappedLines.findIndex(isTextTruncated);
 
             if (truncationIndex !== -1) {
                 wrappedLines = wrappedLines.slice(0, truncationIndex + 1);
