@@ -32,8 +32,7 @@ export function wrapText(text: string, options: WrapOptions) {
 }
 
 export function wrapLines(text: string, options: WrapOptions) {
-    const clippedResult = textWrap(text, options);
-    return shouldHideOverflow(clippedResult, options) ? [] : clippedResult;
+    return textWrap(text, options);
 }
 
 export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
