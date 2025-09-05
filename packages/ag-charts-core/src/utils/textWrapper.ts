@@ -61,12 +61,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
 
     if (options.textWrap === 'never') {
         for (const line of lines) {
-            const truncatedLine = truncateLine(
-                line.trimEnd(),
-                measurer,
-                Math.max(0, options.maxWidth - widthOffset),
-                true
-            );
+            const truncatedLine = truncateLine(line.trimEnd(), measurer, Math.max(0, options.maxWidth - widthOffset));
             if (!truncatedLine) break;
             result.push(truncatedLine);
             widthOffset = 0;
