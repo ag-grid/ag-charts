@@ -23,17 +23,16 @@ export interface WrapOptions {
     avoidOrphans?: boolean;
 }
 
+function shouldHideOverflow(clippedResult: string[], options: WrapOptions) {
+    return options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(EllipsisChar));
+}
+
 export function wrapText(text: string, options: WrapOptions) {
     return wrapLines(text, options).join('\n');
 }
 
 export function wrapLines(text: string, options: WrapOptions) {
-    const clippedResult = textWrap(text, options);
-
-    if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(EllipsisChar))) {
-        return [];
-    }
-    return clippedResult;
+    return textWrap(text, options);
 }
 
 export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
@@ -62,11 +61,12 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
 
     if (options.textWrap === 'never') {
         for (const line of lines) {
-            const truncatedLine = truncateLine(line.trimEnd(), measurer, options.maxWidth);
+            const truncatedLine = truncateLine(line.trimEnd(), measurer, Math.max(0, options.maxWidth - widthOffset));
             if (!truncatedLine) break;
             result.push(truncatedLine);
+            widthOffset = 0;
         }
-        return result;
+        return shouldHideOverflow(result, options) ? [] : result;
     }
 
     const wrapHyphenate = options.textWrap === 'hyphenate';
@@ -174,7 +174,8 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
     }
 
     avoidOrphans(result, measurer, options);
-    return clipLines(result, measurer, options);
+    const clippedResult = clipLines(result, measurer, options);
+    return shouldHideOverflow(clippedResult, options) ? [] : clippedResult;
 }
 
 function getWordAt(text: string, position: number) {
@@ -269,13 +270,17 @@ export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptio
             const guardedText = guardTextEdges(segment.text);
             const wrapOptions = { ...options, font: segment, maxHeight: maxHeight - totalHeight };
 
-            let wrappedLines = textWrap(guardedText, wrapOptions, lineWidth);
+            let wrappedLines = textWrap(guardedText, { ...wrapOptions, overflow: 'hide' }, lineWidth);
             if (wrappedLines.length === 0) {
-                wrappedLines = textWrap(guardedText, wrapOptions);
-                const lastSegment = result.at(-1);
-                if (lastSegment) {
-                    lastSegment.text += '\n';
-                    lineWidth = 0;
+                if (options.textWrap === 'never') {
+                    wrappedLines = textWrap(guardedText, wrapOptions, lineWidth);
+                } else {
+                    wrappedLines = textWrap(guardedText, wrapOptions);
+                    const lastSegment = result.at(-1);
+                    if (lastSegment) {
+                        lastSegment.text += '\n';
+                        lineWidth = 0;
+                    }
                 }
             }
 
