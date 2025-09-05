@@ -96,7 +96,7 @@ const options: AgChartOptions<DataType> = {
                 fontWeight: 600,
                 itemStyler: (params) => {
                     return {
-                        color: lerpColor(Number.parseFloat(params.value), '#00b347', '#cc2900'),
+                        color: lerpColor(params.value, '#00b347', '#cc2900'),
                     };
                 },
             },
