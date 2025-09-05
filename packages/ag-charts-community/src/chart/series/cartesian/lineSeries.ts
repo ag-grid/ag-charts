@@ -595,7 +595,6 @@ export class LineSeries extends CartesianSeries<
         datumSelection.each((node, datum) => {
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const highlightState = toHighlightString(state);
-            highlightState satisfies any;
             const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyTranslation,
