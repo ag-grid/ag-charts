@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Višebojna',
     ariaLabelColorPickerPalette: 'Paleta',
     ariaLabelFinancialCharts: 'Financijski grafikoni',
+    ariaLabelGaugeTarget: 'Cilj',
+    ariaLabelGaugeValue: 'Vrijednost',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Legenda stavka ${index}[number] od ${count}[number]',
     ariaLabelLegendItemUnknown: 'Nepoznata stavka legende',

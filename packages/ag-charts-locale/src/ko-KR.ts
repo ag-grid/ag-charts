@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaLabelColorPickerMultiColor: '다색',
     ariaLabelColorPickerPalette: '팔레트',
     ariaLabelFinancialCharts: '금융 차트',
+    ariaLabelGaugeTarget: '목표',
+    ariaLabelGaugeValue: '값',
     ariaLabelLegend: '범례',
     ariaLabelLegendItem: '${label}, 범례 항목 ${index}[number] / ${count}[number]',
     ariaLabelLegendItemUnknown: '알 수 없는 범례 항목',

@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'マルチカラー',
     ariaLabelColorPickerPalette: 'パレット',
     ariaLabelFinancialCharts: 'ファイナンシャルチャート',
+    ariaLabelGaugeTarget: '目標',
+    ariaLabelGaugeValue: '値',
     ariaLabelLegend: '凡例',
     ariaLabelLegendItem: '${label}, 凡例アイテム ${index}[number] / ${count}[number]',
     ariaLabelLegendItemUnknown: '不明な凡例項目',

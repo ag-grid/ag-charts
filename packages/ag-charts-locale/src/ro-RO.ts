@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Culori multiple',
     ariaLabelColorPickerPalette: 'Paletă',
     ariaLabelFinancialCharts: 'Grafice financiare',
+    ariaLabelGaugeTarget: 'Țintă',
+    ariaLabelGaugeValue: 'Valoare',
     ariaLabelLegend: 'Legendă',
     ariaLabelLegendItem: '${label}, Element de legendă ${index}[number] din ${count}[number]',
     ariaLabelLegendItemUnknown: 'Element necunoscut din legendă',

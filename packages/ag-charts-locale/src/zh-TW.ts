@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     ariaLabelColorPickerMultiColor: '多色',
     ariaLabelColorPickerPalette: '色板',
     ariaLabelFinancialCharts: '財務圖表',
+    ariaLabelGaugeTarget: '目標',
+    ariaLabelGaugeValue: '數值',
     ariaLabelLegend: '圖例',
     ariaLabelLegendItem: '${label}, 圖例項目 ${index}[number]，總共 ${count}[number]',
     ariaLabelLegendItemUnknown: '未知的圖例項目',

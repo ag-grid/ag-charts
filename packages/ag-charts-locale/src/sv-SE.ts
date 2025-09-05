@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Flera färger',
     ariaLabelColorPickerPalette: 'Palett',
     ariaLabelFinancialCharts: 'Finansiella diagram',
+    ariaLabelGaugeTarget: 'Mål',
+    ariaLabelGaugeValue: 'Värde',
     ariaLabelLegend: 'Teckenförklaring',
     ariaLabelLegendItem: '${label}, Legend objekt ${index}[number] av ${count}[number]',
     ariaLabelLegendItemUnknown: 'Okänd legendpost',

@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Wielokolorowy',
     ariaLabelColorPickerPalette: 'Paleta',
     ariaLabelFinancialCharts: 'Wykresy finansowe',
+    ariaLabelGaugeTarget: 'Cel',
+    ariaLabelGaugeValue: 'Wartość',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Element legendy ${index}[number] z ${count}[number]',
     ariaLabelLegendItemUnknown: 'Nieznany element legendy',
