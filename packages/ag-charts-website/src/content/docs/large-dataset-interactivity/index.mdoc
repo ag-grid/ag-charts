@@ -2,18 +2,19 @@
 title: 'Large Dataset Interactivity'
 ---
 
-AG Charts allows displaying and exploring large datasets using all features and options, and without having to add any special configurations.
-
-Using aggregation strategies such as [the M4 algorithm](https://blog.ag-grid.com/optimizing-large-data-set-visualisations-with-the-m4-algorithm/),
-an accurate representation of large data is shown for all series and axes types.
-
-This approach adapts seamlessly to different levels of granularity, allowing users to explore the data with all of the functionality
-available in AG Charts, including [Zoom](./zoom/), [Navigator](./navigator/) and [Tooltips](./tooltips/).
+AG Charts is optimised to handle **large datasets with over 1 million points**, while maintaining full, smooth interactivity. No additional configuration or modules required - it just works out of the box.
 
 {% chartExampleRunner title="Ordered Data" name="ordered-data" type="generated" /%}
 
 In the above example:
 
 -   Use the controls to select different series types and data sizes.
--   Use the mouse or controls to zoom and pan the data.
--   This is a basic example - other axis and series types and options are also available.
+-   Use the mouse, [navigator](./navigator/) or [zoom controls](./zoom/#axis-zoom-controls) to [zoom](./zoom/), [scroll](./zoom/#scrolling) and [pan](./zoom/#panning) the data.
+
+{% note %}
+Performance may vary based on your specific use case, environment and hardware.
+{% /note %}
+
+## How it works
+
+Behind the scenes, AG Charts applies advanced data aggregation techniques, such as the [M4 algorithm](https://blog.ag-grid.com/optimizing-large-data-set-visualisations-with-the-m4-algorithm/), to ensure accurate representation across scales. As you zoom and pan, the chart dynamically adapts to the visible range, preserving both performance and clarity.
