@@ -959,11 +959,10 @@ export class BarSeries extends AbstractBarSeries<
             yName: this.properties.yName ?? this.properties.yKey,
             legendItemName: this.properties.legendItemName ?? this.properties.xName ?? this.properties.xKey,
         };
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-            updateLabelNode(this, textNode, params, this.properties.label, datum.label, isHighlight, highlightState);
+            updateLabelNode(this, textNode, params, this.properties.label, datum.label, isHighlight, activeHighlight);
         });
     }
 

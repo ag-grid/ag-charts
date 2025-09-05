@@ -22,7 +22,9 @@ const options: AgCartesianChartOptions = {
                         itemStyler: (params: AgChartLabelStylerParams<unknown, unknown>) => {
                             switch (params.highlightState) {
                                 case 'highlighted-series':
-                                    return { fontWeight: 'normal' };
+                                    return { fontSize: 10 };
+                                case 'unhighlighted-item':
+                                    return { color: 'lightgray' };
                                 case 'highlighted-item':
                                     return { fontWeight: 'bold' };
                                 default:

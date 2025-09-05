@@ -1286,15 +1286,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     private getLabelStyle(datum: PieDonutNodeDatum, label: Label<AgDonutSeriesLabelFormatterParams>) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const isHighlight = false; // Labels are not highlighted in donut series
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-        return getLabelStyles<AgDonutSeriesLabelFormatterParams>(
-            this,
-            datum,
-            this.properties,
-            label,
-            isHighlight,
-            highlightState
-        );
+        return getLabelStyles(this, datum, this.properties, label, isHighlight, activeHighlight);
     }
 
     private updateCalloutLabelNodes(seriesRect: BBox) {

@@ -697,8 +697,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 sizeName: this.properties.sizeName ?? this.properties.sizeKey,
             };
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, node.datumIndex);
-            const style = getLabelStyles(this, node, params, labelProps, highlighted, highlightState);
+            const style = getLabelStyles(this, node, params, labelProps, highlighted, activeHighlight);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;

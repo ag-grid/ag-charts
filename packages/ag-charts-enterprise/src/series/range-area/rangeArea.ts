@@ -630,9 +630,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             yHighKey: this.properties.yHighKey,
             yHighName: this.properties.yHighName ?? this.properties.yHighKey,
         };
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum);
+            updateLabelNode(this, textNode, params, this.properties.label, datum, false, activeHighlight);
         });
     }
 

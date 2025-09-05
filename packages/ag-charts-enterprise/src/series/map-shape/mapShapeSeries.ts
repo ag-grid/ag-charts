@@ -557,13 +557,11 @@ export class MapShapeSeries
     private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
     }) {
+        const { properties } = this;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
-            const style = getLabelStyles<AgMapShapeSeriesLabelFormatterParams>(
-                this,
-                undefined,
-                this.properties,
-                this.properties.label
-            );
+            type P = AgMapShapeSeriesLabelFormatterParams;
+            const style = getLabelStyles<P>(this, undefined, properties, properties.label, false, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontFamily } = style;
             label.visible = true;
             label.x = x;

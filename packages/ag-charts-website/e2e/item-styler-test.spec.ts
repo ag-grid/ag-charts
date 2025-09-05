@@ -91,8 +91,13 @@ test.describe('item-styler-test', () => {
             const screenshotName = `keyboard-navigation-${chartType.toLowerCase().replace(/[^a-z0-9]/g, '-')}.png`;
             await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(screenshotName);
 
-            // Focus the legend to cover series highlight state
+            // Focus on one (or more) legend items to cover series highlight state
             await page.keyboard.press('Tab');
+            await page.keyboard.press('ArrowRight');
+            await page.keyboard.press('ArrowRight');
+            await page.keyboard.press('ArrowRight');
+            await page.keyboard.press('ArrowRight');
+            await page.keyboard.press('ArrowRight');
 
             // Verify no undefined values for highlightState in styler params
             const undefinedHighlightStateLogs = itemStylerLogs.filter(

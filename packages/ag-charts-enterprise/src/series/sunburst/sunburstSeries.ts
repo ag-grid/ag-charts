@@ -508,8 +508,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             };
             const baseLabelStyle = primary ? this.properties.label : this.properties.secondaryLabel;
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, node.datumIndex);
-            const style = getLabelStyles(this, node, params, baseLabelStyle, highlighted, highlightState);
+            const style = getLabelStyles(this, node, params, baseLabelStyle, highlighted, activeHighlight);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;

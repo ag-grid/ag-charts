@@ -637,7 +637,7 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
-    protected getHighlightStateString(
+    public getHighlightStateString(
         datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
@@ -680,7 +680,7 @@ export abstract class Series<
         );
     }
 
-    protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
+    public isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
         return highlightedDatum?.series === this;
     }
 

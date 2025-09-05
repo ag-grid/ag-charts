@@ -516,10 +516,8 @@ export abstract class RadialColumnSeriesBase<
 
     protected updateLabels() {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            const highlightState = this.getHighlightStateString(activeHighlight, false, datum.datumIndex);
-            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, false, highlightState);
+            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, false, activeHighlight);
             node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
     }

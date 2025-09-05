@@ -449,13 +449,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, HeatmapLabelDatum>;
     }) {
-        type TParam = AgHeatmapSeriesLabelFormatterParams;
-        type TDatum = HeatmapLabelDatum;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((text, datum) => {
             text.pointerEvents = PointerEvents.None;
             text.text = datum.text;
             text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
-            updateLabelNode<TParam, TDatum>(this, text, this.properties, this.properties.label, datum);
+            type P = AgHeatmapSeriesLabelFormatterParams;
+            type D = HeatmapLabelDatum;
+            updateLabelNode<P, D>(this, text, this.properties, this.properties.label, datum, false, activeHighlight);
         });
     }
 

@@ -390,23 +390,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateLabels() {
+        const { properties } = this;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             if (datum.label) {
                 const isHighlight = false; // Labels are not highlighted in radar series
                 node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-                type TDatum = typeof datum.label;
-                type TParam = AgRadarSeriesLabelFormatterParams;
-                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-                updateLabelNode<TParam, TDatum>(
-                    this,
-                    node,
-                    this.properties,
-                    this.properties.label,
-                    datum.label,
-                    isHighlight,
-                    highlightState
-                );
+                updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
             }
         });
     }

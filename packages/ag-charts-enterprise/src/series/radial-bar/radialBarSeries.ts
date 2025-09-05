@@ -489,19 +489,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateLabels() {
+        const { properties } = this;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             const isHighlight = false; // Labels are not highlighted in radial bar series
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-            updateLabelNode(
-                this,
-                node,
-                this.properties,
-                this.properties.label,
-                datum.label,
-                isHighlight,
-                highlightState
-            );
+            updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
         });
     }

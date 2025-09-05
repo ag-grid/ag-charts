@@ -346,9 +346,10 @@ export class ChordSeries extends FlowProportionSeries<
             size: NaN,
         } satisfies RequireOptional<AgChordSeriesLabelFormatterParams>;
 
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, { size, text, centerX, centerY, radius, angle }) => {
             params.size = size;
-            const style = getLabelStyles(this, undefined, params, this.properties.label);
+            const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
             const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
             label.visible = true;
             label.translationX = centerX + radius * Math.cos(angle);

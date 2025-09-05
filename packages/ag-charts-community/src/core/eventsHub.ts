@@ -105,7 +105,7 @@ export interface ZoomPanStartEvent {
     readonly callerId: string;
 }
 
-export interface HighlightNodeDatum extends SeriesNodeDatum<DatumIndexType> {
+export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> extends SeriesNodeDatum<I> {
     readonly xKey?: string;
     readonly yKey?: string;
     readonly angleKey?: string;
