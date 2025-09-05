@@ -1,4 +1,3 @@
-// main.ts
 import {
     AgCartesianChartOptions,
     AgChartLabelStyleOptions,
