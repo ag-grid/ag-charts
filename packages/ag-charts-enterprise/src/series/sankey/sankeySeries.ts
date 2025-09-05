@@ -366,10 +366,11 @@ export class SankeySeries extends FlowProportionSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, SankeyNodeLabelDatum>;
     }) {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, datum) => {
             const { x, y, leading, text } = datum;
             const params: AgSankeySeriesLabelFormatterParams = datum;
-            const style = getLabelStyles(this, undefined, params, this.properties.label);
+            const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x;

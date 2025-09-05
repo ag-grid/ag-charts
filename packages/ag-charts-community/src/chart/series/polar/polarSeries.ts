@@ -290,10 +290,7 @@ export abstract class PolarSeries<
         return [NaN, NaN];
     }
 
-    protected override isSeriesHighlighted(
-        highlightedDatum: HighlightNodeDatum | undefined,
-        legendItemValues?: string[]
-    ) {
+    public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, legendItemValues?: string[]) {
         const { series, legendItemName: activeLegendItemName, itemId } = highlightedDatum ?? {};
 
         const legendItemName = legendItemValues?.[itemId];

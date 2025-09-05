@@ -562,9 +562,17 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
     }) {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, nodeDatum, datumIndex) => {
             const { visible, x, y, text, textAlign, textBaseline } = nodeDatum;
-            const style = getLabelStyles(this, undefined, this.properties, opts.labelProperties);
+            const style = getLabelStyles(
+                this,
+                undefined,
+                this.properties,
+                opts.labelProperties,
+                false,
+                activeHighlight
+            );
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
             label.visible = visible;
             label.x = x;

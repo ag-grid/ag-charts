@@ -1,18 +1,25 @@
 import type { AnyFn, IsAny, Point, RequireOptional } from 'ag-charts-core';
 import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, HighlightState, PixelSize } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { mergeDefaults } from '../util/object';
 import type { Label } from './label';
 import type { DatumIndexType, SeriesNodeDatum } from './series/seriesTypes';
 
-interface SeriesLike {
+interface SeriesLike<TDatumIndex extends DatumIndexType> {
     id: string;
     ctx: ModuleContext;
     declarationOrder: number;
     get visible(): boolean;
     cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined;
+    isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined): boolean;
+    getHighlightStateString(
+        datum: HighlightNodeDatum | undefined,
+        isHighlight?: boolean,
+        datumIndex?: TDatumIndex
+    ): HighlightState;
 }
 
 type Bounds = {
@@ -30,15 +37,22 @@ type LabelDatum = Point & {
     textBaseline: CanvasTextBaseline;
 };
 
-export function getLabelStyles<TParams>(
-    series: SeriesLike,
-    nodeDatum: SeriesNodeDatum<DatumIndexType> | undefined,
+export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = DatumIndexType>(
+    series: SeriesLike<TDatumIndex>,
+    nodeDatum: SeriesNodeDatum<TDatumIndex> | undefined,
     params: TParams,
     label: Label<TParams>,
-    highlighted?: boolean,
-    highlightState?: HighlightState
+    isHighlight: boolean,
+    activeHighlight: HighlightNodeDatum<TDatumIndex> | undefined
 ): AgChartLabelStyleOptions & { fontSize: number } {
     if (series.visible && label.itemStyler) {
+        const highlighted = isHighlight || series.isSeriesHighlighted(activeHighlight);
+        const highlightState = series.getHighlightStateString(
+            activeHighlight,
+            isHighlight || (nodeDatum != null && activeHighlight?.datumIndex === nodeDatum?.datumIndex),
+            nodeDatum?.datumIndex
+        );
+
         const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
             fontSize: number;
         } = {
@@ -74,26 +88,26 @@ export function getLabelStyles<TParams>(
 
 // Enforce that D must not be `any`
 export function updateLabelNode<TParams, D extends LabelDatum>(
-    series: IsAny<D> extends false ? SeriesLike : never,
+    series: IsAny<D> extends false ? SeriesLike<DatumIndexType> : never,
     textNode: IsAny<D> extends false ? Text : never,
     params: IsAny<D> extends false ? TParams : never,
     label: IsAny<D> extends false ? Label<TParams, unknown> : never,
     labelDatum: D | undefined,
-    highlighted?: boolean,
-    highlightState?: HighlightState
+    isHighlight: boolean,
+    activeHighlight: HighlightNodeDatum<DatumIndexType> | undefined
 ): void;
 
 export function updateLabelNode<TParams>(
-    series: SeriesLike,
+    series: SeriesLike<DatumIndexType>,
     textNode: Text<SeriesNodeDatum<DatumIndexType>>,
     params: TParams,
     label: Label<TParams, unknown>,
     labelDatum: LabelDatum | undefined,
-    highlighted?: boolean,
-    highlightState?: HighlightState
+    isHighlight: boolean,
+    activeHighlight: HighlightNodeDatum<DatumIndexType> | undefined
 ) {
     if (series.visible && label.enabled && labelDatum) {
-        const style = getLabelStyles<TParams>(series, textNode.datum, params, label, highlighted, highlightState);
+        const style = getLabelStyles(series, textNode.datum, params, label, isHighlight, activeHighlight);
         textNode.visible = true;
         textNode.x = labelDatum.x;
         textNode.y = labelDatum.y;

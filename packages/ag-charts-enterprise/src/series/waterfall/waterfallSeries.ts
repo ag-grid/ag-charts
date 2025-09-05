@@ -655,10 +655,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             yKey: this.properties.yKey,
             yName: this.properties.yName ?? this.properties.yName,
         };
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
             params.itemId = datum.itemId;
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.getItemConfig(datum.itemId).label, datum.label);
+            const label = this.getItemConfig(datum.itemId).label;
+            updateLabelNode(this, textNode, params, label, datum.label, false, activeHighlight);
         });
     }
 

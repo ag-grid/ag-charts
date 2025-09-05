@@ -656,10 +656,7 @@ export class BubbleSeries extends CartesianSeries<
         const params: AgBubbleSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
-            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
-            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
-
-            const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
+            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
             text.text = datum.label.text;
             text.fill = style.color;
             text.x = datum.point?.x ?? 0;

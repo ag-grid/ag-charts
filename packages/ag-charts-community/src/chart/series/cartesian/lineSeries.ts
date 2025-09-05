@@ -47,7 +47,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, highlightStates, toHighlightString } from '../seriesProperties';
+import { HighlightState, toHighlightString } from '../seriesProperties';
 import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -621,14 +621,7 @@ export class LineSeries extends CartesianSeries<
         const params: AgLineSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
-            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
-            const highlightState = this.getHighlightStateString(
-                activeHighlight,
-                isHighlight || activeHighlight?.datumIndex === datum.datumIndex,
-                datum.datumIndex
-            );
-
-            const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
+            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;

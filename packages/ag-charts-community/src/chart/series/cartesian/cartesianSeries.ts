@@ -357,7 +357,7 @@ export abstract class CartesianSeries<
         this._contextNodeData = undefined;
     }
 
-    protected override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
+    public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
         const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
 
         const { legendItemName } = this.properties;

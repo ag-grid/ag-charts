@@ -510,8 +510,9 @@ export class HistogramSeries extends CartesianSeries<
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
         const labelEnabled = this.isLabelEnabled();
 
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, this.properties, this.properties.label);
+            const style = getLabelStyles(this, datum, this.properties, this.properties.label, false, activeHighlight);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && labelEnabled && datum?.label) {
                 text.text = datum.label.text;

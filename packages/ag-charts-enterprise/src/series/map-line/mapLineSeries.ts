@@ -475,13 +475,10 @@ export class MapLineSeries extends TopologySeries<
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
         >;
     }) {
+        const { properties } = this;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
-            const style = getLabelStyles<AgMapLineSeriesLabelFormatterParams>(
-                this,
-                undefined,
-                this.properties,
-                this.properties.label
-            );
+            const style = getLabelStyles(this, undefined, properties, properties.label, false, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;
