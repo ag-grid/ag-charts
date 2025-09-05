@@ -1,4 +1,4 @@
-import type { LabelBoxOptions } from '../series/cartesian/commonOptions';
+import type { LabelBoxOptions, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { Formatter, Styler } from './callbackOptions';
 import type {
     ContextDefault,
