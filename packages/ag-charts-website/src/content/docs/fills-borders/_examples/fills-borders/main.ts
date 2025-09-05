@@ -161,7 +161,7 @@ const options: AgChartOptions<DataType> = {
                 fill: '#999',
                 fillOpacity: 0.2,
                 cornerRadius: 16,
-                padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                padding: { top: 4, right: 8, bottom: 4, left: 8 },
                 formatter: (params) => {
                     return params.value + 'cm';
                 },
@@ -177,7 +177,7 @@ const options: AgChartOptions<DataType> = {
                 fill: '#999',
                 fillOpacity: 0.2,
                 cornerRadius: 16,
-                padding: { top: 6, right: 8, bottom: 4, left: 8 },
+                padding: { top: 4, right: 8, bottom: 4, left: 8 },
                 formatter: (params) => {
                     return params.value + 'kg';
                 },
