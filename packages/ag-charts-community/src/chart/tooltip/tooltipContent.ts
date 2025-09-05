@@ -1,4 +1,5 @@
-import type { AgTooltipMode } from 'ag-charts-types';
+import { toPlainText } from 'ag-charts-core';
+import type { AgTooltipMode, TextOrSegments } from 'ag-charts-types';
 
 import { sanitizeHtml } from '../../util/sanitize';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
@@ -15,8 +16,8 @@ export type TooltipContentDataRow =
     | { label: undefined; fallbackLabel: string; value: string };
 
 export type TooltipStructuredContent = {
-    heading?: string;
-    title?: string;
+    heading?: TextOrSegments;
+    title?: TextOrSegments;
     symbol?: LegendSymbolOptions;
     data?: TooltipContentDataRow[];
 };
@@ -31,7 +32,7 @@ export interface TooltipPaginationState {
 }
 
 interface GroupedStructuredContent {
-    heading?: string;
+    heading?: TextOrSegments;
     items: Omit<TooltipStructuredContent, 'heading'>[];
 }
 
@@ -41,7 +42,7 @@ type GroupedTooltipContent =
 
 function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipContent[] {
     const out: GroupedTooltipContent[] = [];
-    const groupedContents = new Map<string, GroupedStructuredContent>();
+    const groupedContents = new Map<TextOrSegments, GroupedStructuredContent>();
     for (const item of content) {
         if (item.type === 'structured') {
             const { heading } = item;
@@ -66,9 +67,13 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
 
     content.forEach((c) => {
         if (c.type === 'raw') return '';
-        if (c.heading != null) ariaLabel.push(c.heading);
+        if (c.heading != null) {
+            ariaLabel.push(toPlainText(c.heading));
+        }
         c.items.forEach((i) => {
-            if (i.title != null) ariaLabel.push(i.title);
+            if (i.title != null) {
+                ariaLabel.push(toPlainText(i.title));
+            }
             i.data?.forEach((datum) => {
                 ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
             });
@@ -111,7 +116,7 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
     }
 
     if (content.title != null) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title)}</span>`;
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(toPlainText(content.title))}</span>`;
         html += ' ';
     }
 
@@ -147,7 +152,7 @@ function tooltipContentHtml(
     switch (mode) {
         case 'compact':
             compact = true;
-            compactTitle = singleItem?.title;
+            compactTitle = toPlainText(singleItem?.title);
             break;
         case 'single':
             compact =
@@ -156,7 +161,7 @@ function tooltipContentHtml(
                 singleItem.data?.length === 1 &&
                 singleItem.data[0].label == null &&
                 singleItem.data[0].value != null;
-            compactFallbackLabel = content.heading ?? singleItem?.title;
+            compactFallbackLabel = toPlainText(content.heading ?? singleItem?.title);
             break;
         case 'shared':
             compact = false;
@@ -175,7 +180,7 @@ function tooltipContentHtml(
     } else {
         // Full rendering
         if (content.heading != null) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(content.heading)}</span>`;
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(toPlainText(content.heading))}</span>`;
             html += ' ';
         }
 
