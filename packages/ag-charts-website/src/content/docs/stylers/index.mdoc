@@ -98,14 +98,14 @@ In this example:
 ```js
 theme: {
     overrides: {
-            bar: {
-                series: {
-                    styler: (params) => {
-                        if (params.yKey.includes('benchmark')) {
-                            return { fill: 'lightgray' };
-                        }
-                        else return {fill: '#5090DC'}
-                    },
+        bar: {
+            series: {
+                styler: (params) => {
+                    if (params.yKey.includes('benchmark')) {
+                        return { fill: 'lightgray' };
+                    }
+                    else return {fill: '#5090DC'}
+                },
                 },
             },
             line: {
