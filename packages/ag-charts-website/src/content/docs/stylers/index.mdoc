@@ -2,194 +2,138 @@
 title: 'Stylers'
 ---
 
-Stylers allow customisation of the visual appearance of specific items <!-- or series -->based on the data or other conditions.
+Stylers allow customisation of the visual appearance of specific items or series based on the data or other conditions.
 
 ## Item Stylers
 
-An `itemStyler` is a callback function that is called once for each item within the series. These can be found:
+An `itemStyler` is a callback function that is called once for each item within the series, and returns style properties for that item.
 
--   In the `series` object, for customising primitive properties on the series level.
--   Inside nested axes & series property objects, such as `marker` or `label`.
-
-Each `itemStyler` receives a `params` object containing the `datum` of the item, as well as the current styles applied to it.
-It should return an object containing the styles to be applied to the item.
-
-The exact details differ between the different series types and components which implement the `itemStyler` function.
+To change the style of an entire series based on some condition, use a [Series Styler](#series-stylers).
 
 {% chartExampleRunner title="Item Styler" name="item-styler" type="generated" /%}
+
+In this example:
+
+-   If the values in the 'Coal' line series are higher than the 'Nuclear' series, the markers and labels are larger and marked in red.
+-   The 'Imported' series bar for 'Jul' is red with a lime highlight style.
+-   The y-axis labels are coloured with a gradient scale.
 
 ```js
 series: [
     {
         type: 'line',
-        xKey: 'month',
-        yKey: 'coal',
-        yName: 'Coal',
+        //...
         marker: {
-            itemStyler: (params) => {
-                if (params.datum.coal > params.datum.nuclear) return { fill: 'red', size: 15 };
-                else return { fill: params.fill, size: params.size };
+                itemStyler: ({ datum: { coal, nuclear }, fill, size }) => {
+                    return coal > nuclear ? { fill: '#f44', size: 15 } : { fill, size };
+                },
             },
-        },
-        label: {
-            itemStyler: ({ datum: { coal, nuclear } }) => {
-                return { enabled: coal > nuclear };
+            label: {
+                itemStyler: ({ datum: { coal, nuclear } }) => {
+                    if (coal > nuclear) {
+                        return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
+                    } else return { fontSize: 8 };
+                },
             },
-        },
     },
     {
         type: 'bar',
-        xKey: 'month',
-        yKey: 'imported',
-        yName: 'Imported',
-        itemStyler: ({ datum, xKey, fill, highlighted }) => {
-            return {
-                fill: datum[xKey] === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
-            };
-        },
-        label: {
-            itemStyler: ({ datum: { month } }) => {
-                return { enabled: month === 'Jul' };
+        //...
+        itemStyler: ({ datum, fill, highlighted }) => {
+                return {
+                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
+                };
+            },
+            label: {
+                itemStyler: ({ datum: { month } }) => {
+                    return { color: month !== 'Jul' ? 'transparent' : undefined };
+                },
             },
         },
-    },
 ],
 axes: [
     {
-        type: 'category',
-        position: 'bottom',
-    },
-    {
-        type: 'number',
-        position: 'left',
-        gridLine: {
-            enabled: false,
-        },
+    //...
         label: {
-            format: '#{.1f}%',
             itemStyler: (params) => {
                 return { color: lerpColor(Number.parseFloat(params.value), '#00b347', '#cc2900') };
             },
         },
-        title: {
-            text: 'Normalized Percentage Energy',
-        },
     },
-],
+]
 ```
 
-In this configuration:
+### Usage
 
--   The markers in the 'Coal' series will be larger and red if they are higher than 'Nuclear' series for the same month.
--   The 'Imported' series bar for 'Jul' will be red with a lime highlight style.
+Item Stylers can be found:
 
-Please use the [Options Reference](/options) to learn more about Stylers, the inputs they receive and the attributes that can be customised.
+-   In the `series` object, for customising primitive properties on the series level.
+-   Inside nested series property objects, such as `marker`.
+-   Inside series and axes `label` objects.
 
-<!-- ## Highlight States
+Each `itemStyler` receives a `params` object containing:
 
-The `itemStyler` callback receives a `highlightState` parameter that provides more granular control over styling based on the current highlight state of the item.
+-   Relevant details of the item, such as the `datum`, `seriesId`, and `_Keys`.
+-   The style properties currently applied to the item.
+-   The [highlight state](./series-highlighting/#stylers) of the item.
 
-{% chartExampleRunner title="Item Styler Highlight States" name="item-styler-highlight-states" type="generated" /%}
+It should return an object containing the styles to be applied to the item.
 
-```js
-series: [
-    {
-        type: 'bar',
-        xKey: 'category',
-        yKey: 'value',
-        itemStyler: (params) => {
-            // The new highlightState parameter provides more granular control
-            switch (params.highlightState) {
-                case 'highlighted-item':
-                    // This specific bar is highlighted
-                    return {
-                        fill: '#ff6b6b',
-                        fillOpacity: 1,
-                        stroke: '#c92a2a',
-                        strokeWidth: 2,
-                    };
-                case 'unhighlighted-item':
-                    // Another bar is highlighted, this one is not
-                    return {
-                        fillOpacity: 0.3,
-                        strokeOpacity: 0.3,
-                    };
-                case 'highlighted-series':
-                    // The series is highlighted (e.g., via legend hover)
-                    return {
-                        fillOpacity: 0.8,
-                        strokeWidth: 2,
-                    };
-                case 'unhighlighted-series':
-                    // Another series is highlighted
-                    return {
-                        fillOpacity: 0.2,
-                        strokeOpacity: 0.2,
-                    };
-                case 'none':
-                default:
-                    // No highlighting active
-                    return undefined;
-            }
-        },
-    },
-];
-```
+The exact details differ between the different series types and components which implement the `itemStyler` function.
 
-The `highlightState` parameter can have the following values:
-
--   `'highlighted-item'`: The specific item is highlighted
--   `'unhighlighted-item'`: Another item is highlighted, but not this one
--   `'highlighted-series'`: The series containing this item is highlighted
--   `'unhighlighted-series'`: Another series is highlighted, but not this one
--   `'none'`: No highlighting is currently active
-
-This parameter works alongside the existing `highlighted` boolean for backward compatibility, providing more detailed information about the highlight context. -->
+Please use the [Options Reference](/options) to learn more about Item Stylers, the inputs they receive and the attributes that can be customised.
 
 ## Series Stylers
 
-An `styler` is a callback function that is called once for each series.
-These can be found in the `series` object, and are used to change the appearance of the entire series based on a condition.
-
-The Series Styler is most often used within a [Theme](./themes/).
-
-Each `styler` receives a `params` object containing information about the series, as well as the top level styles applied to it.
-It should return an object containing the styles to be applied to the series.
-
-Any styling of nested property objects must be done with an `itemStyler`.
+A `styler` is a callback function that is called once for each series and returns style properties.
+These are most often used within [Theme Overrides](./themes/#overrides).
 
 {% chartExampleRunner title="Series Styler" name="series-styler" type="generated" /%}
+
+In this example:
+
+-   Any series containing 'benchmark' in its key is coloured gray, and the other series are blue.
+-   The legend items also reflect this styling.
 
 ```js
 theme: {
     overrides: {
-        bar: {
-            series: {
-                styler: (params) => {
-                    return { fill: getColor(params) };
+            bar: {
+                series: {
+                    styler: (params) => {
+                        if (params.yKey.includes('benchmark')) {
+                            return { fill: 'lightgray' };
+                        }
+                        else return {fill: '#5090DC'}
+                    },
                 },
             },
-        },
-        line: {
-            series: {
-                styler: (params) => {
-                    const color = getColor(params);
-                    return { stroke: color, marker: { fill: color } };
+            line: {
+                series: {
+                    styler: (params) => {
+                          if (params.yKey.includes('benchmark')) {
+                            return { stroke: 'lightgray' };
+                        }
+                        else return {stroke: '#5090DC'}
+                    },
                 },
             },
-        },
     },
 },
 ```
 
-```ts
-function getColor(params: { yKey: string }): string | undefined {
-    if (params.yKey.includes('AcmeCorp')) return 'skyblue';
-    if (params.yKey.includes('BetaTech')) return 'seagreen';
-    if (params.yKey.includes('CypherSoft')) return 'lightgray';
-    return undefined;
-}
-```
+## Usage
 
-In this configuration, the styling for the Line & Bar Series is dynamically
-determined by `styler` callbacks defined in the theme.
+The series level `styler` is called before the more specific `itemStyler`, with the results of the `styler` being passed into the `itemStyler` params.
+
+Each `styler` receives a `params` object containing:
+
+-   Relevant details of the series, such as the `seriesId`, and `_Keys`.
+-   The style properties currently applied to the series.
+-   The [highlight state](./series-highlighting/#stylers) of the series.
+
+It should return an object containing the styles to be applied to the series.
+Styling of nested property objects other than `marker` must be done with an `itemStyler`.
+
+The exact details differ between the different series types. Please use the [Options Reference](/options) to learn more about
+Stylers, the inputs they receive and the attributes that can be customised.

@@ -44,12 +44,14 @@ const options: AgChartOptions<DataType> = {
             yName: 'Coal',
             marker: {
                 itemStyler: ({ datum: { coal, nuclear }, fill, size }) => {
-                    return coal > nuclear ? { fill: 'red', size: 15 } : { fill, size };
+                    return coal > nuclear ? { fill: '#f44', size: 15 } : { fill, size };
                 },
             },
             label: {
                 itemStyler: ({ datum: { coal, nuclear } }) => {
-                    return { enabled: coal > nuclear };
+                    if (coal > nuclear) {
+                        return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
+                    } else return { fontSize: 8 };
                 },
             },
         },
@@ -66,12 +68,12 @@ const options: AgChartOptions<DataType> = {
             yName: 'Imported',
             itemStyler: ({ datum, fill, highlighted }) => {
                 return {
-                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
+                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
                 };
             },
             label: {
                 itemStyler: ({ datum: { month } }) => {
-                    return { enabled: month === 'Jul' };
+                    return { color: month !== 'Jul' ? 'transparent' : undefined };
                 },
             },
         },
@@ -84,13 +86,18 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'number',
             position: 'left',
+            interval: { step: 0.2 },
             gridLine: {
                 enabled: false,
             },
+            max: 2,
             label: {
                 format: '#{.1f}%',
+                fontWeight: 600,
                 itemStyler: (params) => {
-                    return { color: lerpColor(Number.parseFloat(params.value), '#00b347', '#cc2900') };
+                    return {
+                        color: lerpColor(Number.parseFloat(params.value), '#00b347', '#cc2900'),
+                    };
                 },
             },
             title: {
@@ -98,9 +105,6 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    legend: {
-        position: 'bottom',
-    },
 };
 
 AgCharts.create(options);
