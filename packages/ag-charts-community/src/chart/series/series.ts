@@ -656,15 +656,15 @@ export abstract class Series<
         // Force re-check of layer z-index
         this.setSeriesIndex(this.declarationOrder);
 
-        if (currentHighlightState === previousHighlightState) {
+        // Check if there are any itemStylers that might need to react to highlight changes
+        const hasItemStylers = this.hasItemStylers();
+
+        if (!hasItemStylers && currentHighlightState === previousHighlightState) {
             this.hasChangesOnHighlight = false;
             return;
         }
 
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
-
-        // Check if there are any itemStylers that might need to react to highlight changes
-        const hasItemStylers = this.hasItemStylers();
 
         this.hasChangesOnHighlight =
             hasItemStylers ||
