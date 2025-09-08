@@ -26,9 +26,9 @@ const options: AgTopologyChartOptions = {
     series: [
         {
             type: 'map-shape-background',
-            fillOpacity: 0.05,
+            fillOpacity: 0.7,
             strokeWidth: 0.5,
-            strokeOpacity: 0.3,
+            strokeOpacity: 0.7,
         },
         {
             type: 'map-shape',
@@ -47,7 +47,7 @@ const options: AgTopologyChartOptions = {
                     );
                 }),
             idKey: 'name',
-            fillOpacity: 0.2,
+            fill: '#DBE8F7',
             strokeWidth: 0.5,
             strokeOpacity: 0.3,
             highlight: {
