@@ -9,26 +9,20 @@ export function toOptionsValue(code) {
 
 export function wrapOptionsUpdateCode(
     code: string,
-    before = 'const options = clone(this.options);',
-    after = 'this.options = options;',
-    localVar = 'options'
+    inputVar?: string,
+    saveOptions?: string,
+    localVar?: string,
+    deepClone?: boolean
 ): string {
-    if (!optionsDotRe.test(code) && !optionsSquareRe.test(code)) {
-        return code;
+    inputVar ??= 'options';
+    localVar ??= 'options';
+    const after = saveOptions ?? `${inputVar} = ${localVar};`;
+
+    let before = `const ${localVar} = {...${inputVar}};`;
+    if (deepClone ?? true) {
+        before = `const ${localVar} = clone(${inputVar});`;
     }
 
-    return code
-        .replace(optionsDotRe, localVar + '.')
-        .replace(optionsSquareRe, localVar + '[')
-        .replace(/(.*?)\{(.*)\}/s, `$1{\n${before}\n$2\n${after}\n}`);
-}
-
-export function wrapOptionsUpdateCodeVue3(
-    code: string,
-    before = 'const optionsCopy = clone(options.value);',
-    after = 'options.value = optionsCopy;',
-    localVar = 'optionsCopy'
-): string {
     if (!optionsDotRe.test(code) && !optionsSquareRe.test(code)) {
         return code;
     }

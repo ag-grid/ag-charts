@@ -171,3 +171,4 @@ function setData(points: number, label: string) {
     options.title!.text = `${seriesType} with ${dataLabel} datapoints`;
     chart.update(options);
 }
+/* @ag-skip-clone */

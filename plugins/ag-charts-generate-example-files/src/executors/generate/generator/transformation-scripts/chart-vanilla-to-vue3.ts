@@ -17,12 +17,13 @@ const tags: Record<ChartAPI, string> = {
     vanilla: 'ag-charts',
 };
 
-function processFunction(code: string): string {
+function processFunction(code: string, suppressOptionsClone: boolean): string {
     return wrapOptionsUpdateCode(
         convertFunctionToConstPropertyTs(code),
-        'const optionsCopy = clone(options.value);',
+        'options.value',
         'options.value = optionsCopy;',
-        'optionsCopy'
+        'optionsCopy',
+        !suppressOptionsClone
     );
 }
 
@@ -104,9 +105,11 @@ function getTemplate(tag: string, bindings: any, attributes: string[]): string {
     return convertTemplate(template);
 }
 
-function getAllMethods(bindings: any): [string[], string[], string[], string[]] {
-    const externalEventHandlers = bindings.externalEventHandlers.map((event) => processFunction(event.body));
-    const instanceMethods = bindings.instanceMethods.map(processFunction);
+function getAllMethods(bindings: any, suppressOptionsClone: boolean): [string[], string[], string[], string[]] {
+    const externalEventHandlers = bindings.externalEventHandlers.map((event) =>
+        processFunction(event.body, suppressOptionsClone)
+    );
+    const instanceMethods = bindings.instanceMethods.map((v) => processFunction(v, suppressOptionsClone));
     // bindings.instanceMethods.map(event => console.log(event));
 
     const globalMethods = bindings.globals.map((body) => {
@@ -118,12 +121,19 @@ function getAllMethods(bindings: any): [string[], string[], string[], string[]] 
     return [externalEventHandlers, instanceMethods, globalMethods, methodNames];
 }
 
-export async function vanillaToVue3(bindings: any, componentFileNames: string[]): Promise<string> {
+export async function vanillaToVue3(
+    bindings: any,
+    componentFileNames: string[],
+    suppressOptionsClone: boolean
+): Promise<string> {
     const { properties } = bindings;
     const type = components[chartApi(bindings)];
     const tag = tags[chartApi(bindings)];
     const imports = getImports(componentFileNames, bindings);
-    const [externalEventHandlers, instanceMethods, globalMethods, methodNames] = getAllMethods(bindings);
+    const [externalEventHandlers, instanceMethods, globalMethods, methodNames] = getAllMethods(
+        bindings,
+        suppressOptionsClone
+    );
     const placeholders = Object.keys(bindings.placeholders);
 
     const methods = instanceMethods.concat(externalEventHandlers);
