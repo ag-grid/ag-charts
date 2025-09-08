@@ -47,7 +47,7 @@ const options: AgTopologyChartOptions = {
                     );
                 }),
             idKey: 'name',
-            fillOpacity: 0.2,
+            fill: '#DBE8F7',
             strokeWidth: 0.5,
             strokeOpacity: 0.3,
             highlight: {
