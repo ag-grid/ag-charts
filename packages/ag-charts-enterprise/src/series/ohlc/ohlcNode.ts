@@ -24,9 +24,6 @@ export class OhlcBaseNode<D = any> extends Path<D> implements _ModuleSupport.Dis
     @SceneChangeDetection()
     crisp: boolean = false;
 
-    @SceneChangeDetection()
-    strokeAlignment: number = 0;
-
     protected override computeBBox(): _ModuleSupport.BBox | undefined {
         const { centerX, y, width, height } = this;
         return new BBox(centerX - width / 2, y, width, height);
@@ -45,7 +42,7 @@ export class OhlcBaseNode<D = any> extends Path<D> implements _ModuleSupport.Dis
     }
 
     protected alignedCoordinates() {
-        const { y, width, height, crisp, strokeAlignment } = this;
+        const { y, width, height, crisp } = this;
 
         let { centerX, yOpen, yClose } = this;
 
@@ -71,16 +68,6 @@ export class OhlcBaseNode<D = any> extends Path<D> implements _ModuleSupport.Dis
             y0 = this.align(y);
             y1 = y0 + this.align(y0, height);
         }
-
-        const centerY = (y0 + y1) / 2;
-
-        // Align to an assumed 1px stroke width
-        x0 += strokeAlignment;
-        x1 += strokeAlignment;
-        y0 -= strokeAlignment;
-        y1 += strokeAlignment;
-        yOpen += yOpen < centerY ? strokeAlignment : -strokeAlignment;
-        yClose += yClose < centerY ? strokeAlignment : -strokeAlignment;
 
         return { centerX, x0, x1, y0, y1, yOpen, yClose };
     }
