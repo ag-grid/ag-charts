@@ -86,6 +86,10 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
 function dataHtml(label: string | undefined, value: string, inline: boolean) {
     let rowHtml = '';
 
+    if (label == null && !value) {
+        return '';
+    }
+
     if (label == null) {
         rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(value)}</span>`;
     } else {
