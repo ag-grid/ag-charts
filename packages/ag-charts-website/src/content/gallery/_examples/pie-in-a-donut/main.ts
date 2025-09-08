@@ -2,13 +2,8 @@ import { AgCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-e
 
 import { getData2020, getData2022 } from './data';
 
-const numFormatter = new Intl.NumberFormat('en-US', {
-    style: 'percent',
-    maximumFractionDigits: 0,
-});
-
 const sharedSeriesOptions: AgPolarSeriesOptions = {
-    type: 'pie',
+    type: 'pie' as const,
     sectorLabelKey: 'share',
     angleKey: 'share',
     legendItemKey: 'browser',
@@ -32,6 +27,7 @@ const options: AgPolarChartOptions = {
     series: [
         {
             ...sharedSeriesOptions,
+            type: 'pie',
             data: getData2020(),
             outerRadiusRatio: 0.5,
             showInLegend: false,
