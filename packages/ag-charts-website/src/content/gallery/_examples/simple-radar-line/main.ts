@@ -63,9 +63,11 @@ const options: AgChartOptions = {
             yOffset: -20,
         },
         item: {
-            marker: {
-                size: 15,
+            line: {
                 strokeWidth: 2,
+            },
+            marker: {
+                size: 0,
             },
         },
     },
