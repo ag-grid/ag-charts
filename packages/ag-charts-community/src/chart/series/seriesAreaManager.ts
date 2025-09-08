@@ -979,10 +979,11 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (newSeries == null || lastSeries == null) {
-            this.update(ChartUpdateType.SERIES_UPDATE);
+            this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {
                 seriesToUpdate: new Set([lastSeries, newSeries].filter(Boolean)),
+                clearCallbackCache: true,
             });
         }
     }

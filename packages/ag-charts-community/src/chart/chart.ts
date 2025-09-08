@@ -571,6 +571,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private updateShortcutCount = 0;
     private readonly seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
     private readonly updateMutex = new Mutex();
+    private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
@@ -593,6 +594,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             seriesToUpdate = this.series,
             newAnimationBatch,
             apiUpdate = false,
+            clearCallbackCache = false,
         } = opts ?? {};
 
         this.apiUpdate = apiUpdate;
@@ -615,6 +617,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this._performUpdateSkipAnimations = true;
         }
 
+        if (type === ChartUpdateType.FULL || clearCallbackCache) {
+            this.clearCallbackCacheOnUpdate = true;
+        }
+
         if (this.debug.check()) {
             let stack = new Error().stack ?? '<unknown>';
             stack = stack.replace(/\([^)]*/g, '');
@@ -633,11 +639,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
-        // AG-10112 Callbacks (i.e. formatters / stylers / renderers) must always be considered "outdated" at the start
-        // of a draw call, because it is impossible for us to determine whether the return values have changed. The
-        // cache will only be used if nothing is being redrawn (e.g. moving the cursor within a bar of bar-series, which
-        // doesn't change the current highlight).
-        this.clearCallbackCache();
+        if (this.clearCallbackCacheOnUpdate) {
+            this.clearCallbackCacheOnUpdate = false;
+
+            // AG-10112 Callbacks (i.e. formatters / stylers / renderers) must always be considered "outdated" at the start
+            // of a draw call, because it is impossible for us to determine whether the return values have changed. The
+            // cache will only be used if nothing is being redrawn (e.g. moving the cursor within a bar of bar-series, which
+            // doesn't change the current highlight).
+            this.clearCallbackCache();
+        }
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this.performUpdateType = ChartUpdateType.NONE;
@@ -1346,7 +1356,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this._performUpdateSplits.start = optionsStartTime;
         }
 
-        this.update(updateType, { apiUpdate: true, forceNodeDataRefresh, newAnimationBatch: true });
+        this.update(updateType, {
+            apiUpdate: true,
+            forceNodeDataRefresh,
+            newAnimationBatch: true,
+            clearCallbackCache: true,
+        });
 
         this.firstApply = false;
     }
