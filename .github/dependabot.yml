@@ -1,0 +1,48 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/packages/ag-charts-angular"
+    schedule:
+      interval: "monthly"
+    ignore:
+      - dependency-name: "*"
+        # ignore all major updates
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/ag-charts-community"
+    schedule:
+      interval: "monthly"
+    ignore:
+      - dependency-name: "ag-charts*"
+      - dependency-name: "*"
+        # ignore all major updates
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/ag-charts-enterprise"
+    schedule:
+      interval: "monthly"
+    ignore:
+      - dependency-name: "ag-charts*"
+      - dependency-name: "*"
+        # ignore all major updates
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/ag-charts-react"
+    schedule:
+      interval: "monthly"
+    ignore:
+      - dependency-name: "*"
+        # ignore all major updates
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/ag-charts-vue3"
+    schedule:
+      interval: "monthly"
+    ignore:
+      - dependency-name: "*"
+        # ignore all major updates
+        update-types: ["version-update:semver-major"]
