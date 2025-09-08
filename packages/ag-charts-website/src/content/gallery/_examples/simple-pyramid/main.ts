@@ -24,6 +24,11 @@ const options: AgChartOptions<DataType> = {
                     return '';
                 },
             },
+            stageLabel: {
+                formatter({ datum }) {
+                    if (datum.group == 'Top 1%') return '';
+                },
+            },
         },
     ],
 };
