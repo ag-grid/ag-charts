@@ -509,20 +509,30 @@ describe('BarSeries', () => {
             });
         }
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]) {
+            it(`for BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
 
-                const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
+                const options: AgChartOptions = { ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 };
                 prepareTestOptions(options);
+
+                if (ratio > 1) {
+                    options.series = [...(options.series?.slice(0, 2) ?? [])];
+                }
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
-                });
+                const testRatio = ratio > 1 ? ratio - 1 : ratio;
+                animate(1200, testRatio);
+
+                if (ratio > 1) {
+                    options.series = [...(examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950.series ?? [])];
+                } else {
+                    options.series = [...(options.series?.slice(0, 2) ?? [])];
+                }
+
+                await chart.update(options);
 
                 await waitForChartStability(chart);
                 await compare();

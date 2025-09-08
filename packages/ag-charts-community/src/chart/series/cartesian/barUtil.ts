@@ -134,14 +134,17 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
 
         // Continue from current rendering location.
         let source: AnimatableBarDatum;
-        if (status === 'added' && rect.previousDatum == null && initPos.mode === 'fade') {
+        if (status === 'unknown' || status === 'added') {
             // Handle series add case, after initial load. This is distinct from legend toggle on.
-            source = {
-                ...resetBarSelectionsFn(rect, datum),
-                opacity: 0,
-            };
-        } else if (status === 'unknown' || status === 'added') {
-            source = initPos.calculate(datum, rect.previousDatum);
+            if (rect.previousDatum == null && initPos.mode === 'fade') {
+                source = {
+                    ...resetBarSelectionsFn(rect, datum),
+                    opacity: 0,
+                };
+            } else {
+                source = initPos.calculate(datum, rect.previousDatum);
+            }
+            status = 'added';
         } else {
             source = {
                 x: rect.x,

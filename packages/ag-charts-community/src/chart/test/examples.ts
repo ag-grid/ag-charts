@@ -3992,6 +3992,52 @@ export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     ],
 };
 
+export const BAR_STACKED_AND_GROUPED_NUMBER_CRT_950: AgCartesianChartOptions = {
+    data: [
+        {
+            quarter: "Q1'18",
+            iphone: 140,
+            mac: 100,
+            wearables: 12,
+        },
+    ],
+    series: [
+        {
+            type: 'bar',
+            direction: 'horizontal',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            yName: 'iPhone',
+            stackGroup: 'Devices',
+            label: {
+                color: 'white',
+            },
+        },
+        {
+            type: 'bar',
+            direction: 'horizontal',
+            xKey: 'quarter',
+            yKey: 'mac',
+            yName: 'Mac',
+            stackGroup: 'Devices',
+            label: {
+                color: 'white',
+            },
+        },
+        {
+            type: 'bar',
+            direction: 'horizontal',
+            xKey: 'quarter',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            label: {
+                color: 'white',
+            },
+        },
+    ],
+    legend: {},
+};
+
 export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions = {
     axes: [
         {
