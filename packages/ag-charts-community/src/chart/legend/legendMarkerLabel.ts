@@ -76,6 +76,11 @@ export class LegendMarkerLabel extends TranslatableGroup {
         this.refreshVisibilities();
     }
 
+    getTextMeasureBBox() {
+        this.layout();
+        return BBox.merge([this.symbolsGroup.getBBox(), this.label.getTextMeasureBBox()]);
+    }
+
     private refreshVisibilities() {
         const opacity = this.enabled ? 1 : 0.5;
         this.label.opacity = opacity;
