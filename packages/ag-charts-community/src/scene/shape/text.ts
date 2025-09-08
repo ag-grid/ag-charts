@@ -205,6 +205,10 @@ export class Text<D = any> extends Shape<D> {
         return measuredTextBounds;
     }
 
+    getTextMeasureBBox() {
+        return this.computeBBox();
+    }
+
     getPlainText() {
         return toPlainText(this.text);
     }
