@@ -21,12 +21,12 @@ describe('wrapOptionsUpdateCode', () => {
 
         const propertyDefinition = wrapOptionsUpdateCode(
             functionDefinition,
-            'const options = cloneDeep(this.state.options);',
+            'this.state.options',
             'this.setState({ options });'
         );
 
         const expected =
-            'foo = (bar) => { const options = cloneDeep(this.state.options); options.padding.top = 20; this.setState({ options }); }';
+            'foo = (bar) => { const options = clone(this.state.options); options.padding.top = 20; this.setState({ options }); }';
 
         expect(standardiseWhitespace(propertyDefinition)).toBe(expected);
     });

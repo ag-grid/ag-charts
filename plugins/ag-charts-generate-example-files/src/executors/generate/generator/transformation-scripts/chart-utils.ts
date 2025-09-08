@@ -14,7 +14,7 @@ export function wrapOptionsUpdateCode(
     localVar?: string,
     deepClone?: boolean
 ): string {
-    inputVar ??= 'options';
+    inputVar ??= 'this.options';
     localVar ??= 'options';
     const after = saveOptions ?? `${inputVar} = ${localVar};`;
 
