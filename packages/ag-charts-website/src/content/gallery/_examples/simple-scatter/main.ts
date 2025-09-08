@@ -104,7 +104,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     strokeOpacity: 0.7,
                     lineDash: [6, 4],
                     label: {
-                        text: 'Mean: 6\'2"',
+                        text: `Mean: 6'2"`,
                         position: 'bottom-right',
                         padding: 8,
                     },
