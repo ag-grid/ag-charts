@@ -30,6 +30,7 @@ export interface UpdateOpts {
     seriesToUpdate?: Iterable<ISeries<any, any, any>>;
     backOffMs?: number;
     apiUpdate?: boolean;
+    clearCallbackCache?: boolean;
 }
 
 interface EventMap {
