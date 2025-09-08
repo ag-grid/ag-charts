@@ -725,6 +725,9 @@ export abstract class Series<
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {
+            if (this.properties.highlight.enabled === false && this.properties.tooltip.enabled === false) {
+                return;
+            }
             const { tooltip } = this.properties;
             maxDistance = typeof tooltip.range === 'number' ? tooltip.range : Infinity;
             exactMatchOnly ||= tooltip.range === 'exact';
