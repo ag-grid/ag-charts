@@ -44,11 +44,21 @@ const options: AgPolarChartOptions = {
                 },
             },
             tooltip: {
-                renderer: (params: any) => {
-                    const value = params.datum.share * 100;
+                renderer: (params) => {
+                    const { datum } = params;
+                    const value2020 = datum.share * 100;
+                    const data2022 = getData2022().find((d) => d.browser === datum.browser);
+                    const value2022 = data2022 ? data2022.share * 100 : 0;
+                    const change = value2022 - value2020;
+                    const changeIcon = change > 0 ? '↑' : change < 0 ? '↓' : '–';
+
                     return {
-                        title: params.datum.browser,
-                        data: [{ label: 'Market Share', value: `${value.toFixed(1)}%` }],
+                        title: datum.browser,
+                        data: [
+                            { label: '2022', value: `${value2022.toFixed(1)}%` },
+                            { label: '2020', value: `${value2020.toFixed(1)}%` },
+                            { label: 'Change', value: `${changeIcon} ${Math.abs(change).toFixed(1)} pp` },
+                        ],
                     };
                 },
             },

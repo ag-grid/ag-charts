@@ -10,7 +10,7 @@ export interface DataType {
 export function getData(): DataType[] {
     return [
         {
-            station: 'Finsbury\nPark',
+            station: 'Finsbury Park',
             early: 2454,
             morningPeak: 16644,
             interPeak: 9338,
@@ -18,7 +18,7 @@ export function getData(): DataType[] {
             evening: 3547,
         },
         {
-            station: 'Seven\nSisters',
+            station: 'Seven Sisters',
             early: 3927,
             morningPeak: 7581,
             interPeak: 5421,
@@ -26,7 +26,7 @@ export function getData(): DataType[] {
             evening: 2036,
         },
         {
-            station: 'Tottenham\nHale',
+            station: 'Tottenham Hale',
             early: 6836,
             morningPeak: 12740,
             interPeak: 14964,
@@ -34,7 +34,7 @@ export function getData(): DataType[] {
             evening: 8428,
         },
         {
-            station: 'Warren\nStreet',
+            station: 'Warren Street',
             early: 9108,
             morningPeak: 1210,
             interPeak: 5902,
@@ -42,7 +42,7 @@ export function getData(): DataType[] {
             evening: 5574,
         },
         {
-            station: 'Oxford\nCircus',
+            station: 'Oxford Circus',
             early: 7170,
             morningPeak: 1796,
             interPeak: 26616,
@@ -50,7 +50,7 @@ export function getData(): DataType[] {
             evening: 3665,
         },
         {
-            station: 'Green\nPark',
+            station: 'Green Park',
             early: 6252,
             morningPeak: 1911,
             interPeak: 11971,
