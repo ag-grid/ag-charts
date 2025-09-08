@@ -125,6 +125,9 @@ const options: AgChartOptions = {
             marker: {
                 enabled: false,
             },
+            highlight: {
+                enabled: false,
+            },
             tooltip: {
                 enabled: false,
             },
@@ -136,6 +139,9 @@ const options: AgChartOptions = {
             yName: '50 Day SMA',
             strokeOpacity: 0.8,
             marker: {
+                enabled: false,
+            },
+            highlight: {
                 enabled: false,
             },
             tooltip: {
