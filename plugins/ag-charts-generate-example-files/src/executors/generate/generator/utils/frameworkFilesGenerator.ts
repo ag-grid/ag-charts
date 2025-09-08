@@ -37,6 +37,7 @@ type ConfigGenerator = ({
     styleFileNames,
     transformEntryFile,
     isDev,
+    suppressOptionsClone,
 }: {
     entryFile: string;
     indexHtml: string;
@@ -47,6 +48,7 @@ type ConfigGenerator = ({
     styleFileNames: string[];
     transformEntryFile?: TransformEntryFile;
     isDev: boolean;
+    suppressOptionsClone?: boolean;
 }) => Promise<FrameworkFiles>;
 
 // noinspection TypeScriptValidateTypes
@@ -162,13 +164,26 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles, styleFileNames, isDev, transformEntryFile }) => {
+    reactFunctional: async ({
+        bindings,
+        indexHtml,
+        otherScriptFiles,
+        styleFileNames,
+        isDev,
+        transformEntryFile,
+        suppressOptionsClone,
+    }) => {
         const internalFramework = 'reactFunctional';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let indexJsx = await vanillaToReactFunctional(deepCloneObject(bindings), [], styleFileNames);
+        let indexJsx = await vanillaToReactFunctional(
+            deepCloneObject(bindings),
+            [],
+            styleFileNames,
+            suppressOptionsClone
+        );
 
         if (transformEntryFile) {
             indexJsx = transformEntryFile({ entryFile: indexJsx });
@@ -201,13 +216,19 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         styleFileNames,
         transformEntryFile,
         isDev,
+        suppressOptionsClone,
     }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let indexTsx = await vanillaToReactFunctionalTs(deepCloneObject(typedBindings), [], styleFileNames);
+        let indexTsx = await vanillaToReactFunctionalTs(
+            deepCloneObject(typedBindings),
+            [],
+            styleFileNames,
+            suppressOptionsClone
+        );
 
         if (transformEntryFile) {
             indexTsx = transformEntryFile({ entryFile: indexTsx });
@@ -232,13 +253,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    angular: async ({ typedBindings, otherScriptFiles, isDev, transformEntryFile }) => {
+    angular: async ({ typedBindings, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
         const internalFramework: InternalFramework = 'angular';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let appComponent = await vanillaToAngular(deepCloneObject(typedBindings), []);
+        let appComponent = await vanillaToAngular(deepCloneObject(typedBindings), [], suppressOptionsClone);
 
         if (transformEntryFile) {
             appComponent = transformEntryFile({ entryFile: appComponent });
@@ -266,11 +287,11 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile }) => {
+    vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
         const internalFramework: InternalFramework = 'vue3';
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let mainJs = await vanillaToVue3(deepCloneObject(bindings), []);
+        let mainJs = await vanillaToVue3(deepCloneObject(bindings), [], suppressOptionsClone);
 
         if (transformEntryFile) {
             mainJs = transformEntryFile({ entryFile: mainJs });
