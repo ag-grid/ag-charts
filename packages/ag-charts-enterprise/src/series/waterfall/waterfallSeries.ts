@@ -819,7 +819,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.ctx.animationManager.animate({
             id: `${this.id}_connectors`,
             groupId: this.id,
-            phase: 'initial',
+            phase: 'add',
             from: startX,
             to: endX,
             ease: _ModuleSupport.Motion.easeOut,
@@ -871,7 +871,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.ctx.animationManager.animate({
             id: `${this.id}_connectors`,
             groupId: this.id,
-            phase: 'initial',
+            phase: 'add',
             from: startY,
             to: endY,
             ease: _ModuleSupport.Motion.easeOut,
