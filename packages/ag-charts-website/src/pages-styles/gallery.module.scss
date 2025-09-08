@@ -1,5 +1,15 @@
 @use 'design-system' as *;
 
+:root {
+    @media screen and (max-width: $breakpoint-docs-nav-medium) {
+        --layout-scroll-offset: 140px !important;
+    }
+
+    @media screen and (max-width: $breakpoint-gallery-small) {
+        --layout-scroll-offset: 204px !important;
+    }
+}
+
 .toolPanel {
     display: flex;
     align-items: center;
