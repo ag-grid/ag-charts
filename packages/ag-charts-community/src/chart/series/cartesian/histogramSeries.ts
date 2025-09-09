@@ -673,14 +673,14 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: HistogramAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'), 'unknown');
         fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'), 'added');
 
         const dataDiff: ProcessedOutputDiff = {
             changed: true,

@@ -719,7 +719,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: RangeBarAnimationData) {
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'), 'unknown');
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
@@ -738,7 +738,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const mode = previousContextData == null ? 'fade' : 'normal';
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), mode));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), mode), 'added');
         motion.fromToMotion(
             this.id,
             'datums',

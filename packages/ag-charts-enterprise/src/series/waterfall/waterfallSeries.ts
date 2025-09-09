@@ -775,7 +775,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     override animateEmptyUpdateReady(opts: WaterfallAnimationData) {
         const { datumSelection, labelSelection, contextData } = opts;
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'),
+            'unknown'
+        );
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
