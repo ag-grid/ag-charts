@@ -70,6 +70,8 @@ class SeriesRegistry {
     }
 
     predictAxes(seriesType: RequiredSeriesType, userSeriesOptions?: any, data?: DatumDefault[]) {
+        if (!userSeriesOptions) return;
+
         const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
         if (!seriesData?.length) return;
 

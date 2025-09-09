@@ -52,7 +52,7 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
     while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
         text = text.slice(0, -1).trimEnd();
     }
-    return text.length ? appendEllipsis(text) : '';
+    return appendEllipsis(text);
 }
 
 function textWrap(text: string, options: WrapOptions, widthOffset = 0) {

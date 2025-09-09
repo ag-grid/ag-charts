@@ -1,6 +1,6 @@
 import { isNegative } from 'ag-charts-core';
 
-import type { ApplyFn, FromToMotionPropFn } from '../../../motion/fromToMotion';
+import type { ApplyFn, FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -122,7 +122,10 @@ type RectDatum = {
     crisp: boolean;
 };
 type BarRect = Rect<RectDatum>;
-export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initPos: InitialPosition<T>) {
+export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
+    initPos: InitialPosition<T>,
+    unknownStatus: NodeUpdateState
+) {
     const isRemoved = (datum?: T) => datum == null || isNaN(datum.x) || isNaN(datum.y);
 
     const fromFn: FromToMotionPropFn<BarRect, AnimatableBarDatum, T> = (rect, datum, status) => {
@@ -134,14 +137,20 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
 
         // Continue from current rendering location.
         let source: AnimatableBarDatum;
-        if (status === 'added' && rect.previousDatum == null && initPos.mode === 'fade') {
+        if (status === 'unknown' || status === 'added') {
             // Handle series add case, after initial load. This is distinct from legend toggle on.
-            source = {
-                ...resetBarSelectionsFn(rect, datum),
-                opacity: 0,
-            };
-        } else if (status === 'unknown' || status === 'added') {
-            source = initPos.calculate(datum, rect.previousDatum);
+            if (rect.previousDatum == null && initPos.mode === 'fade') {
+                source = {
+                    ...resetBarSelectionsFn(rect, datum),
+                    opacity: 0,
+                };
+            } else {
+                source = initPos.calculate(datum, rect.previousDatum);
+            }
+
+            if (status === 'unknown') {
+                status = unknownStatus;
+            }
         } else {
             source = {
                 x: rect.x,

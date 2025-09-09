@@ -118,6 +118,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     let entryFile = await readFile(path.join(folderPath, SOURCE_ENTRY_FILE_NAME));
     let indexHtml = await readFile(path.join(folderPath, 'index.html'));
     extractOptions ||= entryFile.includes('@ag-options-extract');
+    let suppressOptionsClone = false;
 
     if (entryFile.includes('@ag-skip-fws')) {
         if (['vanilla'].includes(internalFramework)) {
@@ -133,6 +134,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     if (entryFile.includes('@ag-skip-container-check')) {
         entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-container-check\s*\n*$/g, '');
         skipContainerCheck = true;
+    }
+
+    if (entryFile.includes('@ag-skip-clone')) {
+        entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-clone\s*\n*$/g, '');
+        suppressOptionsClone = true;
     }
 
     const transformEntryFile: TransformEntryFile = ({ entryFile, chartAPI }) => {
@@ -215,6 +221,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         styleFileNames,
         transformEntryFile,
         isDev,
+        suppressOptionsClone,
     });
 
     if (internalFramework === 'vanilla' && ignoreDarkMode === true && extractOptions) {

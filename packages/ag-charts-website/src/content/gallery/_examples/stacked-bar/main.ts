@@ -94,17 +94,6 @@ const options: AgCartesianChartOptions = {
             bandHighlight: {
                 enabled: true,
             },
-            gridLine: {
-                style: [
-                    {
-                        strokeWidth: 1,
-                        lineDash: [2, 2],
-                    },
-                    {
-                        strokeWidth: 0,
-                    },
-                ],
-            },
         },
         {
             type: 'number',

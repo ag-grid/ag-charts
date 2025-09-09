@@ -25,9 +25,9 @@ const chart = AgCharts.create(options);
 
 function removeValue() {
     console.log('removing');
-    const dataLength = data.length;
+    options.data = [...(options.data ?? [])];
+    const dataLength = options.data.length;
     const removeIndex = Math.floor(dataLength * Math.random());
-    data.splice(removeIndex, 1);
-    options.data = data;
+    options.data.splice(removeIndex, 1);
     chart.update(options);
 }

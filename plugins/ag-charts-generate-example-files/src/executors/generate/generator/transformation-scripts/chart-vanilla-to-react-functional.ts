@@ -16,12 +16,13 @@ const components: Record<ChartAPI, string> = {
     vanilla: 'AgCharts',
 };
 
-export function processFunction(code: string): string {
+export function processFunction(code: string, suppressOptionsClone: boolean): string {
     return wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
-        'const nextOptions = clone(options);',
+        'options',
         'setOptions(nextOptions);',
-        'nextOptions'
+        'nextOptions',
+        !suppressOptionsClone
     );
 }
 
@@ -124,7 +125,8 @@ function getComponentMetadata(bindings: any, id: string, property: any) {
 export async function vanillaToReactFunctional(
     bindings: any,
     componentFilenames: string[],
-    styleFileNames: string[]
+    styleFileNames: string[],
+    suppressOptionsClone: boolean
 ): Promise<string> {
     const { properties } = bindings;
     const imports = getImports(componentFilenames, bindings, styleFileNames);
@@ -147,9 +149,11 @@ export async function vanillaToReactFunctional(
         }
 
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(convertFunctionToConstProperty(handler.body))
+            processFunction(convertFunctionToConstProperty(handler.body), suppressOptionsClone)
         );
-        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToConstProperty(m)));
+        const instanceMethods = bindings.instanceMethods.map((m) =>
+            processFunction(convertFunctionToConstProperty(m), suppressOptionsClone)
+        );
 
         indexFile = `
             ${imports.join(`

@@ -23,7 +23,14 @@ const tags: Record<ChartAPI, string> = {
     vanilla: 'ag-charts',
 };
 
-export function processFunction(code: string): string {
+function processFunction(code: string, suppressOptionsClone: boolean): string {
+    return wrapOptionsUpdateCode(
+        convertFunctionToProperty(code),
+        'this.options',
+        undefined,
+        undefined,
+        !suppressOptionsClone
+    );
     return wrapOptionsUpdateCode(convertFunctionToProperty(code));
 }
 
@@ -104,7 +111,11 @@ function getTemplate(bindings: any, id: string, attributes: string[]): string {
     return convertTemplate(template);
 }
 
-export async function vanillaToAngular(bindings: any, componentFileNames: string[]): Promise<string> {
+export async function vanillaToAngular(
+    bindings: any,
+    componentFileNames: string[],
+    suppressOptionsClone: boolean
+): Promise<string> {
     const { properties, declarations, optionsTypeInfo } = bindings;
     const type = components[chartApi(bindings)];
     const opsTypeInfo = optionsTypeInfo;
@@ -118,8 +129,10 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
         const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(bindings, options);
         const template = getTemplate(bindings, placeholders[0], propertyAttributes);
 
-        const instanceMethods = bindings.instanceMethods.map(processFunction);
-        const externalEventHandlers = bindings.externalEventHandlers.map((handler) => processFunction(handler.body));
+        const instanceMethods = bindings.instanceMethods.map((v) => processFunction(v, suppressOptionsClone));
+        const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
+            processFunction(handler.body, suppressOptionsClone)
+        );
 
         indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
 

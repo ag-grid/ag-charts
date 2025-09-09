@@ -88,7 +88,8 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
 
         if (tickCount === 0) {
             const firstTickIndex = bands.length > 1 ? 1 : 0;
-            return { ticks: [bands[firstTickIndex]], count: undefined, firstTickIndex };
+            const ticks = bands[firstTickIndex] ? [bands[firstTickIndex]] : [];
+            return { ticks, count: undefined, firstTickIndex };
         }
 
         let step = tickCount != null && tickCount !== 0 ? (bands.length / tickCount) | 0 : 1;
