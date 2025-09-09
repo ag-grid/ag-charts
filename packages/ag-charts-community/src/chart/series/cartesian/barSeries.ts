@@ -1093,7 +1093,11 @@ export class BarSeries extends AbstractBarSeries<
             dataDiff
         );
 
-        if (dataDiff?.changed || !areScalingEqual(contextData.groupScale, previousContextData?.groupScale)) {
+        if (
+            !dataDiff ||
+            dataDiff?.changed ||
+            !areScalingEqual(contextData.groupScale, previousContextData?.groupScale)
+        ) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
