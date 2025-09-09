@@ -653,7 +653,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumIndex: number,
         removeThisDatum: RangeAreaMarkerDatum | undefined
     ): _ModuleSupport.TooltipContent | undefined {
-        if (removeThisDatum?.itemId == null) return;
+        const itemId = removeThisDatum?.itemId ?? 'high';
 
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = properties;
@@ -687,7 +687,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId,
                 datum,
                 title: yName,
-                itemId: removeThisDatum.itemId,
+                itemId,
                 xName,
                 yName,
                 yLowKey,
