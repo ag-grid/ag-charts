@@ -12,10 +12,6 @@ If the user provides a command option of `help`:
 -   Explain if they are missing any prerequisites or tooling requirements.
 -   DO NOT proceed, exit the prompt immediately after these steps.
 
-## Repository Context Loading
-
-**IMPORTANT**: If you are not Claude Code (e.g., GitHub Copilot), you must first load repository context by reading the instructions in `${REPO_ROOT}/tools/prompts/commands/context-loader.md`, then follow those instructions before proceeding with this prompt.
-
 ## 1. IMPORTANT TOOLING REQUIREMENTS - STOP IF THERE ARE NOT MET
 
 -   GitHub CLI should be available to interrogate PRs and their details. (e.g. `PAGER='' gh pr list`).

@@ -22,10 +22,6 @@ If none of the above indicators are present:
 
 Then: **ADAPTIVE MODE** - Allow degraded operation with user confirmation.
 
-## Repository Context Loading
-
-**IMPORTANT**: If you are not Claude Code (e.g., GitHub Copilot), you must first load repository context by reading the instructions in `${REPO_ROOT}/tools/prompts/commands/context-loader.md`, then follow those instructions before proceeding with this prompt.
-
 ## Prerequisites
 
 ### Orchestrated Mode Requirements
