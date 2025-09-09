@@ -52,7 +52,7 @@ function setup_instructions() {
     local target_file=$1
 
     mkdir -p $(dirname $target_file)
-    ln -sf "$(pwd)/tools/prompts/CLAUDE.md" "$target_file"
+    ln -sf "$(pwd)/tools/prompts/AGENTS.md" "$target_file"
 }
 
 function setup_mcp() {
@@ -70,18 +70,18 @@ fi
 
 if (command -v gemini >/dev/null 2>&1) ; then
     setup_commands .gemini/commands toml
-    setup_instructions GEMINI.md
+    setup_instructions AGENTS.md
     setup_mcp .gemini/settings.json
 fi
 
 if (command -v cursor-agent >/dev/null 2>&1) ; then
-    setup_instructions .cursorrules
+    setup_instructions AGENTS.md
     setup_mcp .mcp.json
 fi
 
 # Copilot setup - not sure if there is a better way to detect?
 if [[ "${TERM_PROGRAM:-}" == "vscode" ]]; then
-    setup_instructions .github/instructions/copilot-instructions.md
+    setup_instructions AGENTS.md
     mkdir -p .github/prompts
     for prompt in pr-review.md release-options-review.md docs-review.md; do
         prompt_file="tools/prompts/commands/$prompt"
