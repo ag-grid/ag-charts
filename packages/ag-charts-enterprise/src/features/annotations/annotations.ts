@@ -788,7 +788,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
         const bounds = new BBox(0, 0, seriesRect.width, seriesRect.height).grow(padding, axisPosition);
 
-        const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
+        const lineDirection = direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
         const { axesButtons, snap } = this;
         const buttonEnabled =
