@@ -194,8 +194,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
     private isFirstWheelEvent = true;
+    private wasFirstWheelEventZoomCapped?: boolean;
     private readonly debouncedWheelReset = debounce(() => {
         this.isFirstWheelEvent = true;
+        this.wasFirstWheelEventZoomCapped = undefined;
     }, 100);
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
@@ -617,7 +619,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         isZoomCapped ||= event.deltaY < 0 && !updated;
 
-        if (!this.isFirstWheelEvent || !isZoomCapped) {
+        if (this.isFirstWheelEvent) {
+            this.wasFirstWheelEventZoomCapped = isZoomCapped;
+            if (!isZoomCapped) {
+                event.sourceEvent.preventDefault();
+            }
+        } else if (this.wasFirstWheelEventZoomCapped === false) {
             event.sourceEvent.preventDefault();
         }
 
