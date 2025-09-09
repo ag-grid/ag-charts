@@ -1060,7 +1060,10 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'),
+            'unknown'
+        );
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
@@ -1081,7 +1084,10 @@ export class BarSeries extends AbstractBarSeries<
         );
 
         const mode = previousContextData == null ? 'fade' : 'normal';
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.isVertical(), this.axes, mode),
+            'added'
+        );
 
         fromToMotion(
             this.id,

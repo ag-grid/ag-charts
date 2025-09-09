@@ -51,8 +51,8 @@ describe('BarSeries', () => {
                 ctx: { animationManager },
             } = deproxy(chart);
 
-            const remainingAnimationTime = animationManager.getRemainingTime('add');
-            expect(remainingAnimationTime).toBeGreaterThanOrEqual(2500);
+            const remainingAnimationTime = animationManager.getRemainingTime('initial');
+            expect(remainingAnimationTime).toBeGreaterThan(6000);
         });
     });
 });

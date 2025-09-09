@@ -85,13 +85,13 @@ describe('ChartSync', () => {
                     ctx: { animationManager },
                 } = deproxy(c);
 
-                return animationManager.getRemainingTime('add');
+                return animationManager.getRemainingTime('initial');
             });
 
-            expect(remainingAnimationTime[0]).toBeGreaterThanOrEqual(2500);
-            expect(remainingAnimationTime[1]).toBeGreaterThanOrEqual(2500);
-            expect(remainingAnimationTime[2]).toBeGreaterThanOrEqual(2500);
-            expect(remainingAnimationTime[3]).toBeGreaterThanOrEqual(2500);
+            expect(remainingAnimationTime[0]).toBeGreaterThan(6000);
+            expect(remainingAnimationTime[1]).toBeGreaterThan(6000);
+            expect(remainingAnimationTime[2]).toBeGreaterThan(6000);
+            expect(remainingAnimationTime[3]).toBeGreaterThan(6000);
         });
     });
 });

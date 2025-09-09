@@ -515,9 +515,11 @@ describe('BarSeries', () => {
 
                 const options: AgChartOptions = { ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 };
                 prepareTestOptions(options);
+                const optionsSeries = options.series;
+                const reducedSeries = [...(optionsSeries?.slice(0, 2) ?? [])];
 
                 if (ratio > 1) {
-                    options.series = [...(options.series?.slice(0, 2) ?? [])];
+                    options.series = reducedSeries;
                 }
 
                 chart = AgCharts.create(options);
@@ -527,9 +529,9 @@ describe('BarSeries', () => {
                 animate(1200, testRatio);
 
                 if (ratio > 1) {
-                    options.series = [...(examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950.series ?? [])];
+                    options.series = optionsSeries;
                 } else {
-                    options.series = [...(options.series?.slice(0, 2) ?? [])];
+                    options.series = reducedSeries;
                 }
 
                 await chart.update(options);
