@@ -102,7 +102,7 @@ class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
 
 class FloatingAnnotationOptionsToolbar extends FloatingToolbar<
     AnnotationOptionsButtonOptions,
-    any // TODO: AnnotationOptionsButtonWidget
+    AnnotationOptionsButtonWidget
 > {
     protected override createButtonWidget() {
         return new AnnotationOptionsButtonWidget(this.localeManager);

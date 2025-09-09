@@ -115,7 +115,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.ctx.historyManager.addMementoOriginator(this.defaults);
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
 
-        this.cleanup.register(() => this.clear());
+        this.cleanup.register(() => {
+            this.clear();
+            this.xAxis?.button?.destroy();
+            this.yAxis?.button?.destroy();
+        });
     }
 
     private setupStateMachine() {
@@ -784,7 +788,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
         const bounds = new BBox(0, 0, seriesRect.width, seriesRect.height).grow(padding, axisPosition);
 
-        const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
+        const lineDirection = direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
         const { axesButtons, snap } = this;
         const buttonEnabled =
