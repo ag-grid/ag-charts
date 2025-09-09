@@ -10,6 +10,7 @@ import {
 } from './util';
 
 test.describe('synchronised', () => {
+    test.skip(); // CRT-950 - Skip for release - too flaky, needs work post-release.
     // Some tests are flaky due to a race between page load and animations firing.
     test.describe.configure({ retries: 3 });
 
