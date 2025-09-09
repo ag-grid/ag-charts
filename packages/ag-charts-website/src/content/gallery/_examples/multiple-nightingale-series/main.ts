@@ -70,6 +70,9 @@ const options: AgPolarChartOptions = {
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
+            min: 0,
+            max: 12,
+            nice: false,
             crossLines: [
                 {
                     type: 'range',
