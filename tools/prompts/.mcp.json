@@ -1,4 +1,5 @@
 {
+    "contextFileName": "AGENTS.md",
     "mcpServers": {
         "fetch": {
             "type": "stdio",
