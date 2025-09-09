@@ -115,7 +115,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.ctx.historyManager.addMementoOriginator(this.defaults);
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
 
-        this.cleanup.register(() => this.clear());
+        this.cleanup.register(() => {
+            this.clear();
+            this.xAxis?.button?.destroy();
+            this.yAxis?.button?.destroy();
+        });
     }
 
     private setupStateMachine() {
