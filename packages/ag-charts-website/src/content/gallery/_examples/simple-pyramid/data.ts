@@ -7,7 +7,7 @@ export interface DataType {
 
 export function getData(): DataType[] {
     return [
-        { group: 'Top 1%', adults: 99_000_000, percentage: '1%', incomeBracket: 'Above $1,000,000  →' },
+        { group: 'Top 1%', adults: 99_000_000, percentage: '1%', incomeBracket: '' },
         { group: 'High Net Worth', adults: 200_000_000, percentage: '4%', incomeBracket: '$100,000 - $1,000,000 →' },
         { group: 'Upper Middle Class', adults: 800_000_000, percentage: '16%', incomeBracket: '$50,000 - $100,000  →' },
         {

@@ -24,9 +24,19 @@ const options: AgChartOptions<DataType> = {
                     return '';
                 },
             },
-            stageLabel: {
-                formatter({ datum }) {
-                    if (datum.group == 'Top 1%') return '';
+            tooltip: {
+                renderer: ({ datum }) => {
+                    return {
+                        data: [
+                            {
+                                label:
+                                    datum.incomeBracket == ''
+                                        ? 'Above $1,000,000'
+                                        : datum.incomeBracket.replace('  →', ''),
+                                value: datum.percentage,
+                            },
+                        ],
+                    };
                 },
             },
         },
