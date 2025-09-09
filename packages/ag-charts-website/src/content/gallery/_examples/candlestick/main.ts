@@ -59,6 +59,7 @@ const options: AgChartOptions = {
                 },
             },
             tooltip: {
+                range: 'nearest',
                 renderer({ datum, xKey }: any) {
                     const change = datum.close - datum.open;
                     const dayChange = ((datum.close - datum.open) / datum.open) * 100;
@@ -174,7 +175,7 @@ const options: AgChartOptions = {
         },
     ],
     tooltip: {
-        range: 'nearest',
+        range: 'exact',
         position: {
             anchorTo: 'pointer',
             placement: ['top', 'bottom'],
