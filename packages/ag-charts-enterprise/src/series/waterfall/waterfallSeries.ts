@@ -543,7 +543,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         highlightState?: _ModuleSupport.HighlightState,
         itemId: AgWaterfallSeriesItemType = 'total'
     ): Required<AgWaterfallSeriesStyle> {
-        const { id: seriesId, properties } = this;
+        const { properties } = this;
         const { datumIndex = 0, datum } = nodeDatum ?? {};
 
         const propertyItemId = itemId === 'subtotal' ? 'total' : itemId;
@@ -552,28 +552,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
         const { itemStyler } = item;
-        const { xKey, yKey } = properties;
 
         let style = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const params = this.makeItemStylerParams(itemId, datumIndex, datum, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`, 'item', propertyItemId],
-                        this.callWithContext(itemStyler, {
-                            seriesId,
-                            itemId,
-                            datum,
-                            xKey,
-                            yKey,
-                            highlighted: isHighlight,
-                            highlightState: highlightStateString,
-                            ...style,
-                        })
+                        this.callWithContext(itemStyler, params)
                     );
                 }
             );
@@ -583,6 +572,33 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        itemId: AgWaterfallSeriesItemType,
+        datumIndex: number,
+        datum: unknown,
+        isHighlight: boolean,
+        style: Required<AgWaterfallSeriesStyle>
+    ) {
+        const { id: seriesId, properties } = this;
+        const { xKey, yKey } = properties;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            itemId,
+            datum,
+            xKey,
+            yKey,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            ...style,
+            fill,
+        };
     }
 
     protected override updateDatumStyles({

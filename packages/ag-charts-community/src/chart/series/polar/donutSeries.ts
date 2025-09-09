@@ -678,8 +678,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ) {
-        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
-            this.properties;
+        const { fills, strokes, itemStyler } = this.properties;
 
         const defaultStroke = strokes[datumIndex];
         const defaultFill = fills[datumIndex];
@@ -695,43 +694,28 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             opacity,
         } = mergeDefaults(
             this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues),
-            {
-                fill: defaultFill,
-                stroke: defaultStroke,
-            },
+            { fill: defaultFill, stroke: defaultStroke },
             this.properties
         );
 
-        let format: PieDonutSeriesStyle | undefined;
+        let overrides: PieDonutSeriesStyle | undefined;
         if (itemStyler) {
-            format = this.cachedDatumCallback(
+            overrides = this.cachedDatumCallback(
                 this.getDatumId(datumIndex) + (isHighlight ? '-highlight' : '-hide'),
                 () => {
+                    const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, {
+                        fill,
+                        fillOpacity,
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                        lineDash,
+                        lineDashOffset,
+                        cornerRadius,
+                    });
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
-                        this.callWithContext(itemStyler, {
-                            datum,
-                            angleKey,
-                            radiusKey,
-                            calloutLabelKey,
-                            sectorLabelKey,
-                            legendItemKey,
-                            fill,
-                            fillOpacity,
-                            stroke,
-                            strokeWidth,
-                            strokeOpacity,
-                            lineDash,
-                            lineDashOffset,
-                            cornerRadius,
-                            highlighted: isHighlight,
-                            highlightState: this.getHighlightStateString(
-                                this.ctx.highlightManager?.getActiveHighlight(),
-                                isHighlight,
-                                datumIndex
-                            ),
-                            seriesId: this.id,
-                        }),
+                        this.callWithContext(itemStyler, params),
                         { proxyPaths: { fill: ['fills', `${datumIndex}`], stroke: ['strokes', `${datumIndex}`] } }
                     );
                 }
@@ -739,15 +723,44 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         }
 
         return {
-            fill: format?.fill ?? fill,
-            fillOpacity: format?.fillOpacity ?? fillOpacity,
-            stroke: format?.stroke ?? stroke,
-            strokeWidth: format?.strokeWidth ?? strokeWidth,
-            strokeOpacity: format?.strokeOpacity ?? strokeOpacity,
-            lineDash: format?.lineDash ?? lineDash,
-            lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
-            cornerRadius: format?.cornerRadius ?? cornerRadius,
+            fill: overrides?.fill ?? fill,
+            fillOpacity: overrides?.fillOpacity ?? fillOpacity,
+            stroke: overrides?.stroke ?? stroke,
+            strokeWidth: overrides?.strokeWidth ?? strokeWidth,
+            strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
+            lineDash: overrides?.lineDash ?? lineDash,
+            lineDashOffset: overrides?.lineDashOffset ?? lineDashOffset,
+            cornerRadius: overrides?.cornerRadius ?? cornerRadius,
             opacity,
+        };
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgPieSeriesStyle>
+    ) {
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
+
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            datum,
+            angleKey,
+            radiusKey,
+            calloutLabelKey,
+            sectorLabelKey,
+            legendItemKey,
+            ...style,
+            fill,
+            highlighted: isHighlight,
+            highlightState: this.getHighlightStateString(
+                this.ctx.highlightManager?.getActiveHighlight(),
+                isHighlight,
+                datumIndex
+            ),
+            seriesId: this.id,
         };
     }
 

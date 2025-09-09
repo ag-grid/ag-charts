@@ -395,38 +395,51 @@ export class MapLineSeries extends TopologySeries<
         { datumIndex = 0, datum, colorValue, sizeValue }: Partial<MapLineNodeDatum>,
         isHighlight: boolean
     ): Required<AgMapLineSeriesStyle> {
-        const { id: seriesId, properties, colorScale, sizeScale } = this;
+        const { properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+        const style = mergeDefaults(highlightStyle, properties.getStyle());
 
         if (!isHighlight && colorValue != null) {
-            baseStyle.stroke = this.isColorScaleValid()
+            style.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.stroke;
         }
 
         if (sizeValue != null) {
-            baseStyle.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
+            style.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
         }
 
         let overrides;
         if (itemStyler != null) {
             overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
-                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                return this.callWithContext(itemStyler, {
-                    seriesId,
-                    datum,
-                    highlighted: isHighlight,
-                    highlightState,
-                    ...baseStyle,
-                });
+                const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
+                return this.callWithContext(itemStyler, params);
             });
         }
 
-        return overrides ? mergeDefaults(baseStyle, overrides) : baseStyle;
+        return overrides ? mergeDefaults(style, overrides) : style;
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgMapLineSeriesStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+
+        return {
+            seriesId,
+            datum,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+        };
     }
 
     private updateDatumStyles({

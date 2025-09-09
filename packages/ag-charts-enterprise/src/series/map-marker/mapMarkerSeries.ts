@@ -594,7 +594,7 @@ export class MapMarkerSeries
         { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
         isHighlight: boolean
     ): Required<AgMapMarkerSeriesStyle> {
-        const { id: seriesId, properties, colorScale, sizeScale } = this;
+        const { properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
@@ -616,16 +616,8 @@ export class MapMarkerSeries
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -634,6 +626,28 @@ export class MapMarkerSeries
             }
         }
         return style;
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgMapMarkerSeriesStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     private updateMarkerNodes(opts: {

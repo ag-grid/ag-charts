@@ -1147,12 +1147,14 @@ export class AreaSeries extends CartesianSeries<
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
             xValue,
             yValue,
             ...style,
+            fill,
         } satisfies CallbackParamRules<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>;
     }
 
