@@ -847,6 +847,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return (
+            this.properties.itemStyler != null ||
+            this.properties.tile.label.itemStyler != null ||
+            this.properties.group.label.itemStyler != null
+        );
     }
 }

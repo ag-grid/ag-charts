@@ -971,6 +971,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override hasItemStylers(): boolean {
         const { positive, negative, total } = this.properties.item;
-        return positive.itemStyler != null || negative.itemStyler != null || total.itemStyler != null;
+        return (
+            positive.itemStyler != null ||
+            positive.label.itemStyler != null ||
+            negative.itemStyler != null ||
+            negative.label.itemStyler != null ||
+            total.itemStyler != null ||
+            total.label.itemStyler != null
+        );
     }
 }
