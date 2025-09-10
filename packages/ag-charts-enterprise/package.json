@@ -65,7 +65,7 @@
   ],
   "homepage": "https://www.ag-grid.com/charts/",
   "devDependencies": {
-    "@babel/types": "7.12.7",
+    "@babel/types": "7.28.4",
     "@jest/globals": "29.6.1",
     "@types/jest": "^27.4.1",
     "@types/jest-image-snapshot": "^5.1.0",
