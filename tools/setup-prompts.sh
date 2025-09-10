@@ -19,6 +19,46 @@ while getopts "u" opt; do
     esac
 done
 
+function check_symlinks_config() {
+    # Check if core.symlinks is set to true
+    local symlinks_setting=$(git config --get core.symlinks)
+    
+    if [[ "$symlinks_setting" != "true" ]]; then
+        echo "Setting git core.symlinks to true..."
+        git config core.symlinks true
+        echo "✓ Git configured to handle symlinks properly"
+    else
+        echo "✓ Git symlinks already configured correctly"
+    fi
+}
+
+function restore_tracked_symlinks() {
+    local restored=0
+    
+    # Check AGENTS.md
+    if [[ -f "AGENTS.md" && ! -L "AGENTS.md" ]]; then
+        echo "Restoring AGENTS.md as symlink..."
+        rm -f AGENTS.md
+        ln -sf "$(pwd)/tools/prompts/AGENTS.md" "AGENTS.md"
+        ((restored++))
+    fi
+    
+    # Check CLAUDE.md
+    if [[ -f "CLAUDE.md" && ! -L "CLAUDE.md" ]]; then
+        echo "Restoring CLAUDE.md as symlink..."
+        rm -f CLAUDE.md
+        ln -sf "$(pwd)/tools/prompts/AGENTS.md" "CLAUDE.md"
+        ((restored++))
+    fi
+    
+    if [[ $restored -gt 0 ]]; then
+        echo "✓ Restored $restored git-tracked symlinks"
+        echo "  You may need to commit these changes if they were previously checked in as regular files"
+    else
+        echo "✓ All git-tracked symlinks are correct"
+    fi
+}
+
 function setup_commands() {
     local target_dir=$1
     local format=${2:-md}
@@ -61,6 +101,9 @@ function setup_mcp() {
     ln -sf "$(pwd)/tools/prompts/.mcp.json" "$target_file"
 }
 
+# Check and configure git symlinks before setting up files
+check_symlinks_config
+
 if (command -v claude >/dev/null 2>&1) ; then
     setup_commands .claude/commands
     setup_agents .claude/agents
@@ -91,6 +134,9 @@ if [[ "${TERM_PROGRAM:-}" == "vscode" ]]; then
         fi
     done
 fi
+
+# Restore any git-tracked symlinks that may have been checked out as regular files
+restore_tracked_symlinks
 
 # Enable direnv if it is installed and the .claude-ag-grid directory exists
 if command -v direnv >/dev/null 2>&1 && [ -d "$HOME/.claude-ag-grid/" ]; then
