@@ -84,7 +84,7 @@ function setup_agents() {
 
     mkdir -p $target_dir
     for file in tools/prompts/agents/*.md; do
-        ln -sf "$(pwd)/$file" "$target_dir/$(basename "$file")"
+        ln -sf "../../$file" "$target_dir/$(basename "$file")"
     done
 }
 
@@ -92,13 +92,13 @@ function setup_instructions() {
     local target_file=$1
 
     mkdir -p $(dirname $target_file)
-    ln -sf "$(pwd)/tools/prompts/AGENTS.md" "$target_file"
+    ln -sf "./tools/prompts/AGENTS.md" "$target_file"
 }
 
 function setup_mcp() {
     local target_file=$1
 
-    ln -sf "$(pwd)/tools/prompts/.mcp.json" "$target_file"
+    ln -sf "./tools/prompts/.mcp.json" "$target_file"
 }
 
 # Check and configure git symlinks before setting up files
