@@ -617,6 +617,10 @@ export class DOMManager extends BaseManager {
         this.element.dataset[name] = String(value);
     }
 
+    setDataNumber(name: string, value: number) {
+        this.element.dataset[name] = String(value);
+    }
+
     private updateContainerClassName() {
         const { element, containerSize, minWidth, minHeight } = this;
         element.classList.toggle(CONTAINER_MODIFIERS.safeHorizontal, minWidth >= (containerSize?.width ?? Infinity));
