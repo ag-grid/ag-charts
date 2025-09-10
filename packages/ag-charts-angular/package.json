@@ -50,7 +50,7 @@
     "@angular/router": "^17.0.0",
     "@types/jasmine": "~4.6.5",
     "@types/node": "^18.18.10",
-    "jasmine-core": "~4.3.0",
+    "jasmine-core": "~4.6.1",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.2.0",
