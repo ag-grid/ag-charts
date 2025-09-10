@@ -35,7 +35,8 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
 };
 
 test.describe('gallery examples', () => {
-    const config = setupIntrinsicAssertions();
+    const designSystemViewportConstraints = { width: 1166, height: 586 };
+    const config = setupIntrinsicAssertions({ viewportSize: designSystemViewportConstraints });
 
     const examples = getExamples();
 
