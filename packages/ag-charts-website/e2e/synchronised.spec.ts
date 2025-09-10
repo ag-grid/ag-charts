@@ -1,6 +1,8 @@
 import { expect, test } from './fixture';
 import {
     SELECTORS,
+    expectAnimationOccurred,
+    getAnimationTime,
     gotoExample,
     setupIntrinsicAssertions,
     toExamplePageUrl,
@@ -10,7 +12,6 @@ import {
 } from './util';
 
 test.describe('synchronised', () => {
-    test.skip(); // CRT-950 - Skip for release - too flaky, needs work post-release.
     // Some tests are flaky due to a race between page load and animations firing.
     test.describe.configure({ retries: 3 });
 
@@ -21,13 +22,15 @@ test.describe('synchronised', () => {
 
         test.describe('animation', () => {
             test('should animate on initial load', async ({ page }) => {
-                await gotoExample(page, url, { skipStabilityChecks: true, skipNetworkIdle: true }); // Stability checks wait for animations to complete.
+                await gotoExample(page, url); // Let animations complete
 
                 const wrappers = page.locator(SELECTORS.wrapper);
                 await expect(wrappers).toHaveCount(3);
-                await expect(wrappers.nth(0)).toHaveAttribute('data-animating', 'true');
-                await expect(wrappers.nth(1)).toHaveAttribute('data-animating', 'true');
-                await expect(wrappers.nth(2)).toHaveAttribute('data-animating', 'true');
+
+                // Verify that animations occurred by checking cumulative animation time
+                await expectAnimationOccurred(wrappers.nth(0));
+                await expectAnimationOccurred(wrappers.nth(1));
+                await expectAnimationOccurred(wrappers.nth(2));
             });
         });
 
@@ -158,12 +161,14 @@ test.describe('synchronised', () => {
                 test.describe(`for ${framework}`, () => {
                     test.describe('animation', () => {
                         test('should animate on initial load', async ({ page }) => {
-                            await gotoExample(page, url, { skipStabilityChecks: true, skipNetworkIdle: true }); // Stability checks wait for animations to complete.
+                            await gotoExample(page, url); // Let animations complete
 
                             const wrappers = page.locator(SELECTORS.wrapper);
                             await expect(wrappers).toHaveCount(2);
-                            await expect(wrappers.nth(0)).toHaveAttribute('data-animating', 'true');
-                            await expect(wrappers.nth(1)).toHaveAttribute('data-animating', 'true');
+
+                            // Verify that animations occurred by checking cumulative animation time
+                            await expectAnimationOccurred(wrappers.nth(0));
+                            await expectAnimationOccurred(wrappers.nth(1));
                         });
 
                         test.skip('should animate on legend toggle', async ({ page }) => {
@@ -190,44 +195,39 @@ test.describe('synchronised', () => {
                                 { chart1Animated: false, chart2Animated: true },
                             ];
 
-                            const animationOptions = { timeout: 100 }; // Timeout quickly so the animation ending isn't treated as a success for `false` cases.
                             const legendItems = [...(await legendItems1.all()), ...(await legendItems2.all())];
                             for (let i = 0; i < legendItems.length; i++) {
+                                // Record animation time before toggle
+                                const animTime1Before = await getAnimationTime(wrapper1);
+                                const animTime2Before = await getAnimationTime(wrapper2);
+
                                 // Toggle the legend item to hide a series.
                                 await legendItems[i].hover();
                                 await legendItems[i].click();
 
-                                // Check the animation state of the charts.
-                                await expect(wrapper1).toHaveAttribute(
-                                    'data-animating',
-                                    String(expectations[i].chart1Animated),
-                                    animationOptions
-                                );
-                                await expect(wrapper2).toHaveAttribute(
-                                    'data-animating',
-                                    String(expectations[i].chart2Animated),
-                                    animationOptions
-                                );
-
                                 await waitForChartUpdate(wrapper1);
                                 await waitForChartUpdate(wrapper2);
+
+                                // Check if animation occurred based on expectations
+                                const animTime1After = await getAnimationTime(wrapper1);
+                                const animTime2After = await getAnimationTime(wrapper2);
+
+                                if (expectations[i].chart1Animated) {
+                                    expect(animTime1After).toBeGreaterThan(animTime1Before);
+                                } else {
+                                    expect(animTime1After).toEqual(animTime1Before);
+                                }
+
+                                if (expectations[i].chart2Animated) {
+                                    expect(animTime2After).toBeGreaterThan(animTime2Before);
+                                } else {
+                                    expect(animTime2After).toEqual(animTime2Before);
+                                }
 
                                 await expect(page).toHaveScreenshot(`${example}-legend-toggle-${i}.png`);
 
                                 // Reset the legend state.
                                 await legendItems[i].click();
-
-                                // Check the animation state of the charts.
-                                await expect(wrapper1).toHaveAttribute(
-                                    'data-animating',
-                                    String(expectations[i].chart1Animated),
-                                    animationOptions
-                                );
-                                await expect(wrapper2).toHaveAttribute(
-                                    'data-animating',
-                                    String(expectations[i].chart2Animated),
-                                    animationOptions
-                                );
 
                                 await waitForChartUpdate(wrapper1);
                                 await waitForChartUpdate(wrapper2);
@@ -484,13 +484,15 @@ test.describe('synchronised', () => {
         const { url } = toExamplePageUrl('sync-test', 'multi-series-implicit-key-sync', 'vanilla');
         test.describe('animation', () => {
             test('should animate on initial load', async ({ page }) => {
-                await gotoExample(page, url, { skipStabilityChecks: true, skipNetworkIdle: true }); // Stability checks wait for animations to complete.
+                await gotoExample(page, url); // Let animations complete
 
                 const wrappers = page.locator(SELECTORS.wrapper);
                 await expect(wrappers).toHaveCount(3);
-                await expect(wrappers.nth(0)).toHaveAttribute('data-animating', 'true');
-                await expect(wrappers.nth(1)).toHaveAttribute('data-animating', 'true');
-                await expect(wrappers.nth(2)).toHaveAttribute('data-animating', 'true');
+
+                // Verify that animations occurred by checking cumulative animation time
+                await expectAnimationOccurred(wrappers.nth(0));
+                await expectAnimationOccurred(wrappers.nth(1));
+                await expectAnimationOccurred(wrappers.nth(2));
             });
         });
 
@@ -751,13 +753,15 @@ test.describe('synchronised', () => {
         const { url } = toExamplePageUrl('sync-test', 'mixed-series-sync', 'vanilla');
         test.describe('animation', () => {
             test('should animate on initial load', async ({ page }) => {
-                await gotoExample(page, url, { skipStabilityChecks: true, skipNetworkIdle: true }); // Stability checks wait for animations to complete.
+                await gotoExample(page, url); // Let animations complete
 
                 const wrappers = page.locator(SELECTORS.wrapper);
                 await expect(wrappers).toHaveCount(3);
-                await expect(wrappers.nth(0)).toHaveAttribute('data-animating', 'true');
-                await expect(wrappers.nth(1)).toHaveAttribute('data-animating', 'true');
-                await expect(wrappers.nth(2)).toHaveAttribute('data-animating', 'true');
+
+                // Verify that animations occurred by checking cumulative animation time
+                await expectAnimationOccurred(wrappers.nth(0));
+                await expectAnimationOccurred(wrappers.nth(1));
+                await expectAnimationOccurred(wrappers.nth(2));
             });
         });
 

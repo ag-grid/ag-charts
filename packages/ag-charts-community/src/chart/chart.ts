@@ -356,6 +356,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
         ctx.domManager.setDataBoolean('animating', false);
+        // The 'data-animation-time-ms' tracks cumulative animation time for e2e tests
+        ctx.domManager.setDataNumber('animationTimeMs', 0);
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
@@ -377,9 +379,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
+                ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
             ctx.animationManager.addListener('animation-start', () => ctx.domManager.setDataBoolean('animating', true)),
-            ctx.animationManager.addListener('animation-stop', () => ctx.domManager.setDataBoolean('animating', false)),
+            ctx.animationManager.addListener('animation-stop', () => {
+                ctx.domManager.setDataBoolean('animating', false);
+                ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
+            }),
             ctx.eventsHub.on('zoom:change', () => {
                 this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';

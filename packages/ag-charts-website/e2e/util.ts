@@ -193,6 +193,16 @@ export async function waitForChartUpdate(wrapper: Locator) {
     await expect(wrapper).toHaveAttribute('data-animating', 'false', { timeout: 5_000 });
 }
 
+export async function getAnimationTime(wrapper: Locator): Promise<number> {
+    const timeAttr = await wrapper.getAttribute('data-animation-time-ms');
+    return timeAttr ? parseFloat(timeAttr) : 0;
+}
+
+export async function expectAnimationOccurred(wrapper: Locator, minTimeMs: number = 10) {
+    const animationTime = await getAnimationTime(wrapper);
+    expect(animationTime).toBeGreaterThan(minTimeMs);
+}
+
 // The in-built `page.dragAndDrop()` methods do not trigger our canvas drag events
 export async function dragCanvas(
     page: Page,
