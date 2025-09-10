@@ -101,6 +101,125 @@ function setup_mcp() {
     ln -sf "./tools/prompts/.mcp.json" "$target_file"
 }
 
+function setup_codex_mcp() {
+    local target_file=$1
+    local mcp_json_file="./tools/prompts/.mcp.json"
+    
+    # Check if jq is available
+    if ! command -v jq >/dev/null 2>&1; then
+        echo "Warning: jq not found. Cannot update MCP config."
+        echo "Install with: brew install jq"
+        return 1
+    fi
+    
+    # Check if source JSON file exists
+    if [[ ! -f "$mcp_json_file" ]]; then
+        echo "Warning: $mcp_json_file not found."
+        return 1
+    fi
+    
+    # Create target directory if it doesn't exist
+    mkdir -p $(dirname "$target_file")
+    
+    # Backup existing file if it exists
+    if [[ -f "$target_file" ]]; then
+        cp "$target_file" "${target_file}.bak"
+    fi
+    
+    # Create a temporary file for the new config
+    local temp_config=$(mktemp)
+    
+    # If existing file exists and has content, preserve non-ag-charts sections
+    if [[ -f "$target_file" ]] && [[ -s "$target_file" ]]; then
+        # Copy existing config, removing old ag-charts sections
+        local in_ag_charts_section=false
+        local skip_next_blank=false
+        while IFS= read -r line; do
+            # Check if we're entering an ag-charts MCP server section
+            if [[ "$line" =~ ^\[mcp_servers\.\"ag-charts- ]] || [[ "$line" == "# AG Charts MCP Servers (auto-generated)" ]]; then
+                in_ag_charts_section=true
+                skip_next_blank=true
+                continue
+            elif [[ "$line" =~ ^\[.*\] ]] && [[ ! "$line" =~ ^\[mcp_servers\.\"ag-charts- ]]; then
+                # We're entering a different section
+                in_ag_charts_section=false
+                skip_next_blank=false
+            fi
+            
+            # Skip ag-charts MCP server sections and their content
+            if [[ "$in_ag_charts_section" == true ]]; then
+                continue
+            fi
+            
+            # Skip blank lines immediately after removed sections
+            if [[ "$skip_next_blank" == true ]] && [[ -z "$line" ]]; then
+                skip_next_blank=false
+                continue
+            fi
+            
+            echo "$line"
+        done < "$target_file" > "$temp_config"
+    fi
+    
+    # Add the new ag-charts MCP server configurations
+    {
+        echo ""
+        echo "# AG Charts MCP Servers (auto-generated)"
+        
+        # Process each MCP server from JSON
+        jq -r '.mcpServers | to_entries[] | @base64' "$mcp_json_file" | while read -r entry; do
+            # Decode the base64-encoded entry
+            local server_name=$(echo "$entry" | base64 -d | jq -r '.key')
+            local server_config=$(echo "$entry" | base64 -d | jq -r '.value')
+            
+            # Write TOML section for this server with ag-charts prefix
+            echo ""
+            echo "[mcp_servers.\"ag-charts-$server_name\"]"
+            
+            # Extract and write command
+            local command=$(echo "$server_config" | jq -r '.command')
+            echo "command = \"$command\""
+            
+            # Add working directory to run in the ag-charts project
+            echo "cwd = \"$(pwd)\""
+            
+            # Extract and write args array
+            local args=$(echo "$server_config" | jq -c '.args')
+            if [[ "$args" != "null" && "$args" != "[]" ]]; then
+                # Convert JSON array to TOML array format
+                local toml_args=$(echo "$args" | jq -r '. | map("\"" + . + "\"") | join(", ")')
+                echo "args = [$toml_args]"
+            else
+                echo "args = []"
+            fi
+            
+            # Extract and write env object if it exists and is not empty
+            local env=$(echo "$server_config" | jq -c '.env // {}')
+            if [[ "$env" != "{}" && "$env" != "null" ]]; then
+                # Convert JSON object to TOML inline table format
+                local toml_env=$(echo "$env" | jq -r 'to_entries | map("\(.key) = \"\(.value)\"") | join(", ")')
+                echo "env = { $toml_env }"
+            fi
+            
+            # Extract type if present (for stdio type)
+            local type=$(echo "$server_config" | jq -r '.type // empty')
+            if [[ -n "$type" ]]; then
+                echo "type = \"$type\""
+            fi
+        done
+    } >> "$temp_config"
+    
+    # Move the temp file to the target location
+    mv "$temp_config" "$target_file"
+    
+    if [[ -f "${target_file}.bak" ]]; then
+        echo "✓ Updated Codex MCP configuration at $target_file"
+        echo "  (Backup saved as ${target_file}.bak)"
+    else
+        echo "✓ Created Codex MCP configuration at $target_file"
+    fi
+}
+
 # Check and configure git symlinks before setting up files
 check_symlinks_config
 
@@ -120,6 +239,11 @@ fi
 if (command -v cursor-agent >/dev/null 2>&1) ; then
     setup_instructions AGENTS.md
     setup_mcp .mcp.json
+fi
+
+if (command -v codex >/dev/null 2>&1) ; then
+    setup_instructions AGENTS.md
+    setup_codex_mcp ~/.codex/config.toml
 fi
 
 # Copilot setup - not sure if there is a better way to detect?
