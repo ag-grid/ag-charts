@@ -1,1 +1,1 @@
-/Users/bls/git/ag-charts/tools/prompts/AGENTS.md
+./tools/prompts/AGENTS.md
