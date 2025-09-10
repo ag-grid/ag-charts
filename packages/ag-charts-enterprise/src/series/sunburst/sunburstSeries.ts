@@ -1,6 +1,6 @@
 import { type AgSunburstSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
-import type { AgSunburstSeriesOptions, FontStyle, FontWeight } from 'ag-charts-types';
+import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -151,7 +151,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         nodeDatum: Pick<SunburstNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
         isHighlight: boolean
     ) {
-        const { id: seriesId, properties, colorScale } = this;
+        const { properties, colorScale } = this;
 
         const { itemStyler } = properties;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
@@ -166,23 +166,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         let style = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(
-                        activeHighlight,
-                        isHighlight,
-                        nodeDatum.datumIndex
-                    );
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum: nodeDatum.datum,
-                        depth: nodeDatum.depth ?? 0,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -192,6 +180,28 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        nodeDatum: Pick<SunburstNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        isHighlight: boolean,
+        style: Required<AgSunburstSeriesStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum: nodeDatum.datum,
+            depth: nodeDatum.depth ?? 0,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     updateNodes() {

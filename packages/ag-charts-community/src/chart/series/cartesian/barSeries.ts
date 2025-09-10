@@ -793,6 +793,7 @@ export class BarSeries extends AbstractBarSeries<
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             seriesId,
@@ -804,6 +805,7 @@ export class BarSeries extends AbstractBarSeries<
             highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
+            fill,
         } satisfies CallbackParamRules<AgBarSeriesItemStylerParams<unknown, unknown>>;
     }
 

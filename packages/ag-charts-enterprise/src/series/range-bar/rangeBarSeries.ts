@@ -528,32 +528,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgRangeBarSeriesStyle> {
-        const { id: seriesId, properties, dataModel, processedData } = this;
-
-        const { xKey, yHighKey, yLowKey, itemStyler } = properties;
+        const { properties, dataModel, processedData } = this;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = baseStyle;
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
-            const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId({ xValue }), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        xKey,
-                        yHighKey,
-                        yLowKey,
-                        highlighted: isHighlight,
-                        highlightState: highlightStateString,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(datumIndex, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -563,6 +551,28 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(datumIndex: number, isHighlight: boolean, style: Required<AgRangeBarSeriesStyle>) {
+        const { id: seriesId, properties, processedData } = this;
+        const { xKey, yHighKey, yLowKey } = properties;
+
+        const datum = processedData!.dataSources.get(seriesId)?.[datumIndex];
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            xKey,
+            yHighKey,
+            yLowKey,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            ...style,
+            fill,
+        };
     }
 
     protected override updateDatumStyles({

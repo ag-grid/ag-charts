@@ -12,6 +12,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
+    AgColorType,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
@@ -35,11 +36,12 @@ import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
+import { isGradientFill, isPatternFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { jsonDiff } from '../../util/json';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { mergeDefaults } from '../../util/object';
+import { mergeDefaults, without } from '../../util/object';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
@@ -702,6 +704,14 @@ export abstract class Series<
     }
 
     protected abstract hasItemStylers(): boolean;
+    protected filterItemStylerFillParams(fill: AgColorType | undefined) {
+        if (isGradientFill(fill)) {
+            return without(fill, ['bounds', 'colorSpace', 'gradient', 'reverse']);
+        } else if (isPatternFill(fill)) {
+            return without(fill, ['padding']);
+        }
+        return fill;
+    }
 
     protected getModuleTooltipParams() {
         return this.moduleMap
@@ -1073,10 +1083,12 @@ export abstract class Series<
         if (itemStyler && params) {
             const highlight = this.ctx.highlightManager?.getActiveHighlight();
             const highlightStateString = this.getHighlightStateString(highlight, isHighlight, datumIndex);
+            const fill = this.filterItemStylerFillParams(markerStyle.fill);
 
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
+                fill,
                 ...params,
                 highlighted: isHighlight,
                 highlightState: highlightStateString,

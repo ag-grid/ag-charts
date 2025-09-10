@@ -386,8 +386,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgRadialSeriesStyle> {
-        const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey, itemStyler } = properties;
+        const { properties } = this;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
@@ -397,21 +397,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightStateString = this.getHighlightStateString(
-                        activeHighlight,
-                        isHighlight,
-                        nodeDatum.datumIndex
-                    );
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum: nodeDatum.datum,
-                        highlighted: isHighlight,
-                        highlightState: highlightStateString,
-                        angleKey,
-                        radiusKey,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -421,6 +408,30 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        nodeDatum: RadialBarNodeDatum,
+        isHighlight: boolean,
+        style: Required<AgRadialSeriesStyle> & { opacity: number }
+    ) {
+        const { id: seriesId, properties } = this;
+        const { angleKey, radiusKey } = properties;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum: nodeDatum.datum,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            angleKey,
+            radiusKey,
+            ...style,
+            fill,
+        };
     }
 
     protected updateSectorSelection(

@@ -476,28 +476,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         { datumIndex, datum }: Partial<PyramidNodeDatum>,
         isHighlight: boolean
     ): Required<AgPyramidSeriesStyle> {
-        const { id: seriesId, properties } = this;
-        const { stageKey, valueKey, itemStyler } = properties;
+        const { properties } = this;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
         let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        stageKey,
-                        valueKey,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -507,6 +498,31 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgPyramidSeriesStyle>
+    ) {
+        const { id: seriesId, properties } = this;
+        const { stageKey, valueKey } = properties;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            stageKey,
+            valueKey,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     private updateDatumStyles({

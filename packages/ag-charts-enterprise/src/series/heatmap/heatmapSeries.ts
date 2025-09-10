@@ -365,11 +365,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected getItemStyle({ datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>, isHighlight: boolean) {
-        const { id: seriesId, properties } = this;
-        const { xKey, yKey, itemStyler, stroke, strokeWidth, strokeOpacity } = properties;
+        const { properties } = this;
+        const { itemStyler, stroke, strokeWidth, strokeOpacity } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, {
+        const style = mergeDefaults(highlightStyle, {
             fill: this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : 'transparent',
             fillOpacity: 1,
             stroke,
@@ -381,22 +381,37 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         let overrides;
         if (itemStyler != null && datumIndex != null) {
             overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
-                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-
-                return this.callWithContext(itemStyler, {
-                    seriesId,
-                    datum,
-                    xKey,
-                    yKey,
-                    highlighted: isHighlight,
-                    highlightState,
-                    ...baseStyle,
-                });
+                const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
+                return this.callWithContext(itemStyler, params);
             });
         }
 
-        return overrides ? mergeDefaults(overrides, baseStyle) : baseStyle;
+        return overrides ? mergeDefaults(overrides, style) : style;
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgHeatmapSeriesStyle>
+    ) {
+        const { id: seriesId, properties } = this;
+        const { xKey, yKey } = properties;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            xKey,
+            yKey,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     protected override updateDatumStyles({
