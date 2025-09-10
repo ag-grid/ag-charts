@@ -39,6 +39,7 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+    AG_E2E_SHARD_COUNT: 16
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -109,7 +110,7 @@ jobs:
                     e2e_count=0
                   fi
 
-                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 8 ${e2e_count})
+                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max ${{ env.AG_E2E_SHARD_COUNT }} ${e2e_count})
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix}"
