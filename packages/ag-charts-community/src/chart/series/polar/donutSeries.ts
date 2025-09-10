@@ -227,6 +227,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
     }
 
+    override get hasData(): boolean {
+        return this.getHasData('angleValue');
+    }
+
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
