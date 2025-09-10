@@ -867,7 +867,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!seriesRect || !context) return;
 
-        annotationManager.updateData(annotationData.toJson().filter((datum) => !isEphemeralType(datum)) as any);
+        annotationManager.updateData(annotationData.toJson() as AgAnnotation[]);
 
         const showAnnotations = this.showAnnotations();
         this.toolbar.refreshButtonsEnabled(showAnnotations);
@@ -1170,10 +1170,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private deleteEphemeralAnnotations() {
+        let deletedEphemeral = false;
         for (const [index, datum] of this.annotationData.entries()) {
             if (isEphemeralType(datum)) {
                 this.annotationData.splice(index, 1);
+                deletedEphemeral = true;
             }
+        }
+        if (deletedEphemeral) {
+            this.recordActionAfterNextUpdate('Delete ephemeral annotations');
         }
     }
 
