@@ -668,7 +668,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.paddedRect = event.series.paddedRect;
 
         if (this.enableAxisDragging) {
-            this.toggleAxisDraggingCursors();
+            this.toggleAxisDraggingCursorsDebounced();
         }
     }
 
@@ -863,6 +863,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
+    private readonly toggleAxisDraggingCursorsDebounced = debounce(this.toggleAxisDraggingCursors.bind(this), 300, {
+        leading: true,
+        trailing: true,
+    });
     private toggleAxisDraggingCursors() {
         const { anchorPointX, anchorPointY, domProxy } = this;
 

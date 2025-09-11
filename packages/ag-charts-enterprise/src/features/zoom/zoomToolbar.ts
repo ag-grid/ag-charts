@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { CleanupRegistry, createElement, entries } from 'ag-charts-core';
+import { CleanupRegistry, createElement, debounce, entries } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -151,7 +151,7 @@ export class ZoomToolbar extends BaseProperties {
             }
         }
         this.toolbar.updateButtons(buttons);
-        this.toggleButtons();
+        this.toggleButtonsDebounced();
 
         const height = container.getBounds().height;
         container.setBounds({ y: rect.y + rect.height - height });
@@ -194,6 +194,10 @@ export class ZoomToolbar extends BaseProperties {
             : `translateY(${container.getBounds().height + verticalSpacing}px)`;
     }
 
+    private readonly toggleButtonsDebounced = debounce(this.toggleButtons.bind(this), 300, {
+        leading: true,
+        trailing: true,
+    });
     private toggleButtons() {
         const zoom: Readonly<DefinedZoomState> = definedZoomState(this.ctx.zoomManager.getZoom());
 
