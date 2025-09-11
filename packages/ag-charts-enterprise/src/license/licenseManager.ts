@@ -1,6 +1,4 @@
 /* eslint-disable no-console */
-import { Logger } from 'ag-charts-core';
-
 import { MD5 } from './md5';
 
 // move to general utils
