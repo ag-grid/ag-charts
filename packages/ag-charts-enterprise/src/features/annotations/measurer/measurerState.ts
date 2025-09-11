@@ -3,7 +3,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
-import { isEphemeralType } from '../utils/types';
 import {
     DatePriceRangeProperties,
     DateRangeProperties,
@@ -55,7 +54,6 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
 
         const onExitEnd = () => {
             ctx.showAnnotationOptions();
-            if (isEphemeralType(this.datum)) return;
             ctx.recordAction(`Create ${this.node?.type} annotation`);
         };
 
