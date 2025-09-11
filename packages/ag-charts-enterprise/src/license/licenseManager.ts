@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { Logger } from 'ag-charts-core';
+
 import { MD5 } from './md5';
 
 // move to general utils
@@ -302,6 +304,12 @@ export class LicenseManager {
     }
 
     public static setLicenseKey(licenseKey?: string): void {
+        if (this.licenseKey && this.licenseKey !== licenseKey) {
+            Logger.warn(
+                `License Key being set multiple times with different values. This can result in an incorrect license key being used.`
+            );
+        }
+
         LicenseManager.licenseKey = licenseKey;
     }
 
