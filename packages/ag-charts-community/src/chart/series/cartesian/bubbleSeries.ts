@@ -133,6 +133,10 @@ export class BubbleSeries extends CartesianSeries<
         return super.type as 'bubble' | 'scatter';
     }
 
+    override get hasData(): boolean {
+        return this.getHasData('xValue');
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,

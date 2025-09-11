@@ -108,6 +108,10 @@ export class HistogramSeries extends CartesianSeries<
 
     calculatedBins: CalculatedBin[] = [];
 
+    override get hasData(): boolean {
+        return this.calculatedBins.length > 0;
+    }
+
     // During processData phase, used to unify different ways of the user specifying
     // the bins. Returns bins in format[[min1, max1], [min2, max2], ... ].
     private deriveBins(xDomain: [number, number]): [number, number][] {

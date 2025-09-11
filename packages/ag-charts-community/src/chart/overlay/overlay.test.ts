@@ -77,6 +77,34 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
+        test('invalid data', async () => {
+            chart = await createChart({
+                data: [{ invalid: 'invalid' }],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y1' },
+                    { type: 'line', xKey: 'x', yKey: 'y2' },
+                ],
+            });
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No data to display');
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - the key 'x' was not found in any data element for LineSeries-1.",
+  ],
+  [
+    "AG Charts - the key 'x' was not found in any data element for LineSeries-2.",
+  ],
+  [
+    "AG Charts - the key 'y1' was not found in any data element for LineSeries-1.",
+  ],
+  [
+    "AG Charts - the key 'y2' was not found in any data element for LineSeries-2.",
+  ],
+]
+`);
+        });
+
         test('no visible series', async () => {
             chart = await createChart({
                 data: [
