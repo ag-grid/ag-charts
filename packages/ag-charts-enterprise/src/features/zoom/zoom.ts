@@ -469,7 +469,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             const axisZoom = zoomManager.getAxisZoom(axisId);
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
             zoomManager.setAxisManuallyAdjusted('zoom', axisId);
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, newZoom);
+            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, newZoom, {
+                directional: true,
+            });
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
@@ -603,7 +605,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             for (const [axisId, { direction, zoom: axisZoom }] of entries(newZooms)) {
                 const constrainedZoom =
                     direction === ChartAxisDirection.X
-                        ? this.constrainZoom({ x: axisZoom, y: { min: 1, max: 1 } }).x
+                        ? this.constrainZoom({ x: axisZoom, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
                         : axisZoom;
                 updated &&= this.updateAxisZoom(
                     axisId,
@@ -614,7 +616,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
             if (newZoom == null) return;
-            updated = this.updateUnifiedZoom(newZoom);
+            updated = this.updateUnifiedZoom(newZoom, { directional: true });
         }
 
         isZoomCapped ||= event.deltaY < 0 && !updated;
@@ -748,24 +750,49 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         return constrainedZoom ?? newZoom;
     }
 
-    private isZoomValid(newZoom: DefinedZoomState) {
+    private previousZoomValid = true;
+    private isZoomValid(newZoom: DefinedZoomState, options?: { directional?: boolean }) {
         const {
             minVisibleItems,
             ctx: { zoomManager },
         } = this;
 
-        if (minVisibleItems === 0) return true;
+        if (minVisibleItems === 0) {
+            this.previousZoomValid = true;
+            return true;
+        }
 
         const zoom = this.getZoom();
 
         const zoomedInX = round(dx(newZoom)) < round(dx(zoom));
         const zoomedInY = round(dy(newZoom)) < round(dy(zoom));
-        if (!zoomedInX && !zoomedInY) return true;
 
-        return zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
+        // If zooming out, then the new zoom is always considered to be valid.
+        if (!zoomedInX && !zoomedInY) {
+            this.previousZoomValid = true;
+            return true;
+        }
+
+        // If zooming in and the previous zoom was invalid, then this zoom must also be invalid, so we can shortcut.
+        if (!this.previousZoomValid && options?.directional) {
+            return false;
+        }
+
+        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
+        this.previousZoomValid = options?.directional ? valid : true;
+
+        return valid;
     }
 
-    private isAxisZoomValid(direction: _ModuleSupport.CartesianAxisDirection, axisZoom: _ModuleSupport.ZoomState) {
+    private previousAxisZoomValid = {
+        [_ModuleSupport.ChartAxisDirection.X]: true,
+        [_ModuleSupport.ChartAxisDirection.Y]: true,
+    };
+    private isAxisZoomValid(
+        direction: _ModuleSupport.CartesianAxisDirection,
+        axisZoom: _ModuleSupport.ZoomState,
+        options?: { directional?: boolean }
+    ) {
         const {
             minVisibleItems,
             ctx: { zoomManager },
@@ -777,7 +804,21 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const deltaOld = zoom[direction].max - zoom[direction].min;
         const newZoom = { ...zoom, [direction]: axisZoom };
 
-        return deltaAxis >= deltaOld || zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
+        // If zooming out, then the new zoom is always considered to be valid.
+        if (deltaAxis >= deltaOld) {
+            this.previousAxisZoomValid[direction] = true;
+            return true;
+        }
+
+        // If zooming in and the previous zoom was invalid, then this zoom must also be invalid, so we can shortcut.
+        if (!this.previousAxisZoomValid[direction] && options?.directional) {
+            return false;
+        }
+
+        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
+        this.previousAxisZoomValid[direction] = options?.directional ? valid : true;
+
+        return valid;
     }
 
     private resetZoom() {
@@ -796,10 +837,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private updateUnifiedZoom(zoom: DefinedZoomState) {
+    private updateUnifiedZoom(zoom: DefinedZoomState, validOptions?: { directional?: boolean }) {
         zoom = this.constrainZoom(zoom);
 
-        if (!this.isZoomValid(zoom)) {
+        if (!this.isZoomValid(zoom, validOptions)) {
             // Ensure any lingering zoom interation elements (e.g. selection rect) are cleared
             this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER, { skipAnimations: true });
             return false;
@@ -823,7 +864,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private updateAxisZoom(
         axisId: string,
         direction: _ModuleSupport.CartesianAxisDirection,
-        axisZoom: _ModuleSupport.ZoomState | undefined
+        axisZoom: _ModuleSupport.ZoomState | undefined,
+        validOptions?: { directional?: boolean }
     ) {
         const {
             enableIndependentAxes,
@@ -836,10 +878,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enableIndependentAxes !== true) {
             zoom[direction] = axisZoom;
-            return this.updateUnifiedZoom(zoom);
+            return this.updateUnifiedZoom(zoom, validOptions);
         }
 
-        if (!this.isAxisZoomValid(direction, axisZoom)) return false;
+        if (!this.isAxisZoomValid(direction, axisZoom, validOptions)) return false;
 
         zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
         return true;
