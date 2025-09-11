@@ -213,7 +213,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbar.clearActiveButton();
                 toolbar.resetButtonIcons();
 
-                const selectedNode = index != null ? annotations.at(index) : null;
+                const selectedNode = index != null ? annotations.at(index) as AnnotationSceneUnion | undefined: null;
                 const previousNode = previous != null ? annotations.at(previous)  : null;
                 const selectedDatum = index != null ? this.annotationData.at(index) : null;
 
