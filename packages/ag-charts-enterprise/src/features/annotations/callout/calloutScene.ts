@@ -42,7 +42,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         context: AnnotationContext,
         snapping: boolean
     ) {
-        if (datum.locked) return;
+        if (!datum.isWriteable()) return;
 
         if (this.activeHandle === 'end') {
             this.dragHandle(datum, target, context, snapping);

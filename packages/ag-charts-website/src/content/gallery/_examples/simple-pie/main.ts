@@ -30,7 +30,6 @@ const options: AgPolarChartOptions = {
             angleKey: 'revenue',
             calloutLabel: {
                 offset: 20,
-                minAngle: 5,
             },
             sectorLabel: {
                 positionOffset: 30,
@@ -54,12 +53,6 @@ const options: AgPolarChartOptions = {
                             { label: 'Market Share', value: `${percentage}%` },
                         ],
                     };
-                },
-            },
-            highlight: {
-                enabled: true,
-                highlightedItem: {
-                    strokeWidth: 2,
                 },
             },
         },

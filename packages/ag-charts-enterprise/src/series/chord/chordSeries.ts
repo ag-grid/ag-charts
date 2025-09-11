@@ -1,6 +1,6 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 import { Logger, type RequireOptional, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
-import type { AgChordSeriesLabelFormatterParams, AgChordSeriesOptions } from 'ag-charts-types';
+import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
 
 import {
     FlowProportionDatumType,
@@ -346,9 +346,10 @@ export class ChordSeries extends FlowProportionSeries<
             size: NaN,
         } satisfies RequireOptional<AgChordSeriesLabelFormatterParams>;
 
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, { size, text, centerX, centerY, radius, angle }) => {
             params.size = size;
-            const style = getLabelStyles(this, undefined, params, this.properties.label);
+            const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
             const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
             label.visible = true;
             label.translationX = centerX + radius * Math.cos(angle);
@@ -379,34 +380,25 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected override getNodeStyle(
-        { datumIndex, datum, size = 0, label }: Partial<ChordNodeDatum>,
+        nodeDatum: Partial<ChordNodeDatum>,
         fromNodeDatumIndex: number,
         isHighlight: boolean
     ) {
-        const { id: seriesId, properties } = this;
+        const { properties } = this;
         const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const { itemStyler } = properties.node;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.node.getStyle(fills, strokes, fromNodeDatumIndex));
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (itemStyler != null && datumIndex != null) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        if (itemStyler != null && nodeDatum.datumIndex != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
+                createDatumId(nodeDatum.datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                        size,
-                        label,
-                    });
+                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
             if (overrides) {
@@ -422,6 +414,29 @@ export class ChordSeries extends FlowProportionSeries<
         style.opacity = 1;
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        { datum, datumIndex, size = 0, label }: Partial<ChordNodeDatum>,
+        isHighlight: boolean,
+        style: Required<AgChordSeriesNodeStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            size,
+            label,
+            fill,
+        };
     }
 
     protected updateNodeNodes(opts: {
@@ -627,6 +642,10 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.node.itemStyler != null || this.properties.link.itemStyler != null;
+        return (
+            this.properties.node.itemStyler != null ||
+            this.properties.link.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

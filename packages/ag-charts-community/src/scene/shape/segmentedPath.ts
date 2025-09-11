@@ -18,6 +18,8 @@ export class SegmentedPath<D = any> extends Path<D> {
     @SceneRefChangeDetection()
     segments?: Segment[];
 
+    private readonly segmentPath = new Path();
+
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): void {
         if (!this.segments || this.segments.length === 0) {
             super.drawPath(ctx);
@@ -36,9 +38,10 @@ export class SegmentedPath<D = any> extends Path<D> {
         ctx.restore();
 
         // Draw the segments
-        const segment = new Path();
-        segment.setProperties({
+        const { segmentPath } = this;
+        segmentPath.setProperties({
             opacity: this.opacity,
+            visible: this.visible,
             lineCap: this.lineCap,
             lineJoin: this.lineJoin,
             pointerEvents: this.pointerEvents,
@@ -47,17 +50,17 @@ export class SegmentedPath<D = any> extends Path<D> {
         for (const { clipRect, fill, stroke, ...styles } of this.segments) {
             ctx.save();
 
-            segment.path = this.path;
-            segment.setProperties(styles);
+            segmentPath.path = this.path;
+            segmentPath.setProperties(styles);
 
-            segment.fill = this.fill != null ? fill : 'none';
-            segment.stroke = this.stroke != null ? stroke : 'none';
+            segmentPath.fill = this.fill != null ? fill : 'none';
+            segmentPath.stroke = this.stroke != null ? stroke : 'none';
 
             const clipPath = new Path2D();
             rect(clipPath, clipRect);
             ctx.clip(clipPath);
 
-            segment.drawPath(ctx, this.path.getPath2D());
+            segmentPath.drawPath(ctx);
 
             ctx.restore();
         }

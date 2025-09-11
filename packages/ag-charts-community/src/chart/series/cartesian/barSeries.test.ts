@@ -27,6 +27,7 @@ import {
     cartesianChartAssertions,
     expectWarningsCalls,
     extractImageData,
+    hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
@@ -508,20 +509,32 @@ describe('BarSeries', () => {
             });
         }
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]) {
+            it(`for BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
 
-                const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
+                const options: AgChartOptions = { ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 };
                 prepareTestOptions(options);
+                const optionsSeries = options.series;
+                const reducedSeries = [...(optionsSeries?.slice(0, 2) ?? [])];
+
+                if (ratio > 1) {
+                    options.series = reducedSeries;
+                }
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
-                });
+                const testRatio = ratio > 1 ? ratio - 1 : ratio;
+                animate(1200, testRatio);
+
+                if (ratio > 1) {
+                    options.series = optionsSeries;
+                } else {
+                    options.series = reducedSeries;
+                }
+
+                await chart.update(options);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -897,63 +910,10 @@ describe('BarSeries', () => {
                 test('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
-                    styler.expect().nthCalledWithContext(2, c1);
-                    styler.expect().nthCalledWithContext(3, c1);
-                    styler.expect().nthCalledWithContext(4, c1);
-                    styler.expect().nthCalledWithContext(5, c1);
-                    styler.expect().nthCalledWithContext(6, c1);
-                    styler.expect().nthCalledWithContext(7, c1);
-                    styler.expect().nthCalledWithContext(8, c2);
-                    styler.expect().nthCalledWithContext(9, c2);
-                    styler.expect().nthCalledWithContext(10, c2);
-                    styler.expect().nthCalledWithContext(11, c2);
-                    styler.expect().nthCalledWithContext(12, c2);
-                    styler.expect().nthCalledWithContext(13, c2);
-                    styler.expect().toHaveBeenCalledTimes(14);
+                    styler.expect().toHaveBeenCalledTimes(2);
                 });
                 test('params', () => {
-                    const defaults = {
-                        cornerRadius: 0,
-                        fillOpacity: 1,
-                        highlighted: false,
-                        lineDash: [0],
-                        lineDashOffset: 0,
-                        stackGroup: undefined,
-                        strokeOpacity: 1,
-                        strokeWidth: 0,
-                        xKey: 'month',
-                    } as const;
-                    const params1 = {
-                        ...defaults,
-                        fill: '#f3622d',
-                        seriesId: 'BarSeries-1',
-                        stroke: '#aa4520',
-                        yKey: 'sales',
-                        context: c1,
-                    } as const;
-                    const params2 = {
-                        ...defaults,
-                        fill: '#fba71b',
-                        seriesId: 'BarSeries-2',
-                        stroke: '#b07513',
-                        yKey: 'expenses',
-                        context: { name: 'expenses context' },
-                    };
-                    const { mock } = styler;
-                    expect(mock).nthCalledWith(1, { ...params1, highlightState: 'none' });
-                    expect(mock).nthCalledWith(2, { ...params2, highlightState: 'none' });
-                    expect(mock).nthCalledWith(3, { ...params1, highlightState: 'none' });
-                    expect(mock).nthCalledWith(4, { ...params1, highlightState: 'none' });
-                    expect(mock).nthCalledWith(5, { ...params1, highlightState: 'highlighted-item' });
-                    expect(mock).nthCalledWith(6, { ...params1, highlightState: 'highlighted-series' });
-                    expect(mock).nthCalledWith(7, { ...params1, highlightState: 'unhighlighted-series' });
-                    expect(mock).nthCalledWith(8, { ...params1, highlightState: 'unhighlighted-item' });
-                    expect(mock).nthCalledWith(9, { ...params2, highlightState: 'none' });
-                    expect(mock).nthCalledWith(10, { ...params2, highlightState: 'none' });
-                    expect(mock).nthCalledWith(11, { ...params2, highlightState: 'highlighted-item' });
-                    expect(mock).nthCalledWith(12, { ...params2, highlightState: 'highlighted-series' });
-                    expect(mock).nthCalledWith(13, { ...params2, highlightState: 'unhighlighted-series' });
-                    expect(mock).nthCalledWith(14, { ...params2, highlightState: 'unhighlighted-item' });
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
         });
@@ -999,6 +959,132 @@ describe('BarSeries', () => {
             });
             test('snapshot', async () => {
                 await compare();
+            });
+        });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('stroke-strokeWidth-defaults', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                styler: () => {
+                                    // check that default `strokeWidth: 2` is resolved.
+                                    return { stroke: 'lime' };
+                                },
+                            },
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                styler: () => {
+                                    // check that theme-default `stroke` is resolved.
+                                    return { strokeWidth: 4 };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('highlights', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                highlight: { highlightedSeries: { fill: 'yellow' } },
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+
+            const miss = { x: 300, y: 150 } as const;
+            const series0datum0 = { x: 133, y: 333 } as const;
+            const series0datum2 = { x: 620, y: 333 } as const;
+            const series1datum0 = { x: 222, y: 400 } as const;
+            const legendItem0 = { x: 360, y: 570 } as const;
+            const legendItem1 = { x: 440, y: 570 } as const;
+
+            describe('single', () => {
+                async function testHover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                }
+                test('miss', async () => testHover(miss));
+                test('series[0].datum[0]', async () => testHover(series0datum0));
+                test('series[0].datum[2]', async () => testHover(series0datum2));
+                test('series[1].datum[0]', async () => testHover(series1datum0));
+                test('legendItem[0]', async () => testHover(legendItem0));
+                test('legendItem[1]', async () => testHover(legendItem1));
+            });
+            describe('sequenced', () => {
+                async function hover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                }
+                test('1', async () => {
+                    await hover(miss);
+                    await hover(series0datum0);
+                    await hover(miss);
+                    await hover(series0datum2);
+                    await hover(miss);
+                    await hover(series1datum0);
+                    await hover(miss);
+                    await hover(legendItem0);
+                    await hover(legendItem1);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
             });
         });
     });

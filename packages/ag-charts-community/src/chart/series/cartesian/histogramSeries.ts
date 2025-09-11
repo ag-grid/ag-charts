@@ -510,8 +510,9 @@ export class HistogramSeries extends CartesianSeries<
     protected updateLabelNodes(opts: { labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>> }) {
         const labelEnabled = this.isLabelEnabled();
 
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, this.properties, this.properties.label);
+            const style = getLabelStyles(this, datum, this.properties, this.properties.label, false, activeHighlight);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && labelEnabled && datum?.label) {
                 text.text = datum.label.text;
@@ -672,14 +673,14 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: HistogramAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'), 'unknown');
         fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'), 'added');
 
         const dataDiff: ProcessedOutputDiff = {
             changed: true,

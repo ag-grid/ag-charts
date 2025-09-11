@@ -68,7 +68,4 @@ vitest.config.*.timestamp*
 /.github/prompts/
 /.github/instructions/
 /.mcp.json
-CLAUDE.md
 .tmp
-GEMINI.md
-.cursorrules

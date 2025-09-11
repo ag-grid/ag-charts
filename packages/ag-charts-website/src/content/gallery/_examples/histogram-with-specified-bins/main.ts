@@ -33,9 +33,6 @@ const options: AgCartesianChartOptions<DataType> = {
     footnote: {
         text: 'Academic Performance of Students at Clifton School (2023)',
     },
-    tooltip: {
-        mode: 'shared',
-    },
     formatter: {
         y: ({ value }) => (typeof value === 'number' ? value.toFixed(1) : String(value)),
     },
@@ -87,7 +84,6 @@ const options: AgCartesianChartOptions<DataType> = {
             },
             crosshair: {
                 enabled: true,
-                strokeWidth: 1,
                 lineDash: [5, 5],
                 label: {
                     enabled: true,

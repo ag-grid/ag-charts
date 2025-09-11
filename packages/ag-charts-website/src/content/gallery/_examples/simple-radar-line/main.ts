@@ -13,7 +13,7 @@ const options: AgChartOptions = {
     },
     // Root formatter for consistent percentage display
     formatter: {
-        y: ({ value }) => `${value}%`,
+        radius: ({ value }) => `${value}%`,
     },
     series: [
         {
@@ -63,20 +63,17 @@ const options: AgChartOptions = {
             yOffset: -20,
         },
         item: {
-            paddingX: 16,
-            paddingY: 8,
-            marker: {
-                size: 15,
+            line: {
                 strokeWidth: 2,
+            },
+            marker: {
+                size: 0,
             },
         },
     },
     tooltip: {
         enabled: true,
         showArrow: false,
-    },
-    background: {
-        fill: undefined,
     },
 };
 

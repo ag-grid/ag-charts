@@ -24,13 +24,8 @@ const options: AgPolarChartOptions = {
             fillOpacity: 0.85,
             strokeWidth: 2,
             strokeOpacity: 0.2,
-            calloutLabel: {
-                enabled: true,
-                minAngle: 20,
-            },
             highlight: {
                 highlightedItem: {
-                    fillOpacity: 1,
                     strokeWidth: 3,
                     strokeOpacity: 0.5,
                 },
@@ -63,13 +58,8 @@ const options: AgPolarChartOptions = {
             fillOpacity: 0.95,
             strokeWidth: 2,
             strokeOpacity: 0.15,
-            calloutLabel: {
-                enabled: true,
-                minAngle: 0,
-            },
             highlight: {
                 highlightedItem: {
-                    fillOpacity: 1,
                     strokeWidth: 3,
                     strokeOpacity: 0.4,
                 },

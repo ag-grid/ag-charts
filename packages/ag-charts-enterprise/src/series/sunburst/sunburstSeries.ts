@@ -1,6 +1,6 @@
 import { type AgSunburstSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, Point } from 'ag-charts-core';
-import type { AgSunburstSeriesOptions, FontStyle, FontWeight } from 'ag-charts-types';
+import type { InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
+import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -19,6 +19,7 @@ const {
     applyShapeStyle,
     mergeDefaults,
     formatValue,
+    getLabelStyles,
 } = _ModuleSupport;
 
 class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
@@ -150,7 +151,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         nodeDatum: Pick<SunburstNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
         isHighlight: boolean
     ) {
-        const { id: seriesId, properties, colorScale } = this;
+        const { properties, colorScale } = this;
 
         const { itemStyler } = properties;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
@@ -165,23 +166,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         let style = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(
-                        activeHighlight,
-                        isHighlight,
-                        nodeDatum.datumIndex
-                    );
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum: nodeDatum.datum,
-                        depth: nodeDatum.depth ?? 0,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -191,6 +180,28 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        nodeDatum: Pick<SunburstNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        isHighlight: boolean,
+        style: Required<AgSunburstSeriesStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum: nodeDatum.datum,
+            depth: nodeDatum.depth ?? 0,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     updateNodes() {
@@ -495,6 +506,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 highlightedColor = highlightedLabelStyle.color;
             }
 
+            const params: RequireOptional<AgSunburstSeriesLabelFormatterParams> = {
+                childrenKey: this.properties.childrenKey,
+                colorKey: this.properties.colorKey,
+                colorName: this.properties.colorName ?? this.properties.colorKey,
+                depth: node.depth ?? NaN,
+                labelKey: this.properties.labelKey,
+                secondaryLabelKey: this.properties.secondaryLabelKey,
+                sizeKey: this.properties.sizeKey,
+                sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+            };
+            const baseLabelStyle = primary ? this.properties.label : this.properties.secondaryLabel;
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            const style = getLabelStyles(this, node, params, baseLabelStyle, highlighted, activeHighlight);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;
@@ -503,6 +527,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.fontWeight = label.fontWeight;
             text.fill = highlightedColor ?? label.color;
             text.fillOpacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
+            text.setBoxing(style);
 
             switch (labelPlacement) {
                 case LabelPlacement.CenterCircle:
@@ -672,6 +697,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

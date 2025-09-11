@@ -26,6 +26,10 @@ class InternalMarker<D = any> extends Path<D> {
         return this.distanceSquared(x, y) <= 0;
     }
 
+    get midPoint(): { x: number; y: number } {
+        return { x: this.x, y: this.y };
+    }
+
     override distanceSquared(x: number, y: number): number {
         const anchor = Marker.anchor(this.shape);
         return Math.max(
@@ -104,9 +108,5 @@ export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(Interna
         if (options?.shape != null) {
             this.shape = options.shape;
         }
-    }
-
-    get midPoint(): { x: number; y: number } {
-        return { x: this.x, y: this.y };
     }
 }

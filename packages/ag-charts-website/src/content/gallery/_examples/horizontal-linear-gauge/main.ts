@@ -14,9 +14,6 @@ const options: AgLinearGaugeOptions = {
     },
     value: 55,
     segmentation: {
-        interval: {
-            count: 4,
-        },
         spacing: 4,
     },
     scale: {
@@ -60,7 +57,12 @@ const options: AgLinearGaugeOptions = {
 
             return {
                 title: 'Performance Score',
-                content: `Current: ${currentValue}/100\nCategory: ${performance || 'Excellent'}\nTarget: ${targetValue}/100\nGap: ${gap}`,
+                data: [
+                    { label: 'Current:', value: `${currentValue}/100` },
+                    { label: 'Category:', value: `${performance || 'Excellent'}` },
+                    { label: 'Target:', value: `${targetValue}/100` },
+                    { label: 'Gap:', value: `${gap}` },
+                ],
             };
         },
     },

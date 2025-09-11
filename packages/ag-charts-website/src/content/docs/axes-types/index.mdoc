@@ -6,6 +6,11 @@ description: 'AG Charts support Category, Number, Log, Time and Ordinal Time Axi
 The horizontal (X) and vertical (Y) lines in cartesian charts are referred to as chart axes, and they serve to illustrate
 the relationships between data points on the graph. This section discusses the different axis types.
 
+In most cases, specifying an axis type is unnecessary as an appropriate axis will be inferred from the data and series type used in the chart.
+By default, the x-axis uses a [Category](#category) or [Time](#time) axis, whilst the y axis defaults to a [Number](#number) axis.
+
+Axis types can be explicitly configured as explained below. When doing so, all chart axes must be provided.
+
 ## Category
 
 A category axis is used to display distinct categories or groups of data in a chart.
@@ -13,9 +18,6 @@ A category axis is used to display distinct categories or groups of data in a ch
 The category axis shows discrete categories or groups of data, unlike the [Number](#number) or [Time](#time) axes which
 use a continuous scale. For instance, in a bar chart of sales per product, the category axis shows the products as
 different groups, and the number axis displays the corresponding sale value for each group.
-
-If no `axes` are supplied, a category axis will be used as the x-axis by default.
-However, it can also be explicitly configured as shown below:
 
 ```js
 axes: [
@@ -78,9 +80,6 @@ in a number axis will depend on their magnitude.
 
 Instead of using an [Axis Interval](./axes-intervals/) with one item per value, the number axis will determine the range of all values,
 round it up and try to segment the rounded range with evenly spaced intervals.
-
-If no `axes` are supplied, a number axis will be used as the y-axis by default. However, it can also be explicitly
-configured as shown below:
 
 ```js
 axes: [

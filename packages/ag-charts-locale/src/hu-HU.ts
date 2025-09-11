@@ -31,6 +31,8 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Többszínű',
     ariaLabelColorPickerPalette: 'Színpaletta',
     ariaLabelFinancialCharts: 'Pénzügyi diagramok',
+    ariaLabelGaugeTarget: 'Cél',
+    ariaLabelGaugeValue: 'Érték',
     ariaLabelLegend: 'Jelmagyarázat',
     ariaLabelLegendItem: '${label}, Jelmagyarázat eleme ${index}-ből [number] ${count}-ből [number]',
     ariaLabelLegendItemUnknown: 'Ismeretlen jelmagyarázati elem',

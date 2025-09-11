@@ -509,9 +509,10 @@ export abstract class BaseFunnelSeries<
             stageKey: this.properties.stageKey,
             valueKey: this.properties.valueKey,
         };
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum);
+            updateLabelNode(this, textNode, params, this.properties.label, datum, false, activeHighlight);
         });
     }
 
@@ -641,6 +642,6 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

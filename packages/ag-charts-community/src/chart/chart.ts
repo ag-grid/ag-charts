@@ -78,7 +78,7 @@ import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
-import type { ISeries } from './series/seriesTypes';
+import type { DatumIndexType, ISeries } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
@@ -356,6 +356,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
         ctx.domManager.setDataBoolean('animating', false);
+        // The 'data-animation-time-ms' tracks cumulative animation time for e2e tests
+        ctx.domManager.setDataNumber('animationTimeMs', 0);
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
@@ -377,9 +379,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
+                ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
             ctx.animationManager.addListener('animation-start', () => ctx.domManager.setDataBoolean('animating', true)),
-            ctx.animationManager.addListener('animation-stop', () => ctx.domManager.setDataBoolean('animating', false)),
+            ctx.animationManager.addListener('animation-stop', () => {
+                ctx.domManager.setDataBoolean('animating', false);
+                ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
+            }),
             ctx.eventsHub.on('zoom:change', () => {
                 this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
@@ -405,7 +411,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
-        const getTooltipContent = <DatumIndex = unknown>(
+        const getTooltipContent = <DatumIndex extends DatumIndexType>(
             series: ISeries<DatumIndex, unknown, unknown>,
             datumIndex: DatumIndex,
             removeThisDatum: unknown,
@@ -432,8 +438,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     abstract getChartType(): ChartType;
 
     public getTooltipContent(
-        series: ISeries<unknown, any, any>,
-        datumIndex: unknown,
+        series: ISeries<DatumIndexType, any, any>,
+        datumIndex: DatumIndexType,
         removeMeDatum: unknown,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] {
@@ -571,6 +577,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private updateShortcutCount = 0;
     private readonly seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
     private readonly updateMutex = new Mutex();
+    private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
@@ -593,6 +600,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             seriesToUpdate = this.series,
             newAnimationBatch,
             apiUpdate = false,
+            clearCallbackCache = false,
         } = opts ?? {};
 
         this.apiUpdate = apiUpdate;
@@ -615,6 +623,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this._performUpdateSkipAnimations = true;
         }
 
+        if (type === ChartUpdateType.FULL || clearCallbackCache) {
+            this.clearCallbackCacheOnUpdate = true;
+        }
+
         if (this.debug.check()) {
             let stack = new Error().stack ?? '<unknown>';
             stack = stack.replace(/\([^)]*/g, '');
@@ -633,11 +645,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
-        // AG-10112 Callbacks (i.e. formatters / stylers / renderers) must always be considered "outdated" at the start
-        // of a draw call, because it is impossible for us to determine whether the return values have changed. The
-        // cache will only be used if nothing is being redrawn (e.g. moving the cursor within a bar of bar-series, which
-        // doesn't change the current highlight).
-        this.clearCallbackCache();
+        if (this.clearCallbackCacheOnUpdate) {
+            this.clearCallbackCacheOnUpdate = false;
+
+            // AG-10112 Callbacks (i.e. formatters / stylers / renderers) must always be considered "outdated" at the start
+            // of a draw call, because it is impossible for us to determine whether the return values have changed. The
+            // cache will only be used if nothing is being redrawn (e.g. moving the cursor within a bar of bar-series, which
+            // doesn't change the current highlight).
+            this.clearCallbackCache();
+        }
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this.performUpdateType = ChartUpdateType.NONE;
@@ -851,7 +867,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<unknown, any, any, any>[] = [];
+    series: Series<DatumIndexType, any, any, any>[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
@@ -1134,7 +1150,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
-    protected async updateSeries(seriesToUpdate: ISeries<unknown, unknown, unknown>[]) {
+    protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
         const { seriesRect } = this;
 
         await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
@@ -1346,7 +1362,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this._performUpdateSplits.start = optionsStartTime;
         }
 
-        this.update(updateType, { apiUpdate: true, forceNodeDataRefresh, newAnimationBatch: true });
+        this.update(updateType, {
+            apiUpdate: true,
+            forceNodeDataRefresh,
+            newAnimationBatch: true,
+            clearCallbackCache: true,
+        });
 
         this.firstApply = false;
     }

@@ -9,5 +9,7 @@ export function parseColor(color: string): string | null {
         style = new OptionConstructor().style;
     }
     style.color = color;
-    return style.color || null;
+    const result = style.color || null;
+    style.color = '';
+    return result;
 }

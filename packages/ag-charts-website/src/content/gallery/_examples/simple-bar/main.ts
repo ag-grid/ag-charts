@@ -35,10 +35,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 text: 'Year',
             },
             label: {
-                rotation: 0,
-            },
-            gridLine: {
-                enabled: false,
+                autoRotate: false,
             },
             bandHighlight: {
                 enabled: true,
@@ -49,12 +46,6 @@ const options: AgCartesianChartOptions<DataType> = {
             position: 'left',
             title: {
                 text: 'Total Visitors (Millions)',
-            },
-            label: {
-                formatter: (params) => {
-                    const value = params.value as number;
-                    return `${Math.round(value / 1_000_000)}M`;
-                },
             },
             gridLine: {
                 style: [

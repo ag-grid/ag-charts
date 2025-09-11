@@ -1,27 +1,28 @@
 {
+    "contextFileName": "AGENTS.md",
     "mcpServers": {
         "fetch": {
             "type": "stdio",
             "command": "yarn",
-            "args": ["run", "mcp-fetch"],
+            "args": ["run", "--silent", "mcp-fetch"],
             "env": {}
         },
         "sequential-thinking": {
             "type": "stdio",
             "command": "yarn",
-            "args": ["run", "mcp-server-sequential-thinking"],
+            "args": ["run", "--silent", "mcp-server-sequential-thinking"],
             "env": {}
         },
         "context7": {
             "type": "stdio",
             "command": "yarn",
-            "args": ["run", "context7-mcp"],
+            "args": ["run", "--silent", "context7-mcp"],
             "env": {}
         },
         "puppeteer": {
             "type": "stdio",
             "command": "yarn",
-            "args": ["run", "mcp-server-puppeteer"],
+            "args": ["run", "--silent", "mcp-server-puppeteer"],
             "env": {}
         }
     }

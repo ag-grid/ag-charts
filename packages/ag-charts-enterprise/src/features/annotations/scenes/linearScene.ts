@@ -15,7 +15,7 @@ export abstract class LinearScene<
         end: Pick<PointProperties, 'x' | 'y'>;
         extendStart?: boolean;
         extendEnd?: boolean;
-        locked?: boolean;
+        isWriteable: () => boolean;
     },
 > extends AnnotationScene<Datum> {
     protected dragState?: {
@@ -69,7 +69,7 @@ export abstract class LinearScene<
     }
 
     public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
-        if (datum.locked) return;
+        if (!datum.isWriteable()) return;
 
         if (this.activeHandle) {
             this.dragHandle(datum, target, context, snapping);
@@ -94,7 +94,7 @@ export abstract class LinearScene<
     }
 
     public translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
-        if (datum.locked) return;
+        if (!datum.isWriteable()) return;
 
         this.translatePoints(
             datum,

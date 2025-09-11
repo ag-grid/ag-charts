@@ -13,6 +13,7 @@ import {
 } from '../../themes/util';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
+import { predictCartesianAxis } from './util';
 
 export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     type: 'series',
@@ -22,6 +23,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
 
     identifier: 'scatter',
     moduleFactory: (ctx) => new ScatterSeries(ctx),
+    predictAxis: predictCartesianAxis,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

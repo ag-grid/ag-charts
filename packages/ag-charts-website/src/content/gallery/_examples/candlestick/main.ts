@@ -18,37 +18,12 @@ const volumeFormatter = new Intl.NumberFormat('en-US', {
     compactDisplay: 'short',
 });
 
-const percentFormatter = new Intl.NumberFormat('en-US', {
-    style: 'percent',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    signDisplay: 'always',
-});
-
 const data = getData();
 const avgVolume = data.reduce((sum, d) => sum + d.volume, 0) / data.length;
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
-    theme: {
-        overrides: {
-            candlestick: {
-                series: {
-                    item: {
-                        up: {
-                            fillOpacity: 0.9,
-                            strokeWidth: 1,
-                        },
-                        down: {
-                            fillOpacity: 0.9,
-                            strokeWidth: 1,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'NASDAQ 100 Index (^NDX)',
     },
@@ -73,7 +48,18 @@ const options: AgChartOptions = {
             closeKey: 'close',
             closeName: 'Close',
             yName: 'Price ($)',
+            item: {
+                up: {
+                    fillOpacity: 0.9,
+                    strokeWidth: 1,
+                },
+                down: {
+                    fillOpacity: 0.9,
+                    strokeWidth: 1,
+                },
+            },
             tooltip: {
+                range: 'nearest',
                 renderer({ datum, xKey }: any) {
                     const change = datum.close - datum.open;
                     const dayChange = ((datum.close - datum.open) / datum.open) * 100;
@@ -136,7 +122,6 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'sma20',
             yName: '20 Day SMA',
-            strokeWidth: 2,
             strokeOpacity: 0.8,
             marker: {
                 enabled: false,
@@ -150,7 +135,6 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'sma50',
             yName: '50 Day SMA',
-            strokeWidth: 2,
             strokeOpacity: 0.8,
             marker: {
                 enabled: false,
@@ -160,9 +144,6 @@ const options: AgChartOptions = {
             },
         },
     ],
-    zoom: {
-        enabled: true,
-    },
     axes: [
         {
             type: 'ordinal-time',
@@ -187,18 +168,14 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'right',
-            keys: ['low', 'high', 'open', 'close', 'sma20', 'sma50'],
             title: {
                 text: 'Price ($)',
             },
             interval: { step: 500 },
-            gridLine: {
-                enabled: true,
-            },
         },
     ],
     tooltip: {
-        range: 'nearest',
+        range: 'exact',
         position: {
             anchorTo: 'pointer',
             placement: ['top', 'bottom'],

@@ -273,7 +273,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             const { active, datum } = this;
             if (active == null) return false;
             if (!datum) return false;
-            return hasLineText(datum) && !datum.locked;
+            return hasLineText(datum) && datum.isWriteable();
         };
         const guardActiveNotEphemeral = () => this.active != null && !isEphemeralType(this.datum);
         const guardHovered = () => this.hovered != null;
@@ -337,7 +337,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                             const { active, hovered, datum } = this;
                             if (active == null || hovered !== active) return false;
                             if (!datum) return false;
-                            return isTextType(datum) && !datum.locked;
+                            return isTextType(datum) && datum.isWriteable();
                         },
                         target: States.TextInput,
                     },

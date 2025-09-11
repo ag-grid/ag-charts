@@ -218,6 +218,14 @@ export type ScalableType<T> = MatrixTransformType<
     }
 >;
 
+/**
+ * Type guard to check if a node has scalable properties.
+ * Used to determine if scaling transformations can be applied to a scene graph node.
+ */
+export function isScalable<T extends Node>(node: T): node is ScalableType<T> {
+    return 'scalingX' in node && 'scalingY' in node && 'scalingCenterX' in node && 'scalingCenterY' in node;
+}
+
 /** Mixin type for scene Nodes that are scalable. */
 export function Scalable<N extends Node<any>>(Parent: Constructor<N>): Constructor<ScalableType<N>> {
     const ParentNode = Parent as Constructor<Node>;

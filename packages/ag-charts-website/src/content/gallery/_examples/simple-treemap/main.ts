@@ -11,15 +11,6 @@ const options: AgChartOptions = {
             labelKey: 'name',
             secondaryLabelKey: 'gdp',
             sizeKey: 'gdp',
-            tile: {
-                label: {
-                    // Remove hardcoded font size - let theme handle it
-                },
-                secondaryLabel: {
-                    // Remove hardcoded font size - let theme handle it
-                },
-                padding: 6,
-            },
             tooltip: {
                 enabled: true,
                 renderer: (params) => {

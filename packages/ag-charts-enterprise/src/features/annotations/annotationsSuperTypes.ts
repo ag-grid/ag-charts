@@ -123,7 +123,11 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     isDatum: (value: unknown) => value is Datum;
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
-    update: (node: AnnotationSceneNode<Datum>, datum: _ModuleSupport.BaseProperties, context: AnnotationContext) => void;
+    update: (
+        node: AnnotationSceneNode<Datum>,
+        datum: _ModuleSupport.BaseProperties,
+        context: AnnotationContext
+    ) => void;
     translate: (
         node: AnnotationSceneNode<unknown>,
         datum: _ModuleSupport.BaseProperties,

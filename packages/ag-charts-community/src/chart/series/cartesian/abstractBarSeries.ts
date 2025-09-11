@@ -175,11 +175,6 @@ export abstract class AbstractBarSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
-        const item = findQuadtreeMatch(this, point);
-        return item != null && item.distance <= 0 ? [item.datum] : [];
-    }
-
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return findQuadtreeMatch(this, point);
     }

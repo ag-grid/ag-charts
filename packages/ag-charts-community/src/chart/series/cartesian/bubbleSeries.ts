@@ -7,6 +7,9 @@ import {
     type AgBubbleSeriesStylerParams,
     type AgBubbleSeriesStylerResult,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgScatterSeriesItemStylerParams,
+    type AgScatterSeriesStylerParams,
+    type AgScatterSeriesStylerResult,
     type AgSeriesMarkerStyle,
     type FillOptions,
     type FormatterPropertyType,
@@ -69,7 +72,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { computeMarkerFocusBounds, getMarkerOnlyStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, getMarkerStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
@@ -124,6 +127,10 @@ export class BubbleSeries extends CartesianSeries<
 
     override get pickModeAxis() {
         return 'main-category' as const;
+    }
+
+    override get type() {
+        return super.type as 'bubble' | 'scatter';
     }
 
     constructor(moduleCtx: ModuleContext) {
@@ -296,11 +303,12 @@ export class BubbleSeries extends CartesianSeries<
         yVisibleRange: [number, number] = yAxis.visibleRange
     ): BubbleAggregationOptions {
         const { processedData, dataModel } = this;
-        const { sizeKey, marker } = this.properties;
+        const { sizeKey } = this.properties;
+        const [markerSize, markerMaxSize] = this.getSizeRange();
         const xRange = Math.abs(xAxis.range[1] - xAxis.range[0]);
         const yRange = Math.abs(yAxis.range[1] - yAxis.range[0]);
-        const minSize = Math.max(marker.size, 1);
-        const maxSize = sizeKey ? Math.max(marker.maxSize, 1) : minSize;
+        const minSize = Math.max(markerSize, 1);
+        const maxSize = sizeKey ? Math.max(markerMaxSize, 1) : minSize;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -349,10 +357,9 @@ export class BubbleSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(dataModel && processedData && visible && xAxis && yAxis)) {
-            return;
-        }
+        if (!(dataModel && processedData && xAxis && yAxis)) return;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yDataValues = dataModel.resolveColumnById(this, `yValue`, processedData);
         const sizeDataValues =
@@ -383,7 +390,7 @@ export class BubbleSeries extends CartesianSeries<
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const nodeData: BubbleScatterNodeDatum[] = [];
 
-        sizeScale.range = [marker.size, marker.maxSize];
+        sizeScale.range = this.getSizeRange();
 
         const textMeasurer = cachedTextMeasurer(label);
         const rawData = processedData.dataSources.get(this.id);
@@ -443,7 +450,7 @@ export class BubbleSeries extends CartesianSeries<
                 nodeLabel = { text: '', width: 0, height: 0 };
             }
 
-            const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : marker.size;
+            const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : sizeScale.range[0];
             const point = { x, y, size: Math.sqrt(dilation) * markerSize };
 
             nodeData.push({
@@ -470,7 +477,9 @@ export class BubbleSeries extends CartesianSeries<
         };
 
         const { dataAggregation } = this;
-        if (dataAggregation == null) {
+        if (!visible) {
+            // Don't create node data
+        } else if (dataAggregation == null) {
             for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
                 handleDatum(datumIndex, 1, 1, 0);
             }
@@ -496,15 +505,20 @@ export class BubbleSeries extends CartesianSeries<
             }
         }
 
-        type StylerParams = AgBubbleSeriesStylerParams<unknown, unknown>;
-        type ItemStylerParams = AgBubbleSeriesItemStylerParams<unknown, unknown>;
+        type StylerResult = AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined;
+        type StylerParams =
+            | AgBubbleSeriesStylerParams<unknown, unknown>
+            | AgScatterSeriesStylerParams<unknown, unknown>;
+        type ItemStylerParams =
+            | AgBubbleSeriesItemStylerParams<unknown, unknown>
+            | AgScatterSeriesItemStylerParams<unknown, unknown>;
         return {
             itemId: yKey,
             nodeData,
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
-            visible: this.visible,
-            styles: getMarkerOnlyStyles<StylerParams, ItemStylerParams>(this, marker),
+            visible: this.visible || animationEnabled,
+            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, marker),
         };
     }
 
@@ -545,17 +559,21 @@ export class BubbleSeries extends CartesianSeries<
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
         const params = { xKey, yKey, sizeKey, labelKey };
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                const stylerStyle = this.getStyle(opts.isHighlight, highlightState);
                 datum.style = this.getMarkerStyle(
                     marker,
                     datum,
                     params,
                     {
                         isHighlight,
+                        highlightState,
                         resolveItemStylerMarkerPath: false,
                     },
-                    this.getStyle(false)
+                    stylerStyle
                 );
             }
         });
@@ -568,9 +586,8 @@ export class BubbleSeries extends CartesianSeries<
         const { contextNodeData } = this;
         if (!contextNodeData) return;
         const { datumSelection, isHighlight } = opts;
-        const { marker } = this.properties;
 
-        this.sizeScale.range = [marker.size, marker.maxSize];
+        this.sizeScale.range = this.getSizeRange();
         const fillBBox = this.getShapeFillBBox();
 
         const aggregated = this.dataAggregation != null;
@@ -636,19 +653,10 @@ export class BubbleSeries extends CartesianSeries<
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const params: AgBubbleSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
-            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
-            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
-
-            const style = getLabelStyles<AgBubbleSeriesLabelFormatterParams>(
-                this,
-                datum,
-                this.properties,
-                this.properties.label,
-                highlighted,
-                highlightState
-            );
+            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
             text.text = datum.label.text;
             text.fill = style.color;
             text.x = datum.point?.x ?? 0;
@@ -666,11 +674,12 @@ export class BubbleSeries extends CartesianSeries<
     makeStylerParams(
         highlighted: boolean,
         highlightStateEnum?: HighlightState
-    ): AgBubbleSeriesStylerParams<unknown, unknown> {
+    ): AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown> {
         const {
             id: seriesId,
             properties: {
                 size,
+                maxSize,
                 shape,
                 fill,
                 fillOpacity,
@@ -687,25 +696,64 @@ export class BubbleSeries extends CartesianSeries<
         } = this;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
 
-        type ResultRules = CallbackParamRules<ReturnType<BubbleSeries['makeStylerParams']>>;
+        if (this.type === 'bubble') {
+            type ResultRules = CallbackParamRules<AgBubbleSeriesStylerParams<unknown, unknown>>;
+            return {
+                highlightState,
+                highlighted,
+                size,
+                maxSize,
+                shape,
+                fill,
+                fillOpacity,
+                lineDash,
+                lineDashOffset,
+                seriesId,
+                sizeKey,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                xKey,
+                yKey,
+                labelKey,
+            } satisfies ResultRules;
+        } else if (this.type === 'scatter') {
+            type ResultRules = CallbackParamRules<AgScatterSeriesStylerParams<unknown, unknown>>;
+            return {
+                highlightState,
+                highlighted,
+                size,
+                shape,
+                fill,
+                fillOpacity,
+                lineDash,
+                lineDashOffset,
+                seriesId,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                xKey,
+                yKey,
+                labelKey,
+            } satisfies ResultRules;
+        } else {
+            // verify that the else branch is unreachable.
+            return this.type satisfies never;
+        }
+    }
+
+    private makeLabelFormatterParams(): AgBubbleSeriesLabelFormatterParams {
+        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName } = this.properties;
         return {
-            highlightState,
-            highlighted,
-            size,
-            shape,
-            fill,
-            fillOpacity,
-            lineDash,
-            lineDashOffset,
-            seriesId,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
             xKey,
+            xName,
             yKey,
+            yName,
             sizeKey,
+            sizeName,
             labelKey,
-        } satisfies ResultRules;
+            labelName,
+        } satisfies RequireOptional<AgBubbleSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
@@ -880,7 +928,7 @@ export class BubbleSeries extends CartesianSeries<
         let stylerResult: AgBubbleSeriesStylerResult = {};
         if (properties.styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            const cbResult = this.callWithContext(properties.styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(properties.styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
                 cbResult,
@@ -896,10 +944,16 @@ export class BubbleSeries extends CartesianSeries<
             lineDashOffset: stylerResult.lineDashOffset ?? properties.lineDashOffset,
             shape: stylerResult.shape ?? properties.shape,
             size: stylerResult.size ?? properties.size,
+            maxSize: stylerResult.maxSize ?? properties.maxSize,
             stroke: stylerResult.stroke ?? properties.stroke!,
             strokeOpacity: stylerResult.strokeOpacity ?? properties.strokeOpacity,
             strokeWidth: stylerResult.strokeWidth ?? properties.strokeWidth,
         };
+    }
+
+    public getSizeRange(): [number, number] {
+        const { size, maxSize } = this.getStyle(false);
+        return [size, maxSize];
     }
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
@@ -917,8 +971,8 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        const { itemStyler, marker, label } = this.properties;
-        return !!(itemStyler ?? marker.itemStyler ?? label.itemStyler);
+        const { styler, itemStyler, marker, label } = this.properties;
+        return !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler);
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {

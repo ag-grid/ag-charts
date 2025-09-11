@@ -29,9 +29,6 @@ const options: AgCartesianChartOptions = {
                         },
                     },
                     number: {
-                        label: {
-                            formatter: ({ value }) => value.toLocaleString(),
-                        },
                         line: {
                             enabled: true,
                         },

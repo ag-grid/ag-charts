@@ -38,7 +38,6 @@ const options: AgTopologyChartOptions = {
             label: {
                 enabled: true,
                 fontSize: 9,
-                padding: 0,
             },
             tooltip: {
                 renderer: (params) => {

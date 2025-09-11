@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import type {
     AgCartesianChartOptions,
@@ -38,11 +39,11 @@ describe('SunburstSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
+    const compare = async (opts: MatchImageSnapshotOptions = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(opts);
     };
 
     describe('Series Highlighting', () => {
@@ -540,6 +541,89 @@ describe('SunburstSeries', () => {
             await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
+        });
+    });
+
+    describe('AG-8917', () => {
+        const data = [
+            {
+                name: 'Americas',
+                children: [
+                    { name: 'United States', gdp: 26.949, gdpChange: 0.06 },
+                    { name: 'Canada', gdp: 2.117, gdpChange: 0 },
+                    { name: 'Brazil', gdp: 2.126, gdpChange: 0.11 },
+                ],
+                gdpChange: 0.09,
+            },
+            {
+                name: 'Asia',
+                children: [
+                    { name: 'China', gdp: 17.7, gdpChange: 0 },
+                    { name: 'Japan', gdp: 4.23, gdpChange: 0 },
+                    { name: 'India', gdp: 4.0, gdpChange: 0.2 },
+                ],
+                gdpChange: 0.05,
+            },
+            {
+                name: 'Europe',
+                children: [
+                    {
+                        name: 'EU',
+                        children: [
+                            { name: 'Germany', gdp: 4.429, gdpChange: 0.09 },
+                            { name: 'France', gdp: 3.049, gdpChange: 0.1 },
+                            { name: 'Italy', gdp: 2.186, gdpChange: 0.09 },
+                        ],
+                        gdpChange: 0.08,
+                    },
+                    { name: 'United Kingdom', gdp: 3.332, gdpChange: 0.09 },
+                ],
+                gdpChange: 0.08,
+            },
+        ];
+
+        test('static label styles', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        secondaryLabelKey: 'gdpChange',
+                        label: { fill: 'olive', border: { stroke: 'lime' } },
+                        secondaryLabel: { fill: 'blue' },
+                    },
+                ],
+            });
+            chart = AgCharts.create(options);
+            await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
+        });
+
+        test('dynamic label styles', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        secondaryLabelKey: 'gdpChange',
+                        label: {
+                            itemStyler: () => {
+                                return { fill: 'olive', border: { stroke: 'lime' } };
+                            },
+                        },
+                        secondaryLabel: {
+                            itemStyler: () => {
+                                return { fill: 'blue' };
+                            },
+                        },
+                    },
+                ],
+            });
+            chart = AgCharts.create(options);
+            await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
         });
     });
 });

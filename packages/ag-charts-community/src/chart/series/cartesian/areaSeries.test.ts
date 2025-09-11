@@ -13,7 +13,6 @@ import type {
     AgPatternName,
     AgSeriesMarkerStyle,
     AgUnitTimeAxisOptions,
-    HighlightState,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -1159,96 +1158,10 @@ describe('AreaSeries', () => {
                 test('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
-                    styler.expect().nthCalledWithContext(2, c1);
-                    styler.expect().nthCalledWithContext(3, c1);
-                    styler.expect().nthCalledWithContext(4, c1);
-                    styler.expect().nthCalledWithContext(5, c1);
-                    styler.expect().nthCalledWithContext(6, c1);
-                    styler.expect().nthCalledWithContext(7, c1);
-                    styler.expect().nthCalledWithContext(8, c1);
-                    styler.expect().nthCalledWithContext(9, c1);
-                    styler.expect().nthCalledWithContext(10, c2);
-                    styler.expect().nthCalledWithContext(11, c2);
-                    styler.expect().nthCalledWithContext(12, c2);
-                    styler.expect().nthCalledWithContext(13, c2);
-                    styler.expect().nthCalledWithContext(14, c2);
-                    styler.expect().nthCalledWithContext(15, c2);
-                    styler.expect().nthCalledWithContext(16, c2);
-                    styler.expect().nthCalledWithContext(17, c2);
-                    styler.expect().toHaveBeenCalledTimes(18);
+                    styler.expect().toHaveBeenCalledTimes(2);
                 });
                 test('params', () => {
-                    const p1 = {
-                        context: { name: 'sales context' },
-                        fill: '#f3622d',
-                        fillOpacity: 0.8,
-                        lineDash: [0],
-                        lineDashOffset: 0,
-                        marker: {
-                            fill: '#f3622d',
-                            fillOpacity: 1,
-                            lineDash: [0],
-                            lineDashOffset: 0,
-                            shape: 'circle',
-                            size: 7,
-                            stroke: '#aa4520',
-                            strokeOpacity: 1,
-                            strokeWidth: 0,
-                        },
-                        seriesId: 'AreaSeries-1',
-                        stroke: '#aa4520',
-                        strokeOpacity: 1,
-                        strokeWidth: 0,
-                        xKey: 'month',
-                        yKey: 'sales',
-                    } as const;
-                    const p2 = {
-                        context: { name: 'expenses context' },
-                        fill: '#fba71b',
-                        fillOpacity: 0.8,
-                        lineDash: [0],
-                        lineDashOffset: 0,
-                        marker: {
-                            fill: '#fba71b',
-                            fillOpacity: 1,
-                            lineDash: [0],
-                            lineDashOffset: 0,
-                            shape: 'circle',
-                            size: 7,
-                            stroke: '#b07513',
-                            strokeOpacity: 1,
-                            strokeWidth: 0,
-                        },
-                        seriesId: 'AreaSeries-2',
-                        stroke: '#b07513',
-                        strokeOpacity: 1,
-                        strokeWidth: 0,
-                        xKey: 'month',
-                        yKey: 'expenses',
-                    } as const;
-                    const params = (p: typeof p1 | typeof p2, highlighted: boolean, highlightState: HighlightState) => {
-                        return { ...p, highlighted, highlightState };
-                    };
-                    const { mock } = styler;
-                    expect(mock).nthCalledWith(1, params(p1, false, 'none'));
-                    expect(mock).nthCalledWith(2, params(p2, false, 'none'));
-                    expect(mock).nthCalledWith(3, params(p1, true, 'none'));
-                    expect(mock).nthCalledWith(4, params(p1, false, 'highlighted-item'));
-                    expect(mock).nthCalledWith(5, params(p1, false, 'highlighted-series'));
-                    expect(mock).nthCalledWith(6, params(p1, false, 'unhighlighted-series'));
-                    expect(mock).nthCalledWith(7, params(p1, false, 'unhighlighted-item'));
-                    expect(mock).nthCalledWith(8, params(p1, false, 'none'));
-                    expect(mock).nthCalledWith(9, params(p1, true, 'none'));
-                    expect(mock).nthCalledWith(10, params(p1, false, 'none'));
-                    expect(mock).nthCalledWith(11, params(p2, true, 'none'));
-                    expect(mock).nthCalledWith(12, params(p2, false, 'highlighted-item'));
-                    expect(mock).nthCalledWith(13, params(p2, false, 'highlighted-series'));
-                    expect(mock).nthCalledWith(14, params(p2, false, 'unhighlighted-series'));
-                    expect(mock).nthCalledWith(15, params(p2, false, 'unhighlighted-item'));
-                    expect(mock).nthCalledWith(16, params(p2, false, 'none'));
-                    expect(mock).nthCalledWith(17, params(p2, true, 'none'));
-                    expect(mock).nthCalledWith(18, params(p2, false, 'none'));
-                    styler.expect().toHaveBeenCalledTimes(18);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
         });
@@ -1599,30 +1512,139 @@ describe('AreaSeries', () => {
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
+        it('should render area series with gradient fill segmentation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 20 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 25 },
+                    { x: 3, y: 35 },
+                    { x: 4, y: 40 },
+                    { x: 5, y: 45 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 0,
+                                    stop: 2,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 2,
+                                    stop: 4,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: 'blue',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 4,
+                                    fill: {
+                                        type: 'gradient',
+                                    },
+                                    stroke: 'green',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render area series with inherited gradient fill segmentation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 20 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 25 },
+                    { x: 3, y: 35 },
+                    { x: 4, y: 40 },
+                    { x: 5, y: 45 },
+                ],
+
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        fill: {
+                            type: 'gradient',
+                        },
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 0,
+                                    stop: 2,
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 2,
+                                    stop: 4,
+                                    stroke: 'blue',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 4,
+                                    stroke: 'green',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
         it('should render area series with positive/negative segmentation', async () => {
             const options: AgChartOptions = {
                 title: { text: 'Total PnL' },
                 data: [
-                    { date: '2019-04-05', pnl: 60 },
-                    { date: '2019-04-10', pnl: -110 },
-                    { date: '2019-04-15', pnl: -240 },
-                    { date: '2019-04-18', pnl: -585 },
-                    { date: '2019-04-21', pnl: -210 },
-                    { date: '2019-04-24', pnl: -595 },
-                    { date: '2020-03-17', pnl: -320 },
-                    { date: '2020-03-18', pnl: -165 },
-                    { date: '2020-03-19', pnl: -95 },
-                    { date: '2020-03-20', pnl: 15 },
-                    { date: '2020-03-26', pnl: 40 },
-                    { date: '2020-04-05', pnl: 90 },
-                    { date: '2020-04-12', pnl: 180 },
-                    { date: '2020-04-19', pnl: 420 },
-                    { date: '2020-05-03', pnl: 150 },
-                    { date: '2020-05-22', pnl: 170 },
-                ],
-                axes: [
-                    { type: 'ordinal-time', position: 'bottom', label: { rotation: 45 } },
-                    { type: 'number', position: 'left', min: -600, max: 600 },
+                    { key: '2019-04-05', pnl: 60 },
+                    { key: '2019-04-10', pnl: -110 },
+                    { key: '2019-04-15', pnl: -240 },
+                    { key: '2019-04-18', pnl: -585 },
+                    { key: '2019-04-21', pnl: -210 },
+                    { key: '2019-04-24', pnl: -595 },
+                    { key: '2020-03-17', pnl: -320 },
+                    { key: '2020-03-18', pnl: -165 },
+                    { key: '2020-03-19', pnl: -95 },
+                    { key: '2020-03-20', pnl: 15 },
+                    { key: '2020-03-26', pnl: 40 },
+                    { key: '2020-04-05', pnl: 90 },
+                    { key: '2020-04-12', pnl: 180 },
+                    { key: '2020-04-19', pnl: 420 },
+                    { key: '2020-05-03', pnl: 150 },
+                    { key: '2020-05-22', pnl: 170 },
                 ],
                 series: [
                     {
@@ -1630,7 +1652,7 @@ describe('AreaSeries', () => {
                         interpolation: {
                             type: 'smooth',
                         },
-                        xKey: 'date',
+                        xKey: 'key',
                         xName: 'Date',
                         yKey: 'pnl',
                         yName: 'PnL',
@@ -1935,7 +1957,6 @@ describe('AreaSeries', () => {
                                     fill: {
                                         type: 'pattern',
                                         pattern: 'vertical-lines',
-                                        fill: 'red',
                                         stroke: 'darkred',
                                         strokeWidth: 1,
                                     },
@@ -1947,7 +1968,6 @@ describe('AreaSeries', () => {
                                     fill: {
                                         type: 'pattern',
                                         pattern: 'horizontal-lines',
-                                        fill: 'blue',
                                         stroke: 'darkblue',
                                         strokeWidth: 1,
                                     },
@@ -1959,7 +1979,6 @@ describe('AreaSeries', () => {
                                     fill: {
                                         type: 'pattern',
                                         pattern: 'circles',
-                                        fill: 'green',
                                         stroke: 'darkgreen',
                                         strokeWidth: 1,
                                     },
@@ -1977,6 +1996,95 @@ describe('AreaSeries', () => {
             };
 
             prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('predict axes', () => {
+        it('number', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: 1,
+                        iphone: 140,
+                    },
+                    {
+                        quarter: 2,
+                        iphone: 124,
+                    },
+                    {
+                        quarter: 3,
+                        iphone: 112,
+                    },
+                    {
+                        quarter: 4,
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('category', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('time', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: new Date('2018-01-01'),
+                        iphone: 140,
+                    },
+                    {
+                        quarter: new Date('2018-04-01'),
+                        iphone: 124,
+                    },
+                    {
+                        quarter: new Date('2018-07-01'),
+                        iphone: 112,
+                    },
+                    {
+                        quarter: new Date('2018-10-01'),
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
             chart = AgCharts.create(options);
             await compare();
         });

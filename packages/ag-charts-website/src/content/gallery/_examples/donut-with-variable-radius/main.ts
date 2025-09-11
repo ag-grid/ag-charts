@@ -28,11 +28,6 @@ const options: AgPolarChartOptions = {
             data: data.categories,
             type: 'donut',
             calloutLabelKey: 'category',
-            calloutLabel: {
-                offset: 12,
-                avoidCollisions: true,
-                minAngle: 10,
-            },
             angleKey: 'value',
             radiusKey: 'profitMargin',
             innerRadiusRatio: 0.35,
@@ -47,13 +42,11 @@ const options: AgPolarChartOptions = {
                     spacing: 4,
                 },
             ],
-            legendItemKey: 'category',
             cornerRadius: 5,
             strokeWidth: 1,
             highlight: {
                 highlightedItem: {
                     strokeWidth: 3,
-                    fillOpacity: 1,
                 },
             },
             tooltip: {

@@ -442,9 +442,6 @@ function appendSpanPhases(
     const newSpanDatum = newData.data[newIndices.datumIndex];
     const clippedNewSpanNewScale = clipSpan(newSpanDatum.span, newData, axisValues, xValue0Index, newIndices);
 
-    // if (xValue0Index === 1)
-    //     console.log(oldSpanDatum, newSpanDatum, clippedOldSpanOldScale, clippedNewSpanNewScale, oldIndices, newIndices);
-
     if (ordering === 1) {
         // Removed
         const clippedPostRemoveOldSpanOldScale = alignSpanToContainingSpan(

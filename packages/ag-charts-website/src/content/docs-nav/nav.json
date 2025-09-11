@@ -154,6 +154,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Style Segments",
+                            "path": "style-segments"
+                        },
+                        {
+                            "type": "item",
                             "title": "Annotations",
                             "path": "annotations",
                             "isEnterprise": true
@@ -175,6 +180,11 @@
                             "type": "item",
                             "title": "Accessibility",
                             "path": "accessibility"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Large Datasets",
+                            "path": "large-dataset-interactivity"
                         },
                         {
                             "type": "item",

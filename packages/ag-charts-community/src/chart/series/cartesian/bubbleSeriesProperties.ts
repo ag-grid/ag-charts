@@ -8,6 +8,10 @@ import type {
     AgBubbleSeriesStylerResult,
     AgBubbleSeriesTooltipRendererParams,
     AgMarkerShape,
+    AgScatterSeriesItemStylerParams,
+    AgScatterSeriesOptionsKeys,
+    AgScatterSeriesStylerParams,
+    AgScatterSeriesStylerResult,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
     Styler,
@@ -21,7 +25,7 @@ import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 
-class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
+class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys | AgScatterSeriesOptionsKeys> {
     /**
      * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
      * determine the size of the marker. All values will be mapped to a marker size within the
@@ -113,10 +117,16 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     lineDashOffset!: number;
 
     @ProxyProperty('marker.itemStyler')
-    itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyle>;
+    itemStyler?: Styler<
+        BubbleSeriesItemStylerParams<unknown> | AgScatterSeriesItemStylerParams<unknown>,
+        AgBubbleSeriesStyle
+    >;
 
     @Property
-    styler?: Styler<AgBubbleSeriesStylerParams<unknown, unknown>, AgBubbleSeriesStylerResult>;
+    styler?: Styler<
+        AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown>,
+        AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult
+    >;
 
     @Property
     readonly label = new BubbleSeriesLabel();

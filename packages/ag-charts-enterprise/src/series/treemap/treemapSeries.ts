@@ -329,7 +329,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         isLeaf: boolean,
         isHighlight: boolean
     ) {
-        const { id: seriesId, properties, colorScale, ctx } = this;
+        const { properties, colorScale } = this;
         const { itemStyler } = properties;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
 
@@ -350,21 +350,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(
-                        activeHighlight,
-                        isHighlight,
-                        nodeDatum.datumIndex
-                    );
-
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum: nodeDatum.datum,
-                        depth: nodeDatum.depth ?? -1,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -374,6 +361,28 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        nodeDatum: Pick<TreemapNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        isHighlight: boolean,
+        style: Required<AgTreemapSeriesStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum: nodeDatum.datum,
+            depth: nodeDatum.depth ?? -1,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     override updateSelections() {
@@ -697,8 +706,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 sizeName: this.properties.sizeName ?? this.properties.sizeKey,
             };
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, node.datumIndex);
-            const style = getLabelStyles(this, node, params, labelProps, highlighted, highlightState);
+            const style = getLabelStyles(this, node, params, labelProps, highlighted, activeHighlight);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;
@@ -848,6 +856,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return (
+            this.properties.itemStyler != null ||
+            this.properties.tile.label.itemStyler != null ||
+            this.properties.group.label.itemStyler != null
+        );
     }
 }

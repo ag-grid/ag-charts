@@ -1340,6 +1340,6 @@ export class RadialGaugeSeries
     }
 
     protected override hasItemStylers(): boolean {
-        return false;
+        return this.properties.label.itemStyler != null;
     }
 }

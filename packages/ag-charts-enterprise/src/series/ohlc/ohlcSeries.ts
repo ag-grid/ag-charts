@@ -14,7 +14,9 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
     override properties = new OhlcSeriesProperties();
 
     protected override nodeFactory() {
-        return new OhlcNode();
+        const node = new OhlcNode();
+        node.lineCap = 'square';
+        return node;
     }
 
     protected override updateDatumStyles({
@@ -42,13 +44,8 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { item } = this.properties;
-        const { up, down } = item;
-        const { strokeWidth: upStrokeWidth } = up;
-        const { strokeWidth: downStrokeWidth } = down;
-
         datumSelection.each((node, datum) => {
-            const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
+            const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
 
             node.centerX = centerX;
             node.width = width;
@@ -65,9 +62,6 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
                 ];
 
             applyShapeStyle(node, style);
-
-            // Ignore highlight style
-            node.strokeAlignment = (isRising ? upStrokeWidth : downStrokeWidth) / 2;
         });
     }
 

@@ -129,7 +129,6 @@ const options: AgCartesianChartOptions = {
     },
     tooltip: {
         enabled: true,
-        mode: 'shared',
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
         },

@@ -11,10 +11,12 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    SEGMENTATION_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
+import { predictCartesianTimeAxis } from './util';
 
 export const AreaSeriesModule: SeriesModule<'area'> = {
     type: 'series',
@@ -25,6 +27,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     moduleFactory: (ctx) => new AreaSeries(ctx),
     stackable: true,
+    predictAxis: predictCartesianTimeAxis,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -93,6 +96,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 },
             },
             highlight: multiSeriesHighlightStyle(),
+            segmentation: SEGMENTATION_DEFAULTS,
         },
     },
 };

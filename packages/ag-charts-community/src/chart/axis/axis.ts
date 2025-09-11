@@ -1,4 +1,12 @@
-import { type AnyFn, CleanupRegistry, type Point, type RequireOptional, WeakCache, createId } from 'ag-charts-core';
+import {
+    type AnyFn,
+    CleanupRegistry,
+    type Point,
+    type RequireOptional,
+    WeakCache,
+    createId,
+    isArray,
+} from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -8,7 +16,7 @@ import type {
     CssColor,
     DateFormatterStyle,
     FormatterParams,
-    TextSegment,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
@@ -40,7 +48,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { ISeries } from '../series/seriesTypes';
+import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
@@ -55,7 +63,7 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
     color?: CssColor;
     tickId: string;
     rotation: number;
-    text: string | TextSegment[];
+    text: TextOrSegments;
     textBaseline: CanvasTextBaseline;
     textUntruncated?: string;
     visible: boolean;
@@ -217,7 +225,7 @@ export abstract class Axis<
         unit: 'percent',
     };
 
-    boundSeries: ISeries<unknown, unknown, unknown>[] = [];
+    boundSeries: ISeries<DatumIndexType, unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
@@ -460,7 +468,7 @@ export abstract class Axis<
     }
 
     protected getLabelStyles(
-        params: { value: string | undefined; depth?: number },
+        params: { value: number; formattedValue: TextOrSegments | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
         label: AxisLabel = this.label
     ) {
@@ -733,7 +741,7 @@ export abstract class Axis<
         inputFractionDigits?: number,
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
-    ): (value: any, index: number) => string {
+    ): (value: any, index: number) => TextOrSegments {
         const { moduleCtx, label } = this;
         const { formatManager } = moduleCtx;
         const primaryLabel = primary ? this.primaryLabel : undefined;
@@ -774,7 +782,7 @@ export abstract class Axis<
             truncateDate,
         };
 
-        return (value: any, index: number): string => {
+        return (value: any, index: number): TextOrSegments => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
@@ -831,7 +839,7 @@ export abstract class Axis<
         domain?: any[],
         label?: AxisFormattableLabel<any>,
         params?: any
-    ): string {
+    ): TextOrSegments {
         if (input == null) return '';
 
         const { moduleCtx, direction, dataDomain } = this;
@@ -881,7 +889,7 @@ export abstract class Axis<
             this.label.formatValue(f, formatParams, NaN) ??
             formatManager.defaultFormat(formatParams);
 
-        return String(result);
+        return isArray(result) ? result : String(result);
     }
 
     getBBox(): BBox {

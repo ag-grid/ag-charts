@@ -11,12 +11,9 @@ const options: AgChartOptions = {
     subtitle: {
         text: '£ million',
     },
-    tooltip: {
-        enabled: true,
-    },
     series: [
         {
-            type: 'heatmap' as const,
+            type: 'heatmap',
 
             xKey: 'month',
             xName: 'Month',
@@ -36,17 +33,14 @@ const options: AgChartOptions = {
     axes: [
         {
             position: 'right',
-            type: 'category' as const,
+            type: 'category',
             tick: {
                 size: 20,
             },
         },
         {
             position: 'bottom',
-            type: 'category' as const,
-            label: {
-                enabled: true, // Show quarter labels for better readability
-            },
+            type: 'category',
             line: {
                 enabled: false,
             },

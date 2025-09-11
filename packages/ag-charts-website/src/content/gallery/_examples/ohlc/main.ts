@@ -7,11 +7,6 @@ const numberFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 4,
 });
 
-const volumeNumberFormatter = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-});
-
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -20,7 +15,6 @@ const options: AgCartesianChartOptions<DataType> = {
     },
     subtitle: {
         text: 'Foreign Exchange Rate',
-        spacing: 20,
     },
     footnote: {
         text: 'Apr 25, 2023 - Apr 25, 2024',
@@ -62,9 +56,6 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    zoom: {
-        enabled: true,
-    },
     axes: [
         {
             type: 'ordinal-time',
@@ -76,7 +67,6 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
                 style: [
                     {
-                        strokeWidth: 1,
                         lineDash: [2, 2],
                     },
                 ],
@@ -111,7 +101,6 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
                 style: [
                     {
-                        strokeWidth: 1,
                         lineDash: [1, 3],
                     },
                 ],
@@ -122,15 +111,10 @@ const options: AgCartesianChartOptions<DataType> = {
         position: {
             anchorTo: 'chart',
             placement: 'top-left',
-            xOffset: 0,
-            yOffset: 0,
         },
     },
     formatter: {
         y: ({ value }) => `£${Number(value).toFixed(3)}`,
-    },
-    legend: {
-        enabled: false,
     },
 };
 AgCharts.create(options);

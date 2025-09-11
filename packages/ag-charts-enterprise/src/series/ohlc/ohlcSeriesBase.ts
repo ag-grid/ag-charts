@@ -472,7 +472,7 @@ export abstract class OhlcSeriesBase<
         highlightState?: _ModuleSupport.HighlightState,
         itemId: 'up' | 'down' = 'up'
     ) {
-        const { id: seriesId, properties, dataModel, processedData } = this;
+        const { properties, dataModel, processedData } = this;
         const { itemStyler } = properties;
 
         const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
@@ -482,30 +482,14 @@ export abstract class OhlcSeriesBase<
         let style = baseStyle;
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
-            const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-            const { xKey, openKey, closeKey, highKey, lowKey } = properties;
-
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(createDatumId(xValue), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const params = this.makeItemStylerParams(itemId, datumIndex, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`, 'item', itemId],
-                        this.callWithContext(itemStyler, {
-                            seriesId,
-                            datum,
-                            itemId,
-                            xKey,
-                            openKey,
-                            closeKey,
-                            highKey,
-                            lowKey,
-                            highlighted: isHighlight,
-                            highlightState: highlightStateString,
-                            ...style,
-                        })
+                        this.callWithContext(itemStyler, params)
                     );
                 }
             );
@@ -516,6 +500,42 @@ export abstract class OhlcSeriesBase<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        itemId: 'up' | 'down',
+        datumIndex: number,
+        isHighlight: boolean,
+        style:
+            | (Required<AgOhlcSeriesItemOptions> & { opacity: number })
+            | (Required<AgCandlestickSeriesItemOptions> & { opacity: number })
+    ) {
+        const { id: seriesId, properties, processedData } = this;
+        const { xKey, openKey, closeKey, highKey, lowKey } = properties;
+
+        const datum = processedData!.dataSources.get(seriesId)?.[datumIndex];
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+
+        const params = {
+            seriesId,
+            datum,
+            itemId,
+            xKey,
+            openKey,
+            closeKey,
+            highKey,
+            lowKey,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            ...style,
+        };
+
+        if ('fill' in params && 'fill' in style) {
+            params.fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+        }
+
+        return params;
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {

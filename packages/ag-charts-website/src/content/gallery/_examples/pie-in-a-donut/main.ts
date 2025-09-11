@@ -2,34 +2,21 @@ import { AgCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-e
 
 import { getData2020, getData2022 } from './data';
 
-const numFormatter = new Intl.NumberFormat('en-US', {
-    style: 'percent',
-    maximumFractionDigits: 0,
-});
-
 const sharedSeriesOptions: AgPolarSeriesOptions = {
-    type: 'pie',
+    type: 'pie' as const,
     sectorLabelKey: 'share',
     angleKey: 'share',
     legendItemKey: 'browser',
     fillOpacity: 0.9,
     strokeWidth: 2,
-    strokeOpacity: 1,
     highlight: {
         highlightedItem: {
-            fillOpacity: 1,
             strokeWidth: 3,
-        },
-    },
-    sectorLabel: {
-        formatter: ({ value }) => {
-            return value >= 0.1 ? `${(value * 100).toFixed(0)}%` : '';
         },
     },
 };
 
 const options: AgPolarChartOptions = {
-    // Investigate missing sectorLabels.
     container: document.getElementById('myChart'),
     title: {
         text: 'Desktop Browser Market Share Evolution',
@@ -40,18 +27,34 @@ const options: AgPolarChartOptions = {
     series: [
         {
             ...sharedSeriesOptions,
+            type: 'pie',
             data: getData2020(),
             outerRadiusRatio: 0.5,
             showInLegend: false,
             title: {
                 text: '2020',
             },
+            sectorLabel: {
+                formatter: ({ value }) => {
+                    return value >= 0.1 ? `${(value * 100).toFixed(0)}%` : '';
+                },
+            },
             tooltip: {
-                renderer: (params: any) => {
-                    const value = params.datum.share * 100;
+                renderer: (params) => {
+                    const { datum } = params;
+                    const value2020 = datum.share * 100;
+                    const data2022 = getData2022().find((d) => d.browser === datum.browser);
+                    const value2022 = data2022 ? data2022.share * 100 : 0;
+                    const change = value2022 - value2020;
+                    const changeIcon = change > 0 ? '↑' : change < 0 ? '↓' : '–';
+
                     return {
-                        title: params.datum.browser,
-                        data: [{ label: 'Market Share', value: `${value.toFixed(1)}%` }],
+                        title: datum.browser,
+                        data: [
+                            { label: '2022', value: `${value2022.toFixed(1)}%` },
+                            { label: '2020', value: `${value2020.toFixed(1)}%` },
+                            { label: 'Change', value: `${changeIcon} ${Math.abs(change).toFixed(1)} pp` },
+                        ],
                     };
                 },
             },
@@ -64,6 +67,11 @@ const options: AgPolarChartOptions = {
                 text: '2022',
             },
             calloutLabelKey: 'browser',
+            sectorLabel: {
+                formatter: ({ value }) => {
+                    return `${(value * 100).toFixed(0)}%`;
+                },
+            },
             tooltip: {
                 renderer: (params) => {
                     const { datum } = params;

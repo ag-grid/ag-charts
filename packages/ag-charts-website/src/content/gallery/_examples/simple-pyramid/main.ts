@@ -24,6 +24,21 @@ const options: AgChartOptions<DataType> = {
                     return '';
                 },
             },
+            tooltip: {
+                renderer: ({ datum }) => {
+                    return {
+                        data: [
+                            {
+                                label:
+                                    datum.incomeBracket == ''
+                                        ? 'Above $1,000,000'
+                                        : datum.incomeBracket.replace('  →', ''),
+                                value: datum.percentage,
+                            },
+                        ],
+                    };
+                },
+            },
         },
     ],
 };

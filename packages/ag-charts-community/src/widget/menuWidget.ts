@@ -70,9 +70,14 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         const subMenu = new MenuWidget(this.orientation);
         subMenu.id = createElementId();
 
-        const expand = () => subMenuButton.expandControlled();
+        const expand = () => {
+            this.collapseExpandedSubMenu(subMenu);
+            subMenuButton.expandControlled();
+        };
+
         const arrowRightOpener = (ev: KeyboardWidgetEvent) => {
             if (hasNoModifiers(ev.sourceEvent) && ev.sourceEvent.code === 'ArrowRight') {
+                this.collapseExpandedSubMenu(subMenu);
                 subMenuButton.expandControlled();
             }
         };
@@ -90,9 +95,16 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         const { expansionScope } = this;
         if (!expansionScope) return;
 
-        expansionScope.expandedSubMenu?.collapse({ mode: CollapseMode.SIDLING_OPENED });
+        this.collapseExpandedSubMenu(subMenu);
         subMenu?.expand(ev);
-        expansionScope.expandedSubMenu = subMenu;
+    }
+
+    private collapseExpandedSubMenu(newSubMenu: MenuWidget | undefined) {
+        const { expansionScope } = this;
+        if (!expansionScope) return;
+
+        expansionScope.expandedSubMenu?.collapse({ mode: CollapseMode.SIDLING_OPENED });
+        expansionScope.expandedSubMenu = newSubMenu;
     }
 
     expand(opts: ExpandOpts): void {

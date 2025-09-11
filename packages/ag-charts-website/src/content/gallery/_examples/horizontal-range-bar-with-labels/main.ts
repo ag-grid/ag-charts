@@ -26,9 +26,10 @@ const options: AgCartesianChartOptions = {
             yLowName: '2022 Sales',
             yHighName: '2023 Sales',
             cornerRadius: 6,
-            fillOpacity: 0.9,
             strokeWidth: 1.5,
-            strokeOpacity: 0,
+            fillOpacity: 0.6,
+            lineDash: [3, 2],
+            strokeOpacity: 0.6,
             label: {
                 enabled: true,
                 formatter: ({ datum, yLowKey, yHighKey, itemId }) => {
@@ -41,31 +42,14 @@ const options: AgCartesianChartOptions = {
                     }
                     return '';
                 },
-                // placement: 'outside',
-            },
-            highlight: {
-                highlightedItem: {
-                    strokeWidth: 2,
-                    strokeOpacity: 1,
-                },
             },
             itemStyler: ({ datum, yLowKey, yHighKey }) => {
                 const increase = datum[yHighKey] - datum[yLowKey];
                 const growthRate = (increase / datum[yLowKey]) * 100;
 
-                // Color based on growth performance
-                let fill = '#ef4444'; // Red for low growth
+                let fill = growthRate > 0 ? '#10b981' : '#ef4444';
 
-                if (growthRate > 0) {
-                    fill = '#10b981'; // Green for excellent growth
-                }
-
-                return {
-                    fill,
-                    fillOpacity: 0.6,
-                    lineDash: [3, 2],
-                    strokeOpacity: 0.6,
-                };
+                return { fill };
             },
             tooltip: {
                 enabled: true,

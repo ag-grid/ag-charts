@@ -45,6 +45,7 @@ const {
     mergeDefaults,
     simpleMemorize2,
     getItemStyles,
+    calculateSegments,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeBarData = simpleMemorize2(aggregateRangeBarData);
@@ -240,7 +241,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(data && xAxis && yAxis && dataModel && processedData?.dataSources)) return;
+        if (!(data && xAxis && yAxis && dataModel && processedData?.dataSources && this.chart?.seriesRect)) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -250,6 +251,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const itemId = `${yLowKey}-${yHighKey}`;
 
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart.seriesRect,
+            this.ctx.scene
+        );
+
         const context: RangeBarSeriesNodeDataContext = {
             itemId,
             nodeData: [],
@@ -258,6 +267,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
             styles: getItemStyles(this.getItemStyle.bind(this)),
+            segments,
         };
         if (!visible) return context;
 
@@ -518,32 +528,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgRangeBarSeriesStyle> {
-        const { id: seriesId, properties, dataModel, processedData } = this;
-
-        const { xKey, yHighKey, yLowKey, itemStyler } = properties;
+        const { properties, dataModel, processedData } = this;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = baseStyle;
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
-            const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId({ xValue }), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        xKey,
-                        yHighKey,
-                        yLowKey,
-                        highlighted: isHighlight,
-                        highlightState: highlightStateString,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(datumIndex, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -553,6 +551,28 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(datumIndex: number, isHighlight: boolean, style: Required<AgRangeBarSeriesStyle>) {
+        const { id: seriesId, properties, processedData } = this;
+        const { xKey, yHighKey, yLowKey } = properties;
+
+        const datum = processedData!.dataSources.get(seriesId)?.[datumIndex];
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            xKey,
+            yHighKey,
+            yLowKey,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            ...style,
+            fill,
+        };
     }
 
     protected override updateDatumStyles({
@@ -621,9 +641,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             yHighKey: this.properties.yHighKey,
             yHighName: this.properties.yHighName ?? this.properties.yHighKey,
         };
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(false, datum?.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum);
+            updateLabelNode(this, textNode, params, this.properties.label, datum, false, activeHighlight);
         });
     }
 
@@ -708,7 +729,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: RangeBarAnimationData) {
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'), 'unknown');
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
@@ -727,7 +748,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const mode = previousContextData == null ? 'fade' : 'normal';
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), mode));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), mode), 'added');
         motion.fromToMotion(
             this.id,
             'datums',
@@ -758,6 +779,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

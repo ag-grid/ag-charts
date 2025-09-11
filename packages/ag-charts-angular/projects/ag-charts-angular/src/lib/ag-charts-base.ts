@@ -8,7 +8,7 @@ import { AgBaseChartListeners, AgChartInstance, AgChartLegendListeners, AgSeries
 export abstract class AgChartsBase<Options extends {}> implements AfterViewInit, OnChanges, OnDestroy {
     public chart?: AgChartInstance;
     public abstract options: Options;
-    public abstract onChartReady: EventEmitter<AgChartInstance>;
+    public abstract chartReady: EventEmitter<AgChartInstance>;
 
     protected _nativeElement: any;
     protected _initialised = false;
@@ -23,7 +23,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
         this._initialised = true;
 
         (this.chart as any).chart.waitForUpdate().then(() => {
-            this.onChartReady.emit(this.chart);
+            this.chartReady.emit(this.chart);
         });
     }
 

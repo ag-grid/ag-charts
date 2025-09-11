@@ -1,20 +1,12 @@
-import {
-    AdjacencyListGraph,
-    type PlainObject,
-    type Vertex,
-    isObject,
-    isObjectLike,
-    isPlainObject,
-} from 'ag-charts-core';
+import { AdjacencyListGraph, type PlainObject, type Vertex, isObject, isObjectLike } from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { Debug } from '../util/debug';
-import { deepClone } from '../util/json';
 import { simpleMemorize } from '../util/memo';
 import { pick, without } from '../util/object';
-import { paletteType } from './coreModulesTypes';
+import { type PaletteType, paletteType } from './coreModulesTypes';
 import { type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
 import {
     AUTO_ENABLE_EDGE,
@@ -84,12 +76,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     ];
 
     // If any of these keys are present in the resolved object then calling `clearSafe()` will not clear the graph.
-    private static readonly UNSAFE_CLEAR_KEYS = new Set(['itemStyler']);
+    private static readonly UNSAFE_CLEAR_KEYS = new Set(['itemStyler', 'styler']);
 
     // A cache of values that persists between chart updates, use sparingly.
     private static readonly valueCache = new Map();
 
-    public readonly palette: PlainObject;
+    public readonly paletteType: PaletteType;
 
     // The current priority order in which to resolve options values.
     private edgePriority = [...OptionsGraph.EDGE_PRIORITY];
@@ -98,9 +90,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     private graftEdge = OptionsGraph.GRAFT_EDGE;
 
     // The initial vertices for different branches of the graph that are resolved separately.
-    private readonly root: Vertex<unknown>;
-    private readonly params: Vertex<unknown>;
-    private readonly annotations: Vertex<unknown>;
+    private root?: Vertex<unknown>;
+    private params?: Vertex<unknown>;
+    private annotations?: Vertex<unknown>;
 
     // Store the resolved objects generated from the graph.
     private resolved: PlainObject | undefined;
@@ -125,7 +117,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
         params: PlainObject | undefined = undefined,
-        palette: PlainObject | undefined = undefined,
+        public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map()
     ) {
@@ -135,17 +127,16 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.params = this.addVertex('params');
         this.annotations = this.addVertex('annotations');
 
-        // TODO: Remove `deepClone()` which is just used to workaround the freezing.
-        this.palette = palette ? deepClone(palette) : {};
-        this.palette.type = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
+        this.paletteType = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
-        const DEFAULT_SERIES_TYPE = 'line';
-        const seriesType = userOptions.series?.[0]?.type ?? DEFAULT_SERIES_TYPE;
+        const seriesType = userOptions.series?.[0]?.type ?? 'line';
 
         // Apply the default axes of the primary series type if none are provided by the user.
-        const defaultAxes = seriesRegistry.cloneDefaultAxes(seriesType);
-        userOptions.axes ??= defaultAxes?.axes ?? [];
+        userOptions.axes ??=
+            seriesRegistry.predictAxes(seriesType, userOptions.series?.[0], userOptions.data) ??
+            seriesRegistry.cloneDefaultAxes(seriesType) ??
+            [];
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');
@@ -239,8 +230,14 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     override clear() {
-        super.clear();
-        this.cachedPathVertices.clear();
+        debug.group('OptionsGraph.clear()', () => {
+            super.clear();
+            this.cachedPathVertices.clear();
+            this.root = undefined;
+            this.params = undefined;
+            this.annotations = undefined;
+            debug('cleared');
+        });
     }
 
     clearSafe() {
@@ -255,12 +252,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             this.resolvedAnnotations = {};
 
             debug('resolve params');
-            this.resolveVertex(this.params, this.resolvedParams);
+            this.resolveVertex(this.params!, this.resolvedParams);
             debug('resolve annotations');
-            this.resolveVertex(this.annotations, this.resolvedAnnotations);
+            this.resolveVertex(this.annotations!, this.resolvedAnnotations);
 
             debug('resolve root');
-            this.resolveVertex(this.root);
+            this.resolveVertex(this.root!);
             debug('resolved root', this.resolved);
 
             debug('vertex count', this.getVertexCount());
@@ -303,14 +300,18 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     resolvePartial(
         path: Array<string>,
         partialOptions?: PlainObject,
-        opts?: {
+        resolveOptions?: {
             permissivePath?: boolean;
             pick?: boolean;
             proxyPaths?: Record<string, Array<string>>;
         }
     ) {
         if (!partialOptions) return;
-        const { permissivePath = false, proxyPaths } = opts ?? {};
+
+        // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
+        if (!this.root) return;
+
+        const { permissivePath, proxyPaths } = resolveOptions ?? {};
 
         const partialKeys = Object.keys(partialOptions);
 
@@ -393,7 +394,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const pathed = getPathSafe(resolved, path) as PlainObject;
 
         // Only pick the keys that have been requested to prevent overwriting other values with the graph.
-        const shouldPick: boolean = opts?.pick ?? true;
+        const shouldPick: boolean = resolveOptions?.pick ?? true;
         const partial = shouldPick ? pick(getPathSafe(resolved, path) as PlainObject, partialKeys) : pathed;
 
         debug('vertex count', this.getVertexCount());
@@ -413,7 +414,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (this.cachedPathVertices.has(key)) {
             return this.cachedPathVertices.get(key);
         }
-        const vertex = this.findVertexAlongEdge(this.root, path, PATH_EDGE);
+        const vertex = this.findVertexAlongEdge(this.root!, path, PATH_EDGE);
         if (!vertex) return;
         this.cachedPathVertices.set(key, vertex);
         return vertex;
@@ -476,7 +477,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             return this.resolvedParams[path];
         }
 
-        const paramVertex = this.findVertexAlongEdge(this.params, [path], PATH_EDGE);
+        const paramVertex = this.findVertexAlongEdge(this.params!, [path], PATH_EDGE);
         if (!paramVertex) return;
 
         const defaultValueVertex = this.findNeighbour(paramVertex, DEFAULTS_EDGE);
@@ -553,7 +554,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const targetConfigObject = getPathSafe(this.config, configPathArray);
         const targetPathArrayVertex = this.findNeighbour(target, PATH_ARRAY_EDGE);
 
-        if (isPlainObject(targetConfigObject)) {
+        if (isObject(targetConfigObject)) {
             this.buildGraphFromObject(
                 target,
                 DEFAULTS_EDGE,
@@ -566,7 +567,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         if (this.overrides) {
             const targetOverridesObject = getPathSafe(this.overrides, configPathArray);
-            if (isPlainObject(targetOverridesObject)) {
+            if (isObject(targetOverridesObject)) {
                 this.buildGraphFromObject(
                     target,
                     OVERRIDES_EDGE,
@@ -578,7 +579,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             }
 
             const commonOverridesObject = getPathSafe(this.overrides, ['common', ...configPathArray.slice(1)]);
-            if (isPlainObject(commonOverridesObject)) {
+            if (isObject(commonOverridesObject)) {
                 this.buildGraphFromObject(
                     target,
                     OVERRIDES_EDGE,
@@ -943,7 +944,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             } else {
                 // TODO: breaks toBe of context values
                 // Clone object values to prevent nodes from affecting other nodes
-                // const safeValue = isPlainObject(value) ? deepClone(value) : value;
+                // const safeValue = isObject(value) ? deepClone(value) : value;
                 setPathSafe(object, pathArray, value);
             }
             break;
@@ -1046,7 +1047,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             const orphanChildPathArrayVertex = this.addVertex(childContextPathArray);
             this.addEdge(orphanChildPathVertex, orphanChildPathArrayVertex, PATH_ARRAY_EDGE);
 
-            if (isPlainObject(defaultValue)) {
+            if (isObject(defaultValue)) {
                 this.buildGraphFromObject(
                     orphanChildPathVertex,
                     DEFAULTS_EDGE,

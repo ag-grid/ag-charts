@@ -55,7 +55,6 @@ const options: AgChartOptions = {
             },
 
             // Cell styling
-            itemPadding: 1,
             strokeWidth: 0.5,
             strokeOpacity: 0.1,
         },
@@ -64,11 +63,7 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'left',
-            label: {},
             line: {
-                enabled: false,
-            },
-            gridLine: {
                 enabled: false,
             },
         },
@@ -76,35 +71,18 @@ const options: AgChartOptions = {
             type: 'category',
             position: 'bottom',
             label: {
-                rotation: 0,
+                autoRotate: false,
             },
             line: {
-                enabled: false,
-            },
-            gridLine: {
                 enabled: false,
             },
         },
     ],
     gradientLegend: {
         enabled: true,
-        position: 'bottom',
         gradient: {
             thickness: 15,
             preferredLength: 400,
-        },
-    },
-    theme: {
-        overrides: {
-            heatmap: {
-                series: {
-                    highlight: {
-                        highlightedItem: {
-                            strokeWidth: 2,
-                        },
-                    },
-                },
-            },
         },
     },
 };

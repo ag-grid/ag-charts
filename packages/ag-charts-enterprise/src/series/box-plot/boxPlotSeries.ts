@@ -28,6 +28,7 @@ const {
     motion,
     getItemStyles,
     applyShapeFillBBox,
+    calculateSegments,
 } = _ModuleSupport;
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
@@ -167,6 +168,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { groupScale } = this;
         const isVertical = this.isVertical();
 
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            this.ctx.scene
+        );
+
         const context = {
             itemId: xKey,
             nodeData,
@@ -175,6 +184,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
             styles: getItemStyles(this.getItemStyle.bind(this)),
+            segments,
         };
 
         if (!visible) return context;
@@ -423,9 +433,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgBoxPlotSeriesStyle> {
-        const { id: seriesId, properties } = this;
-
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = properties;
+        const { properties } = this;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         let style = mergeDefaults(highlightStyle, properties.getStyle());
@@ -434,24 +443,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const datum = this.processedData?.dataSources.get(seriesId)?.[datumIndex];
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const params = this.makeItemStylerParams(datumIndex, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
-                        this.callWithContext(itemStyler, {
-                            seriesId,
-                            datum,
-                            xKey,
-                            minKey,
-                            q1Key,
-                            medianKey,
-                            q3Key,
-                            maxKey,
-                            highlighted: isHighlight,
-                            highlightState: highlightStateString,
-                            ...style,
-                        })
+                        this.callWithContext(itemStyler, params)
                     );
                 }
             );
@@ -472,6 +467,31 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         });
 
         return style;
+    }
+
+    private makeItemStylerParams(datumIndex: number, isHighlight: boolean, style: Required<AgBoxPlotSeriesStyle>) {
+        const { id: seriesId } = this;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
+
+        const datum = this.processedData?.dataSources.get(seriesId)?.[datumIndex];
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            xKey,
+            minKey,
+            q1Key,
+            medianKey,
+            q3Key,
+            maxKey,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            ...style,
+            fill,
+        };
     }
 
     protected override updateDatumStyles({

@@ -1,4 +1,4 @@
-import type { Point, RequireOptional } from 'ag-charts-core';
+import type { RequireOptional } from 'ag-charts-core';
 import { isDefined } from 'ag-charts-core';
 import {
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -20,7 +20,6 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { simpleMemorize2 } from '../../../util/memo';
@@ -46,7 +45,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import { datumStylerProperties } from '../util';
@@ -77,7 +76,6 @@ import {
     resetMarkerPositionFn,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
-import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 import { calculateSegments } from './util';
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
@@ -347,9 +345,6 @@ export class LineSeries extends CartesianSeries<
             connectMissingData,
             interpolation,
             legendItemName,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
         } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -483,7 +478,7 @@ export class LineSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
-            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker),
             segments,
         };
     }
@@ -505,22 +500,8 @@ export class LineSeries extends CartesianSeries<
 
         const segments = this.contextNodeData?.segments;
 
-        // @todo(AG-8108): move to theme
-        const lineStyle = {
-            fill: undefined,
-            stroke,
-            strokeWidth,
-            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR : 1),
-            lineDash,
-            lineDashOffset,
-        };
-        const lineSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
-            clipRect,
-            ...mergeDefaults(segmentStyle, lineStyle),
-        }));
-
         lineNode.setProperties({
-            segments: lineSegments,
+            segments,
             fill: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -532,7 +513,7 @@ export class LineSeries extends CartesianSeries<
             lineDashOffset,
         });
 
-        lineNode.datum = lineSegments;
+        lineNode.datum = segments;
 
         if (!animationEnabled) {
             lineNode.visible = visible;
@@ -548,13 +529,11 @@ export class LineSeries extends CartesianSeries<
         let { nodeData } = opts;
         const { datumSelection } = opts;
         const { contextNodeData, processedData, axes, properties } = this;
-        const { marker, styler } = properties;
-
-        const markerStyle = styler ? this.getStyle(false).marker : undefined;
+        const { marker } = properties;
 
         const markersEnabled =
             contextNodeData?.crossFiltering === true ||
-            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
+            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
 
         nodeData = markersEnabled ? nodeData : [];
 
@@ -572,22 +551,32 @@ export class LineSeries extends CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.properties;
-        const stylerStyle = this.getStyle(isHighlight);
-        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                const stylerStyle = this.getStyle(isHighlight, highlightState);
+                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
                 const params = this.makeItemStylerParams(
                     this.dataModel!,
                     this.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
-                datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                });
+                datum.style = this.getMarkerStyle(
+                    marker,
+                    datum,
+                    params,
+                    { isHighlight, highlightState },
+                    stylerStyle.marker,
+                    {
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                    }
+                );
             }
         });
     }
@@ -609,9 +598,8 @@ export class LineSeries extends CartesianSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyTranslation,
                 selected: datum.selected,
@@ -639,10 +627,7 @@ export class LineSeries extends CartesianSeries<
         const params: AgLineSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
-            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
-            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
-
-            const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
+            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
@@ -711,12 +696,14 @@ export class LineSeries extends CartesianSeries<
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
             xValue,
             yValue,
             ...style,
+            fill,
         } satisfies CallbackParamRules<AgLineSeriesMarkerItemStylerParams<unknown, unknown>>;
     }
 
@@ -784,14 +771,22 @@ export class LineSeries extends CartesianSeries<
             this.properties.marker,
             {},
             undefined,
-            { isHighlight: false, checkForHighlight: false },
+            {
+                isHighlight: false,
+                checkForHighlight: false,
+                resolveStylerMarkerPath: 'marker',
+            },
             {
                 size: marker.size,
                 shape: marker.shape,
                 fill: marker.fill,
                 fillOpacity: marker.fillOpacity,
                 stroke: marker.stroke,
-            }
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            } satisfies RequireOptional<AgSeriesMarkerStyle>
         );
 
         return {
@@ -976,7 +971,13 @@ export class LineSeries extends CartesianSeries<
         let stylerResult: AgLineSeriesStylerResult = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            stylerResult = resolved ?? {};
         }
         stylerResult.marker ??= {};
         return {
@@ -1023,14 +1024,10 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
-    }
-
-    protected override initQuadTree(quadtree: QuadtreeNearest<LineNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
-    }
-
-    protected override pickNodeDataClosestDatum(point: Point): SeriesNodePickMatch | undefined {
-        return findQuadtreeMatch(this, point);
+        return (
+            this.properties.styler != null ||
+            this.properties.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

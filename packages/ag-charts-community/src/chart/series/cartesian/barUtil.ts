@@ -1,6 +1,6 @@
 import { isNegative } from 'ag-charts-core';
 
-import type { ApplyFn, FromToMotionPropFn } from '../../../motion/fromToMotion';
+import type { ApplyFn, FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -10,7 +10,7 @@ import type { Rect } from '../../../scene/shape/rect';
 import { Transformable } from '../../../scene/transformable';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { ISeries } from '../seriesTypes';
+import type { DatumIndexType, ISeries } from '../seriesTypes';
 
 export function checkCrisp(
     scale: Scale<any, any> | undefined,
@@ -122,7 +122,10 @@ type RectDatum = {
     crisp: boolean;
 };
 type BarRect = Rect<RectDatum>;
-export function prepareBarAnimationFunctions(initPos: InitialPosition<AnimatableBarDatum>) {
+export function prepareBarAnimationFunctions(
+    initPos: InitialPosition<AnimatableBarDatum>,
+    unknownStatus: NodeUpdateState
+) {
     const isRemoved = (datum?: AnimatableBarDatum) => datum == null || isNaN(datum.x) || isNaN(datum.y);
 
     const fromFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
@@ -134,14 +137,20 @@ export function prepareBarAnimationFunctions(initPos: InitialPosition<Animatable
 
         // Continue from current rendering location.
         let source: AnimatableBarDatum;
-        if (status === 'added' && rect.previousDatum == null && initPos.mode === 'fade') {
+        if (status === 'unknown' || status === 'added') {
             // Handle series add case, after initial load. This is distinct from legend toggle on.
-            source = {
-                ...resetBarSelectionsFn(rect, datum),
-                opacity: 0,
-            };
-        } else if (status === 'unknown' || status === 'added') {
-            source = initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
+            if (rect.previousDatum == null && initPos.mode === 'fade') {
+                source = {
+                    ...resetBarSelectionsFn(rect, datum),
+                    opacity: 0,
+                };
+            } else {
+                source = initPos.calculate(datum, rect.unsafePreviousDatum);
+            }
+
+            if (status === 'unknown') {
+                status = unknownStatus;
+            }
         } else {
             source = {
                 x: rect.x,
@@ -208,7 +217,7 @@ export function resetBarSelectionsFn(
 }
 
 export function computeBarFocusBounds(
-    series: ISeries<unknown, unknown, unknown>,
+    series: ISeries<DatumIndexType, unknown, unknown>,
     datum: { x: number; y: number; width: number; height: number } | undefined
 ): BBox | undefined {
     if (datum === undefined) return undefined;

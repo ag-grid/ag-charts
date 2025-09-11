@@ -23,6 +23,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
+    AgPieCalloutLineItemStylerResult,
     AgPieSeriesOptions,
     AgPieSeriesStyle,
     AgPieSeriesThemeableOptions,
@@ -94,6 +95,11 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         colors: arrayOf(color),
         length: positiveNumber,
         strokeWidth: positiveNumber,
+        itemStyler: callbackDefs<AgPieCalloutLineItemStylerResult>({
+            color,
+            length: positiveNumber,
+            strokeWidth: positiveNumber,
+        }),
     },
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),

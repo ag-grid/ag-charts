@@ -125,7 +125,8 @@ export async function getGalleryExamplesJs({ galleryData, allGalleryData }: Gall
             .replaceAll(endRegex, '')
             .replaceAll(replaceNewlineToken, '\n')
             // Remove escaped quotes
-            .replaceAll('\\"', '"') +
+            .replaceAll('\\"', '"')
+            .replaceAll("\\'", "'") +
         '\n' +
         darkModeSnippet;
 

@@ -25,8 +25,9 @@ export abstract class AnnotationScene<D> extends _ModuleSupport.Group<D> {
     public abstract getCursor(): string | undefined;
     public abstract getNodeAtCoords(x: number, y: number): string | undefined;
 
-    public toggleHovered(hovered: boolean) {
-        this.toggleHandles(hovered);
+    public toggleHovered(hovered: boolean, active: boolean, readOnly: boolean | undefined) {
+        if (readOnly === true) return;
+        this.toggleHandles(hovered || active);
     }
 
     protected computeBBoxWithoutHandles() {

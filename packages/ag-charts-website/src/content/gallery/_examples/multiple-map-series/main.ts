@@ -11,13 +11,6 @@ import { islandTopology } from './islandTopology';
 
 const sizeDomain = [500, 0];
 
-function isFerryData(datum: DataType): datum is FerryDataType {
-    return '@id' in datum;
-}
-
-// Sort islands by population for progressive reveal
-const sortedIslandData = [...islandData].sort((a, b) => b.population - a.population);
-
 const options: AgTopologyChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -26,17 +19,8 @@ const options: AgTopologyChartOptions<DataType> = {
     subtitle: {
         text: 'Ferry and flight connections between popular Greek island destinations',
     },
-    animation: {
-        enabled: true,
-    },
     zoom: {
         enabled: true,
-        buttons: {
-            visible: 'zoomed',
-        },
-        enableAxisDragging: false,
-        enableScrolling: true,
-        enableSelecting: true,
     },
     series: [
         {
@@ -48,7 +32,7 @@ const options: AgTopologyChartOptions<DataType> = {
         {
             type: 'map-marker',
             title: 'Islands',
-            data: sortedIslandData,
+            data: islandData,
             topology: islandTopology,
             idKey: 'name',
             sizeKey: 'population',
@@ -61,16 +45,6 @@ const options: AgTopologyChartOptions<DataType> = {
                 highlightedItem: {
                     strokeWidth: 4,
                 },
-            },
-            label: {
-                enabled: true,
-                formatter: ({ datum }) => {
-                    if ('population' in datum && datum.population > 50000) {
-                        return datum.name;
-                    }
-                    return '';
-                },
-                placement: 'top',
             },
             tooltip: {
                 renderer: ({ datum }) => ({
@@ -93,7 +67,6 @@ const options: AgTopologyChartOptions<DataType> = {
             sizeDomain,
             strokeWidth: 2.5,
             strokeOpacity: 0.7,
-            lineDash: [0],
             highlight: {
                 highlightedItem: {
                     strokeWidth: 4,
@@ -101,9 +74,11 @@ const options: AgTopologyChartOptions<DataType> = {
                 },
             },
             tooltip: {
-                renderer: ({ datum }) => {
-                    const ferryName = isFerryData(datum) ? datum.int_name : 'Ferry Route';
-                    const duration = isFerryData(datum) && datum.duration ? datum.duration : null;
+                renderer: ({ datum }: { datum: DataType }) => {
+                    const ferry = datum as FerryDataType;
+                    const ferryName = ferry.int_name;
+                    const duration = ferry.duration;
+
                     return {
                         heading: '⛴️ Ferry Service',
                         title: ferryName,

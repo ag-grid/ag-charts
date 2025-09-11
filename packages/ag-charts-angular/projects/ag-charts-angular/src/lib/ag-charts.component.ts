@@ -16,7 +16,7 @@ export class AgCharts extends AgChartsBase<AgChartOptions> {
     public options: AgChartOptions = {};
 
     @Output()
-    public onChartReady: EventEmitter<AgChartInstance> = new EventEmitter();
+    public chartReady: EventEmitter<AgChartInstance> = new EventEmitter();
 
     constructor(
         elementDef: ElementRef,

@@ -282,6 +282,10 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "stroke": "#3d7ab0",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#3d7ab0",
       "strokeOpacity": 1,
       "strokeWidth": 5,
@@ -338,6 +342,10 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "stroke": "#b03d65",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#b03d65",
       "strokeOpacity": 1,
       "strokeWidth": 5,
@@ -393,6 +401,10 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "size": 7,
         "stroke": "#80b03d",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#80b03d",
       "strokeOpacity": 1,
@@ -745,6 +757,10 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 2,
         "groupId": "bar-year-grouped",
@@ -807,6 +823,10 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 2,
         "groupId": "bar-year-grouped",
@@ -875,6 +895,10 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "size": 7,
         "stroke": "#80a0c3",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#80a0c3",
       "strokeOpacity": 1,
@@ -1180,6 +1204,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "stroke": "#aa4520",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#f3622d",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -1240,6 +1268,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "size": 10,
         "stroke": "#b07513",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#fba71b",
       "strokeOpacity": 1,
@@ -1302,6 +1334,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "stroke": "#3d803d",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#57b757",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -1362,6 +1398,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "size": 10,
         "stroke": "#2d768d",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#41a9c9",
       "strokeOpacity": 1,
@@ -1424,6 +1464,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "stroke": "#2e3e8d",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#4258c9",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -1485,6 +1529,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "stroke": "#6c2e8c",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#9a42c8",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -1545,6 +1593,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "size": 10,
         "stroke": "#8c2d46",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#c84164",
       "strokeOpacity": 1,
@@ -1837,6 +1889,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
@@ -1900,6 +1956,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
@@ -1963,6 +2023,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
@@ -2026,6 +2090,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
@@ -2089,6 +2157,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
@@ -2152,6 +2224,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
@@ -2215,6 +2291,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
@@ -2278,6 +2358,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
@@ -2852,6 +2936,10 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "stroke": "#5BC0EB",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#5BC0EB",
       "strokeOpacity": 1,
       "strokeWidth": 3,
@@ -2907,6 +2995,10 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "size": 7,
         "stroke": "#FDE74C",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#FDE74C",
       "strokeOpacity": 1,
@@ -2964,6 +3056,10 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "stroke": "#9BC53D",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#9BC53D",
       "strokeOpacity": 1,
       "strokeWidth": 3,
@@ -3019,6 +3115,10 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "size": 7,
         "stroke": "#E55934",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#E55934",
       "strokeOpacity": 1,
@@ -3326,6 +3426,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3398,6 +3502,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3470,6 +3578,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3542,6 +3654,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3614,6 +3730,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -3860,6 +3980,10 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-grouped",
@@ -4113,6 +4237,10 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-job-grouped",
@@ -4908,6 +5036,10 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 2,
         "groupId": "bar-month-grouped",
@@ -4973,6 +5105,10 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 2,
         "groupId": "bar-month-grouped",
@@ -5282,6 +5418,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 2,
         "groupId": "bar-type-grouped",
@@ -5350,6 +5490,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 2,
         "groupId": "bar-type-grouped",
@@ -5660,6 +5804,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 7,
         "groupId": "bar-year-grouped",
@@ -5727,6 +5875,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 7,
         "groupId": "bar-year-grouped",
@@ -5794,6 +5946,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 7,
         "groupId": "bar-year-grouped",
@@ -5861,6 +6017,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 7,
         "groupId": "bar-year-grouped",
@@ -5928,6 +6088,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 7,
         "groupId": "bar-year-grouped",
@@ -5995,6 +6159,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 7,
         "groupId": "bar-year-grouped",
@@ -6062,6 +6230,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 7,
         "groupId": "bar-year-grouped",
@@ -6381,6 +6553,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "stroke": "#0b1791",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#0b1791",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -6442,6 +6618,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "size": 7,
         "stroke": "#f6d24a",
         "strokeWidth": 2,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#be2a2c",
       "strokeOpacity": 1,
@@ -6505,6 +6685,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "stroke": "#f6d24a",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -6566,6 +6750,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "size": 7,
         "stroke": "#ce1126",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#ce1126",
       "strokeOpacity": 1,
@@ -6629,6 +6817,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "stroke": "#ce1126",
         "strokeWidth": 2,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#002d62",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -6690,6 +6882,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "size": 7,
         "stroke": "#fade4b",
         "strokeWidth": 2,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#1b4e9e",
       "strokeOpacity": 1,
@@ -6753,6 +6949,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "stroke": "#be2a2c",
         "strokeWidth": 2,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -6814,6 +7014,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "size": 7,
         "stroke": "#0073cf",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#0073cf",
       "strokeOpacity": 1,
@@ -6877,6 +7081,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "stroke": "#469c65",
         "strokeWidth": 2,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#e88532",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -6938,6 +7146,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "size": 7,
         "stroke": "#fed100",
         "strokeWidth": 2,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#000000",
       "strokeOpacity": 1,
@@ -7001,6 +7213,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "stroke": "#ce1126",
         "strokeWidth": 2,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#006847",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -7062,6 +7278,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "size": 7,
         "stroke": "#1e5190",
         "strokeWidth": 2,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#c22b38",
       "strokeOpacity": 1,
@@ -7125,6 +7345,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "stroke": "#bf2b30",
         "strokeWidth": 2,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#042279",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -7186,6 +7410,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "size": 7,
         "stroke": "#4997d0",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#4997d0",
       "strokeOpacity": 1,
@@ -7249,6 +7477,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "stroke": "#2868c1",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#2868c1",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -7310,6 +7542,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "size": 7,
         "stroke": "#459945",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#459945",
       "strokeOpacity": 1,
@@ -7554,6 +7790,10 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "size": 7,
         "stroke": "#2b5c95",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#5090dc",
       "strokeOpacity": 1,
@@ -7862,6 +8102,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -7942,6 +8186,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8022,6 +8270,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8102,6 +8354,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8182,6 +8438,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8262,6 +8522,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8342,6 +8606,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "nodeClickRange": "nearest",
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-month-stacked",
@@ -8655,6 +8923,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       ],
       "lineDashOffset": 0,
       "normalizedTo": 1,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-area-stacked",
@@ -8724,6 +8996,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       ],
       "lineDashOffset": 0,
       "normalizedTo": 1,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-area-stacked",
@@ -8793,6 +9069,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       ],
       "lineDashOffset": 0,
       "normalizedTo": 1,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-area-stacked",
@@ -9101,6 +9381,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       ],
       "lineDashOffset": 0,
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -9167,6 +9451,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       ],
       "lineDashOffset": 0,
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -9233,6 +9521,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       ],
       "lineDashOffset": 0,
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -9299,6 +9591,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       ],
       "lineDashOffset": 0,
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -9365,6 +9661,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       ],
       "lineDashOffset": 0,
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -9431,6 +9731,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       ],
       "lineDashOffset": 0,
       "normalizedTo": 100,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -9774,6 +10078,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -9840,6 +10148,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -9906,6 +10218,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -9972,6 +10288,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "shadow": {
         "blur": 5,
         "color": "#00000080",
@@ -10220,6 +10540,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-year-grouped",
@@ -10847,6 +11171,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "stroke": "#01c185",
         "strokeWidth": 0,
       },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "stroke": "#01c185",
       "strokeOpacity": 1,
       "strokeWidth": 2,
@@ -10906,6 +11234,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "size": 7,
         "stroke": "#000000",
         "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
       },
       "stroke": "#000000",
       "strokeOpacity": 1,
@@ -11665,6 +11997,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -11741,6 +12077,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -11817,6 +12157,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -11893,6 +12237,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -11969,6 +12317,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -12045,6 +12397,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "area-date-stacked",
@@ -12356,6 +12712,10 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -12424,6 +12784,10 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -12492,6 +12856,10 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -12560,6 +12928,10 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-type-stacked",
@@ -12868,6 +13240,10 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-station-stacked",
@@ -12933,6 +13309,10 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-station-stacked",
@@ -12998,6 +13378,10 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-station-stacked",
@@ -13063,6 +13447,10 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-station-stacked",
@@ -13128,6 +13516,10 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         0,
       ],
       "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
       "seriesGrouping": {
         "groupCount": 1,
         "groupId": "bar-station-stacked",

@@ -48,7 +48,7 @@ const options: AgChartOptions<DataType> = {
             label: {
                 cornerRadius: 4,
                 fill: '#badaff',
-                padding: { top: 4, right: 6, bottom: 0, left: 6 },
+                padding: { top: 4, right: 6, bottom: 4, left: 6 },
                 border: {
                     enabled: true,
                     stroke: '#2c79d5',
@@ -63,7 +63,7 @@ const options: AgChartOptions<DataType> = {
                                 strokeWidth: 3,
                                 strokeOpacity: 1,
                             },
-                            padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                            padding: { top: 6, right: 8, bottom: 6, left: 8 },
                             fontWeight: 'bold',
                             color: '#fff',
                             fill: {
@@ -79,7 +79,7 @@ const options: AgChartOptions<DataType> = {
                                 strokeWidth: 3,
                                 strokeOpacity: 1,
                             },
-                            padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                            padding: { top: 6, right: 8, bottom: 6, left: 8 },
                             fontWeight: 'bold',
                             color: '#000',
                             fill: {
@@ -106,7 +106,7 @@ const options: AgChartOptions<DataType> = {
             label: {
                 cornerRadius: 4,
                 fill: '#fcc992',
-                padding: { top: 4, right: 6, bottom: 0, left: 6 },
+                padding: { top: 4, right: 6, bottom: 4, left: 6 },
                 border: {
                     enabled: true,
                     stroke: '#ea7e04',
@@ -121,7 +121,7 @@ const options: AgChartOptions<DataType> = {
                                 strokeWidth: 3,
                                 strokeOpacity: 1,
                             },
-                            padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                            padding: { top: 6, right: 8, bottom: 6, left: 8 },
                             fontWeight: 'bold',
                             color: '#fff',
                             fill: {
@@ -137,7 +137,7 @@ const options: AgChartOptions<DataType> = {
                                 strokeWidth: 3,
                                 strokeOpacity: 1,
                             },
-                            padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                            padding: { top: 6, right: 8, bottom: 6, left: 8 },
                             fontWeight: 'bold',
                             color: '#000',
                             fill: {
@@ -161,7 +161,7 @@ const options: AgChartOptions<DataType> = {
                 fill: '#999',
                 fillOpacity: 0.2,
                 cornerRadius: 16,
-                padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                padding: { top: 4, right: 8, bottom: 4, left: 8 },
                 formatter: (params) => {
                     return params.value + 'cm';
                 },
@@ -177,7 +177,7 @@ const options: AgChartOptions<DataType> = {
                 fill: '#999',
                 fillOpacity: 0.2,
                 cornerRadius: 16,
-                padding: { top: 6, right: 8, bottom: 4, left: 8 },
+                padding: { top: 4, right: 8, bottom: 4, left: 8 },
                 formatter: (params) => {
                     return params.value + 'kg';
                 },

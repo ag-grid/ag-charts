@@ -22,7 +22,7 @@ const options: AgChartOptions = {
                 {
                     text: '$100,000',
                     spacing: 4,
-                    fontSize: 48,
+                    fontSize: 40,
                     color: 'green',
                 },
             ],

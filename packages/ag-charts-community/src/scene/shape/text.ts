@@ -2,19 +2,19 @@ import {
     type BoxBounds,
     type FontOptions,
     type LineMetricsBox,
+    LineSplitter,
     type RequireOptional,
     cachedTextMeasurer,
-    calcLineHeight,
     createSvgElement,
     isArray,
     isString,
+    measureTextSegments,
     toFontString,
     toPlainText,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextSegment } from 'ag-charts-types';
+import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
-import { mergeDefaults } from '../../util/object';
 import { BBox } from '../bbox';
 import { SceneRefChangeDetection } from '../changeDetectable';
 import { Group } from '../group';
@@ -70,7 +70,12 @@ export class Text<D = unknown> extends Shape<D> {
             this.lines = [];
             this.richText ??= new Group();
             this.richText.setScene(this.scene);
-            this.richText.append(this.text.map(() => new Text({ trimText: false })));
+            this.richText.append(
+                this.text
+                    .flatMap((s) => s.text.split(LineSplitter))
+                    .filter(Boolean)
+                    .map(() => new Text({ trimText: false }))
+            );
         } else {
             const lines = this.text?.split('\n') ?? [];
             this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
@@ -80,7 +85,7 @@ export class Text<D = unknown> extends Shape<D> {
     @SceneRefChangeDetection({
         changeCb: (o: Text) => o.onTextChange(),
     })
-    text?: string | TextSegment[] = undefined;
+    text?: TextOrSegments = undefined;
 
     fontCache?: string = undefined;
 
@@ -190,7 +195,7 @@ export class Text<D = unknown> extends Shape<D> {
         this.generateTextMap();
         if (this.textMap?.size) {
             const bbox = BBox.merge(this.textMap.values());
-            bbox.x = this.x;
+            bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign);
             bbox.y = this.y;
             return bbox;
         }
@@ -198,6 +203,10 @@ export class Text<D = unknown> extends Shape<D> {
         const measuredTextBounds = Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign });
         if (this.boxing != null) measuredTextBounds.grow(this.boxPadding);
         return measuredTextBounds;
+    }
+
+    getTextMeasureBBox() {
+        return this.computeBBox();
     }
 
     getPlainText() {
@@ -218,35 +227,20 @@ export class Text<D = unknown> extends Shape<D> {
 
         this.textMap ??= new Map();
 
-        let index = 0;
-        let totalWidth = 0;
         let offsetY = 0;
-        const mainStyle = {
-            fill: this.fill,
-            fontSize: this.fontSize,
-            fontFamily: this.fontFamily,
-            fontStyle: this.fontStyle,
-            fontWeight: this.fontWeight,
-        };
-
-        for (const textNode of this.richText!.children() as Iterable<Text>) {
-            const { color, ...textSegment } = this.text[index++];
-            textNode.x = 0;
-            textNode.y = 0;
-            textNode.setProperties(mergeDefaults({ fill: color }, textSegment, mainStyle));
-            const textBBox = textNode.getBBox();
-            this.textMap.set(textNode, textBBox);
-            offsetY = Math.max(
-                offsetY,
-                textBBox.y + textBBox.height / 2 + (textNode.lineHeight ?? calcLineHeight(textNode.fontSize))
-            );
-            totalWidth += textBBox.x + textBBox.width;
-        }
-        let offsetX = this.x - totalWidth / 2;
-        for (const [textNode, bbox] of this.textMap) {
-            textNode.x += offsetX;
-            textNode.y += offsetY;
-            offsetX += bbox.width;
+        const textNodes = this.richText!.children();
+        for (const { width, height, ascent, segments } of measureTextSegments(this.text, this).lineMetrics) {
+            let offsetX = 0;
+            for (const { color, textMetrics, ...segment } of segments) {
+                const textNode = textNodes.next().value as Text;
+                textNode.x = this.x - width / 2 + offsetX;
+                textNode.y = ascent + offsetY;
+                textNode.setProperties({ ...segment, fill: color ?? this.fill });
+                const textBBox = textNode.getBBox();
+                this.textMap.set(textNode, textBBox);
+                offsetX += textMetrics.width;
+            }
+            offsetY += height;
         }
     }
 
@@ -260,19 +254,21 @@ export class Text<D = unknown> extends Shape<D> {
 
         if (isArray(this.text)) {
             this.generateTextMap();
-            const { width } = this.richText!.getBBox();
+            const richTextBBox = this.richText!.getBBox();
 
             let translateX = 0;
             switch (this.textAlign) {
                 case 'left':
                 case 'start':
-                    translateX = width / 2;
+                    translateX = richTextBBox.width / 2;
                     break;
 
                 case 'right':
                 case 'end':
-                    translateX = width / -2;
+                    translateX = richTextBBox.width / -2;
             }
+
+            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, this.y));
 
             ctx.save();
             ctx.translate(translateX, this.y);
@@ -313,24 +309,27 @@ export class Text<D = unknown> extends Shape<D> {
 
         ctx.textAlign = textAlign;
 
-        if (this.boxing) {
-            // Use the static version of computeBBox instead of a dynamic version. The `boxing: Rect` shape is drawn
-            // using the same matrix transformation of the text, so we want to ignore translation/rotation/scale
-            // transformations from derived classes. We only need to measure the width/height of the untransformed text
-            const textBBox = Text.computeBBox(this.lines, this.x, this.y, this);
-            if (textBBox.width !== 0 && textBBox.height !== 0) {
-                const { x, y, width, height } = textBBox.grow(this.boxPadding);
-                this.boxing.opacity = this.opacity;
-                this.boxing.x = x;
-                this.boxing.y = y;
-                this.boxing.width = width;
-                this.boxing.height = height;
-                this.boxing.preRender(renderCtx);
-                this.boxing.render(renderCtx);
-            }
-        }
-
+        this.renderBoxing(renderCtx);
         this.fillStroke(ctx);
+    }
+
+    private renderBoxing(renderCtx: RenderContext, bbox?: BBox): void {
+        if (!this.boxing) return;
+
+        // Use the static version of computeBBox instead of a dynamic version. The `boxing: Rect` shape is drawn
+        // using the same matrix transformation of the text, so we want to ignore translation/rotation/scale
+        // transformations from derived classes. We only need to measure the width/height of the untransformed text
+        const textBBox = bbox ?? Text.computeBBox(this.lines, this.x, this.y, this);
+        if (textBBox.width === 0 || textBBox.height === 0) return;
+
+        const { x, y, width, height } = textBBox.grow(this.boxPadding);
+        this.boxing.opacity = this.opacity;
+        this.boxing.x = x;
+        this.boxing.y = y;
+        this.boxing.width = width;
+        this.boxing.height = height;
+        this.boxing.preRender(renderCtx);
+        this.boxing.render(renderCtx);
     }
 
     protected override executeFill(ctx: CanvasRenderingContext2D) {
@@ -342,13 +341,13 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
-        const { x, y } = this;
+        const { x, y, lines } = this;
 
         if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
         const measurer = cachedTextMeasurer(this);
-        const { lines, textBaseline, lineHeight = calcLineHeight(this.fontSize) } = this;
         const { lineMetrics } = measurer.measureLines(lines);
+        const { textBaseline, lineHeight = lineMetrics[0].height } = this;
 
         let offsetY = 0;
         if (textBaseline === 'top') {

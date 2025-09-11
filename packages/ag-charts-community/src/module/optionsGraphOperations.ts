@@ -572,6 +572,10 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
         return graph.palette.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
     }
 
+    if (key === 'type') {
+        return graph.paletteType;
+    }
+
     const value = getPathSafe(graph.palette, key.split('.'));
 
     // TODO: what is mutating the palette? see integratedChartsCrossFiltering.test.ts
@@ -622,6 +626,10 @@ function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
         return graph.palette.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
     }
 
+    if (key === 'type') {
+        return graph.paletteType;
+    }
+
     const value = getPathSafe(graph.palette, key.split('.'));
 
     // TODO: what is mutating the palette? see integratedChartsCrossFiltering.test.ts
@@ -644,7 +652,6 @@ function pathOperationDependenciesFactory(
         const pathArray = graph.getPathArray(vertex);
         const path = resolvePath(pathArray, relativePath);
         if (path === UNRESOLVABLE_PATH) {
-            // throw new Error(`Unresolvable path [${relativePath}] at [${pathArray}]`);
             return;
         }
 
@@ -671,7 +678,6 @@ function pathOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     const pathArray = graph.getPathArray(vertex);
     const path = resolvePath(pathArray, relativePath);
     if (path === UNRESOLVABLE_PATH) {
-        // throw new Error(`Unresolvable path [${relativePath}] at [${pathArray.join('.')}]`);
         return;
     }
     const resolved = customBranch ? getPathSafe(customBranch, path) : graph.getResolvedPath(path);
@@ -683,8 +689,6 @@ function pathOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     if (hasDefaultValue) {
         return graph.resolveVertexValue(vertex, defaultValueVertex);
     }
-
-    // throw new Error(`dependency not found`);
 }
 
 function pathStringOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -728,6 +732,7 @@ enum TransformOperation {
     Omit = '$omit',
     Size = '$size',
     Shallow = '$shallow',
+    ShallowSimple = '$shallowSimple',
     Value = '$value',
 }
 
@@ -742,6 +747,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
     $omit: omitOperation,
     $size: sizeOperation,
     $shallow: shallowOperation,
+    $shallowSimple: shallowSimpleOperation,
     $value: valueOperation,
 };
 
@@ -973,6 +979,19 @@ function sizeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     if (!isObjectLike(value)) return 0;
     if ('length' in value) return value.length;
     return Object.keys(value).length;
+}
+
+// TODO: combine $shallow and $shallowSimple into a single operation
+function shallowSimpleOperation(
+    graph: OptionsGraphInterface,
+    _vertex: VertexInterface,
+    values: Array<VertexInterface>
+) {
+    const shallowValues = [];
+    for (const valueVertex of values) {
+        shallowValues.push(graph.getVertexValue(valueVertex));
+    }
+    return shallowValues;
 }
 
 function shallowOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {

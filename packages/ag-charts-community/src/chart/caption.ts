@@ -1,5 +1,13 @@
-import { EllipsisChar, createId, isArray, toPlainText, wrapText } from 'ag-charts-core';
-import type { FontStyle, FontWeight, TextAlign, TextSegment, TextWrap } from 'ag-charts-types';
+import {
+    createId,
+    isArray,
+    isSegmentTruncated,
+    isTextTruncated,
+    toPlainText,
+    wrapText,
+    wrapTextSegments,
+} from 'ag-charts-core';
+import type { FontStyle, FontWeight, TextAlign, TextOrSegments, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -38,7 +46,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     @Property
     @ProxyPropertyOnWrite('node')
-    text?: string | TextSegment[];
+    text?: TextOrSegments;
 
     @Property
     @ProxyPropertyOnWrite('node')
@@ -91,18 +99,24 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
         const { text, padding, wrapping } = this;
-
-        if (isArray(text)) return;
-
         const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth) - padding * 2;
         const maxHeight = this.maxHeight ?? containerHeight - padding * 2;
+        const options = { maxWidth, maxHeight, font: this, textWrap: wrapping };
+
         if (!isFinite(maxWidth) && !isFinite(maxHeight)) {
             this.node.text = text;
             return;
         }
-        const wrappedText = wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
+
+        let wrappedText;
+        if (isArray(text)) {
+            wrappedText = wrapTextSegments(text, options);
+            this.truncated = wrappedText.some(isSegmentTruncated);
+        } else {
+            wrappedText = wrapText(text ?? '', options);
+            this.truncated = isTextTruncated(wrappedText);
+        }
         this.node.text = wrappedText;
-        this.truncated = wrappedText.includes(EllipsisChar);
     }
 
     private updateA11yText(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {

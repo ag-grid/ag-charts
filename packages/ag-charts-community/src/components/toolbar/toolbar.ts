@@ -93,7 +93,6 @@ export abstract class BaseToolbar<
 
         for (let index = buttons.length; index < buttonWidgets.length; index++) {
             const button = this.buttonWidgets.at(index);
-            // this.toolbar.removeChild(button); // TODO
             button?.destroy();
         }
 

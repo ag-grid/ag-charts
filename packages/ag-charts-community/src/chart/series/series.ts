@@ -8,9 +8,11 @@ import {
     type RequireOptional,
     createId,
     isEmptyObject,
+    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
+    AgColorType,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
@@ -34,11 +36,12 @@ import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
+import { isGradientFill, isPatternFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { jsonDiff } from '../../util/json';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { mergeDefaults } from '../../util/object';
+import { mergeDefaults, without } from '../../util/object';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
@@ -56,7 +59,14 @@ import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
+import type {
+    DatumIndexType,
+    INodeEvent,
+    ISeries,
+    NodeDataDependencies,
+    SeriesNodeDatum,
+    SeriesNodeEventTypes,
+} from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
 
@@ -78,7 +88,7 @@ export enum SeriesNodePickMode {
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
 export type SeriesNodePickMatch = {
-    datum: SeriesNodeDatum<unknown>;
+    datum: SeriesNodeDatum<DatumIndexType>;
     distance: number;
 };
 
@@ -94,7 +104,7 @@ export type PickFocusInputs = {
 
 export type PickFocusOutputs = {
     datumIndex: number;
-    datum: SeriesNodeDatum<unknown>;
+    datum: SeriesNodeDatum<DatumIndexType>;
     otherIndex?: number;
     bounds: BBox | Path;
     movedBounds?: BBox;
@@ -103,12 +113,12 @@ export type PickFocusOutputs = {
 
 export type PickResult = {
     pickMode: SeriesNodePickMode;
-    datums: SeriesNodeDatum<unknown>[];
+    datums: SeriesNodeDatum<DatumIndexType>[];
     distance: number;
 };
 
 export type INodeEventConstructor<
-    TDatum extends SeriesNodeDatum<unknown>,
+    TDatum extends SeriesNodeDatum<DatumIndexType>,
     TSeries extends Series<any, TDatum, object, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > = new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries) => INodeEvent<T>;
@@ -116,8 +126,10 @@ export type INodeEventConstructor<
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
-export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent extends string = SeriesNodeEventTypes>
-    implements INodeEvent<TEvent>
+export class SeriesNodeEvent<
+    TDatum extends SeriesNodeDatum<DatumIndexType>,
+    TEvent extends string = SeriesNodeEventTypes,
+> implements INodeEvent<TEvent>
 {
     readonly datum: unknown;
     readonly seriesId: string;
@@ -127,7 +139,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent ext
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: ISeries<unknown, TDatum, unknown, unknown>
+        series: ISeries<DatumIndexType, TDatum, unknown, unknown>
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
@@ -138,7 +150,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent ext
     }
 }
 
-export type SeriesNodeDataContext<I, S = SeriesNodeDatum<I>, L = S> = {
+export type SeriesNodeDataContext<I extends DatumIndexType, S = SeriesNodeDatum<I>, L = S> = {
     itemId: string;
     nodeData: S[];
     labelData: L[];
@@ -162,7 +174,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     type = 'groupingChanged';
 
     constructor(
-        public series: Series<unknown, any, object, any>,
+        public series: Series<DatumIndexType, any, object, any>,
         public seriesGrouping: SeriesGrouping | undefined
     ) {}
 }
@@ -204,10 +216,10 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
-export type UnknownSeries = Series<unknown, SeriesNodeDatum<unknown>, object, SeriesProperties<object>>;
+export type UnknownSeries = Series<DatumIndexType, SeriesNodeDatum<DatumIndexType>, object, SeriesProperties<object>>;
 
 export abstract class Series<
-        TDatumIndex,
+        TDatumIndex extends DatumIndexType,
         TDatum extends SeriesNodeDatum<TDatumIndex>,
         TOpts extends object,
         TProps extends SeriesProperties<TOpts>,
@@ -366,7 +378,7 @@ export abstract class Series<
         return { inner: 1, outer: 0 };
     }
 
-    protected readonly ctx: ModuleContext;
+    public readonly ctx: ModuleContext;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
@@ -627,7 +639,7 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
-    protected getHighlightStateString(
+    public getHighlightStateString(
         datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
@@ -646,15 +658,15 @@ export abstract class Series<
         // Force re-check of layer z-index
         this.setSeriesIndex(this.declarationOrder);
 
-        if (currentHighlightState === previousHighlightState) {
+        // Check if there are any itemStylers that might need to react to highlight changes
+        const hasItemStylers = this.hasItemStylers();
+
+        if (!hasItemStylers && currentHighlightState === previousHighlightState) {
             this.hasChangesOnHighlight = false;
             return;
         }
 
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
-
-        // Check if there are any itemStylers that might need to react to highlight changes
-        const hasItemStylers = this.hasItemStylers();
 
         this.hasChangesOnHighlight =
             hasItemStylers ||
@@ -670,7 +682,7 @@ export abstract class Series<
         );
     }
 
-    protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
+    public isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
         return highlightedDatum?.series === this;
     }
 
@@ -692,6 +704,14 @@ export abstract class Series<
     }
 
     protected abstract hasItemStylers(): boolean;
+    protected filterItemStylerFillParams(fill: AgColorType | undefined) {
+        if (isGradientFill(fill)) {
+            return without(fill, ['bounds', 'colorSpace', 'gradient', 'reverse']);
+        } else if (isPatternFill(fill)) {
+            return without(fill, ['padding']);
+        }
+        return fill;
+    }
 
     protected getModuleTooltipParams() {
         return this.moduleMap
@@ -735,7 +755,7 @@ export abstract class Series<
         }
 
         for (const pickMode of selectedPickModes) {
-            let result: { datums: SeriesNodeDatum<unknown>[]; distance: number } | undefined;
+            let result: { datums: SeriesNodeDatum<DatumIndexType>[]; distance: number } | undefined;
 
             switch (pickMode) {
                 case SeriesNodePickMode.EXACT_SHAPE_MATCH: {
@@ -775,8 +795,8 @@ export abstract class Series<
         return this._pickNodeCache.set(key, undefined);
     }
 
-    protected pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
-        const datums: any[] = [];
+    protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
+        const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
             const datum = node.unsafeClosestDatum();
             if (datum != null && datum.missing !== true) {
@@ -968,9 +988,11 @@ export abstract class Series<
         const formatInContext = this.callWithContext.bind(this);
 
         const format = (formatParams: FormatterParams<any>) =>
-            label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
-            formatManager.format(formatInContext, formatParams) ??
-            String(value);
+            toPlainText(
+                label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
+                    formatManager.format(formatInContext, formatParams) ??
+                    String(value)
+            );
 
         const boundSeries = this.getFormatterContext(property);
         switch (property) {
@@ -1061,10 +1083,12 @@ export abstract class Series<
         if (itemStyler && params) {
             const highlight = this.ctx.highlightManager?.getActiveHighlight();
             const highlightStateString = this.getHighlightStateString(highlight, isHighlight, datumIndex);
+            const fill = this.filterItemStylerFillParams(markerStyle.fill);
 
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
+                fill,
                 ...params,
                 highlighted: isHighlight,
                 highlightState: highlightStateString,
@@ -1170,7 +1194,7 @@ export abstract class Series<
         }
     }
 
-    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    public cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, ...params);
     }
 

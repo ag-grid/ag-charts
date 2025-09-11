@@ -1,0 +1,62 @@
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+
+import { getData } from './data';
+
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    title: { text: 'Revenue & Growth vs Benchmark' },
+    data: getData(),
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    styler: (params) => {
+                        if (params.yKey.includes('benchmark')) {
+                            return { fill: 'lightgray' };
+                        } else return { fill: '#5090DC' };
+                    },
+                },
+            },
+            line: {
+                series: {
+                    marker: { enabled: false },
+                    strokeWidth: 4,
+                    styler: (params) => {
+                        if (params.yKey.includes('benchmark')) {
+                            return { stroke: 'lightgray' };
+                        } else return { stroke: '#5090DC' };
+                    },
+                },
+            },
+        },
+    },
+    series: [
+        { type: 'bar', xKey: 'year', yKey: 'revenue', yName: 'Revenue' },
+        { type: 'bar', xKey: 'year', yKey: 'revenue_benchmark', yName: 'Revenue Benchmark' },
+
+        { type: 'line', xKey: 'year', yKey: 'growth', yName: 'Growth' },
+        { type: 'line', xKey: 'year', yKey: 'growth_benchmark', yName: 'Growth Benchmark' },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom' },
+        {
+            type: 'number',
+            position: 'left',
+            title: { text: 'Revenue (M)' },
+            max: 500,
+            keys: ['revenue', 'revenue_benchmark'],
+        },
+        {
+            type: 'number',
+            position: 'right',
+            title: { text: 'Growth Rate (%)' },
+            nice: false,
+            max: 0.5,
+            min: -0.5,
+            keys: ['growth', 'growth_benchmark'],
+            label: { formatter: ({ value }) => `${(value * 100).toFixed(0)}%` },
+        },
+    ],
+};
+
+AgCharts.create(options);

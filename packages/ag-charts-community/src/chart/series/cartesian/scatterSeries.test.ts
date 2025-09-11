@@ -542,21 +542,9 @@ describe('ScatterSeries', () => {
             });
             describe('callbacks', () => {
                 test('context', () => {
-                    styler
-                        .expect()
-                        .nthCalledWithContext(0, c1)
-                        .nthCalledWithContext(1, c2)
-                        .nthCalledWithContext(2, c1)
-                        .nthCalledWithContext(3, c1)
-                        .nthCalledWithContext(4, c1)
-                        .nthCalledWithContext(5, c1)
-                        .nthCalledWithContext(6, c1)
-                        .nthCalledWithContext(7, c2)
-                        .nthCalledWithContext(8, c2)
-                        .nthCalledWithContext(9, c2)
-                        .nthCalledWithContext(10, c2)
-                        .nthCalledWithContext(11, c2)
-                        .toHaveBeenCalledTimes(12);
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
                 });
                 test('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
@@ -678,6 +666,118 @@ describe('ScatterSeries', () => {
             test('snapshot', async () => {
                 await compare();
             });
+        });
+        describe('size', () => {
+            beforeEach(async () => {
+                const opts: AgCartesianChartOptions<D, C> = {
+                    series: [
+                        {
+                            type: 'scatter',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            size: 4,
+                            styler: () => {
+                                return { size: 45 };
+                            },
+                        },
+                    ],
+                };
+                chart = AgCharts.create(prepareTestOptions(opts));
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+    });
+
+    describe('predict axes', () => {
+        it('number', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: 1,
+                        iphone: 140,
+                    },
+                    {
+                        quarter: 2,
+                        iphone: 124,
+                    },
+                    {
+                        quarter: 3,
+                        iphone: 112,
+                    },
+                    {
+                        quarter: 4,
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('category', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('time', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        quarter: new Date('2018-01-01'),
+                        iphone: 140,
+                    },
+                    {
+                        quarter: new Date('2018-04-01'),
+                        iphone: 124,
+                    },
+                    {
+                        quarter: new Date('2018-07-01'),
+                        iphone: 112,
+                    },
+                    {
+                        quarter: new Date('2018-10-01'),
+                        iphone: 118,
+                    },
+                ],
+                series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
         });
     });
 });

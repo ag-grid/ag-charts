@@ -52,7 +52,6 @@ const options: AgChartOptions = {
                 enabled: true,
                 style: [
                     {
-                        strokeWidth: 1,
                         lineDash: [2, 2],
                     },
                 ],

@@ -5,6 +5,9 @@ import {
     generateLabelSecondaryLabelFontSizeCandidates,
 } from './labelFormatter';
 
+// NOTE: We are rounding line heights in tests because while the browser font-height is always an integer,
+// in node-canvas it is a float due to the legacy text measurement implementation. (emHeightAscent/emHeightDescent)
+
 describe('label formatter', () => {
     describe('generateLabelSecondaryLabelFontSizeCandidates', () => {
         it('creates a font scale', () => {
@@ -77,7 +80,7 @@ describe('label formatter', () => {
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000, meta: undefined })
             )!;
-            expect(format.lineHeight).toEqual(23);
+            expect(Math.round(format.lineHeight)).toEqual(23);
         });
 
         it('shrinks a label to fit within smaller bounds', () => {
@@ -94,7 +97,7 @@ describe('label formatter', () => {
                 { padding: 5 },
                 () => ({ width: 40, height: 40, meta: undefined })
             )!;
-            expect(format.lineHeight).toEqual(15);
+            expect(Math.round(format.lineHeight)).toEqual(15);
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
@@ -111,7 +114,7 @@ describe('label formatter', () => {
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000, meta: undefined })
             )!;
-            expect(format.lineHeight).toEqual(23);
+            expect(Math.round(format.lineHeight)).toEqual(23);
         });
     });
 
@@ -172,7 +175,9 @@ describe('label formatter', () => {
                 () => ({ width: 50, height, meta: undefined })
             );
             expect(format).toMatchSnapshot();
-            expect(padding + format!.label!.height + spacing + format!.secondaryLabel!.height + padding).toBe(height);
+            expect(
+                Math.round(padding + format!.label!.height + spacing + format!.secondaryLabel!.height + padding)
+            ).toBe(height);
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {

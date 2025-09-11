@@ -294,7 +294,9 @@ export class MapShapeSeries
             meta: untruncatedX,
         };
         const labelFormatting = formatSingleLabel<number>(labelText, label, { padding }, (height, allowTruncation) => {
-            if (!allowTruncation) return maxSizeWithoutTruncation;
+            if (!allowTruncation) {
+                return maxSizeWithoutTruncation;
+            }
 
             const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
             return {
@@ -468,7 +470,7 @@ export class MapShapeSeries
         { datumIndex, datum, colorValue }: Partial<MapShapeNodeDatum>,
         isHighlight: boolean
     ): Required<AgMapShapeSeriesStyle> {
-        const { id: seriesId, properties, colorScale } = this;
+        const { properties, colorScale } = this;
         const { colorRange, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
@@ -486,18 +488,10 @@ export class MapShapeSeries
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-
+                    const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
-                        this.callWithContext(itemStyler, {
-                            seriesId,
-                            datum,
-                            highlighted: isHighlight,
-                            highlightState,
-                            ...style,
-                        })
+                        this.callWithContext(itemStyler, params)
                     );
                 }
             );
@@ -508,6 +502,28 @@ export class MapShapeSeries
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgMapShapeSeriesStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     private updateDatumStyles({
@@ -555,13 +571,11 @@ export class MapShapeSeries
     private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text>;
     }) {
+        const { properties } = this;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
-            const style = getLabelStyles<AgMapShapeSeriesLabelFormatterParams>(
-                this,
-                undefined,
-                this.properties,
-                this.properties.label
-            );
+            type P = AgMapShapeSeriesLabelFormatterParams;
+            const style = getLabelStyles<P>(this, undefined, properties, properties.label, false, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontFamily } = style;
             label.visible = true;
             label.x = x;
@@ -586,7 +600,7 @@ export class MapShapeSeries
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
@@ -600,9 +614,9 @@ export class MapShapeSeries
     }
 
     private _previousDatumMidPoint:
-        | { datum: _ModuleSupport.SeriesNodeDatum<unknown>; point: Point | undefined }
+        | { datum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>; point: Point | undefined }
         | undefined = undefined;
-    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum<unknown>): Point | undefined {
+    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>): Point | undefined {
         const { _previousDatumMidPoint } = this;
         if (_previousDatumMidPoint?.datum === datum) {
             return _previousDatumMidPoint.point;
@@ -755,6 +769,6 @@ export class MapShapeSeries
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

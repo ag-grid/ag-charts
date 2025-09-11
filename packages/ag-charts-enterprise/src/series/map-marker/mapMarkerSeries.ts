@@ -557,13 +557,11 @@ export class MapMarkerSeries
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
         >;
     }) {
+        const { properties } = this;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
-            const style = getLabelStyles<AgMapMarkerSeriesLabelFormatterParams>(
-                this,
-                undefined,
-                this.properties,
-                this.properties.label
-            );
+            type P = AgMapMarkerSeriesLabelFormatterParams;
+            const style = getLabelStyles<P>(this, undefined, properties, properties.label, false, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;
@@ -596,7 +594,7 @@ export class MapMarkerSeries
         { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
         isHighlight: boolean
     ): Required<AgMapMarkerSeriesStyle> {
-        const { id: seriesId, properties, colorScale, sizeScale } = this;
+        const { properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
@@ -618,16 +616,8 @@ export class MapMarkerSeries
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -636,6 +626,28 @@ export class MapMarkerSeries
             }
         }
         return style;
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgMapMarkerSeriesStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     private updateMarkerNodes(opts: {
@@ -702,7 +714,7 @@ export class MapMarkerSeries
         const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
 
         this.contextNodeData?.nodeData.forEach((datum) => {
             const { x, y, size } = datum.point;
@@ -924,6 +936,6 @@ export class MapMarkerSeries
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

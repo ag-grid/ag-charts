@@ -174,7 +174,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         const isVertical = this.isVertical();
         const mode = 'normal';
 
-        const barFns = prepareBarAnimationFunctions(midpointStartingBarPosition(isVertical, mode));
+        const barFns = prepareBarAnimationFunctions(midpointStartingBarPosition(isVertical, mode), 'unknown');
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], barFns);
     }
 
@@ -184,7 +184,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         const { processedData } = this;
         const dataDiff = processedData?.reduced?.diff?.[this.id];
 
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'fade'));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'fade'), 'added');
         motion.fromToMotion(
             this.id,
             'datums',

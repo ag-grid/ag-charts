@@ -296,7 +296,9 @@ export class BarSeries extends AbstractBarSeries<
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] | [] {
+        const selfDirection = this.properties.direction === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+        if (selfDirection !== direction) return [];
         const yKey = this.yCumulativeKey(this.dataModel!);
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
         return [Math.min(y0, 0), Math.max(y1, 0)];
@@ -694,15 +696,13 @@ export class BarSeries extends AbstractBarSeries<
             }
         }
 
-        // @todo(AG-8108): move to theme
-        const style = this.getStyle(false);
         const segments = calculateSegments(
             this.properties.segmentation,
             xAxis,
             yAxis,
             this.chart!.seriesRect!,
             this.ctx.scene
-        )?.map((segment) => ({ ...segment, ...mergeDefaults(segment, style) }));
+        );
 
         return {
             itemId: yKey,
@@ -793,6 +793,7 @@ export class BarSeries extends AbstractBarSeries<
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             seriesId,
@@ -804,10 +805,12 @@ export class BarSeries extends AbstractBarSeries<
             highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
+            fill,
         } satisfies CallbackParamRules<AgBarSeriesItemStylerParams<unknown, unknown>>;
     }
 
     private getStyle(
+        ignoreStylerCallback: boolean,
         highlighted: boolean,
         highlightState?: HighlightState
     ): Required<AgBarSeriesStyle> & { opacity: number } {
@@ -823,9 +826,14 @@ export class BarSeries extends AbstractBarSeries<
             styler,
         } = this.properties;
         let stylerResult: AgBarSeriesStyle = {};
-        if (styler) {
+        if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
@@ -849,7 +857,7 @@ export class BarSeries extends AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, this.getStyle(isHighlight, highlightState));
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, isHighlight, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -884,10 +892,11 @@ export class BarSeries extends AbstractBarSeries<
         datumSelection: Selection<BarNodeDatum, BarShape>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
-        datumSelection.each((node, datum) => {
-            if (!datumSelection.isGarbage(node)) {
-                datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        opts.datumSelection.each((node, datum) => {
+            if (!opts.datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
             }
         });
     }
@@ -955,11 +964,10 @@ export class BarSeries extends AbstractBarSeries<
             yName: this.properties.yName ?? this.properties.yKey,
             legendItemName: this.properties.legendItemName ?? this.properties.xName ?? this.properties.xKey,
         };
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-            updateLabelNode(this, textNode, params, this.properties.label, datum.label, isHighlight, highlightState);
+            updateLabelNode(this, textNode, params, this.properties.label, datum.label, isHighlight, activeHighlight);
         });
     }
 
@@ -1010,6 +1018,7 @@ export class BarSeries extends AbstractBarSeries<
     private legendItemSymbol(): LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
+            false,
             HighlightState.None
         );
 
@@ -1056,7 +1065,10 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'),
+            'unknown'
+        );
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
@@ -1077,7 +1089,10 @@ export class BarSeries extends AbstractBarSeries<
         );
 
         const mode = previousContextData == null ? 'fade' : 'normal';
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.isVertical(), this.axes, mode),
+            'added'
+        );
 
         fromToMotion(
             this.id,
@@ -1089,7 +1104,11 @@ export class BarSeries extends AbstractBarSeries<
             dataDiff
         );
 
-        if (dataDiff?.changed || !areScalingEqual(contextData.groupScale, previousContextData?.groupScale)) {
+        if (
+            !dataDiff ||
+            dataDiff?.changed ||
+            !areScalingEqual(contextData.groupScale, previousContextData?.groupScale)
+        ) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
@@ -1109,6 +1128,10 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

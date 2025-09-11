@@ -91,20 +91,8 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Station',
             },
-            label: {},
             bandHighlight: {
                 enabled: true,
-            },
-            gridLine: {
-                style: [
-                    {
-                        strokeWidth: 1,
-                        lineDash: [2, 2],
-                    },
-                    {
-                        strokeWidth: 0,
-                    },
-                ],
             },
         },
         {
@@ -127,12 +115,6 @@ const options: AgCartesianChartOptions = {
                         strokeWidth: 0,
                     },
                 ],
-            },
-            crosshair: {
-                enabled: true,
-                label: {
-                    enabled: true,
-                },
             },
         },
     ],

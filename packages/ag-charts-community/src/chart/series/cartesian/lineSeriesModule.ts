@@ -10,10 +10,12 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_STROKE_FILL_OPERATION,
+    SEGMENTATION_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
+import { predictCartesianTimeAxis } from './util';
 
 export const LineSeriesModule: SeriesModule<'line'> = {
     type: 'series',
@@ -24,6 +26,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     identifier: 'line',
     moduleFactory: (ctx) => new LineSeries(ctx),
     stackable: true,
+    predictAxis: predictCartesianTimeAxis,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -79,6 +82,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                 },
             },
             highlight: multiSeriesHighlightStyle(),
+            segmentation: SEGMENTATION_DEFAULTS,
         },
     },
 };

@@ -1,4 +1,4 @@
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgBubbleSeriesOptions } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
@@ -13,6 +13,7 @@ import {
 } from '../../themes/util';
 import { BubbleSeries } from './bubbleSeries';
 import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
+import { predictCartesianAxis } from './util';
 
 export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     type: 'series',
@@ -22,6 +23,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
 
     identifier: 'bubble',
     moduleFactory: (ctx) => new BubbleSeries(ctx),
+    predictAxis: predictCartesianAxis,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

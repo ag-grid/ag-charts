@@ -10,10 +10,12 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    SEGMENTATION_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
+import { predictCartesianTimeAxis } from './util';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
@@ -25,8 +27,19 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     moduleFactory: (ctx) => new BarSeries(ctx),
     stackable: true,
     groupable: true,
+    predictAxis: predictCartesianTimeAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     themeTemplate: {
+        zoom: {
+            autoScaling: {
+                enabled: {
+                    $and: [
+                        { $eq: [{ $path: '../axes' }, 'x'] },
+                        { $not: { $eq: [{ $path: '/series/0/direction' }, 'horizontal'] } },
+                    ],
+                },
+            },
+        },
         series: {
             direction: 'vertical',
             fill: {
@@ -77,6 +90,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 },
             },
             highlight: multiSeriesHighlightStyle(),
+            segmentation: SEGMENTATION_DEFAULTS,
         },
     },
 };

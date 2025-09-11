@@ -365,11 +365,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected getItemStyle({ datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>, isHighlight: boolean) {
-        const { id: seriesId, properties } = this;
-        const { xKey, yKey, itemStyler, stroke, strokeWidth, strokeOpacity } = properties;
+        const { properties } = this;
+        const { itemStyler, stroke, strokeWidth, strokeOpacity } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, {
+        const style = mergeDefaults(highlightStyle, {
             fill: this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : 'transparent',
             fillOpacity: 1,
             stroke,
@@ -381,22 +381,37 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         let overrides;
         if (itemStyler != null && datumIndex != null) {
             overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
-                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-
-                return this.callWithContext(itemStyler, {
-                    seriesId,
-                    datum,
-                    xKey,
-                    yKey,
-                    highlighted: isHighlight,
-                    highlightState,
-                    ...baseStyle,
-                });
+                const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
+                return this.callWithContext(itemStyler, params);
             });
         }
 
-        return overrides ? mergeDefaults(overrides, baseStyle) : baseStyle;
+        return overrides ? mergeDefaults(overrides, style) : style;
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgHeatmapSeriesStyle>
+    ) {
+        const { id: seriesId, properties } = this;
+        const { xKey, yKey } = properties;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            xKey,
+            yKey,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     protected override updateDatumStyles({
@@ -449,13 +464,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text>;
     }) {
-        type TParam = AgHeatmapSeriesLabelFormatterParams;
-        type TDatum = HeatmapLabelDatum;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((text, datum) => {
             text.pointerEvents = PointerEvents.None;
             text.text = datum.text;
             text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
-            updateLabelNode<TParam, TDatum>(this, text, this.properties, this.properties.label, datum);
+            type P = AgHeatmapSeriesLabelFormatterParams;
+            type D = HeatmapLabelDatum;
+            updateLabelNode<P, D>(this, text, this.properties, this.properties.label, datum, false, activeHighlight);
         });
     }
 
@@ -592,7 +608,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: Point): _ModuleSupport.SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(
+        point: Point
+    ): _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>[] {
         const item = findQuadtreeMatch(this, point);
         return item != null && item.distance <= 0 ? [item.datum] : [];
     }
@@ -602,6 +620,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

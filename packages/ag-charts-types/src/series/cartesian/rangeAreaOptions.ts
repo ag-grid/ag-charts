@@ -10,6 +10,8 @@ import type {
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
     AgSeriesHighlightStyle,
+    AgSeriesSegmentation,
+    AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -57,6 +59,8 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     connectMissingData?: boolean;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    /** Configuration for styling series as separate segments. */
+    segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
 }
 
 export interface AgRangeAreaSeriesOptionsKeys<TDatum = DatumDefault> {

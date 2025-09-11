@@ -18,7 +18,9 @@ export class CandlestickSeries extends OhlcSeriesBase<
     override properties = new CandlestickSeriesProperties<AgCandlestickSeriesOptions>();
 
     protected override nodeFactory() {
-        return new CandlestickNode();
+        const node = new CandlestickNode();
+        node.lineCap = 'butt';
+        return node;
     }
 
     protected override updateDatumStyles({
@@ -46,13 +48,8 @@ export class CandlestickSeries extends OhlcSeriesBase<
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { item } = this.properties;
-        const { up, down } = item;
-        const { strokeWidth: upStrokeWidth } = up;
-        const { strokeWidth: downStrokeWidth } = down;
-
         datumSelection.each((node, datum) => {
-            const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
+            const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const style =
                 datum.style ??
                 contextNodeData.styles[datum.itemId][
@@ -75,9 +72,6 @@ export class CandlestickSeries extends OhlcSeriesBase<
             node.wickStrokeOpacity = styleWick?.strokeOpacity;
             node.wickLineDash = styleWick?.lineDash;
             node.wickLineDashOffset = styleWick?.lineDashOffset;
-
-            // Ignore highlight style
-            node.strokeAlignment = (isRising ? upStrokeWidth : downStrokeWidth) / 2;
         });
     }
 

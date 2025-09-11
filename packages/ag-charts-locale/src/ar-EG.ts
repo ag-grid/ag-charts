@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'ألوان متعددة',
     ariaLabelColorPickerPalette: 'لوحة الألوان',
     ariaLabelFinancialCharts: 'الرسوم البيانية المالية',
+    ariaLabelGaugeTarget: 'الهدف',
+    ariaLabelGaugeValue: 'قيمة',
     ariaLabelLegend: 'الأسطورة',
     ariaLabelLegendItem: '${label}، عنصر العنوان التفسيري رقم ${index}[number] من ${count}[number]',
     ariaLabelLegendItemUnknown: 'عنصر غير معروف في الأسطورة',

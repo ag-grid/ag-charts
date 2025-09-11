@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Vícebarevný',
     ariaLabelColorPickerPalette: 'Paleta',
     ariaLabelFinancialCharts: 'Finanční grafy',
+    ariaLabelGaugeTarget: 'Cíl',
+    ariaLabelGaugeValue: 'Hodnota',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, položka legendy ${index}[number] z ${count}[number]',
     ariaLabelLegendItemUnknown: 'Neznámá položka legendy',

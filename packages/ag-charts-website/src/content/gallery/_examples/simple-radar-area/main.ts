@@ -12,9 +12,7 @@ const options: AgPolarChartOptions = {
     formatter: {
         radius: ({ value }) => `${value}%`,
     },
-    // Shared tooltips for multi-series comparison
     tooltip: {
-        mode: 'shared',
         position: {
             placement: ['top', 'bottom'],
         },
@@ -25,7 +23,6 @@ const options: AgPolarChartOptions = {
             angleKey: 'department',
             radiusKey: 'quality',
             radiusName: 'Quality',
-            strokeWidth: 2,
             fillOpacity: 0.3,
         },
         {
@@ -33,7 +30,6 @@ const options: AgPolarChartOptions = {
             angleKey: 'department',
             radiusKey: 'efficiency',
             radiusName: 'Efficiency',
-            strokeWidth: 2,
             fillOpacity: 0.3,
         },
         {
@@ -41,7 +37,6 @@ const options: AgPolarChartOptions = {
             angleKey: 'department',
             radiusKey: 'revenueGrowth',
             radiusName: 'Revenue Growth',
-            strokeWidth: 2,
             fillOpacity: 0.3,
         },
     ],
@@ -50,11 +45,6 @@ const options: AgPolarChartOptions = {
             type: 'angle-category',
             gridLine: {
                 enabled: true,
-                style: [
-                    {
-                        strokeWidth: 1,
-                    },
-                ],
             },
             line: {
                 enabled: false,
@@ -62,17 +52,6 @@ const options: AgPolarChartOptions = {
         },
         {
             type: 'radius-number',
-            gridLine: {
-                enabled: true,
-                style: [
-                    {
-                        strokeWidth: 1,
-                    },
-                ],
-            },
-            line: {
-                enabled: false,
-            },
         },
     ],
 };

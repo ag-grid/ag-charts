@@ -46,6 +46,7 @@ export class AnimationManager {
     private skipAnimations = true;
 
     private currentAnonymousAnimationId: number = 0;
+    private cumulativeAnimationTime: number = 0;
 
     constructor(
         private readonly interactionManager: InteractionManager,
@@ -174,6 +175,10 @@ export class AnimationManager {
         return this.batch.getRemainingTime(phase);
     }
 
+    public getCumulativeAnimationTime() {
+        return this.cumulativeAnimationTime;
+    }
+
     public skipCurrentBatch() {
         if (this.debug.check()) {
             this.debug(`AnimationManager - skipCurrentBatch()`, { stack: new Error().stack });
@@ -219,6 +224,7 @@ export class AnimationManager {
 
                     try {
                         this.batch.progress(deltaTime);
+                        this.cumulativeAnimationTime += deltaTime;
                     } catch (error: unknown) {
                         this.failsafeOnError(error);
                     }

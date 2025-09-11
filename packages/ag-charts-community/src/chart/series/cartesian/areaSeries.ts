@@ -22,7 +22,6 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { simpleMemorize2 } from '../../../util/memo';
@@ -47,7 +46,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
@@ -80,7 +79,6 @@ import {
     resetMarkerPositionFn,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
-import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 import { calculateSegments } from './util';
 
 const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
@@ -731,8 +729,6 @@ export class AreaSeries extends CartesianSeries<
             label,
             fill: seriesFill,
             stroke: seriesStroke,
-            strokeWidth,
-            strokeOpacity,
         } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -882,7 +878,7 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
-            styles: getMarkerStyles(this, marker, { stroke: seriesStroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker),
             segments,
         };
 
@@ -905,21 +901,8 @@ export class AreaSeries extends CartesianSeries<
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
-        // @todo(AG-8108): move to theme
-        const strokeStyle = {
-            fill: undefined,
-            stroke,
-            strokeWidth,
-            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
-            lineDash,
-            lineDashOffset,
-        };
-        const strokeSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
-            clipRect,
-            ...mergeDefaults(segmentStyle, strokeStyle),
-        }));
         strokePaths.setProperties({
-            segments: strokeSegments,
+            segments,
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
@@ -932,7 +915,7 @@ export class AreaSeries extends CartesianSeries<
             opacity,
             visible: visible || animationEnabled,
         });
-        strokePaths.datum = strokeSegments;
+        strokePaths.datum = segments;
 
         applyShapeStyle(
             fillPaths,
@@ -944,26 +927,15 @@ export class AreaSeries extends CartesianSeries<
             this.getShapeFillBBox()
         );
 
-        // @todo(AG-8108): move to theme
-        const fillStyle = {
-            fill,
-            stroke: undefined,
-            fillOpacity: fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
-        };
-        const fillSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
-            clipRect,
-            ...mergeDefaults(segmentStyle, fillStyle),
-        }));
-
         fillPaths.setProperties({
-            segments: fillSegments,
+            segments,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
         });
-        fillPaths.datum = fillSegments;
+        fillPaths.datum = segments;
 
         updateClipPath(this, strokePaths);
         updateClipPath(this, fillPaths);
@@ -1034,24 +1006,31 @@ export class AreaSeries extends CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.properties;
-        const stylerStyle = this.getStyle(isHighlight);
-        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                const stylerStyle = this.getStyle(isHighlight, highlightState);
+                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
                 const params = this.makeItemStylerParams(
                     this.dataModel!,
                     this.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
-                datum.style = this.getMarkerStyle<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
+                datum.style = this.getMarkerStyle(
                     marker,
                     datum,
                     params,
-                    { isHighlight },
+                    { isHighlight, highlightState },
                     stylerStyle.marker,
-                    { stroke, strokeWidth, strokeOpacity }
+                    {
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                    }
                 );
             }
         });
@@ -1099,10 +1078,7 @@ export class AreaSeries extends CartesianSeries<
         const params: AgAreaSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
-            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
-            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
-
-            const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
+            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
@@ -1174,12 +1150,14 @@ export class AreaSeries extends CartesianSeries<
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
             xValue,
             yValue,
             ...style,
+            fill,
         } satisfies CallbackParamRules<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>;
     }
 
@@ -1410,7 +1388,7 @@ export class AreaSeries extends CartesianSeries<
         let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            const cbResult = this.callWithContext(styler, stylerParams) ?? {};
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
                 cbResult,
@@ -1466,14 +1444,10 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
-    }
-
-    protected override initQuadTree(quadtree: QuadtreeNearest<MarkerSelectionDatum>) {
-        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
-    }
-
-    protected override pickNodeDataClosestDatum(point: Point): SeriesNodePickMatch | undefined {
-        return findQuadtreeMatch(this, point);
+        return (
+            this.properties.styler != null ||
+            this.properties.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

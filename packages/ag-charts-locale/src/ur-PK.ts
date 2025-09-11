@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'مختلف رنگ',
     ariaLabelColorPickerPalette: 'پیلیٹ',
     ariaLabelFinancialCharts: 'مالی چارٹ',
+    ariaLabelGaugeTarget: 'ہدف',
+    ariaLabelGaugeValue: 'قدر',
     ariaLabelLegend: 'علامات',
     ariaLabelLegendItem: '${label}, لیجنڈ آئٹم ${index}[number] میں سے ${count}[number]',
     ariaLabelLegendItemUnknown: 'نامعلوم علامات کی شے',

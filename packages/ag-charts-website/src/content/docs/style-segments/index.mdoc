@@ -1,0 +1,96 @@
+---
+title: 'Style Segments'
+---
+
+Style Segments allow customising the style of a series for defined ranges along an axis,
+making it easier to highlight thresholds, distinguish data ranges, or separate actual and predicted values.
+
+## Segmentation
+
+{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" /%}
+
+The `segmentation` option takes a `key` to determine which axis to use, and a `segments` array for the styles.
+
+```js
+series: [
+    {
+        type: 'area',
+        yKey: 'variance',
+        xKey: 'date',
+        strokeWidth: 2,
+        fillOpacity: 0.3,
+        fill: 'green', //used for the series
+        stroke: 'green', //used for the series
+        segmentation: {
+            key: 'y', //segment along the y-axis
+            segments: [
+                {
+                    stop: 0, //domain minimum until 0
+                    fill: 'red', //used for this segment
+                    stroke: 'red', //used for this segment
+                },
+            ],
+        },
+    },
+];
+```
+
+In this configuration:
+
+-   The series `fill` and `stroke` are red when values fall below 0 on the y-axis.
+-   The series `fill` and `stroke` are green when values are above 0 on the y-axis.
+-   Properties `fillOpacity` and `strokeWidth` not specified in the segment are inherited from the series.
+
+## Segmentation Key
+
+Set `segmentation.key: 'x'` to segment along the `xKey` axis, or `segmentation.key: 'y'` to segment along the `yKey` axis.
+
+{% chartExampleRunner title="Segmentation" name="segmentation-x-direction" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value',
+        segmentation: {
+            key: 'x',
+            segments: [
+                {
+                    start: new Date('2025-01-01'),
+                    lineDash: [5, 10],
+                },
+            ],
+        },
+    },
+];
+```
+
+In the example above:
+
+-   The series uses a solid stroke for 2024 and a dashed stroke for 2025 to distinguish actual and forecast data.
+
+## Segments
+
+Each segment in the `segments` array is defined by bounds and provides style overrides:
+
+-   **`start` / `stop`**
+
+    -   The axis range for the segment style to start and stop at.
+    -   Omit `start` to begin at the axis minimum or the `stop` of the previous segment.
+    -   Omit `stop` to end at the axis maximum or the `start` of the next segment.
+
+-   **Style properties**
+
+    -   These are the same styling keys available on the series, such as `stroke` and `fill`.
+    -   Unspecified properties fall back to the main series options or defaults.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgAreaSegmentOptions" label="Segment Options" %}
+{% apiReference id="AgSeriesShapeSegmentOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

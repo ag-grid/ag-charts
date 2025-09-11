@@ -1,4 +1,14 @@
-import { getMaxInnerRectSize, inRange, isArray, isObject, sortBasedOnArray, toArray, wrapText } from 'ag-charts-core';
+import {
+    type WrapOptions,
+    getMaxInnerRectSize,
+    inRange,
+    isArray,
+    isObject,
+    sortBasedOnArray,
+    toArray,
+    wrapText,
+    wrapTextSegments,
+} from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -224,7 +234,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
             if (maxWidth < MIN_CATEGORY_SPACING) return false;
 
             let text = tickFormatter(datum.label, index - 1);
-            const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
+            const labelStyles = this.getLabelStyles(
+                { value: datum.index, formattedValue: text, depth },
+                depthOptions[depth]?.label
+            );
 
             if (label.avoidCollisions) {
                 const rotation = optionsMap[depth].rotation;
@@ -234,14 +247,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     maxWidth = innerRect.width;
                     maxHeight = innerRect.height;
                 }
-                text =
-                    wrapText(text, {
-                        font: labelStyles,
-                        textWrap: optionsMap[depth].wrapping,
-                        overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',
-                        maxWidth,
-                        maxHeight,
-                    }) || text;
+                const wrapOptions: WrapOptions = {
+                    font: labelStyles,
+                    textWrap: optionsMap[depth].wrapping,
+                    overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',
+                    maxWidth,
+                    maxHeight,
+                };
+                text = isArray(text) ? wrapTextSegments(text, wrapOptions) : wrapText(text, wrapOptions) || text;
             }
 
             tempText.x = horizontal ? datum.screen : labelSpacing;

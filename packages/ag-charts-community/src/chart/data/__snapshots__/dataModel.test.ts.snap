@@ -4661,15 +4661,15 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         54.39,
       ],
       [
-        null,
+        15.01,
         61.72,
       ],
       [
-        null,
+        6.75,
         31.15,
       ],
       [
-        null,
+        2.79,
         15.23,
       ],
     ],
@@ -5009,15 +5009,15 @@ exports[`DataModel missing and invalid data processing should generated the expe
         54.39,
       ],
       [
-        null,
+        15.01,
         61.72,
       ],
       [
-        null,
+        6.75,
         31.15,
       ],
       [
-        null,
+        2.79,
         15.23,
       ],
     ],

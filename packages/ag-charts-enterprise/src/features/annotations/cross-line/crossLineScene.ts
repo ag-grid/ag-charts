@@ -188,7 +188,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     public drag(datum: CrossLineProperties, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         const { activeHandle, dragState } = this;
 
-        if (datum.locked || !dragState) return;
+        if (!datum.isWriteable() || !dragState) return;
 
         if (activeHandle) {
             this[activeHandle].toggleDragging(true);
@@ -198,7 +198,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public translate(datum: CrossLineProperties, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
-        if (datum.locked) return;
+        if (!datum.isWriteable()) return;
 
         const vector = HorizontalLineProperties.is(datum)
             ? Vec2.from(0, convert(datum.value, context.yAxis))

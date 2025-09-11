@@ -169,11 +169,8 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         super.render(renderCtx);
     }
 
-    drawPath(
-        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        path: Path2D = this.path.getPath2D()
-    ): void {
-        this.fillStroke(ctx, path);
+    drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): void {
+        this.fillStroke(ctx, this.path.getPath2D());
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

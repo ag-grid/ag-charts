@@ -30,10 +30,13 @@ function addValue() {
     const datum = data[optionsData.length % data.length];
     const newDatum = {
         ...datum,
-        date: `Nov ${optionsData.length + 1}`,
     };
-    const randomIndex = Math.floor(Math.random() * optionsData.length);
-    optionsData.splice(randomIndex, 0, newDatum);
-    options.data = optionsData;
+    if (optionsData.length % 2 === 0) {
+        newDatum.date = `Nov ${Math.floor(optionsData.length / 2) + 1}`;
+        options.data = [...optionsData, newDatum];
+    } else {
+        newDatum.date = `Oct ${31 - Math.floor(optionsData.length / 2)}`;
+        options.data = [newDatum, ...optionsData];
+    }
     chart.update(options);
 }

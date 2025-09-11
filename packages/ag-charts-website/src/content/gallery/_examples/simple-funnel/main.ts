@@ -14,12 +14,6 @@ const options: AgChartOptions = {
             stageKey: 'group',
             valueKey: 'value',
             spacingRatio: 0.3,
-            stageLabel: {
-                enabled: true,
-            },
-            label: {
-                enabled: true,
-            },
             tooltip: {
                 renderer: (params: any) => {
                     const value = params.datum[params.valueKey];

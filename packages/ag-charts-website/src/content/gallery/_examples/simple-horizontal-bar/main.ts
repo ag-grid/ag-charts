@@ -48,7 +48,6 @@ const options: AgCartesianChartOptions<DataType> = {
             title: {
                 text: 'Profession',
             },
-            label: {},
             bandHighlight: {
                 enabled: true,
             },
@@ -84,12 +83,6 @@ const options: AgCartesianChartOptions<DataType> = {
                         strokeWidth: 0,
                     },
                 ],
-            },
-            crosshair: {
-                enabled: true,
-                label: {
-                    enabled: true,
-                },
             },
         },
     ],

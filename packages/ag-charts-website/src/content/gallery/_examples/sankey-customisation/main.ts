@@ -76,7 +76,12 @@ const options: AgFlowProportionChartOptions = {
             },
             tooltip: {
                 renderer: ({ datum }: AgSankeySeriesTooltipRendererParams<any, any>) => {
+                    if (!datum) {
+                        return {};
+                    }
+
                     const value = datum.value;
+
                     const totalEnergy = 8302; // Total renewable energy in TWh
                     const percentage = ((value / totalEnergy) * 100).toFixed(1);
 

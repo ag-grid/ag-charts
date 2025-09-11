@@ -1,9 +1,16 @@
-import type { Size } from 'ag-charts-core';
-import type { AgSeriesSegmentation, AgSeriesShapeSegmentOptions } from 'ag-charts-types';
+import { type Size, isDate, isEmptyObject, isNumber, isObject } from 'ag-charts-core';
+import type {
+    AgCartesianSeriesOptions,
+    AgSeriesSegmentation,
+    AgSeriesShapeSegmentOptions,
+    DatumDefault,
+} from 'ag-charts-types';
 
+import type { SeriesPredictAxis } from '../../../module/coreModules';
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 
 function isAxisReversed(axis: ChartAxis) {
     return axis.isReversed() !== axis.range[1] < axis.range[0];
@@ -17,7 +24,7 @@ export function calculateSegments(
     chartSize: Size,
     applyOffset: boolean = true
 ) {
-    if (segmentation.segments.length === 0) {
+    if (xAxis.scale.domain.length === 0 || yAxis.scale.domain.length === 0) {
         return;
     }
 
@@ -53,6 +60,11 @@ export function calculateSegments(
 
         let previousDefinedStopIndex = -1;
         for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+            if (isEmptyObject(segment)) {
+                continue;
+            }
+
             const { start, stop, ...styles } = segments[i];
 
             const startFallback = segments[previousDefinedStopIndex]?.stop;
@@ -60,6 +72,12 @@ export function calculateSegments(
 
             let startPosition = scale.convert(start ?? startFallback) - offset;
             let stopPosition = scale.convert(stop ?? stopFallback) + 2 * offset;
+
+            const invalidStart = start != null && isNaN(startPosition);
+            const invalidStop = stop != null && isNaN(stopPosition);
+            if (invalidStart || invalidStop) {
+                continue;
+            }
 
             if (isNaN(startPosition)) startPosition = getDefaultStart();
             if (isNaN(stopPosition)) stopPosition = getDefaultStop();
@@ -83,4 +101,91 @@ export function calculateSegments(
 
         return { clipRect: { x0, y0, x1, y1 }, ...style };
     });
+}
+
+export const TIME_AXIS_KEYS = new Set(['time', 'timestamp', 'date', 'datetime']);
+
+export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOptions>(
+    direction: ChartAxisDirection,
+    datum: DatumDefault,
+    seriesOptions: SeriesOptions
+): SeriesPredictAxis<SeriesOptions['type']> | undefined {
+    if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
+    if (!isObject(datum)) return;
+
+    const key = getSeriesOptionsKey(direction, seriesOptions);
+    if (key == null || !(key in datum)) return;
+
+    const value = datum[key];
+    const position = getAxisPosition(direction, seriesOptions);
+
+    const timeAxis = predictTimeAxisType(key, value);
+    if (timeAxis) {
+        return { type: timeAxis, position };
+    }
+
+    if (typeof value === 'number') {
+        return {
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position,
+        };
+    }
+
+    return {
+        type: CARTESIAN_AXIS_TYPE.CATEGORY,
+        position,
+    };
+}
+
+export function predictCartesianTimeAxis<SeriesOptions extends AgCartesianSeriesOptions>(
+    direction: ChartAxisDirection,
+    datum: DatumDefault,
+    seriesOptions: SeriesOptions
+): SeriesPredictAxis<SeriesOptions['type']> | undefined {
+    if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
+    if (!isObject(datum)) return;
+
+    const key = getSeriesOptionsKey(direction, seriesOptions);
+    if (key == null || !(key in datum)) return;
+
+    const position = getAxisPosition(direction, seriesOptions);
+    const type = predictTimeAxisType(key, datum[key]);
+    if (!type) return;
+
+    return { type, position };
+}
+
+export function predictTimeAxisType(key: string, value: unknown) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
+        return CARTESIAN_AXIS_TYPE.TIME;
+    }
+}
+
+function getSeriesOptionsKey<SeriesOptions extends AgCartesianSeriesOptions>(
+    direction: ChartAxisDirection,
+    seriesOptions: SeriesOptions
+) {
+    let key: string | undefined;
+
+    if (direction === ChartAxisDirection.X) {
+        if ('xKey' in seriesOptions) {
+            key = seriesOptions.xKey;
+        }
+    } else if (direction === ChartAxisDirection.Y) {
+        if ('yKey' in seriesOptions) {
+            key = seriesOptions.yKey;
+        }
+    }
+
+    return key;
+}
+
+function getAxisPosition<SeriesOptions extends AgCartesianSeriesOptions>(
+    direction: ChartAxisDirection,
+    seriesOptions: SeriesOptions
+) {
+    if ('direction' in seriesOptions && seriesOptions.direction === 'horizontal') {
+        return direction === ChartAxisDirection.X ? CARTESIAN_POSITION.LEFT : CARTESIAN_POSITION.BOTTOM;
+    }
+    return direction === ChartAxisDirection.X ? CARTESIAN_POSITION.BOTTOM : CARTESIAN_POSITION.LEFT;
 }

@@ -7,6 +7,7 @@ const {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     SAFE_FILL_OPERATION,
+    SEGMENTATION_DEFAULTS,
 } = _ModuleSupport;
 
 export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['themeTemplate'] = {
@@ -35,7 +36,12 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
         },
         stroke: { $palette: 'stroke' },
         strokeWidth: 2,
+        fillOpacity: 1,
+        strokeOpacity: 1,
+        lineDash: undefined,
+        lineDashOffset: 0,
         highlight: multiSeriesHighlightStyle(),
+        segmentation: SEGMENTATION_DEFAULTS,
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {

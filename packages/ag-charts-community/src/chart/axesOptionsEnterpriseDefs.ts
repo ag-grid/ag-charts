@@ -9,7 +9,6 @@ import {
     positiveNumber,
     ratio,
     required,
-    string,
     union,
 } from 'ag-charts-core';
 import type {
@@ -34,7 +33,7 @@ import {
     continuousAxisOptions,
     discreteTimeAxisIntervalOptionsDefs,
 } from './axesOptionsDefs';
-import { numberFormatValidator } from './commonOptionsDefs';
+import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
@@ -63,14 +62,8 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     },
 };
 
-const invalidOptionsFromIntegratedCharts: OptionsDefs<AgAngleCategoryAxisOptions> = {
-    // @ts-expect-error integrated sets this from the formatting panel, but it isn't relevant.
-    innerRadiusRatio: ratio,
-};
-
 export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
-    ...invalidOptionsFromIntegratedCharts,
     type: required(constant('angle-category')),
     shape: union('polygon', 'circle'),
     crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
@@ -83,6 +76,9 @@ export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOption
         orientation: union('fixed', 'parallel', 'perpendicular'),
     },
 };
+
+// @ts-expect-error integrated sets this from the formatting panel, but it isn't relevant.
+angleCategoryAxisOptionsDefs.innerRadiusRatio = ratio;
 
 export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
@@ -103,7 +99,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     ),
     title: {
         enabled: boolean,
-        text: string,
+        text: textOrSegments,
         spacing: positiveNumber,
         formatter: callback,
         ...fontOptionsDef,
@@ -135,7 +131,7 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
     ),
     title: {
         enabled: boolean,
-        text: string,
+        text: textOrSegments,
         spacing: positiveNumber,
         formatter: callback,
         ...fontOptionsDef,

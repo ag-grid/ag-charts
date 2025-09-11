@@ -7,6 +7,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
@@ -219,6 +220,26 @@ describe('LinearGaugeSeries', () => {
 
             chart = deproxy(AgCharts.createGauge(options));
             await compare();
+        });
+    });
+
+    describe('AG-15830 hover over label', () => {
+        it('should not throw exceptions', async () => {
+            const options: AgLinearGaugeOptions = {
+                type: 'linear-gauge',
+                direction: 'horizontal',
+                title: { text: 'Performance Level' },
+                value: 55,
+                scale: { min: 0, max: 100 },
+                label: { placement: 'inside-end' },
+                tooltip: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.createGauge(options));
+
+            await waitForChartStability(chart);
+            await hoverAction(750, 320)(chart);
+            expect(0).toBe(0); // do nothing (just check MockConsole warn/error output).
         });
     });
 });

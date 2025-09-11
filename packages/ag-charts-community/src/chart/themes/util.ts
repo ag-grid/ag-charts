@@ -415,6 +415,7 @@ export const LEGEND_CONTAINER_THEME: any = {
 };
 
 export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
+    enabled: false,
     key: 'x',
     segments: {
         $apply: [
@@ -430,7 +431,25 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 },
                 stroke: { $path: '../../../stroke' },
                 fillOpacity: { $path: '../../../fillOpacity' },
-                strokeWidth: { $path: '../../../strokeWidth' },
+                strokeWidth: {
+                    $isUserOption: [
+                        './stroke',
+                        {
+                            $isUserOption: [
+                                '../../../strokeWidth',
+                                { $path: '../../../strokeWidth' },
+                                {
+                                    $if: [
+                                        { $greaterThan: [{ $path: '../../../strokeWidth' }, 0] },
+                                        { $path: '../../../strokeWidth' },
+                                        2,
+                                    ],
+                                },
+                            ],
+                        },
+                        { $path: '../../../strokeWidth' },
+                    ],
+                },
                 strokeOpacity: { $path: '../../../strokeOpacity' },
                 lineDash: { $path: '../../../lineDash' },
                 lineDashOffset: { $path: '../../../lineDashOffset' },

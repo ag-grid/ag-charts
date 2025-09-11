@@ -58,19 +58,6 @@ type AnnotationAxis = {
 };
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    // TODO: We no longer have a mechanism for detecting if the module was previously disabled and is now enabled.
-    // @ObserveChanges<Annotations>((target, newValue?: boolean, oldValue?: boolean) => {
-    //     const {
-    //         ctx: { annotationManager, stateManager },
-    //     } = target;
-
-    //     if (newValue === oldValue) return;
-
-    //     // Restore the annotations only if this module was previously disabled
-    //     if (oldValue === false && newValue === true) {
-    //         stateManager.restoreState(annotationManager);
-    //     }
-    // })
     @Property
     public enabled: boolean = true;
 
@@ -117,6 +104,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
+    private postUpdateFns: Array<() => void> = [];
+
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.state = this.setupStateMachine();
@@ -128,7 +117,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.ctx.historyManager.addMementoOriginator(this.defaults);
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
 
-        this.cleanup.register(() => this.clear());
+        this.cleanup.register(() => {
+            this.clear();
+            this.xAxis?.button?.destroy();
+            this.yAxis?.button?.destroy();
+        });
     }
 
     private setupStateMachine() {
@@ -145,12 +138,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number, previousHovered?: number) => {
-                let hovered;
+                let hovered: number | undefined;
 
-                this.annotations.each((annotation, _, index) => {
+                this.annotations.each((annotation, datum, index) => {
+                    if (!datum.isHoverable()) return;
                     const contains = annotation.containsPoint(coords.x, coords.y);
                     if (contains) hovered ??= index;
-                    annotation.toggleHovered(contains || active === index);
+                    annotation.toggleHovered(contains, active === index, datum.readOnly);
                 });
 
                 if (hovered != null) {
@@ -159,10 +153,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ctx.tooltipManager.unsuppressTooltip('annotations');
                 }
 
-                this.ctx.domManager.updateCursor(
-                    'annotations',
-                    hovered == null ? undefined : this.annotations.at(hovered)?.getCursor()
-                );
+                if (hovered == null || !this.annotationData.at(hovered)?.readOnly) {
+                    this.ctx.domManager.updateCursor(
+                        'annotations',
+                        hovered == null ? undefined : this.annotations.at(hovered)?.getCursor()
+                    );
+                }
 
                 if (hovered !== previousHovered) {
                     this.update();
@@ -217,8 +213,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbar.clearActiveButton();
                 toolbar.resetButtonIcons();
 
-                const selectedNode = index != null ? annotations.at(index) as AnnotationSceneUnion : null;
-                const previousNode = previous != null ? annotations.at(previous) as AnnotationSceneUnion  : null;
+                const selectedNode = index != null ? annotations.at(index) : null;
+                const previousNode = previous != null ? annotations.at(previous)  : null;
+                const selectedDatum = index != null ? this.annotationData.at(index) : null;
 
                 // Only change anything else if a different node has been selected or when deselecting
                 if (previousNode === selectedNode && selectedNode != null) {
@@ -231,7 +228,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
 
-                if (selectedNode) {
+                if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     optionsToolbar.updateButtons(this.annotationData.at(index!)!);
@@ -272,7 +269,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             deleteAll: () => {
+                // Filter the readOnly data and recreate the array since this is not a standard array.
+                const readOnly = this.annotationData.filter((datum) => {
+                    if (datum.readOnly === true) return datum;
+                });
                 this.annotationData.splice(0, this.annotationData.length);
+                for (const datum of readOnly) {
+                    this.annotationData.push(datum);
+                }
             },
 
             validatePoint: (point: Point, options?: { overflowContinuous: boolean }) => {
@@ -510,7 +514,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             optionsToolbar.events.on('pressed-settings', ({ sourceEvent }) => {
                 this.state.transition('toolbarPressSettings', sourceEvent);
             }),
-            optionsToolbar.events.on('pressed-lock', () => {
+            optionsToolbar.events.on('pressed-lock', ({ locked }) => {
+                this.recordActionAfterNextUpdate(locked ? 'Locked' : 'Unlocked');
                 this.update();
             }),
             optionsToolbar.events.on('hid-overlays', () => {
@@ -787,7 +792,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
         const bounds = new BBox(0, 0, seriesRect.width, seriesRect.height).grow(padding, axisPosition);
 
-        const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
+        const lineDirection = direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
         const { axesButtons, snap } = this;
         const buttonEnabled =
@@ -894,8 +899,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.postUpdateFns.forEach((fn) => fn());
         this.postUpdateFns = [];
     }
-
-    private postUpdateFns: Array<() => void> = [];
 
     private getAnnotationContext(): AnnotationContext | undefined {
         const { seriesRect, xAxis, yAxis, snap } = this;

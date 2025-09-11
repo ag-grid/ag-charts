@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Πολύχρωμο',
     ariaLabelColorPickerPalette: 'Παλέτα',
     ariaLabelFinancialCharts: 'Χρηματοοικονομικά γραφήματα',
+    ariaLabelGaugeTarget: 'Στόχος',
+    ariaLabelGaugeValue: 'Αξία',
     ariaLabelLegend: 'Υπόμνημα',
     ariaLabelLegendItem: '${label}, Στοιχείο υπόμνημα ${index}[number] από ${count}[number]',
     ariaLabelLegendItemUnknown: 'Άγνωστο στοιχείο υπόμνημα',

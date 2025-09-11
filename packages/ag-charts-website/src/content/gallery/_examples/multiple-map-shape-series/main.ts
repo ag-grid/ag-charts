@@ -62,15 +62,8 @@ const options: AgTopologyChartOptions = {
             topologyIdKey: 'NAME_ENGL',
             labelKey: 'iso2',
             labelName: 'Country Code',
-            label: {},
             fillOpacity: 0.85,
             strokeWidth: 0.5,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 1,
-                    strokeWidth: 2,
-                },
-            },
             tooltip: {
                 renderer: ({ datum }: { datum: CountryData }) => {
                     const gdpPerCapita =
@@ -96,17 +89,11 @@ const options: AgTopologyChartOptions = {
     ],
     zoom: {
         enabled: true,
-        buttons: {
-            visible: 'zoomed',
-        },
     },
     legend: {
         enabled: true,
         position: 'right',
         item: { marker: { shape: 'circle' } },
-    },
-    animation: {
-        enabled: true,
     },
 };
 

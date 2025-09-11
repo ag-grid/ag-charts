@@ -476,28 +476,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         { datumIndex, datum }: Partial<PyramidNodeDatum>,
         isHighlight: boolean
     ): Required<AgPyramidSeriesStyle> {
-        const { id: seriesId, properties } = this;
-        const { stageKey, valueKey, itemStyler } = properties;
+        const { properties } = this;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
         let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        stageKey,
-                        valueKey,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -507,6 +498,31 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        datum: unknown,
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<AgPyramidSeriesStyle>
+    ) {
+        const { id: seriesId, properties } = this;
+        const { stageKey, valueKey } = properties;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            stageKey,
+            valueKey,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            fill,
+        };
     }
 
     private updateDatumStyles({
@@ -562,9 +578,17 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
     }) {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, nodeDatum, datumIndex) => {
             const { visible, x, y, text, textAlign, textBaseline } = nodeDatum;
-            const style = getLabelStyles(this, undefined, this.properties, opts.labelProperties);
+            const style = getLabelStyles(
+                this,
+                undefined,
+                this.properties,
+                opts.labelProperties,
+                false,
+                activeHighlight
+            );
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
             label.visible = visible;
             label.x = x;
@@ -658,7 +682,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
@@ -739,6 +763,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

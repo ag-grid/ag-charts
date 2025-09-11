@@ -1,5 +1,6 @@
 import {
     type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
     type FillOptions,
     type LineDashOptions,
@@ -366,10 +367,11 @@ export class SankeySeries extends FlowProportionSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<SankeyNodeLabelDatum, _ModuleSupport.TransformableText>;
     }) {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, datum) => {
             const { x, y, leading, text } = datum;
             const params: AgSankeySeriesLabelFormatterParams = datum;
-            const style = getLabelStyles(this, undefined, params, this.properties.label);
+            const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x;
@@ -393,12 +395,8 @@ export class SankeySeries extends FlowProportionSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
 
-    protected getNodeStyle(
-        { datumIndex, datum, size = 0, label }: Partial<SankeyNodeDatum>,
-        fromNodeDatumIndex: number,
-        isHighlight: boolean
-    ) {
-        const { id: seriesId, properties } = this;
+    protected getNodeStyle(nodeDatum: Partial<SankeyNodeDatum>, fromNodeDatumIndex: number, isHighlight: boolean) {
+        const { properties } = this;
         const {
             fills,
             strokes,
@@ -415,7 +413,7 @@ export class SankeySeries extends FlowProportionSeries<
         }));
         const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex % defaultPatternFills.length];
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(false, fills, strokes, fromNodeDatumIndex));
         const hasNodeFill = properties.node.fill != null;
         let style = getShapeStyle(
@@ -427,22 +425,12 @@ export class SankeySeries extends FlowProportionSeries<
             fillImageDefaults
         );
 
-        if (itemStyler != null && datumIndex != null) {
+        if (itemStyler != null && nodeDatum.datumIndex != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
+                createDatumId(nodeDatum.datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                        size,
-                        label,
-                    });
+                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -460,6 +448,29 @@ export class SankeySeries extends FlowProportionSeries<
         style.opacity = 1;
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        { datum, datumIndex, size = 0, label }: Partial<SankeyNodeDatum>,
+        isHighlight: boolean,
+        style: Required<AgSankeySeriesNodeStyle>
+    ) {
+        const { id: seriesId } = this;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum,
+            highlighted: isHighlight,
+            highlightState,
+            ...style,
+            size,
+            label,
+            fill,
+        };
     }
 
     protected updateNodeNodes(opts: {
@@ -681,6 +692,10 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.node.itemStyler != null || this.properties.link.itemStyler != null;
+        return (
+            this.properties.node.itemStyler != null ||
+            this.properties.link.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

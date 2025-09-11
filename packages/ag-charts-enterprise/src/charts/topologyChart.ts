@@ -4,7 +4,7 @@ import type { AgTopologyChartOptions } from 'ag-charts-types';
 const { Chart, MercatorScale, ChartAxisDirection, Property } = _ModuleSupport;
 
 function isTopologySeries(
-    series: _ModuleSupport.Series<unknown, any, object, any>
+    series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>
 ): series is _ModuleSupport.ITopology {
     return (
         series.type === 'map-shape' ||

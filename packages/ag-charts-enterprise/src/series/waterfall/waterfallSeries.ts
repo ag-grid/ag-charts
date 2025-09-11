@@ -543,7 +543,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         highlightState?: _ModuleSupport.HighlightState,
         itemId: AgWaterfallSeriesItemType = 'total'
     ): Required<AgWaterfallSeriesStyle> {
-        const { id: seriesId, properties } = this;
+        const { properties } = this;
         const { datumIndex = 0, datum } = nodeDatum ?? {};
 
         const propertyItemId = itemId === 'subtotal' ? 'total' : itemId;
@@ -552,28 +552,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
         const { itemStyler } = item;
-        const { xKey, yKey } = properties;
 
         let style = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const params = this.makeItemStylerParams(itemId, datumIndex, datum, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`, 'item', propertyItemId],
-                        this.callWithContext(itemStyler, {
-                            seriesId,
-                            itemId,
-                            datum,
-                            xKey,
-                            yKey,
-                            highlighted: isHighlight,
-                            highlightState: highlightStateString,
-                            ...style,
-                        })
+                        this.callWithContext(itemStyler, params)
                     );
                 }
             );
@@ -583,6 +572,33 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        itemId: AgWaterfallSeriesItemType,
+        datumIndex: number,
+        datum: unknown,
+        isHighlight: boolean,
+        style: Required<AgWaterfallSeriesStyle>
+    ) {
+        const { id: seriesId, properties } = this;
+        const { xKey, yKey } = properties;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            itemId,
+            datum,
+            xKey,
+            yKey,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            ...style,
+            fill,
+        };
     }
 
     protected override updateDatumStyles({
@@ -655,10 +671,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             yKey: this.properties.yKey,
             yName: this.properties.yName ?? this.properties.yName,
         };
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
             params.itemId = datum.itemId;
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.getItemConfig(datum.itemId).label, datum.label);
+            const label = this.getItemConfig(datum.itemId).label;
+            updateLabelNode(this, textNode, params, label, datum.label, false, activeHighlight);
         });
     }
 
@@ -773,7 +791,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     override animateEmptyUpdateReady(opts: WaterfallAnimationData) {
         const { datumSelection, labelSelection, contextData } = opts;
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'),
+            'unknown'
+        );
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
@@ -966,6 +987,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override hasItemStylers(): boolean {
         const { positive, negative, total } = this.properties.item;
-        return positive.itemStyler != null || negative.itemStyler != null || total.itemStyler != null;
+        return (
+            positive.itemStyler != null ||
+            positive.label.itemStyler != null ||
+            negative.itemStyler != null ||
+            negative.label.itemStyler != null ||
+            total.itemStyler != null ||
+            total.label.itemStyler != null
+        );
     }
 }

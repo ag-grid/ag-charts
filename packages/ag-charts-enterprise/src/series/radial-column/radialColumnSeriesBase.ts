@@ -422,8 +422,8 @@ export abstract class RadialColumnSeriesBase<
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgRadialSeriesStyle> {
-        const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey, itemStyler } = properties;
+        const { properties } = this;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
@@ -433,21 +433,8 @@ export abstract class RadialColumnSeriesBase<
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightStateString = this.getHighlightStateString(
-                        activeHighlight,
-                        isHighlight,
-                        nodeDatum.datumIndex
-                    );
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum: nodeDatum.datum,
-                        highlighted: isHighlight,
-                        highlightState: highlightStateString,
-                        angleKey,
-                        radiusKey,
-                        ...style,
-                    });
+                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -457,6 +444,30 @@ export abstract class RadialColumnSeriesBase<
         }
 
         return style;
+    }
+
+    private makeItemStylerParams(
+        nodeDatum: RadialColumnNodeDatum,
+        isHighlight: boolean,
+        style: Required<AgRadialSeriesStyle> & { opacity: number }
+    ) {
+        const { id: seriesId, properties } = this;
+        const { angleKey, radiusKey } = properties;
+
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+
+        return {
+            seriesId,
+            datum: nodeDatum.datum,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            angleKey,
+            radiusKey,
+            ...style,
+            fill,
+        };
     }
 
     protected updateSectorSelection(
@@ -516,10 +527,8 @@ export abstract class RadialColumnSeriesBase<
 
     protected updateLabels() {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            const highlightState = this.getHighlightStateString(activeHighlight, false, datum.datumIndex);
-            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, false, highlightState);
+            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, false, activeHighlight);
             node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
     }

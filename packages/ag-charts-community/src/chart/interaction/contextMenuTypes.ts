@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { CategoryLegendDatum } from '../legend/legendDatum';
-import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
+import type { DatumIndexType, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 
 // Extract TEvent from `action?: (param: TEvent)` of the AgContextMenuItem contract:
 type InferTEvent<T extends AgContextMenuItemShowOn> =
@@ -44,7 +44,7 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
         callback: (param: InferTEvent<'series-node'>) => void;
         context: {
             pickedSeries: ISeries<any, any, any> | undefined;
-            pickedNode: SeriesNodeDatum<unknown> | undefined;
+            pickedNode: SeriesNodeDatum<DatumIndexType> | undefined;
         };
     };
 }

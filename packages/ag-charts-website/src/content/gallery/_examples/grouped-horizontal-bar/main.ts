@@ -154,9 +154,6 @@ const options: AgChartOptions = {
             },
         },
     ],
-    formatter: {
-        y: (params) => `${Number(params.value) > 0 ? '+' : ''}${params.value}`,
-    },
 };
 
 AgCharts.create(options);

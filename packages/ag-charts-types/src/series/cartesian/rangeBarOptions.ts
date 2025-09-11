@@ -8,6 +8,8 @@ import type {
     AgBaseSeriesOptions,
     AgMultiSeriesHighlightOptions,
     AgSeriesHighlightStyle,
+    AgSeriesSegmentation,
+    AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -65,6 +67,8 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;
+    /** Configuration for styling series as separate segments. */
+    segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
 }
 
 export interface AgRangeBarHighlightStyleOptions extends AgRangeBarSeriesStyle {

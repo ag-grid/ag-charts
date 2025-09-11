@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Meerkleurig',
     ariaLabelColorPickerPalette: 'Palet',
     ariaLabelFinancialCharts: 'Financiële grafieken',
+    ariaLabelGaugeTarget: 'Doel',
+    ariaLabelGaugeValue: 'Waarde',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Legenda-item ${index}[number] van ${count}[number]',
     ariaLabelLegendItemUnknown: 'Onbekend legende-item',

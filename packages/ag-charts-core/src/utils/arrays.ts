@@ -117,3 +117,19 @@ export function dropLastWhile<T>(array: T[], cond: (value: T) => boolean) {
     const deleteCount = array.length - 1 - i;
     if (deleteCount !== 0) array.splice(array.length - deleteCount, deleteCount);
 }
+
+/**
+ * Creates an even distribution of numbers between `min` and `max`.
+ */
+export function distribute(min: number, max: number, maxCount: number) {
+    const values = [min];
+    const step = Math.round((max - min) / (maxCount - 1));
+    if (step > 0) {
+        for (let i = min + step; i < max; i += step) {
+            const length = values.push(i);
+            if (length >= maxCount - 1) break;
+        }
+    }
+    values.push(max);
+    return values;
+}

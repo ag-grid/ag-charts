@@ -14,7 +14,6 @@ import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
-import { getLineHeight } from '../util/labelFormatter';
 import {
     type LinearGaugeLabelDatum,
     LinearGaugeLabelProperties,
@@ -411,12 +410,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private verticalLabelInset() {
-        const { properties } = this;
-        const { label } = properties;
-
+        const { label } = this.properties;
+        const measurer = cachedTextMeasurer(label);
         const lines = label.text?.split('\n');
-
-        const labelSize = getLineHeight(label, label.fontSize) * (lines?.length ?? 1);
+        const labelSize = (label.lineHeight ?? measurer.lineHeight()) * (lines?.length ?? 1);
 
         return label.spacing + labelSize;
     }
@@ -1217,9 +1214,12 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return [];
     }
 
-    override getTooltipContent(datumIndex: LinearGaugeNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(
+        datumIndex: LinearGaugeNodeDatumIndex | undefined
+    ): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
+        if (datumIndex == null) return;
 
         let value: number | undefined;
         let text: string | undefined;
@@ -1265,6 +1265,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     protected override hasItemStylers(): boolean {
-        return false;
+        return this.properties.label.itemStyler != null;
     }
 }

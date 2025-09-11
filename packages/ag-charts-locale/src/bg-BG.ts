@@ -30,6 +30,8 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Многоцветен',
     ariaLabelColorPickerPalette: 'Палитра',
     ariaLabelFinancialCharts: 'Финансови диаграми',
+    ariaLabelGaugeTarget: 'Цел',
+    ariaLabelGaugeValue: 'Стойност',
     ariaLabelLegend: 'Легенда',
     ariaLabelLegendItem: '${label}, Елемент на легендата ${index}[number] от ${count}[number]',
     ariaLabelLegendItemUnknown: 'Неизвестен елемент в легендата',

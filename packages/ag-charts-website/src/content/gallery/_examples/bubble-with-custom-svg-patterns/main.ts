@@ -37,16 +37,10 @@ const options: AgCartesianChartOptions = {
             interval: {
                 step: 0.1,
             },
-            gridLine: {
-                width: 1,
-            },
         },
         {
             type: 'number',
             position: 'left',
-            gridLine: {
-                width: 1,
-            },
             title: { text: 'Latitude' },
             interval: {
                 step: 0.1,

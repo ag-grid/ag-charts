@@ -2,7 +2,7 @@ import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
 import { cachedTextMeasurer } from 'ag-charts-core';
 
 import { getLabelText } from '../gauge-util/label';
-import { type LabelFormatting, formatSingleLabel, getLineHeight } from '../util/labelFormatter';
+import { type LabelFormatting, formatSingleLabel } from '../util/labelFormatter';
 import type { LinearGaugeLabelDatum } from './linearGaugeSeriesProperties';
 
 const { BBox } = _ModuleSupport;
@@ -200,7 +200,7 @@ const verticalAlignFactors: Record<Align, number> = {
 };
 
 export function formatLinearGaugeLabels(
-    series: _ModuleSupport.Series<unknown, any, object, any>,
+    series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>,
     ctx: Ctx,
     selection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text>,
     opts: { padding: number; horizontal: boolean },
@@ -249,11 +249,12 @@ export function formatLinearGaugeLabels(
             const labelMeta = formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight);
             layout = labelMeta?.[0];
         } else {
-            const { width, height } = cachedTextMeasurer(labelDatum).measureText(labelText);
+            const measurer = cachedTextMeasurer(labelDatum);
+            const { width, height } = measurer.measureText(labelText);
             layout = {
                 text: labelText,
                 fontSize: labelDatum.fontSize,
-                lineHeight: getLineHeight(labelDatum, labelDatum.fontSize),
+                lineHeight: labelDatum.lineHeight ?? measurer.lineHeight(),
                 width,
                 height,
             };

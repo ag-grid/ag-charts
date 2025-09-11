@@ -120,4 +120,5 @@ type TransformOperation =
     | { $omit: [Leaf<string[]>, Leaf<object>] } // Array of keys to omit | Object from which to omit keys
     | { $size: AnyLeaf } // Target vertex
     | { $shallow: Leaf<Array<any>> } // Array value to treat as a shallow value in the graph
+    | { $shallowSimple: Leaf<Array<any>> } // Array value to treat as a shallow value in the graph, use when default children are simple objects
     | { $value: '$1' | '$index' }; // '$1' nearest ancestor value that is not an operation | '$index' nearest ancestor numeric path segment

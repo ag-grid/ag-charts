@@ -42,10 +42,9 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
     }
 
     extend(value: T) {
-        // TODO: AG-15645 - remove this after patch release
-        // if (typeof value !== 'number' && !(value instanceof Date)) {
-        //     return;
-        // }
+        if (typeof value !== 'number' && !(value instanceof Date)) {
+            return;
+        }
         if (this.domain[0] > value) {
             this.domain[0] = value;
         }

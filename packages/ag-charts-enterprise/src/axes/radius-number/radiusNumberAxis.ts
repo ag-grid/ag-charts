@@ -1,13 +1,13 @@
-import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
 const { Property, normalisedExtentWithMetadata, LinearScale } = _ModuleSupport;
 
 interface TickDatum {
-    tickLabel: string | undefined;
     tick: any;
     tickId: string;
+    tickLabel: TextOrSegments | undefined;
     translation: number;
 }
 

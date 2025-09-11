@@ -36,7 +36,7 @@ import {
 import type { SeriesDirectionKeysMapping, SeriesNodePickMatch } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { Segmentation, SeriesProperties } from '../seriesProperties';
-import type { ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { DatumIndexType, ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
@@ -359,7 +359,7 @@ export abstract class CartesianSeries<
         this._contextNodeData = undefined;
     }
 
-    protected override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
+    public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
         const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
 
         const { legendItemName } = this.properties;
@@ -389,7 +389,7 @@ export abstract class CartesianSeries<
             const dataChanged = this.updateSelections();
             const segments = this.contextNodeData?.segments;
             if (this.opts.segmentedDataNodes) {
-                this.dataNodeGroup.segments = segments;
+                this.dataNodeGroup.segments = segments ?? this.dataNodeGroup.segments;
             } else {
                 this.dataNodeGroup.segments = undefined;
             }
@@ -572,7 +572,7 @@ export abstract class CartesianSeries<
         // Override point for subclasses
     }
 
-    protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<unknown>[] | undefined {
+    protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
         const { x, y } = point;
 
         const { dataNodeGroup } = this;
@@ -588,7 +588,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected pickModulesExactShape(point: Point): SeriesNodeDatum<unknown>[] | undefined {
+    protected pickModulesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
         for (const mod of this.moduleMap.modules()) {
             const { datum } = mod.pickNodeExact(point) ?? {};
             if (datum == null) continue;
@@ -598,7 +598,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const result = super.pickNodesExactShape(point);
 
         if (result.length !== 0) {
@@ -619,7 +619,7 @@ export abstract class CartesianSeries<
         const hitPoint = { x, y };
 
         let minDistanceSquared = Infinity;
-        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
@@ -648,7 +648,7 @@ export abstract class CartesianSeries<
 
     private pickModulesClosestDatum(point: Point) {
         let minDistanceSquared = Infinity;
-        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         for (const mod of this.moduleMap.modules()) {
             const modPick = mod.pickNodeNearest(point);
@@ -665,7 +665,7 @@ export abstract class CartesianSeries<
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         let minDistance = Infinity;
-        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         const pick = this.pickNodeDataClosestDatum(point);
         if (pick != null && pick.distance < minDistance) {
@@ -709,7 +709,7 @@ export abstract class CartesianSeries<
         if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];
-        let closestDatum: SeriesNodeDatum<unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
@@ -977,20 +977,21 @@ export abstract class CartesianSeries<
         const crossValues = this.keysOrValues(crossAxisKey);
         const allAxisValues = axisKeys.map((axisKey) => dataModel.resolveColumnById(this, axisKey, processedData));
 
+        const shouldFlipXY = this.shouldFlipXY();
+
         // The provided visible ranges `[xy]VisibleRange` are relative to the unzoomed axis ranges `[xy]Axis.range`.
         // `[xy]Axis.visibleRange` are relative to the zoomed scale ranges `[xy]Axis.scale.range`.
         // So we need to scale the provided visible ranges relative to the zoomed scale range to find the min and max
         // position in pixels that the visible range ratio covers.
-        const crossAxis = this.axes[ChartAxisDirection.X]!;
-        const axis = this.axes[ChartAxisDirection.Y]!;
-        const shouldFlipXY = this.shouldFlipXY();
+        const crossAxis = shouldFlipXY ? this.axes[ChartAxisDirection.Y]! : this.axes[ChartAxisDirection.X]!;
+        const axis = shouldFlipXY ? this.axes[ChartAxisDirection.X]! : this.axes[ChartAxisDirection.Y]!;
+
+        const crossVisibleRange = shouldFlipXY ? yVisibleRange ?? [0, 1] : xVisibleRange;
+        const axisVisibleRange = shouldFlipXY ? xVisibleRange : yVisibleRange ?? [0, 1];
 
         if (yVisibleRange == null) {
             const sortOrder = this.sortOrder(crossAxisKey);
-
-            if (sortOrder == null) {
-                yVisibleRange = [0, 1];
-            } else {
+            if (sortOrder != null) {
                 // Fast path if we only need to look at the x axis
                 const crossScale = crossAxis.scale;
                 const crossScaleRange = crossScale.range;
@@ -998,15 +999,15 @@ export abstract class CartesianSeries<
 
                 const xValues = this.keysOrValues(crossAxisKey);
 
-                let [r0, r1] = this.visibleRangeIndices(crossAxisKey, xVisibleRange, undefined, { sortOrder });
+                let [r0, r1] = this.visibleRangeIndices(crossAxisKey, crossVisibleRange, undefined, { sortOrder });
                 r1 -= 1;
 
                 // @todo(AG-7083) - figure out how to determine this
                 const pixelSize = 0;
-                if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < xVisibleRange[0]) {
+                if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < crossVisibleRange[0]) {
                     r0 += 1;
                 }
-                if (this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > xVisibleRange[1]) {
+                if (this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > crossVisibleRange[1]) {
                     r1 -= 1;
                 }
 
@@ -1022,31 +1023,35 @@ export abstract class CartesianSeries<
             return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
         };
 
-        const crossAxisRange = crossAxis.range;
-        const range = axis.range;
+        const crossAxisRange = crossAxis.range.toSorted();
+        const axisRange = axis.range.toSorted();
 
-        const crossMin = convert(crossAxisRange, crossAxis.visibleRange, xVisibleRange[0]);
-        const crossMax = convert(crossAxisRange, crossAxis.visibleRange, xVisibleRange[1]);
-        const axisMin = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[0] : yVisibleRange[1]);
-        const axisMax = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[1] : yVisibleRange[0]);
+        const crossMin = convert(crossAxisRange, crossAxis.visibleRange, crossVisibleRange[0]);
+        const crossMax = convert(crossAxisRange, crossAxis.visibleRange, crossVisibleRange[1]);
+        const axisMin = convert(axisRange, axis.visibleRange, Math.min(...axisVisibleRange));
+        const axisMax = convert(axisRange, axis.visibleRange, Math.max(...axisVisibleRange));
 
         const startIndex = Math.round(
-            (xVisibleRange[0] + (xVisibleRange[1] - xVisibleRange[0]) / 2) * crossValues.length
+            (crossVisibleRange[0] + (crossVisibleRange[1] - crossVisibleRange[0]) / 2) * crossValues.length
         );
         const pixelSize = 0;
 
         return countExpandingSearch(0, crossValues.length - 1, startIndex, minVisibleItems, (index) => {
-            let [x0, x1] = this.xCoordinateRange(crossValues[index], pixelSize, index);
-            let [y0, y1] = this.yCoordinateRange(
+            const [cross0, cross1] = this.xCoordinateRange(crossValues[index], pixelSize, index);
+            const [axis0, axis1] = this.yCoordinateRange(
                 allAxisValues.map((axisValues) => axisValues[index]),
                 pixelSize,
                 index
             );
-            if (!isFiniteNumber(x0) || !isFiniteNumber(x1) || !isFiniteNumber(y0) || !isFiniteNumber(y1)) {
+            if (
+                !isFiniteNumber(cross0) ||
+                !isFiniteNumber(cross1) ||
+                !isFiniteNumber(axis0) ||
+                !isFiniteNumber(axis1)
+            ) {
                 return false;
             }
-            if (shouldFlipXY) [x0, x1, y0, y1] = [y0, y1, x0, x1];
-            return x0 >= crossMin && x1 <= crossMax && y0 >= axisMin && y1 <= axisMax;
+            return cross0 >= crossMin && cross1 <= crossMax && axis0 >= axisMin && axis1 <= axisMax;
         });
     }
 

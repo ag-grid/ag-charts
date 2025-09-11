@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "12.1.2-beta.20250827",
+  "version": "12.2.0",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -21,7 +21,7 @@
   },
   "private": true,
   "engines": {
-    "node": "^20.10.0",
+    "node": "^20.19.4",
     "yarn": "^1.22.21"
   },
   "dependencies": {
@@ -42,7 +42,6 @@
     "@nx/esbuild": "20.3.1",
     "@nx/jest": "20.3.1",
     "@nx/js": "20.3.1",
-    "@nx/vite": "20.3.1",
     "@nx/workspace": "20.3.1",
     "@size-limit/esbuild": "^11.1.6",
     "@size-limit/esbuild-why": "^11.1.6",

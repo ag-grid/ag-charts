@@ -501,7 +501,7 @@ describe('BubbleSeries', () => {
                             stroke: 'lime', // not ignored (but no effect)
                         };
                     } else if (params.seriesId === 'BubbleSeries-2') {
-                        return { shape: 'heart', fill: 'fuchsia', lineDash: [5, 3] };
+                        return { shape: 'heart', fill: 'fuchsia', size: 2, maxSize: 200, lineDash: [5, 3] };
                     }
                     return {};
                 }
@@ -563,21 +563,9 @@ describe('BubbleSeries', () => {
             });
             describe('callbacks', () => {
                 test('context', () => {
-                    styler
-                        .expect()
-                        .nthCalledWithContext(0, c1)
-                        .nthCalledWithContext(1, c2)
-                        .nthCalledWithContext(2, c1)
-                        .nthCalledWithContext(3, c1)
-                        .nthCalledWithContext(4, c1)
-                        .nthCalledWithContext(5, c1)
-                        .nthCalledWithContext(6, c1)
-                        .nthCalledWithContext(7, c2)
-                        .nthCalledWithContext(8, c2)
-                        .nthCalledWithContext(9, c2)
-                        .nthCalledWithContext(10, c2)
-                        .nthCalledWithContext(11, c2)
-                        .toHaveBeenCalledTimes(12);
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
                 });
                 test('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();

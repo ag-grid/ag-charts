@@ -75,6 +75,43 @@ In the above example we provided the same `highlight` for all of the series, but
 
 For simplicity, we provided the `highlight` once within a chart [Theme](./themes/), rather than repeating it on each series.
 
+## Stylers
+
+All [Styler](./stylers/) callbacks receive a `param.highlightState`
+property which can be used to dynamically customise the chart style based on the highlighted state.
+
+{% chartExampleRunner title="Dynamic Highlight" name="balance-sheet" type="generated" /%}
+
+```js
+    label: {
+        itemStyler: (params) => {
+            switch (params.highlightState) {
+                case 'highlighted-series':
+                    return { fontSize: 10 };
+                case 'unhighlighted-item':
+                    return { color: 'lightgray' };
+                case 'highlighted-item':
+                    return { fontWeight: 'bold' };
+                default:
+                    return { color: 'transparent' };
+            }
+        },
+    },
+```
+
+In this example:
+
+-   The labels are hidden and only shown for the highlighted series.
+-   The label of the currently highlighted item is rendered in bold.
+
+The `highlightState` parameter can have the following values:
+
+-   `'highlighted-item'`: The specific item is highlighted
+-   `'unhighlighted-item'`: Another item is highlighted, but not this one
+-   `'highlighted-series'`: The series containing this item is highlighted
+-   `'unhighlighted-series'`: Another series is highlighted, but not this one
+-   `'none'`: No highlighting is currently active
+
 ## API Reference
 
 The available options differ between series types. See [the Options API](/options/#reference-AgChartOptions-series) for more details.

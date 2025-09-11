@@ -19,7 +19,6 @@ const options: AgChartOptions<DataType> = {
                     marker: {
                         enabled: false,
                     },
-                    strokeWidth: 2,
                     tooltip: {
                         renderer: ({ datum, yKey, yName, xKey }) => {
                             return {
@@ -41,9 +40,6 @@ const options: AgChartOptions<DataType> = {
     footnote: {
         text: 'Source: American Time Use Survey 2022',
         fontStyle: 'italic',
-    },
-    legend: {
-        enabled: true,
     },
     series: [
         {
@@ -120,7 +116,6 @@ const options: AgChartOptions<DataType> = {
             max: 540,
             nice: false,
             interval: { values: [0, 180, 360, 540] },
-            label: {},
             gridLine: {
                 style: [
                     {
@@ -135,9 +130,6 @@ const options: AgChartOptions<DataType> = {
         },
     ],
     formatter: {
-        x: (params) => {
-            return `${Math.round(Number(params.value))}`;
-        },
         y: (params) => {
             const value = params.value as number;
             if (params.source === 'axis-label') {
@@ -148,7 +140,6 @@ const options: AgChartOptions<DataType> = {
     },
     tooltip: {
         mode: 'shared',
-        wrapping: 'hyphenate',
     },
 };
 

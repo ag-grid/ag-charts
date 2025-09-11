@@ -1,9 +1,6 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { DataType, getData } from './data';
-
-const dateFormatter = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short' });
-const yearFormatter = new Intl.DateTimeFormat('en-US', { year: 'numeric' });
+import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -35,22 +32,6 @@ const options: AgCartesianChartOptions = {
             interpolation: {
                 type: 'smooth',
             },
-            // tooltip: {
-            //     renderer: ({ datum, xKey, yLowKey, yHighKey }) => {
-            //         const year = datum[xKey];
-            //         const minMagnitude = datum[yLowKey];
-            //         const maxMagnitude = datum[yHighKey];
-            //         const deaths = datum.deathTotal;
-
-            //         return {
-            //             title: `Statistics`,
-            //             data: [
-            //                 { label: 'Magnitude Range', value: `${minMagnitude} - ${maxMagnitude}` },
-            //                 { label: 'Deaths', value: deaths.toLocaleString() },
-            //             ],
-            //         };
-            //     },
-            // },
             marker: {
                 enabled: true,
                 size: 6,
@@ -117,9 +98,6 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    legend: {
-        enabled: false,
-    },
 };
 
 AgCharts.create(options);

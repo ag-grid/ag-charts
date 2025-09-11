@@ -1,11 +1,21 @@
-import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
+import type { OverflowStrategy, TextSegment, TextWrap } from 'ag-charts-types';
 
-import { type ITextMeasurer, cachedTextMeasurer } from './textMeasurer';
-import { EllipsisChar, type FontOptions, LineSplitter } from './textUtils';
+import { type ITextMeasurer, type MeasuredSegment, cachedTextMeasurer, measureTextSegments } from './textMeasurer';
+import {
+    EllipsisChar,
+    type FontOptions,
+    LineSplitter,
+    TrimEdgeGuard,
+    appendEllipsis,
+    guardTextEdges,
+    isTextTruncated,
+    unguardTextEdges,
+} from './textUtils';
+import { isFiniteNumber } from './typeGuards';
 
 // Extended measurement options including wrapping behaviour.
 export interface WrapOptions {
-    font: string | FontOptions;
+    font: FontOptions;
     maxWidth: number;
     maxHeight?: number;
     lineHeight?: number;
@@ -14,17 +24,16 @@ export interface WrapOptions {
     avoidOrphans?: boolean;
 }
 
+function shouldHideOverflow(clippedResult: string[], options: WrapOptions) {
+    return options.overflow === 'hide' && clippedResult.some(isTextTruncated);
+}
+
 export function wrapText(text: string, options: WrapOptions) {
     return wrapLines(text, options).join('\n');
 }
 
 export function wrapLines(text: string, options: WrapOptions) {
-    const clippedResult = textWrap(text, options);
-
-    if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(EllipsisChar))) {
-        return [];
-    }
-    return clippedResult;
+    return textWrap(text, options);
 }
 
 export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
@@ -37,24 +46,30 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
         estimatedWidth += charWidth;
     }
     if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-        return ellipsisForce ? text + EllipsisChar : text;
+        return ellipsisForce ? appendEllipsis(text) : text;
     }
     text = text.slice(0, i).trimEnd();
     while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
         text = text.slice(0, -1).trimEnd();
     }
-    return text.length ? text + EllipsisChar : '';
+    return appendEllipsis(text);
 }
 
-function textWrap(text: string, options: WrapOptions) {
+function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
     const lines: string[] = text.split(LineSplitter);
     const measurer = cachedTextMeasurer(options.font);
+    const result: string[] = [];
 
     if (options.textWrap === 'never') {
-        return lines.map((line) => truncateLine(line.trimEnd(), measurer, options.maxWidth));
+        for (const line of lines) {
+            const truncatedLine = truncateLine(line.trimEnd(), measurer, Math.max(0, options.maxWidth - widthOffset));
+            if (!truncatedLine) break;
+            result.push(truncatedLine);
+            widthOffset = 0;
+        }
+        return shouldHideOverflow(result, options) ? [] : result;
     }
 
-    const result: string[] = [];
     const wrapHyphenate = options.textWrap === 'hyphenate';
     const wrapOnSpace = options.textWrap == null || options.textWrap === 'on-space';
 
@@ -69,14 +84,19 @@ function textWrap(text: string, options: WrapOptions) {
         let i = 0;
         let estimatedWidth = 0;
         let lastSpaceIndex = 0;
+
+        if (!result.length) {
+            estimatedWidth = widthOffset;
+        }
+
         while (i < line.length) {
             const char = line.charAt(i);
-
-            estimatedWidth += measurer.textWidth(char);
 
             if (char === ' ') {
                 lastSpaceIndex = i;
             }
+
+            estimatedWidth += measurer.textWidth(char);
 
             if (estimatedWidth > options.maxWidth) {
                 // char width is greater than options.maxWidth
@@ -86,7 +106,10 @@ function textWrap(text: string, options: WrapOptions) {
                 }
 
                 // check actual width in case estimation is off
-                const actualWidth = measurer.textWidth(line.slice(0, i + 1));
+                let actualWidth = measurer.textWidth(line.slice(0, i + 1));
+                if (!result.length) {
+                    actualWidth += widthOffset;
+                }
                 if (actualWidth <= options.maxWidth) {
                     estimatedWidth = actualWidth;
                     i++;
@@ -128,9 +151,10 @@ function textWrap(text: string, options: WrapOptions) {
                 while (newLine.length && measurer.textWidth(newLine + postfix) > options.maxWidth) {
                     newLine = newLine.slice(0, -1).trimEnd();
                 }
-                result.push(newLine + postfix);
 
-                if (!newLine.length) {
+                if (newLine && newLine !== TrimEdgeGuard) {
+                    result.push(newLine + postfix);
+                } else {
                     line = '';
                     break;
                 }
@@ -151,7 +175,8 @@ function textWrap(text: string, options: WrapOptions) {
     }
 
     avoidOrphans(result, measurer, options);
-    return clipLines(result, measurer, options);
+    const clippedResult = clipLines(result, measurer, options);
+    return shouldHideOverflow(clippedResult, options) ? [] : clippedResult;
 }
 
 function getWordAt(text: string, position: number) {
@@ -160,7 +185,7 @@ function getWordAt(text: string, position: number) {
 }
 
 export function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
-    if (!options.maxHeight) {
+    if (!isFiniteNumber(options.maxHeight)) {
         return lines;
     }
 
@@ -177,7 +202,7 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
             const clippedResults = lines.slice(0, i);
             const lastLine = clippedResults.pop()!;
             return clippedResults.concat(
-                lastLine.endsWith(EllipsisChar) ? lastLine : truncateLine(lastLine, measurer, options.maxWidth, true)
+                isTextTruncated(lastLine) ? lastLine : truncateLine(lastLine, measurer, options.maxWidth, true)
             );
         }
     }
@@ -203,4 +228,92 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
         lines[length - 2] = beforeLast.slice(0, lastSpaceIndex);
         lines[length - 1] = lastWord + ' ' + lastLine;
     }
+}
+
+export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptions) {
+    const { maxHeight = Infinity } = options;
+    const result: MeasuredSegment[] = [];
+
+    let lineWidth = 0;
+    let totalHeight = 0;
+
+    function truncateLastSegment() {
+        const lastSegment = result.pop()!;
+        const measurer = cachedTextMeasurer(lastSegment);
+        const truncatedText = truncateLine(lastSegment.text, measurer, options.maxWidth, true);
+        const textMetrics = measurer.measureText(truncatedText);
+        result.push({ ...lastSegment, text: truncatedText, textMetrics });
+    }
+
+    for (const { width, height, segments } of measureTextSegments(textSegments, options.font).lineMetrics) {
+        if (totalHeight + height > maxHeight) {
+            if (result.length) {
+                truncateLastSegment();
+            }
+            break;
+        }
+
+        if (lineWidth + width <= options.maxWidth) {
+            lineWidth += width;
+            totalHeight += height;
+            result.push(...segments);
+            continue;
+        }
+
+        for (const segment of segments) {
+            if (lineWidth + segment.textMetrics.width <= options.maxWidth) {
+                lineWidth += segment.textMetrics.width;
+                result.push(segment);
+                continue;
+            }
+
+            const measurer = cachedTextMeasurer(segment);
+            const guardedText = guardTextEdges(segment.text);
+            const wrapOptions = { ...options, font: segment, maxHeight: maxHeight - totalHeight };
+
+            let wrappedLines = textWrap(guardedText, { ...wrapOptions, overflow: 'hide' }, lineWidth);
+            if (wrappedLines.length === 0) {
+                if (options.textWrap === 'never') {
+                    wrappedLines = textWrap(guardedText, wrapOptions, lineWidth);
+                } else {
+                    wrappedLines = textWrap(guardedText, wrapOptions);
+                    const lastSegment = result.at(-1);
+                    if (lastSegment) {
+                        lastSegment.text += '\n';
+                        lineWidth = 0;
+                    }
+                }
+            }
+
+            if (wrappedLines.length === 0) {
+                truncateLastSegment();
+                break;
+            }
+
+            const truncationIndex = wrappedLines.findIndex(isTextTruncated);
+
+            if (truncationIndex !== -1) {
+                wrappedLines = wrappedLines.slice(0, truncationIndex + 1);
+            }
+
+            const lastLine = wrappedLines.at(-1);
+            for (const wrappedLine of wrappedLines) {
+                const cleanLine = unguardTextEdges(wrappedLine);
+                const textMetrics = measurer.measureText(cleanLine);
+                const subSegment = { ...segment, text: cleanLine, textMetrics };
+                if (wrappedLine === lastLine) {
+                    lineWidth += textMetrics.width;
+                } else {
+                    subSegment.text += '\n';
+                    lineWidth = 0;
+                }
+                totalHeight += textMetrics.height;
+                result.push(subSegment);
+            }
+
+            if (truncationIndex !== -1) break;
+        }
+    }
+
+    return result;
 }
