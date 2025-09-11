@@ -305,7 +305,7 @@ export class LicenseManager {
 
     public static setLicenseKey(licenseKey?: string): void {
         if (this.licenseKey && this.licenseKey !== licenseKey) {
-            Logger.warn(
+            console.warn(
                 `License Key being set multiple times with different values. This can result in an incorrect license key being used.`
             );
         }
