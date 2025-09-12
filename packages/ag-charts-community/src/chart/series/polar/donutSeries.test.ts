@@ -16,6 +16,7 @@ import {
     doubleTapAction,
     expectWarningsCalls,
     extractImageData,
+    hoverAction,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -755,6 +756,70 @@ describe('DonutSeries', () => {
             expect(itemStyler.mock.mock.calls).toMatchSnapshot();
         });
         test('image', async () => {
+            await compare();
+        });
+    });
+
+    describe('cutout drawing mode', () => {
+        it('should render donut series with cutout highlight drawing mode', async () => {
+            const cutoutOptions: AgChartOptions = {
+                data: [
+                    { category: 'Q1', value: 25 },
+                    { category: 'Q2', value: 30 },
+                    { category: 'Q3', value: 20 },
+                    { category: 'Q4', value: 25 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        calloutLabelKey: 'category',
+                        innerRadiusRatio: 0.5,
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'blue',
+                                fillOpacity: 0.1,
+                                stroke: 'black',
+                                lineDash: [4, 2],
+                            },
+                        },
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+            };
+
+            chart = await createChart(cutoutOptions);
+
+            await hoverAction(250, 200)(chart);
+            await compare();
+        });
+
+        it('should render pie series with default highlight style cutout highlight drawing mode', async () => {
+            const pieOptions: AgChartOptions = {
+                data: [
+                    { category: 'Q1', value: 25 },
+                    { category: 'Q2', value: 30 },
+                    { category: 'Q3', value: 20 },
+                    { category: 'Q4', value: 25 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        calloutLabelKey: 'category',
+                        innerRadiusRatio: 0.5,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+            };
+
+            chart = await createChart(pieOptions);
+
+            await hoverAction(250, 200)(chart);
             await compare();
         });
     });

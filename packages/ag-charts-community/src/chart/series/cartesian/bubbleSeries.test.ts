@@ -697,4 +697,146 @@ describe('BubbleSeries', () => {
             });
         });
     });
+
+    describe('cutout drawing mode', () => {
+        it('should render bubble series with cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 10, y: 20, size: 15 },
+                    { x: 20, y: 30, size: 25 },
+                    { x: 30, y: 40, size: 20 },
+                    { x: 40, y: 50, size: 30 },
+                    { x: 50, y: 60, size: 18 },
+                ],
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        title: 'Bubble Series',
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'blue',
+                                fillOpacity: 0.2,
+                                stroke: 'black',
+                            },
+                        },
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(200, 300)(chart);
+            await compare();
+        });
+
+        it('should render scatter series with cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 10, y: 15 },
+                    { x: 20, y: 25 },
+                    { x: 30, y: 35 },
+                    { x: 40, y: 45 },
+                    { x: 50, y: 55 },
+                ],
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        title: 'Scatter Series',
+                        shape: 'diamond',
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'green',
+                                fillOpacity: 0.5,
+                                stroke: 'pink',
+                            },
+                        },
+                        size: 25,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(250, 350)(chart);
+            await compare();
+        });
+
+        it('should render multi-series bubble with cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', series1: 10, series2: 15, size1: 20, size2: 25 },
+                    { category: 'B', series1: 20, series2: 25, size1: 30, size2: 35 },
+                    { category: 'C', series1: 30, series2: 35, size1: 25, size2: 30 },
+                    { category: 'D', series1: 40, series2: 45, size1: 35, size2: 40 },
+                ],
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'category',
+                        yKey: 'series1',
+                        sizeKey: 'size1',
+                        title: 'Series 1',
+                        highlight: {
+                            highlightedItem: {
+                                fillOpacity: 0,
+                                stroke: 'black',
+                            },
+                        },
+                    },
+                    {
+                        type: 'bubble',
+                        xKey: 'category',
+                        yKey: 'series2',
+                        sizeKey: 'size2',
+                        title: 'Series 2',
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'yellow',
+                                fillOpacity: 0.2,
+                                stroke: 'pink',
+                                lineDash: [4, 2],
+                            },
+                        },
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(180, 280)(chart);
+            await compare();
+        });
+    });
 });
