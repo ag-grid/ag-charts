@@ -86,10 +86,10 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 };
 
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
-    _ModuleSupport.Rect,
+    HeatmapNodeDatum,
+    _ModuleSupport.Rect<HeatmapNodeDatum>,
     AgHeatmapSeriesOptions,
     HeatmapSeriesProperties,
-    HeatmapNodeDatum,
     HeatmapLabelDatum
 > {
     static readonly className = 'HeatmapSeries';
@@ -345,7 +345,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override nodeFactory() {
-        return new Rect();
+        return new Rect<HeatmapNodeDatum>();
     }
 
     override update(params: { seriesRect?: _ModuleSupport.BBox }) {
@@ -357,7 +357,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: HeatmapNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect>;
+        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect<HeatmapNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -418,7 +418,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect>;
+        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect<HeatmapNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -429,7 +429,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     protected override updateDatumNodes({
         datumSelection,
     }: {
-        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect>;
+        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect<HeatmapNodeDatum>>;
         isHighlight: boolean;
     }) {
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -452,7 +452,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: HeatmapLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text<HeatmapLabelDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
         const { enabled } = this.properties.label;
@@ -462,7 +462,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text<HeatmapLabelDatum>>;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((text, datum) => {
