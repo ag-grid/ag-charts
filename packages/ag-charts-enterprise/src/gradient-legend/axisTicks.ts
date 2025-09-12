@@ -44,7 +44,7 @@ export class AxisTicks {
     readonly id = createId(this);
 
     protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: ZIndexMap.AXIS });
-    protected readonly labelSelection = Selection.select<_ModuleSupport.Text, TickDatum>(this.axisGroup, Text);
+    protected readonly labelSelection = Selection.select<_ModuleSupport.Text<TickDatum>>(this.axisGroup, Text);
 
     readonly interval = new AxisInterval();
     readonly label = new AxisLabel();

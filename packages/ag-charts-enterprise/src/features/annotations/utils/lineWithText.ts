@@ -18,11 +18,11 @@ interface Numbers {
 
 export function updateLineText(
     id: string,
-    line: CollidableLine<never>,
+    line: CollidableLine<unknown>,
     coords: _ModuleSupport.Vec4,
 
     textProperties?: Partial<LineTextProperties>,
-    textNode?: CollidableText<never>,
+    textNode?: CollidableText<unknown>,
     text?: string,
     lineWidth?: number
 ) {

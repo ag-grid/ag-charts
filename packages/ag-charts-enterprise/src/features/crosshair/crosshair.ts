@@ -56,7 +56,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             zIndex: ZIndexMap.SERIES_CROSSHAIR,
         })
     );
-    protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line, false);
+    protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line<string>, false);
 
     private activeHighlight?: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {

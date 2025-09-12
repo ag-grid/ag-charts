@@ -579,7 +579,8 @@ export abstract class CartesianSeries<
         const matches = dataNodeGroup
             .pickNodes(x, y)
             .filter(
-                (match): match is Node & { datum: SeriesNodeDatum<unknown> } => match.unsafeDatum?.missing !== true
+                (match): match is Node & { datum: SeriesNodeDatum<DatumIndexType> } =>
+                    match.unsafeDatum?.missing !== true
             );
 
         if (matches.length !== 0) {
