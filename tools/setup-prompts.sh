@@ -114,6 +114,32 @@ function setup_mcp() {
     ln -sf "${relative_path}tools/prompts/.mcp.json" "$target_file"
 }
 
+function setup_vscode_mcp() {
+    local target_file=$1
+    local mcp_json_file="./tools/prompts/.mcp.json"
+    
+    # Check if jq is available
+    if ! command -v jq >/dev/null 2>&1; then
+        echo "Warning: jq not found. Cannot update MCP config."
+        echo "Install with: brew install jq"
+        return 1
+    fi
+    
+    # Check if source JSON file exists
+    if [[ ! -f "$target_file" ]]; then
+        mkdir -p $(dirname "$target_file")
+        echo '{"servers": {}}' > "$target_file"
+    fi
+
+    # Add each MCP server from JSON to the target JSON file by reading and then editing the file in place
+    jq -r '.mcpServers | to_entries[] | @base64' "$mcp_json_file" | while read -r entry; do
+        local server_name=$(echo "$entry" | base64 -d | jq -r '.key')
+        local server_config=$(echo "$entry" | base64 -d | jq -r '.value')
+        jq --argjson server_config "$server_config" ".servers += { (\"$server_name\"): \$server_config }" "$target_file" > "$target_file.tmp"
+        mv "$target_file.tmp" "$target_file"
+    done
+}
+
 function setup_codex_mcp() {
     local target_file=$1
     local mcp_json_file="./tools/prompts/.mcp.json"
@@ -261,6 +287,7 @@ fi
 
 # Copilot setup - not sure if there is a better way to detect?
 if [[ "${TERM_PROGRAM:-}" == "vscode" ]]; then
+    setup_vscode_mcp .vscode/mcp.json
     setup_instructions AGENTS.md
     mkdir -p .github/prompts
     for prompt in pr-review.md release-options-review.md docs-review.md spruce-example.md; do
