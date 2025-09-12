@@ -17,7 +17,10 @@ import { resetLineSelectionsFn } from './coneFunnelUtil';
 
 const { Line, ChartAxisDirection } = _ModuleSupport;
 
-export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgConeFunnelSeriesOptions> {
+export class ConeFunnelSeries extends BaseFunnelSeries<
+    _ModuleSupport.Line<FunnelNodeDatum>,
+    AgConeFunnelSeriesOptions
+> {
     static readonly className = 'ConeFunnelSeries';
     static readonly type = 'cone-funnel' as const;
 
@@ -63,8 +66,8 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
         return this.properties.getStyle(index);
     }
 
-    protected override nodeFactory(): _ModuleSupport.Line {
-        return new Line();
+    protected override nodeFactory(): _ModuleSupport.Line<FunnelNodeDatum> {
+        return new Line<FunnelNodeDatum>();
     }
 
     protected override createLabelData({
@@ -153,7 +156,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Line>;
+        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Line<FunnelNodeDatum>>;
         isHighlight: boolean;
     }) {
         const highlightStyle = this.getHighlightStyle(opts.isHighlight);

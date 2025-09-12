@@ -101,10 +101,10 @@ export abstract class BaseFunnelSeries<
     TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>,
     TOpts extends object,
 > extends _ModuleSupport.AbstractBarSeries<
+    FunnelNodeDatum,
     TNode,
     TOpts,
     BaseFunnelProperties<TOpts>,
-    FunnelNodeDatum,
     FunnelNodeLabelDatum,
     FunnelContext
 > {
@@ -174,7 +174,7 @@ export abstract class BaseFunnelSeries<
     protected abstract connectorStyle(index: number): RequireOptional<AgFunnelSeriesStyle> & { opacity: number };
 
     private connectionFactory() {
-        return new FunnelConnector();
+        return new FunnelConnector<FunnelConnectorDatum>();
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
