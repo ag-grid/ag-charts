@@ -57,10 +57,10 @@ class BoxPlotSeriesNodeEvent<
 }
 
 export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
+    BoxPlotNodeDatum,
     BoxPlotNode,
     AgBoxPlotSeriesOptions,
     BoxPlotSeriesProperties,
-    BoxPlotNodeDatum,
     BoxPlotNodeDatum,
     BoxPlotSeriesNodeDataContext
 > {
@@ -567,7 +567,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: BoxPlotNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, _ModuleSupport.Text<BoxPlotNodeDatum>>;
         seriesIdx: number;
     }) {
         const { labelData, labelSelection } = opts;

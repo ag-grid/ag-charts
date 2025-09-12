@@ -139,7 +139,7 @@ export class SeriesNodeEvent<
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: ISeries<DatumIndexType, TDatum, unknown, unknown>
+        series: { id: string }
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
