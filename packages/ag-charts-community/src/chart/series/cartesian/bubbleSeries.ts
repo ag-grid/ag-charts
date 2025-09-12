@@ -6,6 +6,7 @@ import {
     type AgBubbleSeriesOptionsKeys,
     type AgBubbleSeriesStylerParams,
     type AgBubbleSeriesStylerResult,
+    type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgScatterSeriesItemStylerParams,
     type AgScatterSeriesStylerParams,
@@ -586,10 +587,11 @@ export class BubbleSeries extends CartesianSeries<
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) return;
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, drawingMode } = opts;
 
         this.sizeScale.range = this.getSizeRange();
         const fillBBox = this.getShapeFillBBox();
@@ -626,6 +628,7 @@ export class BubbleSeries extends CartesianSeries<
             }
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+            node.drawingMode = drawingMode;
             node.zIndex = aggregated ? [-count, index] : 0;
         });
 

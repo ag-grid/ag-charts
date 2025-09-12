@@ -118,6 +118,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly seriesRoot = new TranslatableGroup({
         name: `${this.id}-series-root`,
         zIndex: ZIndexMap.SERIES_LAYER,
+        renderToOffscreenCanvas: true,
     });
     readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,

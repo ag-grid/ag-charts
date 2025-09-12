@@ -14,6 +14,7 @@ import type {
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
+    AgDrawingMode,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesStyle,
 } from 'ag-charts-types';
@@ -1002,6 +1003,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
         this.highlightGroup.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 
@@ -1023,7 +1025,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             sector: Sector,
             datum: PieDonutNodeDatum,
             _index: number,
-            isDatumHighlighted: boolean
+            isDatumHighlighted: boolean,
+            mode: AgDrawingMode
         ) => {
             const format = this.getItemStyle(datum, isDatumHighlighted, undefined, legendItemValues);
 
@@ -1044,6 +1047,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const fillParams = this.getFillParams(format.fill, innerRadius, outerRadius);
             applyShapeStyle(sector, format, fillBBox, fillParams);
 
+            sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
             const inset = Math.max(
@@ -1054,13 +1058,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
         };
 
-        this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
+        this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+        this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+
         this.highlightSelection.each((node, datum, index) => {
-            updateSectorFn(node, datum, index, true);
+            updateSectorFn(node, datum, index, true, drawingMode);
 
             node.visible = datum.itemId === highlightedDatum?.itemId;
         });
-        this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
 
         this.updateCalloutLineNodes();
         this.updateCalloutLabelNodes(seriesRect);

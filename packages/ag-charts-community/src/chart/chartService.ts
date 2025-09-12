@@ -3,6 +3,7 @@ import type { AgChartInstance, AgTouchOptions } from 'ag-charts-types';
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
+import type { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ISeries } from './series/seriesTypes';
 
@@ -16,5 +17,6 @@ export interface ChartService {
     readonly publicApi?: AgChartInstance;
     readonly touch: DeepRequired<AgTouchOptions>;
     readonly context?: unknown;
+    readonly highlight?: ChartHighlight;
     overrideFocusVisible(visible: boolean | undefined): void;
 }
