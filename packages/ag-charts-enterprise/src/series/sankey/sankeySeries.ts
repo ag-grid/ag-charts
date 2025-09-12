@@ -46,8 +46,8 @@ export class SankeySeries extends FlowProportionSeries<
     SankeyNodeLabelDatum,
     AgSankeySeriesOptions,
     SankeySeriesProperties,
-    _ModuleSupport.Rect,
-    SankeyLink
+    _ModuleSupport.Rect<SankeyNodeDatum>,
+    SankeyLink<SankeyLinkDatum>
 > {
     static readonly className = 'SankeySeries';
     static readonly type = 'sankey' as const;
@@ -66,11 +66,11 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected linkFactory() {
-        return new SankeyLink();
+        return new SankeyLink<SankeyLinkDatum>();
     }
 
     protected nodeFactory() {
-        return new Rect();
+        return new Rect<SankeyNodeDatum>();
     }
 
     override createNodeData() {

@@ -71,8 +71,8 @@ export class ChordSeries extends FlowProportionSeries<
     ChordNodeLabelDatum,
     AgChordSeriesOptions,
     ChordSeriesProperties,
-    _ModuleSupport.Sector,
-    ChordLink
+    _ModuleSupport.Sector<ChordNodeDatum>,
+    ChordLink<ChordLinkDatum>
 > {
     static readonly className = 'ChordSeries';
     static readonly type = 'chord' as const;
@@ -91,11 +91,11 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected linkFactory() {
-        return new ChordLink();
+        return new ChordLink<ChordLinkDatum>();
     }
 
     protected nodeFactory() {
-        return new Sector();
+        return new Sector<ChordNodeDatum>();
     }
 
     override createNodeData(): ChordNodeDataContext | undefined {

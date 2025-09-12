@@ -58,6 +58,7 @@ class Arc {
     }
 }
 
+//export class Sector<D = unknown> extends Path<D> {
 export class Sector<D = any> extends Path<D> {
     static override readonly className = 'Sector';
 

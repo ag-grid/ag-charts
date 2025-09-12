@@ -93,8 +93,8 @@ export abstract class FlowProportionSeries<
     TLabel,
     TOpts extends object,
     TProps extends FlowProportionSeriesProperties<TOpts>,
-    TNode extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
-    TLink extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
+    TNode extends _ModuleSupport.Node<TNodeDatum> & _ModuleSupport.DistantObject,
+    TLink extends _ModuleSupport.Node<TLinkDatum> & _ModuleSupport.DistantObject,
 > extends Series<
     FlowProportionNodeDatumIndex,
     TDatum<TNodeDatum, TLinkDatum>,
@@ -135,29 +135,29 @@ export abstract class FlowProportionSeries<
     private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightGroup.appendChild(new Group({ name: 'nodeGroup' }));
 
-    private labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText> = Selection.select(
-        this.labelGroup,
-        TransformableText
+    private labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText<TLabel>> =
+        Selection.select(this.labelGroup, TransformableText<TLabel>);
+    public linkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.selectNoInference(
+        this.linkGroup,
+        () => this.linkFactory()
     );
-    public linkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.select(this.linkGroup, () =>
-        this.linkFactory()
+    public nodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.selectNoInference(
+        this.nodeGroup,
+        () => this.nodeFactory()
     );
-    public nodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.select(this.nodeGroup, () =>
-        this.nodeFactory()
-    );
-    private focusLinkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.select(
+    private focusLinkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.selectNoInference(
         this.focusLinkGroup,
         () => this.linkFactory()
     );
-    private focusNodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.select(
+    private focusNodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.selectNoInference(
         this.focusNodeGroup,
         () => this.nodeFactory()
     );
-    private highlightLinkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.select(
+    private highlightLinkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.selectNoInference(
         this.highlightLinkGroup,
         () => this.linkFactory()
     );
-    private highlightNodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.select(
+    private highlightNodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.selectNoInference(
         this.highlightNodeGroup,
         () => this.nodeFactory()
     );
@@ -515,11 +515,11 @@ export abstract class FlowProportionSeries<
 
     protected abstract updateLabelSelection(opts: {
         labelData: TLabel[];
-        labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText>;
-    }): _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText>;
+        labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText<TLabel>>;
+    }): _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText<TLabel>>;
 
     protected abstract updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.Text<TLabel>>;
     }): void;
 
     protected abstract updateNodeSelection(opts: {
