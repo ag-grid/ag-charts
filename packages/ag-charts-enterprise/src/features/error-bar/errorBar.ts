@@ -12,7 +12,8 @@ const { fixNumericExtent, groupAccumulativeValueProperty, mergeDefaults, valuePr
 
 type ErrorBoundCartesianSeries = Omit<
     _ModuleSupport.CartesianSeries<
-        _ModuleSupport.Node,
+        ErrorBarNodeDatum,
+        _ModuleSupport.Node<ErrorBarNodeDatum>,
         object,
         _ModuleSupport.CartesianSeriesProperties<any>,
         ErrorBarNodeDatum
@@ -314,7 +315,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { x, y } = point;
         const node = this.groupNode.pickNode(x, y);
         if (node != null) {
-            return { datum: node.datum, distanceSquared: 0 };
+            return { datum: node.unsafeDatum, distanceSquared: 0 };
         }
     }
 
@@ -326,7 +327,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         point: Point,
         majorDirection: _ModuleSupport.ChartAxisDirection
     ): PickNodeDatumResult | undefined {
-        let closestDatum;
+        let closestDatum: (PickNodeDatumResult & {})['datum'] | undefined;
         let closestDistance = [Infinity, Infinity];
         const referencePoints = [point.x, point.y];
         if (majorDirection === ChartAxisDirection.Y) {
@@ -346,7 +347,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
                 childDistances[0] < closestDistance[0] ||
                 (childDistances[0] == closestDistance[0] && childDistances[1] < closestDistance[1])
             ) {
-                closestDatum = child.datum;
+                closestDatum = child.unsafeDatum;
                 closestDistance = childDistances;
             }
         }

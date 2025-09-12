@@ -240,7 +240,7 @@ export class ErrorBarGroup extends _ModuleSupport.Group {
             children: this.children() as Iterable<ErrorBarNode>,
         });
         if (nearest !== undefined && !isNaN(distanceSquared)) {
-            return { datum: nearest.datum, distanceSquared };
+            return { datum: nearest.unsafeDatum, distanceSquared };
         }
     }
 }
