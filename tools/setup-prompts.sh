@@ -250,7 +250,7 @@ fi
 if [[ "${TERM_PROGRAM:-}" == "vscode" ]]; then
     setup_instructions AGENTS.md
     mkdir -p .github/prompts
-    for prompt in pr-review.md release-options-review.md docs-review.md; do
+    for prompt in pr-review.md release-options-review.md docs-review.md spruce-example.md; do
         prompt_file="tools/prompts/commands/$prompt"
         copilot_prompt=".github/prompts/${prompt%.md}.prompt.md"
         if [[ -f "$prompt_file" && ! -f "$copilot_prompt" ]] ; then
