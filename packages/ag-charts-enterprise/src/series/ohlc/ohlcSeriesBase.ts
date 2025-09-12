@@ -96,17 +96,11 @@ interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeries
 }
 
 export abstract class OhlcSeriesBase<
-    TNode extends OhlcBaseNode,
+    TDatum extends OhlcNodeDatum,
+    TNode extends OhlcBaseNode<TDatum>,
     TOpts extends AgOhlcSeriesBaseOptions,
     TProps extends OhlcSeriesBaseProperties<TOpts>,
-> extends _ModuleSupport.AbstractBarSeries<
-    TNode,
-    TOpts,
-    TProps,
-    OhlcNodeDatum,
-    OhlcNodeDatum,
-    OhlcSeriesBaseNodeDataContext
-> {
+> extends _ModuleSupport.AbstractBarSeries<TDatum, TNode, TOpts, TProps, OhlcNodeDatum, OhlcSeriesBaseNodeDataContext> {
     protected override readonly NodeEvent = OhlcSeriesNodeEvent;
 
     private dataAggregationFilters: OhlcSeriesDataAggregationFilter[] | undefined = undefined;

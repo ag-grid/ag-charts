@@ -8,7 +8,8 @@ import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 const { isGradientFill, isPatternFill, isImageFill, applyShapeStyle } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<
-    CandlestickNode,
+    OhlcNodeDatum,
+    CandlestickNode<OhlcNodeDatum>,
     AgCandlestickSeriesOptions,
     CandlestickSeriesProperties<AgCandlestickSeriesOptions>
 > {
@@ -18,7 +19,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
     override properties = new CandlestickSeriesProperties<AgCandlestickSeriesOptions>();
 
     protected override nodeFactory() {
-        const node = new CandlestickNode();
+        const node = new CandlestickNode<OhlcNodeDatum>();
         node.lineCap = 'butt';
         return node;
     }
@@ -27,7 +28,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode<OhlcNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -39,7 +40,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode<OhlcNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
