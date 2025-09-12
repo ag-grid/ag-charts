@@ -106,11 +106,15 @@ function computeClipBBox(datum: AnimatableRectDatum): _ModuleSupport.BBox | unde
 }
 
 export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean, horizontal: boolean) {
+    type D = RectAnimationParams;
+    type N = _ModuleSupport.Rect<D>;
+    type T = AnimatableRectDatum & Record<string, string | number | undefined>;
+
     const phase = initialLoad ? 'initial' : 'update';
 
-    const node: _ModuleSupport.FromToFns<_ModuleSupport.Rect, RectAnimationParams, AnimatableRectDatum> = {
-        fromFn(sect, datum) {
-            const previousDatum: AnimatableRectDatum | undefined = sect.previousDatum;
+    const node: _ModuleSupport.FromToFns<D, N, T> = {
+        fromFn(sect, datum): T & Pick<_ModuleSupport.ExtraOpts<never>, 'phase'> {
+            const previousDatum: D | undefined = sect.previousDatum;
             let { x0, y0, x1, y1, clipX0, clipY0, clipX1, clipY1 } = previousDatum ?? datum;
             const { horizontalInset, verticalInset } = datum;
 
@@ -202,7 +206,7 @@ const verticalAlignFactors: Record<Align, number> = {
 export function formatLinearGaugeLabels(
     series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>,
     ctx: Ctx,
-    selection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text>,
+    selection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>,
     opts: { padding: number; horizontal: boolean },
     bboxes: { seriesRect: _ModuleSupport.BBox; gaugeRect: _ModuleSupport.BBox; barRect: _ModuleSupport.BBox },
     datumOverrides?: { label: number | undefined }
@@ -240,12 +244,9 @@ export function formatLinearGaugeLabels(
         if (labelText == null) {
             return;
         } else if (boundingWidth != null && boundingHeight != null) {
-            const sizeFittingHeight = () => ({
-                width: boundingWidth,
-                height: boundingHeight,
-                meta: null,
-            });
-
+            const width: number = boundingWidth;
+            const height: number = boundingHeight;
+            const sizeFittingHeight = () => ({ width, height, meta: null });
             const labelMeta = formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight);
             layout = labelMeta?.[0];
         } else {
