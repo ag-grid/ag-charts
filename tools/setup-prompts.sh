@@ -98,7 +98,20 @@ function setup_instructions() {
 function setup_mcp() {
     local target_file=$1
 
-    ln -sf "./tools/prompts/.mcp.json" "$target_file"
+    # Calculate the relative path from target_file to the MCP config
+    local target_dir=$(dirname "$target_file")
+    
+    # Count directory levels in target_file path
+    local dir_count=$(echo "$target_file" | tr -cd '/' | wc -c)
+    
+    # Build relative path with appropriate number of ../ prefixes
+    local relative_path="./"
+    for ((i=0; i<dir_count; i++)); do
+        relative_path="$relative_path../"
+    done
+    
+    # Create symlink with calculated relative path
+    ln -sf "${relative_path}tools/prompts/.mcp.json" "$target_file"
 }
 
 function setup_codex_mcp() {

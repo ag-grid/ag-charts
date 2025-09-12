@@ -8,7 +8,7 @@ AG Charts is a sophisticated TypeScript monorepo providing canvas-based JavaScri
 
 ## Technology Stack
 
-For detailed information about preferred technologies and architectural constraints, see [`tools/prompts/technology-stack.md`](tools/prompts/technology-stack.md).
+For detailed information about preferred technologies and architectural constraints, see [Technology Stack](tools/prompts/technology-stack.md).
 
 **Key Constraint:** The main AG Charts libraries must have ZERO third-party runtime dependencies.
 
@@ -45,6 +45,15 @@ nx e2e <package>            # Run Playwright E2E tests
 nx benchmark <package>       # Performance benchmarks
 nx lint <package>           # ESLint + custom rules
 ```
+
+## Slash Commands
+
+NOTE: These are only intended for agentic tools that don't support custom slash commands, such as Cursor or Codex.
+
+-   `/spruce-example` - execute `tools/prompts/commands/spruce-example.md` on specified example.
+-   `/pr-review` - execute `tools/prompts/commands/pr-review.md` on specified PR.
+-   `/release-options-review` - execute `tools/prompts/commands/release-options-review.md` on specified release options.
+-   `/docs-review` - execute `tools/prompts/commands/docs-review.md` on specified docs.
 
 ## Architecture
 
@@ -225,3 +234,11 @@ nx e2e ag-charts-website
     -   For typechecking docs examples run: `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:typecheck`
 -   For all examples also run: `nx validate-examples` (NOTE: This does a batch `typecheck` which is VERY fast compared to running individual `typecheck` targets).
 -   For adhoc examples to quickly test things or `-test` pages, adding `// @ag-skip-fws` to `main.ts` will disable framework (React, Angylar, Vue) variant generation.
+
+## Releases
+
+-   Releases are typically monthly for minor releases, and 6-monthly for major releases (typically in June and December).
+-   Patch releases are typically only for critical bug fixes, at most weekly.
+-   Minor releases cannot have breaking changes, we must hold these back for major releases.
+    -   Deprecations are allowed, but must be clearly marked as deprecated and still work as before.
+    -   Deprecated features/options are typically immediately removed from public website documentation to discourage use.
