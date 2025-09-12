@@ -61,7 +61,7 @@ function offsetTrivialCubicBezier(
     path.cubicCurveTo(q1x, q1y, q2x, q2y, q3x, q3y);
 }
 
-export class SankeyLink<D = any> extends Path<D> {
+export class SankeyLink<D = unknown> extends Path<D> {
     @SceneChangeDetection()
     x1: number = 0;
 

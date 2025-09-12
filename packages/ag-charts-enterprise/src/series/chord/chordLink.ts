@@ -27,7 +27,7 @@ export function bezierControlPoints({
         y: [cp0y, cp1y, cp2y, cp3y] as const,
     };
 }
-export class ChordLink<D = any> extends Path<D> {
+export class ChordLink<D = unknown> extends Path<D> {
     @SceneChangeDetection()
     centerX: number = 0;
 

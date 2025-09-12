@@ -35,7 +35,7 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
 
 export abstract class RadiusAxis<
     S extends _ModuleSupport.Scale<D, number, _ModuleSupport.TickInterval<S>> = _ModuleSupport.Scale<any, number, any>,
-    D = any,
+    D = unknown,
 > extends _ModuleSupport.PolarAxis<S, D> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
