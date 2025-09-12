@@ -68,4 +68,5 @@ vitest.config.*.timestamp*
 /.github/prompts/
 /.github/instructions/
 /.mcp.json
+/.vscode/mcp.json
 .tmp
