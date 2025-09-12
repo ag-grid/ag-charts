@@ -51,20 +51,20 @@ function connectorStartingPosition(
     }
 }
 
-export function prepareConnectorAnimationFunctions<T extends AnimatableConnectorDatum>(
-    isVertical: boolean,
-    mode: 'normal' | 'fade'
-) {
-    const isRemoved = (datum?: T) => datum == null;
+export function prepareConnectorAnimationFunctions(isVertical: boolean, mode: 'normal' | 'fade') {
+    type D = AnimatableConnectorDatum;
+    type N = FunnelConnector<D>;
+    type T = AnimatableConnectorDatum;
+    const isRemoved = (datum?: D) => datum == null;
 
-    const fromFn: _ModuleSupport.FromToMotionPropFn<FunnelConnector, AnimatableConnectorDatum, T> = (
-        connector: FunnelConnector,
-        datum: T,
+    const fromFn: _ModuleSupport.FromToMotionPropFn<D, N, T> = (
+        connector: N,
+        datum: D,
         status: _ModuleSupport.NodeUpdateState
-    ) => {
+    ): T & Pick<_ModuleSupport.ExtraOpts<never>, 'phase'> => {
         if (status === 'updated' && isRemoved(datum)) {
             status = 'removed';
-        } else if (status === 'updated' && isRemoved(connector.previousDatum)) {
+        } else if (status === 'updated' && isRemoved(connector.unsafePreviousDatum)) {
             status = 'added';
         }
 
@@ -74,7 +74,7 @@ export function prepareConnectorAnimationFunctions<T extends AnimatableConnector
             // Handle series add case, after initial load. This is distinct from legend toggle on.
             source = { ...resetConnectorSelectionsFn(connector, datum), opacity: 0 };
         } else if (status === 'unknown' || status === 'added') {
-            source = connectorStartingPosition(datum, connector.previousDatum, isVertical, mode);
+            source = connectorStartingPosition(datum, connector.unsafePreviousDatum, isVertical, mode);
         } else {
             source = {
                 x0: connector.x0,
@@ -92,17 +92,17 @@ export function prepareConnectorAnimationFunctions<T extends AnimatableConnector
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
         return { ...source, phase };
     };
-    const toFn: _ModuleSupport.FromToMotionPropFn<FunnelConnector, AnimatableConnectorDatum, T> = (
-        connector: FunnelConnector,
-        datum: T,
+    const toFn: _ModuleSupport.FromToMotionPropFn<D, N, T> = (
+        connector: N,
+        datum: D,
         status: _ModuleSupport.NodeUpdateState
-    ) => {
+    ): T => {
         let source: AnimatableConnectorDatum;
         if (status === 'removed' && connector.datum == null && mode === 'fade') {
             // Handle series remove case, after initial load. This is distinct from legend toggle off.
             source = { ...resetConnectorSelectionsFn(connector, datum), opacity: 0 };
         } else if (status === 'removed' || isRemoved(datum)) {
-            source = connectorStartingPosition(datum, connector.previousDatum, isVertical, mode);
+            source = connectorStartingPosition(datum, connector.unsafePreviousDatum, isVertical, mode);
         } else {
             source = resetConnectorSelectionsFn(connector, datum);
         }
@@ -113,7 +113,10 @@ export function prepareConnectorAnimationFunctions<T extends AnimatableConnector
     return { fromFn, toFn };
 }
 
-export function resetConnectorSelectionsFn(_node: FunnelConnector, datum: AnimatableConnectorDatum) {
+export function resetConnectorSelectionsFn(
+    _node: FunnelConnector<AnimatableConnectorDatum>,
+    datum: AnimatableConnectorDatum
+) {
     const { x0, y0, x1, y1, x2, y2, x3, y3, opacity } = datum;
     return { x0, y0, x1, y1, x2, y2, x3, y3, opacity };
 }

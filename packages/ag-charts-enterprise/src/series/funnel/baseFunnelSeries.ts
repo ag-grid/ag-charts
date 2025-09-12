@@ -457,7 +457,7 @@ export abstract class BaseFunnelSeries<
 
     private updateConnectorSelection(opts: {
         connectorData: FunnelConnectorDatum[];
-        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector>;
+        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
     }) {
         const { connectorData, connectorSelection } = opts;
         return connectorSelection.update(this.connectorEnabled() ? connectorData : [], undefined, (connector) =>
@@ -466,7 +466,7 @@ export abstract class BaseFunnelSeries<
     }
 
     private updateConnectorNodes(opts: {
-        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector>;
+        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
     }) {
         const fillBBox = this.getShapeFillBBox();
 
@@ -503,7 +503,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<FunnelNodeLabelDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<FunnelNodeLabelDatum, _ModuleSupport.Text<FunnelNodeLabelDatum>>;
     }) {
         const params: RequireOptional<AgFunnelSeriesLabelFormatterParams> = {
             stageKey: this.properties.stageKey,
