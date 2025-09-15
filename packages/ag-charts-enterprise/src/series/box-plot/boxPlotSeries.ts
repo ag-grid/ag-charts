@@ -652,6 +652,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const fillBBox = this.getShapeFillBBox();
+        const strokeAlignment = this.getStyle(false, false, HighlightState.None).strokeWidth / 2;
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
             const style = (nodeDatum.style ??
@@ -686,9 +687,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             boxPlotNode.max = nodeDatum.scaledValues.maxValue;
 
             boxPlotNode.capLengthRatio = style.cap.lengthRatio;
-
-            // Ignore highlight style
-            boxPlotNode.strokeAlignment = (contextNodeData.styles[HighlightState.None].strokeWidth ?? 0) / 2;
+            boxPlotNode.strokeAlignment = strokeAlignment; // Ignore highlight style
         });
     }
 
