@@ -24,7 +24,7 @@ const styler = (params: AgBoxPlotSeriesStylerParams<unknown, unknown>): AgBoxPlo
             fill: 'magenta',
             fillOpacity: 0.5,
             cornerRadius: 15,
-            cap: { lengthRatio: 0.5 },
+            cap: { lengthRatio: 1 },
         };
     return {};
 };
