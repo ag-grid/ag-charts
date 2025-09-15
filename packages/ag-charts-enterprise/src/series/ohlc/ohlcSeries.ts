@@ -38,14 +38,16 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, properties } = this;
         if (!contextNodeData) {
             return;
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const { up, down } = properties.item;
 
         datumSelection.each((node, datum) => {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
+            const baseStyle = datum.isRising ? up : down;
 
             node.centerX = centerX;
             node.width = width;
@@ -62,6 +64,8 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
                 ];
 
             applyShapeStyle(node, style);
+
+            node.strokeAlignment = baseStyle.strokeWidth;
         });
     }
 

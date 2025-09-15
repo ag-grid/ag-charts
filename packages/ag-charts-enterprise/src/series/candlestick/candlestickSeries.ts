@@ -42,14 +42,16 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, properties } = this;
         if (!contextNodeData) {
             return;
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const { up, down } = properties.item;
 
         datumSelection.each((node, datum) => {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
+            const baseStyle = datum.isRising ? up : down;
             const style =
                 datum.style ??
                 contextNodeData.styles[datum.itemId][
@@ -72,6 +74,8 @@ export class CandlestickSeries extends OhlcSeriesBase<
             node.wickStrokeOpacity = styleWick?.strokeOpacity;
             node.wickLineDash = styleWick?.lineDash;
             node.wickLineDashOffset = styleWick?.lineDashOffset;
+
+            node.wickStrokeAlignment = baseStyle.wick.strokeWidth ?? baseStyle.strokeWidth;
         });
     }
 

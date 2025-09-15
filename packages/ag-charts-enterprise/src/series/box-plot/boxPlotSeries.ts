@@ -513,7 +513,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, properties } = this;
         if (!contextNodeData) {
             return;
         }
@@ -521,6 +521,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const fillBBox = this.getShapeFillBBox();
+
+        const wickStrokeAlignment = properties.whisker.strokeWidth ?? properties.strokeWidth;
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
             const style = (nodeDatum.style ??
@@ -558,6 +560,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
             // Ignore highlight style
             boxPlotNode.strokeAlignment = (contextNodeData.styles[HighlightState.None].strokeWidth ?? 0) / 2;
+            boxPlotNode.wickStrokeAlignment = wickStrokeAlignment;
         });
     }
 

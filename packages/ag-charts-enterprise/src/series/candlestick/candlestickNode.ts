@@ -22,6 +22,9 @@ export class CandlestickNode extends OhlcBaseNode {
     @SceneChangeDetection()
     wickLineDashOffset: number | undefined;
 
+    @SceneChangeDetection()
+    wickStrokeAlignment: number = 0;
+
     protected override computeDefaultGradientFillBBox(): _ModuleSupport.BBox | undefined {
         const { width, centerX, yOpen, yClose } = this;
 
@@ -50,6 +53,8 @@ export class CandlestickNode extends OhlcBaseNode {
             wickLineDashOffset,
         } = this;
         const { centerX, x0, x1, y0, y1, yOpen, yClose } = this.alignedCoordinates();
+        const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
+        const wickStrokeAlignment = (pixelRatio / this.wickStrokeAlignment / 2) % 1;
 
         this.path.clear();
         this.wickPath.clear();
@@ -64,8 +69,8 @@ export class CandlestickNode extends OhlcBaseNode {
         const wickPath = needsWickPath ? this.wickPath : path;
 
         if (Math.abs(x1 - x0) <= 3) {
-            wickPath.moveTo(centerX, y0);
-            wickPath.lineTo(centerX, y1);
+            wickPath.moveTo(centerX - wickStrokeAlignment, y0);
+            wickPath.lineTo(centerX - wickStrokeAlignment, y1);
             return;
         }
 
@@ -73,11 +78,11 @@ export class CandlestickNode extends OhlcBaseNode {
         const boxBottom = Math.max(yOpen, yClose);
         const boxStrokeAdjustment = strokeWidth / 2;
 
-        wickPath.moveTo(centerX, y0);
-        wickPath.lineTo(centerX, boxTop + boxStrokeAdjustment);
+        wickPath.moveTo(centerX - wickStrokeAlignment, y0);
+        wickPath.lineTo(centerX - wickStrokeAlignment, boxTop + boxStrokeAdjustment);
 
-        wickPath.moveTo(centerX, y1);
-        wickPath.lineTo(centerX, boxBottom - boxStrokeAdjustment);
+        wickPath.moveTo(centerX - wickStrokeAlignment, y1);
+        wickPath.lineTo(centerX - wickStrokeAlignment, boxBottom - boxStrokeAdjustment);
 
         const rectHeight = boxBottom - boxTop - 2 * boxStrokeAdjustment;
         if (rectHeight > 0) {
