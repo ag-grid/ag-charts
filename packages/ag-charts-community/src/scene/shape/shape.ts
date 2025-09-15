@@ -190,9 +190,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
             this.executeStroke(ctx, path);
+            ctx.globalCompositeOperation = 'source-over';
         }
 
-        ctx.globalCompositeOperation = 'source-over';
         this.renderFill(ctx, path);
         this.renderStroke(ctx, path);
     }
