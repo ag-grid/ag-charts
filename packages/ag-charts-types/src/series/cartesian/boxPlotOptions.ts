@@ -30,11 +30,14 @@ interface BoxPlotOptionsKeys<TDatum = DatumDefault> {
     maxKey: DatumKey<TDatum>;
 }
 
+interface BoxPlotOptionsNamesNoKey {
+    /** A descriptive label for y-values. */
+    yName?: string;
+}
+
 interface BoxPlotOptionsNames {
     /** A descriptive label for x-values. */
     xName?: string;
-    /** A descriptive label for y-values. */
-    yName?: string;
     /** A human-readable description of minimum values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     minName?: string;
     /** A human-readable description of lower quartile values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -65,12 +68,19 @@ export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
     extends SeriesCallbackParams,
         ContextCallbackParams<TContext>,
         BoxPlotOptionsKeys<TDatum>,
-        BoxPlotOptionsNames,
-        Required<AgBoxPlotSeriesStyle> {}
+        BoxPlotOptionsNamesNoKey,
+        Required<BoxPlotOptionsNames>,
+        Required<AgBoxPlotSeriesStyle> {
+    /** Options to style chart's caps */
+    cap: Required<AgBoxPlotCapOptions>;
+    /** Options to style chart's whiskers */
+    whisker: Required<AgBoxPlotWhiskerOptions>;
+}
 
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames,
+        BoxPlotOptionsNamesNoKey,
         AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgBoxPlotSeriesStyle {}
 
@@ -112,7 +122,8 @@ export interface AgBoxPlotSeriesOptions<TDatum = DatumDefault, TContext = Contex
     extends AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         BoxPlotOptionsKeys<TDatum>,
-        BoxPlotOptionsNames {
+        BoxPlotOptionsNames,
+        BoxPlotOptionsNamesNoKey {
     /** Configuration for the Box Plot Series. */
     type: 'box-plot';
     /** Whether to group together (adjacently) separate columns. */

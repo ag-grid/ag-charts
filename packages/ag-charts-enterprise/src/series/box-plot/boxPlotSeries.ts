@@ -472,6 +472,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
 
+        // Do not allow any of the returned properties to be `undefined`.
+        // Exceptions:
+        // -   `fill` is a required color property that can be a string or a partial-object.
+        // -   `yName` key has no `yKey` fallback like `xName`.
+        type T = ReturnType<BoxPlotSeries['makeStylerParams']>;
+        type Rules = _ModuleSupport.CallbackParamRules<
+            DeepRequired<Omit<T, 'fill' | 'yName'>> & Required<Pick<T, 'fill'>> & Pick<T, 'yName'>
+        >;
         return {
             cap: { lengthRatio },
             cornerRadius,
@@ -482,30 +490,30 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             lineDash,
             lineDashOffset,
             maxKey,
-            maxName,
+            maxName: maxName ?? maxKey,
             medianKey,
-            medianName,
+            medianName: medianName ?? medianKey,
             minKey,
-            minName,
+            minName: minName ?? minKey,
             q1Key,
-            q1Name,
+            q1Name: q1Name ?? q1Key,
             q3Key,
-            q3Name,
+            q3Name: q3Name ?? q3Key,
             seriesId,
             stroke,
             strokeOpacity,
             strokeWidth,
             whisker: {
-                lineDash: whiskerLineDash,
-                lineDashOffset: whiskerLineDashOffset,
-                stroke: whiskerStroke,
-                strokeOpacity: whiskerStrokeOpacity,
-                strokeWidth: whiskerStrokeWidth,
+                lineDash: whiskerLineDash ?? lineDash,
+                lineDashOffset: whiskerLineDashOffset ?? lineDashOffset,
+                stroke: whiskerStroke ?? stroke,
+                strokeOpacity: whiskerStrokeOpacity ?? strokeOpacity,
+                strokeWidth: whiskerStrokeWidth ?? strokeWidth,
             },
             xKey,
-            xName,
+            xName: xName ?? xKey,
             yName,
-        } satisfies _ModuleSupport.CallbackParamRules<AgBoxPlotSeriesStylerParams<unknown, unknown>>;
+        } satisfies Rules;
     }
 
     private getStyle(
