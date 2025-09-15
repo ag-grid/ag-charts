@@ -1,6 +1,7 @@
 import type { RequireOptional } from 'ag-charts-core';
 import { isDefined } from 'ag-charts-core';
 import {
+    type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgLineSeriesLabelFormatterParams,
     type AgLineSeriesMarkerItemStylerParams,
@@ -583,13 +584,14 @@ export class LineSeries extends CartesianSeries<
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
             return;
         }
 
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, drawingMode } = opts;
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
@@ -603,6 +605,7 @@ export class LineSeries extends CartesianSeries<
                 applyTranslation,
                 selected: datum.selected,
             });
+            node.drawingMode = drawingMode;
         });
 
         if (!isHighlight) {

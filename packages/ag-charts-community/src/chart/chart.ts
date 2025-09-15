@@ -717,12 +717,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             case ChartUpdateType.SERIES_UPDATE: {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
-                await this.updateSeries(seriesToUpdate);
+                this.seriesRoot.renderToOffscreenCanvas = this.highlight.drawingMode === 'cutout';
 
-                updateSplits('🤔');
+                await this.updateSeries(seriesToUpdate);
 
                 this.updateAriaLabels();
                 this.seriesLayerManager.updateLayerCompositing();
+
+                updateSplits('🤔');
             }
             // fallthrough
 

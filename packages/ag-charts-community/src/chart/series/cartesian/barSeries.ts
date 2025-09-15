@@ -904,6 +904,7 @@ export class BarSeries extends AbstractBarSeries<
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<BarShape, BarNodeDatum>;
         isHighlight: boolean;
+        drawingMode: 'cutout' | 'overlay';
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
@@ -923,6 +924,8 @@ export class BarSeries extends AbstractBarSeries<
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
 
             applyShapeStyle(rect, style, fillBBox);
+
+            rect.drawingMode = opts.drawingMode;
 
             const cornerRadius = style.cornerRadius ?? 0;
             rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;

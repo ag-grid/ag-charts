@@ -27,6 +27,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
@@ -1438,6 +1439,157 @@ describe('LineSeries', () => {
 
             prepareTestOptions(options);
             chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('cutout drawing mode', () => {
+        it('should render line series with cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 25 },
+                    { x: 3, y: 15 },
+                    { x: 4, y: 30 },
+                    { x: 5, y: 20 },
+                    { x: 6, y: 35 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        title: 'Line Series',
+                        marker: {
+                            enabled: true,
+                            size: 25,
+                            shape: 'circle',
+                        },
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'blue',
+                                fillOpacity: 0.2,
+                                stroke: 'black',
+                                lineDash: [4, 2],
+                            },
+                        },
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(250, 300)(chart);
+            await compare();
+        });
+
+        it('should render multi-line series with cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { month: 'Jan', sales: 100, expenses: 80 },
+                    { month: 'Feb', sales: 120, expenses: 90 },
+                    { month: 'Mar', sales: 110, expenses: 85 },
+                    { month: 'Apr', sales: 140, expenses: 100 },
+                    { month: 'May', sales: 130, expenses: 95 },
+                    { month: 'Jun', sales: 150, expenses: 110 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'sales',
+                        title: 'Sales',
+                        marker: {
+                            enabled: true,
+                            size: 25,
+                            shape: 'square',
+                        },
+                        strokeWidth: 3,
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'blue',
+                                fillOpacity: 0.2,
+                                stroke: 'white',
+                                lineDash: [4, 2],
+                            },
+                        },
+                    },
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'expenses',
+                        title: 'Expenses',
+                        marker: {
+                            enabled: true,
+                            size: 25,
+                            shape: 'triangle',
+                        },
+                        strokeWidth: 3,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(200, 250)(chart);
+            await compare();
+        });
+
+        it('should render line series with default highlight style cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 5 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 10 },
+                    { x: 4, y: 20 },
+                    { x: 5, y: 12 },
+                    { x: 6, y: 18 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: {
+                            enabled: true,
+                            size: 25,
+                            shape: 'diamond',
+                        },
+                        strokeWidth: 2,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(300, 280)(chart);
             await compare();
         });
     });

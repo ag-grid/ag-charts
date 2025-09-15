@@ -424,6 +424,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     loadGoogleFonts: boolean,
     highlight: {
+        drawingMode: union('overlay', 'cutout'),
         range: union('tooltip', 'node'),
     },
     overlays: {
