@@ -118,7 +118,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly seriesRoot = new TranslatableGroup({
         name: `${this.id}-series-root`,
         zIndex: ZIndexMap.SERIES_LAYER,
-        renderToOffscreenCanvas: true,
     });
     readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,
@@ -718,12 +717,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             case ChartUpdateType.SERIES_UPDATE: {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
-                await this.updateSeries(seriesToUpdate);
+                this.seriesRoot.renderToOffscreenCanvas = this.highlight.drawingMode === 'cutout';
 
-                updateSplits('🤔');
+                await this.updateSeries(seriesToUpdate);
 
                 this.updateAriaLabels();
                 this.seriesLayerManager.updateLayerCompositing();
+
+                updateSplits('🤔');
             }
             // fallthrough
 
