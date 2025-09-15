@@ -365,14 +365,17 @@ export const mapShapeBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapShape
     ...lineDashOptionsDef,
 };
 
+export const radialSeriesStylerDef = callbackDefs<AgRadialSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+});
+
 export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeriesThemeableOptions> = {
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgRadialSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -433,12 +436,8 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
 
 export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesThemeableOptions> = {
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgRadialSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -452,12 +451,8 @@ export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSe
     cornerRadius: positiveNumber,
     columnWidthRatio: ratio,
     maxColumnWidthRatio: ratio,
-    itemStyler: callbackDefs<AgRadialSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,

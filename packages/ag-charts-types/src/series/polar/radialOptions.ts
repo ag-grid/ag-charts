@@ -1,4 +1,9 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
@@ -12,6 +17,8 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = DatumDefault, TCont
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum, TContext>>;
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgRadialSeriesStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
     /** A styler function for adjusting the styling of the radial columns. */
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
@@ -45,6 +52,12 @@ export interface AgRadialSeriesTooltipRendererParams<TDatum, TContext = ContextD
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadialSeriesStyle {}
+
+export type AgRadialSeriesStylerParams<TDatum, TContext> = SeriesCallbackParams &
+    ContextCallbackParams<TContext> &
+    AgRadialSeriesOptionsKeys<TDatum> &
+    Required<AgRadialSeriesOptionsNames> &
+    Required<AgRadialSeriesStyle>;
 
 export type AgRadialSeriesItemStylerParams<
     TDatum = DatumDefault,
