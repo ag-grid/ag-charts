@@ -7,6 +7,7 @@ import type {
     AgBarSeriesStyle,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -80,7 +81,7 @@ import { areScalingEqual } from './scaling';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
 }
