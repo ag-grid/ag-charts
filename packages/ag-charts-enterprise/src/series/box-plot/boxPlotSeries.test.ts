@@ -622,8 +622,8 @@ describe('BoxPlotSeries', () => {
                 await compareSnapshot(chart);
             });
         });
-        xdescribe('highlights', () => {
-            // Not yet implemented. (Change to `describe` once implemented and snapshots are updated)
+        describe('highlights', () => {
+            // Manual-test version available at box-plot-series-test#styler-highlight-state
             beforeEach(async () => {
                 chart = AgCharts.create(
                     prepareEnterpriseTestOptions<O>({
@@ -638,7 +638,6 @@ describe('BoxPlotSeries', () => {
                                 medianKey: 's1_median',
                                 q3Key: 's1_q3',
                                 maxKey: 's1_max',
-                                highlight: { highlightedSeries: { fill: 'yellow' } },
                                 styler: styler.frozen,
                             },
                             {
@@ -650,7 +649,6 @@ describe('BoxPlotSeries', () => {
                                 medianKey: 's2_median',
                                 q3Key: 's2_q3',
                                 maxKey: 's2_max',
-                                highlight: { highlightedSeries: { fill: 'forestgreen' } },
                                 styler: styler.frozen,
                             },
                         ],
@@ -659,12 +657,12 @@ describe('BoxPlotSeries', () => {
                 await waitForChartStability(chart);
             });
 
-            const miss = { x: NaN, y: NaN } as const;
-            const series0datum0 = { x: NaN, y: NaN } as const;
-            const series0datum2 = { x: NaN, y: NaN } as const;
-            const series1datum0 = { x: NaN, y: NaN } as const;
-            const legendItem0 = { x: NaN, y: NaN } as const;
-            const legendItem1 = { x: NaN, y: NaN } as const;
+            const miss = { x: 200, y: 100 } as const;
+            const series0datum0 = { x: 100, y: 333 } as const;
+            const series0datum2 = { x: 222, y: 424 } as const;
+            const series1datum0 = { x: 145, y: 333 } as const;
+            const legendItem0 = { x: 333, y: 572 } as const;
+            const legendItem1 = { x: 444, y: 572 } as const;
 
             describe('single', () => {
                 async function testHover(p: { readonly x: number; readonly y: number }) {
