@@ -238,7 +238,8 @@ export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptio
     let totalHeight = 0;
 
     function truncateLastSegment() {
-        const lastSegment = result.pop()!;
+        const lastSegment = result.pop();
+        if (!lastSegment) return;
         const measurer = cachedTextMeasurer(lastSegment);
         const truncatedText = truncateLine(lastSegment.text, measurer, options.maxWidth, true);
         const textMetrics = measurer.measureText(truncatedText);

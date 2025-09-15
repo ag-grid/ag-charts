@@ -1,5 +1,5 @@
 import type { LabelBoxOptions, TextOrSegments } from '../series/cartesian/commonOptions';
-import type { Formatter, Styler } from './callbackOptions';
+import type { RichFormatter, Styler } from './callbackOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -50,7 +50,7 @@ export interface AgAxisCaptionOptions {
     /** Spacing between the axis labels and the axis title. */
     spacing?: PixelSize;
     /** Formatter to allow dynamic axis title calculation. */
-    formatter?: Formatter<AgAxisCaptionFormatterParams>;
+    formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
 }
 
 export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
@@ -179,7 +179,7 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
     minSpacing?: PixelSize;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
-    formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
+    formatter?: RichFormatter<AgAxisLabelFormatterParams<TContext>>;
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }

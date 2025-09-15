@@ -1,4 +1,5 @@
 import { type TextAlign, type VerticalAlign, _ModuleSupport } from 'ag-charts-community';
+import { toPlainText } from 'ag-charts-core';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
@@ -212,9 +213,9 @@ export function formatRadialGaugeLabels(
     let height: number;
     if (secondaryLabelDatum != null && secondaryLabelText != null) {
         const layout = formatStackedLabels(
-            labelText,
+            toPlainText(labelText),
             labelDatum,
-            secondaryLabelText,
+            toPlainText(secondaryLabelText),
             secondaryLabelDatum,
             params,
             sizeFittingHeight
@@ -224,7 +225,7 @@ export function formatRadialGaugeLabels(
         secondaryLabelLayout = layout?.secondaryLabel;
         height = layout?.height ?? 0;
     } else {
-        const layout = formatSingleLabel(labelText, labelDatum, params, sizeFittingHeight);
+        const layout = formatSingleLabel(toPlainText(labelText), labelDatum, params, sizeFittingHeight);
 
         labelLayout = layout?.[0];
         secondaryLabelLayout = undefined;

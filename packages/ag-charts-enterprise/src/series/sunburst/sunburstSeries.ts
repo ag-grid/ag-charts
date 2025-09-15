@@ -1,4 +1,4 @@
-import { type AgSunburstSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { type AgSunburstSeriesLabelFormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
 import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
@@ -32,7 +32,7 @@ class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
 }
 
 interface LabelLayout {
-    text: string;
+    text: TextOrSegments;
     fontSize: number;
     lineHeight: number;
     fontStyle: FontStyle;

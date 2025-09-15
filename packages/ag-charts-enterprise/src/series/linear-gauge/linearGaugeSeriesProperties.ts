@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type RichFormatter, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -11,7 +11,6 @@ import type {
     AgLinearGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
-    Formatter,
     OverflowStrategy,
     TextWrap,
 } from 'ag-charts-types';
@@ -85,7 +84,7 @@ export type LinearGaugeLabelDatum = {
     placement: AgLinearGaugeLabelPlacement;
     avoidCollisions: boolean;
     spacing: number;
-    text: string | undefined;
+    text: TextOrSegments | undefined;
     value: number;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;
@@ -96,7 +95,7 @@ export type LinearGaugeLabelDatum = {
     lineHeight: number | undefined;
     wrapping: TextWrap;
     overflowStrategy: OverflowStrategy;
-    formatter: Formatter<AgChartLabelFormatterParams<any>> | undefined;
+    formatter: RichFormatter<AgChartLabelFormatterParams<any>> | undefined;
 };
 
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {

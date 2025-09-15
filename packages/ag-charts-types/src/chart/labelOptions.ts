@@ -1,5 +1,5 @@
 import type { FontOptions, LabelBoxOptions, Toggleable } from '../series/cartesian/commonOptions';
-import type { AgChartCallbackParams, Formatter, HighlightState, Styler } from './callbackOptions';
+import type { AgChartCallbackParams, HighlightState, RichFormatter, Styler } from './callbackOptions';
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
 export interface AgChartLabelStyleOptions extends Toggleable, FontOptions, LabelBoxOptions {}
@@ -23,7 +23,7 @@ export interface AgChartLabelStylerParams<TDatum, TContext>
  */
 export interface AgChartLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelStyleOptions {
     /** A custom formatting function used to convert data values into text for display by labels. */
-    formatter?: Formatter<AgChartLabelFormatterParams<TDatum, TContext> & TParams>;
+    formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum, TContext> & TParams>;
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to style individual datum labels. */

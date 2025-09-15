@@ -5,9 +5,10 @@ import {
     type AgSeriesMarkerStyle,
     type FontStyle,
     type FontWeight,
+    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, cachedTextMeasurer } from 'ag-charts-core';
+import { type Point, cachedTextMeasurer, isArray, measureTextSegments } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -439,22 +440,22 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             lines ?? ticks?.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
 
         const labelSize = linesOrTicks.reduce((accum, text) => {
-            const { width } = measurer.measureText(text);
+            const { width } = isArray(text) ? measureTextSegments(text, label) : measurer.measureText(text);
             return Math.max(accum, width);
         }, 0);
 
         return label.spacing + labelSize;
     }
 
-    private tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => string {
+    private tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => TextOrSegments {
         const { format, formatter } = this.properties.scale.label;
-        let tickFormatter: ((value: number) => string) | undefined;
+        let tickFormatter: ((value: number) => TextOrSegments) | undefined;
         if (format != null) {
             tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
         }
 
-        return (value: number, index: number): string => {
-            let r: string | undefined = undefined;
+        return (value: number, index: number): TextOrSegments => {
+            let r: TextOrSegments | undefined = undefined;
             if (formatter) {
                 r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
             }

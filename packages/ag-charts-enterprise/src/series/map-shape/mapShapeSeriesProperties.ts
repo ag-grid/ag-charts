@@ -5,6 +5,7 @@ import type {
     AgMapShapeSeriesStyle,
     AgMapShapeSeriesTooltipRendererParams,
     Styler,
+    TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
@@ -16,7 +17,7 @@ const { Property, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 export interface MapShapeNodeLabelDatum {
     readonly x: number;
     readonly y: number;
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly fontSize: number;
     readonly lineHeight: number;
 }
