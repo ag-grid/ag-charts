@@ -1,4 +1,9 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
 import type {
@@ -56,6 +61,12 @@ export type AgBoxPlotSeriesItemStylerParams<
     BoxPlotOptionsKeys<TDatum> &
     Required<AgBoxPlotSeriesStyle>;
 
+export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        BoxPlotOptionsKeys<TDatum>,
+        Required<AgBoxPlotSeriesStyle> {}
+
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames,
@@ -82,6 +93,8 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext>>;
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgBoxPlotSeriesStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
