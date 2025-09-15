@@ -5,6 +5,7 @@ import {
     type FontStyle,
     type FontWeight,
     type TextAlign,
+    type TextOrSegments,
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -54,7 +55,7 @@ interface Padding {
 }
 
 interface LabelLayout {
-    text: string;
+    text: TextOrSegments;
     fontSize: number;
     lineHeight: number;
     fontStyle: FontStyle;

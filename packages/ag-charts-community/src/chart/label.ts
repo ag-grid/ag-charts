@@ -7,9 +7,9 @@ import type {
     ContextDefault,
     FontStyle,
     FontWeight,
-    Formatter,
     Padding,
     PaddingOptions,
+    RichFormatter,
     Styler,
     TextOrSegments,
 } from 'ag-charts-types';
@@ -73,7 +73,7 @@ export class Label<TParams = never, TDatum = any>
     fontFamily!: string;
 
     @Property
-    formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
+    formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     @Property
     format?: string;

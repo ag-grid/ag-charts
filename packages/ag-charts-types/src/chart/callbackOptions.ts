@@ -1,3 +1,4 @@
+import type { TextOrSegments } from '../series/cartesian/commonOptions';
 import type { ContextDefault, DatumDefault } from './types';
 
 export interface AgChartCallbackParams<TDatum = DatumDefault, TContext = ContextDefault> {
@@ -49,6 +50,7 @@ export interface DatumItemCallbackParams<ItemType extends string, TDatum> extend
 }
 
 export type Formatter<P> = (params: P) => string | undefined;
+export type RichFormatter<P> = (params: P) => TextOrSegments | undefined;
 export type Styler<P, S> = (params: P) => S | undefined;
 export type Renderer<P, R> = (params: P) => string | R;
 export type Listener<E> = (event: E) => void;

@@ -5,6 +5,7 @@ import type {
     FontStyle,
     FontWeight,
     TextAlign,
+    TextOrSegments,
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -47,7 +48,7 @@ interface HeatmapLabelDatum extends Point {
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     datum: any;
     itemId?: string;
-    text: string;
+    text: TextOrSegments;
     fontSize: number;
     lineHeight: number;
     fontStyle: FontStyle | undefined;

@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type RichFormatter, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -11,7 +11,6 @@ import type {
     AgRadialGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
-    Formatter,
 } from 'ag-charts-types';
 
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
@@ -91,7 +90,7 @@ export type RadialGaugeLabelDatum = {
     fontFamily: string;
     lineHeight: number | undefined;
     formatter:
-        | Formatter<AgChartLabelFormatterParams<any> & RequireOptional<AgRadialGaugeLabelFormatterParams>>
+        | RichFormatter<AgChartLabelFormatterParams<any> & RequireOptional<AgRadialGaugeLabelFormatterParams>>
         | undefined;
 };
 

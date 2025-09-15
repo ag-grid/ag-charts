@@ -72,7 +72,7 @@ export class Text<D = any> extends Shape<D> {
             this.richText.setScene(this.scene);
             this.richText.append(
                 this.text
-                    .flatMap((s) => s.text.split(LineSplitter))
+                    .flatMap((s) => (isString(s.text) ? s.text.split(LineSplitter) : String(s.text)))
                     .filter(Boolean)
                     .map(() => new Text({ trimText: false }))
             );
@@ -255,23 +255,41 @@ export class Text<D = any> extends Shape<D> {
         if (isArray(this.text)) {
             this.generateTextMap();
             const richTextBBox = this.richText!.getBBox();
+            const { width, height, lineMetrics } = measureTextSegments(this.text, this);
 
             let translateX = 0;
             switch (this.textAlign) {
                 case 'left':
                 case 'start':
-                    translateX = richTextBBox.width / 2;
+                    translateX = width / 2;
                     break;
 
                 case 'right':
                 case 'end':
-                    translateX = richTextBBox.width / -2;
+                    translateX = width / -2;
             }
 
-            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, this.y));
+            let translateY = this.y;
+            switch (this.textBaseline) {
+                case 'alphabetic':
+                    translateY -= lineMetrics[0]?.ascent ?? 0;
+                    break;
+
+                case 'middle':
+                    const measurer = cachedTextMeasurer(this);
+                    translateY -= height / 2 - measurer.baselineDistance('middle');
+                    // TODO not accurate, can be improved
+                    break;
+
+                case 'bottom':
+                    translateY -= height;
+                    break;
+            }
+
+            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, translateY));
 
             ctx.save();
-            ctx.translate(translateX, this.y);
+            ctx.translate(translateX, translateY);
             this.richText!.render(renderCtx);
             ctx.restore();
         } else {
