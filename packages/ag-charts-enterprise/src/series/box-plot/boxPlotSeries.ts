@@ -2,6 +2,7 @@ import {
     type AgBoxPlotHighlightStyleOptions,
     type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
+    type AgBoxPlotSeriesStylerParams,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { DeepRequired } from 'ag-charts-core';
@@ -29,6 +30,7 @@ const {
     getItemStyles,
     applyShapeFillBBox,
     calculateSegments,
+    toHighlightString,
 } = _ModuleSupport;
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
@@ -266,7 +268,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
+            false,
+            false,
+            HighlightState.None
+        );
 
         return {
             marker: {
@@ -428,6 +434,129 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return opts.datumSelection.update(data);
     }
 
+    private makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): AgBoxPlotSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const {
+            cornerRadius,
+            cap: { lengthRatio },
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            maxKey,
+            maxName,
+            medianKey,
+            medianName,
+            minKey,
+            minName,
+            q1Key,
+            q1Name,
+            q3Key,
+            q3Name,
+            whisker: {
+                lineDash: whiskerLineDash,
+                lineDashOffset: whiskerLineDashOffset,
+                stroke: whiskerStroke,
+                strokeOpacity: whiskerStrokeOpacity,
+                strokeWidth: whiskerStrokeWidth,
+            },
+            xKey,
+            xName,
+            yName,
+        } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        return {
+            cap: { lengthRatio },
+            cornerRadius,
+            fill,
+            fillOpacity,
+            highlightState,
+            highlighted,
+            lineDash,
+            lineDashOffset,
+            maxKey,
+            maxName,
+            medianKey,
+            medianName,
+            minKey,
+            minName,
+            q1Key,
+            q1Name,
+            q3Key,
+            q3Name,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            whisker: {
+                lineDash: whiskerLineDash,
+                lineDashOffset: whiskerLineDashOffset,
+                stroke: whiskerStroke,
+                strokeOpacity: whiskerStrokeOpacity,
+                strokeWidth: whiskerStrokeWidth,
+            },
+            xKey,
+            xName,
+            yName,
+        } satisfies _ModuleSupport.CallbackParamRules<AgBoxPlotSeriesStylerParams<unknown, unknown>>;
+    }
+
+    private getStyle(
+        ignoreStylerCallback: boolean,
+        highlighted: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ): Required<AgBoxPlotSeriesStyle> & { opacity: number } {
+        const {
+            cap,
+            cornerRadius,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            styler,
+            whisker,
+        } = this.properties;
+        let stylerResult: AgBoxPlotSeriesStyle = {};
+        if (!ignoreStylerCallback && styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
+        }
+        return {
+            cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
+            fill: stylerResult.fill ?? fill,
+            fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            opacity: 1,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+            cap: { lengthRatio: stylerResult.cap?.lengthRatio ?? cap.lengthRatio },
+            whisker: {
+                lineDash: stylerResult.whisker?.lineDash ?? whisker.lineDash,
+                lineDashOffset: stylerResult.whisker?.lineDashOffset ?? whisker.lineDashOffset,
+                stroke: stylerResult.whisker?.stroke ?? whisker.stroke,
+                strokeOpacity: stylerResult.whisker?.strokeOpacity ?? whisker.strokeOpacity,
+                strokeWidth: stylerResult.whisker?.strokeWidth ?? whisker.strokeWidth,
+            },
+        };
+    }
+
     private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
@@ -437,7 +566,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, properties.getStyle());
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, isHighlight, highlightState));
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -583,6 +712,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.itemStyler != null || this.properties.styler != null;
     }
 }
