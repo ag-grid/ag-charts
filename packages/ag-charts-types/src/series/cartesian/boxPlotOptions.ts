@@ -65,6 +65,7 @@ export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
     extends SeriesCallbackParams,
         ContextCallbackParams<TContext>,
         BoxPlotOptionsKeys<TDatum>,
+        BoxPlotOptionsNames,
         Required<AgBoxPlotSeriesStyle> {}
 
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
