@@ -61,9 +61,8 @@ export class MapLineBackgroundSeries
 
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
-    private datumSelection: _ModuleSupport.Selection<MapLineBackgroundNodeDatum, GeoGeometry> = Selection.select(
-        this.itemGroup,
-        () => this.nodeFactory()
+    private datumSelection = Selection.select<GeoGeometry<MapLineBackgroundNodeDatum>>(this.itemGroup, () =>
+        this.nodeFactory()
     );
 
     private contextNodeData?: MapLineNodeDataContext;
@@ -98,8 +97,8 @@ export class MapLineBackgroundSeries
         return true;
     }
 
-    private nodeFactory(): GeoGeometry {
-        const geoGeometry = new GeoGeometry();
+    private nodeFactory(): GeoGeometry<MapLineBackgroundNodeDatum> {
+        const geoGeometry = new GeoGeometry<MapLineBackgroundNodeDatum>();
         geoGeometry.renderMode = GeoGeometryRenderMode.Lines;
         geoGeometry.lineJoin = 'round';
         geoGeometry.lineCap = 'round';
@@ -177,13 +176,13 @@ export class MapLineBackgroundSeries
 
     private updateDatumSelection(opts: {
         nodeData: MapLineBackgroundNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<MapLineBackgroundNodeDatum, GeoGeometry>;
+        datumSelection: _ModuleSupport.Selection<MapLineBackgroundNodeDatum, GeoGeometry<MapLineBackgroundNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.index));
     }
 
     private updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<MapLineBackgroundNodeDatum, GeoGeometry>;
+        datumSelection: _ModuleSupport.Selection<MapLineBackgroundNodeDatum, GeoGeometry<MapLineBackgroundNodeDatum>>;
     }) {
         const { datumSelection } = opts;
 

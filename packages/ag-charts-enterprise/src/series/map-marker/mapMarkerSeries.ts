@@ -87,17 +87,18 @@ export class MapMarkerSeries
 
     private readonly markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
 
-    private labelSelection: _ModuleSupport.Selection<
-        _ModuleSupport.Text,
-        _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
-    > = Selection.select(this.labelGroup, Text, false);
-    private markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker> = Selection.select(
+    private labelSelection = Selection.select<
+        _ModuleSupport.Text<_ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>>
+    >(this.labelGroup, Text, false);
+    private markerSelection = Selection.select<_ModuleSupport.Marker<MapMarkerNodeDatum>>(
         this.markerGroup,
         Marker,
         false
     );
-    private highlightMarkerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker> =
-        Selection.select(this.highlightGroup, Marker);
+    private highlightMarkerSelection = Selection.select<_ModuleSupport.Marker<MapMarkerNodeDatum>>(
+        this.highlightGroup,
+        Marker
+    );
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -553,8 +554,8 @@ export class MapMarkerSeries
 
     private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<
-            _ModuleSupport.Text,
-            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>,
+            _ModuleSupport.Text<_ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>>
         >;
     }) {
         const { properties } = this;
@@ -581,7 +582,7 @@ export class MapMarkerSeries
 
     private updateMarkerSelection(opts: {
         markerData: MapMarkerNodeDatum[];
-        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker>;
+        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
     }) {
         const { markerData, markerSelection } = opts;
 
@@ -651,7 +652,7 @@ export class MapMarkerSeries
     }
 
     private updateMarkerNodes(opts: {
-        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker>;
+        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
     }) {

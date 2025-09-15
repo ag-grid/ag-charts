@@ -8,11 +8,10 @@ type AnimatableMapMarkerDatum = {
 };
 
 export function prepareMapMarkerAnimationFunctions() {
-    const fromFn: _ModuleSupport.FromToMotionPropFn<_ModuleSupport.Marker, AnimatableMapMarkerDatum, unknown> = (
-        marker,
-        _datum,
-        status
-    ) => {
+    type D = AnimatableMapMarkerDatum;
+    type N = _ModuleSupport.Marker<D>;
+    type T = Record<string, number>;
+    const fromFn: _ModuleSupport.FromToMotionPropFn<D, N, T> = (marker, _datum, status) => {
         if (status === 'removed') {
             return { scalingX: 1, scalingY: 1 };
         } else if (marker.previousDatum == null) {
@@ -20,11 +19,7 @@ export function prepareMapMarkerAnimationFunctions() {
         }
         return { scalingX: marker.scalingX, scalingY: marker.scalingY };
     };
-    const toFn: _ModuleSupport.FromToMotionPropFn<_ModuleSupport.Marker, AnimatableMapMarkerDatum, unknown> = (
-        _marker,
-        _datum,
-        status
-    ) => {
+    const toFn: _ModuleSupport.FromToMotionPropFn<D, N, T> = (_marker, _datum, status) => {
         if (status === 'removed') {
             return { scalingX: 0, scalingY: 0 };
         }
@@ -36,7 +31,7 @@ export function prepareMapMarkerAnimationFunctions() {
 
 type SomeMapSeries<TDatum> = {
     contextNodeData?: { nodeData: TDatum[] };
-    datumSelection: _ModuleSupport.Selection<TDatum, GeoGeometry>;
+    datumSelection: _ModuleSupport.Selection<TDatum, GeoGeometry<TDatum>>;
 };
 
 export function findFocusedGeoGeometry<TDatum>(

@@ -88,17 +88,10 @@ export class MapShapeSeries
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
-    public datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry> = Selection.select(
-        this.itemGroup,
-        () => this.nodeFactory()
-    );
-    private labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text> = Selection.select(
-        this.itemLabelGroup,
-        Text
-    );
-    private highlightDatumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry> = Selection.select(
-        this.highlightGroup,
-        () => this.nodeFactory()
+    public datumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.itemGroup, () => this.nodeFactory());
+    private labelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(this.itemLabelGroup, Text);
+    private highlightDatumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.highlightGroup, () =>
+        this.nodeFactory()
     );
 
     public contextNodeData?: MapShapeNodeDataContext;
@@ -145,8 +138,8 @@ export class MapShapeSeries
         return this.properties.labelKey != null && this.properties.label.enabled;
     }
 
-    private nodeFactory(): GeoGeometry {
-        const geoGeometry = new GeoGeometry();
+    private nodeFactory(): GeoGeometry<MapShapeNodeDatum> {
+        const geoGeometry = new GeoGeometry<MapShapeNodeDatum>();
         geoGeometry.renderMode = GeoGeometryRenderMode.Polygons;
         geoGeometry.lineJoin = 'round';
         return geoGeometry;
@@ -461,7 +454,7 @@ export class MapShapeSeries
 
     private updateDatumSelection(opts: {
         nodeData: MapShapeNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry>;
+        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
@@ -530,7 +523,7 @@ export class MapShapeSeries
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry>;
+        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -541,7 +534,7 @@ export class MapShapeSeries
     private updateDatumNodes({
         datumSelection,
     }: {
-        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry>;
+        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
     }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
@@ -562,14 +555,14 @@ export class MapShapeSeries
 
     private updateLabelSelection(opts: {
         labelData: MapShapeNodeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text<MapShapeNodeLabelDatum>>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
     private updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text<MapShapeNodeLabelDatum>>;
     }) {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
