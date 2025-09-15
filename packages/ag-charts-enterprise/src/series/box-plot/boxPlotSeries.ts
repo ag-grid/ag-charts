@@ -630,8 +630,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, nodeDatum) => {
-            nodeDatum.style = this.getItemStyle(nodeDatum.datumIndex, isHighlight);
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
+            nodeDatum.style = this.getItemStyle(nodeDatum.datumIndex, isHighlight, highlightState);
         });
     }
 
