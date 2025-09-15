@@ -62,11 +62,22 @@ function restore_tracked_symlinks() {
 function setup_commands() {
     local target_dir=$1
     local format=${2:-md}
+    local mode=${3:-link}
 
     mkdir -p $target_dir
-    if [[ "$format" == "md" ]]; then
+    if [[ "$format" == "md" && "$mode" == "link" ]]; then
         for file in tools/prompts/commands/*.md; do
+            if [[ -f "$target_dir/$(basename "$file")" ]]; then
+                rm "$target_dir/$(basename "$file")"
+            fi
             ln -sf "$(pwd)/$file" "$target_dir/$(basename "$file")"
+        done
+    elif [[ "$format" == "md" && "$mode" == "copy" ]]; then
+        for file in tools/prompts/commands/*.md; do
+            if [[ -f "$target_dir/$(basename "$file")" ]]; then
+                rm "$target_dir/$(basename "$file")"
+            fi
+            cp "$file" "$target_dir/$(basename "$file")"
         done
     elif [[ "$format" == "toml" ]]; then
         for file in tools/prompts/commands/*.md; do
@@ -281,6 +292,8 @@ if (command -v cursor-agent >/dev/null 2>&1) ; then
 fi
 
 if (command -v codex >/dev/null 2>&1) ; then
+    echo "WARNING: Setting up Codex, note all config is user-scoped not project-scoped."
+    setup_commands ~/.codex/prompts md copy
     setup_instructions AGENTS.md
     setup_codex_mcp ~/.codex/config.toml
 fi
