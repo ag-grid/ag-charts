@@ -99,22 +99,25 @@ export const boxPlotHighlightStyleOptionsDef: OptionsDefs<AgBoxPlotHighlightStyl
     opacity: ratio,
 };
 
+const boxPlotStyler = callbackDefs<AgBoxPlotSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+    whisker: {
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    cap: {
+        lengthRatio: ratio,
+    },
+});
+
 export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
-    itemStyler: callbackDefs<AgBoxPlotSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-        whisker: {
-            ...strokeOptionsDef,
-            ...lineDashOptionsDef,
-        },
-        cap: {
-            lengthRatio: ratio,
-        },
-    }),
+    styler: boxPlotStyler,
+    itemStyler: boxPlotStyler,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...boxPlotStyleOptionsDef,

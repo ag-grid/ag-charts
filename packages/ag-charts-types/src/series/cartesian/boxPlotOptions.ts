@@ -1,4 +1,9 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
 import type {
@@ -25,11 +30,14 @@ interface BoxPlotOptionsKeys<TDatum = DatumDefault> {
     maxKey: DatumKey<TDatum>;
 }
 
+interface BoxPlotOptionsNamesNoKey {
+    /** A descriptive label for y-values. */
+    yName?: string;
+}
+
 interface BoxPlotOptionsNames {
     /** A descriptive label for x-values. */
     xName?: string;
-    /** A descriptive label for y-values. */
-    yName?: string;
     /** A human-readable description of minimum values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     minName?: string;
     /** A human-readable description of lower quartile values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -56,9 +64,23 @@ export type AgBoxPlotSeriesItemStylerParams<
     BoxPlotOptionsKeys<TDatum> &
     Required<AgBoxPlotSeriesStyle>;
 
+export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        BoxPlotOptionsKeys<TDatum>,
+        BoxPlotOptionsNamesNoKey,
+        Required<BoxPlotOptionsNames>,
+        Required<AgBoxPlotSeriesStyle> {
+    /** Options to style chart's caps */
+    cap: Required<AgBoxPlotCapOptions>;
+    /** Options to style chart's whiskers */
+    whisker: Required<AgBoxPlotWhiskerOptions>;
+}
+
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames,
+        BoxPlotOptionsNamesNoKey,
         AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgBoxPlotSeriesStyle {}
 
@@ -82,6 +104,8 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext>>;
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgBoxPlotSeriesStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
@@ -98,7 +122,8 @@ export interface AgBoxPlotSeriesOptions<TDatum = DatumDefault, TContext = Contex
     extends AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         BoxPlotOptionsKeys<TDatum>,
-        BoxPlotOptionsNames {
+        BoxPlotOptionsNames,
+        BoxPlotOptionsNamesNoKey {
     /** Configuration for the Box Plot Series. */
     type: 'box-plot';
     /** Whether to group together (adjacently) separate columns. */
