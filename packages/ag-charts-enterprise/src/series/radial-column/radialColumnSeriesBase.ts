@@ -123,6 +123,10 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
+    override get hasData(): boolean {
+        return this.getHasData('angleValue');
+    }
+
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];

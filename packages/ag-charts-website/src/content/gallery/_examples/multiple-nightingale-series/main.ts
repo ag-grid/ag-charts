@@ -25,17 +25,6 @@ const options: AgPolarChartOptions = {
                             strokeWidth: 2.5,
                         },
                     },
-                    tooltip: {
-                        renderer: ({ datum }) => ({
-                            heading: datum.quarter,
-                            title: `Total: $${(datum.software + datum.hardware + datum.services).toFixed(2)}M`,
-                            data: [
-                                { label: 'Software', value: `$${datum.software.toFixed(2)}M` },
-                                { label: 'Hardware', value: `$${datum.hardware.toFixed(2)}M` },
-                                { label: 'Services', value: `$${datum.services.toFixed(2)}M` },
-                            ],
-                        }),
-                    },
                 },
             },
         },

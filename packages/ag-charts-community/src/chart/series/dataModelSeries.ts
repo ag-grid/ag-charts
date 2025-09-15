@@ -46,6 +46,23 @@ export abstract class DataModelSeries<
         return this.processedData?.dataSources?.get(this.id)?.length ?? 0;
     }
 
+    getHasData(axisKey: string): boolean {
+        const { dataModel, processedData } = this;
+
+        if (!dataModel || !processedData) {
+            return super.hasData;
+        }
+
+        const values = dataModel.resolveColumnById(this, axisKey, processedData);
+        for (const value of values) {
+            if (value != null && (typeof value !== 'number' || !isNaN(value))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected getScaleInformation({
         xScale,
         yScale,

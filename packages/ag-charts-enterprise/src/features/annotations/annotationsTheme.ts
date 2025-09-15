@@ -84,84 +84,87 @@ const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     statistics: { ...measurerStatistics },
 };
 
-const toolbar: AgAnnotationsToolbar = {
-    buttons: [
-        {
-            icon: 'text-annotation',
-            tooltip: 'toolbarAnnotationsTextAnnotations',
-            value: 'text-menu',
-        },
-        {
-            icon: 'trend-line-drawing',
-            tooltip: 'toolbarAnnotationsLineAnnotations',
-            value: 'line-menu',
-        },
-        {
-            icon: 'arrow-drawing',
-            tooltip: 'toolbarAnnotationsShapeAnnotations',
-            value: 'shape-menu',
-        },
-        {
-            icon: 'delete',
-            tooltip: 'toolbarAnnotationsClearAll',
-            value: 'clear',
-        },
-    ],
-    // @ts-expect-error undocumented option
+const toolbar: WithThemeParams<AgAnnotationsToolbar> = {
+    buttons: {
+        $shallowSimple: [
+            {
+                icon: 'text-annotation',
+                tooltip: 'toolbarAnnotationsTextAnnotations',
+                value: 'text-menu',
+            },
+            {
+                icon: 'trend-line-drawing',
+                tooltip: 'toolbarAnnotationsLineAnnotations',
+                value: 'line-menu',
+            },
+            {
+                icon: 'arrow-drawing',
+                tooltip: 'toolbarAnnotationsShapeAnnotations',
+                value: 'shape-menu',
+            },
+            {
+                icon: 'delete',
+                tooltip: 'toolbarAnnotationsClearAll',
+                value: 'clear',
+            },
+        ],
+    },
     padding: { $ref: 'chartPadding' },
 };
 
-const optionsToolbar: AgAnnotationOptionsToolbar = {
-    buttons: [
-        {
-            icon: 'text-annotation',
-            tooltip: 'toolbarAnnotationsTextColor',
-            value: 'text-color',
-        },
-        {
-            icon: 'line-color',
-            tooltip: 'toolbarAnnotationsLineColor',
-            value: 'line-color',
-        },
-        {
-            icon: 'fill-color',
-            tooltip: 'toolbarAnnotationsFillColor',
-            value: 'fill-color',
-        },
-        {
-            tooltip: 'toolbarAnnotationsTextSize',
-            value: 'text-size',
-        },
-        {
-            tooltip: 'toolbarAnnotationsLineStrokeWidth',
-            value: 'line-stroke-width',
-        },
-        {
-            icon: 'line-style-solid',
-            tooltip: 'toolbarAnnotationsLineStyle',
-            value: 'line-style-type',
-        },
-        {
-            icon: 'settings',
-            tooltip: 'toolbarAnnotationsSettings',
-            value: 'settings',
-        },
-        {
-            icon: 'unlocked',
-            tooltip: 'toolbarAnnotationsLock',
-            ariaLabel: 'toolbarAnnotationsLock',
-            checkedOverrides: {
-                icon: 'locked',
-                tooltip: 'toolbarAnnotationsUnlock',
+const optionsToolbar: WithThemeParams<AgAnnotationOptionsToolbar> = {
+    buttons: {
+        $shallowSimple: [
+            {
+                icon: 'text-annotation',
+                tooltip: 'toolbarAnnotationsTextColor',
+                value: 'text-color',
             },
-            value: 'lock',
-        },
-        {
-            icon: 'delete',
-            tooltip: 'toolbarAnnotationsDelete',
-            value: 'delete',
-        },
-    ],
+            {
+                icon: 'line-color',
+                tooltip: 'toolbarAnnotationsLineColor',
+                value: 'line-color',
+            },
+            {
+                icon: 'fill-color',
+                tooltip: 'toolbarAnnotationsFillColor',
+                value: 'fill-color',
+            },
+            {
+                tooltip: 'toolbarAnnotationsTextSize',
+                value: 'text-size',
+            },
+            {
+                tooltip: 'toolbarAnnotationsLineStrokeWidth',
+                value: 'line-stroke-width',
+            },
+            {
+                icon: 'line-style-solid',
+                tooltip: 'toolbarAnnotationsLineStyle',
+                value: 'line-style-type',
+            },
+            {
+                icon: 'settings',
+                tooltip: 'toolbarAnnotationsSettings',
+                value: 'settings',
+            },
+            {
+                icon: 'unlocked',
+                tooltip: 'toolbarAnnotationsLock',
+                ariaLabel: 'toolbarAnnotationsLock',
+                checkedOverrides: {
+                    icon: 'locked',
+                    tooltip: 'toolbarAnnotationsUnlock',
+                },
+                value: 'lock',
+            },
+            {
+                icon: 'delete',
+                tooltip: 'toolbarAnnotationsDelete',
+                value: 'delete',
+            },
+        ],
+    },
 };
 
 export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = {

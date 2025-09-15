@@ -29,8 +29,7 @@ Then: **ADAPTIVE MODE** - Allow degraded operation with user confirmation.
 When running in orchestrated mode, ALL tools are REQUIRED:
 
 1. **MCP Puppeteer** - REQUIRED, no fallback
-    - Must be available via `ListMcpResourcesTool`
-    - Test with `mcp__puppeteer__puppeteer_navigate` and `mcp__puppeteer__puppeteer_screenshot`
+    - There tools must be available for testing `puppeteer_navigate` and `puppeteer_screenshot`
 2. **Task tool** - REQUIRED for example-tester delegation
 3. **Read/Write tools** - REQUIRED
 

@@ -100,6 +100,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         this.itemGroup.zIndex = 1;
     }
 
+    override get hasData(): boolean {
+        return this.getHasData('angleValue');
+    }
+
     protected override nodeFactory(): _ModuleSupport.Marker {
         return new Marker();
     }
