@@ -40,7 +40,7 @@ contextMenu: {
         'reset-zoom', // used with zoom.
         'download',
     ],
-},
+}
 ```
 
 In this example:
@@ -130,17 +130,18 @@ contextMenu: {
                 {
                     showOn: 'series-node',
                     label: `On 'series-node'`,
-                    action: ({datum, xKey, yKey}) => console.log(`On 'series-node' clicked -`, yKey, datum[xKey], datum[yKey]),
+                    action: ({ datum, xKey, yKey }) =>
+                        console.log(`On 'series-node' clicked -`, yKey, datum[xKey], datum[yKey]),
                 },
                 {
                     showOn: 'legend-item',
                     label: `On 'legend-item'`,
-                    action: ({itemId}) => console.log(`On 'legend-item' clicked -`, itemId),
+                    action: ({ itemId }) => console.log(`On 'legend-item' clicked -`, itemId),
                 },
             ],
         },
     ],
-},
+}
 ```
 
 In this configuration:

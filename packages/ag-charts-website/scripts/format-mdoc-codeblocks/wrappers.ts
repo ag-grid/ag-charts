@@ -73,7 +73,10 @@ const objectWrapStrategy: WrapStrategy = {
                     // Keep all non-empty lines and lines in the middle
                     return line.trim() !== '' || (idx > 0 && idx < lines.length - 1);
                 });
-                content = nonEmptyLines.map(line => line.replace(/^\s{4}/, '')).join('\n').trim();
+                content = nonEmptyLines
+                    .map((line) => line.replace(/^\s{4}/, ''))
+                    .join('\n')
+                    .trim();
 
                 // Prettier adds a comma after the object property when it's wrapped
                 // We need to remove it if it's there
@@ -141,13 +144,18 @@ const arrayWrapStrategy: WrapStrategy = {
         const trimmed = code.trim();
         // Look for patterns that indicate array elements
         return (
-            // Object literal followed by comma
-            (trimmed.startsWith('{') && trimmed.includes('},')) ||
-            // Multiple values separated by commas
+            // Object literal that ENDS with a comma (actual array element)
+            (trimmed.startsWith('{') && trimmed.endsWith('},')) ||
+            // Multiple values separated by commas (but not object properties)
             (trimmed.split(',').length > 1 && !trimmed.includes(':'))
         );
     },
 };
+
+// Note: We previously had a partialArrayElementStrategy here, but it was removed
+// because the pattern { ... }, ]; is intentionally malformed documentation shorthand
+// to indicate "this object is the last element of an array".
+// We should not try to format these as they are pseudo-code, not valid JavaScript.
 
 /**
  * Strategy for wrapping expressions
@@ -171,6 +179,10 @@ const expressionWrapStrategy: WrapStrategy = {
     },
     canHandle: (code: string) => {
         const trimmed = code.trim();
+        // Don't treat complete object literals as expressions
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            return false;
+        }
         return (
             // Method chains
             trimmed.includes('.') ||
@@ -268,7 +280,7 @@ const interfacePropertyWrapStrategy: WrapStrategy = {
             /^\w+\??\s*:/.test(trimmed) &&
             !trimmed.includes('=>') &&
             !trimmed.includes('function') &&
-            !/^\w+\s*:\s*\{/.test(trimmed)  // Exclude object literals
+            !/^\w+\s*:\s*\{/.test(trimmed) // Exclude object literals
         );
     },
 };
