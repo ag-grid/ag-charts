@@ -7,6 +7,7 @@ import {
     DEFAULT_ANCHOR_POINT_Y,
     UNIT_MAX,
     UNIT_MIN,
+    ZOOM_VALID_CHECK_DEBOUNCE,
     constrainAxis,
     constrainZoom,
     definedZoomState,
@@ -194,7 +195,7 @@ export class ZoomToolbar extends BaseProperties {
             : `translateY(${container.getBounds().height + verticalSpacing}px)`;
     }
 
-    private readonly toggleButtonsDebounced = debounce(this.toggleButtons.bind(this), 300, {
+    private readonly toggleButtonsDebounced = debounce(this.toggleButtons.bind(this), ZOOM_VALID_CHECK_DEBOUNCE, {
         leading: true,
         trailing: true,
     });

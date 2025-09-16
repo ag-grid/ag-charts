@@ -18,6 +18,7 @@ import {
     UNIT_MAX,
     UNIT_MIN,
     UNIT_SIZE,
+    ZOOM_VALID_CHECK_DEBOUNCE,
     constrainZoom,
     definedZoomState,
     dx,
@@ -907,10 +908,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private readonly toggleAxisDraggingCursorsDebounced = debounce(this.toggleAxisDraggingCursors.bind(this), 300, {
-        leading: true,
-        trailing: true,
-    });
+    private readonly toggleAxisDraggingCursorsDebounced = debounce(
+        this.toggleAxisDraggingCursors.bind(this),
+        ZOOM_VALID_CHECK_DEBOUNCE,
+        {
+            leading: true,
+            trailing: true,
+        }
+    );
     private toggleAxisDraggingCursors() {
         const { anchorPointX, anchorPointY, domProxy } = this;
 
