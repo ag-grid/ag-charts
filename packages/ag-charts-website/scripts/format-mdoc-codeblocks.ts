@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import * as fs from 'fs';
+/* eslint-disable no-console */
 import { glob } from 'glob';
 import * as path from 'path';
 import { promisify } from 'util';

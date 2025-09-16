@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as prettier from 'prettier';
 
-import { getParserForLang, isJavaScriptLang } from './utils';
-import { WrapStrategy, tryWrapCode } from './wrappers';
+import { getParserForLang } from './utils';
+import { tryWrapCode } from './wrappers';
 
 interface CodeBlock {
     fullMatch: string;
@@ -40,7 +40,7 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
     const parser = getParserForLang(lang);
 
     // Get prettier config from project
-    const prettierConfig = (await prettier.resolveConfig(process.cwd())) || {};
+    const prettierConfig = (await prettier.resolveConfig(process.cwd())) ?? {};
 
     // Override with specific settings for consistency
     const config = {
@@ -67,7 +67,7 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
             result += '\n';
         }
         return result;
-    } catch (error) {
+    } catch {
         // If that fails, try wrapping strategies for partial code
         const wrapResult = tryWrapCode(codeToFormat);
 
@@ -86,7 +86,7 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
                 result += '\n';
             }
             return result;
-        } catch (wrapError) {
+        } catch {
             // If even wrapped formatting fails, return original
             return code;
         }

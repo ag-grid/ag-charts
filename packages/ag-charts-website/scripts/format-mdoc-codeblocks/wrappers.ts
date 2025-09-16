@@ -18,7 +18,7 @@ const functionWrapStrategy: WrapStrategy = {
             // Also remove the 4-space indentation added by the function body
             return lines
                 .slice(1, -1)
-                .map((line) => line.replace(/^    /, ''))
+                .map((line) => line.replace(/^\s{4}/, ''))
                 .join('\n');
         }
         return formatted;
@@ -73,7 +73,7 @@ const objectWrapStrategy: WrapStrategy = {
                     // Keep all non-empty lines and lines in the middle
                     return line.trim() !== '' || (idx > 0 && idx < lines.length - 1);
                 });
-                content = nonEmptyLines.map(line => line.replace(/^    /, '')).join('\n').trim();
+                content = nonEmptyLines.map(line => line.replace(/^\s{4}/, '')).join('\n').trim();
 
                 // Prettier adds a comma after the object property when it's wrapped
                 // We need to remove it if it's there
@@ -90,7 +90,7 @@ const objectWrapStrategy: WrapStrategy = {
         if (lines.length >= 3 && formatted.startsWith('const __temp__')) {
             const content = lines
                 .slice(1, -1)
-                .map((line) => line.replace(/^    /, ''))
+                .map((line) => line.replace(/^\s{4}/, ''))
                 .join('\n');
             return content;
         }
@@ -131,7 +131,7 @@ const arrayWrapStrategy: WrapStrategy = {
             // Remove the 4-space indentation
             const content = lines
                 .slice(1, -1)
-                .map((line) => line.replace(/^    /, ''))
+                .map((line) => line.replace(/^\s{4}/, ''))
                 .join('\n');
             return content;
         }
@@ -162,7 +162,7 @@ const expressionWrapStrategy: WrapStrategy = {
             // Remove indentation if present
             const content = lines
                 .slice(1, -1)
-                .map((line) => line.replace(/^    /, ''))
+                .map((line) => line.replace(/^\s{4}/, ''))
                 .join('\n');
             return content;
         }
@@ -199,7 +199,7 @@ const jsxWrapStrategy: WrapStrategy = {
                 // Remove indentation
                 const content = lines
                     .slice(1, -1)
-                    .map((line) => line.replace(/^    /, ''))
+                    .map((line) => line.replace(/^\s{4}/, ''))
                     .join('\n');
                 return content;
             }
@@ -253,7 +253,7 @@ const interfacePropertyWrapStrategy: WrapStrategy = {
             // Remove indentation
             const content = lines
                 .slice(1, -1)
-                .map((line) => line.replace(/^    /, ''))
+                .map((line) => line.replace(/^\s{4}/, ''))
                 .join('\n');
             return content;
         }
