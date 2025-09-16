@@ -31,12 +31,17 @@ const options: AgChartOptions = {
             angleKey: 'quarter',
             radiusKey: 'sw',
             radiusName: 'Software',
+            fill: 'lime', // ignored
+            fillOpacity: 0.5, // not ignored
             styler,
         },
         {
             type: 'nightingale',
             angleKey: 'quarter',
             radiusKey: 'hw',
+            stroke: 'CornflowerBlue', // ignored
+            strokeOpacity: 0.5, // not ignored
+            strokeWidth: 15, // ignored
             styler,
         },
     ],

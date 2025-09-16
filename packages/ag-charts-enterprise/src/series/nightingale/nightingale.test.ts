@@ -1,12 +1,23 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts, AgNightingaleSeriesOptions } from 'ag-charts-community';
+import {
+    type AgChartOptions,
+    AgCharts,
+    AgNightingaleSeriesOptions,
+    AgPolarChartOptions,
+    AgRadialSeriesItemStylerParams,
+    AgRadialSeriesStyle,
+    AgRadialSeriesStylerParams,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MockNightingaleStyler,
     clickAction,
     doubleClickAction,
     doubleTapAction,
     extractImageData,
+    hoverAction,
+    newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
@@ -515,5 +526,223 @@ describe('NightingaleSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    describe('AG-15782 styler', () => {
+        type D = { quarter: string; sw: number; hw: number };
+        type C = unknown;
+        type O = AgPolarChartOptions<D, C>;
+        type M = MockNightingaleStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        let data: D[];
+
+        beforeEach(() => {
+            data = [
+                { quarter: `Q1'22`, sw: 4.35, hw: 2.14 },
+                { quarter: `Q2'22`, sw: 4.28, hw: 3.13 },
+                { quarter: `Q3'22`, sw: 4.14, hw: 3.34 },
+                { quarter: `Q4'22`, sw: 3.48, hw: 3.56 },
+                { quarter: `Q1'23`, sw: 3.35, hw: 3.14 },
+                { quarter: `Q2'23`, sw: 3.28, hw: 3.13 },
+                { quarter: `Q3'23`, sw: 3.14, hw: 2.84 },
+                { quarter: `Q4'23`, sw: 2.48, hw: 2.46 },
+            ];
+            styler = newFreezableMock<D, C, M>(
+                (params: AgRadialSeriesStylerParams<D, C>): AgRadialSeriesStyle | undefined => {
+                    if (params.radiusKey === 'sw') {
+                        return {
+                            fill: 'cyan',
+                            lineDash: [7, 2],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 7,
+                            strokeOpacity: 0.5,
+                        };
+                    }
+                    if (params.radiusKey === 'hw')
+                        return {
+                            fill: 'hotpink',
+                            stroke: 'darkmagenta',
+                            strokeWidth: 4,
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'software context 1' };
+                c2 = { name: 'hardware context 2' };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        series: [
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'sw',
+                                radiusName: 'Software',
+                                fill: 'lime', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'hw',
+                                stroke: 'CornflowerBlue', // ignored
+                                strokeOpacity: 0.5, // not ignored
+                                strokeWidth: 15, // ignored
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
+                });
+                test('params', () => {
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgRadialSeriesItemStylerParams<D, C>): AgRadialSeriesStyle => {
+                    if (params.radiusKey === 'sw' && params.datum.quarter === `Q1'22`) {
+                        return { fill: 'lightskyblue', stroke: 'deepskyblue' };
+                    }
+                    if (params.radiusKey === 'hw' && params.datum.quarter === `Q3'23`) {
+                        return { fill: 'darkkhaki', strokeWidth: 7, strokeOpacity: 1 };
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        series: [
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'sw',
+                                radiusName: 'Software',
+                                fill: 'lime', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                styler: styler.frozen,
+                                itemStyler,
+                            },
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'hw',
+                                stroke: 'CornflowerBlue', // ignored
+                                strokeOpacity: 0.5, // not ignored
+                                strokeWidth: 15, // ignored
+                                styler: styler.frozen,
+                                itemStyler,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        series: [
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'sw',
+                                radiusName: 'Software',
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'hw',
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        xdescribe('highlights', () => {
+            // TODO: change to `describe` once implemented & snapshots initialised
+            // Manual-test version available at nightingale-series-test#styler-highlight-state
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        series: [
+                            // TODO
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+
+            const miss = { x: 200, y: 100 } as const;
+            const series0datum0 = { x: 100, y: 333 } as const;
+            const series0datum2 = { x: 222, y: 424 } as const;
+            const series1datum0 = { x: 145, y: 333 } as const;
+            const legendItem0 = { x: 333, y: 572 } as const;
+            const legendItem1 = { x: 444, y: 572 } as const;
+
+            describe('single', () => {
+                async function testHover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                }
+                test('miss', async () => testHover(miss));
+                test('series[0].datum[0]', async () => testHover(series0datum0));
+                test('series[0].datum[2]', async () => testHover(series0datum2));
+                test('series[1].datum[0]', async () => testHover(series1datum0));
+                test('legendItem[0]', async () => testHover(legendItem0));
+                test('legendItem[1]', async () => testHover(legendItem1));
+            });
+            describe('sequenced', () => {
+                async function hover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                }
+                test('1', async () => {
+                    await hover(miss);
+                    await hover(series0datum0);
+                    await hover(miss);
+                    await hover(series0datum2);
+                    await hover(miss);
+                    await hover(series1datum0);
+                    await hover(miss);
+                    await hover(legendItem0);
+                    await hover(legendItem1);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
     });
 });
