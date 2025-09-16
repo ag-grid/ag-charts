@@ -1,4 +1,12 @@
-import { type Point, type RequireOptional, cachedTextMeasurer, clamp } from 'ag-charts-core';
+import {
+    type Point,
+    type RequireOptional,
+    cachedTextMeasurer,
+    clamp,
+    isArray,
+    measureTextSegments,
+    toPlainText,
+} from 'ag-charts-core';
 import {
     type AgBubbleSeriesItemStylerParams,
     type AgBubbleSeriesLabelFormatterParams,
@@ -446,11 +454,13 @@ export class BubbleSeries extends CartesianSeries<
                     label,
                     { value: labelTextValue, datum, xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName }
                 );
-                const size = textMeasurer.measureText(String(labelText));
-                size.width += padding.left + padding.right;
-                size.height += padding.bottom + padding.top;
+                let { width, height } = isArray(labelText)
+                    ? measureTextSegments(labelText, label)
+                    : textMeasurer.measureText(String(labelText));
 
-                nodeLabel = { text: labelText, ...size };
+                width += padding.left + padding.right;
+                height += padding.bottom + padding.top;
+                nodeLabel = { text: labelText, width, height };
             } else {
                 nodeLabel = { text: '', width: 0, height: 0 };
             }
@@ -550,7 +560,8 @@ export class BubbleSeries extends CartesianSeries<
 
         let getId: ((datum: BubbleScatterNodeDatum) => string) | undefined;
         if (sizeKey) {
-            getId = (datum) => createDatumId(datum.xValue, datum.yValue, datum.sizeValue, datum.label.text);
+            getId = (datum) =>
+                createDatumId(datum.xValue, datum.yValue, datum.sizeValue, toPlainText(datum.label.text));
         }
         return datumSelection.update(nodeData, undefined, getId);
     }

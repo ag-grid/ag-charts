@@ -9,7 +9,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgColorType, Logger, type Point } from 'ag-charts-core';
+import { type InternalAgColorType, Logger, type Point, toPlainText } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
@@ -278,7 +278,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     : undefined;
 
             const labels = formatLabels(
-                labelText,
+                toPlainText(labelText),
                 this.properties.label,
                 undefined,
                 this.properties.label,

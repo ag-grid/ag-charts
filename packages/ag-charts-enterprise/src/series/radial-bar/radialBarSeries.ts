@@ -2,6 +2,7 @@ import {
     type AgRadialBarSeriesOptions,
     type AgRadialSeriesLabelFormatterParams,
     type AgRadialSeriesStyle,
+    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import { type Point, isDefined } from 'ag-charts-core';
@@ -53,7 +54,7 @@ class RadialBarSeriesNodeEvent<
 }
 
 interface RadialBarLabelNodeDatum {
-    text: string;
+    text: TextOrSegments;
     x: number;
     y: number;
     textAlign: CanvasTextAlign;

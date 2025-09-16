@@ -1,9 +1,9 @@
 import {
     type BoxBounds,
     type FontOptions,
-    type LineMetricsBox,
     LineSplitter,
     type RequireOptional,
+    type TextMetricsBox,
     cachedTextMeasurer,
     createSvgElement,
     isArray,
@@ -141,8 +141,32 @@ export class Text<D = any> extends Shape<D> {
         this.trimText = options?.trimText ?? true;
     }
 
-    static computeBBox(
-        lines: string | string[],
+    static measureBBox(
+        text: TextOrSegments,
+        x: number,
+        y: number,
+        options: {
+            font: FontOptions;
+            lineHeight?: number;
+            textAlign?: CanvasTextAlign;
+            textBaseline?: CanvasTextBaseline;
+        }
+    ) {
+        if (isArray(text)) {
+            const { font, lineHeight, textAlign, textBaseline } = options;
+            const { width, height, lineMetrics } = measureTextSegments(text, font);
+            const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
+            const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
+            const offsetLeft = Text.calcLeftOffset(width, textAlign);
+
+            return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
+        } else {
+            return Text.computeBBox(text?.split(LineSplitter), x, y, options);
+        }
+    }
+
+    private static computeBBox(
+        lines: string[],
         x: number,
         y: number,
         opts: {
@@ -155,7 +179,7 @@ export class Text<D = any> extends Shape<D> {
         const { font, lineHeight, textAlign, textBaseline } = opts;
         const { width, height, lineMetrics } = cachedTextMeasurer(font).measureLines(lines);
         const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
-        const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics, textBaseline);
+        const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
         const offsetLeft = Text.calcLeftOffset(width, textAlign);
 
         return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
@@ -163,12 +187,12 @@ export class Text<D = any> extends Shape<D> {
 
     private static calcTopOffset(
         height: number,
-        lineMetrics: LineMetricsBox[],
+        textMetrics?: TextMetricsBox,
         textBaseline?: CanvasTextBaseline
     ): number {
         switch (textBaseline) {
             case 'alphabetic':
-                return lineMetrics[0]?.ascent ?? 0;
+                return textMetrics?.ascent ?? 0;
             case 'middle':
                 return height / 2;
             case 'bottom':
@@ -283,6 +307,7 @@ export class Text<D = any> extends Shape<D> {
 
                 case 'bottom':
                     translateY -= height;
+                    // TODO not accurate, can be improved
                     break;
             }
 

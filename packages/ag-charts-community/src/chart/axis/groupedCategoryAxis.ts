@@ -6,8 +6,7 @@ import {
     isObject,
     sortBasedOnArray,
     toArray,
-    wrapText,
-    wrapTextSegments,
+    wrapTextOrSegments,
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
@@ -254,7 +253,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     maxWidth,
                     maxHeight,
                 };
-                text = isArray(text) ? wrapTextSegments(text, wrapOptions) : wrapText(text, wrapOptions) || text;
+                text = wrapTextOrSegments(text, wrapOptions) || text;
             }
 
             tempText.x = horizontal ? datum.screen : labelSpacing;

@@ -1,4 +1,4 @@
-import type { OverflowStrategy, TextSegment, TextWrap } from 'ag-charts-types';
+import type { OverflowStrategy, TextOrSegments, TextSegment, TextWrap } from 'ag-charts-types';
 
 import { type ITextMeasurer, type MeasuredSegment, cachedTextMeasurer, measureTextSegments } from './textMeasurer';
 import {
@@ -11,7 +11,7 @@ import {
     isTextTruncated,
     unguardTextEdges,
 } from './textUtils';
-import { isFiniteNumber } from './typeGuards';
+import { isArray, isFiniteNumber } from './typeGuards';
 
 // Extended measurement options including wrapping behaviour.
 export interface WrapOptions {
@@ -26,6 +26,13 @@ export interface WrapOptions {
 
 function shouldHideOverflow(clippedResult: string[], options: WrapOptions) {
     return options.overflow === 'hide' && clippedResult.some(isTextTruncated);
+}
+
+export function wrapTextOrSegments(text: string, options: WrapOptions): string;
+export function wrapTextOrSegments(segments: TextSegment[], options: WrapOptions): MeasuredSegment[];
+export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions): string | MeasuredSegment[];
+export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions) {
+    return isArray(input) ? wrapTextSegments(input, options) : wrapLines(input, options).join('\n');
 }
 
 export function wrapText(text: string, options: WrapOptions) {
@@ -230,7 +237,7 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
     }
 }
 
-export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptions) {
+export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptions): MeasuredSegment[] {
     const { maxHeight = Infinity } = options;
     const result: MeasuredSegment[] = [];
 

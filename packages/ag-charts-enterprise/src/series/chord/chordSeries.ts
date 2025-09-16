@@ -1,5 +1,12 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger, type RequireOptional, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
+import {
+    Logger,
+    type RequireOptional,
+    cachedTextMeasurer,
+    calcLineHeight,
+    toPlainText,
+    wrapText,
+} from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
 
 import {
@@ -152,7 +159,7 @@ export class ChordSeries extends FlowProportionSeries<
                 node.size = size;
                 totalSize += node.size;
 
-                node.label = label.enabled
+                const labelText = label.enabled
                     ? this.getLabelText<AgChordSeriesLabelFormatterParams>(
                           node.label,
                           node.datum,
@@ -163,6 +170,7 @@ export class ChordSeries extends FlowProportionSeries<
                           { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size: node.size }
                       )
                     : undefined;
+                node.label = toPlainText(labelText);
             }
         });
 

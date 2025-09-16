@@ -8,7 +8,6 @@ import {
     type RequireOptional,
     createId,
     isEmptyObject,
-    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -20,6 +19,7 @@ import type {
     FormatterParams,
     FormatterPropertyType,
     HighlightState as PublicHighlightState,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type {
@@ -956,7 +956,7 @@ export abstract class Series<
         domain: any[],
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
-    ): string {
+    ): TextOrSegments {
         if (value == null) return '';
 
         const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
@@ -988,11 +988,9 @@ export abstract class Series<
         const formatInContext = this.callWithContext.bind(this);
 
         const format = (formatParams: FormatterParams<any>) =>
-            toPlainText(
-                label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
-                    formatManager.format(formatInContext, formatParams) ??
-                    String(value)
-            );
+            label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
+            formatManager.format(formatInContext, formatParams) ??
+            String(value);
 
         const boundSeries = this.getFormatterContext(property);
         switch (property) {

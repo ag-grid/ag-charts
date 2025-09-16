@@ -12,8 +12,7 @@ import {
     isSegmentTruncated,
     measureTextSegments,
     toPlainText,
-    wrapText,
-    wrapTextSegments,
+    wrapTextOrSegments,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
 
@@ -223,9 +222,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             let wrappedLabel: TextOrSegments | null = null;
             if (label.avoidCollisions) {
-                wrappedLabel = isArray(inputText)
-                    ? wrapTextSegments(inputText, wrapOptions)
-                    : wrapText(inputText, wrapOptions) || null;
+                wrappedLabel = wrapTextOrSegments(inputText, wrapOptions) || null;
             }
 
             const tickLabel = wrappedLabel ?? inputText;

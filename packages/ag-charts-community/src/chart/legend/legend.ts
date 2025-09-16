@@ -2,6 +2,7 @@ import {
     type AnyFn,
     CleanupRegistry,
     type ITextMeasurer,
+    LineSplitter,
     Logger,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
@@ -10,6 +11,7 @@ import {
     clamp,
     createId,
     isTextTruncated,
+    toPlainText,
     truncateLine,
 } from 'ag-charts-core';
 import type {
@@ -437,7 +439,7 @@ export class Legend extends BaseProperties {
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
-            const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
+            const text = toPlainText(labelText, '<unknown>').replace(LineSplitter, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
 
             bboxes.push(markerLabel.getTextMeasureBBox());
