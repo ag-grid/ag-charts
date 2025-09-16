@@ -1,4 +1,4 @@
-import { isArray } from './typeGuards';
+import { isArray, isString } from './typeGuards';
 
 /**
  * Joins an array of strings or objects into a formatted string, adding a custom conjunction before the last item.
@@ -123,9 +123,9 @@ export function kebabCase(a: string) {
 // characters.
 const KEBAB_CASE_REGEX = /[A-Z]+(?![a-z])|[A-Z]/g;
 
-export function toPlainText(text?: string | { text: string }[]) {
+export function toPlainText(text?: string | { text: string }[], fallback = '') {
     if (isArray(text)) {
         return text.map((segment) => segment.text).join('');
     }
-    return text ?? '';
+    return isString(text) ? text ?? fallback : String(text);
 }

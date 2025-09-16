@@ -1,5 +1,5 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { createId } from 'ag-charts-core';
+import { createId, toPlainText } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
@@ -181,7 +181,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private formatValue(value: unknown): string {
-        return this.axisCtx.formatScaleValue(value, 'crosshair', this.label);
+        return toPlainText(this.axisCtx.formatScaleValue(value, 'crosshair', this.label));
     }
 
     private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
