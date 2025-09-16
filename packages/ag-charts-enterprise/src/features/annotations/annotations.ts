@@ -229,19 +229,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
-                    optionsToolbar.updateButtons(this.annotationData.at(index!)!);
-                    this.postUpdateFns.push(() => {
-                        // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
-                        // element has a width and height that it can use in the anchor calculations.
-                        optionsToolbar.show();
-                        optionsToolbar.setAnchorScene(selectedNode);
-                    });
+                    if (!isEphemeralType(selectedDatum)) {
+                        optionsToolbar.updateButtons(this.annotationData.at(index!)!);
+                        this.postUpdateFns.push(() => {
+                            // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
+                            // element has a width and height that it can use in the anchor calculations.
+                            optionsToolbar.show();
+                            optionsToolbar.setAnchorScene(selectedNode);
+                        });
+                    }
                 } else {
                     this.popAnnotationState(InteractionState.AnnotationsSelected);
                     this.popAnnotationState(InteractionState.Annotations);
                 }
 
-                this.deleteEphemeralAnnotations();
+                if (!isEphemeralType(selectedDatum)) {
+                    this.deleteEphemeralAnnotations();
+                }
                 this.update();
             },
 
