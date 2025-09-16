@@ -124,7 +124,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     override get hasData(): boolean {
-        return this.getHasData('angleValue');
+        return this.getHasData('radiusValue-raw');
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
