@@ -1,5 +1,13 @@
 import { expect, test } from './fixture';
-import { SELECTORS, dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import {
+    SELECTORS,
+    delay,
+    dragCanvas,
+    gotoExample,
+    locateCanvas,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+} from './util';
 
 test.describe('zoom', () => {
     setupIntrinsicAssertions();
@@ -69,6 +77,7 @@ test.describe('zoom', () => {
         // 6. Drag the x-axis twice with the navigator hidden again to zoom out
         await dragCanvas(page, withoutNavigatorXAxisLeft, withoutNavigatorXAxisRight);
         await dragCanvas(page, withoutNavigatorXAxisLeft, withoutNavigatorXAxisRight);
+        await delay(300); // Delay due to debounce in ZoomToolbar (ZOOM_VALID_CHECK_DEBOUNCE)
         await expect(page).toHaveScreenshot('zoom-6-after-navigator-drag-x-axis.png', { animations: 'disabled' });
     });
 
