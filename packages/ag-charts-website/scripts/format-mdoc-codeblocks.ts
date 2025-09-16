@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /* eslint-disable no-console */
 import { glob } from 'glob';
 import * as path from 'path';
@@ -7,6 +8,19 @@ import { promisify } from 'util';
 import { checkMdocFile, formatMdocFile } from './format-mdoc-codeblocks/formatter';
 
 const globAsync = promisify(glob);
+
+/**
+ * This utility attempts to perform prettier-like formatting of embedded codeblocks within
+ * .mdoc files.
+ *
+ * This was the most viable approach given the constraints of the project and the currently
+ * installed package versions. Other options tried:
+ * - Monkey-patching of nx format - this was a red herring, see next point.
+ * - Plain configuration of prettier - doesn't work due to 'malformed' code blocks being silently
+ *   ignored.
+ * - Prettier plugin - the codeblock formatting is a special case in the markdown prettier
+ *   formatter, which cannot be easily extended or monkey-patched.
+ */
 
 interface CliOptions {
     write: boolean;
