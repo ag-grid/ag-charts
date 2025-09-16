@@ -30,6 +30,13 @@
             "options": {
                 "parser": "astro"
             }
+        },
+        {
+            "files": "*.mdoc",
+            "options": {
+                "parser": "markdown",
+                "embeddedLanguageFormatting": "auto"
+            }
         }
     ],
     "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-astro"]
