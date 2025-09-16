@@ -256,3 +256,7 @@ export async function canvasToPageTransformer(page: Page): Promise<PointTransfor
         return { x: offset.x + x, y: offset.y + y };
     };
 }
+
+export async function delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}

@@ -8,6 +8,7 @@ export const UNIT_MAX = 1;
 export const UNIT_SIZE = UNIT_MAX - UNIT_MIN;
 export const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
 export const DEFAULT_ANCHOR_POINT_Y: AgZoomAnchorPoint = 'middle';
+export const ZOOM_VALID_CHECK_DEBOUNCE = 300;
 
 const constrain = (value: number, min = UNIT_MIN, max = UNIT_MAX) => clamp(min, value, max);
 
