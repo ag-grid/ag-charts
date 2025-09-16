@@ -822,6 +822,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private resetZoom() {
+        this.previousZoomValid = true;
+        this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
         this.ctx.zoomManager.resetZoom('zoom');
     }
 
