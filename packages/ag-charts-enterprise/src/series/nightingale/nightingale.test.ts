@@ -692,27 +692,38 @@ describe('NightingaleSeries', () => {
                 await compare();
             });
         });
-        xdescribe('highlights', () => {
-            // TODO: change to `describe` once implemented & snapshots initialised
+        describe('highlights', () => {
             // Manual-test version available at nightingale-series-test#styler-highlight-state
             beforeEach(async () => {
                 chart = AgCharts.create(
                     prepareEnterpriseTestOptions<O>({
                         data,
                         series: [
-                            // TODO
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'sw',
+                                radiusName: 'Software',
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'hw',
+                                styler: styler.frozen,
+                            },
                         ],
                     })
                 );
                 await waitForChartStability(chart);
             });
 
-            const miss = { x: 200, y: 100 } as const;
-            const series0datum0 = { x: 100, y: 333 } as const;
-            const series0datum2 = { x: 222, y: 424 } as const;
-            const series1datum0 = { x: 145, y: 333 } as const;
-            const legendItem0 = { x: 333, y: 572 } as const;
-            const legendItem1 = { x: 444, y: 572 } as const;
+            const miss = { x: 100, y: 100 } as const;
+            const series0datum0 = { x: 400, y: 200 } as const;
+            const series0datum2 = { x: 465, y: 275 } as const;
+            const series1datum0 = { x: 400, y: 120 } as const;
+            const legendItem0 = { x: 375, y: 570 } as const;
+            const legendItem1 = { x: 450, y: 570 } as const;
 
             describe('single', () => {
                 async function testHover(p: { readonly x: number; readonly y: number }) {

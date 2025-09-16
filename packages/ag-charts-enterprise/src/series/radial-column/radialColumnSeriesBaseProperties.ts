@@ -3,6 +3,7 @@ import type {
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
+    AgRadialSeriesStylerParams,
     AgRadialSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
@@ -47,6 +48,9 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
 
     @Property
     cornerRadius: number = 0;
+
+    @Property
+    styler?: Styler<AgRadialSeriesStylerParams<unknown, unknown>, AgRadialSeriesStyle>;
 
     @Property
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
