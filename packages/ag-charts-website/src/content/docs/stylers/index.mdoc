@@ -24,36 +24,36 @@ series: [
         type: 'line',
         //...
         marker: {
-            itemStyler: ({ datum: { coal, nuclear }, fill, size }) => {
-                return coal > nuclear ? { fill: '#f44', size: 15 } : { fill, size };
+                itemStyler: ({ datum: { coal, nuclear }, fill, size }) => {
+                    return coal > nuclear ? { fill: '#f44', size: 15 } : { fill, size };
+                },
             },
-        },
-        label: {
-            itemStyler: ({ datum: { coal, nuclear } }) => {
-                if (coal > nuclear) {
-                    return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
-                } else return { fontSize: 8 };
+            label: {
+                itemStyler: ({ datum: { coal, nuclear } }) => {
+                    if (coal > nuclear) {
+                        return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
+                    } else return { fontSize: 8 };
+                },
             },
-        },
     },
     {
         type: 'bar',
         //...
         itemStyler: ({ datum, fill, highlighted }) => {
-            return {
-                fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
-            };
-        },
-        label: {
-            itemStyler: ({ datum: { month } }) => {
-                return { color: month !== 'Jul' ? 'transparent' : undefined };
+                return {
+                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
+                };
+            },
+            label: {
+                itemStyler: ({ datum: { month } }) => {
+                    return { color: month !== 'Jul' ? 'transparent' : undefined };
+                },
             },
         },
-    },
 ],
 axes: [
     {
-        //...
+    //...
         label: {
             itemStyler: (params) => {
                 return { color: lerpColor(params.value, '#00b347', '#cc2900') };
@@ -103,21 +103,23 @@ theme: {
                 styler: (params) => {
                     if (params.yKey.includes('benchmark')) {
                         return { fill: 'lightgray' };
-                    } else return { fill: '#5090DC' };
+                    }
+                    else return {fill: '#5090DC'}
+                },
                 },
             },
-        },
         line: {
             series: {
                 styler: (params) => {
                     if (params.yKey.includes('benchmark')) {
                         return { stroke: 'lightgray' };
-                    } else return { stroke: '#5090DC' };
+                    }
+                    else return {stroke: '#5090DC'}
+                },
                 },
             },
-        },
     },
-}
+},
 ```
 
 ### Usage

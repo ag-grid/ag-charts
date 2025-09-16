@@ -55,7 +55,7 @@ crosshair: {
     stroke: '#2b5c95',
     strokeWidth: 2,
     lineDash: [5, 10],
-}
+},
 ```
 
 {% chartExampleRunner title="Crosshair Styles" name="crosshair-styles" type="generated" /%}
@@ -69,7 +69,7 @@ crosshair: {
     label: {
         enabled: false, // removes crosshair label
     },
-}
+},
 ```
 
 ### Label Position
@@ -82,7 +82,7 @@ crosshair: {
         xOffset: -55, // positions label -55px to the right of the start of the crosshair line
         yOffset: 40, // positions label 40px down from the start of the crosshair line
     },
-}
+},
 ```
 
 {% chartExampleRunner title="Crosshair Label Offset" name="crosshair-label-offset" type="generated" /%}
@@ -114,7 +114,7 @@ crosshair: {
     label: {
         renderer: labelRenderer, // Add label renderer callback function to customise label styles and content
     },
-}
+},
 ```
 
 -   The `renderer` is a callback function which receives the axis `value` and its `fractionDigits` used for formatting the value at the crosshair position.
