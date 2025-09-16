@@ -161,7 +161,8 @@ export type AgAnnotation =
     // Measurers
     | AgDateRangeAnnotation
     | AgPriceRangeAnnotation
-    | AgDatePriceRangeAnnotation;
+    | AgDatePriceRangeAnnotation
+    | AgQuickDatePriceRangeAnnotation;
 
 // ********************
 // * Line Annotations *
@@ -376,8 +377,17 @@ export interface AgPriceRangeAnnotation extends AgMeasurerAnnotation {
 }
 
 export interface AgDatePriceRangeAnnotation extends AgMeasurerAnnotation {
-    /** Configuration for the price range annotation.*/
+    /** Configuration for the date/price range annotation.*/
     type: 'date-price-range';
+}
+
+export interface AgQuickDatePriceRangeAnnotation extends AgMeasurerAnnotation {
+    /** Configuration for the quick date/range annotation.*/
+    type: 'quick-date-price-range';
+    /** Configuration for the annotation when measuring up the y-axis.  */
+    up?: AgMeasurerAnnotationDirection;
+    /** Configuration for the annotation when measuring down the y-axis.  */
+    down?: AgMeasurerAnnotationDirection;
 }
 
 export interface AgMeasurerAnnotation extends AnnotationLinePoints, Writeable, Visible, StrokeOptions, LineOptions {
@@ -386,6 +396,10 @@ export interface AgMeasurerAnnotation extends AnnotationLinePoints, Writeable, V
     /** Configuration for the line text. */
     text?: AgLineAnnotationText;
     /** Configuration for the statistics. */
+    statistics?: AgMeasurerAnnotationStatistics;
+}
+
+export interface AgMeasurerAnnotationDirection extends FillOptions, StrokeOptions {
     statistics?: AgMeasurerAnnotationStatistics;
 }
 

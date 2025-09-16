@@ -34,6 +34,7 @@ const {
     annotationTextStylesDef,
     annotationCommentStylesDefs,
     annotationMeasurerStylesDefs,
+    annotationQuickMeasurerStylesDefs,
     annotationShapeStylesDefs,
     annotationChannelTextDefs,
     annotationCrossLineStyleDefs,
@@ -176,6 +177,13 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>(
         },
         'date-price-range': {
             ...annotationMeasurerStylesDefs,
+            text: lineAnnotationTextOptionsDef,
+            start: annotationPointOptionsDef,
+            end: annotationPointOptionsDef,
+        },
+        'quick-date-price-range': {
+            ...annotationMeasurerStylesDefs,
+            ...annotationQuickMeasurerStylesDefs,
             text: lineAnnotationTextOptionsDef,
             start: annotationPointOptionsDef,
             end: annotationPointOptionsDef,
