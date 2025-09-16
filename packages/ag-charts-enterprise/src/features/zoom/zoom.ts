@@ -408,6 +408,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         } = this;
         if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
 
+        this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
         zoomManager.resetAxisZoom('zoom', id);
     }
 
