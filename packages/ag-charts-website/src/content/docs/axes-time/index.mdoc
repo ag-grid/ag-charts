@@ -77,7 +77,8 @@ The `AgTimeIntervalUnit` object supports advanced configuration for more complex
         step: 7, //every 7 days (weekly)
         epoch: new Date(2024, 0, 1), //start the week on Monday
     },
-}
+},
+];
 ```
 
 In this example:
@@ -141,13 +142,14 @@ The [Axis Interval](./axes-intervals) of Time Axes labels, grid lines and ticks 
 ```js
 {
     interval: {
-            step: {
-                unit: 'day',
-                step: 7,  // every 7 days (weekly)
-                epoch: new Date('2024-01-01') //start the week on a Monday
-            },
+        step: {
+            unit: 'day',
+            step: 7, // every 7 days (weekly)
+            epoch: new Date('2024-01-01'), //start the week on a Monday
+        },
     },
-}
+},
+];
 ```
 
 In this configuration:
