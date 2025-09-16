@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import * as prettier from 'prettier';
 
 import { getParserForLang } from './utils';
@@ -10,6 +11,32 @@ interface CodeBlock {
     code: string;
     startIndex: number;
     endIndex: number;
+}
+
+/**
+ * Validate that a file path is safe to process
+ */
+function validateFilePath(filePath: string): void {
+    const resolvedPath = path.resolve(filePath);
+    const cwd = process.cwd();
+
+    // Ensure path is within the current working directory
+    if (!resolvedPath.startsWith(cwd)) {
+        throw new Error(`Path traversal detected: ${filePath} resolves outside of working directory`);
+    }
+
+    // Ensure it's an .mdoc file
+    if (!filePath.endsWith('.mdoc')) {
+        throw new Error(`Invalid file type: ${filePath} is not an .mdoc file`);
+    }
+
+    // Check for suspicious path components
+    const pathComponents = filePath.split(path.sep);
+    for (const component of pathComponents) {
+        if (component === '..' || component.includes('\0')) {
+            throw new Error(`Unsafe path component detected in: ${filePath}`);
+        }
+    }
 }
 
 /**
@@ -67,8 +94,13 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
             result += '\n';
         }
         return result;
-    } catch {
+    } catch (error) {
         // If that fails, try wrapping strategies for partial code
+        // Note: Expected for partial code that needs wrapping
+        console.debug(
+            'Initial formatting failed, trying wrap strategies:',
+            error instanceof Error ? error.message : String(error)
+        );
         const wrapResult = tryWrapCode(codeToFormat);
 
         if (!wrapResult) {
@@ -86,8 +118,12 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
                 result += '\n';
             }
             return result;
-        } catch {
+        } catch (error) {
             // If even wrapped formatting fails, return original
+            console.debug(
+                'Wrapped formatting also failed, returning original code:',
+                error instanceof Error ? error.message : String(error)
+            );
             return code;
         }
     }
@@ -133,6 +169,7 @@ async function processMdocContent(content: string): Promise<{ formatted: string;
  * Format a .mdoc file in place
  */
 export async function formatMdocFile(filePath: string): Promise<boolean> {
+    validateFilePath(filePath);
     const content = fs.readFileSync(filePath, 'utf-8');
     const { formatted, changed } = await processMdocContent(content);
 
@@ -147,6 +184,7 @@ export async function formatMdocFile(filePath: string): Promise<boolean> {
  * Check if a .mdoc file needs formatting
  */
 export async function checkMdocFile(filePath: string): Promise<boolean> {
+    validateFilePath(filePath);
     const content = fs.readFileSync(filePath, 'utf-8');
     const { changed } = await processMdocContent(content);
     return changed;

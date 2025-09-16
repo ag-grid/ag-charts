@@ -49,7 +49,9 @@ const objectWrapStrategy: WrapStrategy = {
     name: 'object',
     wrap: (code: string) => {
         // Always wrap as an object property - this is the most reliable approach
-        return `const __temp__ = {\n    // __ORIGINAL_START__\n    ${code.split('\n').join('\n    ')}\n    // __ORIGINAL_END__\n};`;
+        // Use replace with regex for better performance on large strings
+        const indentedCode = code.replace(/^/gm, '    ');
+        return `const __temp__ = {\n    // __ORIGINAL_START__\n    ${indentedCode}\n    // __ORIGINAL_END__\n};`;
     },
     unwrap: (formatted: string) => {
         // Remove the wrapper comments and extract the original code

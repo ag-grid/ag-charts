@@ -47,6 +47,31 @@ function check_symlinks_config() {
     fi
 }
 
+function cleanup_old_backups() {
+    local target_file=$1
+    local max_backups=${2:-3}
+
+    # Find and remove old backup files (keep only the most recent max_backups)
+    local backup_dir=$(dirname "$target_file")
+    local backup_name=$(basename "$target_file")
+
+    # Count backup files and remove old ones if we exceed the limit
+    local backup_count=$(find "$backup_dir" -name "${backup_name}.bak*" -type f 2>/dev/null | wc -l)
+
+    if [[ $backup_count -gt $max_backups ]]; then
+        echo "Found $backup_count backup files, cleaning up to keep only $max_backups most recent"
+
+        # Use ls with modification time sort to get files in reverse chronological order
+        # Then remove the excess files
+        ls -t "$backup_dir"/${backup_name}.bak* 2>/dev/null | tail -n +$((max_backups + 1)) | while read -r old_backup; do
+            if [[ -f "$old_backup" ]]; then
+                echo "Removing old backup: $old_backup"
+                rm -f "$old_backup"
+            fi
+        done
+    fi
+}
+
 function restore_tracked_symlinks() {
     local restored=0
     
@@ -273,6 +298,8 @@ function setup_codex_mcp() {
     if [[ -f "${target_file}.bak" ]]; then
         echo "✓ Updated Codex MCP configuration at $target_file"
         echo "  (Backup saved as ${target_file}.bak)"
+        # Cleanup old backup files, keeping only the 3 most recent
+        cleanup_old_backups "$target_file" 3
     else
         echo "✓ Created Codex MCP configuration at $target_file"
     fi
