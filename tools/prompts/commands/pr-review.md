@@ -20,7 +20,6 @@ If the user provides a command option of `help`:
     -   Claude Sonnet 4 is the next best.
     -   Claude Opus 3 is the next best.
     -   Claude Sonnet 3 is the next best.
--   If not already loaded, you must read the `CLAUDE.md` file to understand the repo layout and tooling.
 
 ## 2. General Context
 

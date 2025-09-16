@@ -19,6 +19,21 @@ while getopts "u" opt; do
     esac
 done
 
+function path_to_root() {
+    local target_file=$1
+
+    # Count directory levels in target_file path
+    local dir_count=$(echo "$target_file" | tr -cd '/' | wc -c)
+    
+    # Build relative path with appropriate number of ../ prefixes
+    local relative_path="./"
+    for ((i=0; i<dir_count; i++)); do
+        relative_path="$relative_path../"
+    done
+
+    echo "$relative_path"
+}
+
 function check_symlinks_config() {
     # Check if core.symlinks is set to true
     local symlinks_setting=$(git config --get core.symlinks)
@@ -83,7 +98,7 @@ function setup_commands() {
         for file in tools/prompts/commands/*.md; do
             cat > "$target_dir/$(basename ${file%.md}).toml" <<EOF
 prompt = """
-$(cat "$file")
+@$(path_to_root $target_dir)${file}
 """
 EOF
         done
@@ -112,15 +127,8 @@ function setup_mcp() {
     # Calculate the relative path from target_file to the MCP config
     local target_dir=$(dirname "$target_file")
     
-    # Count directory levels in target_file path
-    local dir_count=$(echo "$target_file" | tr -cd '/' | wc -c)
-    
-    # Build relative path with appropriate number of ../ prefixes
-    local relative_path="./"
-    for ((i=0; i<dir_count; i++)); do
-        relative_path="$relative_path../"
-    done
-    
+    local relative_path=$(path_to_root $target_file)
+
     # Create symlink with calculated relative path
     ln -sf "${relative_path}tools/prompts/.mcp.json" "$target_file"
 }
