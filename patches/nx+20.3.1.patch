@@ -1,32 +1,16 @@
 diff --git a/node_modules/nx/src/command-line/format/format.js b/node_modules/nx/src/command-line/format/format.js
-index af23c46..6e3d92f 100644
+index af23c46..b0f7d0c 100644
 --- a/node_modules/nx/src/command-line/format/format.js
 +++ b/node_modules/nx/src/command-line/format/format.js
-@@ -145,6 +145,10 @@ function write(patterns) {
-             result[pattern.includes('.swcrc') ? 0 : 1].push(pattern);
-             return result;
-         }, [[], []]);
-+        // Add mdoc pattern if we're formatting all files
-+        if (regularPatterns.includes('"."')) {
-+            regularPatterns.push('"**/*.mdoc"');
-+        }
-         const prettierPath = getPrettierPath();
-         (0, node_child_process_1.execSync)(`node "${prettierPath}" --write --list-different ${regularPatterns.join(' ')}`, {
-             stdio: [0, 1, 2],
-@@ -162,6 +166,10 @@ async function check(patterns) {
-     if (patterns.length === 0) {
-         return [];
-     }
-+    // Add mdoc pattern if we're checking all files
-+    if (patterns.includes('"."')) {
-+        patterns.push('"**/*.mdoc"');
-+    }
-     const prettierPath = getPrettierPath();
-     return new Promise((resolve) => {
-         (0, node_child_process_1.exec)(`node "${prettierPath}" --list-different ${patterns.join(' ')}`, { encoding: 'utf-8', windowsHide: false }, (error, stdout) => {
-             if (error) {
-                 // The command failed so there are files with different formatting. Prettier writes them to stdout, newline separated.
-                 resolve(stdout.trim().split('\n'));
+@@ -93,7 +93,7 @@ async function getPatterns(args) {
+             .concat('.swcrc'));
+         const patterns = p.files
+             .map((f) => path.relative(workspace_root_1.workspaceRoot, f))
+-            .filter((f) => (0, fileutils_1.fileExists)(f) && supportedExtensions.has(path.extname(f)));
++            .filter((f) => (0, fileutils_1.fileExists)(f));
+         // exclude patterns in .nxignore or .gitignore
+         const nonIgnoredPatterns = (0, ignore_1.getIgnoreObject)().filter(patterns);
+         return args.libsAndApps
 diff --git a/node_modules/nx/src/tasks-runner/forked-process-task-runner.js b/node_modules/nx/src/tasks-runner/forked-process-task-runner.js
 index aa01b52..7763f2f 100644
 --- a/node_modules/nx/src/tasks-runner/forked-process-task-runner.js
