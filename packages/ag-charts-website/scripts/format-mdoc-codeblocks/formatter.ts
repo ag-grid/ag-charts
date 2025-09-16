@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as fs from 'fs';
 import * as path from 'path';
 import * as prettier from 'prettier';
@@ -118,11 +119,11 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
                 result += '\n';
             }
             return result;
-        } catch (error) {
+        } catch (error2) {
             // If even wrapped formatting fails, return original
             console.debug(
                 'Wrapped formatting also failed, returning original code:',
-                error instanceof Error ? error.message : String(error)
+                error2 instanceof Error ? error2.message : String(error2)
             );
             return code;
         }
