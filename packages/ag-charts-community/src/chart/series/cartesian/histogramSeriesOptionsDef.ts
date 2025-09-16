@@ -35,6 +35,10 @@ export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesTh
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    areaPlot: boolean,
+    aggregation: union('count', 'sum', 'mean'),
+    bins: arrayOf(arrayOf(number)),
+    binCount: positiveNumber,
 };
 
 export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = {
@@ -45,8 +49,4 @@ export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = 
     yKey: string,
     xName: string,
     yName: string,
-    areaPlot: boolean,
-    aggregation: union('count', 'sum', 'mean'),
-    bins: arrayOf(arrayOf(number)),
-    binCount: positiveNumber,
 };
