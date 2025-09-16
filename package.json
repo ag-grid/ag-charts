@@ -144,7 +144,6 @@
       "plugins/ag-charts-generate-example-files",
       "plugins/ag-charts-task-autogen",
       "plugins/plugin-utils",
-      "plugins/prettier-plugin-partial-js-markdown",
       "libraries/ag-charts-test",
       "tests/angular-package-tests",
       "tests/react-package-tests",
