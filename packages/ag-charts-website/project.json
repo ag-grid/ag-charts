@@ -60,10 +60,26 @@
     "lint:eslint": {},
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint:eslint"],
+      "dependsOn": ["lint:eslint", "format:mdoc:check"],
       "configurations": {
         "fix": {}
       }
+    },
+    "format:mdoc": {
+      "command": "tsx scripts/format-mdoc-codeblocks.ts --write",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
+      "inputs": ["{projectRoot}/src/**/*.mdoc"],
+      "outputs": []
+    },
+    "format:mdoc:check": {
+      "command": "tsx scripts/format-mdoc-codeblocks.ts --check",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
+      "inputs": ["{projectRoot}/src/**/*.mdoc"],
+      "outputs": []
     },
     "test": {
       "executor": "nx:noop",

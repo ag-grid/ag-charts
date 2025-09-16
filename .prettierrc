@@ -34,17 +34,17 @@
         {
             "files": "*.mdoc",
             "options": {
-                "parser": "partial-js-markdown",
+                "parser": "markdown",
                 "embeddedLanguageFormatting": "auto"
             }
         },
         {
             "files": "*.md",
             "options": {
-                "parser": "partial-js-markdown",
+                "parser": "markdown",
                 "embeddedLanguageFormatting": "auto"
             }
         }
     ],
-    "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-astro", "prettier-plugin-partial-js-markdown"]
+    "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-astro"]
 }
