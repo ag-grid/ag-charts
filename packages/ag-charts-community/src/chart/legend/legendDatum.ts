@@ -1,4 +1,4 @@
-import type { AgChartLegendListeners } from 'ag-charts-types';
+import type { AgChartLegendListeners, TextOrSegments } from 'ag-charts-types';
 
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
@@ -37,7 +37,7 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
     label: {
-        text: string; // display name for the sub-component
+        text: TextOrSegments; // display name for the sub-component
     };
     skipAnimations?: boolean;
     isFixed?: boolean;

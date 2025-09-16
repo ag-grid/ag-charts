@@ -1,4 +1,5 @@
-import { type BoxBounds, type StrictHTMLElement, createElement, createElementId } from 'ag-charts-core';
+import { type BoxBounds, type StrictHTMLElement, createElement, createElementId, toPlainText } from 'ag-charts-core';
+import type { TextOrSegments } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -17,7 +18,7 @@ import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
 type ItemSelection = Selection<LegendMarkerLabel, CategoryLegendDatum>;
-type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): string | undefined };
+type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): TextOrSegments | undefined };
 
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
@@ -87,7 +88,7 @@ export class LegendDOMProxy {
             markerLabel.proxyButton?.destroy();
             markerLabel.proxyButton = ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
-                textContent: this.getItemAriaText(lm, datumReader.getItemLabel(datum), index, count),
+                textContent: this.getItemAriaText(lm, toPlainText(datumReader.getItemLabel(datum)), index, count),
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.itemDescription.id,
                 parent: this.itemList,
@@ -233,7 +234,7 @@ export class LegendDOMProxy {
         itemSelection.each(({ proxyButton }, datum, index) => {
             const button = proxyButton?.getElement();
             if (button != null) {
-                const label = datumReader.getItemLabel(datum);
+                const label = toPlainText(datumReader.getItemLabel(datum));
                 button.textContent = this.getItemAriaText(localeManager, label, index, count);
             }
         });

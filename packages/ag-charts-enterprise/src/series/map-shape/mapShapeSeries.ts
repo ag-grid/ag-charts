@@ -1,5 +1,13 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import {
+    type ITextMeasurer,
+    Logger,
+    type Point,
+    cachedTextMeasurer,
+    isArray,
+    measureTextSegments,
+    toPlainText,
+} from 'ag-charts-core';
 import type {
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
@@ -43,7 +51,7 @@ const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
 interface LabelLayout {
     geometry: _ModuleSupport.Geometry;
-    labelText: string;
+    labelText: TextOrSegments;
     aspectRatio: number;
     x: number;
     y: number;
@@ -254,9 +262,10 @@ export class MapShapeSeries
         );
         if (labelText == null) return;
 
-        const baseSize = measurer.measureText(String(labelText));
-        const numLines = labelText.split('\n').length;
-        const aspectRatio = (baseSize.width + 2 * padding) / (numLines * calcLineHeight(label.fontSize) + 2 * padding);
+        const baseSize = isArray(labelText)
+            ? measureTextSegments(labelText, label)
+            : measurer.measureText(String(labelText));
+        const aspectRatio = (baseSize.width + 2 * padding) / (baseSize.height + 2 * padding);
 
         if (
             previousLabelLayout?.geometry === geometry &&
@@ -293,18 +302,23 @@ export class MapShapeSeries
             height: Math.ceil((maxWidth * scaling) / aspectRatio),
             meta: untruncatedX,
         };
-        const labelFormatting = formatSingleLabel<number>(labelText, label, { padding }, (height, allowTruncation) => {
-            if (!allowTruncation) {
-                return maxSizeWithoutTruncation;
-            }
+        const labelFormatting = formatSingleLabel<number>(
+            toPlainText(labelText),
+            label,
+            { padding },
+            (height, allowTruncation) => {
+                if (!allowTruncation) {
+                    return maxSizeWithoutTruncation;
+                }
 
-            const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
-            return {
-                width: result.width * scaling,
-                height,
-                meta: result.x,
-            };
-        });
+                const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
+                return {
+                    width: result.width * scaling,
+                    height,
+                    meta: result.x,
+                };
+            }
+        );
         if (labelFormatting == null) return;
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;

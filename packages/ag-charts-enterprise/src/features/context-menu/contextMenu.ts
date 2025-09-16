@@ -1,6 +1,6 @@
 import type { AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { Logger, clamp, createElement } from 'ag-charts-core';
+import { Logger, clamp, createElement, toPlainText } from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
@@ -245,7 +245,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
                     const series: UnknownSeries | undefined = chart.series.find((s) => s.id === seriesId);
                     const callers: Caller[] = [series?.properties, chart];
-                    const apiEvent = { type: 'contextmenu', seriesId, itemId, text: label.text, event } as const;
+                    const apiEvent = {
+                        type: 'contextmenu',
+                        seriesId,
+                        itemId,
+                        text: toPlainText(label.text),
+                        event,
+                    } as const;
                     callWithContext(callers, callback, apiEvent);
                     this.hide();
                 } else {

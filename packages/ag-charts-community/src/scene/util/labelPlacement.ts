@@ -1,4 +1,5 @@
 import { type BoxBounds, type Point, boxCollides, boxContains } from 'ag-charts-core';
+import type { TextOrSegments } from 'ag-charts-types';
 
 import type { SizedPoint } from '../point';
 
@@ -13,14 +14,9 @@ export type LabelPlacement =
     | 'bottom-right';
 
 export interface MeasuredLabel {
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly width: number;
     readonly height: number;
-}
-
-export interface PlacedLabelDatum {
-    readonly label: string | undefined;
-    readonly bounds: BoxBounds;
 }
 
 export interface PointLabelDatum {

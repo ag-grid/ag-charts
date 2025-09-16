@@ -11,7 +11,7 @@ import { callWithContext } from '../../util/callbackCache';
 import { BaseProperties, Property } from '../../util/properties';
 import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
 
-type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
+export type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
 
 class SeriesTooltipInteraction extends BaseProperties {
     @Property

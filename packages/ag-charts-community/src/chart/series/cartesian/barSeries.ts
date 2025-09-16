@@ -423,7 +423,7 @@ export class BarSeries extends AbstractBarSeries<
             width: number;
             isPositive: boolean;
             yRange: number;
-            labelText: string | undefined;
+            labelText: TextOrSegments | undefined;
             opacity: number;
             featherRatio: number;
             crossScale: number | undefined;

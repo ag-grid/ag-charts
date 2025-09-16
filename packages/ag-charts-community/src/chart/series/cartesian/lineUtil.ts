@@ -1,5 +1,5 @@
 import type { Point } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
@@ -43,7 +43,7 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
-    readonly labelText?: string;
+    readonly labelText?: TextOrSegments;
     readonly selected: boolean | undefined;
     style?: AgSeriesMarkerStyle;
 }

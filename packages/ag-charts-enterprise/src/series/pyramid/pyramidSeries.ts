@@ -2,9 +2,17 @@ import {
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesOptions,
     type AgPyramidSeriesStyle,
+    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, type Writeable, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import {
+    type Point,
+    type Writeable,
+    cachedTextMeasurer,
+    isArray,
+    measureTextSegments,
+    toPlainText,
+} from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -28,7 +36,7 @@ const {
 } = _ModuleSupport;
 
 type PyramidNodeLabelDatum = Readonly<Point> & {
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     readonly visible: boolean;
@@ -236,8 +244,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 { datum, value: yValue, stageKey, valueKey }
             );
 
-            const { width } = textMeasurer.measureText(text);
-            const height = text.split('\n').length * calcLineHeight(label.fontSize);
+            const { width, height } = isArray(text) ? measureTextSegments(text, label) : textMeasurer.measureText(text);
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 
@@ -656,7 +663,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label, value }],
+                data: [{ label: toPlainText(label), value: toPlainText(value) }],
             },
             {
                 seriesId,

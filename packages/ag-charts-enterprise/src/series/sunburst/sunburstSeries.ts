@@ -1,5 +1,5 @@
 import { type AgSunburstSeriesLabelFormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
+import { type InternalAgColorType, type Point, type RequireOptional, toPlainText } from 'ag-charts-core';
 import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -255,7 +255,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             node.secondaryLabel = undefined;
             node.contentHeight = 0;
 
-            let labelValue: string | undefined;
+            let labelValue: TextOrSegments | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
                 labelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
@@ -283,7 +283,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 labelValue = undefined;
             }
 
-            let secondaryLabelValue: string | undefined;
+            let secondaryLabelValue: TextOrSegments | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
                 secondaryLabelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
@@ -365,9 +365,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             };
 
             const formatting = formatLabels<LabelPlacement>(
-                labelValue,
+                toPlainText(labelValue),
                 this.properties.label,
-                secondaryLabelValue,
+                toPlainText(secondaryLabelValue),
                 this.properties.secondaryLabel,
                 { padding },
                 sizeFittingHeight
