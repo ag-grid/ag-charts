@@ -89,7 +89,7 @@ export class OhlcNode extends OhlcBaseNode {
         const { path } = this;
         const { centerX, x0, x1, y0, y1, yOpen, yClose } = this.alignedCoordinates();
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
-        const strokeAlignment = (pixelRatio / this.strokeAlignment / 2) % 1;
+        const strokeAlignment = this.strokeAlignment > 0 ? (pixelRatio / this.strokeAlignment / 2) % 1 : 0;
 
         path.clear();
 

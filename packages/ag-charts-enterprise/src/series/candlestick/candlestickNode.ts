@@ -54,7 +54,7 @@ export class CandlestickNode extends OhlcBaseNode {
         } = this;
         const { centerX, x0, x1, y0, y1, yOpen, yClose } = this.alignedCoordinates();
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
-        const wickStrokeAlignment = (pixelRatio / this.wickStrokeAlignment / 2) % 1;
+        const wickStrokeAlignment = this.wickStrokeAlignment > 0 ? (pixelRatio / this.wickStrokeAlignment / 2) % 1 : 0;
 
         this.path.clear();
         this.wickPath.clear();

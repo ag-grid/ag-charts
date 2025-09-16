@@ -140,7 +140,7 @@ export class BoxPlotNode extends Scalable(Path) {
         } = this;
         const { center, x0, x1, min, max, q1, median, q3 } = this.alignedCoordinates();
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
-        const wickStrokeAlignment = (pixelRatio / this.wickStrokeAlignment / 2) % 1;
+        const wickStrokeAlignment = this.wickStrokeAlignment > 0 ? (pixelRatio / this.wickStrokeAlignment / 2) % 1 : 0;
 
         this.path.clear();
         this.wickPath.clear();
