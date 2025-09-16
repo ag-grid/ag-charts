@@ -584,6 +584,7 @@ describe('NightingaleSeries', () => {
                                 angleKey: 'quarter',
                                 radiusKey: 'sw',
                                 radiusName: 'Software',
+                                context: c1,
                                 fill: 'lime', // ignored
                                 fillOpacity: 0.5, // not ignored
                                 styler: styler.frozen,
@@ -592,6 +593,7 @@ describe('NightingaleSeries', () => {
                                 type: 'nightingale',
                                 angleKey: 'quarter',
                                 radiusKey: 'hw',
+                                context: c2,
                                 stroke: 'CornflowerBlue', // ignored
                                 strokeOpacity: 0.5, // not ignored
                                 strokeWidth: 15, // ignored
