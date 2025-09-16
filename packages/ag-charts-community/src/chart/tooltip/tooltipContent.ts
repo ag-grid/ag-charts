@@ -120,7 +120,7 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
     }
 
     if (content.title != null) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(toPlainText(content.title))}</span>`;
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title)}</span>`;
         html += ' ';
     }
 
