@@ -390,7 +390,7 @@ export class Text<D = any> extends Shape<D> {
 
         const measurer = cachedTextMeasurer(this);
         const { lineMetrics } = measurer.measureLines(lines);
-        const { textBaseline, lineHeight = lineMetrics[0].height } = this;
+        const { textBaseline, lineHeight = measurer.lineHeight() } = this;
 
         let offsetY = 0;
         if (textBaseline === 'top') {
