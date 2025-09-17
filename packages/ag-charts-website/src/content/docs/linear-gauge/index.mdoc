@@ -43,9 +43,7 @@ const [options, setOptions] = useState({
     },
 });
 
-return (
-    <AgGauge options={options} />
-);
+return <AgGauge options={options} />;
 ```
 
 {% /if %}
@@ -117,7 +115,7 @@ In this configuration:
 To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
 ```js
-direction: 'horizontal',
+direction: 'horizontal'
 ```
 
 ## Customisation
@@ -130,7 +128,7 @@ direction: 'horizontal',
 thickness: 100,
 bar: {
     thickness: 50,
-},
+}
 ```
 
 In the above configuration:
@@ -155,7 +153,7 @@ scale: {
     label: {
         enabled: false,
     },
-},
+}
 ```
 
 In this configuration:
@@ -177,7 +175,7 @@ segmentation: {
         count: 4,
     },
     spacing: 2,
-},
+}
 ```
 
 In this configuration:
@@ -194,7 +192,7 @@ In this configuration:
 
 ```js
 cornerRadius: 99,
-cornerMode: 'container',
+cornerMode: 'container'
 ```
 
 In this configuration:
@@ -216,7 +214,7 @@ scale: {
 },
 bar: {
     fill: '#4cd137',
-},
+}
 ```
 
 ### Multiple Colours
@@ -229,7 +227,7 @@ Multiple colours can be specified using the `fills` property.
 bar: {
     fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
     fillMode: 'discrete',
-},
+}
 ```
 
 In this configuration:
@@ -253,7 +251,7 @@ bar: {
         { color: '#E84118' },
     ],
     fillMode: 'discrete',
-},
+}
 ```
 
 In this configuration:
@@ -275,7 +273,7 @@ targets: [
         value: 70,
         text: 'Average',
     },
-],
+]
 ```
 
 In this configuration:
@@ -313,7 +311,7 @@ targets: [
         strokeWidth: 2,
         spacing: 8,
     },
-],
+]
 ```
 
 In this configuration:

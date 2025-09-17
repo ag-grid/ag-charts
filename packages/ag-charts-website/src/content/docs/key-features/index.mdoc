@@ -51,7 +51,7 @@ axes: [
         type: 'number', // category | grouped-category | number | log | time | ordinal-time
         position: 'left', // top | right | bottom | left
     },
-]
+];
 ```
 
 Polar charts such as the [Radar Line Series](./radar-line-series), use [Polar Axes](./radar-line-series/#customisation) which have similar options.
@@ -83,7 +83,7 @@ axes: [
         position: 'right',
         keys: ['portions'],
     },
-]
+];
 ```
 
 ### Axis Intervals
@@ -100,7 +100,7 @@ axes: [
         position: 'left',
         interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
     },
-]
+];
 ```
 
 ### Axis Labels
@@ -171,7 +171,7 @@ axes: [
             },
         ],
     },
-]
+];
 ```
 
 ### Conditional Styling
@@ -284,7 +284,7 @@ Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is r
 
 ```js
 width: 800,
-height: 600,
+height: 600
 ```
 
 ## Interactivity
@@ -300,7 +300,7 @@ height: 600,
 ```js
 tooltip: {
     mode: 'shared', // or 'single' or 'compact'
-},
+}
 ```
 
 Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
@@ -308,7 +308,7 @@ Use the `tooltip.renderer` callback function to customise the content of the too
 ```js
 tooltip: {
     renderer: ({ datum, xKey }) => `<div class="custom-tooltip">${datum[xKey]}</div>`,
-},
+}
 ```
 
 ### Highlighting Hovered Data
@@ -358,7 +358,7 @@ legend: {
             console.log('item clicked');
         },
     },
-},
+}
 ```
 
 ### Saving and Restoring State
@@ -508,9 +508,7 @@ const [options, setOptions] = useState({
     data: getData(),
 });
 
-return (
-    <AgFinancialCharts options={options} />
-);
+return <AgFinancialCharts options={options} />;
 ```
 
 {% /if %}
@@ -591,7 +589,7 @@ series: [
         idKey: 'country',
         topologyIdKey: 'name', // default value
     },
-]
+];
 ```
 
 ### Gauges {% enterpriseIcon /%}
@@ -632,9 +630,7 @@ const [options, setOptions] = useState({
     },
 });
 
-return (
-    <AgGauge options={options} />
-);
+return <AgGauge options={options} />;
 ```
 
 {% /if %}
