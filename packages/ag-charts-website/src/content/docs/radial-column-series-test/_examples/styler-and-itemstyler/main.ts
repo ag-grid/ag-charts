@@ -38,7 +38,7 @@ const itemStyler = (params: AgRadialSeriesItemStylerParams<DatumType, unknown>):
     return {};
 };
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DatumType, unknown> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
