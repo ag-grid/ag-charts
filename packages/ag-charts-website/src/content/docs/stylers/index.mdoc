@@ -32,7 +32,8 @@ series: [
             itemStyler: ({ datum: { coal, nuclear } }) => {
                 if (coal > nuclear) {
                     return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
-                } else return { fontSize: 8 };
+                }
+                return { fontSize: 8 };
             },
         },
     },
@@ -103,7 +104,8 @@ theme: {
                 styler: (params) => {
                     if (params.yKey.includes('benchmark')) {
                         return { fill: 'lightgray' };
-                    } else return { fill: '#5090DC' };
+                    }
+                    return { fill: '#5090DC' };
                 },
             },
         },
@@ -112,7 +114,8 @@ theme: {
                 styler: (params) => {
                     if (params.yKey.includes('benchmark')) {
                         return { stroke: 'lightgray' };
-                    } else return { stroke: '#5090DC' };
+                    }
+                    return { stroke: '#5090DC' };
                 },
             },
         },
