@@ -24,7 +24,7 @@ The Unit Time Axis will plot time values with evenly spaced bands for each unit 
 For example, with a `month` unit, dates of 01 Jan and 30 Mar will appear as three evenly spaced items representing "January", "February" and "March".
 
 ```js
-type: 'unit-time'
+type: 'unit-time';
 ```
 
 {% note %}
@@ -70,7 +70,7 @@ unit: {
     unit: 'day',
     step: 7, // every 7 days
     epoch: new Date(2024, 0, 1),
-},
+}
 ```
 
 In this example:
@@ -93,7 +93,7 @@ Ordinal Time axes are commonly used for financial data on the x-axis, usually pl
 A basic Ordinal Time Axis configuration looks like this:
 
 ```js
-type: 'ordinal-time'
+type: 'ordinal-time';
 ```
 
 For a full list of configuration options see [Ordinal Time Axis Options](#reference-AgOrdinalTimeAxisOptions).
@@ -162,7 +162,7 @@ It is enabled by default for the [Unit Time Axis](#unit-time), and can be opted 
 ```js
 parentLevel: {
     enabled: true,
-},
+}
 ```
 
 In this example:
@@ -197,7 +197,7 @@ parentLevel: {
             year: '%b\n%Y',
         },
     },
-},
+}
 ```
 
 In this configuration:

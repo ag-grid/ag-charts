@@ -21,7 +21,7 @@ series: [
     { type: 'bar', xKey: 'quarter', yKey: 'ipad', yName: 'iPad' },
     { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables' },
     { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services' },
-]
+];
 ```
 
 In this configuration:
@@ -40,7 +40,7 @@ To show a Horizontal Bar Series, set `direction: 'horizontal'`.
 series: [
     { type: 'bar', direction: 'horizontal', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
     // ...
-]
+];
 ```
 
 When the `direction` is `'horizontal'` the `xKey` will define categories on the y-axis, while the `yKey` will represent numerical
@@ -58,7 +58,7 @@ To stack bars enable the `stacked` series option.
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true },
     // ...
-]
+];
 ```
 
 ## Normalised Bar
@@ -71,7 +71,7 @@ The `normalizedTo` series option allows normalising bar totals to any non-zero v
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, normalizedTo: 100 },
     // ...
-]
+];
 ```
 
 ## Grouped Stacks
@@ -88,7 +88,7 @@ series: [
     { type: 'bar', xKey: 'quarter', yKey: 'ipad', stackGroup: 'Devices' },
     { type: 'bar', xKey: 'quarter', yKey: 'wearables', stackGroup: 'Other' },
     { type: 'bar', xKey: 'quarter', yKey: 'services', stackGroup: 'Other' },
-]
+];
 ```
 
 A matching `legendItemName` provided enables the creation of multiple bar series with synchronised legend items. When a
@@ -115,7 +115,7 @@ series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, cornerRadius: 10 },
     { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true, cornerRadius: 10 },
     // ...
-]
+];
 ```
 
 {% note %}

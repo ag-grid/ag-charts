@@ -52,23 +52,23 @@ return (
 
 ```ts
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgGauge],
-  template: `<ag-gauge [options]="options"></ag-gauge>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgGauge],
+    template: `<ag-gauge [options]="options"></ag-gauge>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
-  constructor() {
-    this.options = {
-        type: "radial-gauge",
-        value: 80,
-        scale: {
-          min: 0,
-          max: 100,
-        },
-    };
-  }
+    public options: AgRadialGaugeOptions;
+    constructor() {
+        this.options = {
+            type: 'radial-gauge',
+            value: 80,
+            scale: {
+                min: 0,
+                max: 100,
+            },
+        };
+    }
 }
 ```
 
@@ -84,13 +84,13 @@ components: {
 data() {
     return {
         options: {
-            type: "radial-gauge",
+            type: 'radial-gauge',
             value: 80,
             scale: {
                 min: 0,
                 max: 100,
             },
-        }
+        },
     };
 }
 ```
@@ -171,7 +171,7 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
     segmentation: {
         enabled: true,
         interval: {
-            count: 4
+            count: 4,
         },
         spacing: 2,
     },

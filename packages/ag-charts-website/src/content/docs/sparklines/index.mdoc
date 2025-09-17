@@ -49,22 +49,22 @@ return (
 
 ```ts
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgSparkline],
-  template: `<ag-sparkline [options]="options"></ag-sparkline>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgSparkline],
+    template: `<ag-sparkline [options]="options"></ag-sparkline>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
-  constructor() {
-    this.options = {
-        type: 'bar',
-        container: document.getElementById('myChart'),
-        data: [],
-        xKey: 'date',
-        yKey: 'price',
-    };
-  }
+    public options: AgRadialGaugeOptions;
+    constructor() {
+        this.options = {
+            type: 'bar',
+            container: document.getElementById('myChart'),
+            data: [],
+            xKey: 'date',
+            yKey: 'price',
+        };
+    }
 }
 ```
 

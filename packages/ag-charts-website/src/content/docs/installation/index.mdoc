@@ -208,7 +208,9 @@ To use AG Charts in your React application, return the `AgCharts` component with
 ```tsx
 const MyChart = () => {
     // Define chart options; mutating this object will cause the chart to update
-    const [chartOptions, setChartOptions] = useState({/* ... */});
+    const [chartOptions, setChartOptions] = useState({
+        /* ... */
+    });
 
     // Return the AgCharts component with the chart options
     return <AgCharts options={chartOptions} />;

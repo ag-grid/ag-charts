@@ -22,7 +22,7 @@ The `style-src` policy requires the `unsafe-inline` rule for a few reasons, incl
 However, you can avoid this requirement by using the `styleNonce` chart option as shown below. The `styleNonce` property should be set to a random value that changes with each page load.
 
 ```js
-styleNonce: '416d1177'
+styleNonce: '416d1177';
 ```
 
 This sets the nonce attribute on any added style tags, so the chart will now work with the CSP directive `style-src 'nonce-416d1177'` without the need for `'unsafe-inline'`.

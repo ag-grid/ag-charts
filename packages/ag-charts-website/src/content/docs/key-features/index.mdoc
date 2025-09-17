@@ -22,15 +22,15 @@ These include a `type` as well as `_Key` properties to connect to the visualisat
 
 ```ts
 data: [
-    {year: '2001', women: 25},
-    {country: '2003', value: 26},
+    { year: '2001', women: 25 },
+    { country: '2003', value: 26 },
 ],
 series: [
     {
         type: 'bar',
         xKey: 'year',
         yKey: 'women',
-    }
+    },
 ]
 ```
 
@@ -51,7 +51,7 @@ axes: [
         type: 'number', // category | grouped-category | number | log | time | ordinal-time
         position: 'left', // top | right | bottom | left
     },
-],
+]
 ```
 
 Polar charts such as the [Radar Line Series](./radar-line-series), use [Polar Axes](./radar-line-series/#customisation) which have similar options.
@@ -83,7 +83,7 @@ axes: [
         position: 'right',
         keys: ['portions'],
     },
-],
+]
 ```
 
 ### Axis Intervals
@@ -99,8 +99,8 @@ axes: [
         type: 'number',
         position: 'left',
         interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
-    }
-],
+    },
+]
 ```
 
 ### Axis Labels
@@ -166,12 +166,12 @@ axes: [
                 value: 11,
             },
             {
-                type: "range",
-                range: ["Jun", "Sep"],
+                type: 'range',
+                range: ['Jun', 'Sep'],
             },
         ],
     },
-],
+]
 ```
 
 ### Conditional Styling
@@ -313,6 +313,7 @@ Use the `tooltip.renderer` callback function to customise the content of the too
 {
     renderer: ({ datum, xKey }) => `<div class="custom-tooltip">${datum[xKey]}</div>`,
 },
+];
 ```
 
 ### Highlighting Hovered Data
@@ -354,7 +355,7 @@ Register `listeners` to respond to [Events](./events/) on the chart.
         {
             listeners: {
                 seriesNodeClick: (params) => {
-                    console.log('node clicked')
+                    console.log('node clicked');
                 },
             },
         },
@@ -600,7 +601,7 @@ series: [
         idKey: 'country',
         topologyIdKey: 'name', // default value
     },
-],
+]
 ```
 
 ### Gauges {% enterpriseIcon /%}
@@ -690,7 +691,7 @@ data() {
                 min: 0,
                 max: 100,
             },
-        }
+        },
     };
 }
 ```
