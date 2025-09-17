@@ -77,7 +77,6 @@ export class ChartCaptions {
             const bbox = caption.node.getBBox().clone();
             const { spacing = 0 } = caption;
             if (vAlign === 'bottom' && isArray(caption.text)) {
-                caption.node.y -= bbox.height;
                 bbox.y -= bbox.height;
             }
             layoutBox.shrink(
