@@ -343,7 +343,7 @@ export class MapMarkerSeries
         );
         if (labelText == null) return;
 
-        const { width, height } = measurer.measureText(String(labelText));
+        const { width, height } = measurer.measureLines(String(labelText));
         const anchor = Marker.anchor(shape);
 
         return {

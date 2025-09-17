@@ -337,7 +337,7 @@ export class StatusBar
             title.visible = true;
             value.visible = true;
 
-            const titleMetrics = cachedTextMeasurer(this.title).measureText(label);
+            const titleMetrics = cachedTextMeasurer(this.title).measureLines(label);
             title.setFont(this.title);
             title.fill = this.title.color;
             title.text = label;

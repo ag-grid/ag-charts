@@ -358,7 +358,9 @@ export class RadialGaugeSeries
 
                 if (text == null) return;
 
-                const { width, height } = isArray(text) ? measureTextSegments(text, label) : measurer.measureText(text);
+                const { width, height } = isArray(text)
+                    ? measureTextSegments(text, label)
+                    : measurer.measureLines(text);
                 return { index, value, text, width, height };
             })
             .filter((value): value is RadialGaugeTickDatum => value != null);
