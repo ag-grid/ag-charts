@@ -10,7 +10,7 @@ import {
 } from './util';
 
 test.describe('context-menu', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     for (const { framework, url } of toExamplePageUrls('zoom', 'zoom-min-visible-items')) {
         test.describe(`for ${framework}`, () => {

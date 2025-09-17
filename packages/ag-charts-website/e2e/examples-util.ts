@@ -56,6 +56,12 @@ export function convertPageUrls(
         }
     }
 
+    const defaults = pagePath.endsWith('-test')
+        ? {
+              frameworks: ['vanilla'],
+          }
+        : {};
+
     const {
         frameworks,
         status = 'ok',
@@ -65,6 +71,7 @@ export function convertPageUrls(
         randomData = false,
         snapshot = false,
     } = {
+        ...defaults,
         ...options?.['*'],
         ...options?.[example],
     };
@@ -96,11 +103,12 @@ export function createTestCase(
 ) {
     const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
 
-    if (status === 'ok') {
-        testFn(`should load ${url}`, async ({ page }) => {
-            test.slow(framework === 'angular', 'allow more time for Angular load times');
+    // Use a special test title suffix to indicate console warnings should be ignored
+    const titleSuffix = ignoreConsoleWarnings ? ' [ignoreConsoleWarnings]' : '';
 
-            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
+    if (status === 'ok') {
+        testFn(`should load ${url}${titleSuffix}`, async ({ page }) => {
+            test.slow(framework === 'angular', 'allow more time for Angular load times');
 
             // Load example and wait for things to settle.
             await gotoExample(page, url);
@@ -143,7 +151,6 @@ export function createTestCase(
 
     if (status === '404') {
         testFn(`should 404 on ${url}`, async ({ page }) => {
-            config.ignore404s = true;
             await page.goto(url);
             expect(await page.title()).toMatch(/Page Not Found/);
         });

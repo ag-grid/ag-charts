@@ -15,7 +15,7 @@ test.describe('synchronised', () => {
     // Some tests are flaky due to a race between page load and animations firing.
     test.describe.configure({ retries: 3 });
 
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test.describe('for single-series charts', () => {
         const { url } = toExamplePageUrl('sync-test', 'single-series-sync', 'vanilla');

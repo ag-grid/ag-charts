@@ -8,7 +8,7 @@ type RenewablesScreenshotsFilename =
     | 'renewables-landfill-gas-highlighted.png';
 
 test.describe('legend', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     for (const { framework, url } of toExamplePageUrls('accessibility-test', 'keyboard-navigation-with-highlight')) {
         test.describe(`for ${framework}`, () => {

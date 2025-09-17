@@ -10,7 +10,7 @@ import {
 } from './util';
 
 test.describe('zoom', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test('navigator', async ({ page }) => {
         const { url } = toExamplePageUrl('financial-charts-test', 'e2e-zoom-navigator', 'vanilla');

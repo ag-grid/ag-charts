@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
 test.describe('crosshair', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
     const x = 666;
     const y = 400;
 
