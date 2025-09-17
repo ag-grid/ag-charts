@@ -5,6 +5,7 @@ import {
     type FontStyle,
     type FontWeight,
     type TextAlign,
+    type TextOrSegments,
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -15,6 +16,7 @@ import {
     cachedTextMeasurer,
     calcLineHeight,
     isNumberEqual,
+    toPlainText,
     wrapText,
 } from 'ag-charts-core';
 
@@ -54,7 +56,7 @@ interface Padding {
 }
 
 interface LabelLayout {
-    text: string;
+    text: TextOrSegments;
     fontSize: number;
     lineHeight: number;
     fontStyle: FontStyle;
@@ -436,7 +438,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const isLeaf = children.length === 0;
 
             const labelStyle = isLeaf ? tile.label : group.label;
-            let labelValue: string | undefined;
+            let labelValue: TextOrSegments | undefined;
             if (labelStyle.enabled && datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
                 labelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
@@ -464,7 +466,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 labelValue = undefined;
             }
 
-            let secondaryLabelValue: string | undefined;
+            let secondaryLabelValue: TextOrSegments | undefined;
             if (tile.secondaryLabel.enabled && isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
                 secondaryLabelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
@@ -492,8 +494,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 secondaryLabelValue = undefined;
             }
 
-            node.labelValue = labelValue;
-            node.secondaryLabelValue = secondaryLabelValue;
+            node.labelValue = toPlainText(labelValue);
+            node.secondaryLabelValue = toPlainText(secondaryLabelValue);
         });
 
         const { width, height } = seriesRect;

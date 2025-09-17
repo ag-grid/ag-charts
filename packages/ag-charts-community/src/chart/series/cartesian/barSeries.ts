@@ -7,6 +7,7 @@ import type {
     AgBarSeriesStyle,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -80,7 +81,7 @@ import { areScalingEqual } from './scaling';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
 }
@@ -422,7 +423,7 @@ export class BarSeries extends AbstractBarSeries<
             width: number;
             isPositive: boolean;
             yRange: number;
-            labelText: string | undefined;
+            labelText: TextOrSegments | undefined;
             opacity: number;
             featherRatio: number;
             crossScale: number | undefined;
@@ -904,6 +905,7 @@ export class BarSeries extends AbstractBarSeries<
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<BarShape, BarNodeDatum>;
         isHighlight: boolean;
+        drawingMode: 'cutout' | 'overlay';
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
@@ -923,6 +925,8 @@ export class BarSeries extends AbstractBarSeries<
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
 
             applyShapeStyle(rect, style, fillBBox);
+
+            rect.drawingMode = opts.drawingMode;
 
             const cornerRadius = style.cornerRadius ?? 0;
             rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;

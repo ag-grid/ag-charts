@@ -132,7 +132,15 @@ export type AgChartHighlightRange = 'tooltip' | 'node';
 export interface AgChartHighlightOptions {
     /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
     range?: AgChartHighlightRange;
+    /**
+     * Defines how the highlight should be rendered relative to the existing chart content.
+     * - 'overlay': Draws on top of the existing content.
+     * - 'cutout': Removes the existing content where it overlaps the highlight node.
+     */
+    drawingMode?: AgDrawingMode;
 }
+
+export type AgDrawingMode = 'overlay' | 'cutout';
 
 export interface AgChartSyncOptions {
     /** Toggles the synchronization feature. It is implicitly enabled when configuration options are provided; otherwise, it defaults to `false`. */

@@ -5,15 +5,16 @@ import type {
     AgRadialSeriesOptionsKeys,
     AgSeriesMarkerStyle,
     Styler,
+    TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
     readonly label?: {
-        text: string;
         x: number;
         y: number;
+        text: TextOrSegments;
         textAlign: CanvasTextAlign;
         textBaseline: CanvasTextBaseline;
     };

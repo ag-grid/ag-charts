@@ -4,6 +4,7 @@ import type {
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
     AgHistogramSeriesTooltipRendererParams,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { BBox } from '../../../scene/bbox';
@@ -27,7 +28,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly frequency: number;
     readonly domain: [number, number];
     readonly label?: {
-        readonly text: string;
+        readonly text: TextOrSegments;
         readonly x: number;
         readonly y: number;
     };

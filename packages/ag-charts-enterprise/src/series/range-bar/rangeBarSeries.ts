@@ -2,6 +2,7 @@ import {
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
+    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { Point, RequireOptional } from 'ag-charts-core';
@@ -59,7 +60,7 @@ type Bounds = {
 
 interface RangeBarNodeLabelDatum extends Readonly<Point> {
     datumIndex: number;
-    text: string;
+    text: TextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;

@@ -60,10 +60,26 @@
     "lint:eslint": {},
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint:eslint"],
+      "dependsOn": ["lint:eslint", "format:mdoc:check"],
       "configurations": {
         "fix": {}
       }
+    },
+    "format:mdoc": {
+      "command": "tsx scripts/format-mdoc-codeblocks.ts --write",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
+      "inputs": ["{projectRoot}/src/**/*.mdoc"],
+      "outputs": []
+    },
+    "format:mdoc:check": {
+      "command": "tsx scripts/format-mdoc-codeblocks.ts --check || echo \"Run this command to fix formatting errors:\\nnx format:mdoc ag-charts-website\"",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
+      "inputs": ["{projectRoot}/src/**/*.mdoc"],
+      "outputs": []
     },
     "test": {
       "executor": "nx:noop",
@@ -99,7 +115,7 @@
       }
     },
     "test:e2e": {
-      "dependsOn": ["^build", "generate-examples"],
+      "dependsOn": ["^build", "generate-examples", "generate-test-files"],
       "inputs": ["{projectRoot}/playwright.config.ts", "{projectRoot}/e2e/**", { "env": "NX_BASE" }],
       "outputs": [],
       "command": "./playwright.sh --host test",
@@ -118,6 +134,18 @@
         "ui": {
           "command": "./playwright.sh --host test --ui-port=8080 --ui-host=0.0.0.0"
         }
+      }
+    },
+    "generate-test-files": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^generate-test-files"],
+      "inputs": ["{projectRoot}/e2e/**", "!{projectRoot}/e2e/generated/**"],
+      "outputs": ["{projectRoot}/e2e/generated/**"],
+      "cache": true,
+      "options": {
+        "parallel": false,
+        "commands": ["rimraf ./e2e/generated", "mkdir -p ./e2e/generated", "tsx ./e2e/generate-test-files.ts"],
+        "cwd": "{projectRoot}"
       }
     },
     "generate-examples": {

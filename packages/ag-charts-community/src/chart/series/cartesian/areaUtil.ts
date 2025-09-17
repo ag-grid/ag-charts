@@ -1,5 +1,5 @@
 import type { InternalAgColorType, Point } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { SizedPoint } from '../../../scene/point';
@@ -46,7 +46,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
 
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number> {
     readonly itemId: any;
-    readonly labelText: string;
+    readonly labelText: TextOrSegments;
 }
 
 export interface AreaSeriesNodeDataContext

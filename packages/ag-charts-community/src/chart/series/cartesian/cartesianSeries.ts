@@ -1,5 +1,5 @@
 import { type Point, findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
-import type { AgSeriesSegmentation } from 'ag-charts-types';
+import type { AgDrawingMode, AgSeriesSegmentation } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -487,9 +487,12 @@ export abstract class CartesianSeries<
         this.highlightGroup.visible = (animationEnabled || visible) && itemHighlighted;
 
         this.updateDatumStyles({ datumSelection: highlightSelection, isHighlight: true });
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+
         this.updateDatumNodes({
             datumSelection: highlightSelection,
             isHighlight: true,
+            drawingMode,
         });
         this.animationState.transition('highlight', highlightSelection);
 
@@ -511,7 +514,7 @@ export abstract class CartesianSeries<
         const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight;
 
         if (nodeRefresh || redrawAll) {
-            this.updateDatumNodes({ datumSelection, isHighlight: false });
+            this.updateDatumNodes({ datumSelection, isHighlight: false, drawingMode: 'overlay' });
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
                     this.updateLabelNodes({ labelSelection, isHighlight: false });
@@ -1104,7 +1107,11 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
         return opts.datumSelection;
     }
-    protected updateDatumNodes(_opts: { datumSelection: Selection<TNode, TDatum>; isHighlight: boolean }): void {
+    protected updateDatumNodes(_opts: {
+        datumSelection: Selection<TNode, TDatum>;
+        isHighlight: boolean;
+        drawingMode: AgDrawingMode;
+    }): void {
         // Override point for sub-classes.
     }
 

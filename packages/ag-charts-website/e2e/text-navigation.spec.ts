@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('text-navigation', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
     const { url } = toExamplePageUrl('financial-charts-test', 'e2e-toolbar', 'vanilla');
 
     test('annotation-text', async ({ page }) => {

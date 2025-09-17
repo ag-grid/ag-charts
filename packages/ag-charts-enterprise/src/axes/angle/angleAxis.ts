@@ -1,13 +1,6 @@
 import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    type WrapOptions,
-    countFractionDigits,
-    isArray,
-    isNumberEqual,
-    wrapText,
-    wrapTextSegments,
-} from 'ag-charts-core';
+import { type WrapOptions, countFractionDigits, isNumberEqual, wrapTextOrSegments } from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
@@ -413,7 +406,7 @@ export abstract class AngleAxis<
                 if (overflowLeft > pixelError || overflowRight > pixelError) {
                     const availWidth = box.width - Math.max(overflowLeft, overflowRight);
                     const wrapOptions: WrapOptions = { maxWidth: availWidth, font: label, textWrap: 'never' };
-                    text = isArray(text) ? wrapTextSegments(text, wrapOptions) : wrapText(text, wrapOptions);
+                    text = wrapTextOrSegments(text, wrapOptions);
                     tempText.text = text;
                     box = tempText.getBBox();
                 }

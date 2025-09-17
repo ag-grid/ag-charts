@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, waitForAllChartUpdates } from './util';
 
 test.describe('Combination charts', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     for (const { framework, url } of toExamplePageUrls('combination-series', 'combination')) {
         test.describe(`for ${framework}`, () => {

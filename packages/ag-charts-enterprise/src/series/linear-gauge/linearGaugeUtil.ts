@@ -1,5 +1,5 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
-import { cachedTextMeasurer } from 'ag-charts-core';
+import { cachedTextMeasurer, isArray, measureTextSegments, toPlainText } from 'ag-charts-core';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel } from '../util/labelFormatter';
@@ -246,11 +246,13 @@ export function formatLinearGaugeLabels(
                 meta: null,
             });
 
-            const labelMeta = formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight);
+            const labelMeta = formatSingleLabel(toPlainText(labelText), labelDatum, { padding }, sizeFittingHeight);
             layout = labelMeta?.[0];
         } else {
             const measurer = cachedTextMeasurer(labelDatum);
-            const { width, height } = measurer.measureText(labelText);
+            const { width, height } = isArray(labelText)
+                ? measureTextSegments(labelText, labelDatum)
+                : measurer.measureText(labelText);
             layout = {
                 text: labelText,
                 fontSize: labelDatum.fontSize,

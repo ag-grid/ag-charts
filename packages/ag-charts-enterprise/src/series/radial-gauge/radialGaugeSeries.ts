@@ -6,10 +6,11 @@ import {
     type FontStyle,
     type FontWeight,
     type TextAlign,
+    type TextOrSegments,
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, cachedTextMeasurer } from 'ag-charts-core';
+import { type Point, cachedTextMeasurer, isArray, measureTextSegments, toPlainText } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
@@ -104,7 +105,7 @@ interface RadialGaugeNeedleDatum {
 interface RadialGaugeTickDatum {
     index: number;
     value: number;
-    text: string;
+    text: TextOrSegments;
     width: number;
     height: number;
 }
@@ -344,7 +345,7 @@ export class RadialGaugeSeries
         const measurer = cachedTextMeasurer(label);
         const tickData = ticks
             .map((value, index): RadialGaugeTickDatum | undefined => {
-                let text: string | undefined;
+                let text: TextOrSegments | undefined;
                 if (label.formatter) {
                     text = formatWithContext(this.ctx, label.formatter, {
                         value,
@@ -357,7 +358,7 @@ export class RadialGaugeSeries
 
                 if (text == null) return;
 
-                const { width, height } = measurer.measureText(text);
+                const { width, height } = isArray(text) ? measureTextSegments(text, label) : measurer.measureText(text);
                 return { index, value, text, width, height };
             })
             .filter((value): value is RadialGaugeTickDatum => value != null);
@@ -1324,7 +1325,7 @@ export class RadialGaugeSeries
         this.labelSelection.each((_label, datum) => {
             const text = getLabelText(this.id, this.ctx, datum);
             if (text != null) {
-                description.push(text);
+                description.push(toPlainText(text));
             }
         });
 

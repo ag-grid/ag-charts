@@ -2,6 +2,7 @@ import type {
     AgBoxPlotSeriesItemStylerParams,
     AgBoxPlotSeriesOptions,
     AgBoxPlotSeriesStyle,
+    AgBoxPlotSeriesStylerParams,
     AgBoxPlotSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
@@ -97,6 +98,9 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     cornerRadius: number = 0;
 
     @Property
+    styler?: Styler<AgBoxPlotSeriesStylerParams<unknown, unknown>, AgBoxPlotSeriesStyle>;
+
+    @Property
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<unknown>, AgBoxPlotSeriesStyle>;
 
     @Property
@@ -121,33 +125,5 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
         });
 
         return properties;
-    }
-
-    getStyle(): Required<AgBoxPlotSeriesStyle> & { opacity: number } {
-        const {
-            fill,
-            fillOpacity,
-            strokeWidth,
-            strokeOpacity,
-            stroke,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            cap,
-            whisker,
-        } = this;
-        return {
-            fill,
-            fillOpacity,
-            strokeWidth,
-            strokeOpacity,
-            stroke,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            cap,
-            whisker,
-            opacity: 1,
-        };
     }
 }

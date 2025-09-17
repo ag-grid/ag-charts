@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('tooltip', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test.beforeEach(async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('tooltips-test', 'e2e-tooltip-modes', 'vanilla').url);

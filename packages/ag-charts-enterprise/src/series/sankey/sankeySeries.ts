@@ -7,7 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
+import { Logger, cachedTextMeasurer, calcLineHeight, toPlainText, wrapText } from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -185,7 +185,7 @@ export class SankeySeries extends FlowProportionSeries<
                       { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size }
                   )
                 : undefined;
-            node.label = labelText;
+            node.label = toPlainText(labelText);
 
             column.nodes.push(graphNode);
             column.size += size;

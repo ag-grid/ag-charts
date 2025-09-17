@@ -1,9 +1,9 @@
 import {
     type BoxBounds,
     type FontOptions,
-    type LineMetricsBox,
     LineSplitter,
     type RequireOptional,
+    type TextMetricsBox,
     cachedTextMeasurer,
     createSvgElement,
     isArray,
@@ -72,7 +72,7 @@ export class Text<D = any> extends Shape<D> {
             this.richText.setScene(this.scene);
             this.richText.append(
                 this.text
-                    .flatMap((s) => s.text.split(LineSplitter))
+                    .flatMap((s) => (isString(s.text) ? s.text.split(LineSplitter) : String(s.text)))
                     .filter(Boolean)
                     .map(() => new Text({ trimText: false }))
             );
@@ -141,8 +141,32 @@ export class Text<D = any> extends Shape<D> {
         this.trimText = options?.trimText ?? true;
     }
 
-    static computeBBox(
-        lines: string | string[],
+    static measureBBox(
+        text: TextOrSegments,
+        x: number,
+        y: number,
+        options: {
+            font: FontOptions;
+            lineHeight?: number;
+            textAlign?: CanvasTextAlign;
+            textBaseline?: CanvasTextBaseline;
+        }
+    ) {
+        if (isArray(text)) {
+            const { font, lineHeight, textAlign, textBaseline } = options;
+            const { width, height, lineMetrics } = measureTextSegments(text, font);
+            const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
+            const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
+            const offsetLeft = Text.calcLeftOffset(width, textAlign);
+
+            return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
+        } else {
+            return Text.computeBBox(text?.split(LineSplitter), x, y, options);
+        }
+    }
+
+    private static computeBBox(
+        lines: string[],
         x: number,
         y: number,
         opts: {
@@ -155,7 +179,7 @@ export class Text<D = any> extends Shape<D> {
         const { font, lineHeight, textAlign, textBaseline } = opts;
         const { width, height, lineMetrics } = cachedTextMeasurer(font).measureLines(lines);
         const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
-        const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics, textBaseline);
+        const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
         const offsetLeft = Text.calcLeftOffset(width, textAlign);
 
         return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
@@ -163,12 +187,12 @@ export class Text<D = any> extends Shape<D> {
 
     private static calcTopOffset(
         height: number,
-        lineMetrics: LineMetricsBox[],
+        textMetrics?: TextMetricsBox,
         textBaseline?: CanvasTextBaseline
     ): number {
         switch (textBaseline) {
             case 'alphabetic':
-                return lineMetrics[0]?.ascent ?? 0;
+                return textMetrics?.ascent ?? 0;
             case 'middle':
                 return height / 2;
             case 'bottom':
@@ -255,23 +279,42 @@ export class Text<D = any> extends Shape<D> {
         if (isArray(this.text)) {
             this.generateTextMap();
             const richTextBBox = this.richText!.getBBox();
+            const { width, height, lineMetrics } = measureTextSegments(this.text, this);
 
             let translateX = 0;
             switch (this.textAlign) {
                 case 'left':
                 case 'start':
-                    translateX = richTextBBox.width / 2;
+                    translateX = width / 2;
                     break;
 
                 case 'right':
                 case 'end':
-                    translateX = richTextBBox.width / -2;
+                    translateX = width / -2;
             }
 
-            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, this.y));
+            let translateY = this.y;
+            switch (this.textBaseline) {
+                case 'alphabetic':
+                    translateY -= lineMetrics[0]?.ascent ?? 0;
+                    break;
+
+                case 'middle':
+                    const measurer = cachedTextMeasurer(this);
+                    translateY -= height / 2 - measurer.baselineDistance('middle');
+                    // TODO not accurate, can be improved
+                    break;
+
+                case 'bottom':
+                    translateY -= height;
+                    // TODO not accurate, can be improved
+                    break;
+            }
+
+            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, translateY));
 
             ctx.save();
-            ctx.translate(translateX, this.y);
+            ctx.translate(translateX, translateY);
             this.richText!.render(renderCtx);
             ctx.restore();
         } else {

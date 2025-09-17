@@ -3,6 +3,7 @@ import type {
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
+    TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Point, RequireOptional } from 'ag-charts-core';
@@ -40,7 +41,7 @@ const {
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<Point> & {
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
 };

@@ -1,5 +1,11 @@
 import type { AnyFn, IsAny, Point, RequireOptional } from 'ag-charts-core';
-import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, HighlightState, PixelSize } from 'ag-charts-types';
+import type {
+    AgChartLabelStyleOptions,
+    AgChartLabelStylerParams,
+    HighlightState,
+    PixelSize,
+    TextOrSegments,
+} from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ModuleContext } from '../module/moduleContext';
@@ -32,7 +38,7 @@ type Bounds = {
 export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
 type LabelDatum = Point & {
-    text: string;
+    text: TextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
 };

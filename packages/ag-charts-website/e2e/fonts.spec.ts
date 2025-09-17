@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('fonts', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     const testUrls = toExamplePageUrls('fonts', 'google-fonts');
 

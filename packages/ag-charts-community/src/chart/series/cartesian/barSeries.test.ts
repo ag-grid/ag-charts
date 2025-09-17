@@ -1726,4 +1726,54 @@ describe('BarSeries', () => {
             await compare();
         });
     });
+
+    describe('cutout drawing mode', () => {
+        it('should render bar series with cutout highlight drawing mode', async () => {
+            const highlight = {
+                highlightedItem: {
+                    fillOpacity: 0.1,
+                    stroke: 'black',
+                    fill: 'black',
+                },
+            };
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { quarter: 'Q1', sales: 120, expenses: 80 },
+                    { quarter: 'Q2', sales: 100, expenses: 70 },
+                    { quarter: 'Q3', sales: 140, expenses: 90 },
+                    { quarter: 'Q4', sales: 160, expenses: 110 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'sales',
+                        yName: 'Sales',
+                        highlight,
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'expenses',
+                        yName: 'Expenses',
+                        highlight,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(135, 330)(chart);
+            await compare();
+        });
+    });
 });

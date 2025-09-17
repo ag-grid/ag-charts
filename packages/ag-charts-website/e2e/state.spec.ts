@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('state', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test('legend and zoom', async ({ page }) => {
         const { url } = toExamplePageUrl('api-state-test', 'legend-zoom-e2e', 'vanilla');

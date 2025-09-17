@@ -1,3 +1,4 @@
+import { toPlainText } from 'ag-charts-core';
 import type { AgChartLegendClickEvent, AgChartLegendDoubleClickEvent } from 'ag-charts-types';
 
 import type { CategoryLegendDatum } from './legendDatum';
@@ -30,8 +31,8 @@ export function makeLegendItemEvent(
             type,
             itemId,
             seriesId,
-            text,
             event,
+            text: toPlainText(text),
             preventDefault: () => (result.defaultPrevented = true),
         },
     };

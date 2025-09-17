@@ -338,12 +338,30 @@ const ITEM_HIGHLIGHT_BASE_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
     stroke: { $path: ['../../highlightStyle/item/stroke', `rgba(0, 0, 0, 0.4)`] },
     strokeWidth: { $path: ['../../highlightStyle/item/strokeWidth', 2] },
     strokeOpacity: { $path: ['../../highlightStyle/item/strokeOpacity', undefined] },
-    opacity: { $path: ['../../highlightStyle/item/opacity', 1] },
+    opacity: {
+        $path: [
+            '../../highlightStyle/item/opacity',
+            {
+                $if: [{ $eq: [{ $path: ['/highlight/drawingMode', undefined] }, 'cutout'] }, 0.67, 1],
+            },
+        ],
+    },
 };
 
 const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
     ...ITEM_HIGHLIGHT_BASE_STYLE,
-    fill: { $path: ['../../highlightStyle/item/fill', `rgba(255,255,255, 0.33)`] },
+    fill: {
+        $path: [
+            '../../highlightStyle/item/fill',
+            {
+                $if: [
+                    { $eq: [{ $path: ['/highlight/drawingMode', undefined] }, 'cutout'] },
+                    undefined,
+                    `rgba(255,255,255, 0.33)`,
+                ],
+            },
+        ],
+    },
     fillOpacity: { $path: ['../../highlightStyle/item/fillOpacity', undefined] },
 };
 

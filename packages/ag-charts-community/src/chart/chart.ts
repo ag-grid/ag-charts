@@ -9,6 +9,7 @@ import {
     groupBy,
     isFiniteNumber,
     pause,
+    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
@@ -20,6 +21,7 @@ import type {
     AgMiniChartSeriesOptions,
     AgPolarAxisOptions,
     FormatterConfiguration,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -717,12 +719,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             case ChartUpdateType.SERIES_UPDATE: {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
-                await this.updateSeries(seriesToUpdate);
+                this.seriesRoot.renderToOffscreenCanvas = this.highlight.drawingMode === 'cutout';
 
-                updateSplits('🤔');
+                await this.updateSeries(seriesToUpdate);
 
                 this.updateAriaLabels();
                 this.seriesLayerManager.updateLayerCompositing();
+
+                updateSplits('🤔');
             }
             // fallthrough
 
@@ -1099,7 +1103,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (this.mode !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
             const seriesMarkerFills: {
-                [key: string]: { [key: string]: AgColorType | undefined };
+                [key: string]: Map<TextOrSegments, AgColorType | undefined>;
             } = {};
             const seriesTypeMap = new Map(this.series.map((s) => [s.id, s.type]));
 
@@ -1111,13 +1115,16 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (marker.fill == null) continue;
 
                 const seriesType = seriesTypeMap.get(seriesId)!;
-                const markerFill = (seriesMarkerFills[seriesType] ??= {});
+                const markerFill = (seriesMarkerFills[seriesType] ??= new Map());
 
-                markerFill[label.text] ??= marker.fill;
-                if (markerFill[label.text] !== marker.fill) {
-                    Logger.warnOnce(
-                        `legend item '${label.text}' has multiple fill colors, this may cause unexpected behaviour.`
-                    );
+                if (markerFill.has(label.text)) {
+                    if (markerFill.get(label.text) !== marker.fill) {
+                        Logger.warnOnce(
+                            `legend item '${toPlainText(label.text)}' has multiple fill colors, this may cause unexpected behaviour.`
+                        );
+                    }
+                } else {
+                    markerFill.set(label.text, marker.fill);
                 }
             }
         }

@@ -2,6 +2,7 @@ import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
+    TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { type Point, isDefined } from 'ag-charts-core';
@@ -49,9 +50,9 @@ class RadialColumnSeriesNodeEvent<
 }
 
 interface RadialColumnLabelNodeDatum {
-    text: string;
     x: number;
     y: number;
+    text: TextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
 }
@@ -124,7 +125,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     override get hasData(): boolean {
-        return this.getHasData('angleValue');
+        return this.getHasData('radiusValue-raw');
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {

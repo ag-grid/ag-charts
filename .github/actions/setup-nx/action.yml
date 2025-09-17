@@ -155,7 +155,15 @@ runs:
           id: yarn_install_slow
           shell: bash
           run: |
-              (yarn check --integrity && yarn postinstall) || yarn install --ci
+              if (yarn check --integrity) ; then
+                yarn postinstall
+              else
+                yarn install --ci
+
+                # Ensure that the integrity check passes after install to avoid
+                # cache polution with entries that will fail future integrity checks.
+                yarn check --integrity
+              fi
 
         - name: yarn install (skipping postinstall)
           if: inputs.yarn_postinstall == 'false'

@@ -240,7 +240,7 @@
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
         "commands": [
-          "find {projectRoot}/benchmarks -name '*.test.ts' | xargs -L1 -P1 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand"
+          "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand"
         ],
         "env": {
           "AG_BENCHMARK_LATEST_VERSION": "1"
@@ -250,13 +250,16 @@
       "configurations": {
         "update": {
           "commands": [
-            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs -L1 -P1 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
+            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
           ]
         },
         "ci": {
           "commands": [
-            "find {projectRoot}/benchmarks -name '*.test.ts' | (AG_BENCHMARK_REPEAT_LIMIT=3 xargs -L1 -P1 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u)"
-          ]
+            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
+          ],
+          "env": {
+            "AG_BENCHMARK_REPEAT_LIMIT": "3"
+          }
         },
         "build": {
           "commands": ["echo \"Skipping benchmark execution, just building dependencies.\""]

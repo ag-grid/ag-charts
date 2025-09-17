@@ -6,7 +6,14 @@ import {
     generateUUID,
     isString,
 } from 'ag-charts-core';
-import type { AgImageFill, AgPatternColor, CssColor, LineDashOptions, StrokeOptions } from 'ag-charts-types';
+import type {
+    AgDrawingMode,
+    AgImageFill,
+    AgPatternColor,
+    CssColor,
+    LineDashOptions,
+    StrokeOptions,
+} from 'ag-charts-types';
 
 import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
@@ -43,6 +50,9 @@ export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImag
 type SvgAttributes = StrokeOptions & LineDashOptions;
 
 export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
+    @SceneChangeDetection()
+    drawingMode: AgDrawingMode = 'overlay';
+
     @SceneChangeDetection()
     fillOpacity: number = 1;
 
@@ -176,6 +186,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
+        if (this.drawingMode === 'cutout') {
+            ctx.globalCompositeOperation = 'destination-out';
+            this.executeFill(ctx, path);
+            this.executeStroke(ctx, path);
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
         this.renderFill(ctx, path);
         this.renderStroke(ctx, path);
     }

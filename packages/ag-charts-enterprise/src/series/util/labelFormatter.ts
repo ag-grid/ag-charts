@@ -5,6 +5,7 @@ import type {
     AgChartAutoSizedSecondaryLabelOptions,
     FontSize,
     OverflowStrategy,
+    TextOrSegments,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -73,7 +74,7 @@ type LayoutParams = {
 };
 
 export type LabelFormatting = {
-    text: string;
+    text: TextOrSegments;
     fontSize: number;
     lineHeight: number;
     width: number;

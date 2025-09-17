@@ -6,8 +6,8 @@ import type {
     Padding as AgPadding,
     AgTimeIntervalUnit,
     FontOptions,
-    Formatter,
     FormatterParams,
+    RichFormatter,
     Styler,
     TextWrap,
 } from 'ag-charts-types';
@@ -156,7 +156,7 @@ export interface ChartAxisLabel extends FontOptions {
     border: { enabled: boolean; stroke?: string };
     enabled: boolean;
     format?: string | Record<string, string>;
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: RichFormatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing?: number;
     mirrored: boolean;

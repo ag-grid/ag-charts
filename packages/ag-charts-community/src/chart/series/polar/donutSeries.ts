@@ -5,7 +5,10 @@ import {
     Logger,
     type Point,
     type RequireOptional,
+    type WrapOptions,
     modulus,
+    toPlainText,
+    wrapTextOrSegments,
 } from 'ag-charts-core';
 import type {
     AgDonutCalloutLineItemStylerParams,
@@ -14,8 +17,10 @@ import type {
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
+    AgDrawingMode,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesStyle,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -90,7 +95,7 @@ class PieDonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> exte
 }
 
 interface PieDonutLabelDatum {
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     hidden: boolean;
@@ -114,7 +119,7 @@ interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
     readonly calloutLabel?: PieDonutLabelDatum;
 
     readonly sectorLabel?: {
-        readonly text: string;
+        readonly text: TextOrSegments;
     };
 
     readonly sectorFormat: { [key in keyof Omit<Required<PieDonutSeriesStyle>, 'fill'>]: PieDonutSeriesStyle[key] } & {
@@ -557,8 +562,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         };
 
         const result: {
-            callout: string | undefined;
-            sector: string | undefined;
+            callout: TextOrSegments | undefined;
+            sector: TextOrSegments | undefined;
             legendItem: string | undefined;
         } = {
             callout: undefined,
@@ -616,7 +621,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const formats = this.getLabelContent(datumIndex, datum, values);
         const result: {
             calloutLabel?: PieDonutLabelDatum;
-            sectorLabel?: { text: string };
+            sectorLabel?: { text: TextOrSegments };
             legendItem?: { key: string; text: string };
         } = {};
 
@@ -1002,6 +1007,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
         this.highlightGroup.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 
@@ -1023,7 +1029,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             sector: Sector,
             datum: PieDonutNodeDatum,
             _index: number,
-            isDatumHighlighted: boolean
+            isDatumHighlighted: boolean,
+            mode: AgDrawingMode
         ) => {
             const format = this.getItemStyle(datum, isDatumHighlighted, undefined, legendItemValues);
 
@@ -1044,6 +1051,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const fillParams = this.getFillParams(format.fill, innerRadius, outerRadius);
             applyShapeStyle(sector, format, fillBBox, fillParams);
 
+            sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
             const inset = Math.max(
@@ -1054,13 +1062,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
         };
 
-        this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
+        this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+        this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+
         this.highlightSelection.each((node, datum, index) => {
-            updateSectorFn(node, datum, index, true);
+            updateSectorFn(node, datum, index, true, drawingMode);
 
             node.visible = datum.itemId === highlightedDatum?.itemId;
         });
-        this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
 
         this.updateCalloutLineNodes();
         this.updateCalloutLabelNodes(seriesRect);
@@ -1131,23 +1140,22 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         });
     }
 
-    private getLabelOverflow(text: string, box: BBox, seriesRect: BBox) {
+    private getLabelOverflow(box: BBox, seriesRect: BBox) {
         const seriesLeft = -this.centerX;
         const seriesRight = seriesLeft + seriesRect.width;
         const seriesTop = -this.centerY;
         const seriesBottom = seriesTop + seriesRect.height;
         const errPx = 1; // Prevents errors related to floating point calculations
-        let visibleTextPart = 1;
+        let maxWidth = box.width;
         if (box.x + errPx < seriesLeft) {
-            visibleTextPart = (box.x + box.width - seriesLeft) / box.width;
+            maxWidth = (box.x + box.width - seriesLeft) / box.width;
         } else if (box.x + box.width - errPx > seriesRight) {
-            visibleTextPart = (seriesRight - box.x) / box.width;
+            maxWidth = (seriesRight - box.x) / box.width;
         }
 
         const hasVerticalOverflow = box.y + errPx < seriesTop || box.y + box.height - errPx > seriesBottom;
-        const textLength = visibleTextPart === 1 ? text.length : Math.floor(text.length * visibleTextPart) - 1;
         const hasSurroundingSeriesOverflow = this.bboxIntersectsSurroundingSeries(box);
-        return { textLength, hasVerticalOverflow, hasSurroundingSeriesOverflow };
+        return { maxWidth, hasVerticalOverflow, hasSurroundingSeriesOverflow };
     }
 
     private bboxIntersectsSurroundingSeries(box: BBox) {
@@ -1214,7 +1222,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
             const textAlign = label.collisionTextAlign ?? label.textAlign;
             const textBaseline = label.textBaseline;
-            return Text.computeBBox(label.text, x, y, {
+            return Text.measureBBox(label.text, x, y, {
                 font: this.properties.calloutLabel,
                 textAlign,
                 textBaseline,
@@ -1346,8 +1354,16 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             let displayText = label.text;
             let visible = true;
             if (calloutLabel.avoidCollisions) {
-                const { textLength, hasVerticalOverflow } = this.getLabelOverflow(label.text, box, seriesRect);
-                displayText = label.text.length === textLength ? label.text : `${label.text.substring(0, textLength)}…`;
+                const { maxWidth, hasVerticalOverflow } = this.getLabelOverflow(box, seriesRect);
+                if (box.width > maxWidth) {
+                    const options: WrapOptions = {
+                        font: this.properties.calloutLabel,
+                        textWrap: 'on-space',
+                        overflow: 'hide',
+                        maxWidth,
+                    };
+                    displayText = wrapTextOrSegments(label.text, options);
+                }
                 visible = !hasVerticalOverflow;
             }
 
@@ -1442,12 +1458,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             }
 
             if (options.hideWhenNecessary) {
-                const { textLength, hasVerticalOverflow, hasSurroundingSeriesOverflow } = this.getLabelOverflow(
-                    label.text,
+                const { maxWidth, hasVerticalOverflow, hasSurroundingSeriesOverflow } = this.getLabelOverflow(
                     box,
                     seriesRect
                 );
-                const isTooShort = label.text.length > 2 && textLength < 2;
+                const isTooShort = box.width > maxWidth;
 
                 if (hasVerticalOverflow || isTooShort || hasSurroundingSeriesOverflow) {
                     label.hidden = true;
@@ -1624,7 +1639,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label, fallbackLabel: angleKey, value: angleContent }],
+                data: [{ label: toPlainText(label), fallbackLabel: angleKey, value: angleContent }],
             },
             {
                 seriesId,

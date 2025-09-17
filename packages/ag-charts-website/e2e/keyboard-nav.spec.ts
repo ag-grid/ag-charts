@@ -4,7 +4,7 @@ import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
 test.describe('keyboard-nav', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     const testUrls = toExamplePageUrls('accessibility', 'keyboard-navigation');
 

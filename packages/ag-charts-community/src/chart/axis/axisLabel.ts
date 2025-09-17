@@ -7,9 +7,9 @@ import type {
     DateFormatterStyle,
     FontStyle,
     FontWeight,
-    Formatter,
     FormatterParams,
     Padding,
+    RichFormatter,
     Styler,
     TextOrSegments,
     TextWrap,
@@ -145,7 +145,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * the `fractionDigits` is 4.
      */
     @Property
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: RichFormatter<AgAxisLabelFormatterParams>;
 
     @Property
     format?: string | Record<string, string>;
@@ -162,7 +162,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     };
     formatValue(
         callWithContext: (
-            formatter: (params: AgAxisLabelFormatterParams) => string | undefined,
+            formatter: (params: AgAxisLabelFormatterParams) => TextOrSegments | undefined,
             params: AgAxisLabelFormatterParams
         ) => TextOrSegments | undefined,
         params: FormatterParams<any>,

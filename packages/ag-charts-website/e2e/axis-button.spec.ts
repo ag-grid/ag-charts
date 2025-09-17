@@ -4,7 +4,7 @@ import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } fr
 type GetPromiseReturnType<T> = T extends (...args: any[]) => Promise<infer U> ? U : never;
 
 test.describe('axis-button', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
     const { url } = toExamplePageUrl('financial-charts-configuration', 'default-configuration', 'vanilla');
 
     test('visibility', async ({ page }) => {

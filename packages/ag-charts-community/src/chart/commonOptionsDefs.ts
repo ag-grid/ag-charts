@@ -283,7 +283,7 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     ),
 };
 
-const formatter = or(string, callbackOf(string));
+const formatter = or(string, callbackOf(textOrSegments));
 
 export const formatObjectValidator = optionsDefs<Record<FormatterPropertyType, () => string>>({
     x: formatter,
@@ -424,6 +424,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     loadGoogleFonts: boolean,
     highlight: {
+        drawingMode: union('overlay', 'cutout'),
         range: union('tooltip', 'node'),
     },
     overlays: {
@@ -539,7 +540,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             visible: union('always', 'zoomed', 'hover'),
         },
     },
-    formatter: or(callbackOf(string), formatObjectValidator),
+    formatter: or(callbackOf(textOrSegments), formatObjectValidator),
 };
 
 // @ts-expect-error undocumented option
