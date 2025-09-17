@@ -193,9 +193,7 @@ const expressionWrapStrategy: WrapStrategy = {
                     if (safeIndent === 0 || line.trim() === '') {
                         return line.trim() === '' ? '' : line;
                     }
-                    return line.startsWith(' '.repeat(safeIndent))
-                        ? line.slice(safeIndent)
-                        : line.replace(/^\s+/, '');
+                    return line.startsWith(' '.repeat(safeIndent)) ? line.slice(safeIndent) : line.replace(/^\s+/, '');
                 })
                 .join('\n');
             return dedented;
@@ -320,7 +318,9 @@ const reactComponentWrapStrategy: WrapStrategy = {
         const hasReactImports = /from\s+['"]react(?:-dom)?['"]/.test(code) || /import\s+React/.test(code);
         const hasReactDom = /\bcreateRoot\b/.test(code) || /\bReactDOM\b/.test(code);
         const startsWithReturn = trimmed.startsWith('return');
-        const startsWithHookInitialisation = /^(const|let)\s+\[[^\]]+\]\s*=\s*use(State|Reducer|Transition)/.test(trimmed);
+        const startsWithHookInitialisation = /^(const|let)\s+\[[^\]]+\]\s*=\s*use(State|Reducer|Transition)/.test(
+            trimmed
+        );
 
         return hasReactImports || hasReactDom || startsWithReturn || startsWithHookInitialisation;
     },
@@ -384,8 +384,7 @@ const typeWrapStrategy: WrapStrategy = {
             return true;
         }
 
-        const looksLikeTypeLiteral =
-            trimmed.startsWith('{') && /:\s*[^,{}()]+;/.test(trimmed);
+        const looksLikeTypeLiteral = trimmed.startsWith('{') && /:\s*[^,{}()]+;/.test(trimmed);
         if (looksLikeTypeLiteral) {
             return true;
         }
@@ -423,17 +422,17 @@ const interfacePropertyWrapStrategy: WrapStrategy = {
         // Must NOT have an opening brace after the colon (which would make it an object literal)
         return (
             // Property with type annotation (but not object literal)
-            ((/^(readonly\s+)?[a-zA-Z_$][a-zA-Z0-9_$]*\??\s*:/.test(trimmed) &&
+            (/^(readonly\s+)?[a-zA-Z_$][a-zA-Z0-9_$]*\??\s*:/.test(trimmed) &&
                 !/^\w+\s*:\s*\{/.test(trimmed) &&
                 !trimmed.includes('=') &&
                 !trimmed.includes('function') &&
                 !trimmed.includes('=>')) ||
-                // String key
-                /^["'][^"']+["']\s*:/.test(trimmed) ||
-                // Computed property
-                /^\[.*\]\s*:/.test(trimmed) ||
-                // Method signature
-                /^(readonly\s+)?[a-zA-Z_$][a-zA-Z0-9_$]*\??\s*\(/.test(trimmed))
+            // String key
+            /^["'][^"']+["']\s*:/.test(trimmed) ||
+            // Computed property
+            /^\[.*\]\s*:/.test(trimmed) ||
+            // Method signature
+            /^(readonly\s+)?[a-zA-Z_$][a-zA-Z0-9_$]*\??\s*\(/.test(trimmed)
         );
     },
 };
