@@ -114,22 +114,18 @@ Depending on the data domain and chart size, using a larger value for the `tick:
 necessary to reduce the number of ticks.
 
 ```js
-{
-    type: 'log',
-    position: 'left',
-    minSpacing: 200,
-}
+type: 'log',
+position: 'left',
+minSpacing: 200
 ```
 
 The `log` axis uses the common logarithm (base 10) by default. The `base` config allows
 you to change the base to any number you like, for example `Math.E` for natural or `2` for binary logarithms:
 
 ```js
-{
-    type: 'log',
-    position: 'left',
-    base: 2,
-}
+type: 'log',
+position: 'left',
+base: 2
 ```
 
 For a full list of configuration options see [Log Axis Options](#reference-AgLogAxisOptions).

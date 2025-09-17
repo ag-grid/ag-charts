@@ -30,9 +30,7 @@ For [Number Axes](./axes-types/#number), the `step` should be a number.
 For example, a `step` of `5`, will display values at `0`, `5`, `10`.
 
 ```js
-{
-    interval: { step: 5 },
-}
+interval: { step: 5 }
 ```
 
 {% chartExampleRunner title="Number Axis Interval" name="axis-interval" type="generated" /%}
@@ -59,10 +57,8 @@ The `interval.values` property allows you to specify the precise array of values
 this should be an array consisting of `number`, `Date`, or `String` values.
 
 ```js
-{
-    interval: {
-        values: [50, 88, 100],
-    },
+interval: {
+    values: [50, 88, 100],
 }
 ```
 
@@ -80,11 +76,9 @@ Category axes do not support `maxSpacing`, as intervals are derived from the dom
 {% /note %}
 
 ```js
-{
-    interval: {
-        minSpacing: 15,
-        maxSpacing: 25,
-    },
+interval: {
+    minSpacing: 15,
+    maxSpacing: 25,
 }
 ```
 

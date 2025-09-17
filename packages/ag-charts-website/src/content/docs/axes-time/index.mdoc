@@ -24,10 +24,7 @@ The Unit Time Axis will plot time values with evenly spaced bands for each unit 
 For example, with a `month` unit, dates of 01 Jan and 30 Mar will appear as three evenly spaced items representing "January", "February" and "March".
 
 ```js
-{
-    type: 'unit-time',
-    position: 'bottom',
-}
+type: 'unit-time'
 ```
 
 {% note %}
@@ -44,11 +41,9 @@ For some scenarios - such as datasets with missing data points - it may be neces
 To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeIntervalUnit` object.
 
 ```js
-{
-    type: 'unit-time',
-    position: 'bottom',
-    unit: 'day', // every day
-}
+type: 'unit-time',
+position: 'bottom',
+unit: 'day' // every day
 ```
 
 In this configuration:
@@ -100,10 +95,7 @@ Ordinal Time axes are commonly used for financial data on the x-axis, usually pl
 A basic Ordinal Time Axis configuration looks like this:
 
 ```js
-{
-    type: 'ordinal-time',
-    position: 'bottom',
-}
+type: 'ordinal-time'
 ```
 
 For a full list of configuration options see [Ordinal Time Axis Options](#reference-AgOrdinalTimeAxisOptions).
@@ -115,10 +107,8 @@ The time axis is similar to the number axis in the sense that it is also used to
 Time axes are typically used as x-axes and placed at the bottom of a chart. The simplest time axis config looks like this:
 
 ```js
-{
-    type: 'time',
-    position: 'bottom',
-}
+type: 'time',
+position: 'bottom'
 ```
 
 For a full list of configuration options see [Continuous Time Axis Options](#reference-AgTimeAxisOptions).
