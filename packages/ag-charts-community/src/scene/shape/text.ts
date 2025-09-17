@@ -300,14 +300,20 @@ export class Text<D = any> extends Shape<D> {
                     break;
 
                 case 'middle':
-                    const measurer = cachedTextMeasurer(this);
-                    translateY -= height / 2 - measurer.baselineDistance('middle');
-                    // TODO not accurate, can be improved
+                    translateY -=
+                        lineMetrics.length === 1
+                            ? lineMetrics[0].ascent +
+                              lineMetrics[0].segments.reduce(
+                                  (offsetY, segment) =>
+                                      Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
+                                  0
+                              )
+                            : height / 2;
+
                     break;
 
                 case 'bottom':
                     translateY -= height;
-                    // TODO not accurate, can be improved
                     break;
             }
 
