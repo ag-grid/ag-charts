@@ -17,6 +17,7 @@ import type {
     AgLineSeriesThemeableOptions,
     AgNightingaleSeriesThemeableOptions,
     AgPieSeriesCalloutOptions,
+    AgRadialColumnSeriesThemeableOptions,
     AgScatterSeriesThemeableOptions,
 } from 'ag-charts-types';
 
@@ -55,6 +56,12 @@ export type MockBoxPlotStyler<TDatum, TContext> = NonNullable<
 >;
 export type MockBoxPlotItemStyler<TDatum, TContext> = NonNullable<
     AgBoxPlotSeriesThemeableOptions<TDatum, TContext>['itemStyler']
+>;
+export type MockRadialColumnStyler<TDatum, TContext> = NonNullable<
+    AgRadialColumnSeriesThemeableOptions<TDatum, TContext>['styler']
+>;
+export type MockRadialColumnItemStyler<TDatum, TContext> = NonNullable<
+    AgRadialColumnSeriesThemeableOptions<TDatum, TContext>['itemStyler']
 >;
 export type MockNightingaleStyler<TDatum, TContext> = NonNullable<
     AgNightingaleSeriesThemeableOptions<TDatum, TContext>['styler']
@@ -125,6 +132,8 @@ export type MockAPICallback<TDatum, TContext> =
     | MockDonutCalloutLineItemStyler<TDatum, TContext>
     | MockBoxPlotStyler<TDatum, TContext>
     | MockBoxPlotItemStyler<TDatum, TContext>
+    | MockRadialColumnStyler<TDatum, TContext>
+    | MockRadialColumnItemStyler<TDatum, TContext>
     | MockNightingaleStyler<TDatum, TContext>
     | MockNightingaleItemStyler<TDatum, TContext>
     | MockAxisLabelFormatter<TDatum, TContext>
