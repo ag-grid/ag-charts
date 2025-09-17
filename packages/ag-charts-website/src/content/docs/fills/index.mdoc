@@ -52,8 +52,8 @@ The array should contain a minimum of two objects, with each object providing op
 -   `stop`: A ratio between `0` and `1` indicating the position within the gradient where the colour changes.
 
 ```js
-{
-    series: {
+series: [
+    {
         fill: {
             type: 'gradient',
             colorStops: [
@@ -64,7 +64,7 @@ The array should contain a minimum of two objects, with each object providing op
             ],
         },
     },
-}
+],
 ```
 
 In this configuration:
@@ -84,14 +84,14 @@ See the [Gradient API reference](#reference-AgGradientColor) for all the availab
 Any of the [stock patterns](#reference-AgPatternColor-pattern) can be provided in the `fill.pattern` property.
 
 ```js
-{
-    series: {
+series: [
+    {
         fill: {
             type: 'pattern',
             pattern: 'stars',
         },
     },
-}
+],
 ```
 
 Stock patterns include:
@@ -113,14 +113,14 @@ SVG Path Data can be used to create custom patterns. The path can be a line or a
 -   To remove the fill, set `fill` to `none`.
 
 ```js
-{
-    series: {
+series: [
+    {
         fill: {
             type: 'pattern',
             path: 'M0,6 Q4,1 8,6 T16,6', // svg path data string
         },
     },
-}
+],
 ```
 
 -   In the snippet above, the string in the `fill.path` property is an SVG path.
@@ -141,14 +141,14 @@ To be valid, the path string must follow the SVG path grammar outlined in the [P
 Any image url or data:url can be provided in the `fill.url` property to fill shapes with an image.
 
 ```js
-{
-    series: {
+series: [
+    {
         fill: {
             type: 'image',
             url: 'url',
         },
     },
-}
+],
 ```
 
 Additional configuration options include `fit`, `width`, `height` and `repeat`.
@@ -171,15 +171,15 @@ The `backgroundFill` and `backgroundFillOpacity` properties provide a fallback i
 Images can be tiled by using the `repeat` property.
 
 ```js
-{
-    series: {
+series: [
+    {
         fill: {
             type: 'image',
             url: 'url',
             repeat: 'repeat-x',
         },
     },
-}
+],
 ```
 
 {% chartExampleRunner title="Image Fill Tiling" name="image-fill-tiling" type="generated" /%}

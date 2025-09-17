@@ -43,7 +43,7 @@ To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeInter
 ```js
 type: 'unit-time',
 position: 'bottom',
-unit: 'day' // every day
+unit: 'day', // every day
 ```
 
 In this configuration:
@@ -64,15 +64,13 @@ The `AgTimeIntervalUnit` object supports advanced configuration for more complex
 {% chartExampleRunner title="Unit Time (Custom Unit)" name="unit-time-unit" type="generated" /%}
 
 ```js
-{
-    type: 'unit-time',
-    position: 'bottom',
-    unit: {
-        unit: 'day',
-        step: 7, //every 7 days (weekly)
-        epoch: new Date(2024, 0, 1), //start the week on Monday
-    },
-}
+type: 'unit-time',
+position: 'bottom',
+unit: {
+    unit: 'day',
+    step: 7, // every 7 days
+    epoch: new Date(2024, 0, 1),
+},
 ```
 
 In this example:
@@ -121,21 +119,17 @@ The [Axis Interval](./axes-intervals) of Time Axes labels, grid lines and ticks 
 {% chartExampleRunner title="Time Axis Interval" name="time-interval" type="generated" /%}
 
 ```js
-{
-    interval: {
-        step: 'month',
-    },
+interval: {
+    step: 'month',
 }
 ```
 
 ```js
-{
-    interval: {
-        step: {
-            unit: 'day',
-            step: 7, // every 7 days (weekly)
-            epoch: new Date('2024-01-01'), //start the week on a Monday
-        },
+interval: {
+    step: {
+        unit: 'day',
+        step: 7, // every 7 days
+        epoch: new Date('2024-01-01'),
     },
 }
 ```
@@ -166,11 +160,9 @@ It is enabled by default for the [Unit Time Axis](#unit-time), and can be opted 
 {% chartExampleRunner title="Parent Level" name="axis-parent-level" type="generated" /%}
 
 ```js
-{
-    parentLevel: {
-        enabled: true,
-    },
-}
+parentLevel: {
+    enabled: true,
+},
 ```
 
 In this example:
@@ -185,29 +177,27 @@ Parent level labels and ticks options are inherited from the axes label and tick
 {% chartExampleRunner title="Parent Level Customisation" name="axis-parent-level-customisation" type="generated" /%}
 
 ```js
-{
+tick: {
+    width: 0,
+},
+label: {
+    format: {
+        day: '%e',
+        month: '%b',
+    },
+},
+parentLevel: {
+    enabled: true,
     tick: {
-        width: 0,
+        width: 1,
     },
     label: {
         format: {
-            day: '%e',
-            month: '%b',
+            month: '%e\n%b',
+            year: '%b\n%Y',
         },
     },
-    parentLevel: {
-        enabled: true,
-        tick: {
-            width: 1,
-        },
-        label: {
-            format: {
-                month: '%e\n%b',
-                year: '%b\n%Y',
-            },
-        },
-    },
-}
+},
 ```
 
 In this configuration:

@@ -223,7 +223,7 @@ series: [
             stroke: 'maroon',
         },
     },
-]
+];
 ```
 
 ### Chart Elements
@@ -274,7 +274,7 @@ const customTheme: AgChartTheme = {
                 },
             },
         },
-    }
+    },
 };
 ```
 
@@ -528,18 +528,18 @@ return (
 
 ```ts
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgFinancialCharts],
-  template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgFinancialCharts],
+    template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
 })
 export class AppComponent {
-  public options: AgFinancialChartOptions;
-  constructor() {
-    this.options = {
-      data: getData(),
-    };
-  }
+    public options: AgFinancialChartOptions;
+    constructor() {
+        this.options = {
+            data: getData(),
+        };
+    }
 }
 ```
 
@@ -582,25 +582,25 @@ series: [
                     type: 'Feature',
                     geometry: {
                         type: 'Polygon',
-                        coordinates: [...],
+                        coordinates: [
+                            // ...
+                        ],
                     },
                     properties: {
                         name: 'United Kingdom',
-                        code: 'GB'
-                    }
-                }
+                        code: 'GB',
+                    },
+                },
             ],
-            // ...
         },
         data: [
             { country: 'United Kingdom', population: 67330000 },
             { country: 'France', population: 67500000 },
-            // ...
         ],
         idKey: 'country',
-        topologyIdKey: 'name' //default value
-    }
-]
+        topologyIdKey: 'name', // default value
+    },
+],
 ```
 
 ### Gauges {% enterpriseIcon /%}
@@ -652,23 +652,23 @@ return (
 
 ```ts
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgGauge],
-  template: `<ag-gauge [options]="options"></ag-gauge>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgGauge],
+    template: `<ag-gauge [options]="options"></ag-gauge>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
-  constructor() {
-    this.options = {
-        type: 'radial-gauge', // or 'linear-gauge'
-        value: 80,
-        scale: {
-          min: 0,
-          max: 100,
-        },
-    };
-  }
+    public options: AgRadialGaugeOptions;
+    constructor() {
+        this.options = {
+            type: 'radial-gauge', // or 'linear-gauge'
+            value: 80,
+            scale: {
+                min: 0,
+                max: 100,
+            },
+        };
+    }
 }
 ```
 
