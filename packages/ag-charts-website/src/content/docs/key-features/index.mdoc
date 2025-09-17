@@ -20,7 +20,7 @@ A chart can contain multiple series, which are provided in the `series` array.
 Every series has its own [series options](/options/#reference-AgChartOptions-series), but they all share a common set of configurations.
 These include a `type` as well as `_Key` properties to connect to the visualisation to the data, such as `xKey` and `yKey` for cartesian charts.
 
-```js
+```ts
 data: [
     {year: '2001', women: 25},
     {country: '2003', value: 26},
@@ -41,7 +41,7 @@ These do not need to be configured unless customisation is required.
 
 Use `axes.position` to control the position of the axis, and `axes.type` to define the type.
 
-```js
+```ts
 axes: [
     {
         type: 'category', // category | grouped-category | number | log | time | ordinal-time
@@ -214,12 +214,14 @@ Use the `series.marker` property to customise markers.
 
 ```js
 series: [
-    stroke: 'maroon',
-    marker: {
-        shape: 'square', // defaults to 'circle'
-        size: 20,
-        fill: 'red',
+    {
         stroke: 'maroon',
+        marker: {
+            shape: 'square', // defaults to 'circle'
+            size: 20,
+            fill: 'red',
+            stroke: 'maroon',
+        },
     },
 ]
 ```
@@ -244,7 +246,7 @@ Themes can also be customised or created with the [Theming API](/themes-api/).
 
 Use `params` to set styles across the whole chart, `palette` to define the colour palette used for the datapoints, and `overrides` to change a specific default within the base theme.
 
-```js
+```ts
 const customTheme: AgChartTheme = {
     palette: {
         //these are used by each series in rotation
@@ -309,13 +311,7 @@ Use the `tooltip.renderer` callback function to customise the content of the too
 
 ```js
 {
-    renderer: function (params) {
-        return (
-            '<div class="custom-tooltip">' +
-                params.datum[params.xKey]
-            '</div>'
-        );
-    },
+    renderer: ({ datum, xKey }) => `<div class="custom-tooltip">${datum[xKey]}</div>`,
 },
 ```
 
@@ -530,7 +526,7 @@ return (
 
 {% if isFramework("angular") %}
 
-```js
+```ts
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -654,7 +650,7 @@ return (
 
 {% if isFramework("angular") %}
 
-```js
+```ts
 @Component({
   selector: 'app-root',
   standalone: true,

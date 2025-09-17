@@ -118,17 +118,14 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
-const options =
-    ref <
-    AgChartOptions >
-    {
-        series: [
-            { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
-            { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
-        ],
-        // ...
-    };
+```ts
+const options = ref<AgChartOptions>({
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
+        { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
+    ],
+    // ...
+});
 ```
 
 {% /if %}
@@ -188,18 +185,15 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
-const options =
-    ref <
-    AgChartOptions >
-    {
-        axes: [
-            { type: 'category', position: 'bottom' },
-            { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-            { type: 'number', position: 'right', keys: ['avgTemp'] },
-        ],
-        // ...
-    };
+```ts
+const options = ref<AgChartOptions>({
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+        { type: 'number', position: 'right', keys: ['avgTemp'] },
+    ],
+    // ...
+});
 ```
 
 {% /if %}
@@ -319,16 +313,13 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
-const options =
-    ref <
-    AgChartOptions >
-    {
-        legend: {
-            position: 'right',
-        },
-        // ...
-    };
+```ts
+const options = ref<AgChartOptions>({
+    legend: {
+        position: 'right',
+    },
+    // ...
+});
 ```
 
 {% /if %}
@@ -387,17 +378,14 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
-const options =
-    ref <
-    AgChartOptions >
-    {
-        series: [
-            { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
-            // ...
-        ],
+```ts
+const options = ref<AgChartOptions>({
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
         // ...
-    };
+    ],
+    // ...
+});
 ```
 
 {% /if %}

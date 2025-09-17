@@ -47,7 +47,7 @@ To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeInter
 {
     type: 'unit-time',
     position: 'bottom',
-    unit:  'day', // every day
+    unit: 'day', // every day
 }
 ```
 
@@ -141,11 +141,11 @@ The [Axis Interval](./axes-intervals) of Time Axes labels, grid lines and ticks 
 ```js
 {
     interval: {
-            step: {
-                unit: 'day',
-                step: 7,  // every 7 days (weekly)
-                epoch: new Date('2024-01-01') //start the week on a Monday
-            },
+        step: {
+            unit: 'day',
+            step: 7, // every 7 days (weekly)
+            epoch: new Date('2024-01-01'), //start the week on a Monday
+        },
     },
 }
 ```

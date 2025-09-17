@@ -18,7 +18,7 @@ series: [
         type: 'treemap',
         labelKey: 'title',
     },
-],
+]
 ```
 
 The data passed in should be an array of nodes, with each node optionally containing children.
@@ -61,7 +61,7 @@ series: [
         sizeKey: 'total',
         sizeName: 'Total',
     },
-],
+]
 ```
 
 Only the sizes of leaf nodes will be accounted for when computing the relative sizes. When sizes are used, the nodes will be re-ordered so larger nodes appear towards the top left corner.
@@ -78,14 +78,14 @@ Colouring can be customised by the `colorKey` and `colorRange` values in the ser
 series: [
     {
         type: 'treemap',
-        labelKey: "title",
-        sizeKey: "total",
-        sizeName: "Total",
+        labelKey: 'title',
+        sizeKey: 'total',
+        sizeName: 'Total',
         colorKey: 'change',
         colorName: 'Change',
         colorRange: ['#43A047', '#FF5722'],
     },
-],
+]
 ```
 
 In this configuration:
@@ -108,10 +108,32 @@ series: [
         labelKey: 'name',
         sizeKey: 'total',
         sizeName: 'Total',
-        fills: ['#E64A19', '#F57C00', '#FFA000', '#FBC02D', '#AFB42B', '#689F38', '#388E3C', '#00796B', '#0097A7', '#0288D1'],
-        strokes: ['#D84315', '#EF6C00', '#FF8F00', '#F9A825', '#9E9D24', '#558B2F', '#2E7D32', '#00695C', '#00838F', '#0277BD'],
+        fills: [
+            '#E64A19',
+            '#F57C00',
+            '#FFA000',
+            '#FBC02D',
+            '#AFB42B',
+            '#689F38',
+            '#388E3C',
+            '#00796B',
+            '#0097A7',
+            '#0288D1',
+        ],
+        strokes: [
+            '#D84315',
+            '#EF6C00',
+            '#FF8F00',
+            '#F9A825',
+            '#9E9D24',
+            '#558B2F',
+            '#2E7D32',
+            '#00695C',
+            '#00838F',
+            '#0277BD',
+        ],
     },
-],
+]
 ```
 
 In this configuration:
@@ -190,7 +212,7 @@ series: [
             gap: 2,
         },
     },
-],
+]
 ```
 
 In this configuration:
@@ -222,7 +244,7 @@ series: [
 ],
 gradientLegend: {
     enabled: true,
-},
+}
 ```
 
 ### Position

@@ -10,12 +10,14 @@ These options are identical across series types, but differ in their location. S
 
 ```js
 series: [
-    // ...
-    marker: {
-        shape: 'square', // defaults to 'circle'
-        size: 20,
-        fill: 'red',
-        stroke: 'maroon',
+    {
+        // ...
+        marker: {
+            shape: 'square', // defaults to 'circle'
+            size: 20,
+            fill: 'red',
+            stroke: 'maroon',
+        },
     },
 ]
 ```
@@ -37,7 +39,7 @@ If you are familiar with the standard Canvas API, you'll feel right at home here
 
 For example, to draw a heart:
 
-```js
+```ts
 const rad = (degree: number) => {
     return (degree / 180) * Math.PI;
 };
