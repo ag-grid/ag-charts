@@ -1,4 +1,4 @@
-function getData() {
+export function getData() {
     return [
         { quarter: `Q1'22`, sw: 4.35, hw: 2.14 },
         { quarter: `Q2'22`, sw: 4.28, hw: 3.13 },
