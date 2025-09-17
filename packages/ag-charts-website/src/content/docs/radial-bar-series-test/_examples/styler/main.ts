@@ -3,7 +3,7 @@ import { AgChartOptions, AgCharts, AgRadialSeriesStyle, AgRadialSeriesStylerPara
 import { getData } from './data';
 
 const styler = (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle | undefined => {
-    if (params.radiusKey === 'sw') {
+    if (params.angleKey === 'sw') {
         return {
             fill: 'cyan',
             lineDash: [7, 2],
@@ -13,7 +13,7 @@ const styler = (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialS
             strokeOpacity: 0.5,
         };
     }
-    if (params.radiusKey === 'hw')
+    if (params.angleKey === 'hw')
         return {
             fill: 'hotpink',
             stroke: 'darkmagenta',
@@ -28,17 +28,17 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'radial-bar',
-            angleKey: 'quarter',
-            radiusKey: 'sw',
-            radiusName: 'Software',
+            radiusKey: 'quarter',
+            angleKey: 'sw',
+            angleName: 'Software',
             fill: 'lime', // ignored
             fillOpacity: 0.5, // not ignored
             styler,
         },
         {
             type: 'radial-bar',
-            angleKey: 'quarter',
-            radiusKey: 'hw',
+            radiusKey: 'quarter',
+            angleKey: 'hw',
             stroke: 'CornflowerBlue', // ignored
             strokeOpacity: 0.5, // not ignored
             strokeWidth: 15, // ignored

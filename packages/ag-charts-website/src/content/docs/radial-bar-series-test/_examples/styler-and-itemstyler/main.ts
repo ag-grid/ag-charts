@@ -9,7 +9,7 @@ import {
 import { type DatumType, getData } from './data';
 
 const styler = (params: AgRadialSeriesStylerParams<DatumType, unknown>): AgRadialSeriesStyle | undefined => {
-    if (params.radiusKey === 'sw') {
+    if (params.angleKey === 'sw') {
         return {
             fill: 'cyan',
             lineDash: [7, 2],
@@ -19,7 +19,7 @@ const styler = (params: AgRadialSeriesStylerParams<DatumType, unknown>): AgRadia
             strokeOpacity: 0.5,
         };
     }
-    if (params.radiusKey === 'hw')
+    if (params.angleKey === 'hw')
         return {
             fill: 'hotpink',
             stroke: 'darkmagenta',
@@ -29,10 +29,10 @@ const styler = (params: AgRadialSeriesStylerParams<DatumType, unknown>): AgRadia
 };
 
 const itemStyler = (params: AgRadialSeriesItemStylerParams<DatumType, unknown>): AgRadialSeriesStyle => {
-    if (params.radiusKey === 'sw' && params.datum.quarter === `Q1'22`) {
+    if (params.angleKey === 'sw' && params.datum.quarter === `Q1'22`) {
         return { fill: 'lightskyblue', stroke: 'deepskyblue' };
     }
-    if (params.radiusKey === 'hw' && params.datum.quarter === `Q3'23`) {
+    if (params.angleKey === 'hw' && params.datum.quarter === `Q3'23`) {
         return { fill: 'darkkhaki', strokeWidth: 7, strokeOpacity: 1 };
     }
     return {};
@@ -44,9 +44,9 @@ const options: AgChartOptions<DatumType, unknown> = {
     series: [
         {
             type: 'radial-bar',
-            angleKey: 'quarter',
-            radiusKey: 'sw',
-            radiusName: 'Software',
+            radiusKey: 'quarter',
+            angleKey: 'sw',
+            angleName: 'Software',
             fill: 'lime', // ignored
             fillOpacity: 0.5, // not ignored
             styler,
@@ -54,8 +54,8 @@ const options: AgChartOptions<DatumType, unknown> = {
         },
         {
             type: 'radial-bar',
-            angleKey: 'quarter',
-            radiusKey: 'hw',
+            radiusKey: 'quarter',
+            angleKey: 'hw',
             stroke: 'CornflowerBlue', // ignored
             strokeOpacity: 0.5, // not ignored
             strokeWidth: 15, // ignored

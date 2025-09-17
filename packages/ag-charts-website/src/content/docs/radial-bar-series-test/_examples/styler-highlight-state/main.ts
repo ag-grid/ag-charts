@@ -8,9 +8,9 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'radial-bar',
-            angleKey: 'quarter',
-            radiusKey: 'sw',
-            radiusName: 'Software',
+            radiusKey: 'quarter',
+            angleKey: 'sw',
+            angleName: 'Software',
             styler: (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
@@ -29,8 +29,8 @@ const options: AgChartOptions = {
         },
         {
             type: 'radial-bar',
-            angleKey: 'quarter',
-            radiusKey: 'hw',
+            radiusKey: 'quarter',
+            angleKey: 'hw',
             styler: (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
