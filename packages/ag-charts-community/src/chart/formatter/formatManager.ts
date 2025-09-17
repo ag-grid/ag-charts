@@ -1,4 +1,11 @@
-import { Logger, buildDateFormatter, createNumberFormatter, isPlainObject, parseNumberFormat } from 'ag-charts-core';
+import {
+    Logger,
+    buildDateFormatter,
+    createNumberFormatter,
+    isArray,
+    isPlainObject,
+    parseNumberFormat,
+} from 'ag-charts-core';
 import {
     type AgTimeIntervalUnit,
     type CategoryFormatterParams,
@@ -126,7 +133,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
 
         if (typeof propertyFormatter === 'function') {
             const value = formatInContext(propertyFormatter, params);
-            return value != null ? String(value) : undefined;
+            return value == null || isArray(value) ? value : String(value);
         } else if (params.type === 'date') {
             const { unit, style } = params;
             const dateFormatter = this.dateFormatter(propertyFormatter, specifier, unit, style, truncateDate);
