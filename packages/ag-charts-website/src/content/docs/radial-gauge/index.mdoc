@@ -31,13 +31,13 @@ AgCharts.createGauge(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```tsx
 const [options, setOptions] = useState({
     type: 'radial-gauge',
     value: 80,
     scale: {
-      min: 0,
-      max: 100,
+        min: 0,
+        max: 100,
     },
 });
 
@@ -113,14 +113,12 @@ In this configuration:
 It is possible to display the data value using a bar, a needle or both. These are both rendered over the scale.
 
 ```js
-{
-    needle: {
-        enabled: true,
-    },
-    bar: {
-        enabled: false,
-    },
-}
+needle: {
+    enabled: true,
+},
+bar: {
+    enabled: false,
+},
 ```
 
 In the above example, note that:
@@ -137,21 +135,19 @@ For customisation of both the bar and needle, see below or the [API Reference](#
 Up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
 
 ```js
-{
+label: {
+    formatter({ value }) {
+        return `${value.toFixed(0)}%`;
+    },
+},
+secondaryLabel: {
+    text: 'Test Score',
+},
+scale: {
     label: {
-        formatter({ value }) {
-            return `${value.toFixed(0)}%`;
-        },
+        enabled: false,
     },
-    secondaryLabel: {
-        text: 'Test Score',
-    },
-    scale: {
-        label: {
-            enabled: false,
-        },
-    },
-}
+},
 ```
 
 In this configuration:
@@ -167,15 +163,13 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
 {% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
-{
-    segmentation: {
-        enabled: true,
-        interval: {
-            count: 4,
-        },
-        spacing: 2,
+segmentation: {
+    enabled: true,
+    interval: {
+        count: 4,
     },
-}
+    spacing: 2,
+},
 ```
 
 In this configuration:
@@ -191,10 +185,8 @@ In this configuration:
 {% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
 
 ```js
-{
-    cornerRadius: 99,
-    cornerMode: 'container',
-}
+cornerRadius: 99,
+cornerMode: 'container',
 ```
 
 In this configuration:
@@ -209,10 +201,8 @@ In this configuration:
 The `startAngle` and `endAngle` properties can be used to customise the start and end position of the gauge.
 
 ```js
-{
-    startAngle: -135,
-    endAngle: 135,
-}
+startAngle: -135,
+endAngle: 135,
 ```
 
 -   Angles are calculated clockwise, starting from the top of the gauge.
@@ -226,14 +216,12 @@ Both the bar and scale can be displayed using a solid fill.
 {% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 320 } /%}
 
 ```js
-{
-    scale: {
-        fill: '#f5f6fa',
-    },
-    bar: {
-        fill: '#4cd137',
-    },
-}
+scale: {
+    fill: '#f5f6fa',
+},
+bar: {
+    fill: '#4cd137',
+},
 ```
 
 ### Multiple Colours
@@ -243,12 +231,10 @@ Multiple colours can be specified using the `fills` property.
 {% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
-{
-    bar: {
-        fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
-        fillMode: 'discrete',
-    },
-}
+bar: {
+    fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
+    fillMode: 'discrete',
+},
 ```
 
 In this configuration:
@@ -263,18 +249,16 @@ The default behaviour is to space out the colours evenly. This can be customised
 {% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 320 } /%}
 
 ```js
-{
-    bar: {
-        fills: [
-            { color: '#E84118', stop: 35 },
-            { color: '#FBC531', stop: 45 },
-            { color: '#4CD137', stop: 55 },
-            { color: '#FBC531', stop: 65 },
-            { color: '#E84118' },
-        ],
-        fillMode: 'discrete',
-    },
-}
+bar: {
+    fills: [
+        { color: '#E84118', stop: 35 },
+        { color: '#FBC531', stop: 45 },
+        { color: '#4CD137', stop: 55 },
+        { color: '#FBC531', stop: 65 },
+        { color: '#E84118' },
+    ],
+    fillMode: 'discrete',
+},
 ```
 
 In this configuration:
@@ -291,14 +275,12 @@ Gauges often display targets or thresholds to provide context to the displayed d
 {% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleHeight": 320 } /%}
 
 ```js
-{
-    targets: [
-        {
-            value: 70,
-            text: 'Average',
-        },
-    ],
-}
+targets: [
+    {
+        value: 70,
+        text: 'Average',
+    },
+],
 ```
 
 In this configuration:
@@ -311,34 +293,32 @@ In this configuration:
 {% chartExampleRunner title="Target Customisation" name="custom-targets" type="generated" options={ "exampleHeight": 320 } /%}
 
 ```js
-{
-    targets: [
-        {
-            value: 30,
-            shape: 'triangle',
-            placement: 'outside',
-            fill: 'white',
-            strokeWidth: 2,
-            spacing: 8,
-        },
-        {
-            value: 75,
-            placement: 'inside',
-            shape: 'triangle',
-            fill: 'white',
-            strokeWidth: 2,
-            spacing: 8,
-        },
-        {
-            value: 90,
-            placement: 'middle',
-            shape: 'circle',
-            fill: 'white',
-            strokeWidth: 2,
-            spacing: 8,
-        },
-    ],
-}
+targets: [
+    {
+        value: 30,
+        shape: 'triangle',
+        placement: 'outside',
+        fill: 'white',
+        strokeWidth: 2,
+        spacing: 8,
+    },
+    {
+        value: 75,
+        placement: 'inside',
+        shape: 'triangle',
+        fill: 'white',
+        strokeWidth: 2,
+        spacing: 8,
+    },
+    {
+        value: 90,
+        placement: 'middle',
+        shape: 'circle',
+        fill: 'white',
+        strokeWidth: 2,
+        spacing: 8,
+    },
+],
 ```
 
 In this configuration:
