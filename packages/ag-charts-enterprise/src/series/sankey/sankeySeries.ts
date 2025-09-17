@@ -326,7 +326,7 @@ export class SankeySeries extends FlowProportionSeries<
                 }
                 if (text === '') return;
 
-                const { height } = measurer.measureText(text);
+                const { height } = measurer.measureLines(text);
                 const y0 = y - height / 2;
                 const y1 = y + height / 2;
 

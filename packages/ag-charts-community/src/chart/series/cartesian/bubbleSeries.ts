@@ -456,7 +456,7 @@ export class BubbleSeries extends CartesianSeries<
                 );
                 let { width, height } = isArray(labelText)
                     ? measureTextSegments(labelText, label)
-                    : textMeasurer.measureText(String(labelText));
+                    : textMeasurer.measureLines(String(labelText));
 
                 width += padding.left + padding.right;
                 height += padding.bottom + padding.top;

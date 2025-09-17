@@ -252,7 +252,7 @@ export function formatLinearGaugeLabels(
             const measurer = cachedTextMeasurer(labelDatum);
             const { width, height } = isArray(labelText)
                 ? measureTextSegments(labelText, labelDatum)
-                : measurer.measureText(labelText);
+                : measurer.measureLines(labelText);
             layout = {
                 text: labelText,
                 fontSize: labelDatum.fontSize,
