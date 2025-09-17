@@ -65,6 +65,10 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.itemStyler != null ||
+            this.properties.styler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }
