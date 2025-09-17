@@ -73,7 +73,8 @@ export function setupIntrinsicAssertions(
         consoleWarnOrErrors = [];
         // Check if this is a 404 test by examining the test title
         config.ignore404s = testInfo?.title?.includes('should 404 on') ?? false;
-        config.ignoreConsoleWarnings = false;
+        // Check if console warnings should be ignored for this test
+        config.ignoreConsoleWarnings = testInfo?.title?.includes('[ignoreConsoleWarnings]') ?? false;
 
         if (opts?.viewportSize) {
             await page.setViewportSize(opts.viewportSize);

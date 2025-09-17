@@ -103,11 +103,12 @@ export function createTestCase(
 ) {
     const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
 
-    if (status === 'ok') {
-        testFn(`should load ${url}`, async ({ page }) => {
-            test.slow(framework === 'angular', 'allow more time for Angular load times');
+    // Use a special test title suffix to indicate console warnings should be ignored
+    const titleSuffix = ignoreConsoleWarnings ? ' [ignoreConsoleWarnings]' : '';
 
-            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
+    if (status === 'ok') {
+        testFn(`should load ${url}${titleSuffix}`, async ({ page }) => {
+            test.slow(framework === 'angular', 'allow more time for Angular load times');
 
             // Load example and wait for things to settle.
             await gotoExample(page, url);
