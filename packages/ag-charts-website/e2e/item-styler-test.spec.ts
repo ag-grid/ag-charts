@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
 
 test.describe('item-styler-test', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     const url = toExamplePageUrl('stylers-test', 'item-styler-test', 'vanilla').url;
 

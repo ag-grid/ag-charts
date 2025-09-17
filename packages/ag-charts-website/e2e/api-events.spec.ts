@@ -13,7 +13,7 @@ async function openExample(
 test.describe('api-events', () => {
     const consoleLogs = createConsoleLogs();
 
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test.describe('chart clicks', () => {
         const node = { x: 400, y: 400 }; // position of 'April' bar

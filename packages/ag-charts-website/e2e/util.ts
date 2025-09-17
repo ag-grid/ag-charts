@@ -58,20 +58,27 @@ export function toGalleryPageUrls(example: string) {
     return [{ framework: 'vanilla', url: `${baseUrl}/gallery/examples/${example}`, example }];
 }
 
-export function setupIntrinsicAssertions({ viewportSize }: { viewportSize?: { width: number; height: number } } = {}) {
+export function setupIntrinsicAssertions(
+    testFn: {
+        beforeEach: (fn: ({ page }: { page: Page }) => Promise<void>) => void;
+        afterEach: (fn: () => void) => void;
+    },
+    opts: { viewportSize?: { width: number; height: number } } = {}
+) {
     let consoleWarnOrErrors: string[] = [];
     const config = { ignore404s: false, ignoreConsoleWarnings: false };
 
-    test.beforeEach(async ({ page }) => {
+    // Create setup functions that can be called with any test instance
+    testFn.beforeEach(async ({ page }) => {
         consoleWarnOrErrors = [];
         config.ignore404s = false;
         config.ignoreConsoleWarnings = false;
 
-        if (viewportSize) {
-            await page.setViewportSize(viewportSize);
+        if (opts?.viewportSize) {
+            await page.setViewportSize(opts.viewportSize);
         }
 
-        page.on('console', (msg) => {
+        page.on('console', (msg: any) => {
             // We only care about warnings/errors.
             if (msg.type() !== 'warning' && msg.type() !== 'error') return;
 
@@ -92,18 +99,20 @@ export function setupIntrinsicAssertions({ viewportSize }: { viewportSize?: { wi
             consoleWarnOrErrors.push(msg.text());
         });
 
-        page.on('pageerror', (err) => {
+        page.on('pageerror', (err: any) => {
             consoleWarnOrErrors.push(err.message);
         });
     });
 
-    test.afterEach(() => {
+    testFn.afterEach(() => {
         if (!config.ignoreConsoleWarnings) {
             expect(consoleWarnOrErrors).toHaveLength(0);
         }
     });
 
-    return config;
+    return {
+        ...config,
+    };
 }
 
 export function createConsoleLogs() {
@@ -173,7 +182,7 @@ export async function gotoExample(
     // Wait for synchronous JS execution to complete before we start waiting
     // for <canvas/> to appear.
     await page.evaluate(() => 1);
-    await expect(page.locator(SELECTORS.canvas).first()).toBeVisible();
+    await expect(page.locator(SELECTORS.canvas).first()).toBeVisible({ timeout: 10_000 });
     for (const elements of await page.locator(SELECTORS.canvas).all()) {
         await expect(elements).toBeVisible();
     }

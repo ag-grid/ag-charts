@@ -56,6 +56,12 @@ export function convertPageUrls(
         }
     }
 
+    const defaults = pagePath.endsWith('-test')
+        ? {
+              frameworks: ['vanilla'],
+          }
+        : {};
+
     const {
         frameworks,
         status = 'ok',
@@ -65,6 +71,7 @@ export function convertPageUrls(
         randomData = false,
         snapshot = false,
     } = {
+        ...defaults,
         ...options?.['*'],
         ...options?.[example],
     };

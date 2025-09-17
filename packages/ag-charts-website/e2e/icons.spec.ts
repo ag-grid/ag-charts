@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('icons', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     const testUrls = toExamplePageUrls('financial-charts-test', 'e2e-icons');
 

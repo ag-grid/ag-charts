@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('zoom', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test('default buttons', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons', 'range-buttons', 'vanilla');

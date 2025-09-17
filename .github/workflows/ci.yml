@@ -82,6 +82,9 @@ jobs:
               run: |
                   yarn nx run-many -t build --exclude tag:skip-gha-cache,all --parallel=3
 
+            - name: Build tests
+              run: yarn nx run-many -t generate-test-files --parallel=3
+
             - name: Build examples
               run: yarn nx run-many -t generate-examples --parallel=3
 
@@ -128,6 +131,7 @@ jobs:
                       dist/
                       packages/*/dist/
                       external/*/dist/
+                      packages/ag-charts-website/e2e/generated/
 
     build_lint:
         runs-on: ubuntu-24.04
