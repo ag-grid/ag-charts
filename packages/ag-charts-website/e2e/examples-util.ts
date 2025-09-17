@@ -150,7 +150,6 @@ export function createTestCase(
 
     if (status === '404') {
         testFn(`should 404 on ${url}`, async ({ page }) => {
-            config.ignore404s = true;
             await page.goto(url);
             expect(await page.title()).toMatch(/Page Not Found/);
         });

@@ -60,7 +60,7 @@ export function toGalleryPageUrls(example: string) {
 
 export function setupIntrinsicAssertions(
     testFn: {
-        beforeEach: (fn: ({ page }: { page: Page }) => Promise<void>) => void;
+        beforeEach: (fn: ({ page }: { page: Page }, testInfo: { title?: string }) => Promise<void>) => void;
         afterEach: (fn: () => void) => void;
     },
     opts: { viewportSize?: { width: number; height: number } } = {}
@@ -69,9 +69,10 @@ export function setupIntrinsicAssertions(
     const config = { ignore404s: false, ignoreConsoleWarnings: false };
 
     // Create setup functions that can be called with any test instance
-    testFn.beforeEach(async ({ page }) => {
+    testFn.beforeEach(async ({ page }, testInfo) => {
         consoleWarnOrErrors = [];
-        config.ignore404s = false;
+        // Check if this is a 404 test by examining the test title
+        config.ignore404s = testInfo?.title?.includes('should 404 on') ?? false;
         config.ignoreConsoleWarnings = false;
 
         if (opts?.viewportSize) {
@@ -89,7 +90,7 @@ export function setupIntrinsicAssertions(
             if (msg.text().includes('This page is in Quirks Mode')) return;
 
             // Ignore 404s when expected
-            const notFoundMatcher = /the server responded with a status of 404 \(Not Found\)/;
+            const notFoundMatcher = /the server responded with a status of 404/;
             if (msg.location().url.includes('/favicon.ico')) return;
             if (notFoundMatcher.test(msg.text())) {
                 if (config.ignore404s) return;
