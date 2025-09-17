@@ -149,7 +149,7 @@ Use the `legend` options to configure the legend position and size and to disabl
 legend: {
     enabled: true, // defaults to true for charts with multiple series
     position: 'top', // 'bottom', 'right', 'left',
-    toggleSeries: false
+    toggleSeries: false,
 }
 ```
 
@@ -442,7 +442,7 @@ The y-axis will automatically adjust to fit the visible items. This is controlle
 zoom: {
     autoScaling: {
         enabled: true,
-    }
+    },
 }
 ```
 
@@ -474,15 +474,15 @@ contextMenu: {
             label: 'Say hello',
             action: () => log('Hello world!'),
         },
-        "separator",
+        'separator',
         {
-            showOn: "series-node",
-            label: "Say hello to a node",
+            showOn: 'series-node',
+            label: 'Say hello to a node',
             action: ({ datum, yKey }) => {
-               console.log(`Hello ${yKey} in ${datum.month}!`);
+                console.log(`Hello ${yKey} in ${datum.month}!`);
             },
-        }
-    ]
+        },
+    ],
 }
 ```
 

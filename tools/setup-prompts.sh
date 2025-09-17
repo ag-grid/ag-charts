@@ -19,6 +19,21 @@ while getopts "u" opt; do
     esac
 done
 
+function path_to_root() {
+    local target_file=$1
+
+    # Count directory levels in target_file path
+    local dir_count=$(echo "$target_file" | tr -cd '/' | wc -c)
+    
+    # Build relative path with appropriate number of ../ prefixes
+    local relative_path="./"
+    for ((i=0; i<dir_count; i++)); do
+        relative_path="$relative_path../"
+    done
+
+    echo "$relative_path"
+}
+
 function check_symlinks_config() {
     # Check if core.symlinks is set to true
     local symlinks_setting=$(git config --get core.symlinks)
@@ -29,6 +44,31 @@ function check_symlinks_config() {
         echo "✓ Git configured to handle symlinks properly"
     else
         echo "✓ Git symlinks already configured correctly"
+    fi
+}
+
+function cleanup_old_backups() {
+    local target_file=$1
+    local max_backups=${2:-3}
+
+    # Find and remove old backup files (keep only the most recent max_backups)
+    local backup_dir=$(dirname "$target_file")
+    local backup_name=$(basename "$target_file")
+
+    # Count backup files and remove old ones if we exceed the limit
+    local backup_count=$(find "$backup_dir" -name "${backup_name}.bak*" -type f 2>/dev/null | wc -l)
+
+    if [[ $backup_count -gt $max_backups ]]; then
+        echo "Found $backup_count backup files, cleaning up to keep only $max_backups most recent"
+
+        # Use ls with modification time sort to get files in reverse chronological order
+        # Then remove the excess files
+        ls -t "$backup_dir"/${backup_name}.bak* 2>/dev/null | tail -n +$((max_backups + 1)) | while read -r old_backup; do
+            if [[ -f "$old_backup" ]]; then
+                echo "Removing old backup: $old_backup"
+                rm -f "$old_backup"
+            fi
+        done
     fi
 }
 
@@ -83,7 +123,7 @@ function setup_commands() {
         for file in tools/prompts/commands/*.md; do
             cat > "$target_dir/$(basename ${file%.md}).toml" <<EOF
 prompt = """
-$(cat "$file")
+@$(path_to_root $target_dir)${file}
 """
 EOF
         done
@@ -112,15 +152,8 @@ function setup_mcp() {
     # Calculate the relative path from target_file to the MCP config
     local target_dir=$(dirname "$target_file")
     
-    # Count directory levels in target_file path
-    local dir_count=$(echo "$target_file" | tr -cd '/' | wc -c)
-    
-    # Build relative path with appropriate number of ../ prefixes
-    local relative_path="./"
-    for ((i=0; i<dir_count; i++)); do
-        relative_path="$relative_path../"
-    done
-    
+    local relative_path=$(path_to_root $target_file)
+
     # Create symlink with calculated relative path
     ln -sf "${relative_path}tools/prompts/.mcp.json" "$target_file"
 }
@@ -265,6 +298,8 @@ function setup_codex_mcp() {
     if [[ -f "${target_file}.bak" ]]; then
         echo "✓ Updated Codex MCP configuration at $target_file"
         echo "  (Backup saved as ${target_file}.bak)"
+        # Cleanup old backup files, keeping only the 3 most recent
+        cleanup_old_backups "$target_file" 3
     else
         echo "✓ Created Codex MCP configuration at $target_file"
     fi
