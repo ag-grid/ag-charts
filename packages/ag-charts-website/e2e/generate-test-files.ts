@@ -111,7 +111,8 @@ function generateTestFile(category: TestCategory, outputDir: string): void {
 // Test count: ${category.estimatedTestCount}
 
 import { convertPageUrls, createTestCase } from '../examples-util';
-import { contextTest } from '../context-manager';
+// import { contextTest } from '../context-manager';
+import { test as contextTest } from '../fixture';
 import { EXAMPLE_OPTIONS } from '../example-options';
 import { setupIntrinsicAssertions } from '../util';
 
