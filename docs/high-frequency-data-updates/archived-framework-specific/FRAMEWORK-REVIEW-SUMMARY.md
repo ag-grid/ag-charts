@@ -1,10 +1,14 @@
 # Framework Implementation Review Summary
 
+> **Note**: This document reviews the original framework-specific implementations which have since been archived in favor of a simplified JavaScript API approach. See [SIMPLIFIED-API.md](./SIMPLIFIED-API.md) for the current recommended implementation.
+
 ## Executive Summary
 
-This document consolidates expert reviews of the React, Angular, and Vue implementations for AG Charts' high-frequency data updates feature. The review identified critical issues, best practices, and areas for standardization across all three frameworks.
+This document consolidates expert reviews of the original React, Angular, and Vue implementations for AG Charts' high-frequency data updates feature. The review identified critical issues, best practices, and areas for standardization across all three frameworks.
 
-**Key Finding**: Option 3 (Batched Update Queue) combined with Option 1's API design (the "3+1 hybrid approach") remains the most feasible and consistent implementation across all frameworks.
+**Original Finding**: Option 3 (Batched Update Queue) combined with Option 1's API design (the "3+1 hybrid approach") was deemed most feasible.
+
+**Current Approach**: Following AG Grid's pattern, we now recommend a simplified JavaScript API that works consistently across all frameworks without framework-specific implementations.
 
 ## Critical Issues Requiring Immediate Attention
 

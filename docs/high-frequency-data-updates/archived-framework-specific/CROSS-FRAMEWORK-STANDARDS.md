@@ -1,5 +1,7 @@
 # Cross-Framework Standards for High-Frequency Data Updates
 
+> **Note**: This document describes standards for the original framework-specific implementations which have been archived. For the current approach, see [SIMPLIFIED-API.md](./SIMPLIFIED-API.md) and [FRAMEWORK-INTEGRATION-EXAMPLES.md](./FRAMEWORK-INTEGRATION-EXAMPLES.md).
+
 ## Purpose
 
 This document defines unified standards for implementing high-frequency data updates across React, Angular, and Vue frameworks in AG Charts. These standards ensure consistency, maintainability, and optimal performance while respecting framework-specific idioms.

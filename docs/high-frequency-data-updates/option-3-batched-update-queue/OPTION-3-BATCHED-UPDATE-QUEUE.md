@@ -4,6 +4,8 @@
 
 This document details the recommended approach for implementing high-frequency data updates in AG Charts using a batched update queue with structured data transactions. This approach was selected as the optimal balance between performance, backward compatibility, and implementation complexity.
 
+**Important Update**: Following AG Grid's proven pattern, we are adopting a simplified JavaScript API approach rather than complex framework-specific implementations. See [SIMPLIFIED-API.md](../SIMPLIFIED-API.md) for the streamlined design.
+
 ## Core Concept
 
 Internal queue that batches updates within animation frames with structured transactions, providing:
@@ -290,9 +292,8 @@ class CountBasedRetention implements RetentionPolicy {
 
 ### Phase 3: Framework Integration (1 week)
 
--   [ ] Optimize React wrapper (see [React Implementation](./REACT-IMPLEMENTATION.md))
--   [ ] Optimize Angular component (see [Angular Implementation](./ANGULAR-IMPLEMENTATION.md))
--   [ ] Optimize Vue component (see [Vue Implementation](./VUE-IMPLEMENTATION.md))
+-   [ ] Provide framework integration examples (see [Framework Integration Examples](../FRAMEWORK-INTEGRATION-EXAMPLES.md))
+-   [ ] Document direct API usage patterns (see [Simplified API](../SIMPLIFIED-API.md))
 -   [ ] Framework-specific examples
 
 ### Phase 4: Data Processing Optimization (2 weeks)

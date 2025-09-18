@@ -4,13 +4,18 @@ Status: **Complete** ([TODO](./TODO.md)) | [PRD](./PRD.md) | [Competitive Analys
 
 ## Quick Navigation
 
-📊 **[Jump to Final Recommendation →](./COMPARISON-MATRIX.md)** | 🔄 **[Hybrid Approach →](./HYBRID-APPROACH.md)** | ⚡ **[Option 3 Design →](./option-3-batched-update-queue/OPTION-3-BATCHED-UPDATE-QUEUE.md)**
+🎯 **[Simplified API →](./SIMPLIFIED-API.md)** | 📊 **[Comparison Matrix →](./COMPARISON-MATRIX.md)** | 🔄 **[Hybrid Approach →](./HYBRID-APPROACH.md)** | 📝 **[Framework Examples →](./FRAMEWORK-INTEGRATION-EXAMPLES.md)**
 
 ## Executive Summary
 
 This document outlines the technical design for implementing high-frequency data update capabilities in AG Charts, targeting 100+ updates per second with minimal performance degradation. After comprehensive analysis of four approaches, we recommend **Option 3 (Batched Update Queue)** combined with **Option 1's API design** as a hybrid solution that delivers 2-3x performance improvement while maintaining AG Grid API compatibility.
 
 ## Sub-documents
+
+### 🎯 Recommended Implementation (NEW)
+
+-   **[Simplified API Design](./SIMPLIFIED-API.md)** - Framework-agnostic JavaScript API following AG Grid's proven pattern
+-   **[Framework Integration Examples](./FRAMEWORK-INTEGRATION-EXAMPLES.md)** - Practical examples for React, Angular, and Vue using direct API calls
 
 ### Core Analysis Documents
 
@@ -23,42 +28,34 @@ This document outlines the technical design for implementing high-frequency data
 -   **[Common Implementation Elements](./COMMON-IMPLEMENTATION-ELEMENTS.md)** - Infrastructure shared across all options (60-70% of work)
 -   **[Line Series Common Implementation](./LINE-SERIES-COMMON-IMPLEMENTATION.md)** - Core optimizations required by all approaches
 
-### Framework Standards & Review
-
--   **[Framework Review Summary](./FRAMEWORK-REVIEW-SUMMARY.md)** - Expert review findings and critical issues across all framework implementations
--   **[Cross-Framework Standards](./CROSS-FRAMEWORK-STANDARDS.md)** - Unified standards for consistent implementation across React, Angular, and Vue
-
 ### Option 1: Incremental Update API
 
 -   **[Design Document](./option-1-incremental-update/OPTION-1-INCREMENTAL-UPDATE.md)** - Transaction-based API design
 -   **[Line Series Feasibility](./option-1-incremental-update/LINE-SERIES-FEASIBILITY.md)** - LineSeries-specific analysis
--   **Framework Implementations:**
-    -   [React Implementation](./option-1-incremental-update/REACT-IMPLEMENTATION.md)
-    -   [Angular Implementation](./option-1-incremental-update/ANGULAR-IMPLEMENTATION.md)
-    -   [Vue Implementation](./option-1-incremental-update/VUE-IMPLEMENTATION.md)
 
 ### Option 2: Stream-Based API
 
 -   **[Design Document](./option-2-stream-based/OPTION-2-STREAM-BASED.md)** - Native streaming without dependencies
 -   **[Line Series Feasibility](./option-2-stream-based/LINE-SERIES-FEASIBILITY.md)** - Streaming challenges and solutions
--   **Framework Implementations:**
-    -   [React Implementation](./option-2-stream-based/REACT-IMPLEMENTATION.md)
-    -   [Angular Implementation](./option-2-stream-based/ANGULAR-IMPLEMENTATION.md)
-    -   [Vue Implementation](./option-2-stream-based/VUE-IMPLEMENTATION.md)
 
 ### Option 3: Batched Update Queue ✅ (Recommended)
 
 -   **[Design Document](./option-3-batched-update-queue/OPTION-3-BATCHED-UPDATE-QUEUE.md)** - Frame-aligned batching system
 -   **[Line Series Feasibility](./option-3-batched-update-queue/LINE-SERIES-FEASIBILITY.md)** - Highest feasibility score
--   **Framework Implementations:**
-    -   [React Implementation](./option-3-batched-update-queue/REACT-IMPLEMENTATION.md)
-    -   [Angular Implementation](./option-3-batched-update-queue/ANGULAR-IMPLEMENTATION.md)
-    -   [Vue Implementation](./option-3-batched-update-queue/VUE-IMPLEMENTATION.md)
+-   **Note**: Framework-specific implementations have been archived in favor of the simplified API approach
 
 ### Option 4: Differential Updates ❌ (Not Recommended)
 
 -   **[Design Document](./option-4-differential-updates/OPTION-4-DIFFERENTIAL-UPDATES.md)** - Virtual DOM analysis showing why this approach fails
 -   **[Line Series Feasibility](./option-4-differential-updates/LINE-SERIES-FEASIBILITY.md)** - Evidence against this approach
+
+### Archived Documents
+
+Documents related to framework-specific implementations have been moved to `./archived-framework-specific/` as they were deemed overly complex compared to the simplified JavaScript API approach. This includes:
+
+-   Framework-specific implementation files (React, Angular, Vue) for all options
+-   Framework review and standardization documents
+-   Complex framework-specific patterns and optimizations
 
 ## Current Architecture Analysis
 
@@ -252,47 +249,86 @@ For detailed implementation, see [OPTION-3-BATCHED-UPDATE-QUEUE.md](./option-3-b
 
 ## Framework Integration Strategy
 
-Framework-specific implementations have been separated into dedicated documents to maintain clarity and focus. Each framework has unique performance characteristics and optimization patterns that require detailed treatment.
+### Learning from AG Grid: Simple JavaScript API Approach
 
-### Framework Implementation Documents (Option 3)
+Based on AG Grid's proven approach to high-frequency updates (achieving 150,000+ updates/second), we are adopting a **framework-agnostic JavaScript API** rather than creating complex framework-specific implementations.
 
--   **React**: [Option 3 - React Implementation](./option-3-batched-update-queue/REACT-IMPLEMENTATION.md)
+**Key Principle**: Provide powerful JavaScript APIs that developers can call directly from their framework components, rather than creating framework-specific wrappers, hooks, or services.
 
-    -   React 18+ concurrent features (startTransition, useDeferredValue)
-    -   Custom hooks for streaming data
-    -   Error boundary integration
-    -   Memoization strategies
+### Why This Approach?
 
--   **Angular**: [Option 3 - Angular Implementation](./option-3-batched-update-queue/ANGULAR-IMPLEMENTATION.md)
+1. **Proven Performance**: AG Grid achieves exceptional performance without framework-specific APIs
+2. **Simplicity**: 70-80% less code to maintain
+3. **Consistency**: Same API across all frameworks
+4. **Developer Freedom**: Let developers use their preferred framework patterns
+5. **Maintenance**: Easier to document, test, and evolve
 
-    -   OnPush change detection strategy
-    -   Zone.js management patterns
-    -   RxJS subscription handling
-    -   Angular 17+ signals implementation
+### Core JavaScript API
 
--   **Vue**: [Option 3 - Vue Implementation](./option-3-batched-update-queue/VUE-IMPLEMENTATION.md)
-    -   shallowRef and markRaw for performance
-    -   Composition API patterns
-    -   Optimized reactivity management
-    -   Watch configuration strategies
+The high-frequency update capability is exposed through simple chart instance methods:
+
+```javascript
+// Immediate transaction (for infrequent updates)
+chart.applyDataTransaction({
+    add: [...],
+    update: [...],
+    remove: [...],
+});
+
+// Async transaction (for high-frequency updates)
+chart.applyDataTransactionAsync({
+    add: [...],
+    update: [...],
+    remove: [...],
+});
+```
+
+### Framework Integration Examples
+
+Developers get a reference to the chart instance and call methods directly:
+
+#### React
+
+```javascript
+const chartRef = useRef(null);
+
+useEffect(() => {
+    const chart = chartRef.current?.getInstance();
+    chart?.applyDataTransactionAsync({ add: newData });
+}, [newData]);
+```
+
+#### Angular
+
+```typescript
+@ViewChild(AgCharts) chart: AgCharts;
+
+onDataUpdate(newData) {
+    this.chart.getInstance().applyDataTransactionAsync({ add: newData });
+}
+```
+
+#### Vue
+
+```javascript
+const chart = ref(null);
+
+watch(data, (newData) => {
+    chart.value?.getInstance().applyDataTransactionAsync({ add: newData });
+});
+```
 
 ### Common Integration Principles
 
-All framework integrations must:
+1. **Get chart instance reference** using framework patterns
+2. **Call JavaScript API methods** directly
+3. **Disable animations** for high-frequency updates via options
+4. **Let developers choose** their own optimization patterns
+5. **Provide examples** not prescriptive implementations
 
-1. **Disable animations** for high-frequency updates
-2. **Batch updates** within animation frames
-3. **Bypass framework overhead** for chart operations
-4. **Provide cleanup** on component unmount
-5. **Monitor performance** with built-in metrics
+### Archived Framework-Specific Approaches
 
-### Framework-Specific Performance Patterns
-
-Each framework requires specific optimization patterns:
-
--   **React**: Leverage concurrent features and memoization
--   **Angular**: Manage zone.js and change detection carefully
--   **Vue**: Bypass deep reactivity with shallowRef/markRaw
+Previous framework-specific implementation documents have been archived in `./archived-framework-specific/` for reference. These approaches were deemed overly complex compared to AG Grid's simpler pattern.
 
 ## Testing Strategy
 
