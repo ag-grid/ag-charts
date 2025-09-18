@@ -1,6 +1,6 @@
 # High-Frequency Data Updates - Design Document
 
-Status: **Design Phase** | [TODO](./TODO.md) | [PRD](./PRD.md) | [Competitive Analysis](./COMPETITIVE-ANALYSIS.md)
+Status: **Design Phase** | [PRD](./PRD.md) | [Competitive Analysis](./COMPETITIVE-ANALYSIS.md)
 
 ## Quick Navigation
 

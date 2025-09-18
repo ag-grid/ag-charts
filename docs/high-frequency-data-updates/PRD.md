@@ -1,6 +1,6 @@
 # High Frequency Data Updates PRD
 
-Status: **Complete** | [Competitive Analysis](./COMPETITIVE-ANALYSIS.md) | [Design Document](./DESIGN_DOC.md) | [TODO](./TODO.md)
+Status: **Complete** | [Competitive Analysis](./COMPETITIVE-ANALYSIS.md) | [Design Document](./DESIGN_DOC.md)
 
 ## Problem Statement
 
