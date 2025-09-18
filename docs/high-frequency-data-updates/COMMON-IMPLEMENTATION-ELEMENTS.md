@@ -2,9 +2,11 @@
 
 ## Executive Summary
 
-This document identifies and analyzes the common implementation elements required across all four high-frequency data update options for AG Charts. By establishing a shared foundation layer, we can avoid duplication, focus option-specific work on differentiators, and create a more maintainable architecture.
+This document identifies and analyzes the common implementation elements required across all high-frequency data update options for AG Charts. By establishing a shared foundation layer, we can avoid duplication, focus option-specific work on differentiators, and create a more maintainable architecture.
 
 **Key Finding**: Despite significant architectural differences between the options, approximately 60-70% of the implementation work involves common infrastructure that all approaches require. This shared foundation represents 8-10 weeks of development work that can be leveraged by any chosen option.
+
+**Critical Insight from Data Flow Analysis**: DataModel processing consumes 68% of total execution time (393ms out of 580ms for 1M points), while canvas rendering takes only 3-4ms. All optimizations must focus on data processing efficiency, not rendering optimizations.
 
 ## Analysis Methodology
 
@@ -15,19 +17,20 @@ This analysis examines:
 -   **Internal Strategy 1**: Batched Update Queue (Recommended approach)
 -   **Internal Strategy 2**: Differential Updates with Virtual DOM (Not recommended)
 
-And maps them against AG Charts' existing architecture:
+And maps them against AG Charts' existing architecture based on [Data Flow Analysis](./DATA-FLOW-ANALYSIS.md):
 
 -   `LineSeries` class and rendering pipeline
 -   `UpdateService` coordination system
 -   `DataService` throttling infrastructure
--   `DataController` processing coordination
--   Canvas rendering and scene graph management
+-   `DataController` processing coordination (critical bottleneck - creates new instances on every update)
+-   `DataModel` data transformation (68% of processing time)
+-   Canvas rendering and scene graph management (only 3-4ms, not a bottleneck)
 
 ## 1. Core Infrastructure Components
 
 ### 1.1 Data Identification System (Required by ALL options)
 
-**Why needed**: All options need to track data identity for efficient processing, whether for transaction matching, stream deduplication, incremental rendering, or diff computation.
+**Why needed**: All options need to track data identity for efficient processing, whether for transaction matching, stream deduplication, incremental updates, or diff computation. Critical for avoiding full DataModel recreation (currently 68% of processing time).
 
 ```typescript
 interface DataIdProvider<TDatum> {
@@ -50,10 +53,11 @@ class DefaultDataIdProvider<TDatum> implements DataIdProvider<TDatum> {
 
 **Integration Points:**
 
--   `DataModel` class needs ID tracking for change detection
--   `LineSeries` requires IDs for marker/node recycling
+-   `DataModel` class needs ID tracking for incremental column updates (avoiding full re-extraction)
+-   `DataController` requires IDs to reuse DataModel instances instead of recreating
+-   `LineSeries` requires IDs for marker/node recycling and visible range optimization
 -   All four options use IDs differently but all require the capability
--   Canvas rendering uses IDs for selective invalidation
+-   Options reconciliation bypass for data-only updates
 
 **Implementation Complexity**: Medium (2-3 weeks)
 
@@ -210,9 +214,11 @@ enum UpdatePriority {
 -   Race condition prevention
 -   Integration with existing update pipeline
 
-### 1.5 Canvas Invalidation Region System
+### 1.5 Canvas Invalidation Region System (Lower Priority)
 
-**Why needed**: All options benefit from selective canvas updates rather than full redraws, requiring a sophisticated region tracking system.
+**Why needed**: While conceptually useful, the Data Flow Analysis shows canvas rendering takes only 3-4ms (less than 1% of total time). This system provides minimal performance benefit compared to data processing optimizations.
+
+**Note**: Based on performance profiling, this should be deprioritized in favor of DataModel/DataController optimizations.
 
 ```typescript
 interface InvalidationRegionManager {
@@ -250,11 +256,12 @@ interface CanvasRegion {
 -   Animation system for smooth transitions
 -   All options use region invalidation differently but all need the capability
 
-**Implementation Complexity**: Medium-High (3-4 weeks)
+**Implementation Complexity**: Medium-High (3-4 weeks) - **Consider deferring**
 
 -   Spatial indexing for efficient region queries
 -   Integration with existing scene graph
 -   Optimization for typical chart interaction patterns
+-   **Performance Impact**: Minimal (saves at most 2-3ms per frame)
 
 ### 1.6 Animation State Management
 
@@ -570,9 +577,11 @@ class AdaptiveFrameBudget implements FrameBudgetManager {
 }
 ```
 
-## 4. DataController Enhancements
+## 4. DataController Enhancements (CRITICAL - Primary Bottleneck)
 
 ### 4.1 Common Data Processing Pipeline Changes
+
+**Context from Data Flow Analysis**: DataController creates new DataModel instances on every update, causing complete data reprocessing. This is the primary performance bottleneck.
 
 **Enhanced Processing Coordination:**
 
@@ -606,9 +615,16 @@ interface DataChange<D> {
 }
 ```
 
-### 4.2 Incremental Processing Capabilities
+### 4.2 Incremental Processing Capabilities (CRITICAL)
 
 **Shared Processing Infrastructure:**
+
+**Key Requirements from Data Flow Analysis**:
+
+-   Reuse existing DataModel instances when data structure unchanged
+-   Update only affected columns instead of full re-extraction
+-   Cache property definitions between updates
+-   Incremental domain calculation without full scan
 
 ```typescript
 class IncrementalDataProcessor<D extends object> {
@@ -974,11 +990,13 @@ class BrowserResourceMonitor implements ResourceMonitor {
 }
 ```
 
-## 6. Canvas Rendering Optimizations
+## 6. Canvas Rendering Optimizations (LOWER PRIORITY)
+
+**Note from Data Flow Analysis**: Canvas rendering takes only 3-4ms (<1% of total time). These optimizations provide minimal benefit compared to data processing improvements. Consider deferring to Phase 3 or later.
 
 ### 6.1 Partial Redraw System
 
-**Selective Canvas Updates:**
+**Selective Canvas Updates (Limited Impact):**
 
 ```typescript
 interface PartialRedrawManager {
@@ -2257,45 +2275,54 @@ class ComprehensiveCleanupManager implements ResourceCleanupManager {
 
     - Hash-based ID generation
     - ID map management
-    - Integration with DataModel
+    - Integration with DataModel for incremental updates
+    - Enable DataController to track and reuse DataModel instances
 
-2. **Memory Management Infrastructure** (2 weeks)
+2. **DataModel Reuse Infrastructure** (2 weeks) **[NEW - CRITICAL]**
+
+    - DataModel instance caching and reuse
+    - Incremental column update capability
+    - Property definition caching
+    - Bypass options reconciliation for data-only updates
+
+3. **Memory Management Infrastructure** (1 week)
 
     - Memory monitoring APIs
-    - Retention policy framework
-    - Object pooling system
+    - Object pooling for node data (reduces GC pressure)
+    - TypedArray backing for numeric columns
 
-3. **Performance Monitor Framework** (1 week)
+4. **Performance Monitor Framework** (0.5 weeks)
 
     - Metrics collection
     - Performance API integration
     - Decision support system
 
-4. **Update Coordination System** (1-2 weeks)
-    - Priority queue implementation
-    - Batch coordination
+5. **Update Coordination System** (0.5-1 week)
+    - Direct data mutation paths
+    - Bypass full update pipeline for data-only changes
     - State synchronization
 
 ### Phase 2: Data Processing Optimizations (3-4 weeks)
 
 **Priority: Critical - 68% of execution time**
 
-1. **Data Structure Optimization** (2 weeks)
+1. **DataController/DataModel Optimization** (2 weeks) **[HIGHEST PRIORITY]**
 
-    - TypedArray implementation
-    - Circular buffer for streaming data
-    - Efficient indexing structures
+    - Prevent DataController recreation on every update
+    - Implement DataModel instance reuse when data structure unchanged
+    - Incremental processData() for add/update/remove operations
+    - Cache processed columns and reuse where possible
 
-2. **Incremental Processing** (1 week)
+2. **Incremental Domain Calculation** (1 week)
 
-    - Change detection and application
-    - Domain calculation optimization
-    - Memory-efficient data transformations
+    - Smart domain extension for append operations
+    - Selective recalculation only for affected ranges
+    - Domain caching with intelligent invalidation
 
-3. **Memory Pool Management** (1 week)
-    - Object pooling for frequent allocations
-    - Buffer reuse strategies
-    - GC pressure reduction techniques
+3. **Memory-Efficient Data Structures** (1 week)
+    - TypedArray backing for numeric columns (50% memory reduction)
+    - Circular buffer for streaming scenarios
+    - Object pooling for LineNodeDatum instances
 
 ### Phase 3: Series Integration (2-3 weeks)
 
@@ -2303,14 +2330,16 @@ class ComprehensiveCleanupManager implements ResourceCleanupManager {
 
 1. **LineSeries Enhancements** (2 weeks)
 
-    - Incremental processing
-    - Path optimization
-    - Node recycling
+    - Skip `forceNodeDataRefresh` for data-only updates
+    - Leverage visible range calculations for partial processing
+    - Incremental createNodeData() using DataModel column updates
+    - Node and marker object pooling
 
-2. **DataController Integration** (1 week)
-    - Batch processing
-    - Cache management
-    - Change tracking
+2. **Direct Data Update Path** (1 week)
+    - Implement `applyDataTransaction()` API
+    - Bypass options reconciliation for data updates
+    - Direct DataModel column manipulation
+    - Maintain backward compatibility with existing update()
 
 ### Phase 4: Utility Systems (2 weeks)
 
@@ -2353,6 +2382,13 @@ class ComprehensiveCleanupManager implements ResourceCleanupManager {
 **Common Implementation Elements: 13-17 weeks**
 
 This represents 60-70% of the total implementation effort for any high-frequency update option, making the choice between options primarily about the remaining 30-40% of option-specific work.
+
+**Critical Path Based on Data Flow Analysis**:
+
+1. DataModel/DataController optimization (4 weeks) - addresses 68% of performance issue
+2. Direct data update paths (1 week) - bypasses unnecessary processing
+3. Memory management (2 weeks) - reduces GC pressure
+4. Canvas optimizations (deferred) - minimal impact given 3-4ms render time
 
 ## Integration Strategy
 

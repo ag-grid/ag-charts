@@ -2,15 +2,15 @@
 
 ## Executive Summary
 
-This document explores how AG Charts can combine multiple high-frequency update strategies to create a flexible, performance-optimized system that adapts to different use cases. Based on our analysis, we recommend a **hybrid approach**: Batched Queue implementation as the foundation, Transaction API (Option B) for developer interface, with optional Stream API (Option C) for specific real-time scenarios.
+This document explores how AG Charts can combine multiple high-frequency update strategies to create a flexible, performance-optimized system that adapts to different use cases. Based on our analysis, we recommend a **phased hybrid approach**: Phase 1 implements Transaction API (Option B) with efficient delta processing, Phase 2 optionally adds Batched Queue optimization, with potential future Stream API (Option C) for specific real-time scenarios.
 
 ## Recommended Hybrid Architecture
 
-### Core Foundation: Batched Queue + Transaction API
+### Phase 1 Foundation: Transaction API with Delta Processing
 
 ```typescript
 // Public API (Option B Transaction API - Developer-facing)
-chart.applyTransaction({
+chart.applyDataTransaction({
     add: [...],
     update: [...],
     remove: [...]
@@ -59,7 +59,7 @@ class StreamAdapter {
 
 ## Hybrid Combinations Analysis
 
-### 1. Batched Queue + Transaction API (Recommended Primary)
+### 1. Transaction API + Optional Batched Queue (Recommended Phased Approach)
 
 **Architecture:**
 
@@ -264,11 +264,11 @@ class AgChart {
     update(options: ChartOptions): void {
         // Convert to transaction internally
         const transaction = this.optionsToTransaction(options);
-        this.applyTransaction(transaction);
+        this.applyDataTransaction(transaction);
     }
 
     // New hybrid API
-    applyTransaction(transaction: Transaction): void {
+    applyDataTransaction(transaction: Transaction): void {
         // Route through batched queue
         this.updateProcessor.process(transaction);
     }

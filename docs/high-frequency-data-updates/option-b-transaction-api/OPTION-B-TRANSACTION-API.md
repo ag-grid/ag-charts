@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines the design for an incremental data update API for AG Charts, modeled after AG Grid's successful transaction-based approach. The proposed `updateData()` method will enable high-frequency updates (100+ updates/second across 5 concurrent series) with sub-50ms redraw latency by providing surgical data modifications rather than full dataset replacements.
+This document outlines the design for an incremental data update API for AG Charts, modeled after AG Grid's successful transaction-based approach. The proposed `updateData()` method will enable high-frequency updates (100+ updates/second across 5 concurrent series) with 120-140ms processing latency delivered in Phase 1, and set the foundation for sub-50ms redraw latency once optional batching is layered on.
 
 The design leverages AG Grid's proven transaction pattern (`applyTransaction`, `applyTransactionAsync`) which achieves 150K updates/second, ensuring ecosystem consistency while meeting the performance requirements for real-time financial charting applications.
 

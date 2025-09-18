@@ -1,6 +1,6 @@
 # High-Frequency Data Updates - Design Document
 
-Status: **Complete** ([TODO](./TODO.md)) | [PRD](./PRD.md) | [Competitive Analysis](./COMPETITIVE-ANALYSIS.md)
+Status: **Design Phase** | [TODO](./TODO.md) | [PRD](./PRD.md) | [Competitive Analysis](./COMPETITIVE-ANALYSIS.md)
 
 ## Quick Navigation
 
@@ -8,7 +8,7 @@ Status: **Complete** ([TODO](./TODO.md)) | [PRD](./PRD.md) | [Competitive Analys
 
 ## Executive Summary
 
-This document outlines the technical design for implementing high-frequency data update capabilities in AG Charts, targeting 100+ updates per second with minimal performance degradation. After comprehensive analysis of multiple approaches, we recommend **Batched Update Queue (internal implementation)** combined with **Option B's Transaction-Based API design** as a hybrid solution that delivers 2-3x performance improvement while maintaining AG Grid API compatibility.
+This document outlines the technical design for implementing high-frequency data update capabilities in AG Charts, targeting 100+ updates per second with minimal performance degradation. After comprehensive analysis, we recommend a **phased approach**: Phase 1 implements efficient delta processing with the Transaction-Based API (Option B) while optionally supporting identifier-based updates (Option A) for hybrid coverage, delivering 60-70% performance improvement. Phase 2 adds optional batching optimization for an additional 10-15% gain.
 
 ## Sub-documents
 
@@ -19,6 +19,7 @@ This document outlines the technical design for implementing high-frequency data
 
 ### Core Analysis Documents
 
+-   **[Data Flow Analysis](./DATA-FLOW-ANALYSIS.md)** - Comprehensive technical analysis of current data flow from API to scene graph
 -   **[Comparison Matrix](./COMPARISON-MATRIX.md)** - Comprehensive evaluation of all options with final recommendation
 -   **[Solution Alignment Analysis](./SOLUTION-ALIGNMENT-ANALYSIS.md)** - Cross-reference with AG Grid and competitor approaches
 -   **[Hybrid Approach](./HYBRID-APPROACH.md)** - Combining strategies for optimal solution
@@ -31,49 +32,38 @@ This document outlines the technical design for implementing high-frequency data
 ### Option B Implementation Details (Transaction-Based API)
 
 -   **[Design Document](./option-b-transaction-api/OPTION-B-TRANSACTION-API.md)** - Transaction-based API design
--   **[Line Series Feasibility](./option-b-transaction-api/LINE-SERIES-FEASIBILITY.md)** - LineSeries-specific analysis
 
 ### Option C Implementation Details (Stream-Based API)
 
 -   **[Design Document](./option-c-stream-api/OPTION-C-STREAM-API.md)** - Native streaming without dependencies
--   **[Line Series Feasibility](./option-c-stream-api/LINE-SERIES-FEASIBILITY.md)** - Streaming challenges and solutions
 
-### Internal Implementation Strategy 1: Batched Update Queue ✅ (Recommended)
+### Internal Implementation Strategy 1: Batched Update Queue (Optional - Phase 2)
 
 -   **[Design Document](./internal-batched-queue/BATCHED-UPDATE-QUEUE.md)** - Frame-aligned batching system
--   **[Line Series Feasibility](./internal-batched-queue/LINE-SERIES-FEASIBILITY.md)** - Highest feasibility score
--   **Note**: This is an internal optimization strategy that can be combined with any API option
+-   **Note**: This is an optional Phase 2 optimization that can be added post-release
 
 ### Internal Implementation Strategy 2: Differential Updates ❌ (Not Recommended)
 
 -   **[Design Document](./internal-virtual-dom/DIFFERENTIAL-UPDATES.md)** - Virtual DOM analysis showing why this approach fails
--   **[Line Series Feasibility](./internal-virtual-dom/LINE-SERIES-FEASIBILITY.md)** - Evidence against this approach
-
-### Archived Documents
-
-Documents related to framework-specific implementations have been moved to `./archived-framework-specific/` as they were deemed overly complex compared to the simplified JavaScript API approach. This includes:
-
--   Framework-specific implementation files (React, Angular, Vue) for all options
--   Framework review and standardization documents
--   Complex framework-specific patterns and optimizations
 
 ## Current Architecture Analysis
 
-### Update Pipeline
+For a comprehensive technical analysis of the current data flow from API calls to scene graph rendering, see **[DATA-FLOW-ANALYSIS.md](./DATA-FLOW-ANALYSIS.md)**.
 
--   **Current Flow**: `chart.update()` → `UpdateService` → Full options reconciliation → Series data processing → Canvas re-render
--   **Implementation Details**:
-    -   `AgChartInstance.update()` (via `AgChartInstanceProxy`) deep-clones options through `AgChartsInternal.createOrUpdate`
-    -   Any update triggers the same staged pipeline in `Chart` class:
-        1. `updateData()` pushes entire `chart.data` array to each series
-        2. `processData()` creates new `DataController`, re-derives domains, updates legend
-        3. Layout and render steps follow, with animation gating
-    -   `updateDelta` avoids re-applying unchanged options but still treats data as replace-only
--   **Bottlenecks**:
+### Update Pipeline Summary
+
+-   **Current Flow**: `chart.update()` → `UpdateService` → Full options reconciliation → DataController/DataModel processing → Series node creation → Canvas re-render
+-   **Key Components**:
+    -   **DataController**: Coordinates data processing across all series, manages caching
+    -   **DataModel**: Performs heavy data transformation (68% of total processing time), extracts values, calculates domains, handles grouping/stacking
+    -   **Series**: Uses DataModel columns to create scene graph nodes
+-   **Critical Bottlenecks** (see [DATA-FLOW-ANALYSIS.md](./DATA-FLOW-ANALYSIS.md#critical-bottlenecks-identified) for details):
     -   Full options reconciliation on every update
-    -   Complete data array replacement triggers full re-processing
-    -   No distinction between data-only and configuration updates
-    -   Framework wrappers trigger reconciliation on every prop change
+    -   Complete data array replacement with no incremental capability
+    -   New DataController/DataModel instances created each update
+    -   All data points reprocessed from scratch
+    -   Domains fully recalculated every time
+    -   No reuse of processed columns or node data
 
 ### Existing Infrastructure
 
@@ -108,8 +98,8 @@ Analysis of loading 1M data points into a single-line series with `window.agChar
 
 **Performance Breakdown (580ms total):**
 
--   **Data Processing**: ~393ms (67.8% of total time)
--   **Canvas Rendering**: ~3.3ms (0.6% of total time)
+-   **Data Processing**: 393ms (68% of total time)
+-   **Canvas Rendering**: 3-4ms (<1% of total time)
 -   **Scene Graph Operations**: ~0.2ms
 -   **Other Operations**: ~183ms combined (axis calculations ~65ms, layout ~110ms, etc.)
 
@@ -157,14 +147,14 @@ Based on this analysis, the implementation approach should prioritize:
     - No complex culling logic needed
     - Focus on maintaining current 3-4ms performance
 
-This performance profile validates the recommended Option 3 (Batched Update Queue) approach, which focuses on data processing efficiency rather than rendering optimization.
+This performance profile validates prioritising core delta processing as the primary optimisation target, with Phase 2 batching treated as an optional enhancement once the data-processing gains are realised.
 
 ## Design Goals & Non-Goals
 
 ### Goals
 
 -   Support 100+ updates/second for 5 concurrent series
--   Maintain <50ms redraw latency under sustained load
+-   Maintain 120-140ms redraw latency in Phase 1, with <50ms as a stretch target once batching is enabled
 -   Automatic memory management with configurable retention
 -   Zero runtime dependencies
 -   Backward compatible with existing API
@@ -216,12 +206,12 @@ chart.update({
 
 ### Option B: Transaction-Based API (Incremental Updates)
 
-**Approach**: Explicit `applyTransaction()` method with add/update/remove operations
+**Approach**: Explicit `applyDataTransaction()` method with add/update/remove operations
 
 **How it works**:
 
 ```typescript
-chart.applyTransaction({
+chart.applyDataTransaction({
     add: [{ timestamp: 4000, value: 105 }],
     update: [{ id: 'trade-2', value: 102 }],
     remove: ['trade-3'],
@@ -284,7 +274,7 @@ For detailed design of Option C implementation, see [Stream-Based API Design](./
 -   No explicit change semantics
 -   Framework reconciliation overhead
 
-### Option E: Hybrid Approach (Recommended)
+### Option E: Hybrid Approach (API Recommendation)
 
 **Approach**: Support both identifier-based (Option A) and transaction-based (Option B)
 
@@ -293,7 +283,7 @@ For detailed design of Option C implementation, see [Stream-Based API Design](./
 chart.update({ data: newData, dataId: 'id' });
 
 // Method 2: Explicit transactions
-chart.applyTransaction({ add: [...], update: [...] });
+chart.applyDataTransaction({ add: [...], update: [...] });
 ```
 
 **Pros**:
@@ -305,7 +295,7 @@ chart.applyTransaction({ add: [...], update: [...] });
 **Cons**:
 
 -   Two patterns to maintain
--   Potential user confusion
+-   Potential user confusion without clear guidance
 
 ## Internal Implementation Strategies
 
@@ -315,27 +305,65 @@ Regardless of the API choice, these are the internal optimizations needed:
 
 **Focus**: Process only changed data, not entire dataset
 
-**Key Optimizations**:
+Based on the [Data Flow Analysis](./DATA-FLOW-ANALYSIS.md), the critical bottlenecks are:
 
--   **Incremental domain calculation**: Update min/max without full scan
--   **Partial data processing**: Process only affected series
--   **Memory pooling**: Reuse objects to reduce GC pressure
--   **TypedArray usage**: 50% memory reduction for numeric data
+1. **DataModel Recreation** (68% of processing time):
 
-**Performance Impact**: 76% reduction in processing time (393ms → 95ms)
+    - New DataModel instances created on every update
+    - Complete re-extraction of all data values
+    - Full domain recalculation from scratch
+    - No reuse of processed columns
 
-### Optimization: Batched Update Queue (Deferred to Phase 2)
+2. **Options Reconciliation**:
+
+    - Full deep clone and reconciliation on every update
+    - No distinction between data and configuration changes
+
+3. **Data Replacement**:
+    - Entire data array pushed to series
+    - `forceNodeDataRefresh` triggers full reprocessing
+    - No incremental update capability
+
+**Key Optimizations Required**:
+
+-   **Incremental DataModel Updates**:
+
+    -   Reuse existing DataModel instances
+    -   Update only affected columns
+    -   Incremental domain calculation (append/update/remove without full scan)
+    -   Cache property definitions between updates
+
+-   **Direct Data Mutation Paths**:
+
+    -   Bypass options reconciliation for data-only updates
+    -   Dedicated `applyDataTransaction()` API
+    -   Direct updates to DataModel columns
+
+-   **Memory Management**:
+
+    -   Object pooling for node data and markers
+    -   TypedArray backing for numeric columns (50% memory reduction)
+    -   Reuse processed data structures
+
+-   **Selective Processing**:
+    -   Process only affected series
+    -   Skip unchanged data ranges
+    -   Leverage visible range calculations for partial updates
+
+**Performance Impact**: 60-70% reduction in processing time with delta processing alone (393ms → 120-140ms for 1M points)
+
+### Optimization 1: Batched Update Queue (Optional - Phase 2)
 
 **Approach**: Queue updates and process in animation frames
 
-**Status**: **Defer as later optimization**, not core requirement
+**Status**: **Optional optimization for Phase 2**, not required for initial release
 
 **Rationale**:
 
 -   Adds complexity to initial implementation
--   Core delta processing is the main challenge
+-   Core delta processing provides most value (60-70% improvement)
 -   Can be added transparently after launch
--   Provides additional 10-15% performance gain
+-   Provides additional 10-15% performance gain when added
 
 For design details, see [Batched Update Queue Design](./internal-batched-queue/BATCHED-UPDATE-QUEUE.md)
 
@@ -362,38 +390,38 @@ For design details, see [Batched Update Queue Design](./internal-batched-queue/B
 
 ## Recommended Implementation Approach
 
-### Phase 1: Core Delta Processing (Weeks 1-4)
+### Phase 1: Core Delta Processing (4 weeks)
 
 **Priority**: Implement efficient delta processing regardless of API choice
 
-1. **Week 1-2**: Incremental data processing pipeline
+1. **Incremental data processing pipeline** (2 weeks)
 
     - Partial series updates
     - Incremental domain calculations
     - Memory pooling infrastructure
 
-2. **Week 3**: API Implementation
+2. **API Implementation** (1 week)
 
-    - Choose Option A (identifier-based) or B (transaction-based)
-    - Or implement hybrid (both)
+    - Transaction-based API (Option B) as primary
+    - Optional identifier-based API (Option A) for simpler use cases
     - Keep API surface minimal initially
 
-3. **Week 4**: Testing and optimization
+3. **Testing and optimization** (1 week)
     - Performance benchmarks
     - Memory profiling
     - Framework integration testing
 
-### Phase 2: Performance Optimizations (Weeks 5-6) - Optional
+### Phase 2: Performance Optimizations (2-3 weeks) - Optional Post-Release
 
 **Can be deferred to post-release**
 
-1. **Batched Update Queue**
+1. **Batched Update Queue** (1-2 weeks)
 
     - Add requestAnimationFrame batching
     - Implement coalescing strategies
     - Queue overflow handling
 
-2. **Advanced Memory Management**
+2. **Advanced Memory Management** (1 week)
     - Sophisticated retention policies
     - Predictive memory allocation
     - GC optimization
@@ -457,7 +485,7 @@ const chartRef = useRef(null);
 
 useEffect(() => {
     const chart = chartRef.current?.getInstance();
-    chart?.applyDataTransactionAsync({ add: newData });
+    chart?.applyDataTransaction({ add: newData });
 }, [newData]);
 ```
 
@@ -467,7 +495,7 @@ useEffect(() => {
 @ViewChild(AgCharts) chart: AgCharts;
 
 onDataUpdate(newData) {
-    this.chart.getInstance().applyDataTransactionAsync({ add: newData });
+    this.chart.getInstance().applyDataTransaction({ add: newData });
 }
 ```
 
@@ -477,7 +505,7 @@ onDataUpdate(newData) {
 const chart = ref(null);
 
 watch(data, (newData) => {
-    chart.value?.getInstance().applyDataTransactionAsync({ add: newData });
+    chart.value?.getInstance().applyDataTransaction({ add: newData });
 });
 ```
 
@@ -525,7 +553,7 @@ Previous framework-specific implementation documents have been archived in `./ar
 
 ## Open Questions
 
--   **API Standardization**: Should we expose both `updateDelta` transactions and streaming controller, or standardize on one approach?
+-   **API Standardization**: Should we expose both identifier-based `update()` support and transaction APIs, or standardize on one approach?
 -   **Enterprise Feature Behavior**: How do annotations, tooltips, and other enterprise features behave under rapid updates? Do we need feature-specific performance budgets?
 -   **Worker Environment Support**: Do we need explicit scheduling hooks for alignment with worker timers in worker-heavy environments?
 -   **Framework Guardrails**: What safeguards prevent accidental controller recreation during component lifecycle events?
@@ -539,17 +567,17 @@ Based on comprehensive analysis documented in the sub-documents:
 
 #### Phase 1: Core Delta Processing (Required)
 
--   **API**: Option A (Identifier-based) and/or Option B (Transaction-based)
+-   **API**: Transaction-based (Option B) as primary, with optional identifier-based (Option A) support
 -   **Internal**: Efficient incremental data processing
 -   **Timeline**: 4 weeks
 -   **Performance**: 60-70% improvement from delta processing alone
 
-#### Phase 2: Batching Optimization (Optional)
+#### Phase 2: Batching Optimization (Optional Post-Release)
 
 -   **Internal**: Add batched update queue for additional performance
--   **Timeline**: 2-3 weeks
+-   **Timeline**: 2-3 weeks (can be done post-release)
 -   **Performance**: Additional 10-15% improvement
--   **Note**: Can be added post-release as transparent optimization
+-   **Note**: Transparent optimization that doesn't change public API
 
 #### Phase 3: Extended APIs (Future)
 
@@ -576,8 +604,8 @@ Based on comprehensive analysis documented in the sub-documents:
 
 #### With Phase 1 + 2:
 
--   **Performance**: 75-85% improvement (delta + batching)
--   **Timeline**: 6-7 weeks total
+-   **Performance**: 70-85% improvement (delta + batching)
+-   **Timeline**: 6-7 weeks total (or 4 weeks + post-release enhancement)
 -   **Risk**: Low-medium
 -   **Complexity**: Moderate
 
@@ -585,9 +613,10 @@ For detailed analysis, see the **[Comparison Matrix](./COMPARISON-MATRIX.md)** a
 
 ## Success Metrics
 
--   Achieve 100+ updates/sec with <50ms latency ✅ (Analysis shows 95 ops/sec, 85ms achievable)
--   Memory usage stable over 24-hour period ✅ (38% reduction with pooling)
--   90% reduction in framework reconciliation overhead ✅ (Batching eliminates most reconciliation)
--   Zero performance regressions for existing use cases ✅ (Backward compatible design)
+-   Achieve 100+ updates/sec with 120-140ms processing latency in Phase 1 (stretch goal: <50ms with optional batching)
+-   Memory usage stable over 24-hour period (Achievable with memory pooling)
+-   60-70% reduction in processing time with Phase 1 implementation
+-   Additional 10-15% improvement with optional Phase 2 batching to approach sub-50ms latency
+-   Zero performance regressions for existing use cases (Backward compatible design)
 -   Customer validation from financial services sector (Pending implementation)
--   Successful migration of at least 3 enterprise customers from HighCharts/AMCharts (Pending implementation)
+-   Successful migration of enterprise customers from competitor solutions (Post-release target)

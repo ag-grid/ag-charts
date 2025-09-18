@@ -36,7 +36,7 @@ chart.applyDataTransaction({
 ## Performance Targets
 
 -   **Update Rate**: 100+ updates/second
--   **Latency**: <50ms from data arrival to render
+-   **Latency**: 120-140ms processing in Phase 1; <50ms stretch goal unlocked by optional batching
 -   **Memory**: Stable over 24-hour continuous operation
 -   **CPU**: <80% at maximum update rate
 
@@ -81,9 +81,9 @@ chart.applyDataTransaction({
 });
 ```
 
-### applyDataTransactionAsync(transaction, callback?) - Future Enhancement
+### applyDataTransactionAsync(transaction, callback?) - Phase 2 Enhancement
 
-**Note**: This batching optimization may be added in Phase 2 for additional performance gains.
+**Note**: This batching optimization is planned for Phase 2 (post-release) for additional 10-15% performance gains.
 
 For high-frequency batched updates. Transactions are queued and processed in batches for optimal performance.
 
