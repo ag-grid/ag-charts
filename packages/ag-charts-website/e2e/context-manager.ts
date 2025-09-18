@@ -76,9 +76,22 @@ export class WorkerContextPool implements ContextPool {
     }
 
     private async resetContext(context: BrowserContext): Promise<void> {
-        // Clear all pages in the context
-        const pages = context.pages();
-        await Promise.all(pages.map((page) => page.close()));
+        const openPages = context.pages().filter((page) => !page.isClosed());
+        const [primary, ...additional] = openPages;
+
+        // Close stray tabs to keep the window count stable.
+        await Promise.all(additional.map((page) => page.close()));
+
+        if (primary && !primary.isClosed()) {
+            try {
+                await primary.goto('about:blank', { waitUntil: 'load' });
+            } catch {
+                // Ignore navigation failures; the next test will navigate anyway.
+            }
+        }
+
+        await context.clearCookies();
+        await context.clearPermissions();
     }
 
     async cleanup(): Promise<void> {
@@ -132,24 +145,57 @@ export const contextTest = test.extend<ContextTestFixture>({
         { scope: 'test' },
     ],
 
-    contextPage: [
+    page: [
         async ({ sharedContext }, use) => {
-            const page = await sharedContext.newPage();
+            const openPages = sharedContext.pages().filter((p) => !p.isClosed());
+            const page = openPages.length > 0 ? openPages[0] : await sharedContext.newPage();
 
-            // Apply stability proxies like in the original fixture
-            const proxiedProps = {
-                mouse: stabilityProxy(page, page.mouse),
-                keyboard: stabilityProxy(page, page.keyboard),
-                touchscreen: stabilityProxy(page, page.touchscreen),
-            };
-            Object.assign(page, proxiedProps);
+            // Ensure we only keep a single visible tab to avoid extra windows.
+            await Promise.all(openPages.slice(1).map((p) => p.close()));
 
-            // Setup cache route
-            const cacheRoute = new CacheRoute(page, { baseDir: path.join(__dirname, '.network-cache') });
-            await cacheRoute.ALL('https://cdn.jsdelivr.net/**');
+            if (page.url() === 'about:blank') {
+                try {
+                    await page.waitForLoadState('domcontentloaded');
+                } catch {
+                    // Page might have been mid-navigation; tests will drive it regardless.
+                }
+            }
+
+            // Apply stability proxies once per page instance.
+            if (!(page as any)._agStabilityPatched) {
+                const proxiedProps = {
+                    mouse: stabilityProxy(page, page.mouse),
+                    keyboard: stabilityProxy(page, page.keyboard),
+                    touchscreen: stabilityProxy(page, page.touchscreen),
+                };
+                Object.assign(page, proxiedProps);
+                (page as any)._agStabilityPatched = true;
+            }
+
+            // Setup cache route once per page instance.
+            if (!(page as any)._agCacheRoute) {
+                const cacheRoute = new CacheRoute(page, { baseDir: path.join(__dirname, '.network-cache') });
+                await cacheRoute.ALL('https://cdn.jsdelivr.net/**');
+                (page as any)._agCacheRoute = cacheRoute;
+            }
 
             await use(page);
-            await page.close();
+
+            try {
+                if (!page.isClosed()) {
+                    // Return to a neutral state for the next test.
+                    await page.goto('about:blank', { waitUntil: 'load' });
+                }
+            } catch {
+                // Ignore navigation failures; pool reset will handle recovery.
+            }
+        },
+        { scope: 'test' },
+    ],
+
+    contextPage: [
+        async ({ page }, use) => {
+            await use(page);
         },
         { scope: 'test' },
     ],
