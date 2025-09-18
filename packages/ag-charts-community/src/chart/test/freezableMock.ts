@@ -5,6 +5,7 @@ import type {
     AgBarSeriesThemeableOptions,
     AgBaseChartListeners,
     AgBaseChartOptions,
+    AgBaseRadialSeriesThemeableOptions,
     AgBaseSeriesOptions,
     AgBaseThemeableChartOptions,
     AgBoxPlotSeriesThemeableOptions,
@@ -56,6 +57,12 @@ export type MockBoxPlotStyler<TDatum, TContext> = NonNullable<
 >;
 export type MockBoxPlotItemStyler<TDatum, TContext> = NonNullable<
     AgBoxPlotSeriesThemeableOptions<TDatum, TContext>['itemStyler']
+>;
+type MockBaseRadialStyler<TDatum, TContext> = NonNullable<
+    AgBaseRadialSeriesThemeableOptions<TDatum, TContext>['styler']
+>;
+type MockBaseRadialItemStyler<TDatum, TContext> = NonNullable<
+    AgBaseRadialSeriesThemeableOptions<TDatum, TContext>['itemStyler']
 >;
 export type MockRadialColumnStyler<TDatum, TContext> = NonNullable<
     AgRadialColumnSeriesThemeableOptions<TDatum, TContext>['styler']
@@ -132,10 +139,8 @@ export type MockAPICallback<TDatum, TContext> =
     | MockDonutCalloutLineItemStyler<TDatum, TContext>
     | MockBoxPlotStyler<TDatum, TContext>
     | MockBoxPlotItemStyler<TDatum, TContext>
-    | MockRadialColumnStyler<TDatum, TContext>
-    | MockRadialColumnItemStyler<TDatum, TContext>
-    | MockNightingaleStyler<TDatum, TContext>
-    | MockNightingaleItemStyler<TDatum, TContext>
+    | MockBaseRadialStyler<TDatum, TContext>
+    | MockBaseRadialItemStyler<TDatum, TContext>
     | MockAxisLabelFormatter<TDatum, TContext>
     | MockSeriesLabelFormatter<TDatum, TContext>
     | MockTooltipRenderer<TDatum, TContext>
