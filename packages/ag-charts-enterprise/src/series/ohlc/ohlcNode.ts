@@ -82,19 +82,24 @@ export class OhlcBaseNode<D = any> extends Path<D> implements _ModuleSupport.Dis
 }
 
 export class OhlcNode extends OhlcBaseNode {
+    @SceneChangeDetection()
+    strokeAlignment: number = 0;
+
     override updatePath() {
         const { path } = this;
         const { centerX, x0, x1, y0, y1, yOpen, yClose } = this.alignedCoordinates();
+        const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
+        const strokeAlignment = this.strokeAlignment > 0 ? (pixelRatio / this.strokeAlignment / 2) % 1 : 0;
 
         path.clear();
 
-        path.moveTo(centerX, y0);
-        path.lineTo(centerX, y1);
+        path.moveTo(centerX - strokeAlignment, y0);
+        path.lineTo(centerX - strokeAlignment, y1);
         if (Math.abs(x1 - x0) > 1) {
-            path.moveTo(x0, yOpen);
-            path.lineTo(centerX, yOpen);
-            path.moveTo(centerX, yClose);
-            path.lineTo(x1, yClose);
+            path.moveTo(x0, yOpen - strokeAlignment);
+            path.lineTo(centerX - strokeAlignment, yOpen - strokeAlignment);
+            path.moveTo(centerX - strokeAlignment, yClose - strokeAlignment);
+            path.lineTo(x1, yClose - strokeAlignment);
         }
     }
 }

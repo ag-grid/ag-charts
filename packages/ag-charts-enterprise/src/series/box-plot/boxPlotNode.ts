@@ -64,6 +64,9 @@ export class BoxPlotNode extends Scalable(Path) {
     @SceneChangeDetection()
     capLengthRatio: number = 1;
 
+    @SceneChangeDetection()
+    wickStrokeAlignment: number = 0;
+
     protected override computeBBox(): _ModuleSupport.BBox | undefined {
         const { horizontal, center, thickness, min, max } = this;
         return horizontal
@@ -93,7 +96,7 @@ export class BoxPlotNode extends Scalable(Path) {
     }
 
     protected alignedCoordinates() {
-        const { thickness, crisp, strokeAlignment } = this;
+        const { thickness, crisp } = this;
 
         let { center, min, q1, median, q3, max } = this;
 
@@ -113,17 +116,6 @@ export class BoxPlotNode extends Scalable(Path) {
             x0 = center - halfWidth;
             x1 = center + halfWidth;
         }
-
-        const crossCenter = (min + max) / 2;
-
-        // Align to an assumed 1px stroke thickness
-        x0 += strokeAlignment;
-        x1 += strokeAlignment;
-        min += min < crossCenter ? strokeAlignment : -strokeAlignment;
-        max += max < crossCenter ? strokeAlignment : -strokeAlignment;
-        q1 += q1 < crossCenter ? -strokeAlignment : strokeAlignment;
-        median += median < crossCenter ? -strokeAlignment : strokeAlignment;
-        q3 += q3 < crossCenter ? -strokeAlignment : strokeAlignment;
 
         return { center, x0, x1, min, max, q1, median, q3 };
     }
@@ -147,6 +139,8 @@ export class BoxPlotNode extends Scalable(Path) {
             horizontal,
         } = this;
         const { center, x0, x1, min, max, q1, median, q3 } = this.alignedCoordinates();
+        const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
+        const wickStrokeAlignment = this.wickStrokeAlignment > 0 ? (pixelRatio / this.wickStrokeAlignment / 2) % 1 : 0;
 
         this.path.clear();
         this.wickPath.clear();
@@ -174,15 +168,15 @@ export class BoxPlotNode extends Scalable(Path) {
         const capX0 = center - Math.abs((x1 - x0) * capLengthRatio) / 2;
         const capX1 = center + Math.abs((x1 - x0) * capLengthRatio) / 2;
 
-        moveTo(wickPath, horizontal, capX0, wickTop);
-        lineTo(wickPath, horizontal, capX1, wickTop);
-        moveTo(wickPath, horizontal, center, wickTop);
-        lineTo(wickPath, horizontal, center, boxTop + strokeWidth / 2);
+        moveTo(wickPath, horizontal, capX0, wickTop - wickStrokeAlignment);
+        lineTo(wickPath, horizontal, capX1, wickTop - wickStrokeAlignment);
+        moveTo(wickPath, horizontal, center - wickStrokeAlignment, wickTop - wickStrokeAlignment);
+        lineTo(wickPath, horizontal, center - wickStrokeAlignment, boxTop + strokeWidth / 2);
 
-        moveTo(wickPath, horizontal, center, wickBottom);
-        lineTo(wickPath, horizontal, center, boxBottom - strokeWidth / 2);
-        moveTo(wickPath, horizontal, capX0, wickBottom);
-        lineTo(wickPath, horizontal, capX1, wickBottom);
+        moveTo(wickPath, horizontal, center - wickStrokeAlignment, wickBottom + wickStrokeAlignment);
+        lineTo(wickPath, horizontal, center - wickStrokeAlignment, boxBottom - strokeWidth / 2);
+        moveTo(wickPath, horizontal, capX0, wickBottom + wickStrokeAlignment);
+        lineTo(wickPath, horizontal, capX1, wickBottom + wickStrokeAlignment);
 
         const horizontalBoxStrokeAdjustment = strokeWidth / 2 + strokeAlignment;
         const verticalBoxStrokeAdjustment = strokeWidth / 2 - strokeAlignment;

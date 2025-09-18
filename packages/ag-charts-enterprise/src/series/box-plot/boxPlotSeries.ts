@@ -652,7 +652,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, properties } = this;
         if (!contextNodeData) {
             return;
         }
@@ -661,6 +661,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         const fillBBox = this.getShapeFillBBox();
         const strokeAlignment = this.getStyle(false, false, HighlightState.None).strokeWidth / 2;
+
+        const wickStrokeAlignment = properties.whisker.strokeWidth ?? properties.strokeWidth;
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
             const style = (nodeDatum.style ??
@@ -695,7 +697,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             boxPlotNode.max = nodeDatum.scaledValues.maxValue;
 
             boxPlotNode.capLengthRatio = style.cap.lengthRatio;
+
             boxPlotNode.strokeAlignment = strokeAlignment; // Ignore highlight style
+            boxPlotNode.wickStrokeAlignment = wickStrokeAlignment;
         });
     }
 
