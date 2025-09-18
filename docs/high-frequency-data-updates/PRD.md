@@ -76,7 +76,7 @@ Auto-scroll/pause controls, background buffering, server-side aggregation, WebSo
 
 ## Solution Analysis & Recommendation
 
-After comprehensive analysis, we recommend a **hybrid "3+1" approach**:
+After comprehensive analysis, we recommend a **hybrid approach**:
 
 ### Key Documents
 
@@ -87,8 +87,8 @@ After comprehensive analysis, we recommend a **hybrid "3+1" approach**:
 
 ### Recommendation Summary
 
--   **Primary**: Option 3 (Batched Update Queue) for internal optimization
--   **API**: Option 1 (Incremental/Transaction API) for developer interface
+-   **Primary**: Batched Update Queue for internal optimization
+-   **API**: Transaction API (Option B) for developer interface
 -   **Timeline**: 10-12 weeks for core implementation
 -   **Performance**: 2-3x improvement, achieving 95 ops/sec with 85ms latency
 -   **Risk**: Low-medium with proven patterns from AG Grid

@@ -10,10 +10,10 @@ This document identifies and analyzes the common implementation elements require
 
 This analysis examines:
 
--   **Option 1**: Incremental Update API (Transaction-based)
--   **Option 2**: Stream-Based API (Native streaming primitives)
--   **Option 3**: Batched Update Queue (Recommended approach)
--   **Option 4**: Differential Updates with Virtual DOM (Not recommended)
+-   **Option B**: Transaction-Based API (Incremental updates)
+-   **Option C**: Stream-Based API (Native streaming primitives)
+-   **Internal Strategy 1**: Batched Update Queue (Recommended approach)
+-   **Internal Strategy 2**: Differential Updates with Virtual DOM (Not recommended)
 
 And maps them against AG Charts' existing architecture:
 
@@ -344,10 +344,10 @@ abstract class BaseHighFrequencyLineSeries extends LineSeries {
 
 **Why All Options Need This:**
 
--   Option 1 (Transactions): Needs incremental processing for transaction application
--   Option 2 (Streaming): Requires stream data integration with existing pipeline
--   Option 3 (Batching): Benefits from batched incremental processing
--   Option 4 (Virtual DOM): Needs data change tracking for diff computation
+-   Option B (Transactions): Needs incremental processing for transaction application
+-   Option C (Streaming): Requires stream data integration with existing pipeline
+-   Batched Queue: Benefits from batched incremental processing
+-   Virtual DOM: Needs data change tracking for diff computation
 
 ### 2.2 Path Generation Optimization
 
@@ -1388,10 +1388,10 @@ type OverflowStrategy = 'drop-oldest' | 'drop-newest' | 'expand' | 'error';
 
 **Usage Across All Options:**
 
--   Option 1: Transaction queuing and result caching
--   Option 2: Stream buffering and backpressure management
--   Option 3: Update batching and frame coordination
--   Option 4: State history for diff computation
+-   Option B: Transaction queuing and result caching
+-   Option C: Stream buffering and backpressure management
+-   Batched Queue: Update batching and frame coordination
+-   Virtual DOM: State history for diff computation
 
 ### 7.2 Object Pooling System
 
@@ -2378,10 +2378,10 @@ Components can be enabled incrementally:
 
 Each option extends the common foundation:
 
--   **Option 1**: Adds transaction processing on top of common infrastructure
--   **Option 2**: Adds streaming primitives using shared performance monitoring
--   **Option 3**: Leverages common batching with enhanced coordination
--   **Option 4**: Uses common diff infrastructure with virtual DOM extensions (not recommended)
+-   **Option B**: Adds transaction processing on top of common infrastructure
+-   **Option C**: Adds streaming primitives using shared performance monitoring
+-   **Batched Queue**: Leverages common batching with enhanced coordination
+-   **Virtual DOM**: Uses common diff infrastructure with virtual DOM extensions (not recommended)
 
 ## Benefits of Shared Foundation
 

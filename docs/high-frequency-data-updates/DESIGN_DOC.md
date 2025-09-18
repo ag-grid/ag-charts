@@ -8,7 +8,7 @@ Status: **Complete** ([TODO](./TODO.md)) | [PRD](./PRD.md) | [Competitive Analys
 
 ## Executive Summary
 
-This document outlines the technical design for implementing high-frequency data update capabilities in AG Charts, targeting 100+ updates per second with minimal performance degradation. After comprehensive analysis of four approaches, we recommend **Option 3 (Batched Update Queue)** combined with **Option 1's API design** as a hybrid solution that delivers 2-3x performance improvement while maintaining AG Grid API compatibility.
+This document outlines the technical design for implementing high-frequency data update capabilities in AG Charts, targeting 100+ updates per second with minimal performance degradation. After comprehensive analysis of multiple approaches, we recommend **Batched Update Queue (internal implementation)** combined with **Option B's Transaction-Based API design** as a hybrid solution that delivers 2-3x performance improvement while maintaining AG Grid API compatibility.
 
 ## Sub-documents
 
@@ -28,26 +28,26 @@ This document outlines the technical design for implementing high-frequency data
 -   **[Common Implementation Elements](./COMMON-IMPLEMENTATION-ELEMENTS.md)** - Infrastructure shared across all options (60-70% of work)
 -   **[Line Series Common Implementation](./LINE-SERIES-COMMON-IMPLEMENTATION.md)** - Core optimizations required by all approaches
 
-### Option 1: Incremental Update API
+### Option B Implementation Details (Transaction-Based API)
 
--   **[Design Document](./option-1-incremental-update/OPTION-1-INCREMENTAL-UPDATE.md)** - Transaction-based API design
--   **[Line Series Feasibility](./option-1-incremental-update/LINE-SERIES-FEASIBILITY.md)** - LineSeries-specific analysis
+-   **[Design Document](./option-b-transaction-api/OPTION-B-TRANSACTION-API.md)** - Transaction-based API design
+-   **[Line Series Feasibility](./option-b-transaction-api/LINE-SERIES-FEASIBILITY.md)** - LineSeries-specific analysis
 
-### Option 2: Stream-Based API
+### Option C Implementation Details (Stream-Based API)
 
--   **[Design Document](./option-2-stream-based/OPTION-2-STREAM-BASED.md)** - Native streaming without dependencies
--   **[Line Series Feasibility](./option-2-stream-based/LINE-SERIES-FEASIBILITY.md)** - Streaming challenges and solutions
+-   **[Design Document](./option-c-stream-api/OPTION-C-STREAM-API.md)** - Native streaming without dependencies
+-   **[Line Series Feasibility](./option-c-stream-api/LINE-SERIES-FEASIBILITY.md)** - Streaming challenges and solutions
 
-### Option 3: Batched Update Queue ✅ (Recommended)
+### Internal Implementation Strategy 1: Batched Update Queue ✅ (Recommended)
 
--   **[Design Document](./option-3-batched-update-queue/OPTION-3-BATCHED-UPDATE-QUEUE.md)** - Frame-aligned batching system
--   **[Line Series Feasibility](./option-3-batched-update-queue/LINE-SERIES-FEASIBILITY.md)** - Highest feasibility score
--   **Note**: Framework-specific implementations have been archived in favor of the simplified API approach
+-   **[Design Document](./internal-batched-queue/BATCHED-UPDATE-QUEUE.md)** - Frame-aligned batching system
+-   **[Line Series Feasibility](./internal-batched-queue/LINE-SERIES-FEASIBILITY.md)** - Highest feasibility score
+-   **Note**: This is an internal optimization strategy that can be combined with any API option
 
-### Option 4: Differential Updates ❌ (Not Recommended)
+### Internal Implementation Strategy 2: Differential Updates ❌ (Not Recommended)
 
--   **[Design Document](./option-4-differential-updates/OPTION-4-DIFFERENTIAL-UPDATES.md)** - Virtual DOM analysis showing why this approach fails
--   **[Line Series Feasibility](./option-4-differential-updates/LINE-SERIES-FEASIBILITY.md)** - Evidence against this approach
+-   **[Design Document](./internal-virtual-dom/DIFFERENTIAL-UPDATES.md)** - Virtual DOM analysis showing why this approach fails
+-   **[Line Series Feasibility](./internal-virtual-dom/LINE-SERIES-FEASIBILITY.md)** - Evidence against this approach
 
 ### Archived Documents
 
@@ -241,7 +241,7 @@ chart.applyTransaction({
 -   More complex API
 -   Requires learning new patterns
 
-For detailed design, see [OPTION-1-INCREMENTAL-UPDATE.md](./option-1-incremental-update/OPTION-1-INCREMENTAL-UPDATE.md)
+For detailed design of Option B implementation, see [Transaction-Based API Design](./option-b-transaction-api/OPTION-B-TRANSACTION-API.md)
 
 ### Option C: Stream-Based API
 
@@ -266,7 +266,7 @@ stream.next({ timestamp: Date.now(), value: 105 });
 -   Learning curve
 -   Dependency considerations
 
-For detailed design, see [OPTION-2-STREAM-BASED.md](./option-2-stream-based/OPTION-2-STREAM-BASED.md)
+For detailed design of Option C implementation, see [Stream-Based API Design](./option-c-stream-api/OPTION-C-STREAM-API.md)
 
 ### Option D: Enhanced Current Approach
 
@@ -324,7 +324,7 @@ Regardless of the API choice, these are the internal optimizations needed:
 
 **Performance Impact**: 76% reduction in processing time (393ms → 95ms)
 
-### Optimization 1: Batched Update Queue (Deferred to Phase 2)
+### Optimization: Batched Update Queue (Deferred to Phase 2)
 
 **Approach**: Queue updates and process in animation frames
 
@@ -337,7 +337,7 @@ Regardless of the API choice, these are the internal optimizations needed:
 -   Can be added transparently after launch
 -   Provides additional 10-15% performance gain
 
-For design details, see [OPTION-3-BATCHED-UPDATE-QUEUE.md](./option-3-batched-update-queue/OPTION-3-BATCHED-UPDATE-QUEUE.md)
+For design details, see [Batched Update Queue Design](./internal-batched-queue/BATCHED-UPDATE-QUEUE.md)
 
 ### Optimization 2: Memory Management
 

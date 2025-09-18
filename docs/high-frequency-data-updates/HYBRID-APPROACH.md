@@ -2,21 +2,21 @@
 
 ## Executive Summary
 
-This document explores how AG Charts can combine multiple high-frequency update strategies to create a flexible, performance-optimized system that adapts to different use cases. Based on our analysis, we recommend a **"3+1" hybrid approach**: Option 3 (Batched Queue) as the foundation, Option 1 (Incremental API) for developer interface, with optional Option 2 (Streaming) for specific real-time scenarios.
+This document explores how AG Charts can combine multiple high-frequency update strategies to create a flexible, performance-optimized system that adapts to different use cases. Based on our analysis, we recommend a **hybrid approach**: Batched Queue implementation as the foundation, Transaction API (Option B) for developer interface, with optional Stream API (Option C) for specific real-time scenarios.
 
 ## Recommended Hybrid Architecture
 
-### Core Foundation: Option 3 + Option 1
+### Core Foundation: Batched Queue + Transaction API
 
 ```typescript
-// Public API (Option 1 - Developer-facing)
+// Public API (Option B Transaction API - Developer-facing)
 chart.applyTransaction({
     add: [...],
     update: [...],
     remove: [...]
 });
 
-// Internal Processing (Option 3 - Performance optimization)
+// Internal Processing (Batched Queue - Performance optimization)
 class UpdateProcessor {
     private batchQueue = new BatchedUpdateQueue();
 
@@ -29,8 +29,8 @@ class UpdateProcessor {
 
 **Benefits:**
 
--   Clean, AG Grid-compatible API (Option 1)
--   Automatic performance optimization (Option 3)
+-   Clean, AG Grid-compatible API (Option B Transaction API)
+-   Automatic performance optimization (Batched Queue)
 -   Transparent to developers
 -   Best of both worlds
 
@@ -48,7 +48,7 @@ class StreamAdapter {
             // Convert stream to transactions
             const data = JSON.parse(event.data);
 
-            // Use Option 1 API internally
+            // Use Transaction API internally
             this.chart.applyTransaction({
                 update: [data],
             });
@@ -59,18 +59,18 @@ class StreamAdapter {
 
 ## Hybrid Combinations Analysis
 
-### 1. Option 3 + Option 1 (Recommended Primary)
+### 1. Batched Queue + Transaction API (Recommended Primary)
 
 **Architecture:**
 
 ```
-User API (Option 1) → Batch Queue (Option 3) → Render Pipeline
+User API (Transaction API) → Batch Queue → Render Pipeline
 ```
 
 **Implementation:**
 
--   Option 1 provides the public API
--   Option 3 handles internal optimization
+-   Transaction API (Option B) provides the public API
+-   Batched Queue handles internal optimization
 -   Seamless integration with existing architecture
 
 **Benefits:**
@@ -87,20 +87,20 @@ User API (Option 1) → Batch Queue (Option 3) → Render Pipeline
 -   IoT monitoring
 -   General purpose updates
 
-### 2. Option 3 + Option 1 + Option 2 (Full Suite)
+### 2. Batched Queue + Transaction API + Stream API (Full Suite)
 
 **Architecture:**
 
 ```
-Stream Sources → Stream Adapter (Option 2) →
+Stream Sources → Stream Adapter (Option C) →
                 ↓
-User API (Option 1) → Batch Queue (Option 3) → Render Pipeline
+User API (Transaction API) → Batch Queue → Render Pipeline
 ```
 
 **Implementation Phases:**
 
-1. Phase 1: Core (Option 3 + 1) - 10-12 weeks
-2. Phase 2: Stream adapter (Option 2) - 4-6 weeks additional
+1. Phase 1: Core (Batched Queue + Transaction API) - 10-12 weeks
+2. Phase 2: Stream adapter (Option C) - 4-6 weeks additional
 
 **Benefits:**
 
@@ -116,17 +116,17 @@ class AdaptiveUpdateStrategy {
     getStrategy(seriesType: SeriesType, updatePattern: UpdatePattern): UpdateStrategy {
         // Line/Area series with streaming data
         if (seriesType === 'line' && updatePattern === 'streaming') {
-            return new StreamingStrategy(); // Option 2 optimizations
+            return new StreamingStrategy(); // Stream API optimizations
         }
 
         // Bar/Column with batch updates
         if (seriesType === 'bar' && updatePattern === 'batch') {
-            return new BatchedStrategy(); // Option 3 optimizations
+            return new BatchedStrategy(); // Batched Queue optimizations
         }
 
         // Scatter with selective updates
         if (seriesType === 'scatter' && updatePattern === 'selective') {
-            return new IncrementalStrategy(); // Option 1 optimizations
+            return new IncrementalStrategy(); // Transaction API optimizations
         }
 
         // Default
@@ -141,15 +141,15 @@ class AdaptiveUpdateStrategy {
 
 **Based on Real Performance Data (1M data points: 580ms total, 393ms data processing, 3-4ms rendering):**
 
-| Scenario             | Option 1 Only | Option 3 Only | Hybrid (1+3) | Hybrid (1+2+3) | Performance Notes                     |
-| -------------------- | ------------- | ------------- | ------------ | -------------- | ------------------------------------- |
-| Single Update        | 5ms           | 16ms          | 5ms          | 5ms            | Minimal difference for small updates  |
-| Burst (100/sec)      | 450ms         | 85ms          | 85ms         | 85ms           | Data processing optimization critical |
-| Stream (continuous)  | 120ms         | 100ms         | 100ms        | 50ms           | Streaming adapter reduces overhead    |
-| Data Processing Time | 393ms         | 120ms         | 120ms        | 110ms          | **Primary optimization target (68%)** |
-| Rendering Time       | 3-4ms         | 3-4ms         | 3-4ms        | 3-4ms          | Minimal optimization needed (5%)      |
-| Memory Usage         | 120MB         | 78MB          | 80MB         | 85MB           | TypedArrays reduce by 50%             |
-| API Complexity       | Simple        | Internal      | Simple       | Moderate       | Developer experience maintained       |
+| Scenario             | Transaction Only | Batch Only | Hybrid (Trans+Batch) | Full Hybrid | Performance Notes                     |
+| -------------------- | ---------------- | ---------- | -------------------- | ----------- | ------------------------------------- |
+| Single Update        | 5ms              | 16ms       | 5ms                  | 5ms         | Minimal difference for small updates  |
+| Burst (100/sec)      | 450ms            | 85ms       | 85ms                 | 85ms        | Data processing optimization critical |
+| Stream (continuous)  | 120ms            | 100ms      | 100ms                | 50ms        | Streaming adapter reduces overhead    |
+| Data Processing Time | 393ms            | 120ms      | 120ms                | 110ms       | **Primary optimization target (68%)** |
+| Rendering Time       | 3-4ms            | 3-4ms      | 3-4ms                | 3-4ms       | Minimal optimization needed (5%)      |
+| Memory Usage         | 120MB            | 78MB       | 80MB                 | 85MB        | TypedArrays reduce by 50%             |
+| API Complexity       | Simple           | Internal   | Simple               | Moderate    | Developer experience maintained       |
 
 ### Adaptive Performance Tuning
 
@@ -202,7 +202,7 @@ class AdaptivePerformanceController {
 
 ### Phase 1: Foundation (Weeks 1-7)
 
-**Implement Option 3 Core with Data Processing Focus**
+**Implement Batched Queue Core with Data Processing Focus**
 
 -   Batched update queue (2 weeks)
 -   **Data processing optimization** (3 weeks) - **Primary performance impact**
@@ -212,7 +212,7 @@ class AdaptivePerformanceController {
 
 ### Phase 2: API Layer (Weeks 8-10)
 
-**Add Option 1 Interface**
+**Add Transaction API (Option B) Interface**
 
 -   Transaction API
 -   AG Grid compatibility
@@ -223,7 +223,7 @@ class AdaptivePerformanceController {
 
 **Connect Components with Performance Validation**
 
--   Wire Option 1 to Option 3
+-   Wire Transaction API to Batched Queue
 -   Add adaptive strategies based on data processing bottlenecks
 -   Performance tuning focused on 393ms data processing reduction
 -   Testing with real-world datasets (validate 68%/5% processing/rendering split)
@@ -231,7 +231,7 @@ class AdaptivePerformanceController {
 
 ### Phase 4: Streaming (Weeks 13-16) [Optional]
 
-**Add Option 2 Adapters**
+**Add Stream API (Option C) Adapters**
 
 -   WebSocket adapter
 -   SSE adapter
@@ -279,19 +279,19 @@ class AgChart {
 
 ### When to Use Each Component
 
-| Component              | Use When                       | Don't Use When     |
-| ---------------------- | ------------------------------ | ------------------ |
-| **Option 1 API**       | Always (public interface)      | Never (always use) |
-| **Option 3 Batching**  | Always (internal optimization) | Never (always use) |
-| **Option 2 Streaming** | WebSocket/SSE sources          | Batch data updates |
-| **Option 4 Diff**      | Never                          | Always (avoid)     |
+| Component           | Use When                       | Don't Use When     |
+| ------------------- | ------------------------------ | ------------------ |
+| **Transaction API** | Always (public interface)      | Never (always use) |
+| **Batched Queue**   | Always (internal optimization) | Never (always use) |
+| **Stream API**      | WebSocket/SSE sources          | Batch data updates |
+| **Virtual DOM**     | Never                          | Always (avoid)     |
 
 ### Configuration Examples
 
 ```typescript
 // Standard configuration (90% of use cases)
 const chart = AgCharts.create({
-    // Automatic Option 1 + 3 hybrid
+    // Automatic Transaction API + Batched Queue hybrid
     highFrequencyUpdates: {
         enabled: true,
         batchSize: 'auto',
@@ -316,7 +316,7 @@ const chart = AgCharts.create({
 
 ### Complexity Management
 
--   Start with simplest hybrid (3+1)
+-   Start with simplest hybrid (Batched Queue + Transaction API)
 -   Add streaming only when needed
 -   Maintain clear separation of concerns
 -   Extensive testing at each phase
@@ -332,12 +332,12 @@ const chart = AgCharts.create({
 
 ### Market Positioning
 
-| Competitor     | Their Approach               | Our Hybrid Advantage            |
-| -------------- | ---------------------------- | ------------------------------- |
-| HighCharts     | Boost module (Option 3-like) | Better API + AG Grid alignment  |
-| Chart.js       | Streaming plugin (Option 2)  | Built-in, no plugin needed      |
-| AG Grid        | Transactions (Option 1)      | Same API, optimized for charts  |
-| LightningChart | WebGL (specialized)          | Simpler, canvas-based, flexible |
+| Competitor     | Their Approach            | Our Hybrid Advantage            |
+| -------------- | ------------------------- | ------------------------------- |
+| HighCharts     | Boost module (batch-like) | Better API + AG Grid alignment  |
+| Chart.js       | Streaming plugin          | Built-in, no plugin needed      |
+| AG Grid        | Transactions              | Same API, optimized for charts  |
+| LightningChart | WebGL (specialized)       | Simpler, canvas-based, flexible |
 
 ### Unique Value Proposition
 
@@ -348,7 +348,7 @@ const chart = AgCharts.create({
 
 ## Conclusion
 
-The hybrid approach combining Options 3 and 1, with optional Option 2 for streaming, provides:
+The hybrid approach combining Batched Queue and Transaction API, with optional Stream API for streaming, provides:
 
 1. **Optimal Performance**: 2-3x improvement over current implementation
 2. **Developer Experience**: Simple API matching AG Grid patterns
@@ -358,13 +358,13 @@ The hybrid approach combining Options 3 and 1, with optional Option 2 for stream
 
 ### Final Recommendation
 
-Implement the **"3+1 Core"** hybrid immediately (10-12 weeks), delivering:
+Implement the **core hybrid** immediately (10-12 weeks), delivering:
 
--   Option 3's performance benefits
--   Option 1's developer-friendly API
+-   Batched Queue's performance benefits
+-   Transaction API's developer-friendly interface
 -   AG Grid ecosystem compatibility
 -   Foundation for future enhancements
 
-Then evaluate Option 2 streaming based on customer demand and use cases.
+Then evaluate Stream API (Option C) based on customer demand and use cases.
 
 This hybrid approach maximizes value while minimizing risk and complexity.

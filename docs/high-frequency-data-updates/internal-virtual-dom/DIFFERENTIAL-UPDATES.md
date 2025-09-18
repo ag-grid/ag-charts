@@ -1,4 +1,4 @@
-# Option 4: Differential Updates with Virtual DOM
+# Internal Implementation: Differential Updates with Virtual DOM (Not Recommended)
 
 ## Overview
 

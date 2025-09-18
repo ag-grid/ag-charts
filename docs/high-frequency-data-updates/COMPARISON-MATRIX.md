@@ -58,15 +58,15 @@ This document provides a comprehensive analysis and comparison of the proposed h
 -   **Rendering**: 3-4ms (5% of total) - Minimal optimization needed
 -   **Other Operations**: ~184ms (27% of total)
 
-| **Metric**               | **Current** | **Option 1** | **Option 2** | **Option 3**  | **Option 4** | **Notes**                |
-| ------------------------ | ----------- | ------------ | ------------ | ------------- | ------------ | ------------------------ |
-| **Total Execution Time** | 580ms       | 180ms        | 160ms        | **140ms**     | 890ms        | 1M data points           |
-| **Data Processing Time** | 393ms       | 120ms        | 110ms        | **95ms**      | 580ms        | 68% of baseline          |
-| **Rendering Time**       | 3-4ms       | 3-4ms        | 3-4ms        | **3-4ms**     | 8-12ms       | Not the bottleneck       |
-| **Memory Usage**         | 125MB       | 82MB         | 95MB         | **78MB**      | 248MB        | TypedArrays help         |
-| **CPU Usage**            | 85%         | 58%          | 62%          | **52%**       | 95%          | Data processing focused  |
-| **Frame Drops (60fps)**  | 34%         | 12%          | 15%          | **3.2%**      | 67%          | Maintains responsiveness |
-| **Mobile Performance**   | Poor        | Good         | Marginal     | **Excellent** | Unusable     | Critical for adoption    |
+| **Metric**               | **Current** | **Delta Only** | **Delta+Stream** | **Delta+Batch** | **Virtual DOM** | **Notes**                |
+| ------------------------ | ----------- | -------------- | ---------------- | --------------- | --------------- | ------------------------ |
+| **Total Execution Time** | 580ms       | 180ms          | 160ms            | **140ms**       | 890ms           | 1M data points           |
+| **Data Processing Time** | 393ms       | 120ms          | 110ms            | **95ms**        | 580ms           | 68% of baseline          |
+| **Rendering Time**       | 3-4ms       | 3-4ms          | 3-4ms            | **3-4ms**       | 8-12ms          | Not the bottleneck       |
+| **Memory Usage**         | 125MB       | 82MB           | 95MB             | **78MB**        | 248MB           | TypedArrays help         |
+| **CPU Usage**            | 85%         | 58%            | 62%              | **52%**         | 95%             | Data processing focused  |
+| **Frame Drops (60fps)**  | 34%         | 12%            | 15%              | **3.2%**        | 67%             | Maintains responsiveness |
+| **Mobile Performance**   | Poor        | Good           | Marginal         | **Excellent**   | Unusable        | Critical for adoption    |
 
 ### 2.2 Scalability Analysis
 
@@ -74,24 +74,24 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 #### 1K Data Points
 
--   **Option 1**: 98% improvement, excellent stability
--   **Option 2**: 85% improvement, good performance
--   **Option 3**: **102% improvement, optimal balance**
--   **Option 4**: -45% regression, poor efficiency
+-   **Delta Only**: 98% improvement, excellent stability
+-   **Delta+Stream**: 85% improvement, good performance
+-   **Delta+Batch**: **102% improvement, optimal balance**
+-   **Virtual DOM**: -45% regression, poor efficiency
 
 #### 10K Data Points
 
--   **Option 1**: 87% improvement, good performance
--   **Option 2**: 78% improvement, moderate overhead
--   **Option 3**: **95% improvement, excellent stability**
--   **Option 4**: -180% regression, unusable
+-   **Delta Only**: 87% improvement, good performance
+-   **Delta+Stream**: 78% improvement, moderate overhead
+-   **Delta+Batch**: **95% improvement, excellent stability**
+-   **Virtual DOM**: -180% regression, unusable
 
 #### 50K+ Data Points
 
--   **Option 1**: 65% improvement, complexity emerges
--   **Option 2**: 45% improvement, memory pressure
--   **Option 3**: **78% improvement, maintains performance**
--   **Option 4**: System failure, memory exhaustion
+-   **Delta Only**: 65% improvement, complexity emerges
+-   **Delta+Stream**: 45% improvement, memory pressure
+-   **Delta+Batch**: **78% improvement, maintains performance**
+-   **Virtual DOM**: System failure, memory exhaustion
 
 ---
 
@@ -99,36 +99,36 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ### 3.1 Development Effort Breakdown (Revised with Phased Approach)
 
-| **Component**           | **Phase 1 (Delta)** | **Phase 2 (Batching)** | **Old Option 1** | **Old Option 2** | **Old Option 4** |
-| ----------------------- | ------------------- | ---------------------- | ---------------- | ---------------- | ---------------- |
-| **Core Infrastructure** | 2 weeks             | +1 week                | 6 weeks          | 8 weeks          | 10 weeks         |
-| **Implementation**      | 1-2 weeks           | +2 weeks               | 12 weeks         | 14 weeks         | 7 weeks          |
-| **Testing**             | 1 week              | +1 week                | 4 weeks          | 6 weeks          | 5 weeks          |
-| **Total Effort**        | **4 weeks**         | **+3 weeks**           | **25 weeks**     | **32 weeks**     | **25 weeks**     |
+| **Component**           | **Phase 1 (Delta)** | **Phase 2 (Batching)** | **Transaction API** | **Stream API** | **Virtual DOM** |
+| ----------------------- | ------------------- | ---------------------- | ------------------- | -------------- | --------------- |
+| **Core Infrastructure** | 2 weeks             | +1 week                | 6 weeks             | 8 weeks        | 10 weeks        |
+| **Implementation**      | 1-2 weeks           | +2 weeks               | 12 weeks            | 14 weeks       | 7 weeks         |
+| **Testing**             | 1 week              | +1 week                | 4 weeks             | 6 weeks        | 5 weeks         |
+| **Total Effort**        | **4 weeks**         | **+3 weeks**           | **25 weeks**        | **32 weeks**   | **25 weeks**    |
 
 ### 3.2 Common Infrastructure Leverage
 
 **Shared Components Analysis** (from COMMON-IMPLEMENTATION-ELEMENTS.md):
 
 -   **Common Foundation**: 13-17 weeks (60-70% of work)
--   **Option 1 Specific**: 12 weeks (additional complexity)
--   **Option 2 Specific**: 14 weeks (streaming complexity)
--   **Option 3 Specific**: 4 weeks (**optimal efficiency**)
--   **Option 4 Specific**: 7 weeks (diff complexity)
+-   **Transaction API (Option B)**: 12 weeks (additional complexity)
+-   **Stream API (Option C)**: 14 weeks (streaming complexity)
+-   **Batched Queue Implementation**: 4 weeks (**optimal efficiency**)
+-   **Virtual DOM**: 7 weeks (diff complexity)
 
-**Key Insight**: Option 3 maximally leverages existing AG Charts infrastructure (DataService, UpdateService) while other options require substantial new architectures.
+**Key Insight**: Batched Queue implementation maximally leverages existing AG Charts infrastructure (DataService, UpdateService) while other API options require substantial new architectures.
 
 ### 3.3 Risk Assessment Matrix
 
-| **Risk Category**          | **Option 1** | **Option 2** | **Option 3** | **Option 4** |
-| -------------------------- | ------------ | ------------ | ------------ | ------------ |
-| **Technical Complexity**   | Medium       | High         | **Low**      | Critical     |
-| **Memory Management**      | Medium       | High         | **Low**      | Critical     |
-| **Performance Regression** | Low          | Medium       | **Low**      | Critical     |
-| **Framework Conflicts**    | Medium       | High         | **Low**      | High         |
-| **Maintenance Burden**     | Medium       | High         | **Low**      | Critical     |
-| **Browser Compatibility**  | Low          | Medium       | **Low**      | Medium       |
-| **Overall Risk Score**     | **5.3/10**   | **7.2/10**   | **2.5/10**   | **9.1/10**   |
+| **Risk Category**          | **Transaction API** | **Stream API** | **Batched Queue** | **Virtual DOM** |
+| -------------------------- | ------------------- | -------------- | ----------------- | --------------- |
+| **Technical Complexity**   | Medium              | High           | **Low**           | Critical        |
+| **Memory Management**      | Medium              | High           | **Low**           | Critical        |
+| **Performance Regression** | Low                 | Medium         | **Low**           | Critical        |
+| **Framework Conflicts**    | Medium              | High           | **Low**           | High            |
+| **Maintenance Burden**     | Medium              | High           | **Low**           | Critical        |
+| **Browser Compatibility**  | Low                 | Medium         | **Low**           | Medium          |
+| **Overall Risk Score**     | **5.3/10**          | **7.2/10**     | **2.5/10**        | **9.1/10**      |
 
 ---
 
@@ -154,15 +154,15 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ### 4.2 AG Grid Ecosystem Alignment
 
-| **Aspect**                 | **Option 1**  | **Option 2** | **Option 3** | **Option 4** |
-| -------------------------- | ------------- | ------------ | ------------ | ------------ |
-| **API Consistency**        | **Excellent** | Poor         | Good         | Poor         |
-| **Transaction Patterns**   | **Native**    | Foreign      | Compatible   | Conflicts    |
-| **Performance Philosophy** | **Aligned**   | Different    | **Aligned**  | Opposite     |
-| **Developer Migration**    | **Seamless**  | Complex      | **Simple**   | Difficult    |
-| **Ecosystem Benefits**     | **High**      | Low          | **Medium**   | Negative     |
+| **Aspect**                 | **Transaction API** | **Stream API** | **Batched Queue** | **Virtual DOM** |
+| -------------------------- | ------------------- | -------------- | ----------------- | --------------- |
+| **API Consistency**        | **Excellent**       | Poor           | Good              | Poor            |
+| **Transaction Patterns**   | **Native**          | Foreign        | Compatible        | Conflicts       |
+| **Performance Philosophy** | **Aligned**         | Different      | **Aligned**       | Opposite        |
+| **Developer Migration**    | **Seamless**        | Complex        | **Simple**        | Difficult       |
+| **Ecosystem Benefits**     | **High**            | Low            | **Medium**        | Negative        |
 
-**Critical Finding**: Option 1 provides perfect AG Grid API compatibility (`applyTransaction`), while Option 3 leverages AG Grid's proven batching patterns. Options 2 and 4 introduce foreign paradigms that conflict with the AG ecosystem.
+**Critical Finding**: Transaction API (Option B) provides perfect AG Grid API compatibility (`applyTransaction`), while Batched Queue implementation leverages AG Grid's proven batching patterns. Stream API (Option C) and Virtual DOM introduce foreign paradigms that conflict with the AG ecosystem.
 
 ---
 
@@ -170,44 +170,44 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ### 5.1 Application Scenario Analysis
 
-| **Use Case**              | **Frequency** | **Data Pattern**     | **Best Option** | **Alternative** | **Avoid** |
-| ------------------------- | ------------- | -------------------- | --------------- | --------------- | --------- |
-| **Financial Trading**     | 100-500 Hz    | Append + corrections | **Option 1**    | Option 3        | Option 4  |
-| **IoT Sensor Streams**    | 10-100 Hz     | Append-only          | **Option 3**    | Option 2        | Option 4  |
-| **Real-time Analytics**   | 20-60 Hz      | Mixed operations     | **Option 3**    | Option 1        | Option 4  |
-| **Market Data Feeds**     | 50-200 Hz     | Append + replace     | **Option 1**    | Option 3        | Option 4  |
-| **Scientific Monitoring** | 1-50 Hz       | Continuous streams   | **Option 2**    | Option 3        | Option 4  |
-| **Dashboard Updates**     | 5-30 Hz       | Batched updates      | **Option 3**    | Option 1        | Option 4  |
+| **Use Case**              | **Frequency** | **Data Pattern**     | **Best Option**     | **Alternative** | **Avoid**   |
+| ------------------------- | ------------- | -------------------- | ------------------- | --------------- | ----------- |
+| **Financial Trading**     | 100-500 Hz    | Append + corrections | **Transaction API** | Batched Queue   | Virtual DOM |
+| **IoT Sensor Streams**    | 10-100 Hz     | Append-only          | **Batched Queue**   | Stream API      | Virtual DOM |
+| **Real-time Analytics**   | 20-60 Hz      | Mixed operations     | **Batched Queue**   | Transaction API | Virtual DOM |
+| **Market Data Feeds**     | 50-200 Hz     | Append + replace     | **Transaction API** | Batched Queue   | Virtual DOM |
+| **Scientific Monitoring** | 1-50 Hz       | Continuous streams   | **Stream API**      | Batched Queue   | Virtual DOM |
+| **Dashboard Updates**     | 5-30 Hz       | Batched updates      | **Batched Queue**   | Transaction API | Virtual DOM |
 
 ### 5.2 Customer Segment Alignment
 
 **Enterprise Trading Firms**:
 
 -   **Primary Need**: Sub-50ms latency, transaction semantics
--   **Best Match**: Option 1 (AG Grid API compatibility)
--   **Fallback**: Option 3 (performance + simplicity)
+-   **Best Match**: Transaction API (Option B) with AG Grid API compatibility
+-   **Fallback**: Batched Queue implementation (performance + simplicity)
 
 **IoT/Manufacturing**:
 
 -   **Primary Need**: 24/7 stability, memory efficiency
--   **Best Match**: Option 3 (batching + memory management)
--   **Fallback**: Option 2 (streaming paradigm)
+-   **Best Match**: Batched Queue implementation (batching + memory management)
+-   **Fallback**: Stream API (Option C) for streaming paradigm
 
 **Analytics Platforms**:
 
 -   **Primary Need**: Flexible update patterns, framework integration
--   **Best Match**: Option 3 (balanced approach)
--   **Fallback**: Option 1 (transaction flexibility)
+-   **Best Match**: Batched Queue implementation (balanced approach)
+-   **Fallback**: Transaction API (Option B) for transaction flexibility
 
 **Small/Medium Applications**:
 
 -   **Primary Need**: Simplicity, minimal configuration
--   **Best Match**: Option 3 (automatic optimization)
+-   **Best Match**: Batched Queue implementation (automatic optimization)
 -   **Fallback**: Enhanced current approach
 
 ---
 
-## 6. Technical Deep Dive: Why Option 3 Wins
+## 6. Technical Deep Dive: Why Batched Queue Implementation Wins
 
 ### 6.1 Architectural Advantages
 
@@ -236,7 +236,7 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ### 6.2 Implementation Simplicity
 
-**Option 3 Implementation Path**:
+**Batched Queue Implementation Path**:
 
 1. **Week 1-2**: Basic queue + frame timer (core foundation)
 2. **Week 3-4**: Coalescing + overflow handling (optimization)
@@ -245,13 +245,13 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 **Comparison with Alternatives**:
 
--   **Option 1**: Requires complex transaction state management
--   **Option 2**: Needs entirely new streaming architecture
--   **Option 4**: Demands virtual state management system
+-   **Transaction API**: Requires complex transaction state management
+-   **Stream API**: Needs entirely new streaming architecture
+-   **Virtual DOM**: Demands virtual state management system
 
 ### 6.3 Performance Characteristics
 
-**Option 3 Performance Profile (Based on real measurements)**:
+**Batched Queue Performance Profile (Based on real measurements)**:
 
 -   **Total Execution Time**: 140ms (76% improvement from 580ms baseline)
 -   **Data Processing**: 95ms (76% improvement from 393ms baseline)
@@ -266,26 +266,26 @@ This document provides a comprehensive analysis and comparison of the proposed h
 **Total Execution Time:**
 
 -   **Current Approach**: 580ms
--   **Option 1**: 180ms (-69%)
--   **Option 2**: 160ms (-72%)
--   **Option 3**: 140ms (-76%) ⭐
--   **Option 4**: 890ms (+53%)
+-   **Delta Only**: 180ms (-69%)
+-   **Delta+Stream**: 160ms (-72%)
+-   **Delta+Batch**: 140ms (-76%) ⭐
+-   **Virtual DOM**: 890ms (+53%)
 
 **Data Processing Time (primary bottleneck):**
 
 -   **Current Approach**: 393ms (68%)
--   **Option 1**: 120ms (-69%)
--   **Option 2**: 110ms (-72%)
--   **Option 3**: 95ms (-76%) ⭐
--   **Option 4**: 580ms (+47%)
+-   **Delta Only**: 120ms (-69%)
+-   **Delta+Stream**: 110ms (-72%)
+-   **Delta+Batch**: 95ms (-76%) ⭐
+-   **Virtual DOM**: 580ms (+47%)
 
 **Memory Efficiency:**
 
 -   **Current Approach**: 125MB
--   **Option 1**: 82MB (-34%)
--   **Option 2**: 95MB (-24%)
--   **Option 3**: 78MB (-38%) ⭐
--   **Option 4**: 248MB (+98%)
+-   **Delta Only**: 82MB (-34%)
+-   **Delta+Stream**: 95MB (-24%)
+-   **Delta+Batch**: 78MB (-38%) ⭐
+-   **Virtual DOM**: 248MB (+98%)
 
 ---
 
@@ -293,28 +293,28 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ### 7.1 When to Use Each Option
 
-**Choose Option 1 (Incremental) if**:
+**Choose Transaction API (Option B) if**:
 
 -   AG Grid integration is critical
 -   Financial trading use case
 -   Transaction semantics required
 -   Complex update patterns needed
 
-**Choose Option 2 (Streaming) if**:
+**Choose Stream API (Option C) if**:
 
 -   Native streaming architecture exists
 -   Observable/reactive patterns preferred
 -   IoT sensor data primary use case
 -   Team has streaming expertise
 
-**Choose Option 3 (Batched Queue) if**: ⭐ **RECOMMENDED**
+**Choose Batched Queue Implementation if**: ⭐ **RECOMMENDED**
 
 -   Balanced performance and simplicity needed
 -   Multiple use cases to support
 -   Framework-agnostic solution required
 -   Fastest time to market desired
 
-**Never Choose Option 4 (Virtual DOM)**:
+**Never Choose Virtual DOM**:
 
 -   Performance regression unacceptable
 -   Memory overhead prohibitive
@@ -323,7 +323,7 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ### 7.2 Migration Strategy
 
-**Phase 1: Foundation** (Option 3 Implementation)
+**Phase 1: Foundation** (Batched Queue Implementation)
 
 1. Implement batched update queue (Weeks 1-4)
 2. Add basic coalescing strategies (Weeks 5-6)
@@ -331,8 +331,8 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 **Phase 2: Enhancement** (Optional Extensions)
 
-1. Add Option 1 transaction API layer (Weeks 8-12)
-2. Implement Option 2 streaming utilities (Weeks 13-18)
+1. Add Transaction API (Option B) layer (Weeks 8-12)
+2. Implement Stream API (Option C) utilities (Weeks 13-18)
 3. Framework-specific optimizations (Weeks 19-22)
 
 **Phase 3: Optimization** (Continuous Improvement)
@@ -367,7 +367,7 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ### 8.2 Unique Value Proposition
 
-**Option 3 Delivers**:
+**Batched Queue Implementation Delivers**:
 
 1. **Best Performance/Complexity Ratio**: 95% of specialized performance with mainstream complexity
 2. **Ecosystem Integration**: Seamless AG Grid compatibility
@@ -391,7 +391,7 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ### 9.2 Business Benefits Analysis
 
-**Option 3 Business Benefits**:
+**Batched Queue Implementation Business Benefits**:
 
 -   **Faster Time to Market**: 7 weeks vs 18-32 weeks for alternatives
 -   **Lower Development Risk**: Proven patterns, minimal complexity
@@ -437,7 +437,7 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 **Phase 4: Future Enhancements** (Weeks 8+)
 
--   [ ] Option 1 transaction API layer (if needed)
+-   [ ] Transaction API (Option B) layer (if needed)
 -   [ ] Advanced coalescing strategies
 -   [ ] Customer-specific optimizations
 -   [ ] Enterprise monitoring features
@@ -513,7 +513,7 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 **Next Steps**:
 
-1. **Approve Option 3 implementation** for immediate development start
+1. **Approve Batched Queue implementation** for immediate development start
 2. **Allocate development team** (2 senior engineers for 7 weeks)
 3. **Establish performance testing framework** for continuous validation
 4. **Plan customer beta program** for real-world validation
@@ -523,7 +523,7 @@ This document provides a comprehensive analysis and comparison of the proposed h
 
 ## Conclusion
 
-Based on comprehensive analysis of technical feasibility, performance characteristics, implementation complexity, and market alignment, **Option 3 (Batched Update Queue)** emerges as the clear choice for AG Charts high-frequency data updates.
+Based on comprehensive analysis of technical feasibility, performance characteristics, implementation complexity, and market alignment, **Batched Update Queue implementation** emerges as the clear choice for AG Charts high-frequency data updates.
 
 This decision is supported by:
 
@@ -533,4 +533,4 @@ This decision is supported by:
 -   **Risk assessment**: Lowest risk profile across all dimensions
 -   **Business case**: Fastest time to market with highest customer impact
 
-Option 3 positions AG Charts to lead the market in high-frequency data visualization while maintaining the reliability and performance that customers expect from the AG ecosystem.
+The Batched Queue implementation positions AG Charts to lead the market in high-frequency data visualization while maintaining the reliability and performance that customers expect from the AG ecosystem.

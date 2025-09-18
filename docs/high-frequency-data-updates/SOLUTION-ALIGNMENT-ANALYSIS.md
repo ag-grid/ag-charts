@@ -2,13 +2,13 @@
 
 ## Executive Summary
 
-This document cross-references AG Charts' four proposed high-frequency update solutions with competitor approaches and AG Grid patterns. Our analysis reveals that Option 3 (Batched Update Queue) aligns most closely with market leaders, while Option 1 (Incremental Update API) matches AG Grid's successful transaction pattern.
+This document cross-references AG Charts' proposed high-frequency update solutions with competitor approaches and AG Grid patterns. Our analysis reveals that Batched Update Queue implementation aligns most closely with market leaders, while Transaction API (Option B) matches AG Grid's successful transaction pattern.
 
 ## Option-to-Market Alignment Matrix
 
 **Performance Context**: Real-world profiling shows data processing consumes 393ms (68%) vs 3-4ms (5%) for rendering in a 580ms total execution for 1M data points. This analysis prioritizes solutions that address the actual performance bottleneck.
 
-### Option 1: Incremental Update API
+### Option B: Transaction-Based API
 
 **Direct Market Alignments:**
 
@@ -30,7 +30,7 @@ This document cross-references AG Charts' four proposed high-frequency update so
 -   Lower learning curve for existing AG Grid users
 -   Clear upgrade path from `chart.update()` to `chart.applyTransaction()`
 
-### Option 2: Stream-Based API
+### Option C: Stream-Based API
 
 **Direct Market Alignments:**
 
@@ -52,7 +52,7 @@ This document cross-references AG Charts' four proposed high-frequency update so
 -   Aligns with modern reactive programming paradigms
 -   Risk: Complexity similar to Chart.js plugin requirement
 
-### Option 3: Batched Update Queue (Recommended - Addresses 68% Bottleneck)
+### Internal Implementation: Batched Update Queue (Recommended - Addresses 68% Bottleneck)
 
 **Direct Market Alignments:**
 
@@ -78,7 +78,7 @@ This document cross-references AG Charts' four proposed high-frequency update so
 -   Transparent to users while providing 76% performance improvement
 -   Focus on data processing efficiency, not rendering complexity
 
-### Option 4: Differential Updates with Virtual DOM
+### Internal Implementation: Differential Updates with Virtual DOM (Not Recommended)
 
 **Direct Market Alignments:**
 
@@ -103,13 +103,13 @@ This document cross-references AG Charts' four proposed high-frequency update so
 
 ### Strong Alignments (Adopt These)
 
-1. **Transaction-Based Updates** (Option 1)
+1. **Transaction-Based Updates** (Option B)
 
     - AG Grid: `applyTransaction()` → AG Charts: `applyTransaction()`
     - Consistent API across product family
     - Proven at 150K updates/sec
 
-2. **Async Batching** (Option 3)
+2. **Async Batching** (Batched Queue Implementation)
 
     - AG Grid: `applyTransactionAsync()` → AG Charts: `applyTransactionAsync()`
     - Configurable batch window (`asyncTransactionWaitMillis`)
@@ -139,42 +139,42 @@ This document cross-references AG Charts' four proposed high-frequency update so
 
 **LightningChart JS** (Tier 1 - Specialized):
 
--   ✅ Option 1: `add()` incremental API
--   ✅ Option 3: WebGL frame batching
--   ❌ Option 2: No native streaming API
--   ❌ Option 4: No virtual DOM
+-   ✅ Transaction API: `add()` incremental API
+-   ✅ Batched Queue: WebGL frame batching
+-   ❌ Stream API: No native streaming API
+-   ❌ Virtual DOM: Not used
 
 **ECharts** (Tier 2 - Enterprise):
 
--   ✅ Option 1: `appendData` incremental API
--   ✅ Option 3: Automatic frame batching
--   ❌ Option 2: No streaming (manual WebSocket)
--   ❌ Option 4: No differential updates
+-   ✅ Transaction API: `appendData` incremental API
+-   ✅ Batched Queue: Automatic frame batching
+-   ❌ Stream API: No streaming (manual WebSocket)
+-   ❌ Virtual DOM: No differential updates
 
 **HighCharts** (Tier 2 - Enterprise):
 
--   ⚠️ Option 1: `addPoint` but not transaction-based
--   ✅ Option 3: Boost module batching
--   ❌ Option 2: No native streaming
--   ❌ Option 4: No differential updates
+-   ⚠️ Transaction API: `addPoint` but not fully transaction-based
+-   ✅ Batched Queue: Boost module batching
+-   ❌ Stream API: No native streaming
+-   ❌ Virtual DOM: No differential updates
 
 ### Solution Adoption by Tier
 
-| Tier            | Option 1 (Incremental) | Option 2 (Stream) | Option 3 (Batched) | Option 4 (Differential) |
-| --------------- | ---------------------- | ----------------- | ------------------ | ----------------------- |
-| **Specialized** | 100% (3/3)             | 33% (1/3)         | 100% (3/3)         | 0% (0/3)                |
-| **Enterprise**  | 83% (5/6)              | 17% (1/6)         | 67% (4/6)          | 0% (0/6)                |
-| **General**     | 33% (2/6)              | 33% (2/6)         | 17% (1/6)          | 0% (0/6)                |
-| **Framework**   | 25% (1/4)              | 0% (0/4)          | 0% (0/4)           | 25% (1/4)               |
+| Tier            | Transaction API | Stream API | Batched Queue | Virtual DOM |
+| --------------- | --------------- | ---------- | ------------- | ----------- |
+| **Specialized** | 100% (3/3)      | 33% (1/3)  | 100% (3/3)    | 0% (0/3)    |
+| **Enterprise**  | 83% (5/6)       | 17% (1/6)  | 67% (4/6)     | 0% (0/6)    |
+| **General**     | 33% (2/6)       | 33% (2/6)  | 17% (1/6)     | 0% (0/6)    |
+| **Framework**   | 25% (1/4)       | 0% (0/4)   | 0% (0/4)      | 25% (1/4)   |
 
 ## Recommended Approach Based on Analysis
 
-### Primary Implementation: Hybrid of Options 1 & 3 (Data Processing Focused)
+### Primary Implementation: Hybrid of Transaction API & Batched Queue (Data Processing Focused)
 
 **Rationale:**
 
-1. **Option 1** provides AG Grid API compatibility and market-proven patterns
-2. **Option 3** delivers performance through data processing optimization (68% of execution time)
+1. **Transaction API (Option B)** provides AG Grid API compatibility and market-proven patterns
+2. **Batched Queue implementation** delivers performance through data processing optimization (68% of execution time)
 3. **Focus on actual bottleneck**: 393ms data processing vs 3-4ms rendering
 4. Combined approach matches AG Grid's `applyTransaction` + `applyTransactionAsync`
 5. **Measurable impact**: Potential 580ms → 140ms (76% improvement) total execution time
@@ -182,14 +182,14 @@ This document cross-references AG Charts' four proposed high-frequency update so
 **Implementation Strategy:**
 
 ```typescript
-// Option 1: Synchronous incremental API (low-frequency)
+// Transaction API (Option B): Synchronous incremental API (low-frequency)
 chart.applyTransaction({
   add: [...],
   update: [...],
   remove: [...]
 });
 
-// Option 3: Async batched API (high-frequency)
+// Batched Queue: Async batched API (high-frequency)
 chart.applyTransactionAsync({
   update: streamingData
 }, callback);
@@ -205,13 +205,13 @@ const options = {
 };
 ```
 
-### Secondary Consideration: Option 2 (Future Enhancement)
+### Secondary Consideration: Stream API (Option C) - Future Enhancement
 
 -   Implement as optional enhancement after core solution
 -   Provide as wrapper/utility rather than core API
 -   Target specific use cases (WebSocket, SSE integration)
 
-### Not Recommended: Option 4
+### Not Recommended: Virtual DOM Implementation
 
 -   No successful market precedent in canvas-based charting
 -   High complexity without proven benefits
@@ -221,8 +221,8 @@ const options = {
 
 ### Against Specialized Solutions (LightningChart, SciChart)
 
--   Match incremental API patterns (Option 1)
--   Implement data processing optimization for performance (Option 3)
+-   Match incremental API patterns (Transaction API)
+-   Implement data processing optimization for performance (Batched Queue)
 -   **Demonstrate measurable advantage**: 76% execution time reduction (580ms → 140ms)
 -   Differentiate: No WebGL/WebAssembly complexity while matching data processing efficiency
 -   **Message**: "90% performance at 30% complexity, with focus on actual bottlenecks"
@@ -245,13 +245,13 @@ const options = {
 
 ## Risk Mitigation
 
-### Option 1 Risks
+### Transaction API Risks
 
 -   **Risk**: API complexity for simple use cases
 -   **Mitigation**: Maintain backward compatibility with current `update()`
 -   **Mitigation**: Provide migration guide and codemods
 
-### Option 3 Risks
+### Batched Queue Risks
 
 -   **Risk**: Batch window tuning complexity
 -   **Mitigation**: Smart defaults based on update frequency
@@ -265,7 +265,7 @@ const options = {
 
 ## Conclusion
 
-The market analysis strongly supports a hybrid approach combining Options 1 and 3, aligning with both AG Grid's proven patterns and industry best practices. This positions AG Charts to:
+The market analysis strongly supports a hybrid approach combining Transaction API (Option B) and Batched Queue implementation, aligning with both AG Grid's proven patterns and industry best practices. This positions AG Charts to:
 
 1. **Capture AG Grid users** through familiar APIs
 2. **Compete with enterprise solutions** through superior performance

@@ -1,4 +1,4 @@
-# Option 1: Incremental Update API for AG Charts High-Frequency Data Updates
+# Option B: Transaction-Based API for AG Charts High-Frequency Data Updates
 
 ## Executive Summary
 

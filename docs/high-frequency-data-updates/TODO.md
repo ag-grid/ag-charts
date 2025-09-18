@@ -2,16 +2,16 @@
 
 ## Status: Analysis Phase Complete ✅
 
-All critical analysis and documentation tasks have been completed. The recommendation is to proceed with the **hybrid "3+1" approach** combining Option 3 (Batched Update Queue) with Option 1's API design.
+All critical analysis and documentation tasks have been completed. The recommendation is to proceed with the **hybrid approach** combining Batched Update Queue implementation with Transaction API (Option B) design.
 
 ## Context
 
 We have completed comprehensive analysis of four different approaches for implementing high-frequency data updates in AG Charts:
 
-1. **Option 1: Incremental Update API** ✅ - Transaction-based API with AG Grid alignment
-2. **Option 2: Stream-Based API** ✅ - Native streaming without dependencies
-3. **Option 3: Batched Update Queue** ✅ - Frame-aligned batching (RECOMMENDED)
-4. **Option 4: Differential Updates** ✅ - Virtual DOM analysis (NOT RECOMMENDED)
+1. **Option B: Transaction-Based API** ✅ - Transaction-based API with AG Grid alignment
+2. **Option C: Stream-Based API** ✅ - Native streaming without dependencies
+3. **Internal: Batched Update Queue** ✅ - Frame-aligned batching (RECOMMENDED)
+4. **Internal: Differential Updates** ✅ - Virtual DOM analysis (NOT RECOMMENDED)
 
 ## Completed Tasks Summary
 
@@ -30,23 +30,23 @@ We have completed comprehensive analysis of four different approaches for implem
 
 ### ✅ Option Design Documents
 
-#### Option 1: Incremental Update API
+#### Option B: Transaction-Based API
 
--   [x] **Main Design Document** - OPTION-1-INCREMENTAL-UPDATE.md created
+-   [x] **Main Design Document** - OPTION-B-TRANSACTION-API.md created
 -   [x] **Line Series Feasibility** - Comprehensive analysis with 95-99% performance improvement
 -   [x] **React Implementation** - Custom hooks and React 18+ features documented
 -   [x] **Angular Implementation** - Signals and RxJS patterns documented
 -   [x] **Vue Implementation** - Composition API patterns documented
 
-#### Option 2: Stream-Based API
+#### Option C: Stream-Based API
 
--   [x] **Main Design Document** - OPTION-2-STREAM-BASED.md created
+-   [x] **Main Design Document** - OPTION-C-STREAM-API.md created
 -   [x] **Line Series Feasibility** - 7.5/10 feasibility with backpressure complexity
 -   [x] **React Implementation** - useSyncExternalStore and concurrent features
 -   [x] **Angular Implementation** - RxJS-centric stream architecture
 -   [x] **Vue Implementation** - Reactive stream handling with composables
 
-#### Option 3: Batched Update Queue
+#### Internal Implementation: Batched Update Queue
 
 -   [x] **Main Design Document** - Already existed, reviewed
 -   [x] **Line Series Feasibility** - Highest feasibility, best ROI
@@ -54,7 +54,7 @@ We have completed comprehensive analysis of four different approaches for implem
 -   [x] **Angular Implementation** - Complete
 -   [x] **Vue Implementation** - Complete
 
-#### Option 4: Differential Updates
+#### Internal Implementation: Differential Updates
 
 -   [x] **Main Design Document** - Analysis showing why it's not viable
 -   [x] **Line Series Feasibility** - Evidence against this approach
@@ -63,7 +63,7 @@ We have completed comprehensive analysis of four different approaches for implem
 ### ✅ Synthesis Documents
 
 -   [x] **Comparison Matrix** - COMPARISON-MATRIX.md with final recommendation
--   [x] **Hybrid Approach** - HYBRID-APPROACH.md combining Options 3+1
+-   [x] **Hybrid Approach** - HYBRID-APPROACH.md combining Batched Queue + Transaction API
 -   [x] **Document Linkage** - All documents properly linked through PRD/DESIGN_DOC
 
 ## Remaining Implementation Tasks
@@ -92,18 +92,18 @@ Can be done during implementation to validate approaches:
 
 ## Next Steps - Implementation Phase
 
-Based on the completed analysis, proceed with the **hybrid "3+1" approach**:
+Based on the completed analysis, proceed with the **hybrid approach** (Batched Queue + Transaction API):
 
 ### Phase 1: Core Implementation (Weeks 1-7)
 
--   [ ] Implement Option 3 batched update queue infrastructure
+-   [ ] Implement batched update queue infrastructure
 -   [ ] Add common Line Series optimizations
 -   [ ] Create performance monitoring framework
 -   [ ] Implement memory management system
 
 ### Phase 2: API Layer (Weeks 8-10)
 
--   [ ] Add Option 1 transaction API
+-   [ ] Add Transaction API (Option B)
 -   [ ] Ensure AG Grid compatibility
 -   [ ] Create migration utilities
 -   [ ] Write developer documentation
@@ -118,7 +118,7 @@ Based on the completed analysis, proceed with the **hybrid "3+1" approach**:
 
 ### Phase 4: Optional Enhancements (Future)
 
--   [ ] Option 2 streaming adapters if customer demand exists
+-   [ ] Stream API (Option C) adapters if customer demand exists
 -   [ ] Additional framework examples using simplified API as needed
 -   [ ] POC for specific customer use cases
 

@@ -48,8 +48,8 @@ Real-world performance profiling has fundamentally shifted our optimization stra
 
 **Timeline: 2-3 weeks**
 
--   Option 1 (Incremental API) for developer experience
--   Option 3 (Batched Queue) for performance optimization
+-   Transaction API (Option B) for developer experience
+-   Batched Queue implementation for performance optimization
 -   Maintain backward compatibility
 
 ### Phase 3: Rendering Polish (Low priority - 5% impact)

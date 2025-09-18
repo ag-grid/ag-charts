@@ -1,4 +1,4 @@
-# Option 2: Stream-Based API for AG Charts High-Frequency Data Updates
+# Option C: Stream-Based API for AG Charts High-Frequency Data Updates
 
 ## Executive Summary
 
