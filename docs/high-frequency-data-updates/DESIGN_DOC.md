@@ -517,10 +517,6 @@ watch(data, (newData) => {
 4. **Let developers choose** their own optimization patterns
 5. **Provide examples** not prescriptive implementations
 
-### Archived Framework-Specific Approaches
-
-Previous framework-specific implementation documents have been archived in `./archived-framework-specific/` for reference. These approaches were deemed overly complex compared to AG Grid's simpler pattern.
-
 ## Testing Strategy
 
 ### Unit Tests
