@@ -176,76 +176,233 @@ This performance profile validates the recommended Option 3 (Batched Update Queu
 -   Server-side aggregation or data processing
 -   Bi-directional data binding
 -   Background worker processing (initially)
+-   Framework-specific or optimized implementations (React, Angular, Vue)
 
-## Solution Options
+## User-Facing API Options
 
-### Option 1: Incremental Update API
+The first key decision is how users will provide data changes to AG Charts. This is separate from how we internally process those changes.
 
-**Approach**: New `updateData()` method that bypasses full reconciliation
+### Option A: Unique Identifier-Based Delta Detection (NEW)
+
+**Approach**: Users provide full data array with unique identifiers; system automatically detects changes
+
+**How it works**:
+
+```typescript
+// User provides data with unique IDs
+chart.update({
+    data: [
+        { id: 'trade-1', timestamp: 1000, value: 100 },
+        { id: 'trade-2', timestamp: 2000, value: 102 }, // Updated
+        { id: 'trade-4', timestamp: 4000, value: 105 }, // New
+        // trade-3 is implicitly removed
+    ],
+    dataId: 'id', // Specify which field is the unique identifier
+});
+```
 
 **Pros**:
 
--   Minimal API surface change
--   Clear separation of data vs configuration updates
--   Easy to implement incremental rendering
+-   Simplest API for users - just provide data
+-   Follows AG Grid's `getRowId` pattern
+-   No need to track changes explicitly
+-   Works with existing `update()` method
 
 **Cons**:
 
--   Requires users to manage update operations
--   Complex for multi-series updates
--   Doesn't address framework reconciliation
+-   Requires unique IDs in data
+-   System must compute delta (O(n) comparison)
+-   Memory overhead for tracking previous state
 
-### Option 2: Stream-Based API
+### Option B: Transaction-Based API (Incremental Updates)
+
+**Approach**: Explicit `applyTransaction()` method with add/update/remove operations
+
+**How it works**:
+
+```typescript
+chart.applyTransaction({
+    add: [{ timestamp: 4000, value: 105 }],
+    update: [{ id: 'trade-2', value: 102 }],
+    remove: ['trade-3'],
+});
+```
+
+**Pros**:
+
+-   Precise control over operations
+-   Follows AG Grid transaction pattern
+-   No delta computation needed
+-   Optimal performance
+
+**Cons**:
+
+-   Users must track changes
+-   More complex API
+-   Requires learning new patterns
+
+For detailed design, see [OPTION-1-INCREMENTAL-UPDATE.md](./option-1-incremental-update/OPTION-1-INCREMENTAL-UPDATE.md)
+
+### Option C: Stream-Based API
 
 **Approach**: Observable/stream pattern for continuous updates
 
+**How it works**:
+
+```typescript
+const stream = chart.createDataStream();
+stream.next({ timestamp: Date.now(), value: 105 });
+```
+
 **Pros**:
 
--   Natural fit for real-time data
+-   Natural for real-time data
 -   Built-in backpressure handling
--   Familiar pattern for developers
+-   Composable with RxJS/streams
 
 **Cons**:
 
--   Larger API surface change
--   Potential confusion with existing update mechanism
--   May require polyfills for older browsers
+-   New paradigm for AG ecosystem
+-   Learning curve
+-   Dependency considerations
 
-### Option 3: Batched Update Queue with Data Transactions (Recommended)
+For detailed design, see [OPTION-2-STREAM-BASED.md](./option-2-stream-based/OPTION-2-STREAM-BASED.md)
 
-**Approach**: Internal queue that batches updates within animation frames with structured transactions
+### Option D: Enhanced Current Approach
+
+**Approach**: Continue using `update()`/`updateDelta()` with internal optimizations
 
 **Pros**:
 
--   Backward compatible with progressive enhancement
--   Automatic batching reduces render calls
--   Framework-agnostic solution
--   Natural integration with existing UpdateService
--   Supports atomic batch operations with sequence ordering
--   Can leverage existing `DataService` throttling infrastructure
+-   No API changes
+-   Backward compatible
+-   Familiar to users
 
 **Cons**:
 
--   Internal complexity for queue management
--   Need careful memory management
--   Must ensure navigator/zoom state consistency during transactions
+-   Limited optimization potential
+-   No explicit change semantics
+-   Framework reconciliation overhead
 
-For detailed implementation, see [OPTION-3-BATCHED-UPDATE-QUEUE.md](./option-3-batched-update-queue/OPTION-3-BATCHED-UPDATE-QUEUE.md)
+### Option E: Hybrid Approach (Recommended)
 
-### Option 4: Differential Updates with Virtual DOM
+**Approach**: Support both identifier-based (Option A) and transaction-based (Option B)
 
-**Approach**: Track changes and apply minimal updates similar to React
+```typescript
+// Method 1: Automatic delta detection
+chart.update({ data: newData, dataId: 'id' });
+
+// Method 2: Explicit transactions
+chart.applyTransaction({ add: [...], update: [...] });
+```
 
 **Pros**:
 
--   Optimal performance for partial updates
--   Framework patterns familiar to developers
+-   Flexibility for different use cases
+-   Easy migration path
+-   Matches AG Grid patterns
 
 **Cons**:
 
--   Significant architectural change
--   High implementation complexity
--   Memory overhead for diff tracking
+-   Two patterns to maintain
+-   Potential user confusion
+
+## Internal Implementation Strategies
+
+Regardless of the API choice, these are the internal optimizations needed:
+
+### Core Requirement: Efficient Delta Processing
+
+**Focus**: Process only changed data, not entire dataset
+
+**Key Optimizations**:
+
+-   **Incremental domain calculation**: Update min/max without full scan
+-   **Partial data processing**: Process only affected series
+-   **Memory pooling**: Reuse objects to reduce GC pressure
+-   **TypedArray usage**: 50% memory reduction for numeric data
+
+**Performance Impact**: 76% reduction in processing time (393ms → 95ms)
+
+### Optimization 1: Batched Update Queue (Deferred to Phase 2)
+
+**Approach**: Queue updates and process in animation frames
+
+**Status**: **Defer as later optimization**, not core requirement
+
+**Rationale**:
+
+-   Adds complexity to initial implementation
+-   Core delta processing is the main challenge
+-   Can be added transparently after launch
+-   Provides additional 10-15% performance gain
+
+For design details, see [OPTION-3-BATCHED-UPDATE-QUEUE.md](./option-3-batched-update-queue/OPTION-3-BATCHED-UPDATE-QUEUE.md)
+
+### Optimization 2: Memory Management
+
+**Approach**: Implement retention policies and ring buffers
+
+**Components**:
+
+-   Time-based retention (keep last N minutes)
+-   Count-based retention (keep last N points)
+-   Ring buffer for fixed-size windows
+-   Automatic trimming on memory pressure
+
+### Optimization 3: Rendering Pipeline
+
+**Note**: Rendering is only 3-4ms (less than 1% of total time)
+
+**Minimal optimizations needed**:
+
+-   Keep full canvas redraw (already fast)
+-   No complex culling needed
+-   Focus on data processing instead
+
+## Recommended Implementation Approach
+
+### Phase 1: Core Delta Processing (Weeks 1-4)
+
+**Priority**: Implement efficient delta processing regardless of API choice
+
+1. **Week 1-2**: Incremental data processing pipeline
+
+    - Partial series updates
+    - Incremental domain calculations
+    - Memory pooling infrastructure
+
+2. **Week 3**: API Implementation
+
+    - Choose Option A (identifier-based) or B (transaction-based)
+    - Or implement hybrid (both)
+    - Keep API surface minimal initially
+
+3. **Week 4**: Testing and optimization
+    - Performance benchmarks
+    - Memory profiling
+    - Framework integration testing
+
+### Phase 2: Performance Optimizations (Weeks 5-6) - Optional
+
+**Can be deferred to post-release**
+
+1. **Batched Update Queue**
+
+    - Add requestAnimationFrame batching
+    - Implement coalescing strategies
+    - Queue overflow handling
+
+2. **Advanced Memory Management**
+    - Sophisticated retention policies
+    - Predictive memory allocation
+    - GC optimization
+
+### Phase 3: Additional API Options (Future)
+
+1. Stream-based API if customer demand
+2. WebSocket adapters
+3. Framework-specific helpers
 
 ## Framework Integration Strategy
 
@@ -268,14 +425,20 @@ Based on AG Grid's proven approach to high-frequency updates (achieving 150,000+
 The high-frequency update capability is exposed through simple chart instance methods:
 
 ```javascript
-// Immediate transaction (for infrequent updates)
+// Option A: Identifier-based automatic delta detection
+chart.update({
+    data: newDataArray,
+    dataId: 'id' // Field to use as unique identifier
+});
+
+// Option B: Explicit transaction (for precise control)
 chart.applyDataTransaction({
     add: [...],
     update: [...],
     remove: [...],
 });
 
-// Async transaction (for high-frequency updates)
+// Future: Async transaction with batching (Phase 2 optimization)
 chart.applyDataTransactionAsync({
     add: [...],
     update: [...],
@@ -372,26 +535,51 @@ Previous framework-specific implementation documents have been archived in `./ar
 
 Based on comprehensive analysis documented in the sub-documents:
 
-### Primary Recommendation: Hybrid "3+1" Approach
+### Primary Recommendation: Phased Approach
 
--   **Core**: Option 3 (Batched Update Queue) for internal optimization
--   **API**: Option 1 (Incremental/Transaction API) for developer interface
--   **Future**: Option 2 (Streaming) as optional enhancement
--   **Avoid**: Option 4 (Virtual DOM) - fundamentally incompatible with canvas
+#### Phase 1: Core Delta Processing (Required)
 
-### Implementation Roadmap
+-   **API**: Option A (Identifier-based) and/or Option B (Transaction-based)
+-   **Internal**: Efficient incremental data processing
+-   **Timeline**: 4 weeks
+-   **Performance**: 60-70% improvement from delta processing alone
 
-1. **Phase 1** (Weeks 1-7): Implement Option 3 core batching system
-2. **Phase 2** (Weeks 8-10): Add Option 1 transaction API layer
-3. **Phase 3** (Weeks 11-12): Integration and optimization
-4. **Phase 4** (Optional): Add streaming adapters if needed
+#### Phase 2: Batching Optimization (Optional)
+
+-   **Internal**: Add batched update queue for additional performance
+-   **Timeline**: 2-3 weeks
+-   **Performance**: Additional 10-15% improvement
+-   **Note**: Can be added post-release as transparent optimization
+
+#### Phase 3: Extended APIs (Future)
+
+-   **API**: Option C (Streaming) if customer demand
+-   **Timeline**: As needed
+-   **Note**: Only if specific use cases require it
+
+### Why Defer Batching?
+
+1. **Complexity Reduction**: Batching adds significant complexity
+2. **Core Value**: Delta processing provides most performance gain (70%)
+3. **Transparent Addition**: Can add batching without API changes
+4. **Faster Delivery**: Ship core functionality 3-4 weeks earlier
+5. **Lower Risk**: Simpler initial implementation
 
 ### Expected Outcomes
 
--   **Performance**: 2-3x improvement (95 ops/sec, 85ms latency)
--   **Memory**: 38% reduction in usage
--   **Timeline**: 10-12 weeks for core implementation
--   **Risk**: Low-medium with proven patterns
+#### With Phase 1 Only:
+
+-   **Performance**: 60-70% improvement (from delta processing)
+-   **Timeline**: 4 weeks
+-   **Risk**: Low
+-   **Complexity**: Manageable
+
+#### With Phase 1 + 2:
+
+-   **Performance**: 75-85% improvement (delta + batching)
+-   **Timeline**: 6-7 weeks total
+-   **Risk**: Low-medium
+-   **Complexity**: Moderate
 
 For detailed analysis, see the **[Comparison Matrix](./COMPARISON-MATRIX.md)** and **[Hybrid Approach](./HYBRID-APPROACH.md)** documents.
 

@@ -1,21 +1,34 @@
-# Option 3: Batched Update Queue with Data Transactions
+# Batched Update Queue - Internal Optimization Strategy
 
 ## Overview
 
-This document details the recommended approach for implementing high-frequency data updates in AG Charts using a batched update queue with structured data transactions. This approach was selected as the optimal balance between performance, backward compatibility, and implementation complexity.
+This document details the batched update queue optimization that can be added to AG Charts' high-frequency data update implementation as a **Phase 2 enhancement**. This is an internal optimization strategy that works transparently with any user-facing API choice (identifier-based or transaction-based).
 
-**Important Update**: Following AG Grid's proven pattern, we are adopting a simplified JavaScript API approach rather than complex framework-specific implementations. See [SIMPLIFIED-API.md](../SIMPLIFIED-API.md) for the streamlined design.
+**Important Note**: This batching optimization is **optional** and can be deferred to post-release. The core delta processing (Phase 1) provides 60-70% of performance gains without the complexity of batching.
+
+## Status: Deferred to Phase 2
+
+**Current Priority**: Implement efficient delta processing first (Phase 1)
+**This Document**: Describes future optimization for additional 10-15% performance gain
+**Timeline**: Can be added 2-3 weeks after core implementation or post-release
 
 ## Core Concept
 
-Internal queue that batches updates within animation frames with structured transactions, providing:
+Internal queue that batches updates within animation frames, providing:
 
--   Backward compatibility with progressive enhancement
--   Automatic batching to reduce render calls
--   Framework-agnostic solution
--   Natural integration with existing UpdateService
--   Support for atomic batch operations with sequence ordering
--   Leveraging of existing `DataService` throttling infrastructure
+-   **Transparent to API**: Works with any user-facing API (identifier-based or transaction-based)
+-   **Progressive Enhancement**: Can be added without changing public API
+-   **Automatic Optimization**: Users get benefits without code changes
+-   **Frame-aligned Processing**: Reduces redundant calculations
+-   **Coalescing**: Combines multiple rapid updates intelligently
+
+## Why Defer Batching?
+
+1. **Complexity**: Adds significant implementation complexity
+2. **Diminishing Returns**: Core delta processing provides most benefit (60-70%)
+3. **Not Critical Path**: Can ship without it and add later
+4. **Risk Reduction**: Simpler Phase 1 has lower risk
+5. **Customer Validation**: Get feedback before adding complexity
 
 ## Data Model
 
@@ -70,51 +83,35 @@ interface UpdateOptions {
 6. **Telemetry**: Tracks performance metrics and emits via eventsHub
 7. **DataService Integration**: Leverages existing throttling and dispatch infrastructure
 
-## API Design
+## How Batching Enhances Existing APIs
 
-### Core API
+Batching works transparently with both API approaches:
+
+### With Identifier-Based API
 
 ```typescript
-// Enhanced update method (backward compatible)
-chart.update(options: AgChartOptions, updateOpts?: {
-  mode?: 'immediate' | 'batched' | 'throttled';
-  batchWindow?: number;        // Default: 16ms (1 frame)
-  priority?: 'high' | 'normal' | 'low';
-});
+// User code doesn't change
+chart.update({ data: newData, dataId: 'id' });
 
-// Data-only fast path
-chart.updateDataOnly(data: any[], opts?: {
-  operation?: 'replace' | 'append' | 'prepend';
-  seriesIndex?: number;        // Default: all series
-  maxRetention?: number;       // Max data points to keep
-});
+// Internally with batching:
+// - Multiple rapid updates are queued
+// - Processed together in next animation frame
+// - Delta computation happens once per batch
+```
 
-// Transaction-based updates for complex operations
-chart.applyDataTransaction(transaction: {
-  sequence?: number;
-  operations: Array<{
-    type: 'append' | 'prepend' | 'replace' | 'delete' | 'trim';
-    seriesId?: string;
-    rows?: any[];
-    indices?: number[];
-  }>;
-});
+### With Transaction-Based API
 
-// Performance monitoring
-chart.performance.on('metrics', (metrics: PerformanceMetrics) => {
-  // { fps, updateLatency, queueDepth, memoryUsage, droppedUpdates }
-});
+```typescript
+// User code for immediate processing (Phase 1)
+chart.applyDataTransaction({ add: [...], update: [...] });
 
-// Memory management
-chart.setRetentionPolicy({
-  mode: 'time' | 'count',
-  value: number,
-  trimStrategy: 'oldest' | 'sample' | 'aggregate',
-  backpressure?: 'drop-oldest' | 'drop-newest' | 'throw'
-});
+// Future async version with batching (Phase 2)
+chart.applyDataTransactionAsync({ add: [...], update: [...] });
 
-// Get streaming metrics snapshot
-chart.getStreamingMetrics(): StreamingMetrics;
+// Internally:
+// - Transactions queued and coalesced
+// - Similar operations combined
+// - Executed in single batch
 ```
 
 ### Configuration Options
@@ -274,41 +271,44 @@ class CountBasedRetention implements RetentionPolicy {
 -   Clear references to trimmed data
 -   Use object pools for temporary calculations
 
-## Implementation Phases
+## When to Implement Batching
 
-### Phase 1: Core Infrastructure (2 weeks)
+### Prerequisites (Phase 1 Must Be Complete)
 
--   [ ] Implement UpdateQueue and BatchTimer
--   [ ] Add fast path for data-only updates
--   [ ] Create performance telemetry system
+-   ✅ Efficient delta processing implemented
+-   ✅ Identifier-based or transaction-based API working
+-   ✅ 60-70% performance improvement achieved
+-   ✅ Customer feedback gathered
+
+### Triggers for Adding Batching
+
+-   Customer requests for >100 updates/second
+-   Specific use cases with burst patterns
+-   Need for additional 10-15% performance
+-   Resource availability after Phase 1 success
+
+## Implementation Plan (When Ready)
+
+### Week 1: Core Queue Infrastructure
+
+-   [ ] Implement UpdateQueue with ring buffer
+-   [ ] Add requestAnimationFrame integration
+-   [ ] Basic coalescing for consecutive updates
 -   [ ] Unit tests for queue behavior
 
-### Phase 2: Memory Management (1 week)
+### Week 2: Optimization Strategies
 
--   [ ] Implement retention policies
--   [ ] Add circular buffer support
--   [ ] Memory usage monitoring
--   [ ] Stress tests for memory leaks
+-   [ ] Advanced coalescing algorithms
+-   [ ] Adaptive batch sizing
+-   [ ] Queue overflow handling
+-   [ ] Performance monitoring
 
-### Phase 3: Framework Integration (1 week)
+### Week 3: Testing and Integration
 
--   [ ] Provide framework integration examples (see [Framework Integration Examples](../FRAMEWORK-INTEGRATION-EXAMPLES.md))
--   [ ] Document direct API usage patterns (see [Simplified API](../SIMPLIFIED-API.md))
--   [ ] Framework-specific examples
-
-### Phase 4: Data Processing Optimization (2 weeks)
-
--   [ ] Implement optimized data processing pipeline (primary bottleneck)
--   [ ] Add data structure optimizations (TypedArrays, object pools)
--   [ ] Optimize batch coalescing algorithms
--   [ ] Performance benchmarks focusing on data processing efficiency
-
-### Phase 5: Enterprise Features (1 week)
-
--   [ ] Advanced telemetry dashboard
--   [ ] Custom retention strategies
--   [ ] Priority queue support
--   [ ] Documentation and examples
+-   [ ] Integration with existing APIs
+-   [ ] Performance benchmarks
+-   [ ] Memory leak testing
+-   [ ] Documentation
 
 ## Cross-Cutting Concerns
 
@@ -605,21 +605,21 @@ const onMetricsUpdate = (newMetrics) => {
 </script>
 ```
 
-## Migration Path
+## Migration Path (When Implemented)
 
-### For Existing Users
+### Automatic Enhancement
 
 ```typescript
-// Old approach (still works)
-chart.update({ ...options, data: newData });
+// No code changes needed - batching activates automatically
+chart.update({ data: newData, dataId: 'id' });
 
-// New optimized approach
-chart.updateDataOnly(newData, { mode: 'batched' });
-
-// Or configure globally
+// Or opt-in to explicit batching control
 const chart = AgCharts.create({
     ...options,
-    performance: { updateMode: 'batched' },
+    performance: {
+        enableBatching: true,
+        batchWindow: 16, // ms
+    },
 });
 ```
 
@@ -646,25 +646,37 @@ chart.update('quiet');
 chart.updateDataOnly(data, { operation: 'append' });
 ```
 
-## Testing Approach
+## Expected Performance Improvements
 
-### Performance Tests
+### Without Batching (Phase 1 Only)
+
+-   **Throughput**: 60-80 updates/second
+-   **Latency**: 150-200ms
+-   **Performance Gain**: 60-70% from baseline
+
+### With Batching (Phase 1 + 2)
+
+-   **Throughput**: 95-120 updates/second
+-   **Latency**: 85-100ms
+-   **Performance Gain**: 75-85% from baseline
+-   **Additional Benefit**: +10-15% over Phase 1
+
+## Testing Approach (When Implemented)
+
+### Performance Validation
 
 ```typescript
-describe('High-frequency updates', () => {
-    test('handles 100 updates/sec', async () => {
-        const chart = createChart();
-        const updates = generateUpdates(100);
+describe('Batching optimization', () => {
+    test('improves throughput with batching', async () => {
+        const chartWithout = createChart({ enableBatching: false });
+        const chartWith = createChart({ enableBatching: true });
 
-        const startTime = performance.now();
-        for (const update of updates) {
-            chart.updateDataOnly(update);
-            await delay(10); // 100 updates/sec
-        }
+        // Measure performance difference
+        const withoutMetrics = await runBenchmark(chartWithout);
+        const withMetrics = await runBenchmark(chartWith);
 
-        const metrics = chart.performance.getMetrics();
-        expect(metrics.averageFPS).toBeGreaterThan(30);
-        expect(metrics.maxLatency).toBeLessThan(50);
+        // Should see 10-15% improvement
+        expect(withMetrics.throughput).toBeGreaterThan(withoutMetrics.throughput * 1.1);
     });
 });
 ```

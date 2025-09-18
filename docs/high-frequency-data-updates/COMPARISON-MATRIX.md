@@ -2,38 +2,46 @@
 
 ## Executive Summary
 
-This document provides a comprehensive analysis and comparison of the four proposed high-frequency data update options for AG Charts, synthesizing all technical feasibility studies, performance analyses, and market research. Based on extensive evaluation, **Option 3 (Batched Update Queue)** emerges as the clear recommendation, offering optimal balance of performance, implementation feasibility, and architectural alignment.
+This document provides a comprehensive analysis and comparison of the proposed high-frequency data update options for AG Charts. The analysis now separates **user-facing API options** from **internal implementation strategies**, recognizing that efficient delta processing is the core requirement while batching is an optional optimization.
 
-### Final Recommendation: Option 3 - Batched Update Queue
+### Final Recommendation: Phased Implementation
 
-**Rationale**: Option 3 provides the best combination of performance gains (2-3x improvement), manageable implementation complexity (7 weeks), and proven architectural patterns. It leverages existing AG Charts infrastructure while delivering substantial improvements for high-frequency scenarios.
+**Phase 1 (Required)**: Implement efficient delta processing with either identifier-based (Option A) or transaction-based (Option B) API, or both as a hybrid approach.
+
+**Phase 2 (Optional)**: Add batching optimization for additional performance gains. This can be deferred to post-release.
+
+**Rationale**: Core delta processing provides 60-70% of performance gains with significantly less complexity than full batching. Batching can be added transparently later for an additional 10-15% improvement.
 
 ---
 
-## 1. Comprehensive Comparison Table
+## 1. User-Facing API Options Comparison
 
-| **Criterion**            | **Weight** | **Option 1: Incremental** | **Option 2: Stream-Based** | **Option 3: Batched Queue** | **Option 4: Virtual DOM** |
-| ------------------------ | ---------- | ------------------------- | -------------------------- | --------------------------- | ------------------------- |
-| **Performance**          | 10/10      |
-| Update Throughput        |            | 78 ops/sec                | 105 ops/sec                | **95 ops/sec**              | 35 ops/sec                |
-| Update Latency           |            | 120ms                     | 75ms                       | **85ms**                    | 450ms                     |
-| Memory Efficiency        |            | 82MB                      | 95MB                       | **78MB**                    | 125MB                     |
-| Frame Rate Stability     |            | 8/10                      | 7/10                       | **9/10**                    | 4/10                      |
-| **Implementation**       | 9/10       |
-| Development Time         |            | 18-19 weeks               | 20-22 weeks                | **7 weeks**                 | 17 weeks                  |
-| Complexity Score         |            | High (7/10)               | Very High (9/10)           | **Medium (5/10)**           | Very High (8/10)          |
-| Risk Level               |            | Medium                    | High                       | **Low**                     | Critical                  |
-| Framework Integration    |            | Complex                   | Very Complex               | **Simple**                  | Conflicts                 |
-| **Market Alignment**     | 8/10       |
-| AG Grid Compatibility    |            | **Excellent**             | Poor                       | Good                        | Poor                      |
-| Industry Adoption        |            | Tier 1: 100%              | Tier 1: 33%                | **Tier 1: 100%**            | Tier 1: 0%                |
-| Competitive Advantage    |            | High                      | Medium                     | **High**                    | None                      |
-| **Use Case Suitability** | 8/10       |
-| Financial Trading        |            | **Excellent**             | Good                       | **Excellent**               | Poor                      |
-| IoT Monitoring           |            | Good                      | **Excellent**              | **Excellent**               | Poor                      |
-| Real-time Analytics      |            | Good                      | Good                       | **Excellent**               | Poor                      |
-| Historical Data          |            | **Excellent**             | Poor                       | Good                        | Poor                      |
-| **Total Score**          |            | **7.8/10**                | **6.2/10**                 | **8.7/10**                  | **2.8/10**                |
+| **API Option**           | **Complexity** | **AG Grid Alignment** | **Performance** | **Developer Experience** | **Use Cases**          |
+| ------------------------ | -------------- | --------------------- | --------------- | ------------------------ | ---------------------- |
+| **A: Identifier-Based**  | Low            | Excellent (getRowId)  | Good            | **Excellent**            | General purpose        |
+| **B: Transaction-Based** | Medium         | **Perfect**           | **Excellent**   | Good                     | High-frequency trading |
+| **C: Stream-Based**      | High           | Poor                  | Very Good       | Learning curve           | IoT/continuous streams |
+| **D: Enhanced Current**  | None           | N/A                   | Limited         | Familiar                 | Simple scenarios       |
+| **E: Hybrid (A+B)**      | Medium         | **Excellent**         | **Excellent**   | Very Good                | **All scenarios**      |
+
+## 2. Internal Implementation Strategies Comparison
+
+| **Strategy**                   | **Complexity** | **Performance Gain** | **Development Time** | **Risk** | **When to Implement**  |
+| ------------------------------ | -------------- | -------------------- | -------------------- | -------- | ---------------------- |
+| **Delta Processing (Core)**    | Medium         | 60-70%               | 3-4 weeks            | Low      | **Phase 1 (Required)** |
+| **Batching (Optimization)**    | High           | +10-15%              | 2-3 weeks            | Medium   | Phase 2 (Optional)     |
+| **Advanced Memory Management** | Medium         | +5-10%               | 1-2 weeks            | Low      | Phase 2 (Optional)     |
+| **Virtual DOM**                | Very High      | Negative             | 8-10 weeks           | Critical | Never                  |
+
+## 3. Combined Implementation Options (API + Internal)
+
+| **Combined Option**        | **Total Complexity** | **Performance** | **Timeline** | **Risk** | **Recommendation** |
+| -------------------------- | -------------------- | --------------- | ------------ | -------- | ------------------ |
+| A/B + Delta Only           | Low-Medium           | 60-70%          | 4 weeks      | Low      | **Minimum Viable** |
+| A/B + Delta + Batching     | Medium-High          | 75-85%          | 6-7 weeks    | Medium   | **Full Solution**  |
+| C + Delta + Batching       | Very High            | 70-80%          | 8-10 weeks   | High     | Not Recommended    |
+| D + Internal Optimizations | Low                  | 20-30%          | 2-3 weeks    | Low      | Quick Win Only     |
+| Virtual DOM Approach       | Very High            | Negative        | 10+ weeks    | Critical | Avoid              |
 
 ---
 
@@ -89,15 +97,14 @@ This document provides a comprehensive analysis and comparison of the four propo
 
 ## 3. Implementation Analysis
 
-### 3.1 Development Effort Breakdown
+### 3.1 Development Effort Breakdown (Revised with Phased Approach)
 
-| **Component**                | **Option 1** | **Option 2** | **Option 3** | **Option 4** |
-| ---------------------------- | ------------ | ------------ | ------------ | ------------ |
-| **Core Infrastructure**      | 6 weeks      | 8 weeks      | **3 weeks**  | 10 weeks     |
-| **Option-Specific Work**     | 12 weeks     | 14 weeks     | **4 weeks**  | 7 weeks      |
-| **Integration & Testing**    | 4 weeks      | 6 weeks      | **2 weeks**  | 5 weeks      |
-| **Performance Optimization** | 3 weeks      | 4 weeks      | **1 week**   | 3 weeks      |
-| **Total Effort**             | **25 weeks** | **32 weeks** | **10 weeks** | **25 weeks** |
+| **Component**           | **Phase 1 (Delta)** | **Phase 2 (Batching)** | **Old Option 1** | **Old Option 2** | **Old Option 4** |
+| ----------------------- | ------------------- | ---------------------- | ---------------- | ---------------- | ---------------- |
+| **Core Infrastructure** | 2 weeks             | +1 week                | 6 weeks          | 8 weeks          | 10 weeks         |
+| **Implementation**      | 1-2 weeks           | +2 weeks               | 12 weeks         | 14 weeks         | 7 weeks          |
+| **Testing**             | 1 week              | +1 week                | 4 weeks          | 6 weeks          | 5 weeks          |
+| **Total Effort**        | **4 weeks**         | **+3 weeks**           | **25 weeks**     | **32 weeks**     | **25 weeks**     |
 
 ### 3.2 Common Infrastructure Leverage
 
@@ -370,17 +377,17 @@ This document provides a comprehensive analysis and comparison of the four propo
 
 ---
 
-## 9. Risk-Benefit Analysis
+## 9. Risk-Benefit Analysis (Phased Approach)
 
 ### 9.1 Technical Risk Assessment
 
-| **Risk Factor**            | **Probability** | **Impact** | **Option 1** | **Option 2** | **Option 3** | **Option 4** |
-| -------------------------- | --------------- | ---------- | ------------ | ------------ | ------------ | ------------ |
-| **Performance Regression** | Medium          | High       | Medium       | Low          | **Low**      | Critical     |
-| **Memory Leaks**           | Low             | High       | Medium       | High         | **Low**      | Critical     |
-| **Implementation Delays**  | Medium          | Medium     | High         | High         | **Low**      | Critical     |
-| **Framework Conflicts**    | Low             | Medium     | Medium       | High         | **Low**      | High         |
-| **Maintenance Complexity** | Medium          | Medium     | High         | High         | **Low**      | Critical     |
+| **Risk Factor**            | **Probability** | **Impact** | **Phase 1 Only** | **Phase 1+2** | **Old Full Batching** | **Virtual DOM** |
+| -------------------------- | --------------- | ---------- | ---------------- | ------------- | --------------------- | --------------- |
+| **Performance Regression** | Low             | High       | **Very Low**     | Low           | Low                   | Critical        |
+| **Memory Leaks**           | Low             | High       | **Very Low**     | Low           | Medium                | Critical        |
+| **Implementation Delays**  | Low             | Medium     | **Very Low**     | Low           | Medium                | Critical        |
+| **Framework Conflicts**    | Low             | Medium     | **Very Low**     | Low           | Low                   | High            |
+| **Maintenance Complexity** | Low             | Medium     | **Low**          | Medium        | High                  | Critical        |
 
 ### 9.2 Business Benefits Analysis
 
@@ -459,27 +466,50 @@ This document provides a comprehensive analysis and comparison of the four propo
 
 ## 11. Final Recommendation
 
-### Option 3: Batched Update Queue with Data Transactions
+### Phased Implementation Approach
 
-**Executive Decision**: Implement Option 3 as the primary solution for AG Charts high-frequency data updates.
+**Executive Decision**: Implement high-frequency updates in two phases, with Phase 1 as the minimum viable solution.
 
-**Rationale**:
+#### Phase 1: Core Delta Processing (Required)
 
-1. **Optimal Performance**: Delivers 95+ updates/second with <50ms latency
-2. **Minimal Implementation Risk**: 7-week timeline with proven patterns
-3. **Maximum Leverage**: Builds on existing AG Charts infrastructure
-4. **Broad Applicability**: Supports all major use cases effectively
-5. **Future Flexibility**: Foundation for additional optimizations
+**Scope**:
 
-**Investment**: $350K development cost over 7 weeks
+-   Implement efficient incremental data processing
+-   Add identifier-based (Option A) and/or transaction-based (Option B) API
+-   Focus on the 68% performance bottleneck (data processing)
+
+**Investment**: $200K development cost over 4 weeks
 
 **Expected Return**:
 
--   **4x performance improvement** for high-frequency scenarios (580ms → 140ms)
--   **76% reduction in data processing bottleneck** (393ms → 95ms)
--   Competitive differentiation through data processing efficiency leadership
--   Foundation for future AG Charts performance leadership
--   Estimated $2M+ annual revenue impact from earlier market entry
+-   **60-70% performance improvement** (580ms → 200ms)
+-   **Immediate market entry** with core functionality
+-   **Low risk** implementation
+-   Foundation for future optimizations
+
+#### Phase 2: Batching Optimization (Optional)
+
+**Scope**:
+
+-   Add update queue with frame-aligned batching
+-   Implement coalescing strategies
+-   Advanced memory management
+
+**Investment**: Additional $150K over 3 weeks (can be post-release)
+
+**Expected Return**:
+
+-   **Additional 10-15% performance** (200ms → 140ms)
+-   **Total 75-85% improvement** from baseline
+-   Enhanced stability under extreme load
+
+**Rationale for Phased Approach**:
+
+1. **Faster Time to Market**: Ship core functionality in 4 weeks vs 7-10 weeks
+2. **Lower Initial Risk**: Simple delta processing vs complex batching
+3. **Validated Learning**: Get customer feedback before adding complexity
+4. **Transparent Enhancement**: Batching can be added without API changes
+5. **Cost Efficiency**: $200K initial vs $350K upfront investment
 
 **Next Steps**:
 

@@ -6,6 +6,33 @@ Following AG Grid's proven approach, AG Charts implements high-frequency data up
 
 **Core Principle**: Rather than creating complex framework-specific implementations, we provide powerful JavaScript methods that developers call directly from their framework components.
 
+## Two Primary API Approaches
+
+### Approach 1: Identifier-Based Delta Detection (Simplest)
+
+Provide data with unique identifiers, and the system automatically detects what changed:
+
+```typescript
+// Just provide the new data state - system handles the delta
+chart.update({
+    data: newDataArray,
+    dataId: 'id', // Specify which field is the unique identifier
+});
+```
+
+### Approach 2: Explicit Transactions (Most Control)
+
+Explicitly specify what operations to perform:
+
+```typescript
+// Tell the system exactly what changed
+chart.applyDataTransaction({
+    add: [...],
+    update: [...],
+    remove: [...]
+});
+```
+
 ## Performance Targets
 
 -   **Update Rate**: 100+ updates/second
@@ -15,9 +42,30 @@ Following AG Grid's proven approach, AG Charts implements high-frequency data up
 
 ## Core API Methods
 
+### update(options) - Identifier-Based Delta Detection
+
+For automatic change detection using unique identifiers. Best when you have the full current state.
+
+```typescript
+interface UpdateOptions {
+    data: any[];
+    dataId?: string; // Field name for unique identifier (e.g., 'id', 'timestamp')
+}
+
+// System automatically detects adds, updates, and removes
+chart.update({
+    data: [
+        { id: 1, time: 1000, value: 100 }, // Existing (maybe updated)
+        { id: 3, time: 3000, value: 103 }, // New item
+        // Item with id: 2 was removed
+    ],
+    dataId: 'id',
+});
+```
+
 ### applyDataTransaction(transaction)
 
-For immediate, synchronous data updates. Best for infrequent updates (<5/second).
+For explicit control over data operations. Best for precise updates when you know exactly what changed.
 
 ```typescript
 interface DataTransaction {
@@ -27,13 +75,15 @@ interface DataTransaction {
 }
 
 chart.applyDataTransaction({
-    add: [{ time: Date.now(), value: 42 }],
-    update: [{ id: 'row1', value: 43 }],
-    remove: [{ id: 'row2' }],
+    add: [{ id: 3, time: Date.now(), value: 42 }],
+    update: [{ id: 1, value: 43 }],
+    remove: [{ id: 2 }],
 });
 ```
 
-### applyDataTransactionAsync(transaction, callback?)
+### applyDataTransactionAsync(transaction, callback?) - Future Enhancement
+
+**Note**: This batching optimization may be added in Phase 2 for additional performance gains.
 
 For high-frequency batched updates. Transactions are queued and processed in batches for optimal performance.
 
@@ -55,9 +105,8 @@ const options = {
     // Disable animations for high-frequency updates
     animation: { enabled: false },
 
-    // Async transaction settings
-    asyncTransactionWaitMillis: 50, // Default: 50ms
-    maxConcurrentTransactions: 10, // Default: 10
+    // For identifier-based updates
+    dataId: 'id', // Field to use as unique identifier
 
     // Data retention
     dataRetentionPolicy: {
@@ -65,6 +114,10 @@ const options = {
         maxDataPoints: 10000, // Keep last N points
         maxTimeWindow: 3600000, // Keep last hour (ms)
     },
+
+    // Future: Async transaction settings (Phase 2)
+    // asyncTransactionWaitMillis: 50, // Default: 50ms
+    // maxConcurrentTransactions: 10, // Default: 10
 };
 ```
 
@@ -95,7 +148,11 @@ function StreamingChart({ data }) {
     useEffect(() => {
         const chart = chartRef.current?.getInstance();
         if (chart && data) {
-            chart.applyDataTransactionAsync({ add: data });
+            // Option 1: Identifier-based (simplest)
+            chart.update({ data, dataId: 'id' });
+
+            // Option 2: Explicit transactions (most control)
+            // chart.applyDataTransaction({ add: newItems, update: changedItems });
         }
     }, [data]);
 
@@ -117,9 +174,17 @@ import { AgChartsAngular } from 'ag-charts-angular';
 export class StreamingChartComponent implements OnInit {
     @ViewChild('chart') chartComponent: AgChartsAngular;
 
-    onNewData(data: any[]) {
+    private allData: any[] = [];
+
+    onNewData(newData: any[]) {
         const chart = this.chartComponent?.getInstance();
-        chart?.applyDataTransactionAsync({ add: data });
+
+        // Option 1: Maintain full state and use identifier-based update
+        this.allData = [...this.allData, ...newData];
+        chart?.update({ data: this.allData, dataId: 'id' });
+
+        // Option 2: Use transactions for incremental updates
+        // chart?.applyDataTransaction({ add: newData });
     }
 
     ngOnInit() {
@@ -148,7 +213,12 @@ const props = defineProps(['data']);
 
 watch(() => props.data, (newData) => {
     const instance = chart.value?.getInstance();
-    instance?.applyDataTransactionAsync({ add: newData });
+
+    // Option 1: Full state with identifier-based update
+    instance?.update({ data: newData, dataId: 'id' });
+
+    // Option 2: Incremental updates with transactions
+    // instance?.applyDataTransaction({ add: addedItems });
 });
 </script>
 ```
@@ -163,7 +233,7 @@ class TradingChart {
         this.chart = AgCharts.create({
             container,
             animation: { enabled: false },
-            asyncTransactionWaitMillis: 20,
+            dataId: 'tradeId', // Unique identifier field
             series: [
                 { type: 'line', xKey: 'time', yKey: 'price' },
                 { type: 'column', xKey: 'time', yKey: 'volume', yAxis: 'volume' },
@@ -175,6 +245,7 @@ class TradingChart {
             ],
         });
 
+        this.allTrades = [];
         this.connectToFeed();
     }
 
@@ -184,14 +255,28 @@ class TradingChart {
         ws.onmessage = (event) => {
             const trades = JSON.parse(event.data);
 
-            // Batch updates for efficiency
-            this.chart.applyDataTransactionAsync({
-                add: trades.map((t) => ({
+            // Method 1: Identifier-based - merge new trades with existing
+            const tradeMap = new Map(this.allTrades.map((t) => [t.tradeId, t]));
+            trades.forEach((t) => {
+                tradeMap.set(t.tradeId, {
+                    tradeId: t.tradeId,
                     time: new Date(t.timestamp),
                     price: t.price,
                     volume: t.volume,
-                })),
+                });
             });
+            this.allTrades = Array.from(tradeMap.values());
+            this.chart.update({ data: this.allTrades });
+
+            // Method 2: Transaction-based - explicit operations
+            // this.chart.applyDataTransaction({
+            //     add: trades.map(t => ({
+            //         tradeId: t.tradeId,
+            //         time: new Date(t.timestamp),
+            //         price: t.price,
+            //         volume: t.volume,
+            //     })),
+            // });
         };
     }
 }
@@ -243,16 +328,19 @@ Always disable animations for high-frequency updates:
 options.animation = { enabled: false };
 ```
 
-### 2. Use Async Transactions
+### 2. Choose the Right API Method
 
-For updates >5/second, always use `applyDataTransactionAsync`:
+For different update patterns:
 
 ```javascript
-// ❌ Avoid for high frequency
-chart.applyDataTransaction({ add: data });
+// For full state management (easiest)
+chart.update({ data: allData, dataId: 'id' });
 
-// ✅ Preferred for high frequency
-chart.applyDataTransactionAsync({ add: data });
+// For incremental updates (most efficient)
+chart.applyDataTransaction({ add: newData });
+
+// Future: For very high frequency (>50/second)
+// chart.applyDataTransactionAsync({ add: data });
 ```
 
 ### 3. Batch Updates
@@ -357,17 +445,20 @@ describe('High-frequency updates', () => {
 
 ## FAQ
 
-**Q: When should I use sync vs async transactions?**
-A: Use `applyDataTransaction` for infrequent updates (<5/second). Use `applyDataTransactionAsync` for high-frequency updates.
+**Q: When should I use identifier-based vs transaction-based updates?**
+A: Use identifier-based when you have the full current state (simpler). Use transactions when you only know what changed (more efficient).
 
-**Q: How do I handle backpressure?**
-A: The async transaction queue automatically handles backpressure. Configure `maxConcurrentTransactions` to limit queue size.
+**Q: Do I need unique IDs for all data?**
+A: Only if using identifier-based updates. Transaction-based updates can work with positional data.
 
-**Q: Can I mix sync and async transactions?**
-A: Yes, but sync transactions execute immediately and may interfere with async batch processing. Prefer one pattern consistently.
+**Q: What happens if my data doesn't have unique IDs?**
+A: You can either add IDs (e.g., using timestamp + counter), or use transaction-based updates with explicit add operations.
 
-**Q: How do I optimize for my specific update rate?**
-A: Adjust `asyncTransactionWaitMillis`: lower values (20-30ms) for very high frequency, higher values (50-100ms) for moderate frequency.
+**Q: Can I mix identifier-based and transaction-based updates?**
+A: Yes, but be consistent within a single data flow to avoid confusion.
+
+**Q: How do I handle backpressure with high-frequency updates?**
+A: Currently, implement your own throttling. Phase 2 will add automatic batching with `applyDataTransactionAsync`.
 
 **Q: Is there a performance difference between frameworks?**
 A: No. Since the API is JavaScript-based and frameworks just call it directly, performance is consistent across React, Angular, and Vue.
