@@ -17,7 +17,7 @@ export function getParserForLang(lang: string): string {
         jsx: 'babel',
         ts: 'typescript',
         typescript: 'typescript',
-        tsx: 'typescript',
+        tsx: 'babel-ts',
     };
     return langMap[lang.toLowerCase()] || 'babel';
 }

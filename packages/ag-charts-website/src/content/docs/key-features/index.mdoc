@@ -20,17 +20,17 @@ A chart can contain multiple series, which are provided in the `series` array.
 Every series has its own [series options](/options/#reference-AgChartOptions-series), but they all share a common set of configurations.
 These include a `type` as well as `_Key` properties to connect to the visualisation to the data, such as `xKey` and `yKey` for cartesian charts.
 
-```js
+```ts
 data: [
-    {year: '2001', women: 25},
-    {country: '2003', value: 26},
+    { year: '2001', women: 25 },
+    { country: '2003', value: 26 },
 ],
 series: [
     {
         type: 'bar',
         xKey: 'year',
         yKey: 'women',
-    }
+    },
 ]
 ```
 
@@ -41,7 +41,7 @@ These do not need to be configured unless customisation is required.
 
 Use `axes.position` to control the position of the axis, and `axes.type` to define the type.
 
-```js
+```ts
 axes: [
     {
         type: 'category', // category | grouped-category | number | log | time | ordinal-time
@@ -51,7 +51,7 @@ axes: [
         type: 'number', // category | grouped-category | number | log | time | ordinal-time
         position: 'left', // top | right | bottom | left
     },
-],
+];
 ```
 
 Polar charts such as the [Radar Line Series](./radar-line-series), use [Polar Axes](./radar-line-series/#customisation) which have similar options.
@@ -83,7 +83,7 @@ axes: [
         position: 'right',
         keys: ['portions'],
     },
-],
+];
 ```
 
 ### Axis Intervals
@@ -99,8 +99,8 @@ axes: [
         type: 'number',
         position: 'left',
         interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
-    }
-],
+    },
+];
 ```
 
 ### Axis Labels
@@ -166,12 +166,12 @@ axes: [
                 value: 11,
             },
             {
-                type: "range",
-                range: ["Jun", "Sep"],
+                type: 'range',
+                range: ['Jun', 'Sep'],
             },
         ],
     },
-],
+];
 ```
 
 ### Conditional Styling
@@ -214,14 +214,16 @@ Use the `series.marker` property to customise markers.
 
 ```js
 series: [
-    stroke: 'maroon',
-    marker: {
-        shape: 'square', // defaults to 'circle'
-        size: 20,
-        fill: 'red',
+    {
         stroke: 'maroon',
+        marker: {
+            shape: 'square', // defaults to 'circle'
+            size: 20,
+            fill: 'red',
+            stroke: 'maroon',
+        },
     },
-]
+];
 ```
 
 ### Chart Elements
@@ -235,16 +237,14 @@ AG Charts comes with 5 [Themes](./themes/), each available in light or dark mode
 Use the `theme` property to set the theme:
 
 ```js
-{
-    theme: 'ag-default', // or 'ag-sheets', 'ag-polychrome', 'ag-material', 'ag-vivid'
-}
+theme: 'ag-default', // or 'ag-sheets', 'ag-polychrome', 'ag-material', 'ag-vivid'
 ```
 
 Themes can also be customised or created with the [Theming API](/themes-api/).
 
 Use `params` to set styles across the whole chart, `palette` to define the colour palette used for the datapoints, and `overrides` to change a specific default within the base theme.
 
-```js
+```ts
 const customTheme: AgChartTheme = {
     palette: {
         //these are used by each series in rotation
@@ -272,7 +272,7 @@ const customTheme: AgChartTheme = {
                 },
             },
         },
-    }
+    },
 };
 ```
 
@@ -283,10 +283,8 @@ The chart will dynamically [auto-size](./layout/#chart-size) to the size of its 
 Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is required:
 
 ```js
-{
-    width: 800,
-    height: 600,
-}
+width: 800,
+height: 600
 ```
 
 ## Interactivity
@@ -301,22 +299,16 @@ Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is r
 
 ```js
 tooltip: {
-    mode: 'shared'; // or 'single' or 'compact'
+    mode: 'shared', // or 'single' or 'compact'
 }
 ```
 
 Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
 
 ```js
-{
-    renderer: function (params) {
-        return (
-            '<div class="custom-tooltip">' +
-                params.datum[params.xKey]
-            '</div>'
-        );
-    },
-},
+tooltip: {
+    renderer: ({ datum, xKey }) => `<div class="custom-tooltip">${datum[xKey]}</div>`,
+}
 ```
 
 ### Highlighting Hovered Data
@@ -346,31 +338,26 @@ These include clicks, double-clicks and zoom events.
 Register `listeners` to respond to [Events](./events/) on the chart.
 
 ```js
-{
-    // Charts Events
-    listeners: {
-        click: (params) => {
-            console.log('click');
+listeners: {
+    click: (params) => {
+        console.log('click');
+    },
+},
+series: [
+    {
+        listeners: {
+            seriesNodeClick: (params) => {
+                console.log('node clicked');
+            },
         },
     },
-    // Series Events
-    series: [
-        {
-            listeners: {
-                seriesNodeClick: (params) => {
-                    console.log('node clicked')
-                },
-            },
+],
+legend: {
+    listeners: {
+        legendItemClick: (params) => {
+            console.log('item clicked');
         },
-    ],
-    // Legend Events
-    legend: {
-        listeners: {
-            legendItemClick: (params) => {
-                console.log('item clicked')
-            },
-        },
-    }
+    },
 }
 ```
 
@@ -516,34 +503,32 @@ AgCharts.createFinancialChart(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```tsx
 const [options, setOptions] = useState({
     data: getData(),
 });
 
-return (
-    <AgFinancialCharts options={options} />
-);
+return <AgFinancialCharts options={options} />;
 ```
 
 {% /if %}
 
 {% if isFramework("angular") %}
 
-```js
+```ts
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgFinancialCharts],
-  template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgFinancialCharts],
+    template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
 })
 export class AppComponent {
-  public options: AgFinancialChartOptions;
-  constructor() {
-    this.options = {
-      data: getData(),
-    };
-  }
+    public options: AgFinancialChartOptions;
+    constructor() {
+        this.options = {
+            data: getData(),
+        };
+    }
 }
 ```
 
@@ -586,25 +571,25 @@ series: [
                     type: 'Feature',
                     geometry: {
                         type: 'Polygon',
-                        coordinates: [...],
+                        coordinates: [
+                            // ...
+                        ],
                     },
                     properties: {
                         name: 'United Kingdom',
-                        code: 'GB'
-                    }
-                }
+                        code: 'GB',
+                    },
+                },
             ],
-            // ...
         },
         data: [
             { country: 'United Kingdom', population: 67330000 },
             { country: 'France', population: 67500000 },
-            // ...
         ],
         idKey: 'country',
-        topologyIdKey: 'name' //default value
-    }
-]
+        topologyIdKey: 'name', // default value
+    },
+];
 ```
 
 ### Gauges {% enterpriseIcon /%}
@@ -635,44 +620,42 @@ AgCharts.createGauge(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```tsx
 const [options, setOptions] = useState({
     type: 'radial-gauge', // or 'linear-gauge'
     value: 80,
     scale: {
-      min: 0,
-      max: 100,
+        min: 0,
+        max: 100,
     },
 });
 
-return (
-    <AgGauge options={options} />
-);
+return <AgGauge options={options} />;
 ```
 
 {% /if %}
 
 {% if isFramework("angular") %}
 
-```js
+```ts
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgGauge],
-  template: `<ag-gauge [options]="options"></ag-gauge>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgGauge],
+    template: `<ag-gauge [options]="options"></ag-gauge>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
-  constructor() {
-    this.options = {
-        type: 'radial-gauge', // or 'linear-gauge'
-        value: 80,
-        scale: {
-          min: 0,
-          max: 100,
-        },
-    };
-  }
+    public options: AgRadialGaugeOptions;
+    constructor() {
+        this.options = {
+            type: 'radial-gauge', // or 'linear-gauge'
+            value: 80,
+            scale: {
+                min: 0,
+                max: 100,
+            },
+        };
+    }
 }
 ```
 
@@ -694,7 +677,7 @@ data() {
                 min: 0,
                 max: 100,
             },
-        }
+        },
     };
 }
 ```
