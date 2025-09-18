@@ -13,7 +13,7 @@ To create a Sparkline, use the `createSparkline` API.
 
 {% if isFramework("javascript") %}
 
-```js
+```ts
 const options = {
     type: 'bar',
     container: document.getElementById('myChart'),
@@ -29,7 +29,7 @@ AgCharts.createSparkline(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```tsx
 const [options, setOptions] = useState({
     type: 'bar',
     container: document.getElementById('myChart'),
@@ -38,33 +38,31 @@ const [options, setOptions] = useState({
     yKey: 'price',
 });
 
-return (
-    <AgSparkline options={options} />
-);
+return <AgSparkline options={options} />;
 ```
 
 {% /if %}
 
 {% if isFramework("angular") %}
 
-```js
+```ts
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgSparkline],
-  template: `<ag-sparkline [options]="options"></ag-sparkline>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgSparkline],
+    template: `<ag-sparkline [options]="options"></ag-sparkline>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
-  constructor() {
-    this.options = {
-        type: 'bar',
-        container: document.getElementById('myChart'),
-        data: [],
-        xKey: 'date',
-        yKey: 'price',
-    };
-  }
+    public options: AgRadialGaugeOptions;
+    constructor() {
+        this.options = {
+            type: 'bar',
+            container: document.getElementById('myChart'),
+            data: [],
+            xKey: 'date',
+            yKey: 'price',
+        };
+    }
 }
 ```
 
@@ -107,11 +105,9 @@ In this configuration:
 {% chartExampleRunner title="Customised Sparkline" name="customised-sparkline" type="generated" options={ "exampleHeight": 320 } /%}
 
 ```js
-{
-    type: 'bar',
-    fill: '#5C6BC0',
-    cornerRadius: 3,
-}
+type: 'bar',
+fill: '#5C6BC0',
+cornerRadius: 3
 ```
 
 Each of the Bar, Line, and Area Sparklines can be customised using the associated series options. Unlike the default chart, there is no array of series. Instead, the series options are put at the top level. See the documentation for [Bar Series](./bar-series), [Line Series](./line-series), and [Area Series](./area-series).
@@ -121,16 +117,14 @@ Each of the Bar, Line, and Area Sparklines can be customised using the associate
 {% chartExampleRunner title="Sparkline Axes" name="sparkline-axes" type="generated" options={ "exampleHeight": 320 } /%}
 
 ```js
-{
-    axis: {
-        type: 'time',
-        visible: true,
-        stroke: '#66A4',
-        strokeWidth: 1,
-    },
-    min: 125,
-    max: 150,
-}
+axis: {
+    type: 'time',
+    visible: true,
+    stroke: '#66A4',
+    strokeWidth: 1,
+},
+min: 125,
+max: 150
 ```
 
 In this configuration:

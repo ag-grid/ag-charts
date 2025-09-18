@@ -1,10 +1,17 @@
-/* eslint-disable no-console */
 import * as fs from 'fs';
 import * as path from 'path';
 import * as prettier from 'prettier';
 
 import { getParserForLang } from './utils';
 import { tryWrapCode } from './wrappers';
+
+function getSnippetPreview(code: string, maxLines = 6): string {
+    const lines = code.trim().split('\n');
+    if (lines.length <= maxLines) {
+        return lines.join('\n');
+    }
+    return lines.slice(0, maxLines).join('\n') + '\n...';
+}
 
 interface CodeBlock {
     fullMatch: string;
@@ -70,6 +77,17 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
     // Get prettier config from project
     const prettierConfig = (await prettier.resolveConfig(process.cwd())) ?? {};
 
+    const normalizedLang = lang.toLowerCase();
+    const extensionMap: Record<string, string> = {
+        js: '.js',
+        javascript: '.js',
+        jsx: '.jsx',
+        ts: '.ts',
+        typescript: '.ts',
+        tsx: '.tsx',
+    };
+    const filepath = `snippet${extensionMap[normalizedLang] ?? '.js'}`;
+
     // Override with specific settings for consistency
     const config = {
         ...prettierConfig,
@@ -79,6 +97,7 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
         singleQuote: true,
         semi: true,
         trailingComma: 'es5' as const,
+        filepath,
     };
 
     // Check if original code had a trailing newline
@@ -90,42 +109,46 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
         const formatted = await prettier.format(codeToFormat, config);
         // Prettier adds a trailing newline, remove it
         let result = formatted.replace(/\n$/, '');
-        // Add back the trailing newline if original had it
         if (hasTrailingNewline) {
             result += '\n';
         }
         return result;
     } catch (error) {
-        // If that fails, try wrapping strategies for partial code
-        // Note: Expected for partial code that needs wrapping
-        console.debug(
-            'Initial formatting failed, trying wrap strategies:',
-            error instanceof Error ? error.message : String(error)
-        );
-        const wrapResult = tryWrapCode(codeToFormat);
+        const wrapResult = tryWrapCode(codeToFormat, lang);
 
         if (!wrapResult) {
-            // If no strategy works, return original code
-            return code;
+            const preview = getSnippetPreview(codeToFormat);
+            const details: string[] = [];
+            if (error instanceof Error && error.message) {
+                details.push(`Original error: ${error.message}`);
+            }
+            const detailText = details.length ? `\n${details.join('\n')}` : '';
+            throw new Error(
+                `Unable to format ${lang} code block. No wrap strategy matched. Preview:\n${preview}${detailText}`
+            );
         }
 
         try {
             const formatted = await prettier.format(wrapResult.wrapped, config);
             const unwrapped = wrapResult.strategy.unwrap(formatted);
-            // Remove any trailing newline from the unwrapped result
             let result = unwrapped.replace(/\n$/, '');
-            // Add back the trailing newline if original had it
             if (hasTrailingNewline) {
                 result += '\n';
             }
             return result;
         } catch (error2) {
-            // If even wrapped formatting fails, return original
-            console.debug(
-                'Wrapped formatting also failed, returning original code:',
-                error2 instanceof Error ? error2.message : String(error2)
+            const preview = getSnippetPreview(codeToFormat);
+            const details: string[] = [];
+            if (error instanceof Error && error.message) {
+                details.push(`Original error: ${error.message}`);
+            }
+            if (error2 instanceof Error && error2.message) {
+                details.push(`Wrapped error: ${error2.message}`);
+            }
+            const detailText = details.length ? `\n${details.join('\n')}` : '';
+            throw new Error(
+                `Unable to format ${lang} code block with wrap strategy "${wrapResult.strategy.name}". Preview:\n${preview}${detailText}`
             );
-            return code;
         }
     }
 }

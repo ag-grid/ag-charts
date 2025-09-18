@@ -240,7 +240,7 @@ export class MapLineSeries extends TopologySeries<
         );
         if (labelText == null) return;
 
-        const labelSize = measurer.measureText(String(labelText));
+        const labelSize = measurer.measureLines(String(labelText));
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 

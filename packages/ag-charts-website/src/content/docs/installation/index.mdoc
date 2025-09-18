@@ -148,7 +148,7 @@ You can test AG Charts Enterprise locally without a licence. To test in producti
 {% if isFramework("react") %}
 Import the `AgCharts` component from the `ag-charts-react` package:
 
-```js
+```ts
 import { AgCharts } from 'ag-charts-react';
 ```
 
@@ -205,13 +205,15 @@ See the [Installing Enterprise Licence Key](./license-install/) docs for more in
 
 To use AG Charts in your React application, return the `AgCharts` component with your chart options:
 
-```jsx
+```tsx
 const MyChart = () => {
-    // Define chart options; Mutating this object will cause the chart to update
-    const [chartOptions, setChartOptions] = useState({...});
+    // Define chart options; mutating this object will cause the chart to update
+    const [chartOptions, setChartOptions] = useState({
+        /* ... */
+    });
 
     // Return the AgCharts component with the chart options
-    return <AgCharts options={options} />;
+    return <AgCharts options={chartOptions} />;
 };
 ```
 
@@ -221,24 +223,19 @@ const MyChart = () => {
 
 To use AG Charts in your Angular application, return the `ag-charts` component with your chart options:
 
-```js
+```ts
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgCharts],
-  template:
-    `<ag-charts
-        style="height: 100%"
-        [options]="chartOptions">
-    </ag-charts>`,
-}),
-
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgCharts],
+    template: `<ag-charts style="height: 100%" [options]="chartOptions"></ag-charts>`,
+})
 export class AppComponent {
-  // Chart Options
-  public chartOptions: AgChartOptions;
-  constructor() {
-    this.chartOptions = {...};
-  }
+    public chartOptions: AgChartOptions;
+
+    constructor() {
+        this.chartOptions = {};
+    }
 }
 ```
 
@@ -247,7 +244,7 @@ export class AppComponent {
 {% if isFramework("vue") %}
 To use AG Charts in your Vue application, return the `ag-charts` component with your chart options:
 
-```jsx
+```html
 <template>
     <!-- The AG Charts component with chartsOptions as an attribute -->
     <ag-charts :options="options"> </ag-charts>
@@ -270,7 +267,9 @@ To use AG Charts in your JavaScript application, use the `create` API to create 
 
 ```js
 // Chart Options
-const options = {...};
+const options = {
+    /* ... */
+};
 
 // Create Chart
 const chart = AgCharts.create(options);

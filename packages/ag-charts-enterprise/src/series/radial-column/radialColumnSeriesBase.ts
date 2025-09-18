@@ -2,10 +2,11 @@ import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
+    AgRadialSeriesStylerParams,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, isDefined } from 'ag-charts-core';
+import { type InternalAgColorType, type Point, isDefined } from 'ag-charts-core';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProperties';
@@ -35,6 +36,8 @@ const {
     updateLabelNode,
     mergeDefaults,
     getItemStyles,
+    toHighlightString,
+    HighlightState,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -422,6 +425,83 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
+    private makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): AgRadialSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const {
+            angleKey,
+            angleName,
+            cornerRadius,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            radiusKey,
+            radiusName,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+        } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type T = ReturnType<RadialColumnSeriesBase<ItemPathType>['makeStylerParams']>;
+        type Rules = _ModuleSupport.CallbackParamRules<T>;
+        return {
+            angleKey,
+            angleName: angleName ?? angleKey,
+            cornerRadius,
+            fill,
+            fillOpacity,
+            highlightState,
+            highlighted,
+            lineDash,
+            lineDashOffset,
+            radiusKey,
+            radiusName: radiusName ?? radiusKey,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+        } satisfies Rules;
+    }
+
+    private getStyle(
+        ignoreStylerCallback: boolean,
+        highlighted: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ) {
+        const { styler } = this.properties;
+        let stylerResult: AgRadialSeriesStyle = {};
+        if (!ignoreStylerCallback && styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
+        }
+
+        interface Result extends Required<Omit<AgRadialSeriesStyle, 'fill'>> {
+            fill: InternalAgColorType;
+            opacity: 1;
+        }
+        const result: Result = {
+            cornerRadius: stylerResult.cornerRadius ?? this.properties.cornerRadius,
+            fill: stylerResult.fill ?? this.properties.fill,
+            fillOpacity: stylerResult.fillOpacity ?? this.properties.fillOpacity,
+            lineDash: stylerResult.lineDash ?? this.properties.lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? this.properties.lineDashOffset,
+            stroke: stylerResult.stroke ?? this.properties.stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? this.properties.strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? this.properties.strokeWidth,
+            opacity: 1,
+        };
+        return result;
+    }
+
     protected getItemStyle(
         nodeDatum: RadialColumnNodeDatum | undefined,
         isHighlight: boolean,
@@ -431,7 +511,10 @@ export abstract class RadialColumnSeriesBase<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+        const baseStyle = mergeDefaults(
+            highlightStyle,
+            this.getStyle(nodeDatum === undefined, isHighlight, highlightState)
+        );
         let style = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
@@ -486,8 +569,8 @@ export abstract class RadialColumnSeriesBase<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         let selectionData: RadialColumnNodeDatum[] = [];
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         if (isHighlight) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             if (activeHighlight?.datum && activeHighlight.series === this) {
                 selectionData.push(activeHighlight as RadialColumnNodeDatum);
             }
@@ -508,7 +591,8 @@ export abstract class RadialColumnSeriesBase<
                 const { midPoint } = nodeDatum;
 
                 if (hasItemStylers) {
-                    nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+                    const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
+                    nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, highlightState);
                 }
 
                 const style =
@@ -608,7 +692,11 @@ export abstract class RadialColumnSeriesBase<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.getStyle(
+            false,
+            false,
+            _ModuleSupport.HighlightState.None
+        );
 
         const markerStyle = {
             fill: fill ?? 'rgba(0, 0, 0, 0)',

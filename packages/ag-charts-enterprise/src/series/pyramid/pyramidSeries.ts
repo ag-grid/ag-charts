@@ -244,7 +244,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 { datum, value: yValue, stageKey, valueKey }
             );
 
-            const { width, height } = isArray(text) ? measureTextSegments(text, label) : textMeasurer.measureText(text);
+            const { width, height } = isArray(text)
+                ? measureTextSegments(text, label)
+                : textMeasurer.measureLines(text);
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 

@@ -18,7 +18,7 @@ series: [
         xKey: 'age',
         xName: 'Participant Age',
     },
-],
+];
 ```
 
 In this configuration:
@@ -36,11 +36,13 @@ In this configuration:
 The approximate number of bins to aim for can be overridden by setting the `binCount` property.
 
 ```js
-series: [{
-    type: 'histogram'
-    xKey: 'age',
-    binCount: 20,
-}]
+series: [
+    {
+        type: 'histogram',
+        xKey: 'age',
+        binCount: 20,
+    },
+];
 ```
 
 ### Irregular Intervals
@@ -50,12 +52,19 @@ series: [{
 Rather than specifying the number of bins, it is possible to explicitly give the start and end values for each bin.
 
 ```js
-series: [{
-    type: 'histogram'
-    xKey: 'age',
-    areaPlot: true,
-    bins: [[16, 18], [18, 21], [21, 25], [25, 40]],
-}]
+series: [
+    {
+        type: 'histogram',
+        xKey: 'age',
+        areaPlot: true,
+        bins: [
+            [16, 18],
+            [18, 21],
+            [21, 25],
+            [25, 40],
+        ],
+    },
+];
 ```
 
 In this configuration:
@@ -79,11 +88,11 @@ series: [
     {
         type: 'histogram',
         xKey: 'age',
-        xName: "Participant Age",
+        xName: 'Participant Age',
         yKey: 'winnings',
         yName: 'Winnings',
     },
-],
+];
 ```
 
 -   `xKey` defines the data values to be distributed into bins along the horizontal axis.
@@ -104,9 +113,9 @@ series: [
         xName: 'Participant Age',
         yKey: 'winnings',
         yName: 'Winnings',
-        aggregation: 'sum' //default
+        aggregation: 'sum', //default
     },
-],
+];
 ```
 
 ## API Reference

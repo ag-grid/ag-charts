@@ -60,14 +60,14 @@ The locale `AG_CHARTS_LOCALE_EN_US` is also exported from `ag-charts-community`/
 
 {% chartExampleRunner title="Installing a Locale" name="installing-locale" type="generated" /%}
 
-```js
+```ts
 import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 
-{
+const options = {
     locale: {
         localeText: AG_CHARTS_LOCALE_FR_FR,
-    }
-}
+    },
+};
 ```
 
 In the above example:
@@ -84,8 +84,8 @@ Overrides for individual translations can be done by applying overrides to an ex
 
 {% chartExampleRunner title="Custom Text Values" name="custom-text-values" type="generated" /%}
 
-```js
-{
+```ts
+const options = {
     locale: {
         localeText: {
             ...AG_CHARTS_LOCALE_EN_US,
@@ -95,13 +95,13 @@ Overrides for individual translations can be done by applying overrides to an ex
             toolbarZoomPanRight: 'Pan the Chart Right',
             toolbarZoomPanStart: 'Pan the Chart to the Start',
             toolbarZoomPanEnd: 'Pan the Chart to the End',
-            toolbarZoomReset: 'Reset the Chart\'s Zoom',
+            toolbarZoomReset: "Reset the Chart's Zoom",
             contextMenuDownload: 'Save this Chart to My Computer',
             contextMenuZoomToCursor: 'Zoom the Chart to Your Cursor',
             contextMenuPanToCursor: 'Pan the Chart to Your Cursor',
         },
-    }
-}
+    },
+};
 ```
 
 In this configuration, `localeText` is a dictionary mapping translation keys to the translated text.
@@ -110,16 +110,16 @@ Some translations have parameters, which can be included in the translation usin
 
 Values can be formatted by appending a format style in square brackets, like `'${value}[percent]'`. The available formatters are `[number]`, `[percent]`, `[date]`, `[time]`, and `[datetime]`.
 
-```js
-{
+```ts
+const options = {
     locale: {
         localeText: {
             ...AG_CHARTS_LOCALE_EN_US,
             ariaAnnounceChart: 'chart with ${seriesCount} series',
             ariaValuePanRange: '${min}[percent] to ${max}[percent]',
         },
-    }
-}
+    },
+};
 ```
 
 Please see [All Built-In Translations](./localisation/#all-built-in-translations) for a full list of built-in translations.
@@ -128,14 +128,14 @@ Please see [All Built-In Translations](./localisation/#all-built-in-translations
 
 You can integrate the internationalisation framework using the `getLocaleText` option within the `locale` options.
 
-```js
-{
+```ts
+const options = {
     locale: {
         getLocaleText({ key, defaultValue, variables }) {
             return internationalisationFramework.getLocaleText({ key, defaultValue, variables });
-        }
-    }
-}
+        },
+    },
+};
 ```
 
 If you return `undefined` from this function, it will fall back to the default behaviour of using `localeText` with the default formatter.
@@ -218,11 +218,12 @@ AgCharts.create({
 
 {% tabItem id="React Intl" label="React Intl" %}
 
-```jsx
+```tsx
+import { AgCharts } from 'ag-charts-react';
 import { IntlProvider, useIntl } from 'react-intl';
 
 const messages = {
-    'contextMenuDownload': 'Téléchargez une copie de ce tableau',
+    contextMenuDownload: 'Téléchargez une copie de ce tableau',
 };
 
 const MyChart = () => {
@@ -242,26 +243,27 @@ const MyChart = () => {
     };
 
     return <AgCharts options={options} />;
-}
+};
 
 const App = () => {
     return (
         <IntlProvider locale="fr-FR" messages={messages}>
             <MyChart />
-        <IntlProvider>
+        </IntlProvider>
     );
-}
+};
 ```
 
 {% /tabItem %}
 
 {% tabItem id="React I18Next" label="React I18Next" %}
 
-```js
+```tsx
+import { AgCharts } from 'ag-charts-react';
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 
-await i18next.use(initReactI18next).init({
+i18next.use(initReactI18next).init({
     lng: 'fr',
     resources: {
         fr: {
@@ -273,7 +275,7 @@ await i18next.use(initReactI18next).init({
 });
 
 const MyChart = () => {
-     const { i18n, t } = useTranslation();
+    const { i18n, t } = useTranslation();
 
     const options = {
         // ...
@@ -289,7 +291,7 @@ const MyChart = () => {
     };
 
     return <AgCharts options={options} />;
-}
+};
 ```
 
 {% /tabItem %}

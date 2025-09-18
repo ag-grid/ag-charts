@@ -440,7 +440,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             lines ?? ticks?.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
 
         const labelSize = linesOrTicks.reduce((accum, text) => {
-            const { width } = isArray(text) ? measureTextSegments(text, label) : measurer.measureText(text);
+            const { width } = isArray(text) ? measureTextSegments(text, label) : measurer.measureLines(text);
             return Math.max(accum, width);
         }, 0);
 

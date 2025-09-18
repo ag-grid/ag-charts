@@ -187,7 +187,7 @@ export class ChordSeries extends FlowProportionSeries<
                     font: this.properties.label,
                     textWrap: 'never',
                 });
-                const { width } = measurer.measureText(text);
+                const { width } = measurer.measureLines(text);
                 maxMeasuredLabelWidth = Math.max(width, maxMeasuredLabelWidth);
 
                 labelData.push({

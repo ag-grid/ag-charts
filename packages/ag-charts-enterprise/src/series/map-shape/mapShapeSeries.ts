@@ -264,7 +264,7 @@ export class MapShapeSeries
 
         const baseSize = isArray(labelText)
             ? measureTextSegments(labelText, label)
-            : measurer.measureText(String(labelText));
+            : measurer.measureLines(String(labelText));
         const aspectRatio = (baseSize.width + 2 * padding) / (baseSize.height + 2 * padding);
 
         if (
