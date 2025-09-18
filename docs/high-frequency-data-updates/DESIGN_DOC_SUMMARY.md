@@ -1,6 +1,6 @@
 # High-Frequency Data Updates - Executive Design Summary
 
-**Status**: Design Phase | **Target**: 100+ updates/second | **Timeline**: 4-6 weeks
+Status: **Design Phase** | [PRD](./PRD.md) | [Competitive Analysis](./COMPETITIVE-ANALYSIS.md) | [Design Document](./DESIGN_DOC.md)
 
 ## Problem Statement
 
