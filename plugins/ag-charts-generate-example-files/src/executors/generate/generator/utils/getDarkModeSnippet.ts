@@ -10,7 +10,8 @@ ${
         : `const __chartAPI = ${chartAPI};`
 }
 
-let darkmode =
+const ignoreDarkMode = document.documentElement.dataset.ignoreDarkMode === 'true';
+let darkmode = !ignoreDarkMode &&
     (localStorage['documentation:darkmode'] || String(matchMedia('(prefers-color-scheme: dark)').matches)) === 'true';
 
 const isAgThemeOrUndefined = (theme) => {

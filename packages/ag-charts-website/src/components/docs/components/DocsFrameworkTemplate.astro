@@ -28,6 +28,10 @@ interface Props {
      * Whether to not include system js code
      */
     ignoreSystemJs?: boolean;
+    /**
+     * Ignore dark mode (always use light mode)
+     */
+    ignoreDarkMode?: boolean;
 }
 
 const {
@@ -39,6 +43,7 @@ const {
     addE2ECheckScript,
     addExternalExampleStyles,
     ignoreSystemJs,
+    ignoreDarkMode,
 } = Astro.props as Props;
 
 const generatedContents = await getGeneratedContents({
@@ -66,4 +71,5 @@ const exampleUrl = getExampleUrl({
     addInitMessageScript={addInitMessageScript}
     addE2ECheckScript={addE2ECheckScript}
     addExternalExampleStyles={addExternalExampleStyles}
+    ignoreDarkMode={ignoreDarkMode}
 />
