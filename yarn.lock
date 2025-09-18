@@ -16393,7 +16393,7 @@ mime-db@^1.54.0:
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.54.0.tgz#cddb3ee4f9c64530dff640236661d42cb6a314f5"
   integrity sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==
 
-mime-types@^2.1.12, mime-types@^2.1.27, mime-types@^2.1.31, mime-types@~2.1.17, mime-types@~2.1.19, mime-types@~2.1.24, mime-types@~2.1.34:
+mime-types@2.1.35, mime-types@^2.1.12, mime-types@^2.1.27, mime-types@^2.1.31, mime-types@~2.1.17, mime-types@~2.1.19, mime-types@~2.1.24, mime-types@~2.1.34:
   version "2.1.35"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.35.tgz#381a871b62a734450660ae3deee44813f70d959a"
   integrity sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==
@@ -17960,6 +17960,14 @@ playwright-core@1.45.0:
   version "1.45.0"
   resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.45.0.tgz#5741a670b7c9060ce06852c0051d84736fb94edc"
   integrity sha512-lZmHlFQ0VYSpAs43dRq1/nJ9G/6SiTI7VPqidld9TDefL9tX87bTKExWZZUF5PeRyqtXqd8fQi2qmfIedkwsNQ==
+
+playwright-network-cache@0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/playwright-network-cache/-/playwright-network-cache-0.2.2.tgz#070a36435a2bb148324019f0e8dc1f924e16c0ac"
+  integrity sha512-uVOZL8+KYRFh40d3u9TKBhlKyr+arYCANKaf97c5/yMUz+v6zMHk4gKgAH4x7mKgxY2tBbqNvJVlcwpk5noMmw==
+  dependencies:
+    debug "^4.4.0"
+    mime-types "2.1.35"
 
 playwright@1.45.0:
   version "1.45.0"

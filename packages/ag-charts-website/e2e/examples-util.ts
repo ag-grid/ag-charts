@@ -107,7 +107,7 @@ export function createTestCase(
     const titleSuffix = ignoreConsoleWarnings ? ' [ignoreConsoleWarnings]' : '';
 
     if (status === 'ok') {
-        testFn(`should load ${url}${titleSuffix}`, async ({ page }) => {
+        testFn(`should load ${url}${titleSuffix}`, async ({ contextPage: page }) => {
             test.slow(framework === 'angular', 'allow more time for Angular load times');
 
             // Load example and wait for things to settle.
@@ -150,7 +150,8 @@ export function createTestCase(
     }
 
     if (status === '404') {
-        testFn(`should 404 on ${url}`, async ({ page }) => {
+        testFn(`should 404 on ${url}`, async ({ contextPage: page }) => {
+            config.ignore404s = true;
             await page.goto(url);
             expect(await page.title()).toMatch(/Page Not Found/);
         });

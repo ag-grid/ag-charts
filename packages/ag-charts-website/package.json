@@ -62,6 +62,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.45.0",
+    "playwright-network-cache": "0.2.2",
     "algoliasearch": "4.20.0",
     "puppeteer-core": "24.13.0"
   }

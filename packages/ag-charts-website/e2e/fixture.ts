@@ -1,4 +1,6 @@
 import { Page, test as base, expect } from '@playwright/test';
+import path from 'path';
+import { CacheRoute } from 'playwright-network-cache';
 
 import { waitForChartUpdate } from './util';
 
@@ -35,6 +37,17 @@ export const test = base.extend({
 
         use(page);
     },
+    contextPage: ({ page }, use) => {
+        use(page);
+    },
+    cacheRoute: [
+        async ({ page }, use) => {
+            const cacheRoute = new CacheRoute(page, { baseDir: path.join(__dirname, '.network-cache') });
+            await cacheRoute.ALL('https://cdn.jsdelivr.net/**');
+            await use(cacheRoute);
+        },
+        { auto: true },
+    ],
 });
 
 export { expect };

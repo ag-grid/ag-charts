@@ -81,6 +81,7 @@ export default [
             '*.mjs',
             'public/example-runner/**/*.{js,ts}',
             'e2e/fixture.ts',
+            'e2e/.network-cache/**',
             'e2e/generated/**',
             'tools/compare-gallery-thumbnails.js',
             'update-algolia.js',

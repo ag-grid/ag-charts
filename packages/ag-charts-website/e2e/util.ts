@@ -173,11 +173,7 @@ export async function gotoExample(
 ) {
     await page.goto(url + '#e2e=true');
 
-    if (opts.skipNetworkIdle) {
-        await page.waitForLoadState('load');
-    } else {
-        await page.waitForLoadState('networkidle');
-    }
+    await page.waitForLoadState('load');
 
     expect(await page.title()).not.toMatch(/Page Not Found/);
 
