@@ -789,4 +789,296 @@ describe('RangeAreaSeries', () => {
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
+
+    describe('invertedSegments with negativeStyle', () => {
+        it('should render range-area series with negativeStyle for segments that start inverted', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'Jan', high: 10, low: 20 }, // starts inverted (high < low)
+                    { x: 'Feb', high: 15, low: 25 },
+                    { x: 'Mar', high: 25, low: 15 }, // crosses over (high > low)
+                    { x: 'Apr', high: 30, low: 10 },
+                    { x: 'May', high: 20, low: 30 }, // inverts again (high < low)
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        negativeStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with negativeStyle for segments that start normal', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'Jan', high: 20, low: 10 }, // starts normal (high > low)
+                    { x: 'Feb', high: 25, low: 15 },
+                    { x: 'Mar', high: 15, low: 25 }, // crosses over (high < low)
+                    { x: 'Apr', high: 10, low: 30 },
+                    { x: 'May', high: 30, low: 20 }, // back to normal (high > low)
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        negativeStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with negativeStyle and gradient fills', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 5, low: 15 }, // starts inverted
+                    { x: 1, high: 10, low: 20 },
+                    { x: 2, high: 20, low: 10 }, // crosses over
+                    { x: 3, high: 25, low: 5 },
+                    { x: 4, high: 15, low: 25 }, // inverts again
+                    { x: 5, high: 10, low: 30 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [{ color: '#4A90E2' }, { color: '#E3F2FD' }],
+                        },
+                        negativeStyle: {
+                            enabled: true,
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [{ color: '#FF5757' }, { color: '#FFE5E5' }],
+                            },
+                            fillOpacity: 0.8,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with negativeStyle and smooth interpolation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 10, low: 30 }, // starts inverted
+                    { x: 1, high: 15, low: 25 },
+                    { x: 2, high: 25, low: 15 }, // crosses to normal
+                    { x: 3, high: 30, low: 10 },
+                    { x: 4, high: 20, low: 25 }, // crosses to inverted
+                    { x: 5, high: 15, low: 30 },
+                    { x: 6, high: 28, low: 18 }, // crosses to normal
+                    { x: 7, high: 35, low: 12 },
+                    { x: 8, high: 18, low: 32 }, // crosses to inverted
+                    { x: 9, high: 12, low: 35 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        negativeStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                        interpolation: {
+                            type: 'smooth',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with negativeStyle and step interpolation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 10, low: 30 }, // starts inverted
+                    { x: 1, high: 15, low: 25 },
+                    { x: 2, high: 25, low: 15 }, // crosses to normal
+                    { x: 3, high: 30, low: 10 },
+                    { x: 4, high: 20, low: 25 }, // crosses to inverted
+                    { x: 5, high: 15, low: 30 },
+                    { x: 6, high: 28, low: 18 }, // crosses to normal
+                    { x: 7, high: 35, low: 12 },
+                    { x: 8, high: 18, low: 32 }, // crosses to inverted
+                    { x: 9, high: 12, low: 35 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        negativeStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                        interpolation: {
+                            type: 'step',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with negativeStyle with time and smooth interpolation', async () => {
+            const continuousData = [
+                { date: new Date(2023, 0, 1), high: 8, low: 18 }, // starts inverted
+                { date: new Date(2023, 0, 15), high: 12, low: 22 },
+                { date: new Date(2023, 1, 1), high: 20, low: 15 }, // crosses over
+                { date: new Date(2023, 1, 15), high: 25, low: 10 },
+                { date: new Date(2023, 2, 1), high: 22, low: 28 }, // crosses back
+                { date: new Date(2023, 2, 15), high: 18, low: 32 },
+                { date: new Date(2023, 3, 1), high: 30, low: 20 }, // crosses over again
+                { date: new Date(2023, 3, 15), high: 35, low: 15 },
+            ];
+
+            const options: AgChartOptions = {
+                data: continuousData,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'date',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        negativeStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                        interpolation: {
+                            type: 'smooth',
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'time', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with negativeStyle inherited from series styles', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { category: 'A', high: 12, low: 22 }, // starts inverted
+                    { category: 'B', high: 18, low: 28 },
+                    { category: 'C', high: 28, low: 18 }, // crosses over
+                    { category: 'D', high: 32, low: 12 },
+                    { category: 'E', high: 20, low: 30 }, // inverts again
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'category',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        negativeStyle: {
+                            fillOpacity: 0.1,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with negativeStyle that never inverts', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 25, low: 15 },
+                    { x: 1, high: 30, low: 20 },
+                    { x: 2, high: 28, low: 18 },
+                    { x: 3, high: 35, low: 25 },
+                    { x: 4, high: 32, low: 22 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        negativeStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with negativeStyle that is always inverted', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 15, low: 25 },
+                    { x: 1, high: 20, low: 30 },
+                    { x: 2, high: 18, low: 28 },
+                    { x: 3, high: 25, low: 35 },
+                    { x: 4, high: 22, low: 32 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        negativeStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });
