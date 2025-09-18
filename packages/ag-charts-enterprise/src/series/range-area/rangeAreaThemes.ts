@@ -49,6 +49,19 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
         },
         highlight: _ModuleSupport.multiSeriesHighlightStyle(),
         segmentation: _ModuleSupport.SEGMENTATION_DEFAULTS,
+        negativeStyle: {
+            enabled: false,
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' }, // @todo(AG-14792) should be { $path: '../fill' } to inherit from series.fill
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ],
+            },
+            fillOpacity: { $path: '../fillOpacity' },
+        },
     },
     axes: {
         [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {

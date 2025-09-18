@@ -480,6 +480,10 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     segmentation: shapeSegmentation,
+    negativeStyle: {
+        enabled: boolean,
+        ...fillOptionsDef,
+    },
 };
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {

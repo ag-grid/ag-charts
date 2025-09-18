@@ -3,6 +3,7 @@ import {
     type OptionsDefs,
     boolean,
     constant,
+    fillOptionsDef,
     number,
     required,
     shapeSegmentation,
@@ -24,6 +25,10 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     yLowName: string,
     yHighName: string,
     segmentation: shapeSegmentation,
+    negativeStyle: {
+        enabled: boolean,
+        ...fillOptionsDef,
+    },
 };
 
 // @ts-expect-error undocumented option

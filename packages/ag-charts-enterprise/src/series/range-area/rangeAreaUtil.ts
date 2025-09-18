@@ -41,6 +41,7 @@ export interface RangeAreaContext
     highStrokeData: RangeAreaStrokePathDatum;
     lowStrokeData: RangeAreaStrokePathDatum;
     styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    intersectionSegments?: _ModuleSupport.Segment[];
 }
 
 function prepareRangeAreaPathStrokeAnimationFns(
