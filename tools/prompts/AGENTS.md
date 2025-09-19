@@ -199,6 +199,9 @@ nx e2e ag-charts-website
 
 -   The staging base URLs for the Astro site is https://charts-staging.ag-grid.com/
     -   NOTE: That the `/charts` path prefix is not used for paths on the staging site.
+-   Gallery examples on staging use the pattern: `https://charts-staging.ag-grid.com/gallery/[example-name]/`
+    -   Example: `https://charts-staging.ag-grid.com/gallery/simple-bar/`
+    -   Example: `https://charts-staging.ag-grid.com/gallery/bar-with-labels/`
 
 ## Development Server Notes
 
