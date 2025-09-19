@@ -18,7 +18,6 @@ export interface RadialSeriesStyleResult extends Required<Omit<AgRadialSeriesSty
     opacity: 1;
 }
 
-
 interface RadialSectorSeries<D extends BaseNodeDatum> {
     readonly id: string;
     readonly ctx: _ModuleSupport.ModuleContext;
