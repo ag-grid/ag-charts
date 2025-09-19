@@ -51,7 +51,8 @@ const options: AgChartOptions<DataType> = {
                 itemStyler: ({ datum: { coal, nuclear } }) => {
                     if (coal > nuclear) {
                         return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
-                    } else return { fontSize: 8 };
+                    }
+                    return { fontSize: 8 };
                 },
             },
         },
