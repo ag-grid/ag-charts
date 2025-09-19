@@ -46,6 +46,29 @@ nx benchmark <package>       # Performance benchmarks
 nx lint <package>           # ESLint + custom rules
 ```
 
+#### Running Specific Test Suites
+
+To run a single test suite or specific tests instead of the entire test suite:
+
+```bash
+# Run tests from a specific file
+nx test ag-charts-community --testPathPattern="lineSeries.test.ts"
+
+# Run tests matching a specific suite name (describe block)
+nx test ag-charts-community --testNamePattern="LineSeries"
+
+# Run tests from a specific path pattern
+nx test ag-charts-community --testPathPattern="series/cartesian/lineSeries"
+
+# Combine path and name patterns for more specific filtering
+nx test ag-charts-community --testPathPattern="lineSeries.test.ts" --testNamePattern="specific test name"
+
+# Run tests in watch mode for a specific file
+nx test ag-charts-community --watch --testPathPattern="lineSeries.test.ts"
+```
+
+Note: `--testPathPattern` matches against the file path, while `--testNamePattern` matches against test suite names (describe blocks) and individual test names (it blocks).
+
 ## Slash Commands
 
 NOTE: These are only intended for agentic tools that don't support custom slash commands, such as Cursor or Codex.
