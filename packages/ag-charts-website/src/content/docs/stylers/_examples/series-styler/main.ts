@@ -13,7 +13,8 @@ const options: AgCartesianChartOptions = {
                     styler: (params) => {
                         if (params.yKey.includes('benchmark')) {
                             return { fill: 'lightgray' };
-                        } else return { fill: '#5090DC' };
+                        }
+                        return { fill: '#5090DC' };
                     },
                 },
             },
@@ -24,7 +25,8 @@ const options: AgCartesianChartOptions = {
                     styler: (params) => {
                         if (params.yKey.includes('benchmark')) {
                             return { stroke: 'lightgray' };
-                        } else return { stroke: '#5090DC' };
+                        }
+                        return { stroke: '#5090DC' };
                     },
                 },
             },
