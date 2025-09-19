@@ -98,6 +98,45 @@ legend: {
 }
 ```
 
+### 🆕 Context-Aware Legend Formatters (b12.2.0)
+
+_Apply: 5 minutes, Impact: MEDIUM_
+
+```typescript
+// Use context parameter for data-aware legend labels
+legend: {
+    position: 'bottom',
+    item: {
+        label: {
+            formatter: (params) => {
+                const { seriesId, itemId, value, datum, context } = params;
+
+                // Access context data if provided
+                if (context?.totalValue) {
+                    const percentage = ((datum?.value / context.totalValue) * 100).toFixed(1);
+                    return `${value} (${percentage}%)`;
+                }
+
+                // Format based on series-specific logic
+                if (seriesId === 'revenue') {
+                    return `${value}: $${(datum?.total / 1000000).toFixed(1)}M`;
+                }
+
+                return value; // Default formatting
+            },
+        },
+    },
+}
+```
+
+### Use Cases for Context in Legend
+
+-   **Percentage display**: Show relative values in legend
+-   **Aggregate information**: Display totals or averages
+-   **Dynamic formatting**: Adjust based on data characteristics
+-   **Custom metadata**: Include business-specific context
+-   **Replaces**: Manual legend generation with custom HTML
+
 ### Legend for Complex Multi-Series Charts
 
 ```typescript

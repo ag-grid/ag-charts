@@ -64,7 +64,7 @@ axes: [
 -   Particularly effective for bar/column charts with category axes
 -   Works seamlessly with axis bands for layered visual depth
 
-## 🏷️ Axis Label Formatting
+## 🏷️ Axis Label Formatting & Styling
 
 _Apply: 5 minutes, Impact: High_
 
@@ -113,6 +113,51 @@ axes: [
     },
 ];
 ```
+
+### 🎨 NEW: Axis Label Item Styler (b12.2.0)
+
+_Apply: 6 minutes, Impact: MEDIUM_
+
+```typescript
+// Style specific axis labels based on value or position
+axes: [
+    {
+        type: 'number', // ⚠️ REQUIRED field
+        position: 'left',
+        label: {
+            itemStyler: (params) => {
+                const { value, formattedValue } = params;
+
+                // Emphasize baseline (0) or target values
+                if (value === 0) {
+                    return {
+                        fontWeight: 'bold',
+                        // Don't set color - theme handles contrast
+                    };
+                }
+
+                // Highlight target thresholds
+                if (value === 100000) {
+                    return {
+                        fontWeight: 'bold',
+                        fontSize: 14, // Slightly larger for targets
+                        // Don't set color - theme handles it
+                    };
+                }
+
+                return {}; // Default styling for other labels
+            },
+        },
+    },
+];
+```
+
+### Use Cases for Label Stylers
+
+-   **Emphasize key values**: Zero baseline, targets, thresholds
+-   **Visual hierarchy**: Make important values stand out
+-   **Context-aware styling**: Different styles for different value ranges
+-   **Replaces**: Complex DOM manipulation or custom label rendering
 
 ## 📐 Snug Data Fitting with `nice: false`
 
