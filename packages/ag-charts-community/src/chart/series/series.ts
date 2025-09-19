@@ -2,6 +2,7 @@ import {
     type AnyFn,
     CleanupRegistry,
     EventEmitter,
+    type InternalAgColorType,
     LRUCache,
     Logger,
     type Point,
@@ -611,7 +612,7 @@ export abstract class Series<
         return opacity;
     }
 
-    protected getHighlightState(
+    public getHighlightState(
         highlightedDatum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
@@ -692,7 +693,7 @@ export abstract class Series<
         return highlightedDatum.datumIndex === datumIndex;
     }
 
-    protected getHighlightStyle(
+    public getHighlightStyle(
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
         highlightState?: HighlightState,
@@ -704,7 +705,7 @@ export abstract class Series<
     }
 
     protected abstract hasItemStylers(): boolean;
-    protected filterItemStylerFillParams(fill: AgColorType | undefined) {
+    public filterItemStylerFillParams(fill: AgColorType | undefined): InternalAgColorType | undefined {
         if (isGradientFill(fill)) {
             return without(fill, ['bounds', 'colorSpace', 'gradient', 'reverse']);
         } else if (isPatternFill(fill)) {

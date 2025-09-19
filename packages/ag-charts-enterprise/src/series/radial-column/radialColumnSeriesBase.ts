@@ -2,13 +2,13 @@ import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
-    AgRadialSeriesStylerParams,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgColorType, type Point, isDefined } from 'ag-charts-core';
+import { type Point, isDefined } from 'ag-charts-core';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
+import { getItemStyle, getStyle } from '../util/radialUtil';
 import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProperties';
 
 const {
@@ -34,10 +34,7 @@ const {
     applyShapeStyle,
     isGradientFill,
     updateLabelNode,
-    mergeDefaults,
     getItemStyles,
-    toHighlightString,
-    HighlightState,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -313,11 +310,14 @@ export abstract class RadialColumnSeriesBase<
         };
 
         const nodeData: RadialColumnNodeDatum[] = [];
+        const styles = getItemStyles((nodeDatum: RadialColumnNodeDatum | undefined, isHighlight, highlightState) =>
+            getItemStyle(this, nodeDatum, isHighlight, highlightState)
+        );
         const context = {
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
-            styles: getItemStyles(this.getItemStyle.bind(this)),
+            styles,
         };
         if (!this.visible) return context;
 
@@ -392,7 +392,7 @@ export abstract class RadialColumnSeriesBase<
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
-            styles: getItemStyles(this.getItemStyle.bind(this)),
+            styles,
         };
     }
 
@@ -424,139 +424,6 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
-
-    private makeStylerParams(
-        highlighted: boolean,
-        highlightStateEnum?: _ModuleSupport.HighlightState
-    ): AgRadialSeriesStylerParams<unknown, unknown> {
-        const { id: seriesId } = this;
-        const {
-            angleKey,
-            angleName,
-            cornerRadius,
-            fill,
-            fillOpacity,
-            lineDash,
-            lineDashOffset,
-            radiusKey,
-            radiusName,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-        } = this.properties;
-        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
-
-        type T = ReturnType<RadialColumnSeriesBase<ItemPathType>['makeStylerParams']>;
-        type Rules = _ModuleSupport.CallbackParamRules<T>;
-        return {
-            angleKey,
-            angleName: angleName ?? angleKey,
-            cornerRadius,
-            fill,
-            fillOpacity,
-            highlightState,
-            highlighted,
-            lineDash,
-            lineDashOffset,
-            radiusKey,
-            radiusName: radiusName ?? radiusKey,
-            seriesId,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-        } satisfies Rules;
-    }
-
-    private getStyle(
-        ignoreStylerCallback: boolean,
-        highlighted: boolean,
-        highlightState?: _ModuleSupport.HighlightState
-    ) {
-        const { styler } = this.properties;
-        let stylerResult: AgRadialSeriesStyle = {};
-        if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            stylerResult =
-                this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
-                    this.cachedCallWithContext(styler, stylerParams) ?? {},
-                    { pick: false }
-                ) ?? {};
-        }
-
-        interface Result extends Required<Omit<AgRadialSeriesStyle, 'fill'>> {
-            fill: InternalAgColorType;
-            opacity: 1;
-        }
-        const result: Result = {
-            cornerRadius: stylerResult.cornerRadius ?? this.properties.cornerRadius,
-            fill: stylerResult.fill ?? this.properties.fill,
-            fillOpacity: stylerResult.fillOpacity ?? this.properties.fillOpacity,
-            lineDash: stylerResult.lineDash ?? this.properties.lineDash,
-            lineDashOffset: stylerResult.lineDashOffset ?? this.properties.lineDashOffset,
-            stroke: stylerResult.stroke ?? this.properties.stroke,
-            strokeOpacity: stylerResult.strokeOpacity ?? this.properties.strokeOpacity,
-            strokeWidth: stylerResult.strokeWidth ?? this.properties.strokeWidth,
-            opacity: 1,
-        };
-        return result;
-    }
-
-    protected getItemStyle(
-        nodeDatum: RadialColumnNodeDatum | undefined,
-        isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState
-    ): Required<AgRadialSeriesStyle> {
-        const { properties } = this;
-        const { itemStyler } = properties;
-
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
-        const baseStyle = mergeDefaults(
-            highlightStyle,
-            this.getStyle(nodeDatum === undefined, isHighlight, highlightState)
-        );
-        let style = baseStyle;
-
-        if (itemStyler != null && nodeDatum != null) {
-            const overrides = this.cachedDatumCallback(
-                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
-                () => {
-                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
-                    return this.callWithContext(itemStyler, params);
-                }
-            );
-
-            if (overrides) {
-                style = mergeDefaults(overrides, style);
-            }
-        }
-
-        return style;
-    }
-
-    private makeItemStylerParams(
-        nodeDatum: RadialColumnNodeDatum,
-        isHighlight: boolean,
-        style: Required<AgRadialSeriesStyle> & { opacity: number }
-    ) {
-        const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey } = properties;
-
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
-        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
-
-        return {
-            seriesId,
-            datum: nodeDatum.datum,
-            highlighted: isHighlight,
-            highlightState: highlightStateString,
-            angleKey,
-            radiusKey,
-            ...style,
-            fill,
-        };
-    }
 
     protected updateSectorSelection(
         selection: _ModuleSupport.Selection<ItemPathType, RadialColumnNodeDatum>,
@@ -592,7 +459,7 @@ export abstract class RadialColumnSeriesBase<
 
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-                    nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, highlightState);
+                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState);
                 }
 
                 const style =
@@ -660,7 +527,7 @@ export abstract class RadialColumnSeriesBase<
 
         if (angleValue == null) return;
 
-        const format = this.getItemStyle(nodeDatum, false);
+        const format = getItemStyle(this, nodeDatum, false);
         return this.formatTooltipWithContext(
             tooltip,
             {
@@ -692,7 +559,8 @@ export abstract class RadialColumnSeriesBase<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.getStyle(
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = getStyle(
+            this,
             false,
             false,
             _ModuleSupport.HighlightState.None
@@ -742,7 +610,7 @@ export abstract class RadialColumnSeriesBase<
         ];
     }
 
-    private getDatumId(datum: Pick<RadialColumnNodeDatum, 'angleValue'>) {
+    getDatumId(datum: RadialColumnNodeDatum) {
         return createDatumId(datum.angleValue);
     }
 
