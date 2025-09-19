@@ -642,7 +642,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         ];
     }
 
-    private getDatumId(datum: Pick<RadialBarNodeDatum, 'radiusValue'>) {
+    getDatumId(datum: Pick<RadialBarNodeDatum, 'radiusValue'>) {
         return createDatumId(datum.radiusValue);
     }
 
