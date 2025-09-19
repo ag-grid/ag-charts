@@ -1,9 +1,20 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts, AgRadialBarSeriesOptions } from 'ag-charts-community';
+import {
+    type AgChartOptions,
+    AgCharts,
+    AgPolarChartOptions,
+    AgRadialBarSeriesOptions,
+    AgRadialSeriesItemStylerParams,
+    AgRadialSeriesStyle,
+    AgRadialSeriesStylerParams,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MockRadialColumnStyler,
     extractImageData,
+    hoverAction,
+    newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
@@ -404,6 +415,241 @@ describe('RadialBarSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    describe('AG-15782 styler', () => {
+        type D = { quarter: string; sw: number; hw: number };
+        type C = unknown;
+        type O = AgPolarChartOptions<D, C>;
+        type M = MockRadialColumnStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        let data: D[];
+
+        beforeEach(() => {
+            data = [
+                { quarter: `Q1'22`, sw: 4.35, hw: 2.14 },
+                { quarter: `Q2'22`, sw: 4.28, hw: 3.13 },
+                { quarter: `Q3'22`, sw: 4.14, hw: 3.34 },
+                { quarter: `Q4'22`, sw: 3.48, hw: 3.56 },
+                { quarter: `Q1'23`, sw: 3.35, hw: 3.14 },
+                { quarter: `Q2'23`, sw: 3.28, hw: 3.13 },
+                { quarter: `Q3'23`, sw: 3.14, hw: 2.84 },
+                { quarter: `Q4'23`, sw: 2.48, hw: 2.46 },
+            ];
+            styler = newFreezableMock<D, C, M>(
+                (params: AgRadialSeriesStylerParams<D, C>): AgRadialSeriesStyle | undefined => {
+                    if (params.angleKey === 'sw') {
+                        return {
+                            fill: 'cyan',
+                            lineDash: [7, 2],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 3,
+                            strokeOpacity: 0.5,
+                        };
+                    }
+                    if (params.angleKey === 'hw')
+                        return {
+                            fill: 'hotpink',
+                            stroke: 'darkmagenta',
+                            strokeWidth: 4,
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'software context 1' };
+                c2 = { name: 'hardware context 2' };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        legend: { position: 'left' },
+                        series: [
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'sw',
+                                angleName: 'Software',
+                                context: c1,
+                                fill: 'lime', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'hw',
+                                context: c2,
+                                stroke: 'CornflowerBlue', // ignored
+                                strokeOpacity: 0.5, // not ignored
+                                strokeWidth: 15, // ignored
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
+                });
+                test('params', () => {
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgRadialSeriesItemStylerParams<D, C>): AgRadialSeriesStyle => {
+                    if (params.angleKey === 'sw' && params.datum.quarter === `Q1'22`) {
+                        return { fill: 'lightskyblue', stroke: 'deepskyblue' };
+                    }
+                    if (params.angleKey === 'hw' && params.datum.quarter === `Q3'23`) {
+                        return { fill: 'darkkhaki', strokeWidth: 1, strokeOpacity: 1 };
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        legend: { position: 'left' },
+                        series: [
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'sw',
+                                angleName: 'Software',
+                                fill: 'lime', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                styler: styler.frozen,
+                                itemStyler,
+                            },
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'hw',
+                                stroke: 'CornflowerBlue', // ignored
+                                strokeOpacity: 0.5, // not ignored
+                                strokeWidth: 15, // ignored
+                                styler: styler.frozen,
+                                itemStyler,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        legend: { position: 'left' },
+                        series: [
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'sw',
+                                angleName: 'Software',
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'hw',
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        xdescribe('highlights', () => {
+            // Manual-test version available at radial-bar-series-test#styler-highlight-state
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        legend: { position: 'left' },
+                        series: [
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'sw',
+                                angleName: 'Software',
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'hw',
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+
+            const miss = { x: 100, y: 100 } as const;
+            const series0datum0 = { x: 400, y: 200 } as const;
+            const series0datum2 = { x: 465, y: 275 } as const;
+            const series1datum0 = { x: 400, y: 120 } as const;
+            const legendItem0 = { x: 375, y: 570 } as const;
+            const legendItem1 = { x: 450, y: 570 } as const;
+
+            describe('single', () => {
+                async function testHover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                }
+                test('miss', async () => testHover(miss));
+                test('series[0].datum[0]', async () => testHover(series0datum0));
+                test('series[0].datum[2]', async () => testHover(series0datum2));
+                test('series[1].datum[0]', async () => testHover(series1datum0));
+                test('legendItem[0]', async () => testHover(legendItem0));
+                test('legendItem[1]', async () => testHover(legendItem1));
+            });
+            describe('sequenced', () => {
+                async function hover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                }
+                test('1', async () => {
+                    await hover(miss);
+                    await hover(series0datum0);
+                    await hover(miss);
+                    await hover(series0datum2);
+                    await hover(miss);
+                    await hover(series1datum0);
+                    await hover(miss);
+                    await hover(legendItem0);
+                    await hover(legendItem1);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
     });
 
     describe('AG-15448', () => {
