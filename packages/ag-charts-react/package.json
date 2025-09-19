@@ -40,7 +40,7 @@
   "devDependencies": {
     "ag-charts-community": "12.2.0-beta.20250919",
     "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react-dom": "^19",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "tslib": "^1.10.0",
