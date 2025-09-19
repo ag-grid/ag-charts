@@ -5,6 +5,7 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
+    legend: { position: 'left'},
     series: [
         {
             type: 'radial-bar',
@@ -14,11 +15,11 @@ const options: AgChartOptions = {
             styler: (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
-                        return { fill: 'yellow', strokeWidth: 4 };
+                        return { fill: 'yellow', strokeWidth: 3 };
                     case 'unhighlighted-item':
                         return { fill: 'lightgray' };
                     case 'highlighted-series':
-                        return { fill: 'gold', strokeWidth: 4 };
+                        return { fill: 'gold', strokeWidth: 3 };
                     case 'unhighlighted-series':
                         return { fillOpacity: 0.2, strokeOpacity: 0.2 };
                     case 'none':
@@ -34,11 +35,11 @@ const options: AgChartOptions = {
             styler: (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
-                        return { fill: 'lime', strokeWidth: 4 };
+                        return { fill: 'lime', strokeWidth: 3 };
                     case 'unhighlighted-item':
                         return { fill: 'lightgray' };
                     case 'highlighted-series':
-                        return { fill: 'limegreen', strokeWidth: 4 };
+                        return { fill: 'limegreen', strokeWidth: 3 };
                     case 'unhighlighted-series':
                         return { fillOpacity: 0.2, strokeOpacity: 0.2 };
                     case 'none':

@@ -15,7 +15,7 @@ const styler = (params: AgRadialSeriesStylerParams<DatumType, unknown>): AgRadia
             lineDash: [7, 2],
             lineDashOffset: 5,
             stroke: 'blue',
-            strokeWidth: 7,
+            strokeWidth: 3,
             strokeOpacity: 0.5,
         };
     }
@@ -33,7 +33,7 @@ const itemStyler = (params: AgRadialSeriesItemStylerParams<DatumType, unknown>):
         return { fill: 'lightskyblue', stroke: 'deepskyblue' };
     }
     if (params.angleKey === 'hw' && params.datum.quarter === `Q3'23`) {
-        return { fill: 'darkkhaki', strokeWidth: 7, strokeOpacity: 1 };
+        return { fill: 'darkkhaki', strokeWidth: 1, strokeOpacity: 1 };
     }
     return {};
 };
@@ -41,6 +41,7 @@ const itemStyler = (params: AgRadialSeriesItemStylerParams<DatumType, unknown>):
 const options: AgChartOptions<DatumType, unknown> = {
     container: document.getElementById('myChart'),
     data: getData(),
+    legend: { position: 'left'},
     series: [
         {
             type: 'radial-bar',

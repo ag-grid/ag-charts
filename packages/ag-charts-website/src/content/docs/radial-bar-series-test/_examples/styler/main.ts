@@ -9,7 +9,7 @@ const styler = (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialS
             lineDash: [7, 2],
             lineDashOffset: 5,
             stroke: 'blue',
-            strokeWidth: 7,
+            strokeWidth: 3,
             strokeOpacity: 0.5,
         };
     }
@@ -25,6 +25,7 @@ const styler = (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialS
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
+    legend: { position: 'left'},
     series: [
         {
             type: 'radial-bar',
