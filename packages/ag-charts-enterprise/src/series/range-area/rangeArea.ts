@@ -7,6 +7,7 @@ import {
 import type { Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
+import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
 import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
 
@@ -356,6 +357,25 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             false
         );
 
+        let intersectionSegments: _ModuleSupport.Segment[] | undefined = undefined;
+        if (this.properties.negativeStyle.enabled) {
+            const startsInverted = yHighValues[0] < yLowValues[0];
+            const intersectionXValues = findRangeAreaIntersections(
+                highSpans,
+                lowSpans,
+                xScale.range[0],
+                xScale.range[1],
+                startsInverted
+            );
+            intersectionSegments = calculateIntersectionSegments(
+                intersectionXValues,
+                this.chart.seriesRect,
+                this.ctx.scene,
+                startsInverted,
+                this.properties.negativeStyle
+            );
+        }
+
         const context: RangeAreaContext = {
             itemId: `${yLowKey}-${yHighKey}`,
             labelData,
@@ -373,6 +393,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 strokeOpacity,
             }),
             segments,
+            intersectionSegments,
         };
 
         return context;
@@ -494,8 +515,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fillBBox
         );
 
+        const fillSegments = this.contextNodeData?.intersectionSegments ?? segments;
         fill.setProperties({
-            segments,
+            segments: fillSegments,
             pointerEvents: PointerEvents.None,
             lineJoin: 'round',
             fillShadow: this.properties.shadow,
@@ -503,7 +525,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible,
         });
 
-        fill.datum = segments;
+        fill.datum = fillSegments;
 
         updateClipPath(this, stroke);
         updateClipPath(this, fill);

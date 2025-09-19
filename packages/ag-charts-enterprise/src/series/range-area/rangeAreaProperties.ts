@@ -40,6 +40,17 @@ class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> 
     spacing: PixelSize = 0;
 }
 
+class RangeAreaNegativeStyle {
+    @Property
+    enabled: boolean = false;
+
+    @Property
+    fill?: InternalAgColorType;
+
+    @Property
+    fillOpacity: number = 1;
+}
+
 export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSeriesOptions> {
     @Property
     xKey!: string;
@@ -88,6 +99,9 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
 
     @Property
     styler?: Styler<unknown, undefined>;
+
+    @Property
+    readonly negativeStyle = new RangeAreaNegativeStyle();
 
     @Property
     readonly shadow = new DropShadow().set({ enabled: false });
