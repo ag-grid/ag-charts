@@ -394,8 +394,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         isHighlight: boolean
     ) {
         let selectionData: RadialBarNodeDatum[] = [];
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         if (isHighlight) {
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             if (activeHighlight?.datum && activeHighlight.series === this) {
                 selectionData.push(activeHighlight as RadialBarNodeDatum);
             }
@@ -419,7 +419,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 if (datum == null) return;
 
                 if (hasItemStylers) {
-                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight);
+                    const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
+                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState);
                 }
 
                 const style =
