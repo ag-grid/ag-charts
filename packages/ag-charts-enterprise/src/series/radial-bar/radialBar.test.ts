@@ -586,7 +586,7 @@ describe('RadialBarSeries', () => {
                 await compare();
             });
         });
-        xdescribe('highlights', () => {
+        describe('highlights', () => {
             // Manual-test version available at radial-bar-series-test#styler-highlight-state
             beforeEach(async () => {
                 chart = AgCharts.create(
@@ -614,11 +614,11 @@ describe('RadialBarSeries', () => {
             });
 
             const miss = { x: 100, y: 100 } as const;
-            const series0datum0 = { x: 400, y: 200 } as const;
-            const series0datum2 = { x: 465, y: 275 } as const;
-            const series1datum0 = { x: 400, y: 120 } as const;
-            const legendItem0 = { x: 375, y: 570 } as const;
-            const legendItem1 = { x: 450, y: 570 } as const;
+            const series0datum0 = { x: 508, y: 300 } as const;
+            const series0datum2 = { x: 559, y: 300 } as const;
+            const series1datum0 = { x: 515, y: 275 } as const;
+            const legendItem0 = { x: 50, y: 290 } as const;
+            const legendItem1 = { x: 50, y: 311 } as const;
 
             describe('single', () => {
                 async function testHover(p: { readonly x: number; readonly y: number }) {
