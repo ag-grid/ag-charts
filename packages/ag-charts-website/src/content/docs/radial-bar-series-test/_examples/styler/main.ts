@@ -25,7 +25,7 @@ const styler = (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialS
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    legend: { position: 'left'},
+    legend: { position: 'left' },
     series: [
         {
             type: 'radial-bar',
