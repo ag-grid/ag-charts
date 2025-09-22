@@ -1,5 +1,6 @@
-import { describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 
+import type { ChartMode } from '../chartMode';
 import { DataController } from './dataController';
 import type { DataModelOptions, DatumPropertyDefinition } from './dataModel';
 import { DataRef, wrapRawData } from './dataRef';
@@ -470,6 +471,197 @@ describe('DataController', () => {
             const obj1 = { id: 123, name: 'John', type: 'admin' };
             const obj2 = { id: 456, name: 'John', type: 'user' };
             expect(DataController.deepEqual(obj1, obj2)).toBe(true); // assuming id and type are in skipKeys
+        });
+    });
+
+    describe('incremental updates', () => {
+        const TEST_MODE: ChartMode = 'standalone';
+
+        beforeEach(() => {
+            controller = new DataController(TEST_MODE, false);
+        });
+
+        it('should process data without transactions normally', async () => {
+            const dataRef: DataRef<{ x: number; y: number }> = {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ],
+                pendingTransactions: [],
+            };
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            const resultPromise = controller.request('test', dataRef, opts);
+            controller.execute();
+            const result = await resultPromise;
+
+            expect(result.processedData).toBeDefined();
+            expect(result.processedData.input.count).toBe(2);
+            expect(result.processedData.incremental).toBeUndefined();
+        });
+
+        it('should apply transactions incrementally when cache exists', async () => {
+            const dataRef: DataRef<{ x: number; y: number }> = {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ],
+                pendingTransactions: [],
+            };
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            // Initial request without transactions
+            const result1Promise = controller.request('test', dataRef, opts);
+            const cache1 = controller.execute();
+            const result1 = await result1Promise;
+
+            expect(result1.processedData.input.count).toBe(2);
+            expect(result1.processedData.incremental).toBeUndefined();
+
+            // Second request with transactions
+            controller = new DataController(TEST_MODE, false);
+            dataRef.pendingTransactions = [
+                {
+                    append: [
+                        { x: 3, y: 30 },
+                        { x: 4, y: 40 },
+                    ],
+                },
+            ];
+
+            const result2Promise = controller.request('test', dataRef, opts);
+            controller.execute(cache1);
+            const result2 = await result2Promise;
+
+            expect(result2.processedData.input.count).toBe(4);
+            expect(result2.processedData.incremental).toBeDefined();
+            expect(result2.processedData.incremental?.baseDataSize).toBe(2);
+            expect(result2.processedData.incremental?.addedRows).toEqual([2, 3]);
+            expect(dataRef.pendingTransactions.length).toBe(0); // Should be cleared
+        });
+
+        it('should track modified domains correctly', async () => {
+            const dataRef: DataRef<{ x: string; y: number }> = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                ],
+                pendingTransactions: [],
+            };
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            // Initial request
+            const result1Promise = controller.request('test', dataRef, opts);
+            const cache1 = controller.execute();
+            await result1Promise;
+
+            // Add data with new domain values
+            controller = new DataController(TEST_MODE, false);
+            dataRef.pendingTransactions = [
+                {
+                    append: [
+                        { x: 'C', y: 30 }, // New x domain value
+                        { x: 'D', y: 50 }, // New x domain value, new y range
+                    ],
+                },
+            ];
+
+            const result2Promise = controller.request('test', dataRef, opts);
+            controller.execute(cache1);
+            const result2 = await result2Promise;
+
+            const incremental = result2.processedData.incremental;
+            expect(incremental).toBeDefined();
+            expect(incremental?.modifiedDomains.keys.length).toBeGreaterThan(0);
+            expect(incremental?.modifiedDomains.values.length).toBeGreaterThan(0);
+        });
+
+        it('should handle multiple transactions in sequence', async () => {
+            const dataRef: DataRef<{ x: number; y: number }> = {
+                data: [{ x: 1, y: 10 }],
+                pendingTransactions: [],
+            };
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            // Initial request
+            const result1Promise = controller.request('test', dataRef, opts);
+            const cache1 = controller.execute();
+            const result1 = await result1Promise;
+
+            expect(result1.processedData.input.count).toBe(1);
+
+            // Add multiple transactions
+            controller = new DataController(TEST_MODE, false);
+            dataRef.pendingTransactions = [
+                { append: [{ x: 2, y: 20 }] },
+                {
+                    append: [
+                        { x: 3, y: 30 },
+                        { x: 4, y: 40 },
+                    ],
+                },
+            ];
+
+            const result2Promise = controller.request('test', dataRef, opts);
+            controller.execute(cache1);
+            const result2 = await result2Promise;
+
+            expect(result2.processedData.input.count).toBe(4);
+            expect(result2.processedData.incremental?.addedRows).toEqual([1, 2, 3]);
+        });
+
+        it('should reprocess from scratch when cache is not available', async () => {
+            const dataRef: DataRef<{ x: number; y: number }> = {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ],
+                pendingTransactions: [
+                    {
+                        append: [{ x: 3, y: 30 }],
+                    },
+                ],
+            };
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            // Request without cache (first time)
+            const resultPromise = controller.request('test', dataRef, opts);
+            controller.execute();
+            const result = await resultPromise;
+
+            // Should process base data only (transactions not applied during normal processing)
+            expect(result.processedData.input.count).toBe(2);
+            expect(result.processedData.incremental).toBeUndefined();
         });
     });
 });

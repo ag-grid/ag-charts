@@ -9,7 +9,6 @@ import {
     type DatumPropertyDefinition,
     type ProcessedData,
     type PropertyDefinition,
-    type UngroupedData,
 } from './dataModel';
 import { type DataRef, isDataRef } from './dataRef';
 
@@ -96,8 +95,10 @@ export class DataController {
             const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, dataRef, ids, opts));
 
             let dataModel: DataModel<any, string>;
-            let processedData: UngroupedData<any> | undefined;
+            let processedData: ProcessedData<any> | undefined;
+
             if (reusableCache == null) {
+                // No cache available - process from scratch
                 try {
                     dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
                     const sources = new Map(valid.map((v) => [v.id, v.dataRef.data]));
@@ -106,7 +107,36 @@ export class DataController {
                     rejects.forEach((cb) => cb(error));
                     continue;
                 }
+            } else if (dataRef.pendingTransactions.length > 0 && reusableCache.processedData) {
+                // Cache available with pending transactions - apply incrementally
+                ({ dataModel } = reusableCache);
+                try {
+                    // Create sources map from pending transactions
+                    const transactionSources = new Map<string, unknown[]>();
+                    for (const validRequest of valid) {
+                        if (validRequest.dataRef === dataRef) {
+                            // Collect all append data from pending transactions
+                            const appendData: unknown[] = [];
+                            for (const transaction of dataRef.pendingTransactions) {
+                                if (transaction.append) {
+                                    appendData.push(...transaction.append);
+                                }
+                            }
+                            transactionSources.set(validRequest.id, appendData);
+                        }
+                    }
+
+                    // Apply transactions incrementally
+                    processedData = dataModel.applyTransactions(reusableCache.processedData, transactionSources);
+
+                    // Clear pending transactions after successful processing
+                    dataRef.pendingTransactions = [];
+                } catch (error) {
+                    rejects.forEach((cb) => cb(error));
+                    continue;
+                }
             } else {
+                // Cache available with no pending transactions - reuse as-is
                 ({ dataModel, processedData } = reusableCache);
             }
 

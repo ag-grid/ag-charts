@@ -1,7 +1,7 @@
 import { arraysEqual } from 'ag-charts-core';
 
 import { objectsEqual } from '../../util/object';
-import type { DataModel, DataModelOptions, PropertyDefinition, UngroupedData } from './dataModel';
+import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from './dataModel';
 import type { DataRef } from './dataRef';
 
 interface CachedDataItem<D extends object, K extends keyof D & string = keyof D & string> {
@@ -9,7 +9,7 @@ interface CachedDataItem<D extends object, K extends keyof D & string = keyof D 
     opts: DataModelOptions<K, any>;
     dataRef: DataRef<D>;
     dataModel: DataModel<any, any, any>;
-    processedData: UngroupedData<any> | undefined;
+    processedData: ProcessedData<any> | undefined;
 }
 
 export type CachedData = CachedDataItem<any, any>[];
@@ -72,9 +72,13 @@ export function canReuseCachedData<D extends object, K extends keyof D & string 
     ids: string[],
     opts: DataModelOptions<K, any>
 ) {
-    return (
-        dataRef === cachedDataItem.dataRef &&
-        arraysEqual(ids, cachedDataItem.ids) &&
-        optsEqual(opts, cachedDataItem.opts)
-    );
+    // Allow reuse when the DataRef is the same object (even with pending transactions)
+    // or when it's the same data array with no pending transactions
+    const sameDataRef =
+        dataRef === cachedDataItem.dataRef ||
+        (dataRef.data === cachedDataItem.dataRef.data &&
+            dataRef.pendingTransactions.length === 0 &&
+            cachedDataItem.dataRef.pendingTransactions.length === 0);
+
+    return sameDataRef && arraysEqual(ids, cachedDataItem.ids) && optsEqual(opts, cachedDataItem.opts);
 }

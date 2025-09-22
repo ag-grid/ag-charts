@@ -95,7 +95,18 @@ export interface ProcessedDataDef {
     def: PropertyDefinition<any>;
 }
 
-export type ProcessedData<D> = UngroupedData<D> | GroupedData<D>;
+export interface IncrementalUpdateMetadata {
+    baseDataSize: number; // Original data size before transactions
+    addedRows: number[]; // Indices of newly added rows
+    modifiedDomains: {
+        keys: number[]; // Indices of modified key domains
+        values: number[]; // Indices of modified value domains
+    };
+}
+
+export type ProcessedData<D> = (UngroupedData<D> | GroupedData<D>) & {
+    incremental?: IncrementalUpdateMetadata;
+};
 
 export type DatumPropertyType = 'range' | 'category';
 
@@ -506,7 +517,7 @@ export class DataModel<
         scope: ScopeProvider,
         searchId: string,
         type: PropertyDefinition<any>['type'],
-        processedData: ProcessedData<K>
+        processedData: ProcessedData<D>
     ): any[] | [number, number] | [] {
         const domains = this.getDomainsByType(type ?? 'value', processedData);
         return domains?.[this.resolveProcessedDataIndexById(scope, searchId)] ?? [];
@@ -516,7 +527,7 @@ export class DataModel<
         scope: ScopeProvider,
         searchIds: string[],
         [i0, i1]: [number, number],
-        processedData: ProcessedData<K>
+        processedData: ProcessedData<D>
     ): [number, number] {
         const columnIndices = searchIds.map((searchId) => this.resolveProcessedDataIndexById(scope, searchId));
         const cacheKey = columnIndices.join(':');
@@ -539,18 +550,18 @@ export class DataModel<
         return sortOrder.sortOrder;
     }
 
-    getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
+    getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<D>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
         const keys = processedData.keys[columnIndex]?.get(scope.id);
         return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS]) : undefined;
     }
 
-    getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
+    getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<D>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
         return this.getSortOrder(processedData.columns[columnIndex], columnIndex, processedData[COLUMN_SORT_ORDERS]);
     }
 
-    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
+    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<D>) {
         switch (type) {
             case 'key':
                 return processedData.domain.keys;
@@ -618,6 +629,125 @@ export class DataModel<
         this.processScopeCache();
 
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
+    }
+
+    applyTransactions(
+        existingData: ProcessedData<D>,
+        transactions: Map<string, unknown[]>
+    ): ProcessedData<D> | undefined {
+        const start = performance.now();
+
+        // Clone the existing processed data to avoid mutations
+        const processedData = this.cloneProcessedData(existingData);
+
+        // Track incremental changes
+        const baseDataSize = processedData.input.count;
+        const addedRows: number[] = [];
+        const modifiedKeyDomains = new Set<number>();
+        const modifiedValueDomains = new Set<number>();
+
+        // Process new data from transactions
+        const incrementalData = this.extractData(transactions);
+
+        // Merge incremental data into existing processed data
+        const startIndex = baseDataSize;
+        for (let i = 0; i < incrementalData.input.count; i++) {
+            addedRows.push(startIndex + i);
+        }
+
+        // Append new data to columns
+        for (let colIndex = 0; colIndex < processedData.columns.length; colIndex++) {
+            if (incrementalData.columns[colIndex]) {
+                processedData.columns[colIndex].push(...incrementalData.columns[colIndex]);
+            }
+        }
+
+        // Update domains
+        for (let i = 0; i < processedData.domain.keys.length; i++) {
+            if (this.updateDomain(processedData.domain.keys[i], incrementalData.domain.keys[i])) {
+                modifiedKeyDomains.add(i);
+            }
+        }
+
+        for (let i = 0; i < processedData.domain.values.length; i++) {
+            if (this.updateDomain(processedData.domain.values[i], incrementalData.domain.values[i])) {
+                modifiedValueDomains.add(i);
+            }
+        }
+
+        // Update metadata
+        processedData.input.count += incrementalData.input.count;
+        processedData.partialValidDataCount += incrementalData.partialValidDataCount;
+
+        // Add incremental tracking metadata
+        processedData.incremental = {
+            baseDataSize,
+            addedRows,
+            modifiedDomains: {
+                keys: Array.from(modifiedKeyDomains),
+                values: Array.from(modifiedValueDomains),
+            },
+        };
+
+        // Apply post-processing steps if needed
+        if (this.opts.groupByKeys && processedData.type === 'ungrouped') {
+            // TODO: to handle incremental grouping
+        }
+
+        const end = performance.now();
+        processedData.time = end - start;
+
+        if (this.debug.check()) {
+            logProcessedData(processedData);
+        }
+
+        return processedData;
+    }
+
+    private cloneProcessedData(data: ProcessedData<D>): ProcessedData<D> {
+        // Deep clone the processed data structure
+        const cloned: any = {
+            ...data,
+            input: { ...data.input },
+            scopes: new Set(data.scopes),
+            dataSources: new Map(data.dataSources),
+            keys: data.keys.map((keyMap) => new Map(keyMap)),
+            columns: data.columns.map((col) => [...col]),
+            columnScopes: data.columnScopes.map((scope) => new Set(scope)),
+            domain: {
+                keys: data.domain.keys.map((domain) => [...domain]),
+                values: data.domain.values.map((domain) => [...domain]),
+                groups: data.domain.groups?.map((group) => [...group]),
+                aggValues: data.domain.aggValues?.map((agg) => [...agg]),
+            },
+            defs: { ...data.defs },
+        };
+
+        if (data.type === 'grouped') {
+            cloned.groups = data.groups.map((group: DataGroup) => ({
+                ...group,
+                keys: [...group.keys],
+                datumIndices: group.datumIndices.map((indices) => [...indices]),
+                aggregation: group.aggregation.map((agg) => [...agg]),
+                validScopes: new Set(group.validScopes),
+            }));
+        }
+
+        return cloned as ProcessedData<D>;
+    }
+
+    private updateDomain(existingDomain: any[], newDomain: any[]): boolean {
+        if (!newDomain || newDomain.length === 0) return false;
+
+        let modified = false;
+        for (const value of newDomain) {
+            if (!existingDomain.includes(value)) {
+                existingDomain.push(value);
+                modified = true;
+            }
+        }
+
+        return modified;
     }
 
     private warnDataMissingProperties(sources: Map<string, unknown[]>) {
@@ -1098,7 +1228,7 @@ export class DataModel<
         }
     }
 
-    private postProcessProperties(processedData: ProcessedData<any>) {
+    private postProcessProperties(processedData: ProcessedData<D>) {
         for (const { adjust, property, scopes } of this.propertyProcessors) {
             for (const idx of this.valueIdxLookup(scopes, property)) {
                 adjust()(processedData, idx);

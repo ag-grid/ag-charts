@@ -8,7 +8,7 @@ export function calculateDataDiff<N extends CartesianSeriesNodeDatum>(
     getDatumId: (datum: N) => string,
     contextNodeData: CartesianSeriesNodeDataContext<N, any>,
     previousContextNodeData?: CartesianSeriesNodeDataContext<N, any>,
-    processedData?: ProcessedData<unknown>
+    processedData?: ProcessedData<any>
 ) {
     let dataDiff = processedData?.reduced?.diff?.[seriesId];
     if (dataDiff?.changed) {
