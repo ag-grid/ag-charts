@@ -202,7 +202,7 @@ function isNxDaemonDisabled() {
             const content = fs.readFileSync(disabledPath, 'utf-8').trim();
             return content === 'true';
         }
-    } catch (e) {
+    } catch {
         // If we can't read the file, assume daemon is not disabled
     }
     return false;
