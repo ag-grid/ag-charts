@@ -70,6 +70,7 @@
     "algoliasearch": "^4.18.0",
     "cheerio": "^1.0.0-rc.12",
     "classnames": "^2.3.2",
+    "concurrently": "^9.2.1",
     "cssnano": "^7.0.2",
     "cssnano-preset-lite": "^4.0.0",
     "dependency-cruiser": "^13.1.5",
