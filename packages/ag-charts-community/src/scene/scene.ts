@@ -11,6 +11,7 @@ import {
     DebugSelectors,
     buildDirtyTree,
     buildTree,
+    cleanupDebugStats,
     debugSceneNodeHighlight,
     debugStats,
     prepareSceneNodeHighlight,
@@ -302,6 +303,7 @@ export class Scene extends EventEmitter<EventMap> {
         this.canvas.destroy();
         this.imageLoader.destroy();
         this.cleanup.flush();
+        cleanupDebugStats();
         Object.assign(this, { canvas: undefined });
     }
 }
