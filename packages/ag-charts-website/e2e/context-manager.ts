@@ -139,10 +139,13 @@ export const contextTest = test.extend<ContextTestFixture>({
             }
 
             const context = await contextPool!.getContext();
-            await use(context);
-            await contextPool!.releaseContext(context);
+            try {
+                await use(context);
+            } finally {
+                await cleanupContextPool();
+            }
         },
-        { scope: 'test' },
+        { scope: 'worker' },
     ],
 
     page: [
@@ -199,9 +202,4 @@ export const contextTest = test.extend<ContextTestFixture>({
         },
         { scope: 'test' },
     ],
-});
-
-// Worker cleanup
-test.afterAll(async () => {
-    await cleanupContextPool();
 });
