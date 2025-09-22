@@ -195,6 +195,19 @@ function getGitDir() {
     return gitDir;
 }
 
+function isNxDaemonDisabled() {
+    const disabledPath = path.join('.nx', 'workspace-data', 'd', 'disabled');
+    try {
+        if (fs.existsSync(disabledPath)) {
+            const content = fs.readFileSync(disabledPath, 'utf-8').trim();
+            return content === 'true';
+        }
+    } catch {
+        // If we can't read the file, assume daemon is not disabled
+    }
+    return false;
+}
+
 function isBuildBlocked() {
     return (
         fs.existsSync(path.join(getGitDir(), 'index.lock')) ||
@@ -233,6 +246,12 @@ function countReloadTargets() {
 let buildRunning = false;
 async function build() {
     if (buildRunning) return;
+
+    if (isNxDaemonDisabled()) {
+        warning('Nx daemon is disabled, build paused; will retry in 10 seconds.');
+        scheduleBuild(10_000);
+        return;
+    }
 
     if (isBuildBlocked()) {
         warning('Git operation in progress, build paused; will retry in 10 seconds.');
@@ -325,6 +344,19 @@ async function run(config) {
     let lastRespawn;
     let consecutiveRespawns = 0;
     while (true) {
+        // Check if Nx daemon has been disabled before starting watch
+        if (isNxDaemonDisabled()) {
+            error(`Nx daemon has been disabled!
+
+The watch script requires the Nx daemon to be enabled.
+
+Run these commands to reset the workspace:
+  yarn nx reset
+  yarn
+`);
+            process.exit(1);
+        }
+
         lastRespawn = Date.now();
         success('Starting watch...');
         await spawnNxWatch((project) => {
@@ -379,5 +411,19 @@ if (!['charts', 'grid'].includes(library)) {
     error(msg);
     throw new Error(msg);
 }
+
+// Check if Nx daemon is disabled before starting
+if (isNxDaemonDisabled()) {
+    error(`Nx daemon is disabled!
+
+The watch script requires the Nx daemon to be enabled.
+
+Run these commands to reset the workspace:
+  yarn nx reset
+  yarn
+`);
+    process.exit(1);
+}
+
 const config = library === 'charts' ? chartsConfig : gridConfig;
 run(config);
