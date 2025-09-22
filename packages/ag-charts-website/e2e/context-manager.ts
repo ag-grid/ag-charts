@@ -9,7 +9,7 @@ function stabilityProxy(page: Page, instance: any) {
     return new Proxy(instance, {
         get(target, prop, receiver) {
             const value = target[prop];
-            if (value instanceof Function) {
+            if (typeof value === 'function') {
                 return async function (...args: unknown[]) {
                     for (const locator of await page.locator('.ag-charts-wrapper').all()) {
                         await waitForChartUpdate(locator);
