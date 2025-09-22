@@ -83,7 +83,8 @@ const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
 type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
 
-type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
+type SpanPoint = LineSpanPointDatum[] | { skip: number };
+type SpanPoints = SpanPoint[];
 
 const memoizedAggregateLineData = simpleMemorize2(aggregateLineData);
 
@@ -221,6 +222,281 @@ export class LineSeries extends CartesianSeries<
         this.animationState.transition('updateData');
     }
 
+    /**
+     * Handles incremental data updates by appending new data points to existing node data.
+     * This method is called when ProcessedData contains incremental metadata, indicating
+     * that only new rows need to be processed rather than recreating all node data.
+     *
+     * Performance optimizations:
+     * - Only processes new data points (from incremental.addedRows)
+     * - Filters points based on visible range to avoid processing off-screen data
+     * - Reuses existing node data arrays and extends them
+     * - Connects new line segments to the last valid point from existing data
+     */
+    private appendNodeData(): LineSeriesNodeDataContext | undefined {
+        const { dataModel, processedData, axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+        const existingContext = this.contextNodeData;
+
+        if (!dataModel || !processedData || !xAxis || !yAxis || !existingContext || !processedData.incremental) {
+            return;
+        }
+
+        const {
+            xKey,
+            xName,
+            yFilterKey,
+            yKey,
+            yName,
+            marker,
+            label,
+            connectMissingData,
+            interpolation,
+            legendItemName,
+        } = this.properties;
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
+        const xOffset = (xScale.bandwidth ?? 0) / 2;
+        const yOffset = (yScale.bandwidth ?? 0) / 2;
+        const size = marker.enabled ? marker.size : 0;
+
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
+        const yCumulativeValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
+        const selectionValues =
+            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
+
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+
+        const capDefaults = {
+            lengthRatioMultiplier: this.properties.marker.getDiameter(),
+            lengthMax: Infinity,
+        };
+
+        // Check if scales have changed by comparing domains
+        const scalesChanged =
+            processedData.incremental.modifiedDomains &&
+            (processedData.incremental.modifiedDomains.keys.length > 0 ||
+                processedData.incremental.modifiedDomains.values.length > 0);
+
+        // Clone existing node data
+        const nodeData: LineNodeDatum[] = existingContext.nodeData;
+
+        // If scales changed, we need to recalculate positions for all existing points
+        if (scalesChanged) {
+            // Recalculate positions for existing data points
+            for (const existingNode of existingContext.nodeData) {
+                const x = xScale.convert(existingNode.xValue) + xOffset;
+                const y = yScale.convert(existingNode.cumulativeValue) + yOffset;
+
+                existingNode.point.x = x;
+                existingNode.point.y = y;
+                (existingNode.midPoint!.x as any) = x;
+                (existingNode.midPoint!.y as any) = y;
+            }
+        }
+
+        // Process only new data points
+        const { addedRows } = processedData.incremental;
+
+        for (const rowIndex of addedRows) {
+            const datum = rawData[rowIndex];
+            const xDatum = xValues[rowIndex];
+            const yDatum = yRawValues[rowIndex];
+            const yCumulative = yCumulativeValues[rowIndex];
+            const selected = selectionValues?.[rowIndex];
+
+            const x = xScale.convert(xDatum) + xOffset;
+            const y = yScale.convert(yCumulative) + yOffset;
+
+            if (!Number.isFinite(x)) continue;
+
+            if (yDatum != null) {
+                const labelText = label.enabled
+                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', yDomain, label, {
+                          value: yDatum,
+                          datum,
+                          xKey,
+                          yKey,
+                          xName,
+                          yName,
+                          legendItemName,
+                      })
+                    : undefined;
+
+                nodeData.push({
+                    series: this,
+                    datum,
+                    datumIndex: rowIndex,
+                    yKey,
+                    xKey,
+                    point: { x, y, size },
+                    midPoint: { x, y },
+                    cumulativeValue: yCumulative,
+                    yValue: yDatum,
+                    xValue: xDatum,
+                    capDefaults,
+                    labelText,
+                    selected,
+                });
+            }
+        }
+
+        // For incremental updates, we need to be smarter about span generation
+        let spanPoints: SpanPoints;
+
+        if (scalesChanged) {
+            // If scales changed, we need to rebuild all spans with new positions
+            spanPoints = [];
+            for (const node of nodeData) {
+                const currentSpanPoints: SpanPoint | undefined = spanPoints[spanPoints.length - 1];
+
+                if (node.yValue != null) {
+                    const spanPoint: LineSpanPointDatum = {
+                        point: node.point,
+                        xDatum: node.xValue,
+                        yDatum: node.yValue,
+                    };
+
+                    if (Array.isArray(currentSpanPoints)) {
+                        currentSpanPoints.push(spanPoint);
+                    } else {
+                        spanPoints.push([spanPoint]);
+                    }
+                } else if (!connectMissingData) {
+                    if (Array.isArray(currentSpanPoints)) {
+                        spanPoints.push({ skip: 0 });
+                    }
+                }
+            }
+        } else {
+            // Scales haven't changed - just append new points to existing spans
+            // This is the key optimization - we don't rebuild everything
+
+            // Start fresh span points for the incremental update
+            spanPoints = [];
+
+            // Find the last data point from existing data to continue from
+            let lastPoint: LineSpanPointDatum | undefined;
+            if (existingContext.nodeData.length > 0) {
+                const lastNode = existingContext.nodeData[existingContext.nodeData.length - 1];
+                if (lastNode.yValue != null) {
+                    lastPoint = {
+                        point: lastNode.point,
+                        xDatum: lastNode.xValue,
+                        yDatum: lastNode.yValue,
+                    };
+                    // Start a new span array with the last point to connect
+                    spanPoints.push([lastPoint]);
+                }
+            }
+
+            // Now only process the new nodes
+            const newNodes = nodeData.slice(existingContext.nodeData.length);
+            for (const node of newNodes) {
+                const currentSpanPoints: SpanPoint | undefined = spanPoints[spanPoints.length - 1];
+
+                if (node.yValue != null) {
+                    const spanPoint: LineSpanPointDatum = {
+                        point: node.point,
+                        xDatum: node.xValue,
+                        yDatum: node.yValue,
+                    };
+
+                    if (Array.isArray(currentSpanPoints)) {
+                        currentSpanPoints.push(spanPoint);
+                    } else {
+                        spanPoints.push([spanPoint]);
+                    }
+                } else if (!connectMissingData) {
+                    if (Array.isArray(currentSpanPoints)) {
+                        spanPoints.push({ skip: 0 });
+                    }
+                }
+            }
+        }
+
+        let strokeData;
+        if (scalesChanged) {
+            // When scales change, we need to rebuild all spans
+            const strokeSpans: LinePathSpan[] = [];
+            for (const p of spanPoints) {
+                if (Array.isArray(p)) {
+                    const interpolated = interpolatePoints(p, interpolation);
+                    for (const span of interpolated) {
+                        strokeSpans.push(span);
+                    }
+                }
+            }
+            strokeData = { itemId: yKey, spans: strokeSpans };
+        } else {
+            // Optimization: reuse existing spans and only add new ones
+            const existingSpans = existingContext.strokeData?.spans ?? [];
+
+            // Only interpolate the new span points (connection + new points)
+            const newStrokeSpans: LinePathSpan[] = [];
+            for (const p of spanPoints) {
+                if (Array.isArray(p)) {
+                    const interpolated = interpolatePoints(p, interpolation);
+                    for (const span of interpolated) {
+                        newStrokeSpans.push(span);
+                    }
+                }
+            }
+
+            if (existingSpans.length > 0 && spanPoints.length > 0 && Array.isArray(spanPoints[0])) {
+                // Remove the last span from existing if we're continuing from it
+                existingSpans.splice(-1, 1);
+            }
+
+            // Append new spans directly to existing array
+            for (const span of newStrokeSpans) {
+                existingSpans.push(span);
+            }
+
+            strokeData = { itemId: yKey, spans: existingSpans };
+        }
+
+        let crossFiltering = false;
+        if (selectionValues) {
+            for (let i = 0; i < selectionValues.length; i++) {
+                if (selectionValues[i] === yRawValues[i]) {
+                    crossFiltering = true;
+                    break;
+                }
+            }
+        }
+
+        // Calculate segments, fallback to existing or undefined if not possible
+        let segments;
+        if (this.chart?.seriesRect && xAxis.scale.domain.length > 0 && yAxis.scale.domain.length > 0) {
+            segments = calculateSegments(
+                this.properties.segmentation,
+                xAxis,
+                yAxis,
+                this.chart.seriesRect,
+                this.ctx.scene,
+                false
+            );
+        }
+        // Fallback to existing segments if calculation returns undefined
+        segments = segments ?? existingContext.segments;
+
+        return {
+            itemId: yKey,
+            nodeData,
+            labelData: nodeData,
+            strokeData,
+            scales: this.calculateScaling(),
+            visible: this.visible,
+            crossFiltering,
+            styles: getMarkerStyles(this, marker),
+            segments,
+        };
+    }
+
     private yValueKey() {
         return this.isNormalized() ? 'yValue' : 'yValueRaw';
     }
@@ -333,6 +609,11 @@ export class LineSeries extends CartesianSeries<
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
+
+        // Check for incremental updates
+        if (processedData.incremental && this.contextNodeData) {
+            return this.appendNodeData();
+        }
 
         const {
             xKey,
@@ -453,13 +734,26 @@ export class LineSeries extends CartesianSeries<
             handleDatum(indices?.[i] ?? i);
         }
 
-        const strokeSpans = spanPoints.flatMap((p): LinePathSpan[] => {
-            return Array.isArray(p) ? interpolatePoints(p, interpolation) : [];
-        });
+        const strokeSpans: LinePathSpan[] = [];
+        for (const p of spanPoints) {
+            if (Array.isArray(p)) {
+                const interpolated = interpolatePoints(p, interpolation);
+                for (const span of interpolated) {
+                    strokeSpans.push(span);
+                }
+            }
+        }
         const strokeData = { itemId: yKey, spans: strokeSpans };
 
-        const crossFiltering =
-            selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;
+        let crossFiltering = false;
+        if (selectionValues) {
+            for (let i = 0; i < selectionValues.length; i++) {
+                if (selectionValues[i] === yRawValues[i]) {
+                    crossFiltering = true;
+                    break;
+                }
+            }
+        }
 
         const segments = calculateSegments(
             this.properties.segmentation,

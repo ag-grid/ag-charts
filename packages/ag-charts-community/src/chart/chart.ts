@@ -1778,10 +1778,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private readonly pendingTransactions: AgDataTransaction[] = [];
     async applyTransaction(transaction: AgDataTransaction) {
         await this.updateMutex.acquire(() => {
-            this.pendingTransactions.push(transaction);
+            this.data.pendingTransactions.push(transaction);
         });
 
         this.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true });

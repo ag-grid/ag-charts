@@ -632,14 +632,12 @@ export class DataModel<
     }
 
     applyTransactions(
-        existingData: ProcessedData<D>,
+        processedData: ProcessedData<D>,
         transactions: Map<string, unknown[]>
     ): ProcessedData<D> | undefined {
         const start = performance.now();
 
-        // Clone the existing processed data to avoid mutations
-        const processedData = this.cloneProcessedData(existingData);
-
+        // Mutate processedData in place for performance
         // Track incremental changes
         const baseDataSize = processedData.input.count;
         const addedRows: number[] = [];
@@ -653,6 +651,12 @@ export class DataModel<
         const startIndex = baseDataSize;
         for (let i = 0; i < incrementalData.input.count; i++) {
             addedRows.push(startIndex + i);
+        }
+
+        // Update dataSources with the new data
+        for (const [scopeId, newData] of incrementalData.dataSources) {
+            const existingScopedData = processedData.dataSources.get(scopeId) ?? [];
+            existingScopedData.push(...newData);
         }
 
         // Append new data to columns
@@ -702,38 +706,6 @@ export class DataModel<
         }
 
         return processedData;
-    }
-
-    private cloneProcessedData(data: ProcessedData<D>): ProcessedData<D> {
-        // Deep clone the processed data structure
-        const cloned: any = {
-            ...data,
-            input: { ...data.input },
-            scopes: new Set(data.scopes),
-            dataSources: new Map(data.dataSources),
-            keys: data.keys.map((keyMap) => new Map(keyMap)),
-            columns: data.columns.map((col) => [...col]),
-            columnScopes: data.columnScopes.map((scope) => new Set(scope)),
-            domain: {
-                keys: data.domain.keys.map((domain) => [...domain]),
-                values: data.domain.values.map((domain) => [...domain]),
-                groups: data.domain.groups?.map((group) => [...group]),
-                aggValues: data.domain.aggValues?.map((agg) => [...agg]),
-            },
-            defs: { ...data.defs },
-        };
-
-        if (data.type === 'grouped') {
-            cloned.groups = data.groups.map((group: DataGroup) => ({
-                ...group,
-                keys: [...group.keys],
-                datumIndices: group.datumIndices.map((indices) => [...indices]),
-                aggregation: group.aggregation.map((agg) => [...agg]),
-                validScopes: new Set(group.validScopes),
-            }));
-        }
-
-        return cloned as ProcessedData<D>;
     }
 
     private updateDomain(existingDomain: any[], newDomain: any[]): boolean {
