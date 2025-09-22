@@ -348,7 +348,7 @@ async function run(config) {
         if (isNxDaemonDisabled()) {
             error(`Nx daemon has been disabled!
 
-The watch script requires the Nx daemon to be enabled. To fix this:
+The watch script requires the Nx daemon to be enabled.
 
 Run these commands to reset the workspace:
   yarn nx reset
