@@ -2,14 +2,15 @@ import { describe, expect, it } from '@jest/globals';
 
 import { DataController } from './dataController';
 import type { DataModelOptions, DatumPropertyDefinition } from './dataModel';
+import { DataRef, wrapRawData } from './dataRef';
 
 describe('DataController', () => {
     let controller: DataController;
-    let data: Record<string, number>[];
+    let data: DataRef<Record<string, number>>;
 
     beforeEach(() => {
         controller = new DataController('standalone', false);
-        data = [];
+        data = { data: [], pendingTransactions: [] };
     });
 
     it('should merge compatible requests with identical definitions', async () => {
@@ -216,11 +217,11 @@ describe('DataController', () => {
     });
 
     it('should not leak scopes', async () => {
-        data = [
+        data = wrapRawData([
             { keyProp1: 2020, valueProp1: 100 },
             { keyProp1: 2021, valueProp1: 200 },
             { keyProp1: 2022, valueProp1: 300 },
-        ];
+        ]);
 
         const promise1 = controller.request('test1', data, {
             props: [
@@ -248,16 +249,16 @@ describe('DataController', () => {
 
     describe('with multiple data sources', () => {
         it('should extract scoped data for each request with shared scopes', async () => {
-            const data1 = [
+            const data1 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 100 },
                 { keyProp1: '2021', valueProp1: 200 },
                 { keyProp1: '2022', valueProp1: 300 },
-            ];
-            const data2 = [
+            ]);
+            const data2 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 40 },
                 { keyProp1: '2021', valueProp1: 50 },
                 { keyProp1: '2022', valueProp1: 60 },
-            ];
+            ]);
 
             const def: DataModelOptions<'keyProp1' | 'valueProp1', any, false> = {
                 props: [
@@ -288,16 +289,16 @@ describe('DataController', () => {
         });
 
         it('should extract scoped data for each request with unique scopes', async () => {
-            const data1 = [
+            const data1 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 100 },
                 { keyProp1: '2021', valueProp1: 200 },
                 { keyProp1: '2022', valueProp1: 300 },
-            ];
-            const data2 = [
+            ]);
+            const data2 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 40 },
                 { keyProp1: '2021', valueProp1: 50 },
                 { keyProp1: '2022', valueProp1: 60 },
-            ];
+            ]);
 
             const promise1 = controller.request('test1', data1, {
                 props: [
@@ -341,8 +342,8 @@ describe('DataController', () => {
         });
 
         it('should extract scoped data for each request and not include given properties', async () => {
-            const data1 = [{ valueProp1: 100 }, { valueProp1: 200 }, { valueProp1: 300 }];
-            const data2 = [{ valueProp1: 40 }, { valueProp1: 50 }, { valueProp1: 60 }];
+            const data1 = wrapRawData([{ valueProp1: 100 }, { valueProp1: 200 }, { valueProp1: 300 }]);
+            const data2 = wrapRawData([{ valueProp1: 40 }, { valueProp1: 50 }, { valueProp1: 60 }]);
 
             const promise1 = controller.request('test1', data1, {
                 props: [
@@ -390,16 +391,16 @@ describe('DataController', () => {
         });
 
         it('should extract scoped grouped data and not leak scopes', async () => {
-            const data1 = [
+            const data1 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 100 },
                 { keyProp1: '2021', valueProp1: 200 },
                 { keyProp1: '2022', valueProp1: 300 },
-            ];
-            const data2 = [
+            ]);
+            const data2 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 40 },
                 { keyProp1: '2021', valueProp1: 50 },
                 { keyProp1: '2022', valueProp1: 60 },
-            ];
+            ]);
 
             const def = {
                 groupByKeys: true,

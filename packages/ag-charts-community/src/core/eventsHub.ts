@@ -18,7 +18,7 @@ export interface EventsHubMap {
     'axis:change': null;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
-    'data:load': { data: object };
+    'data:load': { data: unknown[] };
     'data:error': null;
     'data:source-change': null;
     'dom:container-change': null;

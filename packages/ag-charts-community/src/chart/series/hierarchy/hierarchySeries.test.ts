@@ -1,5 +1,6 @@
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
+import { wrapRawData } from '../../data/dataRef';
 import type { SeriesTooltip } from '../seriesTooltip';
 import { HierarchyNode, HierarchySeries } from './hierarchySeries';
 import { HierarchySeriesProperties } from './hierarchySeriesProperties';
@@ -60,17 +61,19 @@ describe('HierarchySeries', () => {
     it('creates a hierarchy', () => {
         const series = new ExampleHierarchySeries(null!);
         series.properties.sizeKey = 'size';
-        series.setChartData([
-            { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
-            {
-                size: 5,
-                children: [
-                    { size: 1 },
-                    { size: 2, children: [{ size: 4 }, { size: 5 }, { size: 6 }] },
-                    { size: 3, children: [{ size: 7 }] },
-                ],
-            },
-        ]);
+        series.setChartData(
+            wrapRawData([
+                { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
+                {
+                    size: 5,
+                    children: [
+                        { size: 1 },
+                        { size: 2, children: [{ size: 4 }, { size: 5 }, { size: 6 }] },
+                        { size: 3, children: [{ size: 7 }] },
+                    ],
+                },
+            ])
+        );
         series.processData();
 
         series.rootNode!.walk((node: any) => {
@@ -85,7 +88,7 @@ describe('HierarchySeries', () => {
 
     it('handles an empty dataset', () => {
         const series = new ExampleHierarchySeries(null!);
-        series.setChartData([]);
+        series.setChartData(wrapRawData([]));
         series.processData();
 
         // @ts-expect-error - Remove circular dependencies because if this test fails, Jest won't be able to print any errors
@@ -107,20 +110,22 @@ describe('HierarchySeries', () => {
 
     it('walks tree in pre-order', () => {
         const series = new ExampleHierarchySeries(null!);
-        series.setChartData([
-            {
-                order: 1,
-                children: [{ order: 2 }, { order: 3 }, { order: 4 }],
-            },
-            {
-                order: 5,
-                children: [
-                    { order: 6 },
-                    { order: 7, children: [{ order: 8 }, { order: 9 }, { order: 10 }] },
-                    { order: 11, children: [{ order: 12 }] },
-                ],
-            },
-        ]);
+        series.setChartData(
+            wrapRawData([
+                {
+                    order: 1,
+                    children: [{ order: 2 }, { order: 3 }, { order: 4 }],
+                },
+                {
+                    order: 5,
+                    children: [
+                        { order: 6 },
+                        { order: 7, children: [{ order: 8 }, { order: 9 }, { order: 10 }] },
+                        { order: 11, children: [{ order: 12 }] },
+                    ],
+                },
+            ])
+        );
         series.processData();
 
         let index = 0;

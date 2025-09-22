@@ -44,6 +44,7 @@ const {
     Vec2,
     Selection,
     BBox,
+    wrapRawData,
 } = _ModuleSupport;
 
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
@@ -574,7 +575,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         // data model and we don't have missing props of `date` and `volume`.
         // Request a data model with no extra props, we expect the required keys of `date` and `volume` will already
         // be provided by the series, so we can skip duplicate processing.
-        const { dataModel, processedData } = await dataController.request('annotations', [...this.data], { props });
+        const { dataModel, processedData } = await dataController.request('annotations', wrapRawData(this.data), {
+            props,
+        });
         this.dataModel = dataModel;
         this.processedData = processedData;
     }

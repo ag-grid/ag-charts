@@ -17,6 +17,7 @@ import type {
     AgChartInstance,
     AgChartOptions,
     AgColorType,
+    AgDataTransaction,
     AgInitialStateLegendOptions,
     AgMiniChartSeriesOptions,
     AgPolarAxisOptions,
@@ -61,6 +62,7 @@ import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
+import { type DataRef, mergeRawData, wrapRawData } from './data/dataRef';
 import { axisRegistry } from './factory/axisRegistry';
 import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
@@ -151,7 +153,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     })
     container?: HTMLElement;
 
-    public data: any = [];
+    public data: DataRef = { data: [], pendingTransactions: [] };
 
     @ActionOnSet<Chart>({
         newValue(value) {
@@ -370,7 +372,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = event.data;
+                this.data = mergeRawData(this.data, event.data);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -1313,7 +1315,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (deltaOptions.data) {
-            this.data = deltaOptions.data;
+            this.data = mergeRawData(this.data, deltaOptions.data);
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
@@ -1716,7 +1718,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(data);
+            target.setOptionsData(wrapRawData(data));
         }
 
         if (listeners) {
@@ -1774,5 +1776,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         for (const [property, listener] of entries(listeners)) {
             source.addEventListener(property, listener);
         }
+    }
+
+    private readonly pendingTransactions: AgDataTransaction[] = [];
+    async applyTransaction(transaction: AgDataTransaction) {
+        await this.updateMutex.acquire(() => {
+            this.pendingTransactions.push(transaction);
+        });
+
+        this.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true });
     }
 }

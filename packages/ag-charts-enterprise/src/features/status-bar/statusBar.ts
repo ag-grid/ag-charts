@@ -1,7 +1,19 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 import { cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 
-const { ZIndexMap, LayoutElement, Property, BaseProperties, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
+const {
+    ZIndexMap,
+    LayoutElement,
+    Property,
+    BaseProperties,
+    valueProperty,
+    Group,
+    Label,
+    Rect,
+    Text,
+    wrapRawData,
+    EMPTY_DATA_REF,
+} = _ModuleSupport;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -267,9 +279,13 @@ export class StatusBar
 
         if (props.length === 0) return;
 
-        const { processedData, dataModel } = await dataController.request(this.id, this.data, {
-            props,
-        });
+        const { processedData, dataModel } = await dataController.request(
+            this.id,
+            wrapRawData(this.data) || EMPTY_DATA_REF,
+            {
+                props,
+            }
+        );
 
         for (const label of this.labels) {
             const { id, key } = label;

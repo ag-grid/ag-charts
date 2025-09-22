@@ -4,7 +4,8 @@ import type { InternalAgColorType, Point } from 'ag-charts-core';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
-const { Series, DataController, keyProperty, valueProperty, Selection, Group, TransformableText } = _ModuleSupport;
+const { Series, DataController, keyProperty, valueProperty, Selection, Group, TransformableText, wrapRawData } =
+    _ModuleSupport;
 
 export enum FlowProportionDatumType {
     Link,
@@ -175,7 +176,7 @@ export abstract class FlowProportionSeries<
         const nodesDataController = new DataController('standalone', dataController.suppressFieldDotNotation);
         const nodesDataModelPromise =
             nodes != null
-                ? nodesDataController.request<any, any, true>(this.id, nodes, {
+                ? nodesDataController.request<any, any, true>(this.id, wrapRawData(nodes), {
                       props: [
                           keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
                           ...(labelKey != null
