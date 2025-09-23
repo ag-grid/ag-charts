@@ -46,7 +46,9 @@ import type {
     AgOhlcSeriesThemeableOptions,
     AgPyramidSeriesStyle,
     AgPyramidSeriesThemeableOptions,
+    AgRadarAreaSeriesStyle,
     AgRadarAreaSeriesThemeableOptions,
+    AgRadarSeriesStyle,
     AgRadarSeriesThemeableOptions,
     AgRadialBarSeriesThemeableOptions,
     AgRadialColumnSeriesThemeableOptions,
@@ -74,6 +76,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     interpolationOptionsDefs,
     markerOptionsDefs,
+    markerStyleOptionsDefs,
     numberFormatValidator,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
@@ -414,6 +417,12 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
 export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesThemeableOptions> = {
     connectMissingData: boolean,
     marker: markerOptionsDefs,
+    styler: callbackDefs<AgRadarAreaSeriesStyle>({
+        marker: markerStyleOptionsDefs,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -426,6 +435,11 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
 export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemeableOptions> = {
     connectMissingData: boolean,
     marker: markerOptionsDefs,
+    styler: callbackDefs<AgRadarSeriesStyle>({
+        marker: markerStyleOptionsDefs,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
