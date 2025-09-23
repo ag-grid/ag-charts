@@ -25,9 +25,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
     readonly context?: { nodeData: D[] };
     readonly properties: {
         readonly angleKey: string;
-        readonly angleName?: string;
         readonly radiusKey: string;
-        readonly radiusName?: string;
         readonly fill: InternalAgColorType;
         readonly fillOpacity: number;
         readonly stroke: string;
@@ -36,6 +34,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         readonly lineDash: number[];
         readonly lineDashOffset: number;
         readonly cornerRadius: number;
+        readonly stackGroup?: string;
         readonly styler?: Styler<AgRadialSeriesStylerParams<unknown, unknown>, AgRadialSeriesStyle>;
         readonly itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
     };
@@ -64,14 +63,13 @@ export function makeStylerParams(
     const { id: seriesId } = series;
     const {
         angleKey,
-        angleName,
         cornerRadius,
         fill,
         fillOpacity,
         lineDash,
         lineDashOffset,
         radiusKey,
-        radiusName,
+        stackGroup,
         stroke,
         strokeOpacity,
         strokeWidth,
@@ -82,7 +80,6 @@ export function makeStylerParams(
     type Rules = _ModuleSupport.CallbackParamRules<T>;
     return {
         angleKey,
-        angleName: angleName ?? angleKey,
         cornerRadius,
         fill,
         fillOpacity,
@@ -91,8 +88,8 @@ export function makeStylerParams(
         lineDash,
         lineDashOffset,
         radiusKey,
-        radiusName: radiusName ?? radiusKey,
         seriesId,
+        stackGroup,
         stroke,
         strokeOpacity,
         strokeWidth,
