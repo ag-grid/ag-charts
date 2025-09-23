@@ -37,6 +37,12 @@ nx build:umd <package>       # Create UMD browser bundles
 nx run-many -t build         # Build all packages
 ```
 
+### Development Server
+
+```bash
+nx dev                       # Starts development Astro server and watch process (accessible on https://localhost:4600/)
+```
+
 ### Testing
 
 ```bash
@@ -203,7 +209,7 @@ nx e2e ag-charts-website
 ### Repo to dev server paths
 
 -   Note that example paths are mapped from repo paths:
-    -   `packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/index.html` => `/charts/gallery/examples/${exampleName}`
+    -   `packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/index.html` => `/charts/gallery/${exampleName}`
     -   `packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html` => `/charts/vanilla/${pageName}/examples/${exampleName}`
 
 ### Example Guidelines
