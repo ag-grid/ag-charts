@@ -110,44 +110,10 @@ const detailCellRendererParams = (params: any) => {
     ]
         .filter(Boolean)
         .join('\n\n');
-    let message = newLinesToBreaks(combinedMessages);
 
-    function makeLinksFunctional(msg: any) {
-        let msgArr = msg.split(' ');
-        const linkStrIdx = msgArr.findIndex((word: any) => word.includes('https://'));
-        if (linkStrIdx > 0) {
-            msgArr = msgArr.map((element: any) => {
-                if (element.includes('https://')) {
-                    const beginningIndex = element.indexOf('http');
-                    const endIndex = element.indexOf('<', beginningIndex);
-                    const isEndIndex = endIndex >= 0;
-                    let length = 0;
-                    if (isEndIndex) {
-                        length = endIndex - beginningIndex;
-                    }
-
-                    const link = length
-                        ? element.substr(element.indexOf('http'), length)
-                        : element.substr(element.indexOf('http'));
-                    const htmlLink = isEndIndex
-                        ? `<a class=${styles.link} href="${link}" target="_blank">${link}</a>${element.substr(
-                              endIndex
-                          )}`
-                        : `<a class=${styles.link} target="_blank" href="${link}">${link}</a>`;
-                    return element.substr(0, beginningIndex) + htmlLink;
-                }
-                return element;
-            });
-            msg = msgArr.join(' ');
-        }
-        return msg;
-    }
-
-    message = makeLinksFunctional(message);
-    const res: any = {};
-    res.message = message;
-
-    return res;
+    return {
+        message: newLinesToBreaks(combinedMessages),
+    };
 };
 
 const extractFilterTerm = (location: any) =>
