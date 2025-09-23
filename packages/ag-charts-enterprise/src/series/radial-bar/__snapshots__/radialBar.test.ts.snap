@@ -5,7 +5,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -16,8 +15,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -26,7 +25,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -37,8 +35,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -47,7 +45,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -58,8 +55,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -68,7 +65,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -79,8 +75,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -89,7 +85,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -100,8 +95,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -110,7 +105,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -121,8 +115,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -131,7 +125,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -142,8 +135,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -152,7 +145,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -163,8 +155,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -173,7 +165,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -184,8 +175,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -194,7 +185,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -205,8 +195,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -215,7 +205,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -226,8 +215,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -236,7 +225,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -247,8 +235,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -257,7 +245,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -268,8 +255,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -278,7 +265,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -289,8 +275,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -299,7 +285,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -310,8 +295,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -320,7 +305,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -331,8 +315,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -341,7 +325,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -352,8 +335,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -362,7 +345,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -373,8 +355,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -383,7 +365,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -394,8 +375,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -404,7 +385,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -415,8 +395,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -425,7 +405,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -436,8 +415,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -446,7 +425,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -457,8 +435,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -467,7 +445,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -478,8 +455,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -488,7 +465,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -499,8 +475,8 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -514,7 +490,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -525,8 +500,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -535,7 +510,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -546,8 +520,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -556,7 +530,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -567,8 +540,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -577,7 +550,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -588,8 +560,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -603,7 +575,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -614,8 +585,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -624,7 +595,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -635,8 +605,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -645,7 +615,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -656,8 +625,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -666,7 +635,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -677,8 +645,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -692,7 +660,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single miss 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -703,8 +670,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single miss 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -713,7 +680,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single miss 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -724,8 +690,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single miss 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -739,7 +705,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -750,8 +715,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -760,7 +725,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -771,8 +735,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -781,7 +745,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -792,8 +755,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -802,7 +765,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -813,8 +775,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -823,7 +785,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -834,8 +795,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -844,7 +805,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -855,8 +815,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -870,7 +830,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -881,8 +840,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -891,7 +850,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -902,8 +860,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -912,7 +870,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -923,8 +880,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -933,7 +890,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -944,8 +900,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -954,7 +910,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -965,8 +920,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -975,7 +930,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -986,8 +940,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -1001,7 +955,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -1012,8 +965,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -1022,7 +975,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -1033,8 +985,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -1043,7 +995,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -1054,8 +1005,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -1064,7 +1015,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -1075,8 +1025,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -1085,7 +1035,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -1096,8 +1045,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -1106,7 +1055,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -1117,8 +1065,8 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -1132,7 +1080,6 @@ exports[`RadialBarSeries AG-15782 styler init callbacks params 1`] = `
   [
     {
       "angleKey": "sw",
-      "angleName": "Software",
       "context": {
         "name": "software context 1",
       },
@@ -1146,8 +1093,8 @@ exports[`RadialBarSeries AG-15782 styler init callbacks params 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-1",
+      "stackGroup": undefined,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 0,
@@ -1156,7 +1103,6 @@ exports[`RadialBarSeries AG-15782 styler init callbacks params 1`] = `
   [
     {
       "angleKey": "hw",
-      "angleName": "hw",
       "context": {
         "name": "hardware context 2",
       },
@@ -1170,8 +1116,8 @@ exports[`RadialBarSeries AG-15782 styler init callbacks params 1`] = `
       ],
       "lineDashOffset": 0,
       "radiusKey": "quarter",
-      "radiusName": "quarter",
       "seriesId": "RadialBarSeries-2",
+      "stackGroup": undefined,
       "stroke": "CornflowerBlue",
       "strokeOpacity": 0.5,
       "strokeWidth": 15,
