@@ -35,13 +35,13 @@ export interface AgRadarSeriesThemeableOptions<
     /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     styler?: Styler<AgRadarSeriesStylerParams<TDatum, TContext, TStyle>, TStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgRadarLineHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgRadarHighlightStyleOptions<TStyle>>;
 }
 
-export interface AgRadarLineHighlightStyleOptions extends StrokeOptions, LineDashOptions {
+type AgRadarHighlightStyleOptions<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'marker'> & {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
-}
+};
 
 export interface AgBaseRadarSeriesOptions<
     TDatum = DatumDefault,
