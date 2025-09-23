@@ -668,13 +668,13 @@ export class DataModel<
 
         // Update domains
         for (let i = 0; i < processedData.domain.keys.length; i++) {
-            if (this.updateDomain(processedData.domain.keys[i], incrementalData.domain.keys[i])) {
+            if (this.updateDomain(processedData.domain.keys[i], incrementalData.domain.keys[i], this.keys[i])) {
                 modifiedKeyDomains.add(i);
             }
         }
 
         for (let i = 0; i < processedData.domain.values.length; i++) {
-            if (this.updateDomain(processedData.domain.values[i], incrementalData.domain.values[i])) {
+            if (this.updateDomain(processedData.domain.values[i], incrementalData.domain.values[i], this.values[i])) {
                 modifiedValueDomains.add(i);
             }
         }
@@ -708,8 +708,47 @@ export class DataModel<
         return processedData;
     }
 
-    private updateDomain(existingDomain: any[], newDomain: any[]): boolean {
+    private updateDomain(
+        existingDomain: any[],
+        newDomain: any[] | undefined,
+        def: InternalDatumPropertyDefinition<K>
+    ): boolean {
         if (!newDomain || newDomain.length === 0) return false;
+
+        if (def.valueType === 'range') {
+            let modified = false;
+            let min = existingDomain[0];
+            let max = existingDomain.length > 1 ? existingDomain[1] : existingDomain[0];
+
+            for (const value of newDomain) {
+                if (value == null) continue;
+                if (typeof value !== 'number' && !(value instanceof Date)) continue;
+
+                if (min == null || value < min) {
+                    min = value;
+                    modified = true;
+                }
+                if (max == null || value > max) {
+                    max = value;
+                    modified = true;
+                }
+            }
+
+            if (modified) {
+                if (max == null) {
+                    max = min;
+                }
+                if (existingDomain.length === 0) {
+                    existingDomain.push(min, max);
+                } else {
+                    existingDomain[0] = min;
+                    existingDomain[1] = max;
+                    existingDomain.length = 2;
+                }
+            }
+
+            return modified;
+        }
 
         let modified = false;
         for (const value of newDomain) {

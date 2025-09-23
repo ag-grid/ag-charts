@@ -1234,6 +1234,59 @@ describe('DataModel', () => {
         });
     });
 
+    describe('applyTransactions', () => {
+        it('keeps range domains bounded while appending data', () => {
+            const dataModel = new DataModel<any>({
+                props: [rangeKey('time'), value('value')],
+            });
+
+            const initialData = basicDataSet([
+                { time: 0, value: 1 },
+                { time: 250, value: 2 },
+            ]);
+
+            const processed = dataModel.processData(initialData)!;
+
+            expect(processed.domain.keys[0]).toEqual([0, 250]);
+
+            dataModel.applyTransactions(
+                processed,
+                new Map([
+                    [
+                        'test',
+                        [
+                            {
+                                time: 500,
+                                value: 3,
+                            },
+                        ],
+                    ],
+                ])
+            );
+
+            expect(processed.domain.keys[0]).toEqual([0, 500]);
+            expect(processed.domain.keys[0]).toHaveLength(2);
+
+            dataModel.applyTransactions(
+                processed,
+                new Map([
+                    [
+                        'test',
+                        [
+                            {
+                                time: 750,
+                                value: 4,
+                            },
+                        ],
+                    ],
+                ])
+            );
+
+            expect(processed.domain.keys[0]).toEqual([0, 750]);
+            expect(processed.domain.keys[0]).toHaveLength(2);
+        });
+    });
+
     describe('missing and invalid data processing - multiple scopes', () => {
         it('should generated the expected results', () => {
             const data = new Map()
