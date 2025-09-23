@@ -56,6 +56,10 @@ The intent is to load instructions about how to improve the example based on the
 | "Lacks visual structure" / "Flat appearance"    | HIGH     | `${PROMPT_ROOT}/features/axes.md`            | Add axis bands with gridLine styles       |
 | "Hard to track values" / "Grid too sparse"      | HIGH     | `${PROMPT_ROOT}/features/axes.md`            | Configure gridLine patterns               |
 | "No hover highlighting"                         | MEDIUM   | `${PROMPT_ROOT}/features/axes.md`            | Add `bandHighlight: { enabled: true }`    |
+| **Value-Based Visual Differentiation**          |
+| "No visual thresholds" / "Missing targets"      | HIGH     | `${PROMPT_ROOT}/features/segmentation.md`    | Add series segmentation                   |
+| "Performance zones unclear"                     | HIGH     | `${PROMPT_ROOT}/features/segmentation.md`    | Use y-axis segmentation                   |
+| "Time periods not differentiated"               | MEDIUM   | `${PROMPT_ROOT}/features/segmentation.md`    | Use x-axis segmentation                   |
 | **Data Readability**                            |
 | "Values unclear" / "Can't read exact values"    | HIGH     | `${PROMPT_ROOT}/features/data-labels.md`     | Enable labels with placement              |
 | "Cluttered labels" / "Overlapping text"         | HIGH     | `${PROMPT_ROOT}/features/data-labels.md`     | Smart label placement strategies          |
@@ -67,14 +71,16 @@ The intent is to load instructions about how to improve the example based on the
 | "No baseline/target shown"                      | HIGH     | `${PROMPT_ROOT}/features/reference-lines.md` | Add reference lines for targets           |
 | "Missing context" / "No annotations"            | MEDIUM   | `${PROMPT_ROOT}/features/reference-lines.md` | Add contextual annotations                |
 | **Interactivity**                               |
-| "Static visualization"                          | MEDIUM   | `${PROMPT_ROOT}/eatures/axes.md`             | Add crosshairs and highlights             |
+| "Static visualization"                          | MEDIUM   | `${PROMPT_ROOT}/features/axes.md`            | Add crosshairs and highlights             |
 | "No drill-down capability"                      | LOW      | `${PROMPT_ROOT}/features/enterprise.md`      | Consider navigator/zoom                   |
 | **Advanced Needs**                              |
 | "Executive dashboard quality"                   | MEDIUM   | `${PROMPT_ROOT}/features/enterprise.md`      | Add gauges/KPIs if appropriate            |
 | "Geographic data present"                       | HIGH     | `${PROMPT_ROOT}/features/enterprise.md`      | Use map visualizations                    |
 | "Flow/process data"                             | HIGH     | `${PROMPT_ROOT}/features/enterprise.md`      | Consider Sankey diagrams                  |
+| **Styling Enhancements**                        |
+| "Need varied emphasis" / "All items same style" | MEDIUM   | `${PROMPT_ROOT}/features/recent-features.md` | Use series/item stylers                   |
 | **Code Quality**                                |
-| "Repetitive configuration"                      | LOW      | `${PROMPT_ROOT}/eatures/theme-overrides.md`  | Use theme overrides for DRY               |
+| "Repetitive configuration"                      | LOW      | `${PROMPT_ROOT}/features/theme-overrides.md` | Use theme overrides for DRY               |
 | **Common Errors**                               |
 | TypeScript compilation errors                   | HIGH     | `${PROMPT_ROOT}/troubleshooting.md`          | Check chart types and axes[].type         |
 | CSS/styling conflicts                           | CRITICAL | `${PROMPT_ROOT}/troubleshooting.md`          | Remove all CSS files and color/font props |

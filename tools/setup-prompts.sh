@@ -355,6 +355,14 @@ if command -v direnv >/dev/null 2>&1 && [ -d "$HOME/.claude-ag-grid/" ]; then
     direnv allow
 fi
 
+if [[ -n "${AG_GRID_DOCUMENTATION_ROOT:-}" ]]; then
+    if [[ ! -d "$AG_GRID_DOCUMENTATION_ROOT/docs/design-decisions/charts" ]]; then
+        echo "AG_GRID_DOCUMENTATION_ROOT is set but $AG_GRID_DOCUMENTATION_ROOT/docs/design-decisions/charts does not exist"
+    else
+        ln -sf "$AG_GRID_DOCUMENTATION_ROOT/docs/design-decisions/charts" docs
+    fi
+fi
+
 # Add MCPs if UPDATE_MCP_CONFIG is enabled
 if [ "$UPDATE_MCP_CONFIG" = true ]; then
     function add_mcp() {

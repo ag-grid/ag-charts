@@ -2,6 +2,129 @@
 
 Track the latest AG Charts capabilities to ensure gallery examples showcase cutting-edge features.
 
+## 🆕 Recently Added Features (b12.2.0 - January 2025)
+
+### 📊 Series Segmentation
+
+_New Jan 2025 • Apply: 8 minutes • Impact: HIGH_ ⭐ **RECOMMENDED**
+
+```typescript
+// Style different segments of a series with different colors/patterns
+series: [
+    {
+        type: 'bar',
+        segmentation: {
+            enabled: true,
+            key: 'y', // Segment by y-axis values
+            segments: [
+                {
+                    start: 0,
+                    stop: 50,
+                    // Don't set fill/stroke - theme handles segment colors
+                },
+                {
+                    start: 50,
+                    stop: 100,
+                    // Different theme color automatically applied
+                },
+                {
+                    start: 100,
+                    // Extends to domain end
+                    // Another theme color automatically applied
+                },
+            ],
+        },
+    },
+];
+```
+
+_Replaces: Complex itemStyler logic for value-based coloring, manual data splitting_
+
+### 🎨 Series-Level Stylers
+
+_New Jan 2025 • Apply: 6 minutes • Impact: MEDIUM_
+
+```typescript
+// Apply consistent styling to entire series (vs individual items)
+series: [
+    {
+        type: 'line',
+        styler: (params) => {
+            // Access series-level properties
+            const { seriesId, seriesName, highlighted } = params;
+
+            if (highlighted) {
+                return {
+                    strokeWidth: 3,
+                    // Don't hardcode colors - let theme handle it
+                };
+            }
+            return {}; // Use defaults when not highlighted
+        },
+    },
+];
+```
+
+_Replaces: Repetitive itemStyler implementations, manual series state management_
+
+### 🏷️ Enhanced Axis Label Stylers
+
+_New Jan 2025 • Apply: 5 minutes • Impact: MEDIUM_
+
+```typescript
+axes: [
+    {
+        type: 'number', // Required
+        position: 'left',
+        label: {
+            itemStyler: (params) => {
+                const { value, formattedValue } = params;
+
+                // Style specific labels differently
+                if (value === 0) {
+                    return {
+                        fontWeight: 'bold',
+                        // Don't set color - theme handles contrast
+                    };
+                }
+                return {};
+            },
+        },
+    },
+];
+```
+
+_Replaces: Complex label formatter workarounds, custom label rendering_
+
+### 🎯 Pie Callout Line Stylers
+
+_New Jan 2025 • Apply: 6 minutes • Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'pie',
+        calloutLine: {
+            itemStyler: (params) => {
+                const { datum, angleKey, value } = params;
+
+                // Emphasize high-value segments
+                if (value > 1000000) {
+                    return {
+                        strokeWidth: 2,
+                        length: 30,
+                        // Don't set color - theme handles callout colors
+                    };
+                }
+                return {};
+            },
+        },
+    },
+];
+```
+
+_Replaces: Manual callout line customization, complex label positioning logic_
+
 ## 🆕 Recently Added Features (Past 6 Months)
 
 ### 🔧 Global Font Theme Settings
