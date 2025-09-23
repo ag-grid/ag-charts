@@ -112,7 +112,7 @@ const detailCellRendererParams = (params: any) => {
         .join('\n\n');
 
     return {
-        message: newLinesToBreaks(combinedMessages)
+        message: newLinesToBreaks(combinedMessages),
     };
 };
 
