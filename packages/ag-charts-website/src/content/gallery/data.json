@@ -347,8 +347,8 @@
                         "name": "simple-range-area"
                     },
                     {
-                        "title": "Range Area Chart with Multiple Series",
-                        "name": "multiple-range-areas"
+                        "title": "Range Area Difference Chart With Negative Style",
+                        "name": "range-area-difference-negative-style"
                     },
                     {
                         "title": "Range Area Chart With Labels",
