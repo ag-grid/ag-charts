@@ -1,0 +1,12 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="startFeed()">Start Feed</button>
+        <button onclick="stopFeed()">Stop Feed</button>
+        <button onclick="tickFeed()">Tick Feed</button>
+        <select onchange="use(this.value)">
+            <option value="applyTransaction">applyTransaction()</option>
+            <option value="updateDelta">updateDelta()</option>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>
