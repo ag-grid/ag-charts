@@ -1,7 +1,10 @@
 import {
     type AgBaseRadarSeriesOptions,
     type AgRadarSeriesLabelFormatterParams,
+    type AgRadarSeriesStyle,
     type AgSeriesMarkerStyle,
+    type ContextDefault,
+    type DatumDefault,
     _ModuleSupport,
 } from 'ag-charts-community';
 import { type Point, type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
@@ -48,27 +51,33 @@ interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContex
     styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
+type BaseRadarSeries = RadarSeries<
+    AgRadarSeriesStyle,
+    AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, AgRadarSeriesStyle>,
+    RadarSeriesProperties<
+        AgRadarSeriesStyle,
+        AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, AgRadarSeriesStyle>
+    >
+>;
+
 class RadarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: Event, datum: RadarNodeDatum, series: RadarSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RadarNodeDatum, series: BaseRadarSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }
 }
 
-export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
-    RadarNodeDatum,
-    AgBaseRadarSeriesOptions,
-    RadarSeriesProperties<AgBaseRadarSeriesOptions>,
-    _ModuleSupport.Marker
-> {
+export abstract class RadarSeries<
+    TStyle extends AgRadarSeriesStyle,
+    TOpts extends AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>,
+    TProps extends RadarSeriesProperties<TStyle, TOpts>,
+> extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker> {
     static readonly className: string = 'RadarSeries';
-
-    override properties = new RadarSeriesProperties();
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
@@ -577,7 +586,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const lineNode = this.getLineNode();
         if (!lineNode) return;
 
-        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = mergeDefaults(
+        type Mixins = {
+            stroke?: string;
+            strokeWidth?: number;
+            strokeOpacity?: number;
+            lineDash?: number[];
+            lineDashOffset?: number;
+            opacity?: number;
+        };
+        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = mergeDefaults<Mixins>(
             this.getHighlightStyle(),
             this.properties
         );

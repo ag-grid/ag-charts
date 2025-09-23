@@ -1,11 +1,14 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgRadarAreaSeriesOptions, type AgRadarAreaSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
 const { Group, Path, PointerEvents, Selection, ChartAxisDirection, applyShapeStyle, mergeDefaults } = _ModuleSupport;
 
-export class RadarAreaSeries extends RadarSeries {
+type S = AgRadarAreaSeriesStyle;
+type O = AgRadarAreaSeriesOptions;
+type P = RadarAreaSeriesProperties;
+export class RadarAreaSeries extends RadarSeries<S, O, P> {
     static override readonly className = 'RadarAreaSeries';
     static readonly type = 'radar-area' as const;
 

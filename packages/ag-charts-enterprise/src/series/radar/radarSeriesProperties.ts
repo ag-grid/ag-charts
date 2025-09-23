@@ -1,9 +1,12 @@
 import type {
     AgBaseRadarSeriesOptions,
     AgRadarSeriesLabelFormatterParams,
+    AgRadarSeriesStyle,
     AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
     AgSeriesMarkerStyle,
+    ContextDefault,
+    DatumDefault,
     Styler,
     TextOrSegments,
 } from 'ag-charts-community';
@@ -26,7 +29,10 @@ export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum 
 
 const { Label, SeriesMarker, SeriesProperties, makeSeriesTooltip, Property } = _ModuleSupport;
 
-export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends SeriesProperties<T> {
+export class RadarSeriesProperties<
+    TStyle extends AgRadarSeriesStyle,
+    TOpts extends AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>,
+> extends SeriesProperties<TOpts> {
     @Property
     angleKey!: string;
 
