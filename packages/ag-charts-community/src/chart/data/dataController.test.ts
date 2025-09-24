@@ -11,7 +11,7 @@ describe('DataController', () => {
 
     beforeEach(() => {
         controller = new DataController('standalone', false);
-        data = { data: [], pendingTransactions: [] };
+        data = DataRef.empty();
     });
 
     it('should merge compatible requests with identical definitions', async () => {
@@ -39,6 +39,27 @@ describe('DataController', () => {
         expect(results[0]).toEqual(results[1]);
         expect(results[0].processedData.defs.keys).toHaveLength(1);
         expect(results[0].processedData.defs.values).toHaveLength(1);
+    });
+
+    it('rejects invalid transaction shapes during preview', async () => {
+        const transactionalData = wrapRawData([{ valueProp1: 100 }]);
+        transactionalData.pendingTransactions.push({ append: 42 as any });
+
+        const promise = controller.request('preview-test', transactionalData, {
+            props: [
+                {
+                    id: 'valueProp1-key',
+                    property: 'valueProp1',
+                    type: 'value',
+                    valueType: 'range',
+                },
+            ],
+        });
+
+        controller.execute();
+
+        await expect(promise).rejects.toThrow('AG Charts - data transaction "append" must be an array.');
+        expect(transactionalData.pendingTransactions).toHaveLength(1);
     });
 
     it('should merge compatible requests with different ids', async () => {
@@ -482,13 +503,10 @@ describe('DataController', () => {
         });
 
         it('should process data without transactions normally', async () => {
-            const dataRef: DataRef<{ x: number; y: number }> = {
-                data: [
-                    { x: 1, y: 10 },
-                    { x: 2, y: 20 },
-                ],
-                pendingTransactions: [],
-            };
+            const dataRef = new DataRef<{ x: number; y: number }>([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+            ]);
 
             const opts: DataModelOptions<any, false> = {
                 props: [
@@ -507,13 +525,10 @@ describe('DataController', () => {
         });
 
         it('should apply transactions incrementally when cache exists', async () => {
-            const dataRef: DataRef<{ x: number; y: number }> = {
-                data: [
-                    { x: 1, y: 10 },
-                    { x: 2, y: 20 },
-                ],
-                pendingTransactions: [],
-            };
+            const dataRef = new DataRef<{ x: number; y: number }>([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+            ]);
 
             const opts: DataModelOptions<any, false> = {
                 props: [
@@ -553,13 +568,10 @@ describe('DataController', () => {
         });
 
         it('should handle prepend transactions incrementally', async () => {
-            const dataRef: DataRef<{ x: number; y: number }> = {
-                data: [
-                    { x: 1, y: 10 },
-                    { x: 2, y: 20 },
-                ],
-                pendingTransactions: [],
-            };
+            const dataRef = new DataRef<{ x: number; y: number }>([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+            ]);
 
             const opts: DataModelOptions<any, false> = {
                 props: [
@@ -575,9 +587,7 @@ describe('DataController', () => {
             controller = new DataController(TEST_MODE, false);
             dataRef.pendingTransactions = [
                 {
-                    prepend: [
-                        { x: 0, y: 5 },
-                    ],
+                    prepend: [{ x: 0, y: 5 }],
                 },
             ];
 
@@ -598,13 +608,10 @@ describe('DataController', () => {
         });
 
         it('should track modified domains correctly', async () => {
-            const dataRef: DataRef<{ x: string; y: number }> = {
-                data: [
-                    { x: 'A', y: 10 },
-                    { x: 'B', y: 20 },
-                ],
-                pendingTransactions: [],
-            };
+            const dataRef = new DataRef<{ x: string; y: number }>([
+                { x: 'A', y: 10 },
+                { x: 'B', y: 20 },
+            ]);
 
             const opts: DataModelOptions<any, false> = {
                 props: [
@@ -640,10 +647,7 @@ describe('DataController', () => {
         });
 
         it('should handle multiple transactions in sequence', async () => {
-            const dataRef: DataRef<{ x: number; y: number }> = {
-                data: [{ x: 1, y: 10 }],
-                pendingTransactions: [],
-            };
+            const dataRef = new DataRef<{ x: number; y: number }>([{ x: 1, y: 10 }]);
 
             const opts: DataModelOptions<any, false> = {
                 props: [
@@ -680,17 +684,15 @@ describe('DataController', () => {
         });
 
         it('should apply pending transactions when cache is not available', async () => {
-            const dataRef: DataRef<{ x: number; y: number }> = {
-                data: [
-                    { x: 1, y: 10 },
-                    { x: 2, y: 20 },
-                ],
-                pendingTransactions: [
-                    {
-                        append: [{ x: 3, y: 30 }],
-                    },
-                ],
-            };
+            const dataRef = new DataRef<{ x: number; y: number }>([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+            ]);
+            dataRef.pendingTransactions = [
+                {
+                    append: [{ x: 3, y: 30 }],
+                },
+            ];
 
             const opts: DataModelOptions<any, false> = {
                 props: [

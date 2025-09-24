@@ -52,7 +52,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
-import { type DataRef, calculateNetDataSize } from '../data/dataRef';
+import { DataRef } from '../data/dataRef';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
@@ -339,8 +339,9 @@ export abstract class Series<
     }
 
     get hasData() {
-        if (this.data == null) return false;
-        return calculateNetDataSize(this.data) > 0;
+        const dataRef = this.data;
+        if (dataRef == null) return false;
+        return dataRef.netSize() > 0;
     }
 
     get tooltipEnabled() {

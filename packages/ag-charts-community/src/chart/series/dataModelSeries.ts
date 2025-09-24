@@ -8,7 +8,7 @@ import { objectsEqual } from '../../util/object';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
-import { type DataRef, EMPTY_DATA_REF } from '../data/dataRef';
+import { DataRef, EMPTY_DATA_REF } from '../data/dataRef';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';

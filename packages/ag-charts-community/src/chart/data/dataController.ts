@@ -11,7 +11,7 @@ import {
     type ProcessedData,
     type PropertyDefinition,
 } from './dataModel';
-import { applyTransaction as commitDataTransactions, type DataRef, isDataRef } from './dataRef';
+import { DataRef } from './dataRef';
 
 interface RequestedProcessing<
     D extends object,
@@ -66,7 +66,7 @@ export class DataController {
             throw new Error(`AG Charts - data request after data setup phase.`);
         }
 
-        if (!isDataRef(dataRef)) {
+        if (!DataRef.isDataRef(dataRef)) {
             throw new Error(`AG Charts - data request with invalid data ref.`);
         }
 
@@ -115,7 +115,8 @@ export class DataController {
                         const requestDataRef = validRequest.dataRef;
                         let sourceData: unknown[];
                         if (requestDataRef.pendingTransactions.length > 0) {
-                            sourceData = previewCache.get(requestDataRef) ?? this.previewDataRef(requestDataRef);
+                            sourceData =
+                                previewCache.get(requestDataRef) ?? requestDataRef.previewPendingTransactions();
                             previewCache.set(requestDataRef, sourceData);
                             previewedDataRefs.add(requestDataRef);
                         } else {
@@ -127,9 +128,12 @@ export class DataController {
 
                     processedData = dataModel.processData(sources);
                     for (const previewedRef of previewedDataRefs) {
-                        commitDataTransactions(previewedRef);
+                        previewedRef.commitPendingTransactions();
                     }
                 } catch (error) {
+                    if (this.debug.check()) {
+                        this.debug('DataController.execute() - failed to process request', error);
+                    }
                     rejects.forEach((cb) => cb(error));
                     continue;
                 }
@@ -166,6 +170,9 @@ export class DataController {
                     // Clear pending transactions after successful processing
                     dataRef.pendingTransactions = [];
                 } catch (error) {
+                    if (this.debug.check()) {
+                        this.debug('DataController.execute() - failed to apply transactions', error);
+                    }
                     rejects.forEach((cb) => cb(error));
                     continue;
                 }
@@ -193,32 +200,6 @@ export class DataController {
         }
 
         return nextCachedData;
-    }
-
-    private previewDataRef<T>(dataRef: DataRef<T>): T[] {
-        if (dataRef.pendingTransactions.length === 0) {
-            return dataRef.data;
-        }
-
-        const prepended: T[] = [];
-        const appended: T[] = [];
-
-        for (const transaction of dataRef.pendingTransactions) {
-            const prependItems = transaction.prepend;
-            if (prependItems?.length) {
-                prepended.unshift(...(prependItems as T[]));
-            }
-            const appendItems = transaction.append;
-            if (appendItems?.length) {
-                appended.push(...(appendItems as T[]));
-            }
-        }
-
-        if (prepended.length === 0 && appended.length === 0) {
-            return dataRef.data;
-        }
-
-        return [...prepended, ...dataRef.data, ...appended];
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {

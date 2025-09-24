@@ -62,7 +62,7 @@ import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
-import { type DataRef, mergeRawData, wrapRawData } from './data/dataRef';
+import { DataRef, wrapRawData } from './data/dataRef';
 import { axisRegistry } from './factory/axisRegistry';
 import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
@@ -153,7 +153,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     })
     container?: HTMLElement;
 
-    public data: DataRef = { data: [], pendingTransactions: [] };
+    public data: DataRef = DataRef.empty();
 
     @ActionOnSet<Chart>({
         newValue(value) {
@@ -372,7 +372,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = mergeRawData(this.data, event.data);
+                this.data = this.data.merge(event.data);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -1315,7 +1315,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (deltaOptions.data) {
-            this.data = mergeRawData(this.data, deltaOptions.data);
+            this.data = this.data.merge(deltaOptions.data);
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);

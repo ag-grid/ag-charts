@@ -86,6 +86,111 @@ type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeD
 type SpanPoint = LineSpanPointDatum[] | { skip: number };
 type SpanPoints = SpanPoint[];
 
+class SpanBuilder {
+    private readonly spanPoints: SpanPoints = [];
+
+    constructor(private readonly connectMissingData: boolean) {}
+
+    addNode(node: LineNodeDatum) {
+        const current = this.spanPoints[this.spanPoints.length - 1];
+
+        if (node.yValue == null) {
+            this.addGap();
+        } else {
+            const spanPoint: LineSpanPointDatum = {
+                point: node.point,
+                xDatum: node.xValue,
+                yDatum: node.yValue,
+            };
+
+            if (Array.isArray(current)) {
+                current.push(spanPoint);
+            } else {
+                this.spanPoints.push([spanPoint]);
+            }
+        }
+    }
+
+    addGap() {
+        if (this.connectMissingData) return;
+
+        const current = this.spanPoints[this.spanPoints.length - 1];
+        if (Array.isArray(current) || current == null) {
+            this.spanPoints.push({ skip: 0 });
+        } else {
+            current.skip += 1;
+        }
+    }
+
+    buildSpans(interpolation: LineSeriesProperties['interpolation']): LinePathSpan[] {
+        const spans: LinePathSpan[] = [];
+        for (const points of this.spanPoints) {
+            if (!Array.isArray(points)) continue;
+            const interpolated = interpolatePoints(points, interpolation);
+            spans.push(...interpolated);
+        }
+        return spans;
+    }
+
+    getPoints(): SpanPoints {
+        return this.spanPoints;
+    }
+}
+
+interface IncrementalNodeParams {
+    existingContext: LineSeriesNodeDataContext;
+    processedData: ProcessedData<any>;
+    xAxis: any;
+    xScale: any;
+    yScale: any;
+    xOffset: number;
+    yOffset: number;
+    size: number;
+    capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
+    rawData: any[];
+    xValues: any[];
+    yRawValues: any[];
+    yCumulativeValues: any[];
+    selectionValues?: any[];
+    yDomain: any[];
+    properties: LineSeriesProperties;
+    xKey: string;
+    yKey: string;
+    xName?: string;
+    yName?: string;
+    legendItemName?: string;
+}
+
+interface IncrementalNodeUpdateResult {
+    nodeData: LineNodeDatum[];
+    newNodes: LineNodeDatum[];
+    scalesChanged: boolean;
+    originalNodeCount: number;
+    insertedPrependCount: number;
+}
+
+interface NodeCreationContext {
+    rowIndex: number;
+    rawData: any[];
+    xValues: any[];
+    yRawValues: any[];
+    yCumulativeValues: any[];
+    selectionValues?: any[];
+    xScale: any;
+    yScale: any;
+    xOffset: number;
+    yOffset: number;
+    size: number;
+    capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
+    xKey: string;
+    yKey: string;
+    xName?: string;
+    yName?: string;
+    legendItemName?: string;
+    properties: LineSeriesProperties;
+    yDomain: any[];
+}
+
 const memoizedAggregateLineData = simpleMemorize2(aggregateLineData);
 
 export class LineSeries extends CartesianSeries<
@@ -246,18 +351,8 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
-        const {
-            xKey,
-            xName,
-            yFilterKey,
-            yKey,
-            yName,
-            marker,
-            label,
-            connectMissingData,
-            interpolation,
-            legendItemName,
-        } = this.properties;
+        const { xKey, xName, yFilterKey, yKey, yName, marker, connectMissingData, interpolation, legendItemName } =
+            this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -286,233 +381,68 @@ export class LineSeries extends CartesianSeries<
             lengthMax: Infinity,
         };
 
-        // Check if scales have changed by comparing domains
-        let scalesChanged =
-            processedData.incremental.modifiedDomains &&
-            (processedData.incremental.modifiedDomains.keys.length > 0 ||
-                processedData.incremental.modifiedDomains.values.length > 0);
+        const nodeUpdate = this.buildIncrementalNodeUpdates({
+            existingContext,
+            processedData,
+            xAxis,
+            xScale,
+            yScale,
+            xOffset,
+            yOffset,
+            size,
+            capDefaults,
+            rawData,
+            xValues,
+            yRawValues,
+            yCumulativeValues,
+            selectionValues,
+            yDomain,
+            properties: this.properties,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            legendItemName,
+        });
 
-        // Clone existing node data reference so we can mutate in place while tracking old size.
-        const nodeData: LineNodeDatum[] = existingContext.nodeData;
-        const originalNodeCount = nodeData.length;
-
-        // If scales changed, we need to recalculate positions for all existing points
-        if (scalesChanged) {
-            // Recalculate positions for existing data points
-            for (const existingNode of existingContext.nodeData) {
-                const x = xScale.convert(existingNode.xValue) + xOffset;
-                const y = yScale.convert(existingNode.cumulativeValue) + yOffset;
-
-                existingNode.point.x = x;
-                existingNode.point.y = y;
-                (existingNode.midPoint!.x as any) = x;
-                (existingNode.midPoint!.y as any) = y;
-            }
-        }
-
-        // Process only new data points
-        const { addedRows } = processedData.incremental;
-        const prependedCount = processedData.incremental.prependedCount ?? 0;
-        if (prependedCount > 0) {
-            for (let i = 0; i < originalNodeCount; i++) {
-                (nodeData[i] as any).datumIndex += prependedCount;
-            }
-        }
-        let [rangeStart, rangeEnd] = this.visibleRangeIndices('xValue', xAxis.range);
-        rangeStart = Math.max(rangeStart - 1, 0);
-        rangeEnd = Math.min(rangeEnd + 1, xValues.length);
-        if (processedData.input.count < 1e3) {
-            rangeStart = 0;
-            rangeEnd = processedData.input.count;
-        }
-
-        const sortedAddedRows = [...addedRows].sort((a, b) => a - b);
-        const prependedNodes: LineNodeDatum[] = [];
-        const appendedNodes: LineNodeDatum[] = [];
-
-        for (const rowIndex of sortedAddedRows) {
-            if (rowIndex < rangeStart || rowIndex >= rangeEnd) continue;
-
-            const datum = rawData[rowIndex];
-            const xDatum = xValues[rowIndex];
-            const yDatum = yRawValues[rowIndex];
-            const yCumulative = yCumulativeValues[rowIndex];
-            const selected = selectionValues?.[rowIndex];
-
-            const x = xScale.convert(xDatum) + xOffset;
-            const y = yScale.convert(yCumulative) + yOffset;
-
-            if (!Number.isFinite(x)) continue;
-
-            if (yDatum != null) {
-                const labelText = label.enabled
-                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', yDomain, label, {
-                          value: yDatum,
-                          datum,
-                          xKey,
-                          yKey,
-                          xName,
-                          yName,
-                          legendItemName,
-                      })
-                    : undefined;
-
-                const newNode: LineNodeDatum = {
-                    series: this,
-                    datum,
-                    datumIndex: rowIndex,
-                    yKey,
-                    xKey,
-                    point: { x, y, size },
-                    midPoint: { x, y },
-                    cumulativeValue: yCumulative,
-                    yValue: yDatum,
-                    xValue: xDatum,
-                    capDefaults,
-                    labelText,
-                    selected,
-                };
-
-                if (rowIndex < prependedCount) {
-                    prependedNodes.push(newNode);
-                } else {
-                    appendedNodes.push(newNode);
-                }
-            }
-        }
-
-        if (prependedNodes.length > 0) {
-            for (let i = prependedNodes.length - 1; i >= 0; i--) {
-                nodeData.unshift(prependedNodes[i]);
-            }
-            scalesChanged = true;
-        }
-
-        for (const node of appendedNodes) {
-            nodeData.push(node);
-        }
-
-        const newNodes = appendedNodes;
-
-        if (!scalesChanged && newNodes.length === 0) {
+        if (!nodeUpdate.scalesChanged && nodeUpdate.newNodes.length === 0) {
             return existingContext;
         }
 
-        // For incremental updates, we need to be smarter about span generation
-        let spanPoints: SpanPoints;
-
-        if (scalesChanged) {
-            // If scales changed (or prepended data) we need to rebuild all spans with new positions
-            spanPoints = [];
-            for (const node of nodeData) {
-                const currentSpanPoints: SpanPoint | undefined = spanPoints[spanPoints.length - 1];
-
-                if (node.yValue != null) {
-                    const spanPoint: LineSpanPointDatum = {
-                        point: node.point,
-                        xDatum: node.xValue,
-                        yDatum: node.yValue,
-                    };
-
-                    if (Array.isArray(currentSpanPoints)) {
-                        currentSpanPoints.push(spanPoint);
-                    } else {
-                        spanPoints.push([spanPoint]);
-                    }
-                } else if (!connectMissingData) {
-                    if (Array.isArray(currentSpanPoints)) {
-                        spanPoints.push({ skip: 0 });
-                    }
-                }
-            }
-        } else {
-            // Scales haven't changed - just append new points to existing spans
-            // This is the key optimization - we don't rebuild everything
-
-            // Start fresh span points for the incremental update
-            spanPoints = [];
-
-            if (originalNodeCount > 0) {
-                const lastNode = nodeData[originalNodeCount + prependedNodes.length - 1];
-                if (lastNode?.yValue != null) {
-                    spanPoints.push([
-                        {
-                            point: lastNode.point,
-                            xDatum: lastNode.xValue,
-                            yDatum: lastNode.yValue,
-                        },
-                    ]);
-                } else if (!connectMissingData) {
-                    spanPoints.push({ skip: 0 });
-                }
-            }
-
-            for (const node of newNodes) {
-                const currentSpanPoints: SpanPoint | undefined = spanPoints[spanPoints.length - 1];
-
-                if (node.yValue != null) {
-                    const spanPoint: LineSpanPointDatum = {
-                        point: node.point,
-                        xDatum: node.xValue,
-                        yDatum: node.yValue,
-                    };
-
-                    if (Array.isArray(currentSpanPoints)) {
-                        currentSpanPoints.push(spanPoint);
-                    } else {
-                        spanPoints.push([spanPoint]);
-                    }
-                } else if (!connectMissingData) {
-                    if (Array.isArray(currentSpanPoints)) {
-                        spanPoints.push({ skip: 0 });
-                    }
-                }
-            }
-        }
-
+        const spanBuilder = new SpanBuilder(connectMissingData);
         let strokeData;
-        if (scalesChanged) {
-            // When scales change, we need to rebuild all spans
-            const strokeSpans: LinePathSpan[] = [];
-            for (const p of spanPoints) {
-                if (Array.isArray(p)) {
-                    const interpolated = interpolatePoints(p, interpolation);
-                    for (const span of interpolated) {
-                        strokeSpans.push(span);
-                    }
-                }
+
+        if (nodeUpdate.scalesChanged) {
+            for (const node of nodeUpdate.nodeData) {
+                spanBuilder.addNode(node);
             }
-            strokeData = { itemId: yKey, spans: strokeSpans };
+            const spans = spanBuilder.buildSpans(interpolation);
+            strokeData = { itemId: yKey, spans };
         } else {
-            // Optimization: reuse existing spans and only add new ones
-            const existingSpans = existingContext.strokeData?.spans ?? [];
-
-            // Only interpolate the new span points (connection + new points)
-            const newStrokeSpans: LinePathSpan[] = [];
-            for (const p of spanPoints) {
-                if (Array.isArray(p)) {
-                    const interpolated = interpolatePoints(p, interpolation);
-                    for (const span of interpolated) {
-                        newStrokeSpans.push(span);
-                    }
+            if (nodeUpdate.originalNodeCount + nodeUpdate.insertedPrependCount > 0) {
+                const seedIndex = nodeUpdate.originalNodeCount + nodeUpdate.insertedPrependCount - 1;
+                const lastNode = nodeUpdate.nodeData[seedIndex];
+                if (lastNode?.yValue != null) {
+                    spanBuilder.addNode(lastNode);
+                } else if (lastNode) {
+                    spanBuilder.addGap();
                 }
             }
 
-            if (
-                existingSpans.length > 0 &&
-                newStrokeSpans.length > 0 &&
-                spanPoints.length > 0 &&
-                Array.isArray(spanPoints[0])
-            ) {
-                // Remove the last span from existing if we're continuing from it
+            for (const node of nodeUpdate.newNodes) {
+                spanBuilder.addNode(node);
+            }
+
+            const newSpans = spanBuilder.buildSpans(interpolation);
+            const existingSpans = existingContext.strokeData?.spans ?? [];
+            const spanPoints = spanBuilder.getPoints();
+
+            if (existingSpans.length > 0 && newSpans.length > 0 && Array.isArray(spanPoints[0])) {
                 existingSpans.splice(-1, 1);
             }
 
-            // Append new spans directly to existing array
-            if (newStrokeSpans.length > 0) {
-                for (const span of newStrokeSpans) {
-                    existingSpans.push(span);
-                }
+            if (newSpans.length > 0) {
+                existingSpans.push(...newSpans);
             }
 
             strokeData = { itemId: yKey, spans: existingSpans };
@@ -545,14 +475,227 @@ export class LineSeries extends CartesianSeries<
 
         return {
             itemId: yKey,
-            nodeData,
-            labelData: nodeData,
+            nodeData: nodeUpdate.nodeData,
+            labelData: nodeUpdate.nodeData,
             strokeData,
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
             styles: getMarkerStyles(this, marker),
             segments,
+        };
+    }
+
+    private buildIncrementalNodeUpdates(params: IncrementalNodeParams): IncrementalNodeUpdateResult {
+        const {
+            existingContext,
+            processedData,
+            xAxis,
+            xScale,
+            yScale,
+            xOffset,
+            yOffset,
+            size,
+            capDefaults,
+            rawData,
+            xValues,
+            yRawValues,
+            yCumulativeValues,
+            selectionValues,
+            yDomain,
+            properties,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            legendItemName,
+        } = params;
+
+        const nodeData = existingContext.nodeData;
+        const originalNodeCount = nodeData.length;
+        const incremental = processedData.incremental!;
+
+        let scalesChanged =
+            incremental.modifiedDomains != null &&
+            (incremental.modifiedDomains.keys.length > 0 || incremental.modifiedDomains.values.length > 0);
+
+        if (scalesChanged) {
+            this.recomputeExistingNodePositions(nodeData, xScale, yScale, xOffset, yOffset);
+        }
+
+        const prependedCount = incremental.prependedCount ?? 0;
+        if (prependedCount > 0) {
+            for (let i = 0; i < originalNodeCount; i++) {
+                (nodeData[i] as any).datumIndex += prependedCount;
+            }
+        }
+
+        const [rangeStart, rangeEnd] = this.computeIncrementalVisibleRange(processedData, xAxis, xValues);
+        const sortedAddedRows = [...incremental.addedRows].sort((a, b) => a - b);
+
+        const prependedNodes: LineNodeDatum[] = [];
+        const appendedNodes: LineNodeDatum[] = [];
+
+        for (const rowIndex of sortedAddedRows) {
+            if (rowIndex < rangeStart || rowIndex >= rangeEnd) continue;
+
+            const node = this.createIncrementalNode({
+                rowIndex,
+                rawData,
+                xValues,
+                yRawValues,
+                yCumulativeValues,
+                selectionValues,
+                xScale,
+                yScale,
+                xOffset,
+                yOffset,
+                size,
+                capDefaults,
+                xKey,
+                yKey,
+                xName,
+                yName,
+                legendItemName,
+                properties,
+                yDomain,
+            });
+
+            if (!node) continue;
+
+            if (rowIndex < prependedCount) {
+                prependedNodes.push(node);
+            } else {
+                appendedNodes.push(node);
+            }
+        }
+
+        let insertedPrependCount = 0;
+        if (prependedNodes.length > 0) {
+            for (let i = prependedNodes.length - 1; i >= 0; i--) {
+                nodeData.unshift(prependedNodes[i]);
+            }
+            insertedPrependCount = prependedNodes.length;
+            scalesChanged = true;
+        }
+
+        for (const node of appendedNodes) {
+            nodeData.push(node);
+        }
+
+        return {
+            nodeData,
+            newNodes: appendedNodes,
+            scalesChanged,
+            originalNodeCount,
+            insertedPrependCount,
+        };
+    }
+
+    private recomputeExistingNodePositions(
+        nodeData: LineNodeDatum[],
+        xScale: any,
+        yScale: any,
+        xOffset: number,
+        yOffset: number
+    ) {
+        for (const existingNode of nodeData) {
+            const x = xScale.convert(existingNode.xValue) + xOffset;
+            const y = yScale.convert(existingNode.cumulativeValue) + yOffset;
+
+            existingNode.point.x = x;
+            existingNode.point.y = y;
+            (existingNode.midPoint!.x as any) = x;
+            (existingNode.midPoint!.y as any) = y;
+        }
+    }
+
+    private computeIncrementalVisibleRange(
+        processedData: ProcessedData<any>,
+        xAxis: any,
+        xValues: any[]
+    ): [number, number] {
+        let [rangeStart, rangeEnd] = this.visibleRangeIndices('xValue', xAxis.range);
+        rangeStart = Math.max(rangeStart - 1, 0);
+        rangeEnd = Math.min(rangeEnd + 1, xValues.length);
+
+        if (processedData.input.count < 1e3) {
+            rangeStart = 0;
+            rangeEnd = processedData.input.count;
+        }
+
+        return [rangeStart, rangeEnd];
+    }
+
+    private createIncrementalNode(context: NodeCreationContext): LineNodeDatum | undefined {
+        const {
+            rowIndex,
+            rawData,
+            xValues,
+            yRawValues,
+            yCumulativeValues,
+            selectionValues,
+            xScale,
+            yScale,
+            xOffset,
+            yOffset,
+            size,
+            capDefaults,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            legendItemName,
+            properties,
+            yDomain,
+        } = context;
+
+        const datum = rawData[rowIndex];
+        const xDatum = xValues[rowIndex];
+        const yDatum = yRawValues[rowIndex];
+        const yCumulative = yCumulativeValues[rowIndex];
+        const selected = selectionValues?.[rowIndex];
+
+        const x = xScale.convert(xDatum) + xOffset;
+        const y = yScale.convert(yCumulative) + yOffset;
+
+        if (!Number.isFinite(x)) return undefined;
+
+        const labelText =
+            properties.label.enabled && yDatum != null
+                ? this.getLabelText<AgLineSeriesLabelFormatterParams>(
+                      yDatum,
+                      datum,
+                      yKey,
+                      'y',
+                      yDomain,
+                      properties.label,
+                      {
+                          value: yDatum,
+                          datum,
+                          xKey,
+                          yKey,
+                          xName,
+                          yName,
+                          legendItemName,
+                      }
+                  )
+                : undefined;
+
+        return {
+            series: this,
+            datum,
+            datumIndex: rowIndex,
+            yKey,
+            xKey,
+            point: { x, y, size },
+            midPoint: { x, y },
+            cumulativeValue: yCumulative,
+            yValue: yDatum,
+            xValue: xDatum,
+            capDefaults,
+            labelText,
+            selected,
         };
     }
 
