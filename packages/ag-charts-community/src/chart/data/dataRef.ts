@@ -16,6 +16,7 @@ export function calculateNetDataSize(dataRef: DataRef) {
     let netDataSize = dataRef.data.length;
     for (const transaction of dataRef.pendingTransactions) {
         netDataSize += transaction.append?.length ?? 0;
+        netDataSize += transaction.prepend?.length ?? 0;
     }
 
     return netDataSize;
@@ -23,7 +24,12 @@ export function calculateNetDataSize(dataRef: DataRef) {
 
 export function applyTransaction(dataRef: DataRef) {
     for (const transaction of dataRef.pendingTransactions) {
-        dataRef.data.push(...(transaction.append ?? []));
+        if (transaction.prepend?.length) {
+            dataRef.data.unshift(...transaction.prepend);
+        }
+        if (transaction.append?.length) {
+            dataRef.data.push(...transaction.append);
+        }
     }
     dataRef.pendingTransactions = [];
 }

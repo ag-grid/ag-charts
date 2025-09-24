@@ -6,11 +6,12 @@ import { type CachedData, canReuseCachedData } from './caching';
 import {
     DataModel,
     type DataModelOptions,
+    type DataModelTransaction,
     type DatumPropertyDefinition,
     type ProcessedData,
     type PropertyDefinition,
 } from './dataModel';
-import { type DataRef, isDataRef } from './dataRef';
+import { applyTransaction as commitDataTransactions, type DataRef, isDataRef } from './dataRef';
 
 interface RequestedProcessing<
     D extends object,
@@ -41,6 +42,8 @@ type Result<
     K extends keyof D & string = keyof D & string,
     G extends boolean | undefined = undefined,
 > = { processedData: ProcessedData<D>; dataModel: DataModel<D, K, G> };
+
+type TransactionOperations = DataModelTransaction<unknown>;
 
 /** Implements cross-series data model coordination. */
 export class DataController {
@@ -101,8 +104,31 @@ export class DataController {
                 // No cache available - process from scratch
                 try {
                     dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
-                    const sources = new Map(valid.map((v) => [v.id, v.dataRef.data]));
+                    const idsSet = new Set(ids);
+                    const sources = new Map<string, unknown[]>();
+                    const previewedDataRefs = new Set<DataRef>();
+                    const previewCache = new Map<DataRef, unknown[]>();
+
+                    for (const validRequest of valid) {
+                        if (!idsSet.has(validRequest.id)) continue;
+
+                        const requestDataRef = validRequest.dataRef;
+                        let sourceData: unknown[];
+                        if (requestDataRef.pendingTransactions.length > 0) {
+                            sourceData = previewCache.get(requestDataRef) ?? this.previewDataRef(requestDataRef);
+                            previewCache.set(requestDataRef, sourceData);
+                            previewedDataRefs.add(requestDataRef);
+                        } else {
+                            sourceData = requestDataRef.data;
+                        }
+
+                        sources.set(validRequest.id, sourceData);
+                    }
+
                     processedData = dataModel.processData(sources);
+                    for (const previewedRef of previewedDataRefs) {
+                        commitDataTransactions(previewedRef);
+                    }
                 } catch (error) {
                     rejects.forEach((cb) => cb(error));
                     continue;
@@ -112,21 +138,29 @@ export class DataController {
                 ({ dataModel } = reusableCache);
                 try {
                     // Create sources map from pending transactions
-                    const transactionSources = new Map<string, unknown[]>();
+                    const transactionSources = new Map<string, TransactionOperations>();
                     for (const validRequest of valid) {
-                        if (validRequest.dataRef === dataRef) {
-                            // Collect all append data from pending transactions
-                            const appendData: unknown[] = [];
-                            for (const transaction of dataRef.pendingTransactions) {
-                                if (transaction.append) {
-                                    appendData.push(...transaction.append);
-                                }
+                        if (validRequest.dataRef !== dataRef) continue;
+
+                        transactionSources.set(validRequest.id, { append: [], prepend: [] });
+                    }
+
+                    for (const transaction of dataRef.pendingTransactions) {
+                        const { prepend, append } = transaction;
+                        for (const operations of transactionSources.values()) {
+                            if (prepend?.length) {
+                                const target = (operations.prepend ??= []);
+                                // Preserve the natural prepended order (latest transaction first)
+                                target.unshift(...prepend);
                             }
-                            transactionSources.set(validRequest.id, appendData);
+                            if (append?.length) {
+                                const target = (operations.append ??= []);
+                                target.push(...append);
+                            }
                         }
                     }
 
-                    // Apply transactions incrementally
+                    // Apply transactions incrementally (DataModel decides how to handle append/prepend)
                     processedData = dataModel.applyTransactions(reusableCache.processedData, transactionSources);
 
                     // Clear pending transactions after successful processing
@@ -159,6 +193,32 @@ export class DataController {
         }
 
         return nextCachedData;
+    }
+
+    private previewDataRef<T>(dataRef: DataRef<T>): T[] {
+        if (dataRef.pendingTransactions.length === 0) {
+            return dataRef.data;
+        }
+
+        const prepended: T[] = [];
+        const appended: T[] = [];
+
+        for (const transaction of dataRef.pendingTransactions) {
+            const prependItems = transaction.prepend;
+            if (prependItems?.length) {
+                prepended.unshift(...(prependItems as T[]));
+            }
+            const appendItems = transaction.append;
+            if (appendItems?.length) {
+                appended.push(...(appendItems as T[]));
+            }
+        }
+
+        if (prepended.length === 0 && appended.length === 0) {
+            return dataRef.data;
+        }
+
+        return [...prepended, ...dataRef.data, ...appended];
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {

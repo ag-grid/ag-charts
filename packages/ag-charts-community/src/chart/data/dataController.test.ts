@@ -552,6 +552,51 @@ describe('DataController', () => {
             expect(dataRef.pendingTransactions.length).toBe(0); // Should be cleared
         });
 
+        it('should handle prepend transactions incrementally', async () => {
+            const dataRef: DataRef<{ x: number; y: number }> = {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ],
+                pendingTransactions: [],
+            };
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            const result1Promise = controller.request('test', dataRef, opts);
+            const cache1 = controller.execute();
+            await result1Promise;
+
+            controller = new DataController(TEST_MODE, false);
+            dataRef.pendingTransactions = [
+                {
+                    prepend: [
+                        { x: 0, y: 5 },
+                    ],
+                },
+            ];
+
+            const result2Promise = controller.request('test', dataRef, opts);
+            controller.execute(cache1);
+            const result2 = await result2Promise;
+
+            expect(result2.processedData.incremental).toBeDefined();
+            expect(result2.processedData.input.count).toBe(3);
+
+            const dataSource = result2.processedData.dataSources.get('test') as { x: number; y: number }[] | undefined;
+            expect(dataSource?.[0]).toEqual({ x: 0, y: 5 });
+            expect(dataRef.data[0]).toEqual({ x: 0, y: 5 });
+            expect(result2.processedData.incremental?.prependedCount).toBe(1);
+            expect(result2.processedData.incremental?.addedRows).toEqual([0]);
+            expect(result2.processedData.incremental?.baseDataSize).toBe(2);
+            expect(dataRef.pendingTransactions.length).toBe(0);
+        });
+
         it('should track modified domains correctly', async () => {
             const dataRef: DataRef<{ x: string; y: number }> = {
                 data: [
@@ -634,7 +679,7 @@ describe('DataController', () => {
             expect(result2.processedData.incremental?.addedRows).toEqual([1, 2, 3]);
         });
 
-        it('should reprocess from scratch when cache is not available', async () => {
+        it('should apply pending transactions when cache is not available', async () => {
             const dataRef: DataRef<{ x: number; y: number }> = {
                 data: [
                     { x: 1, y: 10 },
@@ -659,8 +704,8 @@ describe('DataController', () => {
             controller.execute();
             const result = await resultPromise;
 
-            // Should process base data only (transactions not applied during normal processing)
-            expect(result.processedData.input.count).toBe(2);
+            // Should process base data plus pending transactions even without cache
+            expect(result.processedData.input.count).toBe(3);
             expect(result.processedData.incremental).toBeUndefined();
         });
     });

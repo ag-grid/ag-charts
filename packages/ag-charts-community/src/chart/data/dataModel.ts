@@ -34,6 +34,11 @@ type ScopeId = string;
 
 type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
 
+export interface DataModelTransaction<D> {
+    append?: D[];
+    prepend?: D[];
+}
+
 interface CommonMetadata<D> {
     input: { count: number };
     scopes: Set<ScopeId>;
@@ -98,6 +103,7 @@ export interface ProcessedDataDef {
 export interface IncrementalUpdateMetadata {
     baseDataSize: number; // Original data size before transactions
     addedRows: number[]; // Indices of newly added rows
+    prependedCount?: number; // Number of rows added to the start of the data set
     modifiedDomains: {
         keys: number[]; // Indices of modified key domains
         values: number[]; // Indices of modified value domains
@@ -633,67 +639,186 @@ export class DataModel<
 
     applyTransactions(
         processedData: ProcessedData<D>,
-        transactions: Map<string, unknown[]>
-    ): ProcessedData<D> | undefined {
+        transactions: Map<string, DataModelTransaction<D>>
+    ): ProcessedData<D> {
         const start = performance.now();
 
-        // Mutate processedData in place for performance
-        // Track incremental changes
+        const appendSources = new Map<string, D[]>();
+        const prependSources = new Map<string, D[]>();
+
+        for (const [scopeId, operations] of transactions) {
+            if (operations.append?.length) {
+                appendSources.set(scopeId, operations.append);
+            }
+            if (operations.prepend?.length) {
+                prependSources.set(scopeId, operations.prepend);
+            }
+        }
+
+        if (appendSources.size === 0 && prependSources.size === 0) {
+            return processedData;
+        }
+
         const baseDataSize = processedData.input.count;
         const addedRows: number[] = [];
         const modifiedKeyDomains = new Set<number>();
         const modifiedValueDomains = new Set<number>();
 
-        // Process new data from transactions
-        const incrementalData = this.extractData(transactions);
+        if (prependSources.size === 0) {
+            // Fast path for append-only transactions – matches previous optimised behaviour.
+            const incrementalData = this.extractData(appendSources as Map<string, unknown[]>);
 
-        // Merge incremental data into existing processed data
-        const startIndex = baseDataSize;
-        for (let i = 0; i < incrementalData.input.count; i++) {
-            addedRows.push(startIndex + i);
+            const startIndex = baseDataSize;
+            for (let i = 0; i < incrementalData.input.count; i++) {
+                addedRows.push(startIndex + i);
+            }
+
+            for (const [scopeId, newData] of incrementalData.dataSources) {
+                const existingScopedData = processedData.dataSources.get(scopeId) ?? [];
+                if (!processedData.dataSources.has(scopeId)) {
+                    processedData.dataSources.set(scopeId, existingScopedData);
+                }
+                existingScopedData.push(...(newData as D[]));
+            }
+
+            for (let colIndex = 0; colIndex < processedData.columns.length; colIndex++) {
+                const columnData = incrementalData.columns[colIndex];
+                if (columnData?.length) {
+                    processedData.columns[colIndex].push(...columnData);
+                }
+            }
+
+            for (let i = 0; i < processedData.domain.keys.length; i++) {
+                if (this.updateDomain(processedData.domain.keys[i], incrementalData.domain.keys[i], this.keys[i])) {
+                    modifiedKeyDomains.add(i);
+                }
+            }
+            for (let i = 0; i < processedData.domain.values.length; i++) {
+                if (this.updateDomain(processedData.domain.values[i], incrementalData.domain.values[i], this.values[i])) {
+                    modifiedValueDomains.add(i);
+                }
+            }
+
+            processedData.input.count += incrementalData.input.count;
+            processedData.partialValidDataCount += incrementalData.partialValidDataCount;
+
+            processedData.incremental = {
+                baseDataSize,
+                addedRows,
+                modifiedDomains: {
+                    keys: Array.from(modifiedKeyDomains),
+                    values: Array.from(modifiedValueDomains),
+                },
+            };
+
+            if (this.opts.groupByKeys && processedData.type === 'ungrouped') {
+                // TODO: to handle incremental grouping
+            }
+
+            const end = performance.now();
+            processedData.time = end - start;
+
+            if (this.debug.check()) {
+                logProcessedData(processedData);
+            }
+
+            return processedData;
         }
 
-        // Update dataSources with the new data
-        for (const [scopeId, newData] of incrementalData.dataSources) {
-            const existingScopedData = processedData.dataSources.get(scopeId) ?? [];
-            existingScopedData.push(...newData);
-        }
+        const applyDomainUpdates = (domain: { keys: any[][]; values: any[][] }) => {
+            for (let i = 0; i < processedData.domain.keys.length; i++) {
+                if (this.updateDomain(processedData.domain.keys[i], domain.keys[i], this.keys[i])) {
+                    modifiedKeyDomains.add(i);
+                }
+            }
+            for (let i = 0; i < processedData.domain.values.length; i++) {
+                if (this.updateDomain(processedData.domain.values[i], domain.values[i], this.values[i])) {
+                    modifiedValueDomains.add(i);
+                }
+            }
+        };
 
-        // Append new data to columns
-        for (let colIndex = 0; colIndex < processedData.columns.length; colIndex++) {
-            if (incrementalData.columns[colIndex]) {
-                processedData.columns[colIndex].push(...incrementalData.columns[colIndex]);
+        const toExtractSources = (sourceMap: Map<string, D[]>) => {
+            const result = new Map<string, unknown[]>();
+            for (const [scopeId, data] of sourceMap) {
+                result.set(scopeId, data);
+            }
+            return result;
+        };
+
+        let prependCount = 0;
+        if (prependSources.size > 0) {
+            const prependData = this.extractData(toExtractSources(prependSources));
+            prependCount = prependData.input.count;
+
+            for (const [scopeId, newData] of prependData.dataSources) {
+                let existingScopedData = processedData.dataSources.get(scopeId);
+                if (existingScopedData == null) {
+                    existingScopedData = [];
+                    processedData.dataSources.set(scopeId, existingScopedData);
+                }
+                existingScopedData.unshift(...(newData as D[]));
+            }
+
+            for (let colIndex = 0; colIndex < processedData.columns.length; colIndex++) {
+                const columnData = prependData.columns[colIndex];
+                if (columnData?.length) {
+                    processedData.columns[colIndex].unshift(...columnData);
+                }
+            }
+
+            applyDomainUpdates(prependData.domain);
+
+            processedData.input.count += prependCount;
+            processedData.partialValidDataCount += prependData.partialValidDataCount;
+
+            for (let i = 0; i < prependCount; i++) {
+                addedRows.push(i);
             }
         }
 
-        // Update domains
-        for (let i = 0; i < processedData.domain.keys.length; i++) {
-            if (this.updateDomain(processedData.domain.keys[i], incrementalData.domain.keys[i], this.keys[i])) {
-                modifiedKeyDomains.add(i);
+        if (appendSources.size > 0) {
+            const appendData = this.extractData(toExtractSources(appendSources));
+
+            const startIndex = processedData.input.count;
+            const appendCount = appendData.input.count;
+
+            for (const [scopeId, newData] of appendData.dataSources) {
+                let existingScopedData = processedData.dataSources.get(scopeId);
+                if (existingScopedData == null) {
+                    existingScopedData = [];
+                    processedData.dataSources.set(scopeId, existingScopedData);
+                }
+                existingScopedData.push(...(newData as D[]));
+            }
+
+            for (let colIndex = 0; colIndex < processedData.columns.length; colIndex++) {
+                const columnData = appendData.columns[colIndex];
+                if (columnData?.length) {
+                    processedData.columns[colIndex].push(...columnData);
+                }
+            }
+
+            applyDomainUpdates(appendData.domain);
+
+            processedData.input.count += appendCount;
+            processedData.partialValidDataCount += appendData.partialValidDataCount;
+
+            for (let i = 0; i < appendCount; i++) {
+                addedRows.push(startIndex + i);
             }
         }
 
-        for (let i = 0; i < processedData.domain.values.length; i++) {
-            if (this.updateDomain(processedData.domain.values[i], incrementalData.domain.values[i], this.values[i])) {
-                modifiedValueDomains.add(i);
-            }
-        }
-
-        // Update metadata
-        processedData.input.count += incrementalData.input.count;
-        processedData.partialValidDataCount += incrementalData.partialValidDataCount;
-
-        // Add incremental tracking metadata
         processedData.incremental = {
             baseDataSize,
             addedRows,
+            ...(prependCount > 0 ? { prependedCount: prependCount } : {}),
             modifiedDomains: {
                 keys: Array.from(modifiedKeyDomains),
                 values: Array.from(modifiedValueDomains),
             },
         };
 
-        // Apply post-processing steps if needed
         if (this.opts.groupByKeys && processedData.type === 'ungrouped') {
             // TODO: to handle incremental grouping
         }

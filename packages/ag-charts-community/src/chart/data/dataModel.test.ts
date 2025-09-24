@@ -1254,12 +1254,14 @@ describe('DataModel', () => {
                 new Map([
                     [
                         'test',
-                        [
-                            {
-                                time: 500,
-                                value: 3,
-                            },
-                        ],
+                        {
+                            append: [
+                                {
+                                    time: 500,
+                                    value: 3,
+                                },
+                            ],
+                        },
                     ],
                 ])
             );
@@ -1272,18 +1274,58 @@ describe('DataModel', () => {
                 new Map([
                     [
                         'test',
-                        [
-                            {
-                                time: 750,
-                                value: 4,
-                            },
-                        ],
+                        {
+                            append: [
+                                {
+                                    time: 750,
+                                    value: 4,
+                                },
+                            ],
+                        },
                     ],
                 ])
             );
 
             expect(processed.domain.keys[0]).toEqual([0, 750]);
             expect(processed.domain.keys[0]).toHaveLength(2);
+        });
+
+        it('tracks prepended data incrementally', () => {
+            const dataModel = new DataModel<any>({
+                props: [rangeKey('time'), value('value')],
+            });
+
+            const initialData = basicDataSet([
+                { time: 0, value: 1 },
+                { time: 250, value: 2 },
+            ]);
+
+            const processed = dataModel.processData(initialData)!;
+
+            const result = dataModel.applyTransactions(
+                processed,
+                new Map([
+                    [
+                        'test',
+                        {
+                            prepend: [
+                                {
+                                    time: -250,
+                                    value: 0,
+                                },
+                            ],
+                        },
+                    ],
+                ])
+            );
+
+            expect(result).toBe(processed);
+            expect(result.domain.keys[0]).toEqual([-250, 250]);
+            expect(result.input.count).toBe(3);
+            expect(result.incremental).toBeDefined();
+            expect(result.incremental?.prependedCount).toBe(1);
+            expect(result.incremental?.addedRows).toEqual([0]);
+            expect(result.incremental?.baseDataSize).toBe(2);
         });
     });
 

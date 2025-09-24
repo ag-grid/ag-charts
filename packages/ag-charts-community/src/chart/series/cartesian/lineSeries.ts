@@ -287,7 +287,7 @@ export class LineSeries extends CartesianSeries<
         };
 
         // Check if scales have changed by comparing domains
-        const scalesChanged =
+        let scalesChanged =
             processedData.incremental.modifiedDomains &&
             (processedData.incremental.modifiedDomains.keys.length > 0 ||
                 processedData.incremental.modifiedDomains.values.length > 0);
@@ -312,6 +312,12 @@ export class LineSeries extends CartesianSeries<
 
         // Process only new data points
         const { addedRows } = processedData.incremental;
+        const prependedCount = processedData.incremental.prependedCount ?? 0;
+        if (prependedCount > 0) {
+            for (let i = 0; i < originalNodeCount; i++) {
+                (nodeData[i] as any).datumIndex += prependedCount;
+            }
+        }
         let [rangeStart, rangeEnd] = this.visibleRangeIndices('xValue', xAxis.range);
         rangeStart = Math.max(rangeStart - 1, 0);
         rangeEnd = Math.min(rangeEnd + 1, xValues.length);
@@ -320,7 +326,11 @@ export class LineSeries extends CartesianSeries<
             rangeEnd = processedData.input.count;
         }
 
-        for (const rowIndex of addedRows) {
+        const sortedAddedRows = [...addedRows].sort((a, b) => a - b);
+        const prependedNodes: LineNodeDatum[] = [];
+        const appendedNodes: LineNodeDatum[] = [];
+
+        for (const rowIndex of sortedAddedRows) {
             if (rowIndex < rangeStart || rowIndex >= rangeEnd) continue;
 
             const datum = rawData[rowIndex];
@@ -347,7 +357,7 @@ export class LineSeries extends CartesianSeries<
                       })
                     : undefined;
 
-                nodeData.push({
+                const newNode: LineNodeDatum = {
                     series: this,
                     datum,
                     datumIndex: rowIndex,
@@ -361,11 +371,28 @@ export class LineSeries extends CartesianSeries<
                     capDefaults,
                     labelText,
                     selected,
-                });
+                };
+
+                if (rowIndex < prependedCount) {
+                    prependedNodes.push(newNode);
+                } else {
+                    appendedNodes.push(newNode);
+                }
             }
         }
 
-        const newNodes = nodeData.slice(originalNodeCount);
+        if (prependedNodes.length > 0) {
+            for (let i = prependedNodes.length - 1; i >= 0; i--) {
+                nodeData.unshift(prependedNodes[i]);
+            }
+            scalesChanged = true;
+        }
+
+        for (const node of appendedNodes) {
+            nodeData.push(node);
+        }
+
+        const newNodes = appendedNodes;
 
         if (!scalesChanged && newNodes.length === 0) {
             return existingContext;
@@ -375,7 +402,7 @@ export class LineSeries extends CartesianSeries<
         let spanPoints: SpanPoints;
 
         if (scalesChanged) {
-            // If scales changed, we need to rebuild all spans with new positions
+            // If scales changed (or prepended data) we need to rebuild all spans with new positions
             spanPoints = [];
             for (const node of nodeData) {
                 const currentSpanPoints: SpanPoint | undefined = spanPoints[spanPoints.length - 1];
@@ -406,7 +433,7 @@ export class LineSeries extends CartesianSeries<
             spanPoints = [];
 
             if (originalNodeCount > 0) {
-                const lastNode = nodeData[originalNodeCount - 1];
+                const lastNode = nodeData[originalNodeCount + prependedNodes.length - 1];
                 if (lastNode?.yValue != null) {
                     spanPoints.push([
                         {
