@@ -7,7 +7,6 @@ import type {
     AgSeriesMarkerStyle,
     ContextDefault,
     DatumDefault,
-    Styler,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -64,7 +63,7 @@ export class RadarSeriesProperties<
     rotation: number = 0;
 
     @Property
-    styler?: Styler<unknown, undefined>;
+    styler?: TOpts['styler'];
 
     @Property
     readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys>();
