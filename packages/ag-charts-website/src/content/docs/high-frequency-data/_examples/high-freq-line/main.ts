@@ -203,26 +203,58 @@ function use(newMethod) {
 
 const updateCallback = async () => {
     const isPrepend = method.includes('prepend');
-    const datumFactory = isPrepend ? prependDatumFactory : appendDatumFactory;
-    const newDatum = datumFactory();
+    const isRemove = method.includes('remove');
 
-    switch (method) {
-        case 'applyTransaction-append':
-            data = data.concat(newDatum);
-            chart.applyTransaction({ append: [newDatum] });
-            break;
-        case 'applyTransaction-prepend':
-            data = [newDatum].concat(data);
-            chart.applyTransaction({ prepend: [newDatum] });
-            break;
-        case 'updateDelta-append':
-            data = data.concat(newDatum);
-            chart.updateDelta({ data });
-            break;
-        case 'updateDelta-prepend':
-            data = [newDatum].concat(data);
-            chart.updateDelta({ data });
-            break;
+    if (isRemove) {
+        if (data.length === 0) {
+            console.warn('No data to remove');
+            return;
+        }
+
+        switch (method) {
+            case 'applyTransaction-remove-first':
+                const removedFirst = data.shift();
+                if (removedFirst) {
+                    chart.applyTransaction({ remove: [removedFirst] });
+                }
+                break;
+            case 'applyTransaction-remove-last':
+                const removedLast = data.pop();
+                if (removedLast) {
+                    chart.applyTransaction({ remove: [removedLast] });
+                }
+                break;
+            case 'updateDelta-remove-first':
+                data.shift();
+                chart.updateDelta({ data });
+                break;
+            case 'updateDelta-remove-last':
+                data.pop();
+                chart.updateDelta({ data });
+                break;
+        }
+    } else {
+        const datumFactory = isPrepend ? prependDatumFactory : appendDatumFactory;
+        const newDatum = datumFactory();
+
+        switch (method) {
+            case 'applyTransaction-append':
+                data = data.concat(newDatum);
+                chart.applyTransaction({ append: [newDatum] });
+                break;
+            case 'applyTransaction-prepend':
+                data = [newDatum].concat(data);
+                chart.applyTransaction({ prepend: [newDatum] });
+                break;
+            case 'updateDelta-append':
+                data = data.concat(newDatum);
+                chart.updateDelta({ data });
+                break;
+            case 'updateDelta-prepend':
+                data = [newDatum].concat(data);
+                chart.updateDelta({ data });
+                break;
+        }
     }
 };
 
