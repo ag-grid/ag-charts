@@ -1,5 +1,9 @@
 export type AnyFn = (...args: any[]) => any;
 
+export type Callback = (params: any) => any;
+
+export type CallbackParam<F extends Callback> = Parameters<F>[0];
+
 export type Nullable<T> = T | null | undefined;
 
 export type PlainObject = { [key: string | number | symbol]: any };

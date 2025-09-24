@@ -1,5 +1,6 @@
 import {
-    type AnyFn,
+    type Callback,
+    type CallbackParam,
     CleanupRegistry,
     EventEmitter,
     type InternalAgColorType,
@@ -1193,12 +1194,12 @@ export abstract class Series<
         }
     }
 
-    public cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, ...params);
+    public cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
+        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, params);
     }
 
-    public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext([this.properties, this.ctx.chartService], fn, ...params);
+    public callWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> {
+        return callWithContext([this.properties, this.ctx.chartService], fn, params);
     }
 
     protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(

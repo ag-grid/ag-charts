@@ -1,5 +1,6 @@
 import {
-    type AnyFn,
+    type Callback,
+    type CallbackParam,
     CleanupRegistry,
     type Point,
     type RequireOptional,
@@ -1019,19 +1020,19 @@ export abstract class Axis<
         return this.reverse;
     }
 
-    protected cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    protected cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.moduleCtx;
-        return callbackCache.call([this, chartService], fn, ...params);
+        return callbackCache.call([this, chartService], fn, params);
     }
 
-    private uncachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    private uncachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
         const { chartService } = this.moduleCtx;
-        return callWithContext([this, chartService], fn, ...params);
+        return callWithContext([this, chartService], fn, params);
     }
 
     private createCallWithContext(contextProvider: { context?: unknown } | undefined) {
         const { chartService } = this.moduleCtx;
-        return <F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> =>
-            callWithContext([contextProvider, this, chartService], fn, ...params);
+        return <F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> =>
+            callWithContext([contextProvider, this, chartService], fn, params);
     }
 }

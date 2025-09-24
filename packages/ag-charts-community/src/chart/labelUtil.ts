@@ -1,4 +1,4 @@
-import type { AnyFn, IsAny, Point, RequireOptional } from 'ag-charts-core';
+import type { Callback, CallbackParam, IsAny, Point, RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
@@ -19,7 +19,7 @@ interface SeriesLike<TDatumIndex extends DatumIndexType> {
     ctx: ModuleContext;
     declarationOrder: number;
     get visible(): boolean;
-    cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined;
+    cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined;
     isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined): boolean;
     getHighlightStateString(
         datum: HighlightNodeDatum | undefined,
