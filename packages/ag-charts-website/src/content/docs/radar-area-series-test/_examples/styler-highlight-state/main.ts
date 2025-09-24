@@ -82,6 +82,27 @@ const options: AgPolarChartOptions = {
         {
             type: 'radar-area',
             angleKey: 'trait',
+            radiusKey: 'healer',
+            marker: {},
+            styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
+                switch (params.highlightState) {
+                    case 'highlighted-item':
+                        return { marker: { fill: 'lime', strokeWidth: 4 } };
+                    case 'unhighlighted-item':
+                        return { marker: { fill: 'lightgray' } };
+                    case 'highlighted-series':
+                        return { fill: 'limegreen', strokeWidth: 4 };
+                    case 'unhighlighted-series':
+                        return { fillOpacity: 0.2, strokeOpacity: 0.2 };
+                    case 'none':
+                    default:
+                        return {};
+                }
+            },
+        },
+        {
+            type: 'radar-area',
+            angleKey: 'trait',
             radiusKey: 'tank',
             marker: {},
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
@@ -113,27 +134,6 @@ const options: AgPolarChartOptions = {
                         return { marker: { fill: 'lightgray' } };
                     case 'highlighted-series':
                         return { fill: 'royalblue', strokeWidth: 4 };
-                    case 'unhighlighted-series':
-                        return { fillOpacity: 0.2, strokeOpacity: 0.2 };
-                    case 'none':
-                    default:
-                        return {};
-                }
-            },
-        },
-        {
-            type: 'radar-area',
-            angleKey: 'trait',
-            radiusKey: 'healer',
-            marker: {},
-            styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
-                switch (params.highlightState) {
-                    case 'highlighted-item':
-                        return { marker: { fill: 'lime', strokeWidth: 4 } };
-                    case 'unhighlighted-item':
-                        return { marker: { fill: 'lightgray' } };
-                    case 'highlighted-series':
-                        return { fill: 'limegreen', strokeWidth: 4 };
                     case 'unhighlighted-series':
                         return { fillOpacity: 0.2, strokeOpacity: 0.2 };
                     case 'none':

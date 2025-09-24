@@ -80,24 +80,6 @@ const options: AgPolarChartOptions = {
         {
             type: 'radar-area',
             angleKey: 'trait',
-            radiusKey: 'tank',
-            stroke: 'fuchsia', // ignored
-            strokeWidth: 3, // not ignored
-            strokeOpacity: 0.9, // not ignored
-            // marker should be enabled
-            styler,
-        },
-        {
-            type: 'radar-area',
-            angleKey: 'trait',
-            radiusKey: 'damage',
-            // should use all style properties from the styler
-            marker: {}, // should be enabled, but with the styler's styling
-            styler,
-        },
-        {
-            type: 'radar-area',
-            angleKey: 'trait',
             radiusKey: 'healer',
             stroke: 'limegreen', // ignored
             strokeWidth: 30, // ignored
@@ -113,6 +95,24 @@ const options: AgPolarChartOptions = {
                 stroke: 'seagreen', // ignored
                 strokeWidth: 5, // ignored
             },
+            styler,
+        },
+        {
+            type: 'radar-area',
+            angleKey: 'trait',
+            radiusKey: 'tank',
+            stroke: 'fuchsia', // ignored
+            strokeWidth: 3, // not ignored
+            strokeOpacity: 0.9, // not ignored
+            // marker should be enabled
+            styler,
+        },
+        {
+            type: 'radar-area',
+            angleKey: 'trait',
+            radiusKey: 'damage',
+            // should use all style properties from the styler
+            marker: {}, // should be enabled, but with the styler's styling
             styler,
         },
     ],
