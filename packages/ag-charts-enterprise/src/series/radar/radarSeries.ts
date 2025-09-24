@@ -705,20 +705,21 @@ export abstract class RadarSeries<
         this.resetPaths();
     }
 
-    protected resetPaths() {
+    protected resetPaths(): ResolvedRadarStyle<TStyle> | undefined {
         const lineNode = this.getLineNode();
 
         if (lineNode) {
             const { path: linePath } = lineNode;
             const linePoints = this.getLinePoints();
+            const stylerStyle = this.getStyle(false);
 
             lineNode.fill = undefined;
-            lineNode.stroke = this.properties.stroke;
-            lineNode.strokeWidth = this.properties.strokeWidth;
-            lineNode.strokeOpacity = this.properties.strokeOpacity;
+            lineNode.stroke = stylerStyle.stroke;
+            lineNode.strokeWidth = stylerStyle.strokeWidth;
+            lineNode.strokeOpacity = stylerStyle.strokeOpacity;
 
-            lineNode.lineDash = this.properties.lineDash;
-            lineNode.lineDashOffset = this.properties.lineDashOffset;
+            lineNode.lineDash = stylerStyle.lineDash;
+            lineNode.lineDashOffset = stylerStyle.lineDashOffset;
 
             linePath.clear(true);
 
@@ -731,6 +732,9 @@ export abstract class RadarSeries<
             }
 
             lineNode.checkPathDirty();
+            // return `getStyle` return so that RadarLineSeries does not need to call `getStyle` twice (once for the
+            // lineNode, and once of the areaNode).
+            return stylerStyle;
         }
     }
 

@@ -115,23 +115,24 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         return points.concat(...zeroLinePoints);
     }
 
-    protected override resetPaths() {
-        super.resetPaths();
+    protected override resetPaths(): ResolvedRadarStyle<AgRadarAreaSeriesStyle> | undefined {
+        const superStyle = super.resetPaths();
         const areaNode = this.getAreaNode();
 
         if (areaNode) {
             const { path: areaPath } = areaNode;
             const areaPoints = this.getAreaPoints();
+            const stylerStyle = superStyle ?? this.getStyle(false);
             const fillBBox = this.getShapeFillBBox();
 
             applyShapeStyle(
                 areaNode,
                 {
-                    fill: this.properties.fill,
+                    fill: stylerStyle.fill,
                     stroke: undefined,
-                    fillOpacity: this.properties.fillOpacity,
-                    lineDash: this.properties.lineDash,
-                    lineDashOffset: this.properties.lineDashOffset,
+                    fillOpacity: stylerStyle.fillOpacity,
+                    lineDash: stylerStyle.lineDash,
+                    lineDashOffset: stylerStyle.lineDashOffset,
                 },
                 fillBBox
             );
@@ -152,6 +153,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
             areaPath.closePath();
 
             areaNode.checkPathDirty();
+            return stylerStyle;
         }
     }
 
