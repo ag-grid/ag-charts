@@ -9,7 +9,7 @@ import {
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
 
-import { RadarSeries } from '../radar/radarSeries';
+import { RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 
 const { HighlightState, PointerEvents, mergeDefaults, toHighlightString } = _ModuleSupport;
@@ -60,7 +60,7 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
-        type ResultRules = _ModuleSupport.CallbackParamRules<AgRadarLineSeriesStylerParams & MarkerRules>;
+        type ParamsRules = _ModuleSupport.CallbackParamRules<AgRadarLineSeriesStylerParams & MarkerRules>;
         return {
             marker: {
                 fill: marker.fill,
@@ -83,13 +83,13 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
             strokeWidth,
             angleKey,
             radiusKey,
-        } satisfies ResultRules;
+        } satisfies ParamsRules;
     }
 
     override getStyle(
         highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
-    ): AgRadarLineSeriesStyle & { marker: AgSeriesMarkerStyle & { enabled: boolean } } {
+    ): ResolvedRadarStyle<AgRadarLineSeriesStyle> {
         const { styler, marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
         let stylerResult: AgRadarLineSeriesStyle & { marker?: { enabled?: boolean } } = {};
@@ -105,8 +105,6 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
         }
         stylerResult.marker ??= {};
 
-        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean } };
-        type ResultRules = RequireOptional<AgRadarLineSeriesStyle> & MarkerRules;
         return {
             lineDash: stylerResult.lineDash ?? lineDash,
             lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
@@ -125,6 +123,6 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
                 strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
                 strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
             },
-        } satisfies ResultRules;
+        };
     }
 }

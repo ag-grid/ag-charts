@@ -58,6 +58,12 @@ type BaseRadarSeries = RadarSeries<
     >
 >;
 
+export type ResolvedRadarStyle<TStyle extends AgRadarSeriesStyle> = {
+    [K in keyof TStyle]-?: Exclude<TStyle[K], undefined>;
+} & {
+    marker: Required<AgSeriesMarkerStyle> & { enabled: boolean };
+};
+
 class RadarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
@@ -182,8 +188,7 @@ export abstract class RadarSeries<
 
         if (!processedData || !dataModel) return;
 
-        const { angleKey, radiusKey, angleName, radiusName, marker, label, stroke, strokeWidth, strokeOpacity } =
-            this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
         const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
         const radiusScale = this.axes[ChartAxisDirection.Radius]?.scale;
 
@@ -266,7 +271,7 @@ export abstract class RadarSeries<
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
-            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker),
         };
     }
 
@@ -315,14 +320,15 @@ export abstract class RadarSeries<
     }
 
     protected updateMarkerSelection() {
-        const { marker } = this.properties;
+        const { marker, styler } = this.properties;
         if (marker.isDirty()) {
             this.itemSelection.clear();
             this.itemSelection.cleanup();
             this.itemSelection = Selection.select(this.itemGroup, () => this.nodeFactory(), false);
         }
 
-        const data = this.visible && marker.shape && marker.enabled ? this.nodeData : [];
+        const markersEnabled = styler == null ? marker.enabled : this.getStyle(false).marker.enabled;
+        const data = this.visible && marker.shape && markersEnabled ? this.nodeData : [];
         this.itemSelection.update(data);
     }
 
@@ -362,15 +368,16 @@ export abstract class RadarSeries<
         selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
         isHighlight: boolean
     ) {
-        const { marker, stroke, strokeWidth, strokeOpacity } = this.properties;
+        const stylerStyle = this.getStyle(isHighlight);
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
         selection.each((_, datum) => {
             datum.style = this.getMarkerStyle(
-                marker,
+                this.properties.marker,
                 datum,
                 this.getDatumStylerProperties(datum.datum),
                 { isHighlight },
-                undefined,
+                stylerStyle.marker,
                 {
                     stroke,
                     strokeWidth,
@@ -457,7 +464,7 @@ export abstract class RadarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle(false);
 
         const markerStyle = {
             shape: marker.shape,
@@ -726,7 +733,7 @@ export abstract class RadarSeries<
         }
     }
 
-    abstract getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): TStyle;
+    abstract getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<TStyle>;
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;
