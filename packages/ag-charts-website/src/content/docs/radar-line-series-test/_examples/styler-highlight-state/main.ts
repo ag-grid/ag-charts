@@ -77,7 +77,7 @@ const options: AgPolarChartOptions = {
             type: 'radar-line',
             angleKey: 'trait',
             radiusKey: 'healer',
-            marker: {},
+            marker: { size: 10 },
             styler: (params: AgRadarLineSeriesStylerParams): AgRadarLineSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
@@ -98,7 +98,7 @@ const options: AgPolarChartOptions = {
             type: 'radar-line',
             angleKey: 'trait',
             radiusKey: 'tank',
-            marker: {},
+            marker: { size: 10 },
             styler: (params: AgRadarLineSeriesStylerParams): AgRadarLineSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
@@ -119,7 +119,7 @@ const options: AgPolarChartOptions = {
             type: 'radar-line',
             angleKey: 'trait',
             radiusKey: 'damage',
-            marker: {},
+            marker: { size: 10 },
             styler: (params: AgRadarLineSeriesStylerParams): AgRadarLineSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':

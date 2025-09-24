@@ -70,13 +70,13 @@ const styler: AgRadarAreaSeriesOptions['styler'] = (params) => {
 
 const itemStyler: NonNullable<AgRadarAreaSeriesOptions['marker']>['itemStyler'] = (params) => {
     if (params.radiusKey === 'healer' && params.datum['trait'] === 'Intelligence') {
-        return { size: 30, fill: '#14eba3' };
+        return { fill: 'gold', size: 30, stroke: 'lime' };
     }
     if (params.radiusKey === 'tank' && params.datum['trait'] === 'Vitality') {
-        return { size: 36, fill: '#06327a', stroke: 'skyblue' };
+        return { fill: 'gold', size: 36, stroke: 'mediumblue' };
     }
     if (params.radiusKey === 'damage' && params.datum['trait'] === 'Agility') {
-        return { shape: 'star', strokeWidth: 5 };
+        return { fill: 'gold', size: 32, strokeWidth: 3, shape: 'star' };
     }
 };
 

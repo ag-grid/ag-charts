@@ -83,7 +83,7 @@ const options: AgPolarChartOptions = {
             type: 'radar-area',
             angleKey: 'trait',
             radiusKey: 'healer',
-            marker: {},
+            marker: { size: 10 },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
@@ -93,7 +93,7 @@ const options: AgPolarChartOptions = {
                     case 'highlighted-series':
                         return { fill: 'limegreen', strokeWidth: 4 };
                     case 'unhighlighted-series':
-                        return { fillOpacity: 0.2, strokeOpacity: 0.2 };
+                        return { fillOpacity: 0.1, strokeOpacity: 0.2 };
                     case 'none':
                     default:
                         return {};
@@ -104,7 +104,7 @@ const options: AgPolarChartOptions = {
             type: 'radar-area',
             angleKey: 'trait',
             radiusKey: 'tank',
-            marker: {},
+            marker: { size: 10 },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
@@ -114,7 +114,7 @@ const options: AgPolarChartOptions = {
                     case 'highlighted-series':
                         return { fill: 'gold', strokeWidth: 4 };
                     case 'unhighlighted-series':
-                        return { fillOpacity: 0.2, strokeOpacity: 0.2 };
+                        return { fillOpacity: 0.1, strokeOpacity: 0.2 };
                     case 'none':
                     default:
                         return {};
@@ -125,7 +125,7 @@ const options: AgPolarChartOptions = {
             type: 'radar-area',
             angleKey: 'trait',
             radiusKey: 'damage',
-            marker: {},
+            marker: { size: 10 },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
@@ -135,7 +135,7 @@ const options: AgPolarChartOptions = {
                     case 'highlighted-series':
                         return { fill: 'royalblue', strokeWidth: 4 };
                     case 'unhighlighted-series':
-                        return { fillOpacity: 0.2, strokeOpacity: 0.2 };
+                        return { fillOpacity: 0.1, strokeOpacity: 0.2 };
                     case 'none':
                     default:
                         return {};
