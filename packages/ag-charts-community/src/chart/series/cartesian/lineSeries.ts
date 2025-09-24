@@ -217,6 +217,9 @@ export class LineSeries extends CartesianSeries<
             groupByData: !stacked,
         });
 
+        if (processedData.incremental) {
+            memoizedAggregateLineData.reset();
+        }
         this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
@@ -261,6 +264,14 @@ export class LineSeries extends CartesianSeries<
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const size = marker.enabled ? marker.size : 0;
 
+        const [rx0, rx1] = xScale.range;
+        const range = Math.abs(rx1 - rx0);
+        const dataAggregationFilter = this.dataAggregationFilters?.find((f) => f.maxRange > range);
+        if (dataAggregationFilter) {
+            // Aggregation can drop existing points, so fall back to full rebuild to stay in sync.
+            return undefined;
+        }
+
         const rawData = processedData.dataSources.get(this.id) ?? [];
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
@@ -281,8 +292,9 @@ export class LineSeries extends CartesianSeries<
             (processedData.incremental.modifiedDomains.keys.length > 0 ||
                 processedData.incremental.modifiedDomains.values.length > 0);
 
-        // Clone existing node data
+        // Clone existing node data reference so we can mutate in place while tracking old size.
         const nodeData: LineNodeDatum[] = existingContext.nodeData;
+        const originalNodeCount = nodeData.length;
 
         // If scales changed, we need to recalculate positions for all existing points
         if (scalesChanged) {
@@ -300,8 +312,17 @@ export class LineSeries extends CartesianSeries<
 
         // Process only new data points
         const { addedRows } = processedData.incremental;
+        let [rangeStart, rangeEnd] = this.visibleRangeIndices('xValue', xAxis.range);
+        rangeStart = Math.max(rangeStart - 1, 0);
+        rangeEnd = Math.min(rangeEnd + 1, xValues.length);
+        if (processedData.input.count < 1e3) {
+            rangeStart = 0;
+            rangeEnd = processedData.input.count;
+        }
 
         for (const rowIndex of addedRows) {
+            if (rowIndex < rangeStart || rowIndex >= rangeEnd) continue;
+
             const datum = rawData[rowIndex];
             const xDatum = xValues[rowIndex];
             const yDatum = yRawValues[rowIndex];
@@ -344,6 +365,12 @@ export class LineSeries extends CartesianSeries<
             }
         }
 
+        const newNodes = nodeData.slice(originalNodeCount);
+
+        if (!scalesChanged && newNodes.length === 0) {
+            return existingContext;
+        }
+
         // For incremental updates, we need to be smarter about span generation
         let spanPoints: SpanPoints;
 
@@ -378,23 +405,21 @@ export class LineSeries extends CartesianSeries<
             // Start fresh span points for the incremental update
             spanPoints = [];
 
-            // Find the last data point from existing data to continue from
-            let lastPoint: LineSpanPointDatum | undefined;
-            if (existingContext.nodeData.length > 0) {
-                const lastNode = existingContext.nodeData[existingContext.nodeData.length - 1];
-                if (lastNode.yValue != null) {
-                    lastPoint = {
-                        point: lastNode.point,
-                        xDatum: lastNode.xValue,
-                        yDatum: lastNode.yValue,
-                    };
-                    // Start a new span array with the last point to connect
-                    spanPoints.push([lastPoint]);
+            if (originalNodeCount > 0) {
+                const lastNode = nodeData[originalNodeCount - 1];
+                if (lastNode?.yValue != null) {
+                    spanPoints.push([
+                        {
+                            point: lastNode.point,
+                            xDatum: lastNode.xValue,
+                            yDatum: lastNode.yValue,
+                        },
+                    ]);
+                } else if (!connectMissingData) {
+                    spanPoints.push({ skip: 0 });
                 }
             }
 
-            // Now only process the new nodes
-            const newNodes = nodeData.slice(existingContext.nodeData.length);
             for (const node of newNodes) {
                 const currentSpanPoints: SpanPoint | undefined = spanPoints[spanPoints.length - 1];
 
@@ -446,14 +471,21 @@ export class LineSeries extends CartesianSeries<
                 }
             }
 
-            if (existingSpans.length > 0 && spanPoints.length > 0 && Array.isArray(spanPoints[0])) {
+            if (
+                existingSpans.length > 0 &&
+                newStrokeSpans.length > 0 &&
+                spanPoints.length > 0 &&
+                Array.isArray(spanPoints[0])
+            ) {
                 // Remove the last span from existing if we're continuing from it
                 existingSpans.splice(-1, 1);
             }
 
             // Append new spans directly to existing array
-            for (const span of newStrokeSpans) {
-                existingSpans.push(span);
+            if (newStrokeSpans.length > 0) {
+                for (const span of newStrokeSpans) {
+                    existingSpans.push(span);
+                }
             }
 
             strokeData = { itemId: yKey, spans: existingSpans };
@@ -612,7 +644,10 @@ export class LineSeries extends CartesianSeries<
 
         // Check for incremental updates
         if (processedData.incremental && this.contextNodeData) {
-            return this.appendNodeData();
+            const incrementalContext = this.appendNodeData();
+            if (incrementalContext) {
+                return incrementalContext;
+            }
         }
 
         const {
