@@ -1,9 +1,4 @@
-import {
-    AgCharts,
-    AgMarkerShapeFn,
-    AgPolarChartOptions,
-    AgRadarAreaSeriesThemeableOptions,
-} from 'ag-charts-enterprise';
+import { AgCharts, AgMarkerShapeFn, AgPolarChartOptions, AgRadarAreaSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,7 +13,7 @@ const shieldPath: AgMarkerShapeFn = ({ path, x, y, size }) => {
     path.closePath();
 };
 
-const styler: AgRadarAreaSeriesThemeableOptions['styler'] = (params) => {
+const styler: AgRadarAreaSeriesOptions['styler'] = (params) => {
     switch (params.radiusKey) {
         case 'tank':
             return {

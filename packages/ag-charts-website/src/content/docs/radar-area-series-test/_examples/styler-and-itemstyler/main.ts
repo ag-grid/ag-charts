@@ -1,9 +1,4 @@
-import {
-    AgCharts,
-    AgMarkerShapeFn,
-    AgPolarChartOptions,
-    AgRadarAreaSeriesThemeableOptions,
-} from 'ag-charts-enterprise';
+import { AgCharts, AgMarkerShapeFn, AgPolarChartOptions, AgRadarAreaSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,7 +13,7 @@ const shieldPath: AgMarkerShapeFn = ({ path, x, y, size }) => {
     path.closePath();
 };
 
-const styler: AgRadarAreaSeriesThemeableOptions['styler'] = (params) => {
+const styler: AgRadarAreaSeriesOptions['styler'] = (params) => {
     switch (params.radiusKey) {
         case 'tank':
             return {
@@ -73,7 +68,7 @@ const styler: AgRadarAreaSeriesThemeableOptions['styler'] = (params) => {
     }
 };
 
-const itemStyler: NonNullable<AgRadarAreaSeriesThemeableOptions['marker']>['itemStyler'] = (params) => {
+const itemStyler: NonNullable<AgRadarAreaSeriesOptions['marker']>['itemStyler'] = (params) => {
     if (params.radiusKey === 'healer' && params.datum['trait'] === 'Intelligence') {
         return { size: 30, fill: '#14eba3' };
     }
