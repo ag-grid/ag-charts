@@ -7,7 +7,7 @@ import {
     type DatumDefault,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
+import { type CallbackParam, type Point, type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -724,6 +724,31 @@ export abstract class RadarSeries<
             // lineNode, and once of the areaNode).
             return stylerStyle;
         }
+    }
+
+    protected abstract makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): CallbackParam<NonNullable<TOpts['styler']>>;
+
+    protected getStylerResult(
+        stylerResult: TStyle & { marker?: { enabled?: boolean } },
+        highlighted: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ) {
+        const { styler } = this.properties;
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            return resolved;
+        }
+        stylerResult.marker ??= {};
+        return stylerResult;
     }
 
     abstract getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<TStyle>;

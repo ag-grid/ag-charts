@@ -157,7 +157,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         }
     }
 
-    private makeStylerParams(
+    protected override makeStylerParams(
         highlighted: boolean,
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): AgRadarAreaSeriesStylerParams {
@@ -197,20 +197,10 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
-        const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
+        const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
-        let stylerResult: AgRadarAreaSeriesStyle & { marker?: { enabled?: boolean } } = {};
-        if (styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
-            const resolved = this.ctx.optionsGraphService.resolvePartial(
-                ['series', `${this.declarationOrder}`],
-                cbResult,
-                { pick: false }
-            );
-            stylerResult = resolved ?? {};
-        }
+        const stylerResult = this.getStylerResult({}, highlighted, highlightState) ?? {};
         stylerResult.marker ??= {};
 
         return {
