@@ -333,16 +333,17 @@ export abstract class RadarSeries<
     }
 
     protected updateHighlightSelection() {
-        const { marker } = this.properties;
+        const { marker, styler } = this.properties;
         if (marker.isDirty()) {
             this.highlightSelection.clear();
             this.highlightSelection.cleanup();
             this.highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory(), false);
         }
 
+        const markersEnabled = styler == null ? marker.enabled : this.getStyle(false).marker.enabled;
         const highlighted = this.ctx.highlightManager?.getActiveHighlight();
         const data =
-            this.visible && marker.shape && marker.enabled && highlighted?.datum
+            this.visible && marker.shape && markersEnabled && highlighted?.datum
                 ? [{ ...highlighted } as RadarNodeDatum]
                 : [];
         this.highlightSelection.update(data);
