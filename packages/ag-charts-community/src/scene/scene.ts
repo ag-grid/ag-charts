@@ -15,6 +15,7 @@ import {
     debugSceneNodeHighlight,
     debugStats,
     prepareSceneNodeHighlight,
+    registerDebugStatsConsumer,
 } from './sceneDebug';
 
 type EventMap = {
@@ -36,6 +37,7 @@ export class Scene extends EventEmitter<EventMap> {
     private isDirty: boolean = false;
 
     private readonly cleanup = new CleanupRegistry();
+    private releaseDebugStats?: () => void;
 
     constructor(canvasOptions: CanvasOptions) {
         super();
@@ -164,6 +166,11 @@ export class Scene extends EventEmitter<EventMap> {
             return;
         }
 
+        const statsEnabled = Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE);
+        if (statsEnabled) {
+            this.ensureDebugStatsRegistration();
+        }
+
         const renderStartTime = performance.now();
         let resized = false;
         if (pendingSize) {
@@ -189,7 +196,9 @@ export class Scene extends EventEmitter<EventMap> {
                 });
             }
 
-            debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats, seriesRect);
+            if (statsEnabled) {
+                debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats, seriesRect);
+            }
             return;
         }
 
@@ -268,7 +277,9 @@ export class Scene extends EventEmitter<EventMap> {
 
         this.isDirty = false;
 
-        debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats, seriesRect);
+        if (statsEnabled) {
+            debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats, seriesRect);
+        }
         debugSceneNodeHighlight(ctx, renderCtx.debugNodes);
 
         if (root && this.debug.check()) {
@@ -277,6 +288,19 @@ export class Scene extends EventEmitter<EventMap> {
                 canvasCleared,
             });
         }
+    }
+
+    private ensureDebugStatsRegistration() {
+        if (this.releaseDebugStats) return;
+
+        const release = registerDebugStatsConsumer();
+        const cleanup = () => {
+            release();
+            this.releaseDebugStats = undefined;
+        };
+
+        this.releaseDebugStats = cleanup;
+        this.cleanup.register(cleanup);
     }
 
     toSVG() {

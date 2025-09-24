@@ -121,6 +121,32 @@ class StatsAccumulator {
 
 // Global accumulator instance - shared across all charts
 let globalStatsAccumulator: StatsAccumulator | undefined;
+let statsAccumulatorConsumers = 0;
+
+function getStatsAccumulator() {
+    if (!globalStatsAccumulator) {
+        globalStatsAccumulator = new StatsAccumulator();
+    }
+
+    return globalStatsAccumulator;
+}
+
+export function registerDebugStatsConsumer() {
+    statsAccumulatorConsumers++;
+
+    let released = false;
+
+    return () => {
+        if (released || statsAccumulatorConsumers === 0) return;
+
+        released = true;
+        statsAccumulatorConsumers--;
+
+        if (statsAccumulatorConsumers === 0) {
+            cleanupDebugStats();
+        }
+    };
+}
 
 function formatBytes(value: number) {
     for (const unit of ['B', 'KB', 'MB', 'GB']) {
@@ -155,10 +181,6 @@ export function debugStats(
     if (!Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE)) return;
 
     // Initialize global accumulator if needed
-    if (!globalStatsAccumulator) {
-        globalStatsAccumulator = new StatsAccumulator();
-    }
-
     const {
         layersRendered = 0,
         layersSkipped = 0,
@@ -175,8 +197,10 @@ export function debugStats(
     const totalTime = end - start;
 
     // Record all timing splits in the accumulator
-    globalStatsAccumulator.recordTimings(durations);
-    globalStatsAccumulator.recordTiming('⏱️', totalTime);
+    const statsAccumulator = getStatsAccumulator();
+
+    statsAccumulator.recordTimings(durations);
+    statsAccumulator.recordTiming('⏱️', totalTime);
 
     const splits = Object.entries(durations)
         .map(([n, t]) => time(n, t))
@@ -404,9 +428,30 @@ function accumulate<T>(iterator: Iterable<T>, mapper: (item: T) => number) {
     return sum;
 }
 
-export function cleanupDebugStats() {
-    if (globalStatsAccumulator) {
-        globalStatsAccumulator.destroy();
-        globalStatsAccumulator = undefined;
+export function cleanupDebugStats(force: boolean = false) {
+    if (!globalStatsAccumulator) {
+        if (force) {
+            statsAccumulatorConsumers = 0;
+        }
+        return;
     }
+
+    if (!force && statsAccumulatorConsumers > 0) {
+        return;
+    }
+
+    globalStatsAccumulator.destroy();
+    globalStatsAccumulator = undefined;
+
+    if (force) {
+        statsAccumulatorConsumers = 0;
+    }
+}
+
+/** @internal */
+export function getDebugStatsStateForTesting() {
+    return {
+        active: globalStatsAccumulator != null,
+        consumers: statsAccumulatorConsumers,
+    };
 }
