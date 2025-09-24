@@ -1,6 +1,11 @@
 import type { ContextDefault, DatumDefault, Opacity } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseRadarSeriesOptions } from './radarOptions';
+import type { AgBaseRadarSeriesOptions, AgRadarSeriesStyle, AgRadarSeriesStylerParams } from './radarOptions';
+
+export interface AgRadarLineSeriesStyle extends AgRadarSeriesStyle {}
+
+export interface AgRadarLineSeriesStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgRadarSeriesStylerParams<TDatum, TContext, AgRadarLineSeriesStyle> {}
 
 export interface AgRadarLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseRadarSeriesOptions<TDatum, TContext> {

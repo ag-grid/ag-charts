@@ -1,9 +1,17 @@
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type { FillOptions } from '../cartesian/commonOptions';
 import type { AgHighlightStyleOptions, AgMultiSeriesHighlightOptions } from '../seriesOptions';
-import type { AgBaseRadarSeriesOptions, AgRadarSeriesStyle, AgRadarSeriesThemeableOptions } from './radarOptions';
+import type {
+    AgBaseRadarSeriesOptions,
+    AgRadarSeriesStyle,
+    AgRadarSeriesStylerParams,
+    AgRadarSeriesThemeableOptions,
+} from './radarOptions';
 
 export interface AgRadarAreaSeriesStyle extends FillOptions, AgRadarSeriesStyle {}
+
+export interface AgRadarAreaSeriesStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgRadarSeriesStylerParams<TDatum, TContext, AgRadarAreaSeriesStyle> {}
 
 export interface AgRadarAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends FillOptions,
