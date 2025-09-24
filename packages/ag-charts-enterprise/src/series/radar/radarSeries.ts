@@ -28,11 +28,9 @@ const {
     BBox,
     Group,
     Path,
-    PointerEvents,
     Selection,
     Text,
     Marker,
-    mergeDefaults,
     updateLabelNode,
     getMarkerStyles,
 } = _ModuleSupport;
@@ -414,10 +412,6 @@ export abstract class RadarSeries<
         });
     }
 
-    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: _ModuleSupport.HighlightState): never {
-        throw new Error('not implemented');
-    }
-
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip, marker } = properties;
@@ -582,36 +576,7 @@ export abstract class RadarSeries<
         this.updatePathNodes();
     }
 
-    protected updatePathNodes() {
-        const lineNode = this.getLineNode();
-        if (!lineNode) return;
-
-        type Mixins = {
-            stroke?: string;
-            strokeWidth?: number;
-            strokeOpacity?: number;
-            lineDash?: number[];
-            lineDashOffset?: number;
-            opacity?: number;
-        };
-        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = mergeDefaults<Mixins>(
-            this.getHighlightStyle(),
-            this.properties
-        );
-
-        lineNode.setProperties({
-            fill: undefined,
-            lineJoin: 'round',
-            lineCap: 'round',
-            pointerEvents: PointerEvents.None,
-            opacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-        });
-    }
+    protected abstract updatePathNodes(): void;
 
     protected getLinePoints(): RadarPathPoint[] {
         const { nodeData, resetInvalidToZero } = this;
@@ -760,6 +725,8 @@ export abstract class RadarSeries<
             lineNode.checkPathDirty();
         }
     }
+
+    abstract getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): TStyle;
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;

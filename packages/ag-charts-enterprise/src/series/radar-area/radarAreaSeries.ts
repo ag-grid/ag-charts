@@ -1,9 +1,26 @@
-import { type AgRadarAreaSeriesOptions, type AgRadarAreaSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgRadarAreaSeriesOptions,
+    type AgRadarAreaSeriesStyle,
+    type AgRadarAreaSeriesStylerParams,
+    type AgSeriesMarkerStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
+import type { RequireOptional } from 'ag-charts-core';
 
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { Group, Path, PointerEvents, Selection, ChartAxisDirection, applyShapeStyle, mergeDefaults } = _ModuleSupport;
+const {
+    ChartAxisDirection,
+    Group,
+    HighlightState,
+    Path,
+    PointerEvents,
+    Selection,
+    applyShapeStyle,
+    mergeDefaults,
+    toHighlightString,
+} = _ModuleSupport;
 
 type S = AgRadarAreaSeriesStyle;
 type O = AgRadarAreaSeriesOptions;
@@ -41,21 +58,28 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         return highlightedStyle?.fill ?? this.properties.marker.fill ?? this.properties.fill;
     }
 
-    protected override updatePathNodes() {
-        super.updatePathNodes();
+    protected override updatePathNodes(): void {
+        const lineNode = this.getLineNode();
+        if (!lineNode) return;
 
-        const { fill, fillOpacity, opacity } = mergeDefaults(this.getHighlightStyle(), this.properties);
+        type K = 'fill' | 'fillOpacity' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset';
+        type M = Pick<AgRadarAreaSeriesOptions, K> & { opacity?: number };
+        const merged = mergeDefaults<M>(this.getHighlightStyle(), this.getStyle(false));
+        const { fill, fillOpacity, strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
 
-        const areaNode = this.getAreaNode();
-        if (areaNode) {
-            applyShapeStyle(areaNode, { fill, fillOpacity, stroke: undefined }, this.getShapeFillBBox());
-
-            areaNode.setProperties({
-                lineJoin: 'round',
-                pointerEvents: PointerEvents.None,
-                opacity,
-            });
-        }
+        lineNode.setProperties({
+            fill,
+            fillOpacity,
+            lineJoin: 'round',
+            lineCap: 'round',
+            pointerEvents: PointerEvents.None,
+            opacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        });
     }
 
     protected override animatePaths(ratio: number) {
@@ -131,5 +155,98 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
             areaNode.checkPathDirty();
         }
+    }
+
+    private makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): AgRadarAreaSeriesStylerParams {
+        const { id: seriesId } = this;
+        const {
+            marker,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            radiusKey,
+            angleKey,
+        } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
+        type ResultRules = _ModuleSupport.CallbackParamRules<AgRadarAreaSeriesStylerParams & MarkerRules>;
+        return {
+            marker: {
+                fill: marker.fill,
+                fillOpacity: marker.fillOpacity,
+                size: marker.size,
+                shape: marker.shape,
+                stroke: marker.stroke,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            },
+            highlightState,
+            highlighted,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            angleKey,
+            radiusKey,
+        } satisfies ResultRules;
+    }
+
+    override getStyle(
+        highlighted: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ): AgRadarAreaSeriesStyle & { marker: AgSeriesMarkerStyle & { enabled: boolean } } {
+        const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
+            this.properties;
+        const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
+        let stylerResult: AgRadarAreaSeriesStyle & { marker?: { enabled?: boolean } } = {};
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            stylerResult = resolved ?? {};
+        }
+        stylerResult.marker ??= {};
+
+        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean } };
+        type ResultRules = RequireOptional<AgRadarAreaSeriesStyle> & MarkerRules;
+        return {
+            fill: stylerResult.fill ?? fill,
+            fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+            marker: {
+                enabled: stylerResult.marker.enabled ?? marker.enabled,
+                fill: stylerResult.marker.fill ?? markerFill,
+                fillOpacity: stylerResult.marker.fillOpacity ?? markerFillOpacity,
+                shape: stylerResult.marker.shape ?? shape,
+                size: stylerResult.marker.size ?? size,
+                lineDash: stylerResult.marker.lineDash ?? marker.lineDash ?? lineDash,
+                lineDashOffset: stylerResult.marker.lineDashOffset ?? marker.lineDashOffset ?? lineDashOffset,
+                stroke: stylerResult.marker.stroke ?? marker.stroke ?? stroke,
+                strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
+                strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
+            },
+        } satisfies ResultRules;
     }
 }
