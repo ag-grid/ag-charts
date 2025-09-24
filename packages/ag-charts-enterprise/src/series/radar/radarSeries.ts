@@ -736,4 +736,12 @@ export abstract class RadarSeries<
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
+
+    protected override hasItemStylers(): boolean {
+        return (
+            this.properties.styler != null ||
+            this.properties.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
+    }
 }

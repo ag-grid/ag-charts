@@ -23,10 +23,6 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
 
     override properties = new RadarSeriesProperties();
 
-    protected override hasItemStylers(): boolean {
-        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
-    }
-
     protected override updatePathSelections() {
         this.lineSelection.update(this.visible ? [true] : []);
     }
