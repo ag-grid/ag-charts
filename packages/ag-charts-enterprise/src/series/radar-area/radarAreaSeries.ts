@@ -161,47 +161,35 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         highlighted: boolean,
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): AgRadarAreaSeriesStylerParams {
-        const { id: seriesId } = this;
-        const {
-            marker,
-            fill,
-            fillOpacity,
-            lineDash,
-            lineDashOffset,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            radiusKey,
-            angleKey,
-        } = this.properties;
+        const { properties } = this;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ParamsRules = _ModuleSupport.CallbackParamRules<AgRadarAreaSeriesStylerParams & MarkerRules>;
         return {
             marker: {
-                fill: marker.fill,
-                fillOpacity: marker.fillOpacity,
-                size: marker.size,
-                shape: marker.shape,
-                stroke: marker.stroke,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
+                fill: properties.marker.fill,
+                fillOpacity: properties.marker.fillOpacity,
+                size: properties.marker.size,
+                shape: properties.marker.shape,
+                stroke: properties.marker.stroke,
+                strokeOpacity: properties.marker.strokeOpacity,
+                strokeWidth: properties.marker.strokeWidth,
+                lineDash: properties.marker.lineDash,
+                lineDashOffset: properties.marker.lineDashOffset,
             },
             highlightState,
             highlighted,
-            fill,
-            fillOpacity,
-            lineDash,
-            lineDashOffset,
-            seriesId,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            angleKey,
-            radiusKey,
+            fill: properties.fill,
+            fillOpacity: properties.fillOpacity,
+            lineDash: properties.lineDash,
+            lineDashOffset: properties.lineDashOffset,
+            seriesId: this.id,
+            stroke: properties.stroke,
+            strokeOpacity: properties.strokeOpacity,
+            strokeWidth: properties.strokeWidth,
+            angleKey: properties.angleKey,
+            radiusKey: properties.radiusKey,
         } satisfies ParamsRules;
     }
 
