@@ -350,7 +350,7 @@ export abstract class RadarSeries<
     }
 
     protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
-        return highlightedStyle?.fill ?? this.properties.marker.fill;
+        return highlightedStyle?.fill ?? this.getStyle(false).marker.fill;
     }
 
     protected getDatumStylerProperties(datum: any) {

@@ -55,7 +55,9 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
     }
 
     protected override getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
-        return highlightedStyle?.fill ?? this.properties.marker.fill ?? this.properties.fill;
+        if (highlightedStyle?.fill != null) return highlightedStyle.fill;
+        const stylerStyle = this.getStyle(false);
+        return stylerStyle.marker.fill ?? stylerStyle.fill;
     }
 
     protected override updatePathNodes(): void {
