@@ -39,11 +39,13 @@ runs:
           continue-on-error: true
           with:
               script: |
+                  const baseSha = context.payload.pull_request.base.sha;
+                  const headSha = context.payload.pull_request.head.sha;
                   github.rest.issues.createComment({
                       issue_number: context.issue.number,
                       owner: context.repo.owner,
                       repo: context.repo.repo,
-                      body: `Snapshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{inputs.branch}})`
+                      body: `Snapshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${baseSha}...${headSha})`
                   })
 
         - name: Raise PR with Snapshot Changes on latest
