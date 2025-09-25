@@ -200,7 +200,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
-        const stylerResult = this.getStylerResult({}, highlighted, highlightState) ?? {};
+        const stylerResult = this.getStylerResult({}, highlighted, highlightState);
         stylerResult.marker ??= {};
 
         return {

@@ -735,7 +735,7 @@ export abstract class RadarSeries<
         stylerResult: TStyle & { marker?: { enabled?: boolean } },
         highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
-    ) {
+    ): typeof stylerResult {
         const { styler } = this.properties;
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
@@ -745,9 +745,12 @@ export abstract class RadarSeries<
                 cbResult,
                 { pick: false }
             );
-            return resolved;
+            if (resolved) {
+                // The return-type of resolvePartial can stealthly introduce `any` (e.g. stylerResult.marker becomes of
+                // type `any`). So convert back to TStyle to avoid this.
+                stylerResult = resolved as typeof stylerResult;
+            }
         }
-        stylerResult.marker ??= {};
         return stylerResult;
     }
 

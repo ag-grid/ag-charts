@@ -90,7 +90,7 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
     ): ResolvedRadarStyle<AgRadarLineSeriesStyle> {
         const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
-        const stylerResult = this.getStylerResult({}, highlighted, highlightState) ?? {};
+        const stylerResult = this.getStylerResult({}, highlighted, highlightState);
         stylerResult.marker ??= {};
 
         return {
