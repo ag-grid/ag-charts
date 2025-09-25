@@ -1748,7 +1748,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 hideToggleOtherSeries: true,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 label: {
-                    text: labelParts.join(' - '),
+                    text: labelParts.map((s) => toPlainText(s)).join(' - '),
                 },
                 symbol: this.legendItemSymbol(datumIndex),
                 legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
