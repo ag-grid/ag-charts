@@ -1220,7 +1220,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this._pendingFactoryUpdatesCount > 0 ||
             this.performUpdateType !== ChartUpdateType.NONE ||
             this.runningUpdateType !== ChartUpdateType.NONE ||
-            this.ctx.scene.waitingForUpdate()
+            this.ctx.scene.waitingForUpdate() ||
+            this.data.hasPendingTransactions()
         ) {
             if (this.destroyed) break;
 
@@ -1229,7 +1230,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.updateMutex.waitForClearAcquireQueue();
             }
 
-            if (this.performUpdateType !== ChartUpdateType.NONE || this.runningUpdateType !== ChartUpdateType.NONE) {
+            if (
+                this.performUpdateType !== ChartUpdateType.NONE ||
+                this.runningUpdateType !== ChartUpdateType.NONE ||
+                this.data.hasPendingTransactions()
+            ) {
                 await this._performUpdateNotify.await();
             }
 
