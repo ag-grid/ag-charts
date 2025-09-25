@@ -472,8 +472,20 @@ export abstract class RadarSeries<
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle(false);
 
+        const markerStyle = {
+            shape: marker.shape,
+            enabled: marker.enabled || strokeWidth <= 0,
+            fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+            stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+            fillOpacity: marker.fillOpacity,
+            strokeOpacity: marker.strokeOpacity,
+            strokeWidth: marker.strokeWidth,
+            lineDash: marker.lineDash,
+            lineDashOffset: marker.lineDashOffset,
+        };
+
         return {
-            marker,
+            marker: markerStyle,
             line: {
                 stroke,
                 strokeOpacity,
