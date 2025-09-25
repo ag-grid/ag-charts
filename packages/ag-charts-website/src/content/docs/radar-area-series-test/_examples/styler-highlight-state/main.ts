@@ -20,7 +20,7 @@ const options: AgPolarChartOptions = {
             fillOpacity: 0.3,
             marker: {
                 size: 10,
-                itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle => {
+                itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle | undefined => {
                     if (params.highlightState === 'highlighted-item') {
                         return { fill: 'cyan', strokeWidth: 4 };
                     }
@@ -56,7 +56,7 @@ const options: AgPolarChartOptions = {
             fillOpacity: 0.3,
             marker: {
                 size: 10,
-                itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle => {
+                itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle | undefined => {
                     if (params.highlightState === 'highlighted-item') {
                         return { fill: 'yellow', strokeWidth: 4 };
                     }
@@ -92,7 +92,7 @@ const options: AgPolarChartOptions = {
             fillOpacity: 0.3,
             marker: {
                 size: 10,
-                itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle => {
+                itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle | undefined => {
                     if (params.highlightState === 'highlighted-item') {
                         return { fill: 'lime', strokeWidth: 4 };
                     }
