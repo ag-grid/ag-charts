@@ -158,6 +158,44 @@ function setup_mcp() {
     ln -sf "${relative_path}tools/prompts/.mcp.json" "$target_file"
 }
 
+function configure_mcp() {
+    function add_mcp() {
+        local name=$1
+        local scope=$2
+        local command=$3
+        shift 3
+        local args=$@
+        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Project") ; then
+            claude mcp remove "$name" -s project
+        fi
+        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Local") ; then
+            claude mcp remove "$name" -s local
+        fi
+        claude mcp add "$name" -s $scope -- "$command" $args
+    }
+
+    add_mcp fetch project yarn run --silent mcp-fetch
+    add_mcp sequential-thinking project yarn run --silent mcp-server-sequential-thinking
+    add_mcp context7 project yarn run --silent context7-mcp
+    add_mcp puppeteer project yarn run --silent mcp-server-puppeteer
+    add_mcp chrome-devtools project tools/prompts/nvm-exec.sh --silent 22 npx -y --silent chrome-devtools-mcp@latest
+
+    if command -v docker >/dev/null 2>&1; then
+        if [ -n "${JIRA_URL}" ] && [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_API_TOKEN}" ]; then
+            add_mcp ag-jira local docker run -i --rm -e JIRA_URL=${JIRA_URL} -e JIRA_USERNAME=${JIRA_USERNAME} -e JIRA_API_TOKEN=${JIRA_API_TOKEN} ghcr.io/sooperset/mcp-atlassian:latest
+        else
+            echo "JIRA_URL, JIRA_USERNAME, and JIRA_API_TOKEN are not set, skipping ag-jira"
+        fi
+    fi
+
+    # Ensure Gemini config entries are added
+    target_file="tools/prompts/.mcp.json"
+    jq ".contextFileName = \"AGENTS.md\"" "$target_file" > "$target_file.tmp"
+    mv "$target_file.tmp" "$target_file"
+    npx prettier --write "$target_file"
+}
+
+
 function setup_vscode_mcp() {
     local target_file=$1
     local mcp_json_file="./tools/prompts/.mcp.json"
@@ -308,6 +346,12 @@ function setup_codex_mcp() {
 # Check and configure git symlinks before setting up files
 check_symlinks_config
 
+# Add MCPs if UPDATE_MCP_CONFIG is enabled
+# This needs to happen first as other MCP setup steps depend on the MCPs being configured in JSON first.
+if [ "$UPDATE_MCP_CONFIG" = true ]; then
+    configure_mcp
+fi
+
 if (command -v claude >/dev/null 2>&1) ; then
     setup_commands .claude/commands
     setup_agents .claude/agents
@@ -353,35 +397,4 @@ restore_tracked_symlinks
 # Enable direnv if it is installed and the .claude-ag-grid directory exists
 if command -v direnv >/dev/null 2>&1 && [ -d "$HOME/.claude-ag-grid/" ]; then
     direnv allow
-fi
-
-# Add MCPs if UPDATE_MCP_CONFIG is enabled
-if [ "$UPDATE_MCP_CONFIG" = true ]; then
-    function add_mcp() {
-        local name=$1
-        local scope=$2
-        local command=$3
-        shift 3
-        local args=$@
-        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Project") ; then
-            claude mcp remove "$name" -s project
-        fi
-        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Local") ; then
-            claude mcp remove "$name" -s local
-        fi
-        claude mcp add "$name" -s $scope -- "$command" $args
-    }
-
-    add_mcp fetch project yarn run mcp-fetch
-    add_mcp sequential-thinking project yarn run mcp-server-sequential-thinking
-    add_mcp context7 project yarn run context7-mcp
-    add_mcp puppeteer project yarn run mcp-server-puppeteer
-
-    if command -v docker >/dev/null 2>&1; then
-        if [ -n "${JIRA_URL}" ] && [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_API_TOKEN}" ]; then
-            add_mcp ag-jira local docker run -i --rm -e JIRA_URL=${JIRA_URL} -e JIRA_USERNAME=${JIRA_USERNAME} -e JIRA_API_TOKEN=${JIRA_API_TOKEN} ghcr.io/sooperset/mcp-atlassian:latest
-        else
-            echo "JIRA_URL, JIRA_USERNAME, and JIRA_API_TOKEN are not set, skipping ag-jira"
-        fi
-    fi
 fi
