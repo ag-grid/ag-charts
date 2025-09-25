@@ -8,7 +8,7 @@ export interface AgRadarLineSeriesStylerParams<TDatum = DatumDefault, TContext =
     extends AgRadarSeriesStylerParams<TDatum, TContext, AgRadarLineSeriesStyle> {}
 
 export interface AgRadarLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseRadarSeriesOptions<TDatum, TContext> {
+    extends AgBaseRadarSeriesOptions<TDatum, TContext, AgRadarLineSeriesStyle> {
     /** Configuration for the Radar Line Series. */
     type: 'radar-line';
 }
