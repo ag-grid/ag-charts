@@ -1,6 +1,11 @@
 import type { AgDataTransaction } from 'ag-charts-types';
 
+import { Debug } from '../../util/debug';
+import { applyRemoveByReference, mapToCanonicalReferences, normaliseRemoveReferences } from './transactionUtils';
+
 type DataTransaction<T> = AgDataTransaction<T>;
+
+const debug = Debug.create(true, 'data-ref');
 
 export class DataRef<T = unknown> {
     public data: T[];
@@ -25,12 +30,11 @@ export class DataRef<T = unknown> {
     }
 
     netSize(): number {
-        let size = this.data.length;
-        for (const transaction of this.pendingTransactions) {
-            size += transaction.append?.length ?? 0;
-            size += transaction.prepend?.length ?? 0;
+        if (!this.hasPendingTransactions()) {
+            return this.data.length;
         }
-        return size;
+
+        return this.previewPendingTransactions().length;
     }
 
     hasPendingTransactions(): boolean {
@@ -42,7 +46,25 @@ export class DataRef<T = unknown> {
             return;
         }
 
+        const beforeLength = this.data.length;
+        if (debug.check()) {
+            debug('DataRef.commitPendingTransactions() - starting', { beforeLength });
+        }
+
         for (const transaction of this.pendingTransactions) {
+            const removeRefs = normaliseRemoveReferences(transaction.remove);
+            if (removeRefs.length > 0) {
+                const canonical = mapToCanonicalReferences(this.data, removeRefs);
+                if (debug.check()) {
+                    debug('DataRef.commitPendingTransactions() - removing rows', {
+                        requested: removeRefs.length,
+                        canonical: canonical.length,
+                    });
+                }
+                applyRemoveByReference(this.data, canonical, true);
+                // Note: mutate=true means this.data was modified in-place
+            }
+
             const { prepend, append } = transaction;
             if (Array.isArray(prepend) && prepend.length) {
                 this.data.unshift(...prepend);
@@ -53,6 +75,10 @@ export class DataRef<T = unknown> {
         }
 
         this.pendingTransactions = [];
+
+        if (debug.check()) {
+            debug('DataRef.commitPendingTransactions() - final length', { afterLength: this.data.length });
+        }
     }
 
     previewPendingTransactions(): T[] {
@@ -68,12 +94,33 @@ export class DataRef<T = unknown> {
             throw new Error('AG Charts - dataRef preview expects "pendingTransactions" to be an array.');
         }
 
-        const prepended: T[] = [];
-        const appended: T[] = [];
+        let preview = this.data;
+        let mutated = false;
+
+        if (debug.check()) {
+            debug('DataRef.previewPendingTransactions() - starting', { baseLength: this.data.length });
+        }
 
         for (const transaction of this.pendingTransactions) {
             if (transaction == null || typeof transaction !== 'object') {
                 throw new Error('AG Charts - invalid data transaction encountered.');
+            }
+
+            const removeRefs = normaliseRemoveReferences(transaction.remove);
+            if (removeRefs.length > 0) {
+                if (!mutated) {
+                    preview = this.data.slice();
+                    mutated = true;
+                }
+                const canonical = mapToCanonicalReferences(preview, removeRefs);
+                if (debug.check()) {
+                    debug('DataRef.previewPendingTransactions() - removing rows', {
+                        requested: removeRefs.length,
+                        canonical: canonical.length,
+                    });
+                }
+                applyRemoveByReference(preview, canonical, true);
+                // Note: mutate=true means preview was modified in-place
             }
 
             const { prepend, append } = transaction;
@@ -83,7 +130,11 @@ export class DataRef<T = unknown> {
                     throw new Error('AG Charts - data transaction "prepend" must be an array.');
                 }
                 if (prepend.length) {
-                    prepended.unshift(...prepend);
+                    if (!mutated) {
+                        preview = this.data.slice();
+                        mutated = true;
+                    }
+                    preview.unshift(...prepend);
                 }
             }
 
@@ -92,16 +143,20 @@ export class DataRef<T = unknown> {
                     throw new Error('AG Charts - data transaction "append" must be an array.');
                 }
                 if (append.length) {
-                    appended.push(...append);
+                    if (!mutated) {
+                        preview = this.data.slice();
+                        mutated = true;
+                    }
+                    preview.push(...append);
                 }
             }
         }
 
-        if (prepended.length === 0 && appended.length === 0) {
-            return this.data;
+        if (debug.check() && mutated) {
+            debug('DataRef.previewPendingTransactions() - preview length', { previewLength: preview.length });
         }
 
-        return [...prepended, ...this.data, ...appended];
+        return mutated ? preview : this.data;
     }
 
     merge(data: T[]): DataRef<T> {
@@ -113,26 +168,6 @@ const FROZEN_DATA = Object.freeze([]) as unknown as unknown[];
 const FROZEN_TRANSACTIONS = Object.freeze([]) as unknown as DataTransaction<unknown>[];
 
 export const EMPTY_DATA_REF = Object.freeze(new DataRef<unknown>(FROZEN_DATA, FROZEN_TRANSACTIONS));
-
-/** @deprecated Use `dataRef.netSize()` instead. */
-export function calculateNetDataSize(dataRef: DataRef) {
-    return dataRef.netSize();
-}
-
-/** @deprecated Use `dataRef.commitPendingTransactions()` instead. */
-export function applyTransaction(dataRef: DataRef) {
-    dataRef.commitPendingTransactions();
-}
-
-/** @deprecated Use `dataRef.merge(data)` instead. */
-export function mergeRawData<T>(dataRef: DataRef<T>, data: T[]): DataRef<T> {
-    return dataRef.merge(data);
-}
-
-/** @deprecated Use `DataRef.isDataRef()` instead. */
-export function isDataRef(dataRef: unknown): dataRef is DataRef {
-    return DataRef.isDataRef(dataRef);
-}
 
 /** @deprecated Use `DataRef.wrap()` instead. */
 export function wrapRawData(): undefined;

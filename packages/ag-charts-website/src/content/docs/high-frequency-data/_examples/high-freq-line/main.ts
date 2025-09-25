@@ -1,6 +1,7 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-(window as any).agChartsDebug = 'scene:stats';
+(window as any).agChartsDebug = ['scene:stats'];
+// (window as any).agChartsDebug = ['scene:stats', 'data-model', 'data-ref'];
 
 const STREAM_INTERVAL_MS = 10;
 const DATA_INTERVAL_MS = 250;

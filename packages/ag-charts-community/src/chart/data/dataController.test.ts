@@ -607,6 +607,50 @@ describe('DataController', () => {
             expect(dataRef.pendingTransactions.length).toBe(0);
         });
 
+        it('should handle remove transactions incrementally', async () => {
+            const dataRef = new DataRef<{ x: number; y: number }>([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+                { x: 3, y: 30 },
+            ]);
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            const result1Promise = controller.request('test', dataRef, opts);
+            const cache1 = controller.execute();
+            await result1Promise;
+
+            controller = new DataController(TEST_MODE, false);
+            const [toRemove] = dataRef.data;
+            dataRef.pendingTransactions = [
+                {
+                    remove: toRemove ? [toRemove] : [],
+                },
+            ];
+
+            const result2Promise = controller.request('test', dataRef, opts);
+            controller.execute(cache1);
+            const result2 = await result2Promise;
+
+            expect(result2.processedData.input.count).toBe(2);
+            const dataSource = result2.processedData.dataSources.get('test') as { x: number; y: number }[] | undefined;
+            expect(dataSource).toEqual([
+                { x: 2, y: 20 },
+                { x: 3, y: 30 },
+            ]);
+            expect(result2.processedData.incremental?.removedRows).toEqual([0]);
+            expect(dataRef.data).toEqual([
+                { x: 2, y: 20 },
+                { x: 3, y: 30 },
+            ]);
+            expect(dataRef.pendingTransactions.length).toBe(0);
+        });
+
         it('should track modified domains correctly', async () => {
             const dataRef = new DataRef<{ x: string; y: number }>([
                 { x: 'A', y: 10 },
@@ -709,6 +753,99 @@ describe('DataController', () => {
             // Should process base data plus pending transactions even without cache
             expect(result.processedData.input.count).toBe(3);
             expect(result.processedData.incremental).toBeUndefined();
+        });
+
+        it('should handle rapid consecutive appends consistently', async () => {
+            const dataRef = new DataRef<{ x: number; y: number }>([{ x: 1, y: 10 }]);
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            // Initial request to establish cache
+            controller = new DataController(TEST_MODE, false);
+            const result1Promise = controller.request('test', dataRef, opts);
+            const cache1 = controller.execute();
+            const result1 = await result1Promise;
+            expect(result1.processedData.input.count).toBe(1);
+
+            // First append
+            controller = new DataController(TEST_MODE, false);
+            dataRef.pendingTransactions = [{ append: [{ x: 2, y: 20 }] }];
+            const result2Promise = controller.request('test', dataRef, opts);
+            const cache2 = controller.execute(cache1);
+            const result2 = await result2Promise;
+
+            // Verify first append
+            expect(result2.processedData.input.count).toBe(2);
+            expect(dataRef.data.length).toBe(2);
+            expect(dataRef.pendingTransactions.length).toBe(0);
+
+            // Second append immediately after
+            controller = new DataController(TEST_MODE, false);
+            dataRef.pendingTransactions = [{ append: [{ x: 3, y: 30 }] }];
+            const result3Promise = controller.request('test', dataRef, opts);
+            controller.execute(cache2);
+            const result3 = await result3Promise;
+
+            // Verify second append
+            expect(result3.processedData.input.count).toBe(3);
+            expect(dataRef.data.length).toBe(3);
+            expect(dataRef.pendingTransactions.length).toBe(0);
+
+            // Verify data consistency
+            expect(dataRef.data).toEqual([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+                { x: 3, y: 30 },
+            ]);
+        });
+
+        it('should handle mixed append and remove operations', async () => {
+            const dataRef = new DataRef<{ x: number; y: number }>([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+                { x: 3, y: 30 },
+            ]);
+
+            const opts: DataModelOptions<any, false> = {
+                props: [
+                    { type: 'key', property: 'x', valueType: 'category', scopes: ['test'] },
+                    { type: 'value', property: 'y', valueType: 'range', scopes: ['test'] },
+                ],
+            };
+
+            // Initial request to establish cache
+            controller = new DataController(TEST_MODE, false);
+            const result1Promise = controller.request('test', dataRef, opts);
+            const cache1 = controller.execute();
+            const result1 = await result1Promise;
+            expect(result1.processedData.input.count).toBe(3);
+
+            // Mixed operations: remove first, append new
+            controller = new DataController(TEST_MODE, false);
+            const itemToRemove = dataRef.data[0];
+            dataRef.pendingTransactions = [
+                {
+                    remove: [itemToRemove],
+                    append: [{ x: 4, y: 40 }],
+                },
+            ];
+            const result2Promise = controller.request('test', dataRef, opts);
+            controller.execute(cache1);
+            const result2 = await result2Promise;
+
+            // Verify operations
+            expect(result2.processedData.input.count).toBe(3);
+            expect(dataRef.data.length).toBe(3);
+            expect(dataRef.data).toEqual([
+                { x: 2, y: 20 },
+                { x: 3, y: 30 },
+                { x: 4, y: 40 },
+            ]);
         });
     });
 });

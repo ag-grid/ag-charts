@@ -93,6 +93,7 @@ export class DataController {
         }
 
         const nextCachedData: CachedData = [];
+        const dataRefsToCommit = new Set<DataRef>();
 
         for (const { dataRef, ids, opts, resolves, rejects } of merged) {
             const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, dataRef, ids, opts));
@@ -127,8 +128,9 @@ export class DataController {
                     }
 
                     processedData = dataModel.processData(sources);
+                    // Track DataRefs that need committing after processing
                     for (const previewedRef of previewedDataRefs) {
-                        previewedRef.commitPendingTransactions();
+                        dataRefsToCommit.add(previewedRef);
                     }
                 } catch (error) {
                     if (this.debug.check()) {
@@ -143,15 +145,39 @@ export class DataController {
                 try {
                     // Create sources map from pending transactions
                     const transactionSources = new Map<string, TransactionOperations>();
+                    const canonicalDataByScope = new Map<string, unknown[] | undefined>();
+
                     for (const validRequest of valid) {
                         if (validRequest.dataRef !== dataRef) continue;
 
-                        transactionSources.set(validRequest.id, { append: [], prepend: [] });
+                        transactionSources.set(validRequest.id, { append: [], prepend: [], remove: [] });
+                        // Use the current data state for canonical mapping
+                        canonicalDataByScope.set(validRequest.id, validRequest.dataRef.data);
+
+                        if (this.debug.check()) {
+                            this.debug('DataController.execute() - canonical scope seed', {
+                                scopeId: validRequest.id,
+                                rowCount: validRequest.dataRef.data.length,
+                                pendingCount: dataRef.pendingTransactions.length,
+                                dataRefId: validRequest.dataRef === dataRef ? 'same' : 'different',
+                            });
+                        }
                     }
 
-                    for (const transaction of dataRef.pendingTransactions) {
-                        const { prepend, append } = transaction;
-                        for (const operations of transactionSources.values()) {
+                    for (const [index, transaction] of dataRef.pendingTransactions.entries()) {
+                        const { prepend, append, remove } = transaction;
+
+                        if (this.debug.check()) {
+                            this.debug('DataController.execute() - processing transaction', {
+                                transactionIndex: index,
+                                prepend: prepend?.length ?? 0,
+                                append: append?.length ?? 0,
+                                remove: remove?.length ?? 0,
+                            });
+                        }
+
+                        for (const [scopeId, operations] of transactionSources.entries()) {
+                            const canonicalSource = canonicalDataByScope.get(scopeId);
                             if (prepend?.length) {
                                 const target = (operations.prepend ??= []);
                                 // Preserve the natural prepended order (latest transaction first)
@@ -161,14 +187,58 @@ export class DataController {
                                 const target = (operations.append ??= []);
                                 target.push(...append);
                             }
+                            if (remove?.length) {
+                                const target = (operations.remove ??= []);
+                                for (const candidate of remove) {
+                                    if (canonicalSource) {
+                                        const index = canonicalSource.indexOf(candidate);
+                                        target.push(index >= 0 ? canonicalSource[index] : candidate);
+
+                                        if (this.debug.check()) {
+                                            this.debug('DataController.execute() - map remove candidate', {
+                                                scopeId,
+                                                found: index >= 0,
+                                            });
+                                        }
+                                    } else {
+                                        target.push(candidate);
+
+                                        if (this.debug.check()) {
+                                            this.debug(
+                                                'DataController.execute() - map remove candidate (no canonical source)',
+                                                {
+                                                    scopeId,
+                                                }
+                                            );
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
-                    // Apply transactions incrementally (DataModel decides how to handle append/prepend)
+                    // Apply transactions incrementally (DataModel decides how to handle append/prepend/remove)
+                    if (this.debug.check()) {
+                        const summary: any = {};
+                        for (const [scopeId, ops] of transactionSources.entries()) {
+                            summary[scopeId] = {
+                                append: ops.append?.length ?? 0,
+                                prepend: ops.prepend?.length ?? 0,
+                                remove: ops.remove?.length ?? 0,
+                            };
+                        }
+                        this.debug('DataController.execute() - applying transactions', {
+                            baseDataSize: reusableCache.processedData.input.count,
+                            transactionSummary: summary,
+                        });
+                    }
+
                     processedData = dataModel.applyTransactions(reusableCache.processedData, transactionSources);
 
-                    // Clear pending transactions after successful processing
-                    dataRef.pendingTransactions = [];
+                    // Track that this DataRef needs committing after all processing
+                    if (dataRef.pendingTransactions.length > 0) {
+                        dataRefsToCommit.add(dataRef);
+                    }
                 } catch (error) {
                     if (this.debug.check()) {
                         this.debug('DataController.execute() - failed to apply transactions', error);
@@ -181,7 +251,7 @@ export class DataController {
                 ({ dataModel, processedData } = reusableCache);
             }
 
-            nextCachedData.push({ opts, dataRef, ids, dataModel, processedData });
+            nextCachedData.push({ opts, dataRef, ids, dataModel, processedData, dataLength: dataRef.data.length });
 
             if (this.debug.check()) {
                 getWindow<any[]>('processedData').push(processedData);
@@ -195,6 +265,34 @@ export class DataController {
                 const rejectError = new Error(`AG Charts - no processed data generated`);
                 for (const reject of rejects) {
                     reject(rejectError);
+                }
+            }
+        }
+
+        // Commit all pending transactions after successful processing
+        if (dataRefsToCommit.size > 0) {
+            if (this.debug.check()) {
+                this.debug('DataController.execute() - committing transactions for DataRefs', {
+                    count: dataRefsToCommit.size,
+                });
+            }
+
+            for (const dataRef of dataRefsToCommit) {
+                if (dataRef.pendingTransactions.length > 0) {
+                    if (this.debug.check()) {
+                        this.debug('DataController.execute() - committing DataRef', {
+                            beforeCommit: dataRef.data.length,
+                            pendingCount: dataRef.pendingTransactions.length,
+                        });
+                    }
+
+                    dataRef.commitPendingTransactions();
+
+                    if (this.debug.check()) {
+                        this.debug('DataController.execute() - committed DataRef', {
+                            afterCommit: dataRef.data.length,
+                        });
+                    }
                 }
             }
         }

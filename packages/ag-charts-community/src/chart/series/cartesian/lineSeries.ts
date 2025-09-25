@@ -512,12 +512,59 @@ export class LineSeries extends CartesianSeries<
         } = params;
 
         const nodeData = existingContext.nodeData;
-        const originalNodeCount = nodeData.length;
+        let originalNodeCount = nodeData.length;
         const incremental = processedData.incremental!;
+        const removedRows = incremental.removedRows ?? [];
 
         let scalesChanged =
             incremental.modifiedDomains != null &&
             (incremental.modifiedDomains.keys.length > 0 || incremental.modifiedDomains.values.length > 0);
+
+        if (removedRows.length > 0) {
+            const sortedRemovedRows = [...removedRows].sort((a, b) => a - b);
+            const removedSet = new Set(sortedRemovedRows);
+
+            for (let i = nodeData.length - 1; i >= 0; i--) {
+                const datumIndex = nodeData[i]?.datumIndex;
+                if (datumIndex == null) continue;
+                if (removedSet.has(datumIndex)) {
+                    nodeData.splice(i, 1);
+                }
+            }
+
+            const countRemovedBefore = (index: number) => {
+                let low = 0;
+                let high = sortedRemovedRows.length;
+                while (low < high) {
+                    const mid = (low + high) >> 1;
+                    if (sortedRemovedRows[mid] < index) {
+                        low = mid + 1;
+                    } else {
+                        high = mid;
+                    }
+                }
+                return low;
+            };
+
+            for (const node of nodeData) {
+                const originalIndex = node.datumIndex;
+                const shift = countRemovedBefore(originalIndex);
+                const newIndex = shift > 0 ? originalIndex - shift : originalIndex;
+                if (shift > 0) {
+                    (node as any).datumIndex = newIndex;
+                }
+                (node as any).datum = rawData[newIndex];
+                (node as any).xValue = xValues[newIndex];
+                (node as any).yValue = yRawValues[newIndex];
+                (node as any).cumulativeValue = yCumulativeValues[newIndex];
+                if (selectionValues) {
+                    (node as any).selected = selectionValues[newIndex];
+                }
+            }
+
+            originalNodeCount = nodeData.length;
+            scalesChanged = true;
+        }
 
         if (scalesChanged) {
             this.recomputeExistingNodePositions(nodeData, xScale, yScale, xOffset, yOffset);

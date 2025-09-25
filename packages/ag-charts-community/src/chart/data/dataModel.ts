@@ -5,6 +5,7 @@ import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
+import { applyRemoveByReference, normaliseRemoveReferences, resolveRemovalIndices } from './transactionUtils';
 
 export interface ScopeProvider {
     id: string;
@@ -37,6 +38,7 @@ type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
 export interface DataModelTransaction<D> {
     append?: D[];
     prepend?: D[];
+    remove?: D[];
 }
 
 type TransactionUpdateContext = {
@@ -45,6 +47,7 @@ type TransactionUpdateContext = {
     modifiedKeyDomains: Set<number>;
     modifiedValueDomains: Set<number>;
     prependedCount: number;
+    removedRows: number[];
 };
 
 interface CommonMetadata<D> {
@@ -112,6 +115,7 @@ export interface IncrementalUpdateMetadata {
     baseDataSize: number; // Original data size before transactions
     addedRows: number[]; // Indices of newly added rows
     prependedCount?: number; // Number of rows added to the start of the data set
+    removedRows?: number[]; // Indices (from the original data set) of rows that were removed
     modifiedDomains: {
         keys: number[]; // Indices of modified key domains
         values: number[]; // Indices of modified value domains
@@ -653,6 +657,7 @@ export class DataModel<
 
         const appendSources = new Map<string, D[]>();
         const prependSources = new Map<string, D[]>();
+        const removeSources = new Map<string, D[]>();
 
         for (const [scopeId, operations] of transactions) {
             if (operations.append?.length) {
@@ -661,44 +666,63 @@ export class DataModel<
             if (operations.prepend?.length) {
                 prependSources.set(scopeId, operations.prepend);
             }
+            if (operations.remove?.length) {
+                const removeRefs = normaliseRemoveReferences(operations.remove);
+                if (removeRefs.length > 0) {
+                    removeSources.set(scopeId, removeRefs);
+                }
+            }
         }
 
-        if (appendSources.size === 0 && prependSources.size === 0) {
+        if (appendSources.size === 0 && prependSources.size === 0 && removeSources.size === 0) {
             return processedData;
         }
 
-        const updateContext: TransactionUpdateContext = {
-            baseDataSize: processedData.input.count,
-            addedRows: [],
-            modifiedKeyDomains: new Set<number>(),
-            modifiedValueDomains: new Set<number>(),
-            prependedCount: 0,
-        };
+        const baseDataSize = processedData.input.count;
 
-        if (prependSources.size === 0) {
-            this.applyAppendTransactions(processedData, appendSources, updateContext);
+        if (removeSources.size > 0) {
+            processedData = this.applyRemoveTransactions(
+                processedData,
+                appendSources,
+                prependSources,
+                removeSources,
+                baseDataSize
+            );
         } else {
-            if (prependSources.size > 0) {
-                updateContext.prependedCount = this.applyPrependTransactions(
-                    processedData,
-                    prependSources,
-                    updateContext
-                );
-            }
-            if (appendSources.size > 0) {
-                this.applyAppendTransactions(processedData, appendSources, updateContext);
-            }
-        }
+            const updateContext: TransactionUpdateContext = {
+                baseDataSize,
+                addedRows: [],
+                modifiedKeyDomains: new Set<number>(),
+                modifiedValueDomains: new Set<number>(),
+                prependedCount: 0,
+                removedRows: [],
+            };
 
-        processedData.incremental = {
-            baseDataSize: updateContext.baseDataSize,
-            addedRows: updateContext.addedRows,
-            ...(updateContext.prependedCount > 0 ? { prependedCount: updateContext.prependedCount } : {}),
-            modifiedDomains: {
-                keys: Array.from(updateContext.modifiedKeyDomains),
-                values: Array.from(updateContext.modifiedValueDomains),
-            },
-        };
+            if (prependSources.size === 0) {
+                this.applyAppendTransactions(processedData, appendSources, updateContext);
+            } else {
+                if (prependSources.size > 0) {
+                    updateContext.prependedCount = this.applyPrependTransactions(
+                        processedData,
+                        prependSources,
+                        updateContext
+                    );
+                }
+                if (appendSources.size > 0) {
+                    this.applyAppendTransactions(processedData, appendSources, updateContext);
+                }
+            }
+
+            processedData.incremental = {
+                baseDataSize: updateContext.baseDataSize,
+                addedRows: updateContext.addedRows,
+                ...(updateContext.prependedCount > 0 ? { prependedCount: updateContext.prependedCount } : {}),
+                modifiedDomains: {
+                    keys: Array.from(updateContext.modifiedKeyDomains),
+                    values: Array.from(updateContext.modifiedValueDomains),
+                },
+            };
+        }
 
         if (this.opts.groupByKeys && processedData.type === 'ungrouped') {
             // TODO: to handle incremental grouping
@@ -711,6 +735,119 @@ export class DataModel<
         }
 
         return processedData;
+    }
+
+    private applyRemoveTransactions(
+        processedData: ProcessedData<D>,
+        appendSources: Map<string, D[]>,
+        prependSources: Map<string, D[]>,
+        removeSources: Map<string, D[]>,
+        baseDataSize: number
+    ): ProcessedData<D> {
+        const scopeIds = new Set<string>();
+
+        if (processedData.scopes) {
+            for (const scopeId of processedData.scopes) {
+                scopeIds.add(scopeId);
+            }
+        }
+        for (const key of appendSources.keys()) {
+            scopeIds.add(key);
+        }
+        for (const key of prependSources.keys()) {
+            scopeIds.add(key);
+        }
+        for (const key of removeSources.keys()) {
+            scopeIds.add(key);
+        }
+
+        const updatedSources = new Map<string, unknown[]>();
+        const removedIndicesByScope = new Map<string, number[]>();
+
+        for (const scopeId of scopeIds) {
+            const baseScopeData = (processedData.dataSources.get(scopeId) ?? []) as D[];
+            let nextData = Array.isArray(baseScopeData) ? baseScopeData.slice() : [];
+
+            const removeRefs = removeSources.get(scopeId);
+            if (removeRefs?.length) {
+                const removalIndices = resolveRemovalIndices(baseScopeData, removeRefs);
+                removedIndicesByScope.set(scopeId, removalIndices);
+                const { result } = applyRemoveByReference(nextData, removeRefs, true);
+                nextData = result;
+            }
+
+            const prepends = prependSources.get(scopeId);
+            if (prepends?.length) {
+                nextData.unshift(...prepends);
+            }
+
+            const appends = appendSources.get(scopeId);
+            if (appends?.length) {
+                nextData.push(...appends);
+            }
+
+            updatedSources.set(scopeId, nextData);
+        }
+
+        const reprocessed = this.processData(updatedSources);
+        if (!reprocessed) {
+            return processedData;
+        }
+
+        const nextProcessedData = reprocessed as ProcessedData<D>;
+
+        const removalEntry = removedIndicesByScope.entries().next();
+        const removalScopeId = removalEntry.done ? undefined : removalEntry.value[0];
+        const removedRows = removalEntry.done ? [] : [...removalEntry.value[1]];
+
+        const resolveCount = (source: Map<string, D[]>, scope?: string) => {
+            if (scope != null) {
+                return source.get(scope)?.length ?? 0;
+            }
+            const firstEntry = first(source.values());
+            return firstEntry?.length ?? 0;
+        };
+
+        const appendedCount = resolveCount(appendSources, removalScopeId);
+        const prependedCount = resolveCount(prependSources, removalScopeId);
+        const remainingBaseSize = Math.max(baseDataSize - removedRows.length, 0);
+
+        if (this.debug.check()) {
+            this.debug('DataModel.applyTransactions() - removal summary', {
+                scopeIds: Array.from(removeSources.keys()),
+                removedRows,
+                appendedCount,
+                prependedCount,
+                remainingBaseSize,
+            });
+        }
+
+        const addedRows: number[] = [];
+        for (let i = 0; i < prependedCount; i++) {
+            addedRows.push(i);
+        }
+        if (appendedCount > 0) {
+            const startIndex = prependedCount + remainingBaseSize;
+            for (let i = 0; i < appendedCount; i++) {
+                addedRows.push(startIndex + i);
+            }
+        }
+
+        const modifiedKeyDomains = this.diffDomains(processedData.domain.keys, nextProcessedData.domain.keys);
+        const modifiedValueDomains = this.diffDomains(processedData.domain.values, nextProcessedData.domain.values);
+
+        nextProcessedData.incremental = {
+            baseDataSize,
+            addedRows,
+            ...(prependedCount > 0 ? { prependedCount } : {}),
+            ...(removedRows.length > 0 ? { removedRows } : {}),
+            modifiedDomains: {
+                keys: modifiedKeyDomains,
+                values: modifiedValueDomains,
+            },
+        };
+
+        return nextProcessedData;
     }
 
     private applyAppendTransactions(
@@ -767,30 +904,52 @@ export class DataModel<
         extracted: UngroupedData<D>,
         mode: 'append' | 'prepend'
     ) {
-        for (const [scopeId, newData] of extracted.dataSources) {
-            let existingScopedData = processedData.dataSources.get(scopeId);
-            if (existingScopedData == null) {
-                existingScopedData = [];
-                processedData.dataSources.set(scopeId, existingScopedData);
-            }
+        // Create a new Map to avoid mutating the original
+        const mergedDataSources = new Map<string, unknown[]>();
 
-            if (mode === 'append') {
-                existingScopedData.push(...(newData as D[]));
-            } else {
-                existingScopedData.unshift(...(newData as D[]));
-            }
+        // First, copy all existing data sources
+        for (const [scopeId, existingData] of processedData.dataSources) {
+            mergedDataSources.set(scopeId, existingData);
         }
 
-        for (let colIndex = 0; colIndex < processedData.columns.length; colIndex++) {
+        // Then merge in the new data
+        for (const [scopeId, newData] of extracted.dataSources) {
+            const existingScopedData = mergedDataSources.get(scopeId);
+
+            let mergedData: unknown[];
+            if (existingScopedData == null) {
+                // No existing data, just use the new data
+                mergedData = newData as unknown[];
+            } else if (mode === 'append') {
+                // Create a new array that combines existing and new data
+                // Note: We don't copy the arrays, we just create a new array with the combined references
+                mergedData = [...existingScopedData, ...(newData as D[])];
+            } else {
+                // Prepend mode
+                mergedData = [...(newData as D[]), ...existingScopedData];
+            }
+
+            mergedDataSources.set(scopeId, mergedData);
+        }
+
+        // Replace the dataSources with the new merged version
+        processedData.dataSources = mergedDataSources;
+
+        // Also handle columns without mutation
+        const mergedColumns = [...processedData.columns];
+        for (let colIndex = 0; colIndex < mergedColumns.length; colIndex++) {
             const columnData = extracted.columns[colIndex];
             if (!columnData?.length) continue;
 
+            // Create a new array for this column
+            const existingColumn = mergedColumns[colIndex];
             if (mode === 'append') {
-                processedData.columns[colIndex].push(...columnData);
+                mergedColumns[colIndex] = [...existingColumn, ...columnData];
             } else {
-                processedData.columns[colIndex].unshift(...columnData);
+                mergedColumns[colIndex] = [...columnData, ...existingColumn];
             }
         }
+        processedData.columns = mergedColumns;
     }
 
     private updateDomainsFromExtracted(
@@ -810,6 +969,33 @@ export class DataModel<
                 modifiedValueDomains.add(i);
             }
         }
+    }
+
+    private diffDomains(existing: any[][], next: any[][]): number[] {
+        const length = Math.max(existing.length, next.length);
+        const modified: number[] = [];
+        for (let i = 0; i < length; i++) {
+            if (!this.domainsEqual(existing[i], next[i])) {
+                modified.push(i);
+            }
+        }
+        return modified;
+    }
+
+    private domainsEqual(a?: any[], b?: any[]): boolean {
+        if (a === b) return true;
+        if (!a || !b) {
+            return (a?.length ?? 0) === (b?.length ?? 0);
+        }
+        if (a.length !== b.length) {
+            return false;
+        }
+        for (let i = 0; i < a.length; i++) {
+            if (!Object.is(a[i], b[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private pushAddedRows(addedRows: number[], startIndex: number, count: number) {

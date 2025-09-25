@@ -10,6 +10,7 @@ interface CachedDataItem<D extends object, K extends keyof D & string = keyof D 
     dataRef: DataRef<D>;
     dataModel: DataModel<any, any, any>;
     processedData: ProcessedData<any> | undefined;
+    dataLength: number; // Track data array length at cache creation time
 }
 
 export type CachedData = CachedDataItem<any, any>[];
@@ -72,13 +73,17 @@ export function canReuseCachedData<D extends object, K extends keyof D & string 
     ids: string[],
     opts: DataModelOptions<K, any>
 ) {
-    // Allow reuse when the DataRef is the same object (even with pending transactions)
-    // or when it's the same data array with no pending transactions
-    const sameDataRef =
-        dataRef === cachedDataItem.dataRef ||
-        (dataRef.data === cachedDataItem.dataRef.data &&
-            dataRef.pendingTransactions.length === 0 &&
-            cachedDataItem.dataRef.pendingTransactions.length === 0);
+    // Simple check: can only reuse cache if it's the exact same DataRef object
+    // This works because:
+    // 1. For updateDelta, we always create a new DataRef (even with same array)
+    // 2. For applyTransaction, the DataRef stays the same but has pending transactions
+    // 3. When commitPendingTransactions is called, it mutates the data array in-place
+    const sameDataRef = dataRef === cachedDataItem.dataRef;
 
-    return sameDataRef && arraysEqual(ids, cachedDataItem.ids) && optsEqual(opts, cachedDataItem.opts);
+    // Also check if the data hasn't been modified (for transaction case)
+    const dataUnmodified = sameDataRef && cachedDataItem.dataRef.data.length === cachedDataItem.dataLength;
+
+    return (
+        sameDataRef && dataUnmodified && arraysEqual(ids, cachedDataItem.ids) && optsEqual(opts, cachedDataItem.opts)
+    );
 }

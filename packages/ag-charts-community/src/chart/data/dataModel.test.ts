@@ -1327,6 +1327,94 @@ describe('DataModel', () => {
             expect(result.incremental?.addedRows).toEqual([0]);
             expect(result.incremental?.baseDataSize).toBe(2);
         });
+
+        it('removes rows incrementally', () => {
+            const dataModel = new DataModel<any>({
+                props: [rangeKey('time'), value('value')],
+            });
+
+            const initialData = basicDataSet([
+                { time: 0, value: 1 },
+                { time: 250, value: 2 },
+                { time: 500, value: 3 },
+            ]);
+
+            const processed = dataModel.processData(initialData)!;
+
+            const dataSourceBefore = processed.dataSources.get('test') as { time: number; value: number }[] | undefined;
+            const toRemove = dataSourceBefore?.[0];
+            expect(toRemove).toBeDefined();
+
+            const result = dataModel.applyTransactions(
+                processed,
+                new Map([
+                    [
+                        'test',
+                        {
+                            remove: toRemove ? [toRemove] : [],
+                        },
+                    ],
+                ])
+            );
+
+            expect(result.input.count).toBe(2);
+            expect(result.domain.keys[0]).toEqual([250, 500]);
+            const dataSource = result.dataSources.get('test') as { time: number; value: number }[] | undefined;
+            expect(dataSource).toEqual([
+                { time: 250, value: 2 },
+                { time: 500, value: 3 },
+            ]);
+            expect(result.incremental).toBeDefined();
+            expect(result.incremental?.removedRows).toEqual([0]);
+            expect(result.incremental?.addedRows).toEqual([]);
+            expect(result.incremental?.modifiedDomains.keys).toEqual([0]);
+            expect(result.incremental?.baseDataSize).toBe(3);
+        });
+        it('removes appended rows by reference', () => {
+            const dataModel = new DataModel<any>({
+                props: [rangeKey('time'), value('value')],
+            });
+
+            const initialData = basicDataSet([
+                { time: 0, value: 1 },
+                { time: 250, value: 2 },
+            ]);
+
+            const processed = dataModel.processData(initialData)!;
+
+            const appended = { time: 500, value: 3 };
+            dataModel.applyTransactions(
+                processed,
+                new Map([
+                    [
+                        'test',
+                        {
+                            append: [appended],
+                        },
+                    ],
+                ])
+            );
+
+            const result = dataModel.applyTransactions(
+                processed,
+                new Map([
+                    [
+                        'test',
+                        {
+                            remove: [appended],
+                        },
+                    ],
+                ])
+            );
+
+            expect(result.input.count).toBe(2);
+            const incremental = result.incremental;
+            expect(incremental?.removedRows).toEqual([2]);
+            expect(result.dataSources.get('test')).toEqual([
+                { time: 0, value: 1 },
+                { time: 250, value: 2 },
+            ]);
+        });
     });
 
     describe('missing and invalid data processing - multiple scopes', () => {

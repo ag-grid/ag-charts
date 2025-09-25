@@ -1315,7 +1315,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (deltaOptions.data) {
-            this.data = this.data.merge(deltaOptions.data);
+            // Always create a new DataRef for updateDelta to ensure cache invalidation
+            // This ensures the cache check (DataRef reference equality) will fail
+            this.data = new DataRef(deltaOptions.data);
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
