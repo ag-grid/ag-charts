@@ -1,3 +1,5 @@
+import { mergeDefaults } from 'packages/ag-charts-community/src/module-support';
+
 import {
     type AgBaseRadarSeriesOptions,
     type AgRadarSeriesLabelFormatterParams,
@@ -369,15 +371,17 @@ export abstract class RadarSeries<
         selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
         isHighlight: boolean
     ) {
-        const stylerStyle = this.getStyle(isHighlight);
-        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         selection.each((_, datum) => {
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const stylerStyle = this.getStyle(isHighlight, highlightState);
+            const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
             datum.style = this.getMarkerStyle(
                 this.properties.marker,
                 datum,
                 this.getDatumStylerProperties(datum.datum),
-                { isHighlight },
+                { isHighlight, highlightState },
                 stylerStyle.marker,
                 {
                     stroke,
@@ -570,6 +574,14 @@ export abstract class RadarSeries<
 
     protected beforePathAnimation() {
         this.updatePathNodes();
+    }
+
+    protected getPathNodesStyle() {
+        const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightState(highlightDatum);
+        const highlightStyle = this.getHighlightStyle(undefined, undefined, highlightState);
+        const stylerStyle = this.getStyle(false, highlightState);
+        return mergeDefaults(highlightStyle, stylerStyle);
     }
 
     protected abstract updatePathNodes(): void;

@@ -1,6 +1,5 @@
 import {
     type AgBaseRadarSeriesOptions,
-    type AgRadarLineSeriesOptions,
     type AgRadarLineSeriesStyle,
     type AgRadarLineSeriesStylerParams,
     type AgRadarSeriesStyle,
@@ -12,7 +11,7 @@ import type { RequireOptional } from 'ag-charts-core';
 import { RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 
-const { HighlightState, PointerEvents, mergeDefaults, toHighlightString } = _ModuleSupport;
+const { HighlightState, PointerEvents, toHighlightString } = _ModuleSupport;
 
 type S = AgRadarSeriesStyle;
 type O = AgBaseRadarSeriesOptions;
@@ -31,10 +30,8 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
         const lineNode = this.getLineNode();
         if (!lineNode) return;
 
-        type K = 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset';
-        type M = Pick<AgRadarLineSeriesOptions, K> & { opacity?: number };
-        const merged = mergeDefaults<M>(this.getHighlightStyle(), this.getStyle(false));
-        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
+        const style = this.getPathNodesStyle();
+        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = style;
 
         lineNode.setProperties({
             fill: undefined,

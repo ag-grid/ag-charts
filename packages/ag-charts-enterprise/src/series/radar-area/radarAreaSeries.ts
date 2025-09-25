@@ -18,7 +18,6 @@ const {
     PointerEvents,
     Selection,
     applyShapeStyle,
-    mergeDefaults,
     toHighlightString,
 } = _ModuleSupport;
 
@@ -64,10 +63,8 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         const lineNode = this.getLineNode();
         if (!lineNode) return;
 
-        type K = 'fill' | 'fillOpacity' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset';
-        type M = Pick<AgRadarAreaSeriesOptions, K> & { opacity?: number };
-        const merged = mergeDefaults<M>(this.getHighlightStyle(), this.getStyle(false));
-        const { fill, fillOpacity, strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
+        const styles = this.getPathNodesStyle();
+        const { fill, fillOpacity, strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = styles;
 
         lineNode.setProperties({
             fill,
