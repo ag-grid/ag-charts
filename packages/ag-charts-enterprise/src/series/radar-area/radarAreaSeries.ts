@@ -60,25 +60,34 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
     }
 
     protected override updatePathNodes(): void {
-        const lineNode = this.getLineNode();
-        if (!lineNode) return;
-
         const styles = this.getPathNodesStyle();
         const { fill, fillOpacity, strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = styles;
 
-        lineNode.setProperties({
-            fill,
-            fillOpacity,
-            lineJoin: 'round',
-            lineCap: 'round',
-            pointerEvents: PointerEvents.None,
-            opacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-        });
+        const lineNode = this.getLineNode();
+        if (lineNode) {
+            lineNode.setProperties({
+                fill: undefined,
+                lineJoin: 'round',
+                lineCap: 'round',
+                pointerEvents: PointerEvents.None,
+                opacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            });
+        }
+
+        const areaNode = this.getAreaNode();
+        if (areaNode) {
+            applyShapeStyle(areaNode, { fill, fillOpacity, stroke: undefined }, this.getShapeFillBBox());
+            areaNode.setProperties({
+                lineJoin: 'round',
+                pointerEvents: PointerEvents.None,
+                opacity,
+            });
+        }
     }
 
     protected override animatePaths(ratio: number) {
