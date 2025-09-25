@@ -22,7 +22,7 @@ const options: AgPolarChartOptions = {
                 size: 10,
                 itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle => {
                     if (params.highlightState === 'highlighted-item') {
-                        return { fill: 'cyan', strokeWidth: 4, size: 15 };
+                        return { fill: 'cyan', strokeWidth: 4 };
                     }
                     if (params.highlightState === 'unhighlighted-item') {
                         return { fill: 'lightgray' };
@@ -36,6 +36,9 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
+                if (params.highlightState === 'highlighted-item') {
+                    return { marker: { size: 15 } };
+                }
                 if (params.highlightState === 'highlighted-series') {
                     return { stroke: 'darkcyan', strokeWidth: 4, fillOpacity: 1 };
                 }
@@ -55,7 +58,7 @@ const options: AgPolarChartOptions = {
                 size: 10,
                 itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle => {
                     if (params.highlightState === 'highlighted-item') {
-                        return { fill: 'yellow', strokeWidth: 4, size: 15 };
+                        return { fill: 'yellow', strokeWidth: 4 };
                     }
                     if (params.highlightState === 'unhighlighted-item') {
                         return { fill: 'lightgray' };
@@ -69,6 +72,9 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
+                if (params.highlightState === 'highlighted-item') {
+                    return { marker: { size: 15 } };
+                }
                 if (params.highlightState === 'highlighted-series') {
                     return { stroke: 'gold', strokeWidth: 4, fillOpacity: 1 };
                 }
@@ -88,7 +94,7 @@ const options: AgPolarChartOptions = {
                 size: 10,
                 itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle => {
                     if (params.highlightState === 'highlighted-item') {
-                        return { fill: 'lime', strokeWidth: 4, size: 15 };
+                        return { fill: 'lime', strokeWidth: 4 };
                     }
                     if (params.highlightState === 'unhighlighted-item') {
                         return { fill: 'lightgray' };
@@ -102,6 +108,9 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
+                if (params.highlightState === 'highlighted-item') {
+                    return { marker: { size: 15 } };
+                }
                 if (params.highlightState === 'highlighted-series') {
                     return { stroke: 'lawngreen', strokeWidth: 4, fillOpacity: 1 };
                 }
