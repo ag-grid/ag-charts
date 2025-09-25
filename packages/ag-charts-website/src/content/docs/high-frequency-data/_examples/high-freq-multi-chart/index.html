@@ -1,5 +1,12 @@
 <div class="example-controls">
-    <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+    <div class="controls-row">
+        <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+        <select id="methodSelect" onchange="updateMethod(this.value)">
+            <option value="updateDelta">updateDelta()</option>
+            <option value="applyTransaction">applyTransaction()</option>
+        </select>
+        <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+    </div>
 </div>
 <div class="chart-grid">
     <div id="myChart1"></div>

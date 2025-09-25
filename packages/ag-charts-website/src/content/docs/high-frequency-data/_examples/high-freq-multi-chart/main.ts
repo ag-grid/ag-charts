@@ -1,9 +1,11 @@
 // @ag-skip-fws
-import { AgChartOptions, AgCharts, time } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const refreshRateInMilliseconds = 50;
 const millisecondsOfData = 30 * 1000;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 12, 0, 0);
+
+(window as any).agChartsDebug = ['scene:stats'];
 
 interface DataPoint {
     time: number;
@@ -13,6 +15,8 @@ interface DataPoint {
 
 const commonConfig = {
     animation: { enabled: false },
+    sync: { axes: 'xy' },
+    zoom: { enabled: true },
     legend: { enabled: false },
     padding: {
         top: 5,
@@ -62,7 +66,6 @@ const commonConfig = {
                 enabled: false,
             },
             tick: {
-                interval: time.second.every(10),
                 size: 3,
             },
         },
@@ -133,11 +136,57 @@ function getData(inputData: DataPoint[] = [], hostIndex: number = 1): DataPoint[
 const charts: Array<[AgChartOptions, any, number]> = [];
 let intervalId: NodeJS.Timeout | undefined;
 let isRunning = false;
+let currentUpdateMethod = 'updateDelta';
+let cpuUsageHistory: number[] = [];
 
-function updateChartsData() {
-    for (const [opts, chart, hostIndex] of charts) {
-        opts.data = getData(opts.data as DataPoint[], hostIndex);
-        chart.updateDelta({ data: opts.data }).catch((e: any) => console.error(e));
+function updateMethod(method: string) {
+    currentUpdateMethod = method;
+    console.log('Update method changed to:', method);
+}
+
+// Make the function globally accessible for the HTML onclick handler
+(window as any).updateMethod = updateMethod;
+
+async function updateChartsData() {
+    const startTime = performance.now();
+
+    const updatePromises = charts.map(async ([opts, chart, hostIndex]) => {
+        const oldData = opts.data as DataPoint[];
+        opts.data = getData(oldData, hostIndex);
+
+        if (currentUpdateMethod === 'applyTransaction') {
+            // For applyTransaction, we need to identify what changed
+            const removed = oldData.length > 0 ? [oldData.at(0)] : [];
+            const added = opts.data.length > 0 ? [opts.data.at(-1)] : [];
+
+            await chart.applyTransaction({ remove: removed, append: added });
+        } else {
+            await chart.updateDelta({ data: opts.data });
+        }
+
+        await chart.waitForUpdate();
+    });
+
+    await Promise.all(updatePromises);
+
+    const endTime = performance.now();
+    const elapsedTime = endTime - startTime;
+
+    // Calculate CPU usage as percentage of refresh interval
+    const cpuUsage = (elapsedTime / refreshRateInMilliseconds) * 100;
+
+    // Keep a rolling average of last 20 samples
+    cpuUsageHistory.push(cpuUsage);
+    if (cpuUsageHistory.length > 100) {
+        cpuUsageHistory.shift();
+    }
+
+    const avgCpuUsage = cpuUsageHistory.reduce((a, b) => a + b, 0) / cpuUsageHistory.length;
+
+    // Update the display
+    const cpuElement = document.getElementById('cpuUsage');
+    if (cpuElement) {
+        cpuElement.textContent = `CPU: ${avgCpuUsage.toFixed(1)}%`;
     }
 }
 
@@ -158,6 +207,9 @@ function toggleUpdates() {
         console.log(`Started updates every ${refreshRateInMilliseconds}ms`);
     }
 }
+
+// Make functions globally accessible for HTML event handlers
+(window as any).toggleUpdates = toggleUpdates;
 
 for (let i = 1; i <= 10; i++) {
     const [options, chart] = createChart(i);

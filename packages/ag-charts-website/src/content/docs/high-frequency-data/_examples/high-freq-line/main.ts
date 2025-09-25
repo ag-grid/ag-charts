@@ -7,28 +7,37 @@ const STREAM_INTERVAL_MS = 10;
 const DATA_INTERVAL_MS = 250;
 const MAX_POINTS = 600;
 
-function createLiveDatumFactory(history, mode = 'append') {
-    let index = mode === 'append' ? history.length : -1;
-    let timestamp =
-        mode === 'append' ? history.at(-1)?.timestamp ?? START_TIMESTAMP : history.at(0)?.timestamp ?? START_TIMESTAMP;
-    let price = mode === 'append' ? history.at(-1)?.price ?? 100 : history.at(0)?.price ?? 100;
-
+function createLiveDatumFactory(getData: () => any[], mode = 'append') {
     return () => {
-        const drift = Math.sin(Math.abs(index) / 12) * 0.7 + Math.cos(Math.abs(index) / 24) * 0.4;
-        price = Number((price + drift).toFixed(2));
+        const currentData = getData();
+
+        // Get timestamp based on current data state
+        let timestamp: number;
+        let index: number;
 
         if (mode === 'append') {
-            timestamp += DATA_INTERVAL_MS;
-            index += 1;
+            const lastDatum = currentData.at(-1);
+            timestamp = lastDatum ? lastDatum.timestamp + DATA_INTERVAL_MS : START_TIMESTAMP;
+            // Calculate index for append based on timestamp
+            index = Math.floor((timestamp - START_TIMESTAMP) / DATA_INTERVAL_MS);
         } else {
-            timestamp -= DATA_INTERVAL_MS;
-            index -= 1;
+            const firstDatum = currentData.at(0);
+            timestamp = firstDatum ? firstDatum.timestamp - DATA_INTERVAL_MS : START_TIMESTAMP;
+            // Calculate index for prepend based on timestamp
+            index = Math.floor((timestamp - START_TIMESTAMP) / DATA_INTERVAL_MS);
+        }
+
+        // Calculate price using the deterministic formula based on index
+        let price = 100;
+        for (let i = 0; i <= index; i++) {
+            const drift = Math.sin(i / 12) * 0.7 + Math.cos(i / 24) * 0.4;
+            price = Number((price + drift).toFixed(2));
         }
 
         const datum = {
             timestamp,
             price,
-            volume: 600 + Math.round((Math.sin(Math.abs(index) / 8) + 1) * 220),
+            volume: 600 + Math.round((Math.sin(index / 8) + 1) * 220),
         };
         return datum;
     };
@@ -158,9 +167,9 @@ const options: AgChartOptions = {
 /* @ag-options-end */
 
 const chart = AgCharts.create(options);
-const appendDatumFactory = createLiveDatumFactory(initialData, 'append');
-const prependDatumFactory = createLiveDatumFactory(initialData, 'prepend');
 let data = [...initialData];
+const appendDatumFactory = createLiveDatumFactory(() => data, 'append');
+const prependDatumFactory = createLiveDatumFactory(() => data, 'prepend');
 
 function toggleFeed() {
     const button = document.getElementById('toggleFeedBtn');
@@ -187,6 +196,10 @@ function toggleRapidFeed() {
         if (feed.running) {
             toggleFeed();
         }
+        // Reset update tracking for rapid feed
+        updateCount = 0;
+        updateCountStartTime = performance.now();
+        updateRateHistory = [];
         rapidFeed.start();
         if (button) button.textContent = 'Stop Rapid Feed';
     }
@@ -197,12 +210,19 @@ function tickFeed() {
 }
 
 let method = 'applyTransaction-append';
+let cpuUsageHistory: number[] = [];
+let updateCount = 0;
+let updateCountStartTime = performance.now();
+let updateRateHistory: number[] = [];
+
 function use(newMethod) {
     method = newMethod;
     console.log(method);
 }
 
 const updateCallback = async () => {
+    const startTime = performance.now();
+    updateCount++;
     const isPrepend = method.includes('prepend');
     const isRemove = method.includes('remove');
 
@@ -255,6 +275,55 @@ const updateCallback = async () => {
                 data = [newDatum].concat(data);
                 chart.updateDelta({ data });
                 break;
+        }
+    }
+
+    // Wait for chart update to complete
+    await chart.waitForUpdate();
+
+    const endTime = performance.now();
+    const elapsedTime = endTime - startTime;
+
+    // Update stats display
+    const statsElement = document.getElementById('cpuUsage');
+    if (statsElement) {
+        if (rapidFeed.running) {
+            // Show updates per second for rapid feed
+            const currentTime = performance.now();
+            const timeDiff = currentTime - updateCountStartTime;
+
+            // Calculate updates/sec every 100ms
+            if (timeDiff >= 100) {
+                const updateRate = (updateCount / timeDiff) * 1000;
+                updateRateHistory.push(updateRate);
+                if (updateRateHistory.length > 10) {
+                    updateRateHistory.shift();
+                }
+                const avgUpdateRate = updateRateHistory.reduce((a, b) => a + b, 0) / updateRateHistory.length;
+                statsElement.textContent = `Updates/sec: ${avgUpdateRate.toFixed(0)}`;
+
+                // Reset counters periodically
+                if (timeDiff > 1000) {
+                    updateCount = 0;
+                    updateCountStartTime = currentTime;
+                }
+            }
+        } else if (feed.running) {
+            // Show CPU usage for regular feed
+            const effectiveInterval = STREAM_INTERVAL_MS;
+            const cpuUsage = (elapsedTime / effectiveInterval) * 100;
+
+            // Keep a rolling average of last 100 samples
+            cpuUsageHistory.push(cpuUsage);
+            if (cpuUsageHistory.length > 100) {
+                cpuUsageHistory.shift();
+            }
+
+            const avgCpuUsage = cpuUsageHistory.reduce((a, b) => a + b, 0) / cpuUsageHistory.length;
+            statsElement.textContent = `CPU: ${avgCpuUsage.toFixed(1)}%`;
+        } else {
+            // Default display when feeds are stopped
+            statsElement.textContent = `CPU: 0%`;
         }
     }
 };
