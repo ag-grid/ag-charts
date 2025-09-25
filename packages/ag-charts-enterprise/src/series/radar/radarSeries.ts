@@ -1,5 +1,3 @@
-import { mergeDefaults } from 'packages/ag-charts-community/src/module-support';
-
 import {
     type AgBaseRadarSeriesOptions,
     type AgRadarSeriesLabelFormatterParams,
@@ -35,6 +33,7 @@ const {
     Marker,
     updateLabelNode,
     getMarkerStyles,
+    mergeDefaults,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {
@@ -50,6 +49,8 @@ export interface RadarPathPoint {
 interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<number, RadarNodeDatum> {
     styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
+
+type StylerResult<TStyle extends AgRadarSeriesStyle> = TStyle & { marker?: { enabled?: boolean } };
 
 type BaseRadarSeries = RadarSeries<
     AgRadarSeriesStyle,
@@ -744,10 +745,10 @@ export abstract class RadarSeries<
     ): CallbackParam<NonNullable<TOpts['styler']>>;
 
     protected getStylerResult(
-        stylerResult: TStyle & { marker?: { enabled?: boolean } },
+        stylerResult: StylerResult<TStyle>,
         highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
-    ): typeof stylerResult {
+    ): StylerResult<TStyle> {
         const { styler } = this.properties;
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
@@ -760,7 +761,7 @@ export abstract class RadarSeries<
             if (resolved) {
                 // The return-type of resolvePartial can stealthly introduce `any` (e.g. stylerResult.marker becomes of
                 // type `any`). So convert back to TStyle to avoid this.
-                stylerResult = resolved as typeof stylerResult;
+                stylerResult = resolved as StylerResult<TStyle>;
             }
         }
         return stylerResult;
