@@ -276,9 +276,9 @@ export class Text<D = any> extends Shape<D> {
             return super.render(renderCtx);
         }
 
-        if (isArray(this.text)) {
+        if (isArray(this.text) && this.richText) {
             this.generateTextMap();
-            const richTextBBox = this.richText!.getBBox();
+            const richTextBBox = this.richText.getBBox();
             const { width, height, lineMetrics } = measureTextSegments(this.text, this);
 
             let translateX = 0;
@@ -321,7 +321,8 @@ export class Text<D = any> extends Shape<D> {
 
             ctx.save();
             ctx.translate(translateX, translateY);
-            this.richText!.render(renderCtx);
+            this.richText.opacity = this.opacity;
+            this.richText.render(renderCtx);
             ctx.restore();
         } else {
             this.renderText(renderCtx);

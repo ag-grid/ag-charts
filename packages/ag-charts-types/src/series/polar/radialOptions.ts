@@ -53,11 +53,14 @@ export interface AgRadialSeriesTooltipRendererParams<TDatum, TContext = ContextD
         AgRadialSeriesOptionsNames,
         AgRadialSeriesStyle {}
 
-export type AgRadialSeriesStylerParams<TDatum, TContext> = SeriesCallbackParams &
-    ContextCallbackParams<TContext> &
-    AgRadialSeriesOptionsKeys<TDatum> &
-    Required<AgRadialSeriesOptionsNames> &
-    Required<AgRadialSeriesStyle>;
+export interface AgRadialSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        AgRadialSeriesOptionsKeys<TDatum>,
+        Required<AgRadialSeriesStyle> {
+    /** An ID to be used to group stacked items. */
+    stackGroup?: string;
+}
 
 export type AgRadialSeriesItemStylerParams<
     TDatum = DatumDefault,

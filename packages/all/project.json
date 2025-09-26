@@ -128,8 +128,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
-          "nx run ag-charts-website:dev"
+          "NX_DAEMON=true yarn concurrently --kill-others \"node external/ag-shared/scripts/watch/watch.js charts\" \"nx run ag-charts-website:dev\""
         ]
       }
     },
@@ -141,8 +140,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
-          "./tools/dev-server/lite.sh"
+          "NX_DAEMON=true yarn concurrently --kill-others \"node external/ag-shared/scripts/watch/watch.js charts\" \"./tools/dev-server/lite.sh\""
         ]
       }
     },
@@ -154,8 +152,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
-          "nx run ag-charts-website:dev"
+          "NX_DAEMON=true yarn concurrently --kill-others \"node external/ag-shared/scripts/watch/watch.js charts\" \"nx run ag-charts-website:dev\""
         ]
       },
       "configurations": {

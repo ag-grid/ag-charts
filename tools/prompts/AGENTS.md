@@ -6,6 +6,10 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 -   **Main constraint:** Community and enterprise runtime bundles stay dependency-free beyond AG Charts code.
 -   **Default branch:** Target `latest`; follow release/JIRA naming conventions below for topic branches.
+    <<<<<<< HEAD
+    =======
+-   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`nx dev`) and build health (see [Build Watch Status Monitoring](#build-watch-status-monitoring)).
+    > > > > > > > ajt/watch-status-monitoring
 -   **Formatting:** Run `nx format` from the repo root before proposing commits.
 -   **Typechecking:** Run `nx build:types <package>` from the repo root before proposing commits.
 -   **Linting:** Run `nx lint <package>` from the repo root before proposing commits.
@@ -187,6 +191,35 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 -   `packages/ag-charts-website/src/content/gallery/data.json` owns gallery example metadata.
 -   `packages/ag-charts-website/src/content/docs-nav/nav.json` owns docs navigation structure.
 -   Docs map from `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc` to `/charts/javascript/${pageName}/`.
+
+### Build Watch Status Monitoring
+
+The `nx dev` watch script (`external/ag-shared/scripts/watch/watch.js`) maintains a status file at `node_modules/.cache/ag-watch-status.json` for monitoring build state.
+
+**Check this file to**:
+
+-   Ensure no builds are in progress before starting operations (status != `BUILDING`)
+-   Monitor build health via `recentBuilds` array and `targetHistory` stats
+-   Track build progress after file changes
+
+**Key fields**:
+
+-   `status`: `STARTING` | `RUNNING` | `BUILDING` | `IDLE` | `STOPPED`
+-   `currentBuild`: Active build details (only when `BUILDING`)
+-   `recentBuilds`: Last 10 builds with status/duration/errors
+-   `targetHistory`: Per-target success/failure counts
+
+**Usage**:
+
+```bash
+# Wait for idle before operations
+while [ "$(jq -r '.status' node_modules/.cache/ag-watch-status.json 2>/dev/null)" = "BUILDING" ]; do
+  sleep 2
+done
+
+# Start watch if needed
+node external/ag-shared/scripts/watch/watch.js charts &
+```
 
 ## Examples
 
