@@ -7,7 +7,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AnyFn, InternalAgColorType } from 'ag-charts-core';
+import type { Callback, CallbackParam, InternalAgColorType } from 'ag-charts-core';
 
 const { createDatumId, mergeDefaults, toHighlightString } = _ModuleSupport;
 
@@ -38,8 +38,8 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         readonly styler?: Styler<AgRadialSeriesStylerParams<unknown, unknown>, AgRadialSeriesStyle>;
         readonly itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
     };
-    callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
-    cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined;
+    callWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F>;
+    cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined;
     cachedDatumCallback<T>(id: any, fn: () => T): T | undefined;
     filterItemStylerFillParams(fill: AgColorType | undefined): InternalAgColorType | undefined;
     getDatumId(datum: D): string | number | boolean | undefined;

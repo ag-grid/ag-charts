@@ -1,25 +1,29 @@
-import { type AnyFn, Logger, type RequireOptional } from 'ag-charts-core';
+import { type Callback, type CallbackParam, Logger, type RequireOptional } from 'ag-charts-core';
 
 type Caller = { context?: unknown } | undefined;
 
 export type CallbackParamRules<P> = RequireOptional<Omit<P, 'context'>>;
 
-function needsContext<I>(caller: NonNullable<Caller>, _params: I[]): _params is (I & { context: unknown })[] {
+function needsContext<F extends Callback>(
+    caller: NonNullable<Caller>,
+    _params: CallbackParam<F>
+): _params is CallbackParam<F> & { context: unknown } {
     return 'context' in caller;
 }
-function maybeSetContext<I>(caller: Caller, params: I[]): boolean {
+
+function maybeSetContext<F extends Callback>(caller: Caller, params: CallbackParam<F>): boolean {
     if (caller != null && needsContext(caller, params)) {
-        if (params[0] != null && typeof params[0] === 'object' && params[0].context === undefined) {
-            params[0].context = caller.context;
+        if (params != null && typeof params === 'object' && params.context === undefined) {
+            params.context = caller.context;
             return true;
         }
     }
     return false;
 }
-export function callWithContext<F extends AnyFn>(
+export function callWithContext<F extends Callback>(
     callers: Caller | Caller[],
     fn: F,
-    ...params: Parameters<F>
+    params: CallbackParam<F>
 ): ReturnType<F> {
     if (Array.isArray(callers)) {
         for (const caller of callers) {
@@ -30,13 +34,13 @@ export function callWithContext<F extends AnyFn>(
     } else {
         maybeSetContext(callers, params);
     }
-    return fn(...params);
+    return fn(params);
 }
 
 export class CallbackCache {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
-    call<F extends AnyFn>(callers: Caller | Caller[], fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    call<F extends Callback>(callers: Caller | Caller[], fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
         let serialisedParams: string;
         let paramCache = this.cache.get(fn);
 
@@ -46,7 +50,7 @@ export class CallbackCache {
             // Unable to serialise params!
             // No caching possible.
 
-            return this.invoke(callers, fn, paramCache, undefined, ...params);
+            return this.invoke(callers, fn, paramCache, undefined, params);
         }
 
         if (paramCache == null) {
@@ -55,21 +59,21 @@ export class CallbackCache {
         }
 
         if (!paramCache.has(serialisedParams)) {
-            return this.invoke(callers, fn, paramCache, serialisedParams, ...params);
+            return this.invoke(callers, fn, paramCache, serialisedParams, params);
         }
 
         return paramCache.get(serialisedParams);
     }
 
-    private invoke<F extends AnyFn>(
+    private invoke<F extends Callback>(
         callers: Caller | Caller[],
         fn: F,
         paramCache: Map<string, any> | undefined,
         serialisedParams: string | undefined,
-        ...params: Parameters<F>
+        params: CallbackParam<F>
     ) {
         try {
-            const result = callWithContext(callers, fn, ...params);
+            const result = callWithContext(callers, fn, params);
             if (paramCache && serialisedParams != null) {
                 paramCache.set(serialisedParams, result);
             }
