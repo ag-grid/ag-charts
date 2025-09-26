@@ -4,6 +4,7 @@ import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 import type { DataRef } from './dataRef';
+import { ProcessedDataMutator } from './processedDataMutator';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
 import { TransactionAnalyzer } from './transactionAnalyzer';
@@ -762,32 +763,41 @@ export class DataModel<
             return undefined;
         }
 
-        // TODO: Create ProcessedDataMutator and apply changes
-        // const mutator = new ProcessedDataMutator(processedData);
-        // mutator.applyChanges(changeDescriptor);
+        // Create ProcessedDataMutator and apply changes
+        const mutator = new ProcessedDataMutator(this);
+        mutator.mutate(processedData, changeDescriptor);
 
-        // Set animation validation flags to false for high-frequency updates
-        // This prevents expensive validation during rapid data changes
-        processedData.reduced ??= {};
-        processedData.reduced.animationValidation = {
-            uniqueKeys: false,
-            orderedKeys: false,
-        };
+        // Note: ProcessedDataMutator already sets animation validation flags to false
+        // in its updateProcessedDataMetadata method, so we don't need to do it here
 
         return processedData;
     }
 
     /**
      * Determines if the current DataModel configuration supports incremental updates.
-     * Currently returns false as a stub - will be fully implemented in Task 6.1.
      *
-     * @returns false (placeholder implementation)
+     * @returns true for simple ungrouped data, false for complex scenarios
      * @private
      */
     private supportsIncrementalUpdate(): boolean {
-        // TODO: Implement full logic in Task 6.1
-        // Will check for grouping, aggregation, complex processors, etc.
-        return false;
+        // For now, only support simple ungrouped data without complex processing
+        // Full implementation will come in Task 6.1
+        const hasGrouping = this.opts.groupByKeys || this.opts.groupByFn;
+        const hasAggregates = this.aggregates.length > 0;
+        const hasGroupProcessors = this.groupProcessors.length > 0;
+        const hasPropertyProcessors = this.propertyProcessors.length > 0;
+        const hasReducers = this.reducers.length > 0;
+        const hasProcessors = this.processors.length > 0;
+
+        // Only support simple cases for now
+        return (
+            !hasGrouping &&
+            !hasAggregates &&
+            !hasGroupProcessors &&
+            !hasPropertyProcessors &&
+            !hasReducers &&
+            !hasProcessors
+        );
     }
 
     private warnDataMissingProperties(sources: Map<string, unknown[]>) {
