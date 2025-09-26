@@ -540,6 +540,92 @@ const interfacePropertyWrapStrategy: WrapStrategy = {
 };
 
 /**
+ * Strategy for comment + partial object pattern
+ */
+const commentPlusObjectStrategy: WrapStrategy = {
+    name: 'commentPlusObject',
+    wrap: (code: string, _lang: string) => {
+        const lines = code.split('\n');
+        const commentLines: string[] = [];
+        const codeLines: string[] = [];
+
+        for (const line of lines) {
+            if (line.trim().startsWith('//')) {
+                commentLines.push(line);
+            } else {
+                codeLines.push(line);
+            }
+        }
+
+        const codeContent = codeLines.join('\n').trim();
+        const comments = commentLines.join('\n');
+
+        // Check if it ends with }; indicating it's the end of a larger object
+        if (codeContent.endsWith('};')) {
+            // Remove the trailing };
+            const withoutClosing = codeContent.slice(0, -2).trim();
+            // If it still ends with }, it's a nested object that's part of a larger config
+            if (withoutClosing.endsWith('},')) {
+                // Wrap as object with nested property
+                const wrappedCode = `const __temp__ = {\n    ${withoutClosing}\n};`;
+                return comments + (comments ? '\n' : '') + wrappedCode;
+            }
+        }
+
+        // Check if it's a partial property
+        if (/^\w+\s*:/.test(codeContent) && !codeContent.startsWith('{')) {
+            // Wrap as object with property - but preserve the trailing };
+            const needsClosing = codeContent.endsWith('};');
+            const cleanCode = needsClosing ? codeContent.slice(0, -2).trim() : codeContent;
+            return comments + (comments ? '\n' : '') + `const __temp__ = {\n    ${cleanCode}\n};`;
+        }
+        return code; // Don't handle if not matching pattern
+    },
+    unwrap: (formatted: string) => {
+        const lines = formatted.split('\n');
+        const commentLines: string[] = [];
+        let startIndex = 0;
+
+        // Extract comments
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].trim().startsWith('//')) {
+                commentLines.push(lines[i]);
+            } else if (lines[i].includes('const __temp__')) {
+                startIndex = i + 1;
+                break;
+            }
+        }
+
+        // Extract object content (between { and })
+        const objectLines = lines.slice(startIndex, -1);
+        let content = objectLines.map((line) => line.replace(/^ {4}/, '')).join('\n');
+
+        // Check original code to see if it ended with };
+        const originalLines = formatted.split('\n').filter((l) => !l.includes('__temp__'));
+        const hasTrailingBrace = originalLines.some((l) => l.trim().endsWith('};'));
+
+        // If original had }; add it back
+        if (hasTrailingBrace || content.endsWith('},')) {
+            if (content.endsWith(',')) {
+                content = content + '\n};';
+            } else if (content.endsWith('}')) {
+                content = content + ';';
+            }
+        }
+
+        if (commentLines.length > 0) {
+            return commentLines.join('\n') + '\n' + content;
+        }
+        return content;
+    },
+    canHandle: (code: string, _lang: string) => {
+        const trimmed = code.trim();
+        // Has comment followed by property notation or object ending
+        return /^\/\//.test(trimmed) && (/\n\s*\w+\s*:/.test(code) || code.includes('};'));
+    },
+};
+
+/**
  * Strategy for wrapping bare objects in documentation
  */
 const bareObjectWrapStrategy: WrapStrategy = {
@@ -569,10 +655,55 @@ const bareObjectWrapStrategy: WrapStrategy = {
 };
 
 /**
+ * Strategy for React hooks outside components
+ */
+const standaloneReactHooksStrategy: WrapStrategy = {
+    name: 'standaloneReactHooks',
+    wrap: (code: string, lang: string) => {
+        const isTypeScript = lang.toLowerCase().includes('ts');
+        const componentType = isTypeScript ? ': React.FC' : '';
+        return `const Component${componentType} = () => {\n    ${code.replace(/\n/g, '\n    ')}\n};`;
+    },
+    unwrap: (formatted: string) => {
+        const lines = formatted.split('\n');
+        // Find the component declaration line
+        const startIdx = lines.findIndex((line) => line.includes('const Component'));
+        const endIdx = lines.length - 1;
+
+        if (startIdx !== -1 && lines[endIdx].trim() === '};') {
+            // Extract body and remove indentation
+            const bodyLines = lines.slice(startIdx + 1, endIdx);
+            return bodyLines.map((line) => line.replace(/^ {4}/, '')).join('\n');
+        }
+        return formatted;
+    },
+    canHandle: (code: string, lang: string) => {
+        const language = lang.toLowerCase();
+        if (language !== 'jsx' && language !== 'tsx') {
+            return false;
+        }
+        const trimmed = code.trim();
+
+        // Check for React hooks pattern
+        const hasUseState = /^(const|let)\s+\[.*\]\s*=\s*useState/.test(trimmed);
+        const hasUseEffect = /^useEffect/.test(trimmed);
+        const hasReturn = /^return\s*[(<]/.test(trimmed);
+        const hasReactHook = /^use[A-Z]\w*\(/.test(trimmed);
+
+        // Make sure it's not already in a component or function
+        const hasComponentDeclaration = /function\s+\w+|const\s+\w+\s*=.*=>/.test(trimmed);
+
+        return (hasUseState || hasUseEffect || hasReactHook || hasReturn) && !hasComponentDeclaration;
+    },
+};
+
+/**
  * Ordered list of strategies to try
  */
 export const wrapStrategies: WrapStrategy[] = [
-    bareObjectWrapStrategy,  // Try bare objects first
+    commentPlusObjectStrategy, // Handle comment + object patterns first
+    standaloneReactHooksStrategy, // Handle React hooks outside components
+    bareObjectWrapStrategy, // Try bare objects
     reactComponentWrapStrategy,
     jsxWrapStrategy,
     typeWrapStrategy,
