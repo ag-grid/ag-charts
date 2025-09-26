@@ -32,7 +32,7 @@ When an [unsupported browser](./supported-browsers/) is detected and the chart m
 
 These messages can be customised through `overlays`:
 
-```js
+```js wrapper="object"
 overlays: {
     loading: {
         text: 'Some custom loading message',
@@ -55,7 +55,7 @@ If finer grained control is required, a renderer can be provided to allow full c
 
 {% chartExampleRunner title="Custom Overlay for Missing Data" name="no-data" type="generated" /%}
 
-```js
+```js wrapper="object"
 overlays: {
     noData: {
         renderer: () => '<em>Custom message for <strong>missing data</strong></em>'
@@ -67,7 +67,7 @@ overlays: {
 
 {% chartExampleRunner title="Custom Overlay for Loading Data" name="loading-custom" type="generated" /%}
 
-```js
+```js wrapper="object"
 overlays: {
     loading: {
         renderer: () => {

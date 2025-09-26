@@ -34,7 +34,7 @@ Users should explicitly manage the browser calculated `container` element size t
 <div id="myChart" class="chart" style="width: 500px; height: 400px"></div>
 ```
 
-```js
+```js wrapper="object"
 const options = {
     container: document.getElementById('myChart'),
 };
@@ -51,7 +51,7 @@ In this configuration:
 
 {% if isFramework("react") %}
 
-```jsx
+```jsx wrapper="reactHooks"
 <AgCharts
     options={options}
     className="chart"
@@ -90,11 +90,7 @@ As the `ag-charts` container element is a custom HTML element without implicit b
 {% if isFramework("vue") %}
 
 ```html
-<ag-charts
-    :options="options"
-    class="chart"
-    style="width: 400px; height: 400px">
-</ag-charts>
+<ag-charts :options="options" class="chart" style="width: 400px; height: 400px"> </ag-charts>
 ```
 
 In this configuration:
@@ -119,7 +115,7 @@ In this configuration:
 {% /if %}
 {% if isFramework("react") %}
 
-```jsx
+```jsx wrapper="reactHooks"
 <div style={{ display: 'grid', width: '100%', height: '100%' }}>
     <AgCharts options={options} />
 </div>

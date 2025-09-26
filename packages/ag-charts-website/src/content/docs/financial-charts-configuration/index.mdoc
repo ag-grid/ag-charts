@@ -13,14 +13,14 @@ Financial Charts come pre-configured with built-in features – just add your da
 
 {% if isFramework("javascript") %}
 
-```ts
-import { AgCharts, AgFinancialChartOptions } from "ag-charts-enterprise";
+```ts wrapper="object"
+import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
 
-import { getData } from "./data";
+import { getData } from './data';
 
 const options: AgFinancialChartOptions = {
-  container: document.getElementById("myChart"),
-  data: getData(),
+    container: document.getElementById('myChart'),
+    data: getData(),
 };
 
 const chart = AgCharts.createFinancialChart(options);
@@ -30,7 +30,7 @@ const chart = AgCharts.createFinancialChart(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```jsx wrapper="reactHooks"
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AgFinancialCharts } from "ag-charts-react";
@@ -54,27 +54,29 @@ root.render(<ChartExample />);
 
 {% if isFramework("angular") %}
 
-```ts
+```ts wrapper="object"
 import { Component } from '@angular/core';
+
 import { AgFinancialCharts } from 'ag-charts-angular';
 import { AgFinancialChartOptions } from 'ag-charts-enterprise';
-import { getData } from './data';
 import 'ag-charts-enterprise';
 
+import { getData } from './data';
+
 @Component({
-  selector: "my-app",
-  standalone: true,
-  imports: [AgFinancialCharts],
-  template: `<ag-financial-charts [options]="options"></ag-financial-charts> `,
+    selector: 'my-app',
+    standalone: true,
+    imports: [AgFinancialCharts],
+    template: `<ag-financial-charts [options]="options"></ag-financial-charts> `,
 })
 export class AppComponent {
-  public options;
+    public options;
 
-  constructor() {
-    this.options = {
-      data: getData(),
-    };
-  }
+    constructor() {
+        this.options = {
+            data: getData(),
+        };
+    }
 }
 ```
 
@@ -82,7 +84,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js
+```js wrapper="object"
 import { createApp } from 'vue';
 
 import 'ag-charts-enterprise';
@@ -132,15 +134,15 @@ For custom data keys, map your data properties to the appropriate [AgFinancialCh
 
 Financial Chart features can be enabled or disabled via the following properties:
 
-```ts
+```ts wrapper="object"
 const options: AgFinancialChartOptions = {
-  // ...
-  navigator: false, // disabled by default
-  toolbar: true,
-  rangeButtons: true,
-  volume: true,
-  statusBar: true,
-  zoom: true,
+    // ...
+    navigator: false, // disabled by default
+    toolbar: true,
+    rangeButtons: true,
+    volume: true,
+    statusBar: true,
+    zoom: true,
 };
 ```
 
@@ -160,10 +162,10 @@ However, this can also be done programmatically.
 
 The default chart type is `candlestick`. To use a different chart type, set the `chartType` property.
 
-```ts
+```ts wrapper="object"
 const options: AgFinancialChartOptions = {
-  // ...
-  chartType: 'line', // Set to line
+    // ...
+    chartType: 'line', // Set to line
 };
 ```
 
@@ -179,15 +181,15 @@ The following chart types are supported:
 
 Use the `theme` property in `AgFinancialChartOptions` to customise chart styles.
 
-```ts
+```ts wrapper="object"
 const options: AgFinancialChartOptions = {
-  // ...
-  theme: {
-    palette: {
-      up: { fill: "#F3A93C", stroke: "#A8492D" },
-      down: { fill: "#1A00F4", stroke: "#75FBFD" }
+    // ...
+    theme: {
+        palette: {
+            up: { fill: '#F3A93C', stroke: '#A8492D' },
+            down: { fill: '#1A00F4', stroke: '#75FBFD' },
+        },
     },
-  },
 };
 ```
 

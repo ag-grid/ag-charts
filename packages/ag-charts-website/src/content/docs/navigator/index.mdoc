@@ -9,7 +9,7 @@ The Navigator provides controls for users to zoom and pan around a chart. It can
 
 The Navigator is disabled by default, to enable it add the following config to the chart:
 
-```js
+```js wrapper="object"
 navigator: {
     enabled: true,
 }
@@ -27,7 +27,7 @@ The Mini Chart gives an overview of the full data of the chart to provide more c
 
 The Mini Chart is disabled by default, and can be enabled in the `miniChart` options on the Navigator.
 
-```js
+```js wrapper="object"
 navigator: {
     miniChart: {
         enabled: true,
@@ -43,7 +43,7 @@ All series in the main chart will be shown in the Mini Chart. Use the `showInMin
 
 The Navigator's `height` is configurable and affects the chart's layout by leaving more or less vertical space for the series.
 
-```js
+```js wrapper="object"
 navigator: {
     height: 50,
 }
@@ -75,7 +75,7 @@ The example below uses various Navigator configs (in a deliberately exaggerated 
 
 The labels on the Mini Chart axis can be styled using the `label` property. See the [API Reference](#reference-AgChartNavigatorOptions-miniChart) for a list of all available options.
 
-```js
+```js wrapper="object"
 navigator: {
     miniChart: {
         enabled: true,

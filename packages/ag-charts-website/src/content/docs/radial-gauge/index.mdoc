@@ -13,7 +13,7 @@ To create a Radial Gauge, use the `createGauge` API with the type `radial-gauge`
 
 {% if isFramework("javascript") %}
 
-```js
+```js wrapper="object"
 const options = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
@@ -31,7 +31,7 @@ AgCharts.createGauge(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```jsx wrapper="reactHooks"
 const [options, setOptions] = useState({
     type: 'radial-gauge',
     value: 80,
@@ -50,25 +50,25 @@ return (
 
 {% if isFramework("angular") %}
 
-```ts
+```ts wrapper="object"
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgGauge],
-  template: `<ag-gauge [options]="options"></ag-gauge>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgGauge],
+    template: `<ag-gauge [options]="options"></ag-gauge>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
-  constructor() {
-    this.options = {
-        type: "radial-gauge",
-        value: 80,
-        scale: {
-          min: 0,
-          max: 100,
-        },
-    };
-  }
+    public options: AgRadialGaugeOptions;
+    constructor() {
+        this.options = {
+            type: 'radial-gauge',
+            value: 80,
+            scale: {
+                min: 0,
+                max: 100,
+            },
+        };
+    }
 }
 ```
 
@@ -76,7 +76,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js
+```js wrapper="object"
 template: `<ag-gauge :options="options"/>`,
 components: {
     'ag-gauge': AgGauge,
@@ -112,7 +112,7 @@ In this configuration:
 
 It is possible to display the data value using a bar, a needle or both. These are both rendered over the scale.
 
-```js
+```js wrapper="object"
 {
     needle: {
         enabled: true,
@@ -136,7 +136,7 @@ For customisation of both the bar and needle, see below or the [API Reference](#
 
 Up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
 
-```js
+```js wrapper="object"
 {
     label: {
         formatter({ value }) {
@@ -166,7 +166,7 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
 
 {% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
 
-```js
+```js wrapper="object"
 {
     segmentation: {
         enabled: true,
@@ -190,7 +190,7 @@ In this configuration:
 
 {% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
 
-```js
+```js wrapper="object"
 {
     cornerRadius: 99,
     cornerMode: 'container',
@@ -208,7 +208,7 @@ In this configuration:
 
 The `startAngle` and `endAngle` properties can be used to customise the start and end position of the gauge.
 
-```js
+```js wrapper="object"
 {
     startAngle: -135,
     endAngle: 135,
@@ -225,7 +225,7 @@ Both the bar and scale can be displayed using a solid fill.
 
 {% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js
+```js wrapper="object"
 {
     scale: {
         fill: '#f5f6fa',
@@ -242,7 +242,7 @@ Multiple colours can be specified using the `fills` property.
 
 {% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
 
-```js
+```js wrapper="object"
 {
     bar: {
         fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
@@ -262,7 +262,7 @@ The default behaviour is to space out the colours evenly. This can be customised
 
 {% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js
+```js wrapper="object"
 {
     bar: {
         fills: [
@@ -290,7 +290,7 @@ Gauges often display targets or thresholds to provide context to the displayed d
 
 {% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js
+```js wrapper="object"
 {
     targets: [
         {
@@ -310,7 +310,7 @@ In this configuration:
 
 {% chartExampleRunner title="Target Customisation" name="custom-targets" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js
+```js wrapper="object"
 {
     targets: [
         {

@@ -11,7 +11,7 @@ The Map Shape Series visualises data representing geographic areas such as count
 
 To create a Map Shape Series, use the `map-shape` series type and provide data and [topology](./map-topology/). These can be provided in either the chart or series objects.
 
-```js
+```js wrapper="object"
 topology: topology,
 series: [
     {
@@ -40,7 +40,7 @@ In this example:
 
 To colour the shapes based on the magnitude of the data, use `colorKey`.
 
-```js
+```js wrapper="object"
 series: [
     {
         type: 'map-shape',
@@ -62,7 +62,7 @@ See [Colour Range](./heatmap-series/#colour-range) and [Gradient Legend](./heatm
 
 {% chartExampleRunner title="Labels" name="labels" type="generated" /%}
 
-```js
+```js wrapper="object"
 series: [
     {
         type: 'map-shape',
@@ -88,7 +88,7 @@ This can be useful to show disabled Map Shape Series when toggled off in the leg
 
 {% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
 
-```js
+```js wrapper="object"
 topology,
 series: [
     {

@@ -182,7 +182,7 @@ Load the AG Charts library and create a blank container div:
 
 Create the Chart inside of your container div using `create`.
 
-```js
+```js wrapper="object"
 // Chart Options
 const options = {};
 
@@ -192,7 +192,7 @@ const chart = agCharts.AgCharts.create(options);
 
 ### Define Chart Data and Series
 
-```js
+```js wrapper="object"
 // Chart Options
 const options = {
     // Container: HTML Element to hold the chart
@@ -219,14 +219,14 @@ const options = {
 
 ### Import the React Chart
 
-```js
+```js wrapper="object"
 // React Chart Component
 import { AgCharts } from 'ag-charts-react';
 ```
 
 ### Define Chart Data and Series
 
-```js
+```js wrapper="object"
 const ChartExample = () => {
     // Chart Options: Control & configure the chart
     const [chartOptions, setChartOptions] = useState({
@@ -251,7 +251,7 @@ const ChartExample = () => {
 
 Return the `AgCharts` component with the `chartOptions` as a prop:
 
-```jsx
+```jsx wrapper="reactHooks"
 return (
   // AgCharts component with options passed as prop
   <AgCharts options={chartOptions} />
@@ -266,7 +266,7 @@ return (
 
 ### Import the Angular Chart
 
-```ts
+```ts wrapper="object"
 // Angular Chart Component
 import { AgCharts } from 'ag-charts-angular';
 // Chart Options Type Interface
@@ -275,32 +275,32 @@ import { AgChartOptions } from 'ag-charts-community';
 
 ### Define Chart Data and Series
 
-```ts
+```ts wrapper="object"
 // Angular Chart Component
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgCharts],
-  template:``,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgCharts],
+    template: ``,
 })
 export class AppComponent {
-  // Chart Options
-  public chartOptions: AgChartOptions;
-  constructor() {
-    this.chartOptions = {
-      // Data: Data to be displayed in the chart
-      data: [
-        { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
-        { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302000 },
-        { month: 'May', avgTemp: 16.2, iceCreamSales: 800000 },
-        { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254000 },
-        { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950000 },
-        { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
-      ],
-      // Series: Defines which chart type and data to use
-      series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }]
-    };
-  }
+    // Chart Options
+    public chartOptions: AgChartOptions;
+    constructor() {
+        this.chartOptions = {
+            // Data: Data to be displayed in the chart
+            data: [
+                { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
+                { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302000 },
+                { month: 'May', avgTemp: 16.2, iceCreamSales: 800000 },
+                { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254000 },
+                { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950000 },
+                { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
+            ],
+            // Series: Defines which chart type and data to use
+            series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
+        };
+    }
 }
 ```
 
@@ -308,7 +308,7 @@ export class AppComponent {
 
 Chart options are set as an `ag-charts` component attribute.
 
-```ts
+```ts wrapper="object"
 template:
   `<ag-charts
     style="height: 100%"

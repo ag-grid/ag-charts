@@ -120,7 +120,7 @@ crosshair: {
 -   The `renderer` is a callback function which receives the axis `value` and its `fractionDigits` used for formatting the value at the crosshair position.
 -   It returns an object with the `text` value as well as style attributes including `color`, `backgroundColor` and `opacity` for the crosshair label:
 
-```js
+```js wrapper="object"
 const labelRenderer = ({ value, fractionDigits }) => {
     return {
         text: value.toFixed(fractionDigits),
@@ -154,7 +154,7 @@ This is demonstrated in the example below:
 
 A completely custom label can be provided by using the `renderer` function to return a `string` representing HTML content:
 
-```js
+```js wrapper="object"
 const labelRenderer = ({ value, fractionDigits }) => {
     return `<div class="custom-crosshair-label custom-crosshair-label-arrow">
             ${value.toFixed(fractionDigits)}</div>`;

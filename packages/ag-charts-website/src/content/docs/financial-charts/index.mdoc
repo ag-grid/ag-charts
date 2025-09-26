@@ -15,7 +15,7 @@ Financial Charts come pre-configured with built-in features - just add your data
 
 {% if isFramework("javascript") %}
 
-```js
+```js wrapper="object"
 const options = {
     data: getData(),
 };
@@ -27,7 +27,7 @@ AgCharts.createFinancialChart(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```jsx wrapper="reactHooks"
 const [options, setOptions] = useState({
     data: getData(),
 });
@@ -41,20 +41,20 @@ return (
 
 {% if isFramework("angular") %}
 
-```ts
+```ts wrapper="object"
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgFinancialCharts],
-  template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgFinancialCharts],
+    template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
 })
 export class AppComponent {
-  public options: AgFinancialChartOptions;
-  constructor() {
-    this.options = {
-      data: getData(),
-    };
-  }
+    public options: AgFinancialChartOptions;
+    constructor() {
+        this.options = {
+            data: getData(),
+        };
+    }
 }
 ```
 
@@ -62,7 +62,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js
+```js wrapper="object"
 template: `<ag-financial-charts:options="options"/>`,
 components: {
     'ag-financial-charts': AgFinancialCharts,

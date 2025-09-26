@@ -20,7 +20,7 @@ A chart can contain multiple series, which are provided in the `series` array.
 Every series has its own [series options](/options/#reference-AgChartOptions-series), but they all share a common set of configurations.
 These include a `type` as well as `_Key` properties to connect to the visualisation to the data, such as `xKey` and `yKey` for cartesian charts.
 
-```js
+```js wrapper="object"
 data: [
     {year: '2001', women: 25},
     {country: '2003', value: 26},
@@ -41,7 +41,7 @@ These do not need to be configured unless customisation is required.
 
 Use `axes.position` to control the position of the axis, and `axes.type` to define the type.
 
-```js
+```js wrapper="object"
 axes: [
     {
         type: 'category', // category | grouped-category | number | log | time | ordinal-time
@@ -64,7 +64,7 @@ Charts can have more than one axis in each direction, allowing for series with d
 
 Use the axes `keys` property to link the series `_Key` property to the axis.
 
-```js
+```js wrapper="object"
 axes: [
     // x-axis
     {
@@ -93,7 +93,7 @@ Intervals can be defined in [steps](./axes-intervals/#step), [absolute values](.
 
 Use `axes.interval` to control the interval of the axis.
 
-```js
+```js wrapper="object"
 axes: [
     {
         type: 'number',
@@ -109,7 +109,7 @@ axes: [
 
 Use `axes.label` to control the appearance of the axis labels.
 
-```js
+```js wrapper="object"
 axes: [
     {
         type: 'number',
@@ -129,7 +129,7 @@ Data values are displayed in many places, such as series and axes labels. Use th
 
 The `params` contain contextual information necessary to identify the item, and the callback should return a `String` object.
 
-```js
+```js wrapper="object"
 formatter: function (params) {
     return params.value * 100 + '%';
 }
@@ -145,7 +145,7 @@ formatter: function (params) {
 
 Use the `legend` options to configure the legend position and size and to disable the series toggling functionality on legend click.
 
-```js
+```js wrapper="object"
 legend: {
     enabled: true, // defaults to true for charts with multiple series
     position: 'top', // 'bottom', 'right', 'left',
@@ -157,7 +157,7 @@ legend: {
 
 Use the `crossLines` array in the axis options to add `line` or `range` [Cross Lines](./axes-cross-lines/) along any axis.
 
-```js
+```js wrapper="object"
 axes: [
     {
         crossLines: [
@@ -180,7 +180,7 @@ axes: [
 
 Use the `itemStyler` callback function to customise the appearance of a specific bar or marker:
 
-```js
+```js wrapper="object"
 series: [
     {
         marker: {
@@ -212,18 +212,18 @@ Strokes can have a `stroke` colour, as well as a `strokeWidth` and a `lineDash[]
 
 Use the `series.marker` property to customise markers.
 
-```js
+```js wrapper="object"
 series: [
     {
-    stroke: 'maroon',
-    marker: {
-        shape: 'square', // defaults to 'circle'
-        size: 20,
-        fill: 'red',
         stroke: 'maroon',
+        marker: {
+            shape: 'square', // defaults to 'circle'
+            size: 20,
+            fill: 'red',
+            stroke: 'maroon',
+        },
     },
-    },
-]
+];
 ```
 
 ### Chart Elements
@@ -236,7 +236,7 @@ AG Charts comes with 5 [Themes](./themes/), each available in light or dark mode
 
 Use the `theme` property to set the theme:
 
-```js
+```js wrapper="object"
 {
     theme: 'ag-default', // or 'ag-sheets', 'ag-polychrome', 'ag-material', 'ag-vivid'
 }
@@ -246,7 +246,7 @@ Themes can also be customised or created with the [Theming API](/themes-api/).
 
 Use `params` to set styles across the whole chart, `palette` to define the colour palette used for the datapoints, and `overrides` to change a specific default within the base theme.
 
-```ts
+```ts wrapper="object"
 const customTheme: AgChartTheme = {
     palette: {
         //these are used by each series in rotation
@@ -274,7 +274,7 @@ const customTheme: AgChartTheme = {
                 },
             },
         },
-    }
+    },
 };
 ```
 
@@ -284,7 +284,7 @@ The chart will dynamically [auto-size](./layout/#chart-size) to the size of its 
 
 Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is required:
 
-```js
+```js wrapper="object"
 {
     width: 800,
     height: 600,
@@ -301,7 +301,7 @@ Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is r
 
 [Tooltip modes](./tooltips/#tooltip-modes) include a shared tooltip which includes the values for all series, and a compact tooltip for smaller charts.
 
-```js
+```js wrapper="object"
 tooltip: {
     mode: 'shared'; // or 'single' or 'compact'
 }
@@ -309,7 +309,7 @@ tooltip: {
 
 Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
 
-```js
+```js wrapper="object"
 {
     renderer: function (params) {
         return (
@@ -327,7 +327,7 @@ Items and Series are [highlighted](./series-highlighting/) when hovered.
 
 Use `highlight` options to [customise](./series-highlighting/#customisation) highlighted and unhighlighted items and series:
 
-```js
+```js wrapper="object"
 highlight: {
     // Attributes that apply to the highlighted item only.
     highlightedItem: {
@@ -347,7 +347,7 @@ These include clicks, double-clicks and zoom events.
 
 Register `listeners` to respond to [Events](./events/) on the chart.
 
-```js
+```js wrapper="object"
 {
     // Charts Events
     listeners: {
@@ -382,7 +382,7 @@ The dynamic [State](./api-state/) of the chart can be saved and restored. This i
 
 Use the `getState()` and `setState()` APIs to retrieve and restore the current state of the chart.
 
-```js
+```js wrapper="object"
 function saveState() {
     const newState = chart.getState();
     // save to database...
@@ -396,7 +396,7 @@ function restoreState() {
 
 You can also use the `initialState` property to set the [initial state](./api-state/#initial-state) of the chart when it loads.
 
-```js
+```js wrapper="object"
 initialState: {
     zoom: {
         rangeX: {
@@ -430,7 +430,7 @@ In the above example you can [Zoom](./zoom/) by scrolling over the chart, or by 
 
 To enable [Zooming](./zoom/), set the `zoom` property to `true`.
 
-```js
+```js wrapper="object"
 zoom: {
     enabled: true,
 }
@@ -440,7 +440,7 @@ See the [Zoom Options](/options/#reference-AgChartOptions-zoom) for further cust
 
 The y-axis will automatically adjust to fit the visible items. This is controlled by the `autoScaling` option.
 
-```js
+```js wrapper="object"
 zoom: {
     autoScaling: {
         enabled: true,
@@ -454,7 +454,7 @@ Zooming and Panning can be done with the [Navigator](./navigator/).
 
 A [Mini Chart](./navigator/#mini-chart) can also be displayed within the Navigator to give additional context.
 
-```js
+```js wrapper="object"
 navigator: {
     enabled: true,
     miniChart: {
@@ -467,7 +467,7 @@ navigator: {
 
 The [Context Menu](./context-menu/) provides [Zoom](./zoom/) and [Download](./api-download/) functionality, as well as allowing element specific [custom actions](./context-menu/#custom-actions).
 
-```js
+```js wrapper="object"
 contextMenu: {
     enabled: true,
     items: [
@@ -506,7 +506,7 @@ To create a financial chart, simply provide your financial data:
 
 {% if isFramework("javascript") %}
 
-```js
+```js wrapper="object"
 const options = {
     data: getData(),
 };
@@ -532,20 +532,20 @@ return (
 
 {% if isFramework("angular") %}
 
-```ts
+```ts wrapper="object"
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgFinancialCharts],
-  template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgFinancialCharts],
+    template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
 })
 export class AppComponent {
-  public options: AgFinancialChartOptions;
-  constructor() {
-    this.options = {
-      data: getData(),
-    };
-  }
+    public options: AgFinancialChartOptions;
+    constructor() {
+        this.options = {
+            data: getData(),
+        };
+    }
 }
 ```
 
@@ -553,7 +553,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js
+```js wrapper="object"
 template: `<ag-financial-charts:options="options"/>`,
 components: {
     'ag-financial-charts': AgFinancialCharts,
@@ -577,7 +577,7 @@ The [Map Series](./maps/) types enable visualising geographic data in different 
 
 To create a map chart, provide a [Map Topology](./map-topology/) in [GeoJSON](https://geojson.org/) format and link the correct property in the `properties` key:
 
-```js
+```js wrapper="object"
 series: [
     {
         type: 'map-shape',
@@ -619,7 +619,7 @@ Provide a `type`, `value` and `scale` to create a gauge with the `createGauge` A
 
 {% if isFramework("javascript") %}
 
-```js
+```js wrapper="object"
 const options = {
     type: 'radial-gauge', // or 'linear-gauge'
     container: document.getElementById('myChart'),
@@ -656,25 +656,25 @@ return (
 
 {% if isFramework("angular") %}
 
-```ts
+```ts wrapper="object"
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgGauge],
-  template: `<ag-gauge [options]="options"></ag-gauge>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgGauge],
+    template: `<ag-gauge [options]="options"></ag-gauge>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
-  constructor() {
-    this.options = {
-        type: 'radial-gauge', // or 'linear-gauge'
-        value: 80,
-        scale: {
-          min: 0,
-          max: 100,
-        },
-    };
-  }
+    public options: AgRadialGaugeOptions;
+    constructor() {
+        this.options = {
+            type: 'radial-gauge', // or 'linear-gauge'
+            value: 80,
+            scale: {
+                min: 0,
+                max: 100,
+            },
+        };
+    }
 }
 ```
 
@@ -682,7 +682,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```ts
+```ts wrapper="object"
 template: `<ag-gauge :options="options"/>`,
 components: {
     'ag-gauge': AgGauge,

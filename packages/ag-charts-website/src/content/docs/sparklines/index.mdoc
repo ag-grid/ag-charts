@@ -13,7 +13,7 @@ To create a Sparkline, use the `createSparkline` API.
 
 {% if isFramework("javascript") %}
 
-```js
+```js wrapper="object"
 const options = {
     type: 'bar',
     container: document.getElementById('myChart'),
@@ -29,7 +29,7 @@ AgCharts.createSparkline(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```jsx wrapper="reactHooks"
 const [options, setOptions] = useState({
     type: 'bar',
     container: document.getElementById('myChart'),
@@ -47,24 +47,24 @@ return (
 
 {% if isFramework("angular") %}
 
-```ts
+```ts wrapper="object"
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgSparkline],
-  template: `<ag-sparkline [options]="options"></ag-sparkline>`,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgSparkline],
+    template: `<ag-sparkline [options]="options"></ag-sparkline>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
-  constructor() {
-    this.options = {
-        type: 'bar',
-        container: document.getElementById('myChart'),
-        data: [],
-        xKey: 'date',
-        yKey: 'price',
-    };
-  }
+    public options: AgRadialGaugeOptions;
+    constructor() {
+        this.options = {
+            type: 'bar',
+            container: document.getElementById('myChart'),
+            data: [],
+            xKey: 'date',
+            yKey: 'price',
+        };
+    }
 }
 ```
 
@@ -72,7 +72,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js
+```js wrapper="object"
 template: `<ag-sparkline :options="options"/>`,
 components: {
     'ag-sparkline': AgSparkline,
@@ -106,7 +106,7 @@ In this configuration:
 
 {% chartExampleRunner title="Customised Sparkline" name="customised-sparkline" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js
+```js wrapper="object"
 {
     type: 'bar',
     fill: '#5C6BC0',
@@ -120,7 +120,7 @@ Each of the Bar, Line, and Area Sparklines can be customised using the associate
 
 {% chartExampleRunner title="Sparkline Axes" name="sparkline-axes" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js
+```js wrapper="object"
 {
     axis: {
         type: 'time',

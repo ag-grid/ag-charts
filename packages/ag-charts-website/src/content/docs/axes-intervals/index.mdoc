@@ -29,7 +29,7 @@ If the configured `interval` results in too many items given the data domain and
 For [Number Axes](./axes-types/#number), the `step` should be a number.
 For example, a `step` of `5`, will display values at `0`, `5`, `10`.
 
-```js
+```js wrapper="object"
 {
     interval: { step: 5 },
 }
@@ -58,7 +58,7 @@ For more information, see [Time Axis Intervals](./axes-time/#time-intervals).
 The `interval.values` property allows you to specify the precise array of values to display. Depending on the axis type,
 this should be an array consisting of `number`, `Date`, or `String` values.
 
-```js
+```js wrapper="object"
 {
     interval: {
         values: [50, 88, 100],
@@ -79,7 +79,7 @@ constraints, taking the rendered size of the chart into account.
 Category axes do not support `maxSpacing`, as intervals are derived from the domain of category values.
 {% /note %}
 
-```js
+```js wrapper="object"
 {
     interval: {
         minSpacing: 15,

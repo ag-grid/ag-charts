@@ -28,7 +28,7 @@ The `fill` attribute is set at the series level.
 
 Solid fills use a CSS colour string. Gradient and Pattern fills require an object with type `gradient` or `pattern`.
 
-```js
+```js wrapper="object"
 series: [
     // ...
     fill: {
@@ -41,7 +41,7 @@ series: [
 
 [Series Markers](./markers) support the same fill options. The `fill` attribute is contained in the `marker` property of the `series` options.
 
-```js
+```js wrapper="object"
 series: [
     // ...
     marker: {
@@ -63,7 +63,7 @@ The array should contain a minimum of two objects, with each object providing op
 -   `color`: Any valid CSS colour value.
 -   `stop`: A ratio between `0` and `1` indicating the position within the gradient where the colour changes.
 
-```js
+```js wrapper="object"
 {
     series: {
         fill: {
@@ -95,7 +95,7 @@ See the [Gradient API reference](#reference-AgGradientColor) for all the availab
 
 Any of the [stock patterns](#reference-AgPatternColor-pattern) can be provided in the `fill.pattern` property.
 
-```js
+```js wrapper="object"
 {
     series: {
         fill: {
@@ -124,7 +124,7 @@ SVG Path Data can be used to create custom patterns. The path can be a line or a
 -   To remove the stroke, set `strokeWidth` to `0`
 -   To remove the fill, set `fill` to `none`.
 
-```js
+```js wrapper="object"
 {
     series: {
         fill: {
@@ -152,7 +152,7 @@ To be valid, the path string must follow the SVG path grammar outlined in the [P
 
 Any image url or data:url can be provided in the `fill.url` property to fill shapes with an image.
 
-```js
+```js wrapper="object"
 {
     series: {
         fill: {
@@ -182,7 +182,7 @@ The `backgroundFill` and `backgroundFillOpacity` properties provide a fallback i
 
 Images can be tiled by using the `repeat` property.
 
-```js
+```js wrapper="object"
 {
     series: {
         fill: {
