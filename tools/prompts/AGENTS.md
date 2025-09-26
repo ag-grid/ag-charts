@@ -205,8 +205,20 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 -   Examples have a `index.html` which is just a HTML snippet, not a full HTML document.
     -   Do not include <script> or other tags to load resources.
     -   `main.ts` is automatically included at runtime.
-    -   Example:
+    -   Trivial xxample:
+        ```html
+        <div id="myChart"></div>
         ```
+    -   Complex example:
+        ```html
+        <div class="controls-row">
+            <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+            <select id="methodSelect" onchange="updateMethod(this.value)">
+                <option value="updateDelta">updateDelta()</option>
+                <option value="applyTransaction">applyTransaction()</option>
+            </select>
+            <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+        </div>
         <div id="myChart"></div>
         ```
 -   Styles for examples should be put into an adjacent `styles.css` file which will automatically be included at runtime.
