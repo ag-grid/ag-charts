@@ -181,8 +181,8 @@ This document outlines the implementation plan for adding efficient transaction 
 
 #### Task 2.2: Create ProcessedDataMutator Class
 
--   [ ] Create `/packages/ag-charts-community/src/chart/data/processedDataMutator.ts`
--   [ ] Implement core mutation logic:
+-   [x] Create `/packages/ag-charts-community/src/chart/data/processedDataMutator.ts`
+-   [x] Implement core mutation logic:
     -   Constructor accepts DataModel instance for access to definitions
     -   Main method: `mutate(processedData: ProcessedData, changes: DataChangeDescriptor): void`
     -   **Mutates ProcessedData in-place** - no cloning needed
@@ -223,7 +223,7 @@ This document outlines the implementation plan for adding efficient transaction 
     -   If mutation fails, the chart state is corrupted and requires page reload
         <!-- RESOLVED: We accept these trade-offs for performance and debugging clarity -->
         <!-- CONCERN: Stating "reload the page" is not an operational plan; can we at least reset `processedData` by re-running `processData` so the chart survives instead of crashing the app? -->
--   [ ] Add integration tests with DataModel
+-   [x] Add integration tests with DataModel
 <!-- RESOLVED: Fail-fast approach - any error is a bug to be fixed, not recovered from -->
 
 ### Phase 3: Component Updaters
