@@ -540,9 +540,39 @@ const interfacePropertyWrapStrategy: WrapStrategy = {
 };
 
 /**
+ * Strategy for wrapping bare objects in documentation
+ */
+const bareObjectWrapStrategy: WrapStrategy = {
+    name: 'bareObject',
+    wrap: (code: string, _lang: string) => {
+        return `const __temp__ = ${code};`;
+    },
+    unwrap: (formatted: string) => {
+        // Remove the const __temp__ = wrapper and trailing semicolon
+        return formatted.replace(/^const __temp__ = /, '').replace(/;[\s]*$/, '');
+    },
+    canHandle: (code: string, _lang: string) => {
+        const trimmed = code.trim();
+        // Don't wrap placeholder patterns
+        if (hasPlaceholderPatterns(code)) {
+            return false;
+        }
+        // Handle bare objects that start with { and end with }
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            // Make sure it's not already a valid statement
+            const hasDeclaration = /^(const|let|var|class|function)\b/.test(trimmed);
+            const hasModuleSyntax = /(^|\n)\s*(import|export)\b/.test(code);
+            return !hasDeclaration && !hasModuleSyntax;
+        }
+        return false;
+    },
+};
+
+/**
  * Ordered list of strategies to try
  */
 export const wrapStrategies: WrapStrategy[] = [
+    bareObjectWrapStrategy,  // Try bare objects first
     reactComponentWrapStrategy,
     jsxWrapStrategy,
     typeWrapStrategy,
