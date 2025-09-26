@@ -655,16 +655,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
     }
 
-    protected override updateDatumStyles({
-        datumSelection,
-        isHighlight,
-    }: {
+    protected override updateDatumStyles(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
     }) {
-        datumSelection.each((node, datum) => {
-            if (!datumSelection.isGarbage(node)) {
-                datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        opts.datumSelection.each((node, datum) => {
+            if (!opts.datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
             }
         });
     }
