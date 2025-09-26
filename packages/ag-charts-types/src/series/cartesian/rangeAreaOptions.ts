@@ -1,3 +1,4 @@
+import type { ContextCallbackParams, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -15,6 +16,14 @@ import type {
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+
+export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        AgRangeAreaSeriesOptionsKeys<TDatum>,
+        Required<AgRangeAreaSeriesStyle> {}
+
+export interface AgRangeAreaSeriesStyle extends StrokeOptions, FillOptions, LineDashOptions {}
 
 export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
@@ -57,6 +66,8 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgRangeAreaSeriesStylerParams<TDatum, TContext>, AgRangeAreaSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
