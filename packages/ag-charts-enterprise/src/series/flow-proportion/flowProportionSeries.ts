@@ -186,7 +186,7 @@ export abstract class FlowProportionSeries<
                   })
                 : null;
 
-        const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {
+        const linksDataModelPromise = dataController.request<any, any, false>(this.id, data.data, {
             props: [
                 valueProperty(fromKey, undefined, { id: 'fromValue', includeProperty: false }),
                 valueProperty(toKey, undefined, { id: 'toValue', includeProperty: false }),

@@ -1,15 +1,17 @@
-import { describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 
+import type { ChartMode } from '../chartMode';
 import { DataController } from './dataController';
 import type { DataModelOptions, DatumPropertyDefinition } from './dataModel';
+import { DataRef, wrapRawData } from './dataRef';
 
 describe('DataController', () => {
     let controller: DataController;
-    let data: Record<string, number>[];
+    let data: DataRef<Record<string, number>>;
 
     beforeEach(() => {
         controller = new DataController('standalone', false);
-        data = [];
+        data = DataRef.empty();
     });
 
     it('should merge compatible requests with identical definitions', async () => {
@@ -37,6 +39,27 @@ describe('DataController', () => {
         expect(results[0]).toEqual(results[1]);
         expect(results[0].processedData.defs.keys).toHaveLength(1);
         expect(results[0].processedData.defs.values).toHaveLength(1);
+    });
+
+    it('rejects invalid transaction shapes during preview', async () => {
+        const transactionalData = wrapRawData([{ valueProp1: 100 }]);
+        transactionalData.pendingTransactions.push({ append: 42 as any });
+
+        const promise = controller.request('preview-test', transactionalData, {
+            props: [
+                {
+                    id: 'valueProp1-key',
+                    property: 'valueProp1',
+                    type: 'value',
+                    valueType: 'range',
+                },
+            ],
+        });
+
+        controller.execute();
+
+        await expect(promise).rejects.toThrow('AG Charts - data transaction "append" must be an array.');
+        expect(transactionalData.pendingTransactions).toHaveLength(1);
     });
 
     it('should merge compatible requests with different ids', async () => {
@@ -216,11 +239,11 @@ describe('DataController', () => {
     });
 
     it('should not leak scopes', async () => {
-        data = [
+        data = wrapRawData([
             { keyProp1: 2020, valueProp1: 100 },
             { keyProp1: 2021, valueProp1: 200 },
             { keyProp1: 2022, valueProp1: 300 },
-        ];
+        ]);
 
         const promise1 = controller.request('test1', data, {
             props: [
@@ -248,16 +271,16 @@ describe('DataController', () => {
 
     describe('with multiple data sources', () => {
         it('should extract scoped data for each request with shared scopes', async () => {
-            const data1 = [
+            const data1 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 100 },
                 { keyProp1: '2021', valueProp1: 200 },
                 { keyProp1: '2022', valueProp1: 300 },
-            ];
-            const data2 = [
+            ]);
+            const data2 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 40 },
                 { keyProp1: '2021', valueProp1: 50 },
                 { keyProp1: '2022', valueProp1: 60 },
-            ];
+            ]);
 
             const def: DataModelOptions<'keyProp1' | 'valueProp1', any, false> = {
                 props: [
@@ -288,16 +311,16 @@ describe('DataController', () => {
         });
 
         it('should extract scoped data for each request with unique scopes', async () => {
-            const data1 = [
+            const data1 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 100 },
                 { keyProp1: '2021', valueProp1: 200 },
                 { keyProp1: '2022', valueProp1: 300 },
-            ];
-            const data2 = [
+            ]);
+            const data2 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 40 },
                 { keyProp1: '2021', valueProp1: 50 },
                 { keyProp1: '2022', valueProp1: 60 },
-            ];
+            ]);
 
             const promise1 = controller.request('test1', data1, {
                 props: [
@@ -341,8 +364,8 @@ describe('DataController', () => {
         });
 
         it('should extract scoped data for each request and not include given properties', async () => {
-            const data1 = [{ valueProp1: 100 }, { valueProp1: 200 }, { valueProp1: 300 }];
-            const data2 = [{ valueProp1: 40 }, { valueProp1: 50 }, { valueProp1: 60 }];
+            const data1 = wrapRawData([{ valueProp1: 100 }, { valueProp1: 200 }, { valueProp1: 300 }]);
+            const data2 = wrapRawData([{ valueProp1: 40 }, { valueProp1: 50 }, { valueProp1: 60 }]);
 
             const promise1 = controller.request('test1', data1, {
                 props: [
@@ -390,16 +413,16 @@ describe('DataController', () => {
         });
 
         it('should extract scoped grouped data and not leak scopes', async () => {
-            const data1 = [
+            const data1 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 100 },
                 { keyProp1: '2021', valueProp1: 200 },
                 { keyProp1: '2022', valueProp1: 300 },
-            ];
-            const data2 = [
+            ]);
+            const data2 = wrapRawData([
                 { keyProp1: '2020', valueProp1: 40 },
                 { keyProp1: '2021', valueProp1: 50 },
                 { keyProp1: '2022', valueProp1: 60 },
-            ];
+            ]);
 
             const def = {
                 groupByKeys: true,

@@ -506,7 +506,7 @@ export class DataModel<
         scope: ScopeProvider,
         searchId: string,
         type: PropertyDefinition<any>['type'],
-        processedData: ProcessedData<K>
+        processedData: ProcessedData<D>
     ): any[] | [number, number] | [] {
         const domains = this.getDomainsByType(type ?? 'value', processedData);
         return domains?.[this.resolveProcessedDataIndexById(scope, searchId)] ?? [];
@@ -516,7 +516,7 @@ export class DataModel<
         scope: ScopeProvider,
         searchIds: string[],
         [i0, i1]: [number, number],
-        processedData: ProcessedData<K>
+        processedData: ProcessedData<D>
     ): [number, number] {
         const columnIndices = searchIds.map((searchId) => this.resolveProcessedDataIndexById(scope, searchId));
         const cacheKey = columnIndices.join(':');
@@ -539,18 +539,18 @@ export class DataModel<
         return sortOrder.sortOrder;
     }
 
-    getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
+    getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<D>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
         const keys = processedData.keys[columnIndex]?.get(scope.id);
         return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS]) : undefined;
     }
 
-    getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
+    getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<D>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
         return this.getSortOrder(processedData.columns[columnIndex], columnIndex, processedData[COLUMN_SORT_ORDERS]);
     }
 
-    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
+    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<D>) {
         switch (type) {
             case 'key':
                 return processedData.domain.keys;
