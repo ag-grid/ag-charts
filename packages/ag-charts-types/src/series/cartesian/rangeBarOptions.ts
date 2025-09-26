@@ -30,10 +30,7 @@ export interface AgRangeBarSeriesStylerParams<TDatum, TContext>
     extends SeriesCallbackParams,
         ContextCallbackParams<TContext>,
         AgRangeBarSeriesOptionsKeys<TDatum>,
-        Required<AgRangeBarSeriesStyle> {
-    /** Whether these bars of this series are grouped adjacently to bars of other series. */
-    readonly grouped?: boolean;
-}
+        Required<AgRangeBarSeriesStyle> {}
 
 export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
