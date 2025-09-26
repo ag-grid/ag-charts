@@ -22,6 +22,7 @@ import {
     required,
     string,
     themeOperator,
+    undocumented,
     unionSymbol,
 } from 'ag-charts-core';
 import type {
@@ -260,7 +261,7 @@ const polarAxesThemeDef: OptionsDefs<AgPolarAxesTheme> = {
 };
 
 const undocumentedSeriesOptionsDef: OptionsDefs<any> = {
-    visible: boolean,
+    visible: undocumented(boolean),
 };
 
 export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
@@ -339,6 +340,8 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         series: scatterSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
         ...undocumentedSeriesOptionsDef,
+        // @ts-expect-error undocumented option - required by grid
+        paired: undocumented(boolean),
     },
     bubble: {
         ...commonChartOptionsDefs,
