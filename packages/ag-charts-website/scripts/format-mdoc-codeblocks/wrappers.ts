@@ -88,12 +88,38 @@ const functionWrapStrategy: WrapStrategy = {
 const objectWrapStrategy: WrapStrategy = {
     name: 'object',
     wrap: (code: string, _lang: string) => {
-        // Always wrap as an object property - this is the most reliable approach
-        // Use replace with regex for better performance on large strings
+        const trimmed = code.trim();
+        // Check if this is a complete object literal that already has braces
+        if (trimmed.startsWith('{') && (trimmed.endsWith('}') || trimmed.endsWith('};'))) {
+            // It's already a complete object, just assign it
+            // Mark whether it had a semicolon for unwrapping
+            const hadSemicolon = trimmed.endsWith('};');
+            return `// __HAD_SEMICOLON__:${hadSemicolon}\nconst __temp__ = ${code}`;
+        }
+        // Otherwise, it's object properties without braces, so wrap them
         const indentedCode = code.replace(/^/gm, '    ');
         return `const __temp__ = {\n    // __ORIGINAL_START__\n    ${indentedCode}\n    // __ORIGINAL_END__\n};`;
     },
     unwrap: (formatted: string) => {
+        // Check if this was a complete object (no markers)
+        if (!formatted.includes('// __ORIGINAL_START__')) {
+            // Check if original had semicolon
+            const hadSemicolon = formatted.includes('// __HAD_SEMICOLON__:true');
+            // For complete objects, just remove the wrapper
+            // The formatted code might have the comment on first line
+            const lines = formatted.split('\n');
+            const codeWithoutComment = lines.filter(line => !line.includes('// __HAD_SEMICOLON__')).join('\n');
+            const match = codeWithoutComment.match(/^const __temp__ = (\{[\s\S]*?\});?$/);
+            if (match) {
+                let result = match[1];
+                // Add semicolon back if original had it
+                if (hadSemicolon && !result.endsWith('};')) {
+                    result = result.replace(/\}$/, '};');
+                }
+                return result;
+            }
+        }
+
         // Remove the wrapper comments and extract the original code
         const startMarker = '// __ORIGINAL_START__';
         const endMarker = '// __ORIGINAL_END__';
@@ -157,6 +183,16 @@ const objectWrapStrategy: WrapStrategy = {
         if (/^(const|let|var|class|function)\b/.test(trimmed)) {
             return false;
         }
+
+        // Check if it's a plain object literal
+        if (trimmed.startsWith('{') && (trimmed.endsWith('}') || trimmed.endsWith('};'))) {
+            // Make sure it's not a code block or type definition
+            const looksLikeTypeAnnotation = /:\s*[^,{}()]+;/.test(trimmed);
+            if (!looksLikeTypeAnnotation) {
+                return true;
+            }
+        }
+
         return (
             // Property: value pattern
             /^[a-zA-Z_$][a-zA-Z0-9_$]*\s*:/.test(trimmed) ||
@@ -291,27 +327,26 @@ const expressionWrapStrategy: WrapStrategy = {
         if (hasModuleSyntax) {
             return false;
         }
-        // Allow plain object literals that represent option blocks
-        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-            const looksLikeTypeAnnotation = /:\s*[^,{}()]+;/.test(trimmed);
-            if (!looksLikeTypeAnnotation) {
-                return true;
-            }
+        // Don't match plain object literals - let objectWrapStrategy handle them
+        // This includes objects that end with };
+        if (trimmed.startsWith('{') && (trimmed.endsWith('}') || trimmed.endsWith('};'))) {
             return false;
         }
         if (/^(const|let|var|class|function)\b/.test(trimmed)) {
             return false;
         }
-        return (
-            // Method chains
-            trimmed.includes('.') ||
-            // Function calls
-            (trimmed.includes('(') && trimmed.includes(')')) ||
-            // Array/object access
-            trimmed.includes('[') ||
-            // Template literals
-            trimmed.includes('`')
-        );
+        // Only match actual expressions, not objects with methods
+        const startsWithExpression =
+            // Method/property chain
+            /^\w+\./.test(trimmed) ||
+            // Function call (but not an object)
+            (/^\w+\(/.test(trimmed) && !trimmed.startsWith('{')) ||
+            // Array/object member access
+            /^\w+\[/.test(trimmed) ||
+            // Template literal at start
+            /^`/.test(trimmed);
+
+        return startsWithExpression;
     },
 };
 
@@ -540,6 +575,44 @@ const interfacePropertyWrapStrategy: WrapStrategy = {
 };
 
 /**
+ * Strategy for documentation shorthand - object properties ending with };
+ * This pattern shows partial object configuration in documentation
+ */
+const docShorthandStrategy: WrapStrategy = {
+    name: 'docShorthand',
+    wrap: (code: string, _lang: string) => {
+        // Remove the trailing }; and wrap as object properties
+        const withoutClosing = code.trim().replace(/\};?\s*$/, '');
+        const indentedCode = withoutClosing.replace(/^/gm, '    ');
+        return `const __temp__ = {\n${indentedCode}\n};`;
+    },
+    unwrap: (formatted: string) => {
+        const lines = formatted.split('\n');
+        if (lines.length >= 3 && formatted.startsWith('const __temp__')) {
+            // Remove first and last lines, unindent the content
+            const content = lines
+                .slice(1, -1)
+                .map(line => line.replace(/^    /, ''))
+                .join('\n')
+                .trim();
+            // Add back the closing };
+            return content + '\n};';
+        }
+        return formatted;
+    },
+    canHandle: (code: string, _lang: string) => {
+        const trimmed = code.trim();
+        // Match documentation shorthand: properties ending with };
+        // but NOT starting with {
+        if (!trimmed.startsWith('{') && trimmed.endsWith('};')) {
+            // Check if it looks like object properties (has colons)
+            return /^\s*\w+\s*:/.test(trimmed) || /^\s*["'][^"']+["']\s*:/.test(trimmed);
+        }
+        return false;
+    },
+};
+
+/**
  * Strategy for comment + partial object pattern
  */
 const commentPlusObjectStrategy: WrapStrategy = {
@@ -625,34 +698,6 @@ const commentPlusObjectStrategy: WrapStrategy = {
     },
 };
 
-/**
- * Strategy for wrapping bare objects in documentation
- */
-const bareObjectWrapStrategy: WrapStrategy = {
-    name: 'bareObject',
-    wrap: (code: string, _lang: string) => {
-        return `const __temp__ = ${code};`;
-    },
-    unwrap: (formatted: string) => {
-        // Remove the const __temp__ = wrapper and trailing semicolon
-        return formatted.replace(/^const __temp__ = /, '').replace(/;[\s]*$/, '');
-    },
-    canHandle: (code: string, _lang: string) => {
-        const trimmed = code.trim();
-        // Don't wrap placeholder patterns
-        if (hasPlaceholderPatterns(code)) {
-            return false;
-        }
-        // Handle bare objects that start with { and end with }
-        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-            // Make sure it's not already a valid statement
-            const hasDeclaration = /^(const|let|var|class|function)\b/.test(trimmed);
-            const hasModuleSyntax = /(^|\n)\s*(import|export)\b/.test(code);
-            return !hasDeclaration && !hasModuleSyntax;
-        }
-        return false;
-    },
-};
 
 /**
  * Strategy for React hooks outside components
@@ -687,13 +732,22 @@ const standaloneReactHooksStrategy: WrapStrategy = {
         // Check for React hooks pattern
         const hasUseState = /^(const|let)\s+\[.*\]\s*=\s*useState/.test(trimmed);
         const hasUseEffect = /^useEffect/.test(trimmed);
-        const hasReturn = /^return\s*[(<]/.test(trimmed);
         const hasReactHook = /^use[A-Z]\w*\(/.test(trimmed);
+
+        // If it has both hooks AND a return statement with JSX, it's complete component content
+        // that should be handled by reactComponentWrapStrategy instead
+        const hasReturnJsx = /return\s*[(<]/.test(code);
+        if ((hasUseState || hasUseEffect || hasReactHook) && hasReturnJsx) {
+            return false; // Let reactComponentWrapStrategy handle this
+        }
+
+        // Check for standalone return statements
+        const startsWithReturn = /^return\s*[(<]/.test(trimmed);
 
         // Make sure it's not already in a component or function
         const hasComponentDeclaration = /function\s+\w+|const\s+\w+\s*=.*=>/.test(trimmed);
 
-        return (hasUseState || hasUseEffect || hasReactHook || hasReturn) && !hasComponentDeclaration;
+        return (hasUseState || hasUseEffect || hasReactHook || startsWithReturn) && !hasComponentDeclaration;
     },
 };
 
@@ -701,14 +755,14 @@ const standaloneReactHooksStrategy: WrapStrategy = {
  * Ordered list of strategies to try
  */
 export const wrapStrategies: WrapStrategy[] = [
-    commentPlusObjectStrategy, // Handle comment + object patterns first
+    docShorthandStrategy, // Handle documentation shorthand patterns first
+    commentPlusObjectStrategy, // Handle comment + object patterns
     standaloneReactHooksStrategy, // Handle React hooks outside components
-    bareObjectWrapStrategy, // Try bare objects
     reactComponentWrapStrategy,
     jsxWrapStrategy,
     typeWrapStrategy,
     interfacePropertyWrapStrategy,
-    objectWrapStrategy,
+    objectWrapStrategy, // Handles both complete objects and object properties
     arrayWrapStrategy,
     expressionWrapStrategy,
     functionWrapStrategy,

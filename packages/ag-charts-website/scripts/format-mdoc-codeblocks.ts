@@ -5,7 +5,7 @@ import { glob } from 'glob';
 import * as path from 'path';
 import { promisify } from 'util';
 
-import { checkMdocFile, formatMdocFile } from './format-mdoc-codeblocks/formatter';
+import { checkMdocFile, formatMdocFile, formatMdocFileDebug } from './format-mdoc-codeblocks/formatter';
 
 const globAsync = promisify(glob);
 
@@ -25,6 +25,7 @@ const globAsync = promisify(glob);
 interface CliOptions {
     write: boolean;
     check: boolean;
+    debug: boolean;
     files: string[];
 }
 
@@ -33,6 +34,7 @@ function parseArgs(): CliOptions {
     const options: CliOptions = {
         write: false,
         check: false,
+        debug: false,
         files: [],
     };
 
@@ -43,6 +45,8 @@ function parseArgs(): CliOptions {
             options.write = true;
         } else if (arg === '--check' || arg === '-c') {
             options.check = true;
+        } else if (arg === '--debug' || arg === '-d') {
+            options.debug = true;
         } else if (!arg.startsWith('-')) {
             options.files.push(arg);
         }
@@ -88,7 +92,14 @@ async function main() {
         process.exit(1);
     }
 
-    console.log(`Running mdoc code block formatter in ${options.write ? 'write' : 'check'} mode...`);
+    if (options.debug && !options.write) {
+        console.error('Error: --debug flag requires --write flag');
+        process.exit(1);
+    }
+
+    console.log(
+        `Running mdoc code block formatter in ${options.write ? 'write' : 'check'} mode${options.debug ? ' (DEBUG)' : ''}...`
+    );
 
     const files = await findFiles(options.files);
 
@@ -108,7 +119,7 @@ async function main() {
             const relativePath = path.relative(process.cwd(), file);
 
             if (options.write) {
-                const changed = await formatMdocFile(file);
+                const changed = options.debug ? await formatMdocFileDebug(file) : await formatMdocFile(file);
                 if (changed) {
                     filesChanged++;
                     console.log(`✓ Formatted: ${relativePath}`);
@@ -134,7 +145,12 @@ async function main() {
     if (errors.length > 0) {
         console.error(`\nErrors encountered in ${errors.length} file(s):`);
         for (const { file, error } of errors) {
-            console.error(`  ${file}: ${error.message}`);
+            // If error message already contains file path with line number, use it directly
+            if (error.message.includes(file)) {
+                console.error(`  ${error.message}`);
+            } else {
+                console.error(`  ${file}: ${error.message}`);
+            }
         }
     }
 
