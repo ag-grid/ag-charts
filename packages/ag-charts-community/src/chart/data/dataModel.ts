@@ -764,7 +764,7 @@ export class DataModel<
         }
 
         // Create ProcessedDataMutator and apply changes
-        const mutator = new ProcessedDataMutator(this);
+        const mutator = new ProcessedDataMutator();
         mutator.mutate(processedData, changeDescriptor);
 
         // Note: ProcessedDataMutator already sets animation validation flags to false
