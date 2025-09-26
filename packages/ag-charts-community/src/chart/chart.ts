@@ -1790,6 +1790,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.data.pendingTransactions.push(transaction);
         });
 
-        this.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true });
+        this.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true, skipAnimations: true });
     }
 }
