@@ -497,6 +497,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
+        marker: markerStyleOptionsDefs,
     }),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     segmentation: shapeSegmentation,

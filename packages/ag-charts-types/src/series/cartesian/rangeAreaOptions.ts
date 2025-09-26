@@ -23,7 +23,9 @@ export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         Required<AgRangeAreaSeriesStyle> {}
 
-export interface AgRangeAreaSeriesStyle extends StrokeOptions, FillOptions, LineDashOptions {}
+export interface AgRangeAreaSeriesStyle extends StrokeOptions, FillOptions, LineDashOptions {
+    marker?: AgSeriesMarkerStyle;
+}
 
 export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
