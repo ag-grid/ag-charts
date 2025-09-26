@@ -1,3 +1,4 @@
+import { ArrayUpdater } from './arrayUpdater';
 import type { DataChangeDescriptor } from './dataChangeDescriptor';
 import type { DataModel, ProcessedData, ProcessedOutputDiff } from './dataModel';
 
@@ -144,41 +145,17 @@ export class ProcessedDataMutator {
     }
 
     /**
-     * Apply changes to a single array using splice operations.
+     * Apply changes to a single array using ArrayUpdater.
      * This is the core mutation logic that handles removals, insertions, and updates.
      */
     private mutateArray(array: any[], changes: DataChangeDescriptor, columnOrKeyIndex: number, scopeId?: string): void {
-        // TODO: Use ArrayUpdater when it's implemented in Phase 3
-        // For now, implement basic splice-based operations
+        // Create an extractor function that uses our value extraction logic
+        const extractor = (datum: any) => {
+            return this.extractValueForArray(datum, columnOrKeyIndex, scopeId);
+        };
 
-        // Apply removals first (in reverse order to maintain index stability)
-        const sortedRemovals = [...changes.removed].sort((a, b) => b.index - a.index);
-        for (const removal of sortedRemovals) {
-            if (removal.index < array.length) {
-                array.splice(removal.index, 1);
-            }
-        }
-
-        // Apply insertions (in forward order)
-        const sortedInsertions = [...changes.inserted].sort((a, b) => a.index - b.index);
-        for (const insertion of sortedInsertions) {
-            // TODO: Extract proper value using DataModel extractors
-            // For now, use placeholder value
-            const extractedValue = this.extractValueForArray(insertion.datum, columnOrKeyIndex, scopeId);
-
-            if (insertion.index <= array.length) {
-                array.splice(insertion.index, 0, extractedValue);
-            }
-        }
-
-        // Apply updates (can be in any order since indices don't shift)
-        for (const update of changes.updated) {
-            if (update.index < array.length) {
-                // TODO: Extract proper value using DataModel extractors
-                const extractedValue = this.extractValueForArray(update.newDatum, columnOrKeyIndex, scopeId);
-                array[update.index] = extractedValue;
-            }
-        }
+        // Use ArrayUpdater to apply all changes efficiently
+        ArrayUpdater.applyChanges(array, changes, extractor);
     }
 
     /**
@@ -189,8 +166,9 @@ export class ProcessedDataMutator {
         // TODO: Use this.dataModel.processValue() when it's refactored to be public
         // For now, return a placeholder that won't cause runtime errors
         // dataModel will be used for value extraction in future implementation
-        this.dataModel; // Reference to prevent unused variable warning
-        return datum ?? null;
+        void this.dataModel; // Reference to prevent unused variable warning
+        void datum; // Reference to prevent unused variable warning
+        return null;
     }
 
     /**
@@ -212,9 +190,9 @@ export class ProcessedDataMutator {
         // - processedData[COLUMN_SORT_ORDERS] for affected columns
 
         // Prevent unused parameter warnings - parameters will be used in future implementation
-        processedData;
-        affectedColumns;
-        affectedKeys;
+        void processedData;
+        void affectedColumns;
+        void affectedKeys;
     }
 
     /**
