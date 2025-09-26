@@ -116,7 +116,7 @@ This document outlines the implementation plan for adding efficient transaction 
 
 #### Task 1.4: Transaction Ordering Rules
 
--   [ ] Implement deterministic transaction ordering in TransactionAnalyzer:
+-   [x] Implement deterministic transaction ordering in TransactionAnalyzer:
     ```typescript
     // Order of operations to maintain index stability:
     // 1. Process removals in reverse index order (highest to lowest)
@@ -126,18 +126,18 @@ This document outlines the implementation plan for adding efficient transaction 
     // 3. Process insertions in forward index order (lowest to highest)
     //    This ensures each insertion index is correct relative to previous insertions
     ```
--   [ ] Add validation to ensure operation indices don't overlap:
+-   [x] Add validation to ensure operation indices don't overlap:
     -   Removal indices must be unique
     -   Update indices must not overlap with removals
     -   Insertion indices account for prior removals
--   [ ] Unit test edge cases:
+-   [x] Unit test edge cases:
     -   Simultaneous remove + insert at same index
     -   Multiple operations affecting adjacent indices
     -   Operations that would create gaps or overlaps
 
 #### Task 1.5: Extract DataModel Prerequisites
 
--   [ ] Refactor DataModel to expose required functionality:
+-   [x] Refactor DataModel to expose required functionality:
 
     ```typescript
     // Cache value extractors for reuse in incremental updates
@@ -149,9 +149,9 @@ This document outlines the implementation plan for adding efficient transaction 
     }
     ```
 
--   [ ] Initialize extractor cache during first processData run
--   [ ] Ensure extractors are reusable across incremental updates
--   [ ] Add tests for extractor caching and processValue exposure
+-   [x] Initialize extractor cache during first processData run
+-   [x] Ensure extractors are reusable across incremental updates
+-   [x] Add tests for extractor caching and processValue exposure
 <!-- RESOLVED: Prerequisites moved earlier to unblock dependent tasks -->
 
 ### Phase 2: DataModel Extension

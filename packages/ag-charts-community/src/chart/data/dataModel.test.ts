@@ -1484,4 +1484,203 @@ describe('DataModel', () => {
             expect(getPathComponents(`[test]`)).toBe(undefined);
         });
     });
+
+    describe('processValue method', () => {
+        it('should expose processValue as a public method', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), value('vp1')],
+            });
+
+            expect(typeof dataModel.processValue).toBe('function');
+        });
+
+        it('should process values correctly with basic property access', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), value('vp1')],
+            });
+
+            const def = {
+                scopes: ['test'],
+                property: 'vp1',
+                type: 'value' as const,
+                valueType: 'range' as const,
+                index: 0,
+                missing: new Map(),
+            };
+
+            const datum = { kp: 2, vp1: 5 };
+            const result = dataModel.processValue(def, datum, 0);
+
+            expect(result).toEqual({
+                value: 5,
+                missing: false,
+                valid: true,
+            });
+        });
+
+        it('should handle missing values correctly', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), value('vp1')],
+            });
+
+            const def = {
+                scopes: ['test'],
+                property: 'vp1',
+                type: 'value' as const,
+                valueType: 'range' as const,
+                index: 0,
+                missing: new Map(),
+                missingValue: null,
+            };
+
+            const datum = { kp: 2 }; // vp1 is missing
+            const result = dataModel.processValue(def, datum, 0, 'test');
+
+            expect(result).toEqual({
+                value: null,
+                missing: true,
+                valid: true,
+            });
+        });
+
+        it('should cache processors for reuse', () => {
+            const processorCallCount = { count: 0 };
+            const mockProcessor = () => {
+                processorCallCount.count += 1;
+                return (value: any) => value * 2;
+            };
+
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), { ...value('vp1'), processor: mockProcessor }],
+            });
+
+            const def = {
+                scopes: ['test'],
+                property: 'vp1',
+                type: 'value' as const,
+                valueType: 'range' as const,
+                index: 0,
+                missing: new Map(),
+                processor: mockProcessor,
+            };
+
+            const datum1 = { kp: 2, vp1: 5 };
+            const datum2 = { kp: 3, vp1: 6 };
+
+            // First call should create and cache the processor
+            const result1 = dataModel.processValue(def, datum1, 0);
+            expect(result1.value).toBe(10); // 5 * 2
+            expect(processorCallCount.count).toBe(1);
+
+            // Second call should reuse the cached processor
+            const result2 = dataModel.processValue(def, datum2, 1);
+            expect(result2.value).toBe(12); // 6 * 2
+            expect(processorCallCount.count).toBe(1); // Should still be 1, not 2
+        });
+
+        it('should handle validation correctly', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), value('vp1')],
+            });
+
+            const def = {
+                scopes: ['test'],
+                property: 'vp1',
+                type: 'value' as const,
+                valueType: 'range' as const,
+                index: 0,
+                missing: new Map(),
+                validation: (value: any) => typeof value === 'number',
+                invalidValue: NaN,
+            };
+
+            // Valid value
+            const validDatum = { kp: 2, vp1: 5 };
+            const validResult = dataModel.processValue(def, validDatum, 0);
+            expect(validResult).toEqual({
+                value: 5,
+                missing: false,
+                valid: true,
+            });
+
+            // Invalid value
+            const invalidDatum = { kp: 2, vp1: 'not a number' };
+            const invalidResult = dataModel.processValue(def, invalidDatum, 0);
+            expect(invalidResult).toEqual({
+                value: NaN,
+                missing: false,
+                valid: false,
+            });
+        });
+
+        it('should handle forced values', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), value('vp1')],
+            });
+
+            const def = {
+                scopes: ['test'],
+                property: 'vp1',
+                type: 'value' as const,
+                valueType: 'range' as const,
+                index: 0,
+                missing: new Map(),
+                forceValue: 100,
+            };
+
+            const datum = { kp: 2, vp1: 5 };
+            const result = dataModel.processValue(def, datum, 0);
+
+            expect(result).toEqual({
+                value: 100,
+                missing: false,
+                valid: true,
+            });
+        });
+
+        it('should track missing values by scope', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), value('vp1')],
+            });
+
+            const def = {
+                scopes: ['test'],
+                property: 'vp1',
+                type: 'value' as const,
+                valueType: 'range' as const,
+                index: 0,
+                missing: new Map(),
+            };
+
+            const datum = { kp: 2 }; // vp1 is missing
+            dataModel.processValue(def, datum, 0, 'test');
+
+            expect(def.missing.get('test')).toBe(1);
+
+            // Process another missing value
+            dataModel.processValue(def, datum, 1, 'test');
+            expect(def.missing.get('test')).toBe(2);
+        });
+
+        it('should track missing values by multiple scopes', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), value('vp1')],
+            });
+
+            const def = {
+                scopes: ['test1', 'test2'],
+                property: 'vp1',
+                type: 'value' as const,
+                valueType: 'range' as const,
+                index: 0,
+                missing: new Map(),
+            };
+
+            const datum = { kp: 2 }; // vp1 is missing
+            dataModel.processValue(def, datum, 0, ['test1', 'test2']);
+
+            expect(def.missing.get('test1')).toBe(1);
+            expect(def.missing.get('test2')).toBe(1);
+        });
+    });
 });

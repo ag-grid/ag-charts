@@ -316,6 +316,7 @@ export class DataModel<
     private readonly debug = Debug.create(true, 'data-model');
     private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition<false>>> =
         new Map();
+    private extractorCache = new Map<InternalDatumPropertyDefinition<K>, ProcessorFn>();
 
     private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
     private readonly values: InternalDatumPropertyDefinition<K>[] = [];
@@ -528,6 +529,111 @@ export class DataModel<
             domainRanges.set(cacheKey, rangeLookup);
         }
         return rangeLookup.rangeBetween(i0, i1);
+    }
+
+    /**
+     * Processes a single datum value according to the given property definition.
+     * This method is used for both initial data processing and incremental updates.
+     *
+     * @param def The property definition to use for processing
+     * @param datum The data item to extract the value from
+     * @param idx The index of the datum in the data array
+     * @param valueScopes Optional scope(s) for missing value tracking
+     * @param accessors Optional pre-built accessors for performance
+     * @param dataDomain Optional domain map for domain extension during processing
+     * @param initDataDomain Optional function to initialize data domain if missing
+     * @returns ProcessedValue containing the processed value and metadata
+     */
+    public processValue(
+        def: InternalDatumPropertyDefinition<K>,
+        datum: any,
+        idx: number,
+        valueScopes?: string | string[],
+        accessors?: Map<string, (d: any) => any>,
+        dataDomain?: Map<object, IDataDomain>,
+        initDataDomain?: () => void
+    ): ProcessedValue {
+        const propertyAccessors = accessors ?? this.buildAccessors([def]);
+
+        let valueInDatum: boolean;
+        let value;
+        if (propertyAccessors.has(def.property)) {
+            try {
+                value = propertyAccessors.get(def.property)!(datum);
+            } catch {
+                // Swallow errors - these get reported as missing values to the user later.
+            }
+            valueInDatum = value != null;
+        } else {
+            valueInDatum = def.property in datum;
+            value = valueInDatum ? datum[def.property] : def.missingValue;
+        }
+
+        if (def.forceValue != null) {
+            // Maintain sign of forceValue from actual value, this maybe significant later when
+            // we account for the value falling into positive/negative buckets.
+            const valueNegative = valueInDatum && isNegative(value);
+            value = valueNegative ? -1 * def.forceValue : def.forceValue;
+            valueInDatum = true;
+        }
+
+        const result: ProcessedValue = {
+            value: undefined,
+            missing: !valueInDatum,
+            valid: false,
+        };
+
+        const missingValueDef = 'missingValue' in def;
+        if (!valueInDatum && !missingValueDef && valueScopes) {
+            if (typeof valueScopes === 'string') {
+                const missCount = def.missing.get(valueScopes) ?? 0;
+                def.missing.set(valueScopes, missCount + 1);
+            } else {
+                for (const scope of valueScopes) {
+                    const missCount = def.missing.get(scope) ?? 0;
+                    def.missing.set(scope, missCount + 1);
+                }
+            }
+        }
+
+        if (dataDomain && !dataDomain.has(def) && initDataDomain) {
+            initDataDomain();
+        }
+
+        if (valueInDatum && def.validation?.(value, datum, idx) === false) {
+            result.valid = false;
+
+            if ('invalidValue' in def) {
+                value = def.invalidValue;
+            } else {
+                if (this.mode !== 'integrated') {
+                    Logger.warnOnce(
+                        `invalid value of type [${typeof value}] for [${def.scopes} / ${def.id}] ignored:`,
+                        `[${value}]`
+                    );
+                }
+                result.value = undefined;
+                return result;
+            }
+        } else {
+            result.valid = true;
+        }
+
+        if (def.processor) {
+            let processor = this.extractorCache.get(def);
+            if (processor == null) {
+                processor = def.processor();
+                this.extractorCache.set(def, processor);
+            }
+            value = processor(value, idx);
+        }
+
+        if (dataDomain) {
+            dataDomain.get(def)?.extend(value);
+        }
+
+        result.value = value;
+        return result;
     }
 
     private getSortOrder(values: any[], index: number, sortOrders: Map<number, { sortOrder: SortOrder }>): SortOrder {
@@ -1155,7 +1261,6 @@ export class DataModel<
         }
 
         const dataDomain: Map<object, IDataDomain> = new Map();
-        const processorFns = new Map<InternalDatumPropertyDefinition<K>, ProcessorFn>();
         let allScopesHaveSameDefs = true;
 
         const initDataDomain = () => {
@@ -1172,88 +1277,14 @@ export class DataModel<
 
         const accessors = this.buildAccessors(iterate(keyDefs, valueDefs));
 
-        const reusableResult: ProcessedValue = {
-            value: undefined,
-            missing: false,
-            valid: false,
-        };
+        // Use the public processValue method with shared contexts
         const processValue = (
             def: InternalDatumPropertyDefinition<K>,
             datum: Record<string, any>,
             idx: number,
             valueScopes: string | string[]
         ): ProcessedValue => {
-            let valueInDatum: boolean;
-            let value;
-            if (accessors.has(def.property)) {
-                try {
-                    value = accessors.get(def.property)!(datum);
-                } catch {
-                    // Swallow errors - these get reported as missing values to the user later.
-                }
-                valueInDatum = value != null;
-            } else {
-                valueInDatum = def.property in datum;
-                value = valueInDatum ? datum[def.property] : def.missingValue;
-            }
-
-            if (def.forceValue != null) {
-                // Maintain sign of forceValue from actual value, this maybe significant later when
-                // we account for the value falling into positive/negative buckets.
-                const valueNegative = valueInDatum && isNegative(value);
-                value = valueNegative ? -1 * def.forceValue : def.forceValue;
-                valueInDatum = true;
-            }
-            reusableResult.missing = !valueInDatum;
-
-            const missingValueDef = 'missingValue' in def;
-            if (!valueInDatum && !missingValueDef) {
-                if (typeof valueScopes === 'string') {
-                    const missCount = def.missing.get(valueScopes) ?? 0;
-                    def.missing.set(valueScopes, missCount + 1);
-                } else {
-                    for (const scope of valueScopes) {
-                        const missCount = def.missing.get(scope) ?? 0;
-                        def.missing.set(scope, missCount + 1);
-                    }
-                }
-            }
-
-            if (!dataDomain.has(def)) {
-                initDataDomain();
-            }
-
-            if (valueInDatum && def.validation?.(value, datum, idx) === false) {
-                reusableResult.valid = false;
-
-                if ('invalidValue' in def) {
-                    value = def.invalidValue;
-                } else {
-                    if (this.mode !== 'integrated') {
-                        Logger.warnOnce(
-                            `invalid value of type [${typeof value}] for [${def.scopes} / ${def.id}] ignored:`,
-                            `[${value}]`
-                        );
-                    }
-                    reusableResult.value = undefined;
-                    return reusableResult;
-                }
-            } else {
-                reusableResult.valid = true;
-            }
-
-            if (def.processor) {
-                let processor = processorFns.get(def);
-                if (processor == null) {
-                    processor = def.processor();
-                    processorFns.set(def, processor);
-                }
-                value = processor(value, idx);
-            }
-
-            dataDomain.get(def)?.extend(value);
-            reusableResult.value = value;
-            return reusableResult;
+            return this.processValue(def, datum, idx, valueScopes, accessors, dataDomain, initDataDomain);
         };
 
         return { dataDomain, processValue, initDataDomain, scopes, allScopesHaveSameDefs };
