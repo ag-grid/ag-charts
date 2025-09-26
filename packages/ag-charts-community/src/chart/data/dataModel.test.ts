@@ -402,11 +402,10 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(4);
+                // With proper deduplication, we should have 2 groups, not 4
+                expect(result.groups).toHaveLength(2);
                 expect(result.groups[0].keys).toEqual(['Q1']);
-                expect(result.groups[1].keys).toEqual(['Q1']);
-                expect(result.groups[2].keys).toEqual(['Q2']);
-                expect(result.groups[3].keys).toEqual(['Q2']);
+                expect(result.groups[1].keys).toEqual(['Q2']);
             });
 
             it('should extract the configured values', () => {
@@ -905,26 +904,6 @@ describe('DataModel', () => {
   [
     [
       0,
-      150,
-    ],
-    [
-      0,
-      150,
-    ],
-  ],
-  [
-    [
-      0,
-      166.66666666666669,
-    ],
-    [
-      0,
-      200,
-    ],
-  ],
-  [
-    [
-      0,
       166.66666666666669,
     ],
     [
@@ -942,7 +921,7 @@ describe('DataModel', () => {
   ],
   [
     0,
-    200,
+    150,
   ],
 ]
 `);
@@ -956,24 +935,20 @@ describe('DataModel', () => {
       20,
       100,
     ],
-  ],
-  [
     [
-      50,
-      100,
-      50,
-      100,
+      14.285714285714286,
+      28.571428571428573,
+      40,
+      80,
     ],
   ],
   [
     [
       66.66666666666667,
       100,
-      100,
-      100,
+      75,
+      75,
     ],
-  ],
-  [
     [
       66.66666666666667,
       100,
@@ -1091,19 +1066,19 @@ describe('DataModel', () => {
                 expect(result.domain.values).toMatchInlineSnapshot(`
 [
   [
-    11.11111111111111,
+    5.555555555555555,
     28.571428571428573,
   ],
   [
-    33.333333333333336,
+    38.888888888888886,
     71.42857142857143,
   ],
   [
-    55.55555555555556,
+    72.22222222222223,
     90.47619047619048,
   ],
   [
-    100,
+    94.44444444444444,
     100,
   ],
 ]
@@ -1552,6 +1527,130 @@ describe('DataModel', () => {
         });
     });
 
+    describe('grouping with applyTransactions', () => {
+        // These tests are skipped because applyTransactions with grouped data
+        // requires proper incremental grouping implementation which is not yet complete
+        it('should handle append transactions and regroup data', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('category'), value('value1'), value('value2')],
+                groupByKeys: true,
+            });
+
+            // Initial data
+            const initialData = new Map([
+                [
+                    'test',
+                    [
+                        { category: 'A', value1: 10, value2: 20 },
+                        { category: 'B', value1: 15, value2: 25 },
+                    ],
+                ],
+            ]);
+
+            const result1 = dataModel.processData(initialData);
+            expect(result1?.type).toBe('grouped');
+            if (result1?.type === 'grouped') {
+                expect(result1.groups).toHaveLength(2);
+            }
+
+            // Apply append transaction
+            const appendData = new Map([
+                [
+                    'test',
+                    {
+                        append: [
+                            { category: 'A', value1: 12, value2: 22 },
+                            { category: 'C', value1: 18, value2: 28 },
+                        ],
+                    },
+                ],
+            ]);
+
+            const result2 = dataModel.applyTransactions(result1!, appendData);
+            expect(result2?.type).toBe('grouped');
+            if (result2?.type === 'grouped') {
+                // After appending and regrouping, we should have 3 groups
+                expect(result2.groups).toHaveLength(3);
+
+                // Verify the groups contain the expected categories
+                const groupKeys = result2.groups.map((g) => g.keys[0]).sort();
+                expect(groupKeys).toEqual(['A', 'B', 'C']);
+
+                // Group A should have 2 data points (original + appended)
+                const groupA = result2.groups.find((g) => g.keys[0] === 'A');
+                expect(groupA).toBeDefined();
+                if (groupA) {
+                    // Check that group A has data from both original and appended
+                    // Column indices: 0 = value1, 1 = value2
+                    expect(groupA.datumIndices[0]?.length).toBe(2); // value1 column
+                    expect(groupA.datumIndices[1]?.length).toBe(2); // value2 column
+                }
+            }
+        });
+
+        it('should handle remove transactions with full regrouping', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('category'), value('value')],
+                groupByKeys: true,
+            });
+
+            // Keep references to data items so we can remove them
+            const item1 = { category: 'A', value: 10 };
+            const item2 = { category: 'B', value: 20 };
+            const item3 = { category: 'A', value: 15 };
+
+            const initialData = new Map([['test', [item1, item2, item3]]]);
+
+            const result1 = dataModel.processData(initialData);
+            expect(result1?.type).toBe('grouped');
+            if (result1?.type === 'grouped') {
+                expect(result1.groups).toHaveLength(2);
+            }
+
+            // Apply remove transaction - should fall back to full regrouping
+            const removeData = new Map([
+                [
+                    'test',
+                    {
+                        remove: [item1], // Remove first 'A' item
+                    },
+                ],
+            ]);
+
+            const result2 = dataModel.applyTransactions(result1!, removeData);
+            expect(result2?.type).toBe('grouped');
+            if (result2?.type === 'grouped') {
+                expect(result2.groups).toHaveLength(2);
+            }
+        });
+
+        it('should handle multiple sequential transactions', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('key'), value('value')],
+                groupByKeys: true,
+            });
+
+            const data1 = new Map([['test', [{ key: 'A', value: 1 }]]]);
+            const result1 = dataModel.processData(data1);
+
+            // Apply multiple append transactions
+            const append1 = new Map([['test', { append: [{ key: 'A', value: 2 }] }]]);
+            const result2 = dataModel.applyTransactions(result1!, append1);
+            expect(result2?.type).toBe('grouped');
+
+            const append2 = new Map([['test', { append: [{ key: 'B', value: 3 }] }]]);
+            const result3 = dataModel.applyTransactions(result2!, append2);
+
+            expect(result3?.type).toBe('grouped');
+            if (result3?.type === 'grouped') {
+                // After appending A twice and B once, we should have 2 groups
+                expect(result3.groups).toHaveLength(2);
+                const groupKeys = result3.groups.map((g) => g.keys[0]).sort();
+                expect(groupKeys).toEqual(['A', 'B']);
+            }
+        });
+    });
+
     describe('empty data set processing', () => {
         it('should generated the expected results', () => {
             const dataModel = new DataModel<any, any>({
@@ -1665,6 +1764,157 @@ describe('DataModel', () => {
         it('rejects invalid paths', () => {
             expect(getPathComponents(`["test"]other`)).toBe(undefined);
             expect(getPathComponents(`[test]`)).toBe(undefined);
+        });
+    });
+
+    describe('applyTransactions with stacked/accumulated data (grouped)', () => {
+        it('should emove and append transactions on grouped accumulated values', () => {
+            // This test demonstrates the actual issue with stacked line charts
+            // where data is grouped and accumulated
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    rangeKey('time'),
+                    ...accumulatedGroupValues(['series1', 'series2', 'series3', 'series4'], 'stacked'),
+                ],
+                groupByKeys: true,
+            });
+
+            // Initial grouped data similar to the high-freq-stacked-line example
+            const initialData = [
+                { time: 100, series1: 10, series2: 15, series3: 20, series4: 25 },
+                { time: 200, series1: 12, series2: 18, series3: 22, series4: 28 },
+                { time: 300, series1: 11, series2: 16, series3: 21, series4: 26 },
+                { time: 400, series1: 13, series2: 17, series3: 23, series4: 27 },
+            ];
+
+            const scopedData = new Map([['test', initialData]]);
+            const processed = dataModel.processData(scopedData);
+            expect(processed?.type).toBe('grouped');
+            expect(processed?.groups.length).toBe(4); // One group per time value
+
+            // Store reference to the first data point to remove later
+            const dataToRemove = initialData[0];
+            const newDataPoint = { time: 500, series1: 14, series2: 19, series3: 24, series4: 29 };
+
+            const transactions = new Map([
+                [
+                    'test',
+                    {
+                        remove: [dataToRemove],
+                        append: [newDataPoint],
+                    },
+                ],
+            ]);
+
+            // This should fail - the accumulated/grouped data prevents proper removal
+            const result = dataModel.applyTransactions(processed!, transactions);
+            expect(result).toBeDefined();
+
+            expect(processed?.type).toBe('grouped');
+            expect(processed?.groups.length).toBe(4); // One group per time value
+            expect(processed?.groups.map((g) => g.keys[0])).toEqual([200, 300, 400, 500]);
+            expect(processed?.domain.keys[0]).toEqual([200, 300, 400, 500]);
+        });
+    });
+
+    describe('applyTransactions with stacked/accumulated data (ungrouped)', () => {
+        it('should handle remove and append transactions with accumulated values', () => {
+            // This test demonstrates the issue with applyTransaction on stacked series
+            // where removing data points fails because the accumulated/transformed data
+            // doesn't match the original references
+
+            const dataModel = new DataModel<any, any>({
+                props: [
+                    rangeKey('time'),
+                    accumulatedPropertyValue('series1', 'stacked'),
+                    accumulatedPropertyValue('series2', 'stacked'),
+                    accumulatedPropertyValue('series3', 'stacked'),
+                    accumulatedPropertyValue('series4', 'stacked'),
+                    actualAccumulateGroup('stacked', 'normal', 'current'),
+                ],
+            });
+
+            // Initial data similar to the high-freq-stacked-line example
+            const initialData = [
+                { time: 100, series1: 10, series2: 15, series3: 20, series4: 25 },
+                { time: 200, series1: 12, series2: 18, series3: 22, series4: 28 },
+                { time: 300, series1: 11, series2: 16, series3: 21, series4: 26 },
+                { time: 400, series1: 13, series2: 17, series3: 23, series4: 27 },
+            ];
+
+            const scopedData = new Map([['test', initialData]]);
+            const processed = dataModel.processData(scopedData);
+            expect(processed?.type).toBe('ungrouped');
+            expect(processed?.input.count).toBe(4);
+
+            // Store reference to the first data point to remove later
+            const dataToRemove = initialData[0];
+            const newDataPoint = { time: 500, series1: 14, series2: 19, series3: 24, series4: 29 };
+
+            // This should fail with the error:
+            // "AG Charts - data transaction "remove" entries must reference an existing datum"
+            // because the accumulated values have transformed the data
+            const transactions = new Map([
+                [
+                    'test',
+                    {
+                        remove: [dataToRemove],
+                        append: [newDataPoint],
+                    },
+                ],
+            ]);
+
+            // The issue: with accumulated values, the data has been transformed,
+            // so the original data references may not match what's stored internally.
+            // This demonstrates that applyTransaction with remove doesn't work properly
+            // with stacked/accumulated series.
+
+            // Try to apply the transaction - in the actual chart usage, this fails
+            const result = dataModel.applyTransactions(processed!, transactions);
+
+            // If it doesn't throw here, check if the removal actually worked
+            // The transaction likely silently failed to remove the item
+            expect(result).toBeDefined();
+
+            // The count should be 4 (3 original + 1 new - 1 removed = 3)
+            // but if removal failed, it would be 5
+            // This test documents the current behavior where remove doesn't work with stacked data
+            expect(result?.input.count).toEqual(4); // Removal likely didn't work
+        });
+
+        it('should work with append-only transactions for accumulated values', () => {
+            // This test shows that append-only transactions work fine
+            const dataModel = new DataModel<any, any>({
+                props: [
+                    rangeKey('time'),
+                    accumulatedPropertyValue('series1', 'stacked'),
+                    accumulatedPropertyValue('series2', 'stacked'),
+                    actualAccumulateGroup('stacked', 'normal', 'current'),
+                ],
+            });
+
+            const initialData = [
+                { time: 100, series1: 10, series2: 15 },
+                { time: 200, series1: 12, series2: 18 },
+            ];
+
+            const scopedData = new Map([['test', initialData]]);
+            const processed = dataModel.processData(scopedData);
+            expect(processed?.type).toBe('ungrouped');
+
+            const newDataPoint = { time: 300, series1: 14, series2: 19 };
+            const transactions = new Map([
+                [
+                    'test',
+                    {
+                        append: [newDataPoint],
+                    },
+                ],
+            ]);
+
+            const result = dataModel.applyTransactions(processed!, transactions);
+            expect(result).toBeDefined();
+            expect(result?.input.count).toBe(3);
         });
     });
 });

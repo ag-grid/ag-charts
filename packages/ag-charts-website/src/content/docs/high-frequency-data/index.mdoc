@@ -8,6 +8,12 @@ enterprise: true
 
 {% chartExampleRunner title="High Frequency Data" name="high-freq-line" type="generated" /%}
 
+## Stacked Line Series
+
+The following example demonstrates the performance improvement of incremental grouping with stacked line charts. When using `applyTransaction()` with the new incremental grouping feature, the chart only processes new data points instead of regrouping all data. Compare the CPU usage between `updateDelta()` (full reprocessing) and `applyTransaction()` (incremental updates).
+
+{% chartExampleRunner title="High Frequency Stacked Line" name="high-freq-stacked-line" type="generated" /%}
+
 ## Multiple Charts
 
 The following example demonstrates high-frequency updates across multiple area charts, simulating a monitoring dashboard for multiple systems. Each chart displays system and user CPU load with data updating every 50ms when the feed is running.

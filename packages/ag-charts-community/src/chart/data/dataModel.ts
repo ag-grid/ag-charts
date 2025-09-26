@@ -689,43 +689,94 @@ export class DataModel<
                 baseDataSize
             );
         } else {
-            const updateContext: TransactionUpdateContext = {
-                baseDataSize,
-                addedRows: [],
-                modifiedKeyDomains: new Set<number>(),
-                modifiedValueDomains: new Set<number>(),
-                prependedCount: 0,
-                removedRows: [],
-            };
+            // Check if we're dealing with grouped data and can do incremental updates
+            const isGrouped = processedData.type === 'grouped';
+            const canDoIncremental =
+                isGrouped && this.opts.groupByKeys && (appendSources.size > 0 || prependSources.size > 0);
 
-            if (prependSources.size === 0) {
-                this.applyAppendTransactions(processedData, appendSources, updateContext);
-            } else {
+            if (canDoIncremental) {
+                // Handle incremental updates for grouped data directly
+                const incremental: IncrementalUpdateMetadata = {
+                    baseDataSize,
+                    addedRows: [],
+                    modifiedDomains: {
+                        keys: [],
+                        values: [],
+                    },
+                };
+
+                // First, apply the transactions to the underlying data
+                const updateContext: TransactionUpdateContext = {
+                    baseDataSize,
+                    addedRows: [],
+                    modifiedKeyDomains: new Set<number>(),
+                    modifiedValueDomains: new Set<number>(),
+                    prependedCount: 0,
+                    removedRows: [],
+                };
+
                 if (prependSources.size > 0) {
                     updateContext.prependedCount = this.applyPrependTransactions(
                         processedData,
                         prependSources,
                         updateContext
                     );
+                    incremental.prependedCount = updateContext.prependedCount;
                 }
                 if (appendSources.size > 0) {
                     this.applyAppendTransactions(processedData, appendSources, updateContext);
                 }
-            }
 
-            processedData.incremental = {
-                baseDataSize: updateContext.baseDataSize,
-                addedRows: updateContext.addedRows,
-                ...(updateContext.prependedCount > 0 ? { prependedCount: updateContext.prependedCount } : {}),
-                modifiedDomains: {
+                incremental.addedRows = updateContext.addedRows;
+                incremental.modifiedDomains = {
                     keys: Array.from(updateContext.modifiedKeyDomains),
                     values: Array.from(updateContext.modifiedValueDomains),
-                },
-            };
-        }
+                };
+                processedData.incremental = incremental;
 
-        if (this.opts.groupByKeys && processedData.type === 'ungrouped') {
-            // TODO: to handle incremental grouping
+                // Now apply incremental grouping
+                processedData = this.applyIncrementalGroupingToGroupedData(processedData);
+            } else {
+                // Original flow for ungrouped data
+                const updateContext: TransactionUpdateContext = {
+                    baseDataSize,
+                    addedRows: [],
+                    modifiedKeyDomains: new Set<number>(),
+                    modifiedValueDomains: new Set<number>(),
+                    prependedCount: 0,
+                    removedRows: [],
+                };
+
+                if (prependSources.size === 0) {
+                    this.applyAppendTransactions(processedData, appendSources, updateContext);
+                } else {
+                    if (prependSources.size > 0) {
+                        updateContext.prependedCount = this.applyPrependTransactions(
+                            processedData,
+                            prependSources,
+                            updateContext
+                        );
+                    }
+                    if (appendSources.size > 0) {
+                        this.applyAppendTransactions(processedData, appendSources, updateContext);
+                    }
+                }
+
+                processedData.incremental = {
+                    baseDataSize: updateContext.baseDataSize,
+                    addedRows: updateContext.addedRows,
+                    ...(updateContext.prependedCount > 0 ? { prependedCount: updateContext.prependedCount } : {}),
+                    modifiedDomains: {
+                        keys: Array.from(updateContext.modifiedKeyDomains),
+                        values: Array.from(updateContext.modifiedValueDomains),
+                    },
+                };
+
+                // Apply grouping if needed
+                if (this.opts.groupByKeys && processedData.type === 'ungrouped') {
+                    processedData = this.applyIncrementalGrouping(processedData);
+                }
+            }
         }
 
         processedData.time = performance.now() - start;
@@ -1365,7 +1416,8 @@ export class DataModel<
         const resultData = [];
 
         const processedColumnIndexes = new Set<number>();
-        const groups = allScopes.size !== 1 || groupingFn != null ? new Map<string, Group>() : undefined;
+        // Always use a Map for groups to ensure proper deduplication
+        const groups = new Map<string, Group>();
 
         for (const scope of allScopes) {
             // Determine columns we can process in batch.
@@ -1396,9 +1448,9 @@ export class DataModel<
                 }
 
                 const group = groupingFn?.(keys) ?? keys;
-                const groupStr = groups != null ? toKeyString(group) : undefined;
+                const groupStr = toKeyString(group);
 
-                let outputGroup: Group | undefined = groups?.get(groupStr!);
+                let outputGroup: Group | undefined = groups.get(groupStr);
                 if (outputGroup == null) {
                     outputGroup = {
                         keys: group,
@@ -1407,7 +1459,7 @@ export class DataModel<
                         validScopes: allScopes,
                     };
 
-                    groups?.set(groupStr!, outputGroup);
+                    groups.set(groupStr, outputGroup);
 
                     resultGroups.push(outputGroup.keys);
                     resultData.push(outputGroup);
@@ -1511,6 +1563,254 @@ export class DataModel<
                 ContinuousDomain.extendDomain(finalValues, domainAggValues[index]);
             }
         }
+    }
+
+    private applyIncrementalGrouping(processedData: ProcessedData<D>): ProcessedData<D> {
+        // This handles ungrouped -> grouped conversion
+        return this.groupData(processedData as UngroupedData<D>);
+    }
+
+    private incrementalAppendToGroups(
+        processedData: ProcessedData<D>,
+        incremental: IncrementalUpdateMetadata
+    ): ProcessedData<D> {
+        if (processedData.type !== 'grouped') {
+            return processedData;
+        }
+        const { columns: allColumns, columnScopes, dataSources } = processedData;
+        const allScopes = processedData.scopes;
+
+        // Create a map for quick group lookup
+        const groupMap = new Map<string, DataGroup>();
+        for (const group of processedData.groups) {
+            const groupKey = toKeyString(group.keys);
+            groupMap.set(groupKey, group);
+        }
+
+        // Process only the newly added rows
+        for (const datumIndex of incremental.addedRows) {
+            // Determine which scope this datum belongs to
+            for (const scope of allScopes) {
+                // Get the raw data for this scope to extract keys
+                const scopeData = dataSources.get(scope) as D[];
+                if (!scopeData || datumIndex >= scopeData.length) continue;
+
+                const datum = scopeData[datumIndex];
+                if (!datum) continue;
+
+                // Extract keys from the datum
+                const keys: unknown[] = [];
+                for (const keyDef of this.keys.filter((k) => k.scopes.includes(scope))) {
+                    const keyValue = datum[keyDef.property as keyof D];
+                    keys.push(keyValue);
+                }
+
+                if (keys.length === 0) continue;
+
+                const groupKey = toKeyString(keys);
+                let group = groupMap.get(groupKey);
+
+                if (!group) {
+                    // Create new group
+                    group = {
+                        keys,
+                        datumIndices: [],
+                        aggregation: [],
+                        validScopes: allScopes,
+                    };
+                    groupMap.set(groupKey, group);
+                    processedData.groups.push(group);
+                    processedData.domain.groups = processedData.domain.groups || [];
+                    processedData.domain.groups.push(keys);
+                }
+
+                // Add datum index to appropriate columns
+                const scopeColumnIndexes = allColumns
+                    .map((_, idx) => idx)
+                    .filter((idx) => columnScopes[idx].has(scope));
+
+                for (const columnIdx of scopeColumnIndexes) {
+                    group.datumIndices[columnIdx] ??= [];
+                    group.datumIndices[columnIdx].push(datumIndex);
+                }
+            }
+        }
+
+        // Update aggregations for affected groups
+        if (this.aggregates.length > 0) {
+            this.updateGroupAggregations(processedData, groupMap);
+        }
+
+        return processedData;
+    }
+
+    private incrementalPrependToGroups(
+        processedData: ProcessedData<D>,
+        incremental: IncrementalUpdateMetadata
+    ): ProcessedData<D> {
+        if (processedData.type !== 'grouped') {
+            return processedData;
+        }
+        const prependCount = incremental.prependedCount || 0;
+        if (prependCount === 0) return processedData;
+
+        // First, shift all existing indices
+        for (const group of processedData.groups) {
+            for (let columnIdx = 0; columnIdx < group.datumIndices.length; columnIdx++) {
+                if (group.datumIndices[columnIdx]) {
+                    group.datumIndices[columnIdx] = group.datumIndices[columnIdx].map((idx) => idx + prependCount);
+                }
+            }
+        }
+
+        // Now process the prepended rows similar to append
+        const { columns: allColumns, columnScopes, dataSources } = processedData;
+        const allScopes = processedData.scopes;
+
+        const groupMap = new Map<string, DataGroup>();
+        for (const group of processedData.groups) {
+            const groupKey = toKeyString(group.keys);
+            groupMap.set(groupKey, group);
+        }
+
+        // Process prepended rows (indices 0 to prependCount-1)
+        for (let datumIndex = 0; datumIndex < prependCount; datumIndex++) {
+            for (const scope of allScopes) {
+                // Get the raw data for this scope to extract keys
+                const scopeData = dataSources.get(scope) as D[];
+                if (!scopeData || datumIndex >= scopeData.length) continue;
+
+                const datum = scopeData[datumIndex];
+                if (!datum) continue;
+
+                // Extract keys from the datum
+                const keys: unknown[] = [];
+                for (const keyDef of this.keys.filter((k) => k.scopes.includes(scope))) {
+                    const keyValue = datum[keyDef.property as keyof D];
+                    keys.push(keyValue);
+                }
+
+                if (keys.length === 0) continue;
+
+                const groupKey = toKeyString(keys);
+                let group = groupMap.get(groupKey);
+
+                if (!group) {
+                    // Create new group
+                    group = {
+                        keys,
+                        datumIndices: [],
+                        aggregation: [],
+                        validScopes: allScopes,
+                    };
+                    groupMap.set(groupKey, group);
+                    processedData.groups.push(group);
+                    processedData.domain.groups = processedData.domain.groups || [];
+                    processedData.domain.groups.push(keys);
+                }
+
+                // Add datum index to appropriate columns
+                const scopeColumnIndexes = allColumns
+                    .map((_, idx) => idx)
+                    .filter((idx) => columnScopes[idx].has(scope));
+
+                for (const columnIdx of scopeColumnIndexes) {
+                    group.datumIndices[columnIdx] ??= [];
+                    // Insert at beginning to maintain order
+                    group.datumIndices[columnIdx].unshift(datumIndex);
+                }
+            }
+        }
+
+        // Update aggregations for affected groups
+        if (this.aggregates.length > 0) {
+            this.updateGroupAggregations(processedData, groupMap);
+        }
+
+        return processedData;
+    }
+
+    private updateGroupAggregations(processedData: ProcessedData<D>, _affectedGroups: Map<string, DataGroup>): void {
+        if (processedData.type !== 'grouped') {
+            return;
+        }
+        const { columns } = processedData;
+        const domainAggValues =
+            processedData.domain.aggValues || this.aggregates.map((): [number, number] => [Infinity, -Infinity]);
+
+        // Reset domain values before recalculating
+        for (let i = 0; i < domainAggValues.length; i++) {
+            domainAggValues[i] = [Infinity, -Infinity];
+        }
+
+        // Update aggregations for all groups (since domain needs full recalculation)
+        for (const group of processedData.groups) {
+            group.aggregation ??= [];
+
+            for (const [index, def] of this.aggregates.entries()) {
+                const indices = this.valueGroupIdxLookup(def);
+                const groupKeys = group.keys;
+
+                let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
+                const maxDatumIndex = Math.max(
+                    ...indices.map((columnIndex) => group.datumIndices[columnIndex]?.length ?? 0)
+                );
+
+                for (let datumIndex = 0; datumIndex < maxDatumIndex; datumIndex++) {
+                    const valuesToAgg = indices.map(
+                        (columnIndex) => columns[columnIndex][group.datumIndices[columnIndex]?.[datumIndex]] as D[K]
+                    );
+                    const valuesAgg = def.aggregateFunction(valuesToAgg, groupKeys);
+                    if (valuesAgg) {
+                        groupAggValues =
+                            def.groupAggregateFunction?.(valuesAgg, groupAggValues) ??
+                            ContinuousDomain.extendDomain(valuesAgg, groupAggValues);
+                    }
+                }
+
+                const finalValues = def.finalFunction?.(groupAggValues) ?? groupAggValues;
+                group.aggregation[index] = finalValues;
+                ContinuousDomain.extendDomain(finalValues, domainAggValues[index]);
+            }
+        }
+
+        processedData.domain.aggValues = domainAggValues;
+    }
+
+    private applyIncrementalGroupingToGroupedData(processedData: ProcessedData<D>): ProcessedData<D> {
+        // This handles incremental updates on already grouped data
+        if (processedData.type !== 'grouped') {
+            return processedData;
+        }
+        const incremental = processedData.incremental;
+        if (!incremental) {
+            return processedData;
+        }
+
+        const hasAppend = incremental.addedRows.length > 0 && !incremental.prependedCount;
+        const hasPrepend = incremental.prependedCount && incremental.prependedCount > 0;
+        const hasRemove = incremental.removedRows && incremental.removedRows.length > 0;
+
+        // For remove operations, fall back to full regrouping (complex index management)
+        if (hasRemove) {
+            // Convert back to ungrouped and regroup
+            const ungroupedData: UngroupedData<D> = {
+                ...processedData,
+                type: 'ungrouped',
+                aggregation: undefined,
+            };
+            delete (ungroupedData as any).groups;
+            return this.groupData(ungroupedData);
+        }
+
+        // For append and prepend, we can do incremental updates
+        if (hasAppend) {
+            return this.incrementalAppendToGroups(processedData, incremental);
+        } else if (hasPrepend) {
+            return this.incrementalPrependToGroups(processedData, incremental);
+        }
+
+        return processedData;
     }
 
     private postProcessGroups(processedData: GroupedData<any>) {
