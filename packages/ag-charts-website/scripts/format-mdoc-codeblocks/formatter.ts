@@ -55,7 +55,8 @@ function extractCodeBlocks(content: string): CodeBlock[] {
     const blocks: CodeBlock[] = [];
     // Updated regex to capture optional metadata after language
     // Matches: ```js wrapper="object" or ```js or ```javascript etc.
-    const codeBlockRegex = /```(js|javascript|jsx|ts|typescript|tsx)([^\n]*)\n([\s\S]*?)```/g;
+    // NOTE: Order matters - longer patterns must come first to prevent partial matches
+    const codeBlockRegex = /```(javascript|typescript|jsx|tsx|js|ts)([^\n]*)\n([\s\S]*?)```/g;
 
     // Calculate line numbers for all positions
     const lines = content.split('\n');
@@ -181,7 +182,10 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         typescript: '.ts',
         tsx: '.tsx',
     };
-    const filepath = `snippet${extensionMap[normalizedLang] ?? '.js'}`;
+
+    // For reactHooks wrapper, use .tsx extension to properly handle JSX
+    const effectiveExtension = metadata?.wrapper === 'reactHooks' ? '.tsx' : (extensionMap[normalizedLang] ?? '.js');
+    const filepath = `snippet${effectiveExtension}`;
 
     // Determine the parser based on language and content
     const parserMap: Record<string, string> = {
@@ -214,6 +218,11 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         parser = 'typescript';
     }
 
+    // For reactHooks wrapper, use TypeScript parser since we set .tsx extension
+    if (metadata?.wrapper === 'reactHooks') {
+        parser = 'typescript';
+    }
+
     // Override with specific settings for consistency
     const config = {
         ...prettierConfig,
@@ -224,6 +233,15 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         trailingComma: 'es5' as const,
         filepath,
     };
+
+    // For reactHooks wrapper, remove plugins that conflict with TypeScript parser
+    if (metadata?.wrapper === 'reactHooks') {
+        delete config.plugins;
+        delete config.importOrder;
+        delete config.importOrderParserPlugins;
+        delete config.importOrderSeparation;
+        delete config.importOrderSortSpecifiers;
+    }
 
     // Check if original code had a trailing newline
     const hasTrailingNewline = code.endsWith('\n');

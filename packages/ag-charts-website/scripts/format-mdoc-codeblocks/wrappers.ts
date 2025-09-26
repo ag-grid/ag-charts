@@ -134,7 +134,12 @@ const reactHooksStrategy: WrapStrategy = {
         // Add React import if not present
         const hasReactImport = /import\s+(?:\*\s+as\s+)?React/.test(code);
         const importLine = hasReactImport ? '' : "import React from 'react';\n\n";
-        return `${importLine}function Component() {\n${code}\n\n    return null;\n}`;
+
+        // Check if code already has a return statement
+        const hasReturn = /\breturn\s+[\(\<]/.test(code);
+        const returnStatement = hasReturn ? '' : '\n    return null;';
+
+        return `${importLine}function Component() {\n${code}${returnStatement}\n}`;
     },
     unwrap: (formatted: string) => {
         const lines = formatted.split('\n');
@@ -147,11 +152,16 @@ const reactHooksStrategy: WrapStrategy = {
 
         // Find component body
         const startIdx = lines.findIndex((line) => line.includes('function Component() {'));
-        const returnIdx = lines.findIndex((line) => line.trim() === 'return null;');
 
-        if (startIdx !== -1 && returnIdx !== -1) {
-            // Get lines between function declaration and return statement
-            const content = lines.slice(startIdx + 1, returnIdx);
+        // Try to find our added return null first
+        const returnNullIdx = lines.findIndex((line) => line.trim() === 'return null;');
+
+        // If we don't find return null, look for the closing brace
+        const endIdx = returnNullIdx !== -1 ? returnNullIdx : lines.length - 1;
+
+        if (startIdx !== -1) {
+            // Get lines between function declaration and end
+            const content = lines.slice(startIdx + 1, endIdx);
             // Remove empty lines at the end
             while (content.length > 0 && content[content.length - 1].trim() === '') {
                 content.pop();
