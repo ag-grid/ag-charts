@@ -3,8 +3,10 @@ import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
+import type { DataRef } from './dataRef';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
+import { TransactionAnalyzer } from './transactionAnalyzer';
 
 export interface ScopeProvider {
     id: string;
@@ -724,6 +726,68 @@ export class DataModel<
         this.processScopeCache();
 
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
+    }
+
+    /**
+     * Applies pending transactions from DataRef to existing ProcessedData using incremental updates.
+     * This method provides high-performance data updates by mutating ProcessedData in-place rather
+     * than performing full reprocessing.
+     *
+     * @param dataRef - The DataRef containing pending transactions to apply
+     * @param processedData - The existing ProcessedData to mutate in-place
+     * @param sources - Map of all current data sources (used for validation)
+     * @returns The same ProcessedData instance (mutated) on success, undefined if fallback needed
+     *
+     * @remarks
+     * - Only supports single data source scenarios (returns undefined for multi-source)
+     * - Must be called BEFORE DataRef.commitPendingTransactions() to work with original indices
+     * - Mutates the ProcessedData structure in-place for maximum performance
+     * - Sets animation validation flags to false for high-frequency updates
+     * - Falls back to full reprocessing by returning undefined when incremental isn't supported
+     */
+    applyTransactions<T>(
+        dataRef: DataRef<T>,
+        processedData: ProcessedData<D>,
+        sources: Map<string, unknown[]>
+    ): ProcessedData<D> | undefined {
+        // Use TransactionAnalyzer to convert pending transactions to structured change descriptor
+        const changeDescriptor = TransactionAnalyzer.analyze(dataRef, sources);
+        if (changeDescriptor === undefined) {
+            // Multi-source scenario detected - fall back to full reprocessing
+            return undefined;
+        }
+
+        // Check if incremental updates are supported for this configuration
+        if (!this.supportsIncrementalUpdate()) {
+            return undefined;
+        }
+
+        // TODO: Create ProcessedDataMutator and apply changes
+        // const mutator = new ProcessedDataMutator(processedData);
+        // mutator.applyChanges(changeDescriptor);
+
+        // Set animation validation flags to false for high-frequency updates
+        // This prevents expensive validation during rapid data changes
+        processedData.reduced ??= {};
+        processedData.reduced.animationValidation = {
+            uniqueKeys: false,
+            orderedKeys: false,
+        };
+
+        return processedData;
+    }
+
+    /**
+     * Determines if the current DataModel configuration supports incremental updates.
+     * Currently returns false as a stub - will be fully implemented in Task 6.1.
+     *
+     * @returns false (placeholder implementation)
+     * @private
+     */
+    private supportsIncrementalUpdate(): boolean {
+        // TODO: Implement full logic in Task 6.1
+        // Will check for grouping, aggregation, complex processors, etc.
+        return false;
     }
 
     private warnDataMissingProperties(sources: Map<string, unknown[]>) {

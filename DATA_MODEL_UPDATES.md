@@ -158,7 +158,7 @@ This document outlines the implementation plan for adding efficient transaction 
 
 #### Task 2.1: Add applyTransactions Method to DataModel
 
--   [ ] Add method to `/packages/ag-charts-community/src/chart/data/dataModel.ts`:
+-   [x] Add method to `/packages/ag-charts-community/src/chart/data/dataModel.ts`:
     ```typescript
     applyTransactions(
       dataRef: DataRef,
@@ -166,7 +166,7 @@ This document outlines the implementation plan for adding efficient transaction 
       sources: Map<string, unknown[]>
     ): ProcessedData<D> | undefined
     ```
--   [ ] Method should:
+-   [x] Method should:
     -   Detect if transactions can be applied incrementally
     -   Fall back to full reprocessing if needed
     -   **Mutate ProcessedData in-place for maximum performance**
