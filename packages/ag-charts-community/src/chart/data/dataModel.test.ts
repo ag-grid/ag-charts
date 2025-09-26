@@ -23,6 +23,7 @@ import type {
     Scoped,
 } from './dataModel';
 import { DataModel, getPathComponents } from './dataModel';
+import { DataRef } from './dataRef';
 import {
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
@@ -1681,6 +1682,47 @@ describe('DataModel', () => {
 
             expect(def.missing.get('test1')).toBe(1);
             expect(def.missing.get('test2')).toBe(1);
+        });
+
+        describe('applyTransactions', () => {
+            it('should update processed data in place for single-scope transactions', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const data = [
+                    { id: 'A', amount: 1 },
+                    { id: 'B', amount: 2 },
+                    { id: 'C', amount: 3 },
+                ];
+
+                const dataRef = new DataRef(data.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                const newDatum = { id: 'D', amount: 4 };
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [data[1]],
+                        append: [newDatum],
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                dataRef.commitPendingTransactions();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+
+                expect(processed.columns).toEqual(reprocessed.columns);
+                expect(processed.keys[0].get('test')).toEqual(reprocessed.keys[0].get('test'));
+                expect(processed.domain.values).toEqual(reprocessed.domain.values);
+                expect(processed.domain.keys).toEqual(reprocessed.domain.keys);
+                expect(processed.input.count).toBe(reprocessed.input.count);
+                expect(processed.partialValidDataCount).toBe(reprocessed.partialValidDataCount);
+                expect(processed.reduced?.diff?.default.changed).toBe(true);
+            });
         });
     });
 });

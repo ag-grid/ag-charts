@@ -1,5 +1,6 @@
 import { DataModel } from './dataModel';
-import type { InternalDatumPropertyDefinition } from './dataModel';
+
+type TestDatumDefinition = any;
 
 describe('DataModel.processValue', () => {
     let dataModel: DataModel<any, any>;
@@ -18,7 +19,7 @@ describe('DataModel.processValue', () => {
 
     describe('basic value processing', () => {
         it('should extract property value from datum', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',
@@ -36,7 +37,7 @@ describe('DataModel.processValue', () => {
         });
 
         it('should handle missing property', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'missingProp',
@@ -55,7 +56,7 @@ describe('DataModel.processValue', () => {
         });
 
         it('should use missingValue when property is missing', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'missingProp',
@@ -78,7 +79,7 @@ describe('DataModel.processValue', () => {
         it('should cache processor functions', () => {
             const processorSpy = jest.fn(() => (value: any) => value * 2);
 
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',
@@ -102,7 +103,7 @@ describe('DataModel.processValue', () => {
         it('should reuse cached processors across multiple calls', () => {
             const processorSpy = jest.fn(() => (value: any) => value + 100);
 
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',
@@ -126,11 +127,11 @@ describe('DataModel.processValue', () => {
 
     describe('validation handling', () => {
         it('should validate values using validation function', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',
-                validation: (value) => value > 0,
+                validation: (value: number) => value > 0,
                 scopes: ['test'],
                 index: 0,
                 missing: new Map(),
@@ -149,11 +150,11 @@ describe('DataModel.processValue', () => {
         });
 
         it('should use invalidValue for invalid data', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',
-                validation: (value) => value > 0,
+                validation: (value: number) => value > 0,
                 invalidValue: 0,
                 scopes: ['test'],
                 index: 0,
@@ -170,7 +171,7 @@ describe('DataModel.processValue', () => {
 
     describe('forced values', () => {
         it('should use forceValue when specified', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',
@@ -189,7 +190,7 @@ describe('DataModel.processValue', () => {
         });
 
         it('should preserve sign for negative forced values', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',
@@ -209,7 +210,7 @@ describe('DataModel.processValue', () => {
 
     describe('scope-based missing value tracking', () => {
         it('should track missing values for single scope', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'missingProp',
@@ -227,7 +228,7 @@ describe('DataModel.processValue', () => {
         });
 
         it('should track missing values for multiple scopes', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'missingProp',
@@ -247,7 +248,7 @@ describe('DataModel.processValue', () => {
 
     describe('accessor support', () => {
         it('should use provided accessors', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'nested.prop',
@@ -267,7 +268,7 @@ describe('DataModel.processValue', () => {
         });
 
         it('should handle accessor errors gracefully', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'errorProp',
@@ -291,7 +292,7 @@ describe('DataModel.processValue', () => {
 
     describe('domain extension', () => {
         it('should extend domain when dataDomain is provided', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',
@@ -315,7 +316,7 @@ describe('DataModel.processValue', () => {
         });
 
         it('should initialize domain if missing', () => {
-            const def: InternalDatumPropertyDefinition<any> = {
+            const def: TestDatumDefinition = {
                 type: 'value',
                 valueType: 'range',
                 property: 'testProp',

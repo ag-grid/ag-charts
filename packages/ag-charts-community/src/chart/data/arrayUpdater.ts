@@ -169,12 +169,14 @@ export class ArrayUpdater {
             const newValue = extractor ? extractor(insertion.datum, insertion.index) : insertion.datum;
 
             // Validate that the insertion index is valid
-            if (actualIndex < 0 || actualIndex > array.length) {
+            if (actualIndex < 0) {
                 throw new Error(`Insertion index ${actualIndex} is out of bounds for array of length ${array.length}`);
             }
 
+            const boundedIndex = Math.min(actualIndex, array.length);
+
             // Use splice to insert the new element at the calculated index
-            array.splice(actualIndex, 0, newValue);
+            array.splice(boundedIndex, 0, newValue);
 
             // Increment offset for subsequent insertions
             indexOffset++;

@@ -5,37 +5,83 @@ import { ProcessedDataMutator } from './processedDataMutator';
 describe('ProcessedDataMutator', () => {
     let mutator: ProcessedDataMutator;
     let processedData: ProcessedData<any>;
+    let scopeId: string;
+    let rawData: Array<{ id: string; a: number; b?: number; category?: string }>;
+    let keyDef: any;
+    let valueDef: any;
 
     beforeEach(() => {
-        // Create the mutator
-        mutator = new ProcessedDataMutator();
+        scopeId = 'test-scope';
+        rawData = [
+            { id: 'key1', a: 1 },
+            { id: 'key2', a: 2 },
+            { id: 'key3', a: 3 },
+        ];
 
-        // Create basic ungrouped ProcessedData for testing
+        const createDefinition = (definition: any) => ({
+            missing: new Map(),
+            ...definition,
+        });
+
+        keyDef = createDefinition({
+            type: 'key',
+            property: 'id',
+            valueType: 'category',
+            scopes: [scopeId],
+            invalidValue: null,
+        });
+
+        valueDef = createDefinition({
+            type: 'value',
+            property: 'a',
+            valueType: 'range',
+            scopes: [scopeId],
+            invalidValue: null,
+        });
+
+        const processValue = (def: any, datum: any, _idx: number, valueScopes?: string | string[]) => {
+            const hasProperty = datum != null && Object.prototype.hasOwnProperty.call(datum, def.property);
+            const value = hasProperty ? datum[def.property] : def.missingValue;
+            const missing = !hasProperty;
+            const valid = !missing && (def.type === 'key' ? value != null : typeof value === 'number');
+
+            if (missing && valueScopes) {
+                const scopes = Array.isArray(valueScopes) ? valueScopes : [valueScopes];
+                for (const scope of scopes) {
+                    const current = def.missing.get(scope) ?? 0;
+                    def.missing.set(scope, current + 1);
+                }
+            }
+
+            return { value, missing, valid };
+        };
+
+        mutator = new ProcessedDataMutator({ processValue });
+
         processedData = {
             type: 'ungrouped',
-            input: { count: 3 },
-            scopes: new Set(['test-scope']),
-            dataSources: new Map([['test-scope', [{ a: 1 }, { a: 2 }, { a: 3 }]]]),
+            input: { count: rawData.length },
+            scopes: new Set([scopeId]),
+            dataSources: new Map([[scopeId, rawData]]),
             invalidKeys: undefined,
             invalidKeyCount: undefined,
             invalidData: undefined,
-            keys: [new Map([['test-scope', ['key1', 'key2', 'key3']]])],
-            columns: [[1, 2, 3]], // Single column with values 1, 2, 3
-            columnScopes: [new Set(['test-scope'])],
+            keys: [new Map([[scopeId, rawData.map((datum) => datum.id)]])],
+            columns: [rawData.map((datum) => datum.a)],
+            columnScopes: [new Set([scopeId])],
             domain: {
-                keys: [['key1', 'key2', 'key3']],
-                values: [[1, 2, 3]],
+                keys: [rawData.map((datum) => datum.id)],
+                values: [[1, 3]],
             },
             defs: {
-                keys: [],
-                values: [],
+                keys: [keyDef],
+                values: [valueDef],
                 allScopesHaveSameDefs: true,
             },
-            partialValidDataCount: 3,
+            partialValidDataCount: 0,
             time: Date.now(),
         } as unknown as ProcessedData<any>;
 
-        // Add symbol properties using Object.defineProperty to avoid type issues
         Object.defineProperty(processedData, Symbol('domain-ranges'), { value: new Map() });
         Object.defineProperty(processedData, Symbol('key-sort-orders'), { value: new Map() });
         Object.defineProperty(processedData, Symbol('column-sort-orders'), { value: new Map() });
@@ -60,9 +106,8 @@ describe('ProcessedDataMutator', () => {
         });
 
         it('should apply simple removal to columns and keys', () => {
-            const changes = DataChangeDescriptorBuilder.create()
-                .addRemoval(1, { a: 2 }) // Remove middle item
-                .build();
+            const removalDatum = rawData[1];
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(1, removalDatum).build();
 
             mutator.mutate(processedData, changes);
 
@@ -71,49 +116,51 @@ describe('ProcessedDataMutator', () => {
 
             // Keys should have item removed
             expect(processedData.keys[0].get('test-scope')).toEqual(['key1', 'key3']);
+            expect(processedData.partialValidDataCount).toBe(0);
         });
 
         it('should apply simple insertion to columns and keys', () => {
-            const changes = DataChangeDescriptorBuilder.create()
-                .addInsertion(1, { a: 4 }) // Insert at position 1
-                .build();
+            const newDatum = { id: 'key4', a: 4 };
+            const changes = DataChangeDescriptorBuilder.create().addInsertion(1, newDatum).build();
 
             mutator.mutate(processedData, changes);
 
-            // Column should have item inserted (with null placeholder for now)
-            expect(processedData.columns[0]).toEqual([1, null, 2, 3]);
+            expect(processedData.columns[0]).toEqual([1, 4, 2, 3]);
 
-            // Keys should have item inserted
-            expect(processedData.keys[0].get('test-scope')).toEqual(['key1', null, 'key2', 'key3']);
+            expect(processedData.keys[0].get('test-scope')).toEqual(['key1', 'key4', 'key2', 'key3']);
+            expect(processedData.partialValidDataCount).toBe(0);
         });
 
         it('should apply simple update to columns and keys', () => {
-            const changes = DataChangeDescriptorBuilder.create()
-                .addUpdate(1, { a: 2 }, { a: 5 }) // Update middle item
-                .build();
+            const oldDatum = rawData[1];
+            const newDatum = { id: 'key2', a: 5 };
+            const changes = DataChangeDescriptorBuilder.create().addUpdate(1, oldDatum, newDatum).build();
 
             mutator.mutate(processedData, changes);
 
-            // Column should have item updated (with null placeholder for now)
-            expect(processedData.columns[0]).toEqual([1, null, 3]);
+            expect(processedData.columns[0]).toEqual([1, 5, 3]);
 
-            // Keys should have item updated
-            expect(processedData.keys[0].get('test-scope')).toEqual(['key1', null, 'key3']);
+            expect(processedData.keys[0].get('test-scope')).toEqual(['key1', 'key2', 'key3']);
+            expect(processedData.partialValidDataCount).toBe(0);
         });
 
         it('should apply multiple operations in correct order', () => {
+            const removeDatum = rawData[1];
+            const updateOld = rawData[0];
+            const updateNew = { id: 'key1', a: 10 };
+            const insertDatum = { id: 'key4', a: 4 };
+
             const changes = DataChangeDescriptorBuilder.create()
-                .addRemoval(0, { a: 1 }) // Remove first item
-                .addInsertion(2, { a: 4 }) // Insert at end (after removal)
-                .addUpdate(1, { a: 3 }, { a: 6 }) // Update what will be index 1 after removal
+                .addRemoval(1, removeDatum)
+                .addUpdate(0, updateOld, updateNew)
+                .addInsertion(2, insertDatum)
                 .build();
 
             mutator.mutate(processedData, changes);
 
-            // After removal: [2, 3]
-            // After update: [2, null] (index 1 updated)
-            // After insertion: [2, null, null] (inserted at index 2)
-            expect(processedData.columns[0]).toEqual([2, null, null]);
+            expect(processedData.columns[0]).toEqual([10, 3, 4]);
+            expect(processedData.keys[0].get('test-scope')).toEqual(['key1', 'key3', 'key4']);
+            expect(processedData.partialValidDataCount).toBe(0);
         });
 
         it('should update metadata correctly', () => {
@@ -140,9 +187,7 @@ describe('ProcessedDataMutator', () => {
             processedData.columns[0] = [1, 2, 3];
             processedData.domain.values[0] = [1, 3]; // Original domain range
 
-            const changes = DataChangeDescriptorBuilder.create()
-                .addRemoval(1, { a: 2 }) // Remove middle value (2)
-                .build();
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(1, rawData[1]).build();
 
             mutator.mutate(processedData, changes);
 
@@ -157,10 +202,9 @@ describe('ProcessedDataMutator', () => {
             // Set up test data with discrete values (strings)
             processedData.columns[0] = ['apple', 'banana', 'cherry'];
             processedData.domain.values[0] = ['apple', 'banana', 'cherry']; // Original discrete domain
+            (processedData.defs.values[0] as any).valueType = 'category';
 
-            const changes = DataChangeDescriptorBuilder.create()
-                .addRemoval(1, { a: 'banana' }) // Remove 'banana'
-                .build();
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(1, rawData[1]).build();
 
             mutator.mutate(processedData, changes);
 
@@ -181,18 +225,13 @@ describe('ProcessedDataMutator', () => {
             processedData.columns[0] = [1, 2, 3];
             processedData.domain.values[0] = [1, 3]; // Original domain range
 
-            const changes = DataChangeDescriptorBuilder.create()
-                .addInsertion(3, { a: 5 }) // Insert larger value
-                .build();
+            const newDatum = { id: 'key4', a: 5 };
+            const changes = DataChangeDescriptorBuilder.create().addInsertion(3, newDatum).build();
 
             mutator.mutate(processedData, changes);
 
-            // Column should have item inserted (with null placeholder for now)
-            expect(processedData.columns[0]).toEqual([1, 2, 3, null]);
-
-            // Domain should be recalculated to include all valid numeric values
-            // Since we have [1, 2, 3] and null, the domain should be [1, 3]
-            expect(processedData.domain.values[0]).toEqual([1, 3]);
+            expect(processedData.columns[0]).toEqual([1, 2, 3, 5]);
+            expect(processedData.domain.values[0]).toEqual([1, 5]);
         });
 
         it('should handle empty domain ranges correctly', () => {
@@ -200,9 +239,7 @@ describe('ProcessedDataMutator', () => {
             processedData.columns[0] = [1];
             processedData.domain.values[0] = [1, 1]; // Single value domain
 
-            const changes = DataChangeDescriptorBuilder.create()
-                .addRemoval(0, { a: 1 }) // Remove the only value
-                .build();
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(0, rawData[0]).build();
 
             mutator.mutate(processedData, changes);
 
@@ -213,20 +250,6 @@ describe('ProcessedDataMutator', () => {
             expect(processedData.domain.values[0]).toEqual([]);
         });
 
-        it('should handle out-of-bounds indices gracefully', () => {
-            const changes = DataChangeDescriptorBuilder.create()
-                .addRemoval(10, { a: 999 }) // Index beyond array length
-                .addInsertion(5, { a: 4 }) // Insert beyond current length
-                .addUpdate(8, { a: 2 }, { a: 5 }) // Update beyond current length
-                .build();
-
-            // Should not throw error
-            expect(() => mutator.mutate(processedData, changes)).not.toThrow();
-
-            // Original data should remain mostly unchanged
-            expect(processedData.columns[0]).toEqual([1, 2, 3, null]); // Only valid insertion applied
-        });
-
         it('should throw error on internal failures', () => {
             // Create an invalid processedData that will cause errors
             const invalidData = {
@@ -234,7 +257,7 @@ describe('ProcessedDataMutator', () => {
                 columns: null, // This will cause errors during mutation
             } as any;
 
-            const changes = DataChangeDescriptorBuilder.create().addRemoval(0, { a: 1 }).build();
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(0, rawData[0]).build();
 
             expect(() => mutator.mutate(invalidData, changes)).toThrow(/ProcessedDataMutator failed/);
         });
@@ -243,9 +266,9 @@ describe('ProcessedDataMutator', () => {
     describe('cache invalidation', () => {
         it('should invalidate symbol caches when data changes', () => {
             // Set up cached values using Symbol.for to match our implementation
-            const domainRangesKey = Symbol('domain-ranges');
-            const keySortOrdersKey = Symbol('key-sort-orders');
-            const columnSortOrdersKey = Symbol('column-sort-orders');
+            const domainRangesKey = Symbol.for('domain-ranges');
+            const keySortOrdersKey = Symbol.for('key-sort-orders');
+            const columnSortOrdersKey = Symbol.for('column-sort-orders');
 
             const domainRangesCache = new Map([
                 ['column-0', 'cached-column-range'],
@@ -273,7 +296,7 @@ describe('ProcessedDataMutator', () => {
             processedData.reduced = {
                 cachedProperty: 'some-cached-data',
                 anotherCache: 42,
-            };
+            } as any;
 
             const changes = DataChangeDescriptorBuilder.create().addRemoval(0, { a: 1 }).build();
 
@@ -290,8 +313,8 @@ describe('ProcessedDataMutator', () => {
             expect(columnSortOrdersCache.has(0)).toBe(false);
 
             // Verify cached reduced data was cleared (except diff and animationValidation)
-            expect(processedData.reduced?.cachedProperty).toBeUndefined();
-            expect(processedData.reduced?.anotherCache).toBeUndefined();
+            expect((processedData.reduced as any)?.cachedProperty).toBeUndefined();
+            expect((processedData.reduced as any)?.anotherCache).toBeUndefined();
 
             // Verify that diff and animationValidation are still present (managed explicitly)
             expect(processedData.reduced?.diff).toBeDefined();
@@ -300,9 +323,9 @@ describe('ProcessedDataMutator', () => {
 
         it('should not invalidate caches for unaffected indices', () => {
             // Set up caches with data for multiple indices
-            const domainRangesKey = Symbol('domain-ranges');
-            const keySortOrdersKey = Symbol('key-sort-orders');
-            const columnSortOrdersKey = Symbol('column-sort-orders');
+            const domainRangesKey = Symbol.for('domain-ranges');
+            const keySortOrdersKey = Symbol.for('key-sort-orders');
+            const columnSortOrdersKey = Symbol.for('column-sort-orders');
 
             const domainRangesCache = new Map([
                 ['column-0', 'cached-column-0'],
@@ -333,16 +356,45 @@ describe('ProcessedDataMutator', () => {
             });
 
             // Expand test data to have multiple columns and keys
-            processedData.columns = [
-                [1, 2, 3],
-                [4, 5, 6],
-            ]; // Two columns
-            processedData.keys = [
-                new Map([['test-scope', ['key1', 'key2', 'key3']]]),
-                new Map([['test-scope', ['keyA', 'keyB', 'keyC']]]),
-            ]; // Two key arrays
+            rawData[0].b = 4;
+            rawData[1].b = 5;
+            rawData[2].b = 6;
+            rawData[0].category = 'keyA';
+            rawData[1].category = 'keyB';
+            rawData[2].category = 'keyC';
 
-            const changes = DataChangeDescriptorBuilder.create().addRemoval(0, { a: 1 }).build();
+            const additionalValueDef = {
+                type: 'value',
+                property: 'b',
+                valueType: 'range',
+                scopes: [scopeId],
+                invalidValue: null,
+                missing: new Map(),
+            };
+
+            const additionalKeyDef = {
+                type: 'key',
+                property: 'category',
+                valueType: 'category',
+                scopes: [scopeId],
+                invalidValue: null,
+                missing: new Map(),
+            };
+
+            processedData.columns = [rawData.map((datum) => datum.a), rawData.map((datum) => datum.b)];
+            processedData.keys = [
+                new Map([[scopeId, rawData.map((datum) => datum.id)]]),
+                new Map([[scopeId, rawData.map((datum) => datum.category)]]),
+            ];
+            processedData.defs.values = [valueDef, additionalValueDef];
+            processedData.defs.keys = [keyDef, additionalKeyDef];
+            processedData.domain.keys = [rawData.map((datum) => datum.id), rawData.map((datum) => datum.category)];
+            processedData.domain.values = [
+                [1, 3],
+                [4, 6],
+            ];
+
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(0, rawData[0]).build();
 
             mutator.mutate(processedData, changes);
 

@@ -1,75 +1,73 @@
 import { ArrayUpdater } from './arrayUpdater';
 import type { DataChangeDescriptor } from './dataChangeDescriptor';
-import { ContinuousDomain, DiscreteDomain } from './dataDomain';
+import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 import type { ProcessedData, ProcessedOutputDiff } from './dataModel';
+
+type ProcessValueFn = (
+    def: any,
+    datum: any,
+    idx: number,
+    valueScopes?: string | string[],
+    accessors?: Map<string, (d: any) => any>,
+    dataDomain?: Map<object, IDataDomain>,
+    initDataDomain?: () => void
+) => { value: unknown; missing: boolean; valid: boolean };
+
+type ProcessedDatumResult = {
+    value: unknown;
+    valid: boolean;
+    missing: boolean;
+};
+
+export interface ProcessedDataMutatorOptions {
+    processValue: ProcessValueFn;
+    accessors?: Map<string, (d: any) => any>;
+}
 
 // Cache Symbol keys that match those in dataModel.ts
 // These symbols must match the exact string descriptors used in DataModel
-const KEY_SORT_ORDERS = Symbol('key-sort-orders');
-const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
-const DOMAIN_RANGES = Symbol('domain-ranges');
+const KEY_SORT_ORDERS = Symbol.for('key-sort-orders');
+const COLUMN_SORT_ORDERS = Symbol.for('column-sort-orders');
+const DOMAIN_RANGES = Symbol.for('domain-ranges');
 
 /**
  * Mutates ProcessedData structures in-place based on DataChangeDescriptor.
  * Provides efficient incremental updates without full reprocessing.
  */
 export class ProcessedDataMutator {
-    constructor() {
-        // TODO: When implementing proper value extraction, we'll need access to
-        // DataModel's value extractors. For now, we use placeholder extraction.
+    private readonly processValue: ProcessValueFn;
+    private readonly accessors: Map<string, (d: any) => any>;
+
+    constructor(options: ProcessedDataMutatorOptions) {
+        if (!options || typeof options.processValue !== 'function') {
+            throw new Error('ProcessedDataMutator requires a processValue implementation');
+        }
+
+        this.processValue = options.processValue;
+        this.accessors = options.accessors ?? new Map();
     }
 
-    /**
-     * Mutates ProcessedData in-place based on the provided changes.
-     * All operations are atomic - either all succeed or the method throws.
-     *
-     * @param processedData - The ProcessedData to mutate in-place
-     * @param changes - Description of changes to apply
-     * @throws Error if mutation fails (indicates implementation bug)
-     */
     mutate(processedData: ProcessedData<any>, changes: DataChangeDescriptor): void {
         try {
-            // Fast path: no changes to process
             if (this.hasNoChanges(changes)) {
                 return;
             }
 
-            // For now, focus on ungrouped data as specified in the requirements
             if (processedData.type === 'grouped') {
-                // TODO: Add grouped data support in Phase 4
                 throw new Error('Grouped data mutations not yet implemented');
             }
 
-            // Track which columns and keys are affected for targeted updates
-            const affectedColumns = this.determineAffectedColumns(processedData, changes);
-            const affectedKeys = this.determineAffectedKeys(processedData, changes);
+            const { affectedColumns, affectedKeys } = this.applyUngroupedChanges(processedData, changes);
 
-            // Apply changes to the main data structures
-            this.mutateColumns(processedData, changes, affectedColumns);
-            this.mutateKeys(processedData, changes, affectedKeys);
-
-            // Apply changes to the domain data structures
-            this.mutateDomainValues(processedData, changes, affectedColumns);
-            this.mutateDomainKeys(processedData, changes, affectedKeys);
-
-            // Invalidate affected caches
             this.invalidateCaches(processedData, affectedColumns, affectedKeys);
-
-            // Update metadata
             this.updateProcessedDataMetadata(processedData, changes);
-
-            // Update domain ranges for affected columns and keys
             this.updateDomainRanges(processedData, affectedColumns, affectedKeys);
         } catch (error) {
-            // Fail fast on any error - indicates implementation bugs
             const message = `ProcessedDataMutator failed: ${error instanceof Error ? error.message : String(error)}`;
             throw new Error(message);
         }
     }
 
-    /**
-     * Check if there are no changes to process.
-     */
     private hasNoChanges(changes: DataChangeDescriptor): boolean {
         return (
             changes.metadata.totalRemoved === 0 &&
@@ -78,182 +76,306 @@ export class ProcessedDataMutator {
         );
     }
 
-    /**
-     * Determine which columns are affected by the changes.
-     */
-    private determineAffectedColumns(processedData: ProcessedData<any>, _changes: DataChangeDescriptor): Set<number> {
-        const affected = new Set<number>();
+    private applyUngroupedChanges(
+        processedData: ProcessedData<any>,
+        changes: DataChangeDescriptor
+    ): { affectedColumns: Set<number>; affectedKeys: Set<number> } {
+        const scopeId = this.getSingleScope(processedData);
+        const keyDefs = processedData.defs?.keys ?? [];
+        const valueDefs = processedData.defs?.values ?? [];
 
-        // All columns are potentially affected by any change
-        // TODO: Optimize this to only include columns that actually need updates
-        // For now, mark all columns as affected for correctness
+        const affectedColumns = new Set<number>();
         for (let i = 0; i < processedData.columns.length; i++) {
-            affected.add(i);
+            affectedColumns.add(i);
         }
 
-        return affected;
-    }
-
-    /**
-     * Determine which key arrays are affected by the changes.
-     */
-    private determineAffectedKeys(processedData: ProcessedData<any>, _changes: DataChangeDescriptor): Set<number> {
-        const affected = new Set<number>();
-
-        // All key arrays are potentially affected by any change
-        // TODO: Optimize this to only include keys that actually need updates
-        // For now, mark all key arrays as affected for correctness
+        const affectedKeys = new Set<number>();
         for (let i = 0; i < processedData.keys.length; i++) {
-            affected.add(i);
+            affectedKeys.add(i);
         }
 
-        return affected;
-    }
+        const columnCount = Math.min(valueDefs.length, processedData.columns.length);
+        const keyCount = Math.min(keyDefs.length, processedData.keys.length);
 
-    /**
-     * Apply changes to the columns arrays.
-     */
-    private mutateColumns(
-        processedData: ProcessedData<any>,
-        changes: DataChangeDescriptor,
-        affectedColumns: Set<number>
-    ): void {
-        for (const columnIndex of affectedColumns) {
-            if (columnIndex >= processedData.columns.length) {
-                continue; // Skip invalid column indices
+        const firstColumnLength = processedData.columns[0]?.length ?? 0;
+        const firstKeyArray = keyCount > 0 ? processedData.keys[0].get(scopeId) ?? [] : [];
+        const originalLength = Math.max(firstColumnLength, firstKeyArray.length);
+
+        const invalidKeysMap = (processedData.invalidKeys ??= new Map());
+        let invalidKeysArray = invalidKeysMap.get(scopeId);
+        if (!invalidKeysArray) {
+            invalidKeysArray = Array.from({ length: originalLength }, () => false);
+            invalidKeysMap.set(scopeId, invalidKeysArray);
+        }
+
+        const invalidDataMap = (processedData.invalidData ??= new Map());
+        let invalidDataArray = invalidDataMap.get(scopeId);
+        if (!invalidDataArray) {
+            invalidDataArray = Array.from({ length: originalLength }, () => false);
+            invalidDataMap.set(scopeId, invalidDataArray);
+        }
+
+        const invalidKeyCountMap = (processedData.invalidKeyCount ??= new Map());
+
+        let partialValidDataCount = processedData.partialValidDataCount ?? 0;
+
+        const keyResultsByDatum = new Map<any, ProcessedDatumResult[]>();
+        const valueResultsByDatum = new Map<any, ProcessedDatumResult[]>();
+        const invalidKeyFlagByDatum = new Map<any, boolean>();
+        const invalidDataFlagByDatum = new Map<any, boolean>();
+
+        const oldEntries = [
+            ...changes.removed.map((removal) => ({ datum: removal.datum, index: removal.index })),
+            ...changes.updated.map((update) => ({ datum: update.oldDatum, index: update.index })),
+        ];
+
+        for (const { datum, index } of oldEntries) {
+            if (datum == null || index < 0) continue;
+            partialValidDataCount += this.adjustOldDatum(
+                datum,
+                index,
+                scopeId,
+                keyDefs,
+                valueDefs,
+                columnCount,
+                invalidKeysArray ?? []
+            );
+        }
+
+        const newEntries = [
+            ...changes.inserted.map((insert) => ({ datum: insert.datum, index: insert.index })),
+            ...changes.updated.map((update) => ({ datum: update.newDatum, index: update.index })),
+        ];
+
+        for (const { datum, index } of newEntries) {
+            if (datum == null) continue;
+
+            const keyResults = this.computeKeyResultsForDatum(keyDefs, datum, index, scopeId, true);
+            keyResultsByDatum.set(datum, keyResults);
+            const invalidKey = keyResults.some((result) => !result.valid);
+            invalidKeyFlagByDatum.set(datum, invalidKey);
+
+            const valueResults = this.computeValueResultsForDatum(valueDefs, datum, index, true);
+            valueResultsByDatum.set(datum, valueResults);
+
+            let datumInvalidDueToValue = false;
+            for (let valueIndex = 0; valueIndex < columnCount; valueIndex++) {
+                const valueResult = valueResults[valueIndex];
+                if (!valueResult) continue;
+                if (!invalidKey && !valueResult.valid) {
+                    partialValidDataCount += 1;
+                }
+                if (!valueResult.valid) {
+                    datumInvalidDueToValue = true;
+                }
             }
 
-            const column = processedData.columns[columnIndex];
-            this.mutateArray(column, changes, columnIndex);
+            invalidDataFlagByDatum.set(datum, invalidKey || datumInvalidDueToValue);
         }
-    }
 
-    /**
-     * Apply changes to the keys arrays.
-     */
-    private mutateKeys(
-        processedData: ProcessedData<any>,
-        changes: DataChangeDescriptor,
-        affectedKeys: Set<number>
-    ): void {
-        for (const keyIndex of affectedKeys) {
-            if (keyIndex >= processedData.keys.length) {
-                continue; // Skip invalid key indices
+        for (let keyIndex = 0; keyIndex < keyCount; keyIndex++) {
+            const keyMap = processedData.keys[keyIndex];
+            const keyDef = keyDefs[keyIndex];
+            if (!keyMap) continue;
+            let keyArray = keyMap.get(scopeId);
+            if (!keyArray) {
+                keyArray = [];
+                keyMap.set(scopeId, keyArray);
             }
 
-            const keyMaps = processedData.keys[keyIndex];
+            ArrayUpdater.applyChanges(keyArray, changes, (datum, arrayIndex) => {
+                const results = keyResultsByDatum.get(datum);
+                const result = results?.[keyIndex];
+                if (!result) {
+                    return keyArray[arrayIndex] ?? keyDef?.invalidValue;
+                }
+                return result.value;
+            });
+        }
 
-            // Apply changes to each scope's key array
-            for (const [scopeId, keyArray] of keyMaps) {
-                this.mutateArray(keyArray, changes, keyIndex, scopeId);
+        for (let valueIndex = 0; valueIndex < columnCount; valueIndex++) {
+            const column = processedData.columns[valueIndex];
+            const valueDef = valueDefs[valueIndex];
+            if (!column || !valueDef) continue;
+
+            ArrayUpdater.applyChanges(column, changes, (datum, arrayIndex) => {
+                const invalidKey = invalidKeyFlagByDatum.get(datum) ?? false;
+                const results = valueResultsByDatum.get(datum);
+                const result = results?.[valueIndex];
+
+                if (invalidKey) {
+                    return valueDef.invalidValue;
+                }
+
+                if (!result) {
+                    return column[arrayIndex] ?? valueDef.invalidValue;
+                }
+
+                return result.valid ? result.value : valueDef.invalidValue;
+            });
+        }
+
+        if (invalidKeysArray) {
+            ArrayUpdater.applyChanges(invalidKeysArray, changes, (datum) => invalidKeyFlagByDatum.get(datum) ?? false);
+        }
+
+        if (invalidDataArray) {
+            ArrayUpdater.applyChanges(invalidDataArray, changes, (datum) => invalidDataFlagByDatum.get(datum) ?? false);
+        }
+
+        const newLength = processedData.columns[0]?.length ?? processedData.keys[0]?.get(scopeId)?.length ?? 0;
+        processedData.input.count = newLength;
+        processedData.partialValidDataCount = Math.max(0, partialValidDataCount);
+
+        if (invalidKeysArray) {
+            const anyInvalidKeys = invalidKeysArray.some(Boolean);
+            if (anyInvalidKeys) {
+                invalidKeysMap.set(scopeId, invalidKeysArray);
+                const count = invalidKeysArray.reduce((acc: number, flag: boolean) => (flag ? acc + 1 : acc), 0);
+                invalidKeyCountMap.set(scopeId, count);
+            } else {
+                invalidKeysMap.delete(scopeId);
+                invalidKeyCountMap.delete(scopeId);
             }
         }
-    }
 
-    /**
-     * Apply changes to the domain values arrays.
-     */
-    private mutateDomainValues(
-        processedData: ProcessedData<any>,
-        changes: DataChangeDescriptor,
-        affectedColumns: Set<number>
-    ): void {
-        if (!processedData.domain?.values) {
-            return; // No domain values to update
-        }
-
-        for (const columnIndex of affectedColumns) {
-            if (columnIndex >= processedData.domain.values.length) {
-                continue; // Skip invalid column indices
+        if (invalidDataArray) {
+            const anyInvalidData = invalidDataArray.some(Boolean);
+            if (anyInvalidData) {
+                invalidDataMap.set(scopeId, invalidDataArray);
+            } else {
+                invalidDataMap.delete(scopeId);
             }
-
-            const domainValuesArray = processedData.domain.values[columnIndex];
-            this.mutateDomainArray(domainValuesArray, changes, columnIndex, 'values');
         }
+
+        if ((processedData.invalidKeys?.size ?? 0) === 0) {
+            processedData.invalidKeys = undefined;
+        }
+
+        if ((processedData.invalidData?.size ?? 0) === 0) {
+            processedData.invalidData = undefined;
+        }
+
+        if ((processedData.invalidKeyCount?.size ?? 0) === 0) {
+            processedData.invalidKeyCount = undefined;
+        }
+
+        return { affectedColumns, affectedKeys };
     }
 
-    /**
-     * Apply changes to the domain keys arrays.
-     */
-    private mutateDomainKeys(
-        processedData: ProcessedData<any>,
-        changes: DataChangeDescriptor,
-        affectedKeys: Set<number>
-    ): void {
-        if (!processedData.domain?.keys) {
-            return; // No domain keys to update
+    private getSingleScope(processedData: ProcessedData<any>): string {
+        const iterator = processedData.scopes.values();
+        const { value, done } = iterator.next();
+        if (done || iterator.next().done === false) {
+            throw new Error('Incremental updates currently support single-scope data only');
         }
-
-        for (const keyIndex of affectedKeys) {
-            if (keyIndex >= processedData.domain.keys.length) {
-                continue; // Skip invalid key indices
-            }
-
-            const domainKeysArray = processedData.domain.keys[keyIndex];
-            this.mutateDomainArray(domainKeysArray, changes, keyIndex, 'keys');
-        }
+        return value as string;
     }
 
-    /**
-     * Apply changes to a single domain array using ArrayUpdater.
-     * This handles both domain.values and domain.keys arrays.
-     */
-    private mutateDomainArray(
-        array: any[],
-        changes: DataChangeDescriptor,
+    private computeKeyResultsForDatum(
+        keyDefs: any[],
+        datum: any,
         index: number,
-        arrayType: 'values' | 'keys'
-    ): void {
-        // Create an extractor function that uses our value extraction logic
-        const extractor = (datum: any) => {
-            return this.extractValueForDomainArray(datum, index, arrayType);
-        };
-
-        // Use ArrayUpdater to apply all changes efficiently
-        ArrayUpdater.applyChanges(array, changes, extractor);
+        scopeId: string,
+        trackMissing: boolean
+    ): ProcessedDatumResult[] {
+        return keyDefs.map((def) => this.computeKeyResult(def, datum, index, scopeId, trackMissing));
     }
 
-    /**
-     * Apply changes to a single array using ArrayUpdater.
-     * This is the core mutation logic that handles removals, insertions, and updates.
-     */
-    private mutateArray(array: any[], changes: DataChangeDescriptor, columnOrKeyIndex: number, scopeId?: string): void {
-        // Create an extractor function that uses our value extraction logic
-        const extractor = (datum: any) => {
-            return this.extractValueForArray(datum, columnOrKeyIndex, scopeId);
-        };
-
-        // Use ArrayUpdater to apply all changes efficiently
-        ArrayUpdater.applyChanges(array, changes, extractor);
+    private computeValueResultsForDatum(
+        valueDefs: any[],
+        datum: any,
+        index: number,
+        trackMissing: boolean
+    ): ProcessedDatumResult[] {
+        return valueDefs.map((def) => this.computeValueResult(def, datum, index, def?.scopes, trackMissing));
     }
 
-    /**
-     * Extract the appropriate value for an array based on the datum and array type.
-     * TODO: This should use DataModel's cached extractors when available.
-     */
-    private extractValueForArray(datum: any, _columnOrKeyIndex: number, _scopeId?: string): any {
-        // TODO: Use DataModel.processValue() when it's refactored to be public
-        // For now, return a placeholder that won't cause runtime errors
-        // In the future, proper value extraction logic will be implemented here
-        return datum;
+    private computeKeyResult(
+        def: any,
+        datum: any,
+        index: number,
+        scopeId: string,
+        trackMissing: boolean
+    ): ProcessedDatumResult {
+        if (!def) {
+            return { value: undefined, valid: false, missing: false };
+        }
+
+        const scopeArg = trackMissing ? scopeId : undefined;
+        const result = this.processValue(def, datum, index, scopeArg, this.accessors);
+        if (!trackMissing && result.missing) {
+            this.decrementMissing(def, scopeId);
+        }
+        const value = result.valid ? result.value : def.invalidValue;
+        return { value, valid: result.valid, missing: result.missing };
     }
 
-    /**
-     * Extract the appropriate value for a domain array based on the datum and array type.
-     * TODO: This should use DataModel's cached extractors when available.
-     */
-    private extractValueForDomainArray(datum: any, _index: number, _arrayType: 'values' | 'keys'): any {
-        // TODO: Use proper value extraction from DataModel when it's refactored
-        // For now, we cannot directly use DataModel.processValue from processedDataMutator.ts,
-        // so just copy the values directly from the datum (add a TODO comment about needing
-        // proper value extraction in the future).
+    private computeValueResult(
+        def: any,
+        datum: any,
+        index: number,
+        scopes: string[] | undefined,
+        trackMissing: boolean
+    ): ProcessedDatumResult {
+        if (!def) {
+            return { value: undefined, valid: false, missing: false };
+        }
 
-        // Extract raw value from datum - this is a simplified approach
-        // In the future, this should use proper value extraction logic from DataModel
+        const scopeArg = trackMissing ? scopes : undefined;
+        const result = this.processValue(def, datum, index, scopeArg, this.accessors);
+        if (!trackMissing && result.missing) {
+            this.decrementMissing(def, scopes ?? []);
+        }
+        const value = result.valid ? result.value : def.invalidValue;
+        return { value, valid: result.valid, missing: result.missing };
+    }
 
-        // For domain arrays, we typically store the processed values
-        // For now, return the datum itself as a placeholder
-        return datum;
+    private adjustOldDatum(
+        datum: any,
+        index: number,
+        scopeId: string,
+        keyDefs: any[],
+        valueDefs: any[],
+        columnCount: number,
+        invalidKeysArray: boolean[]
+    ): number {
+        let partialDelta = 0;
+
+        for (let keyIndex = 0; keyIndex < keyDefs.length; keyIndex++) {
+            this.computeKeyResult(keyDefs[keyIndex], datum, index, scopeId, false);
+        }
+
+        const invalidKeyBefore = invalidKeysArray?.[index] ?? false;
+
+        for (let valueIndex = 0; valueIndex < columnCount; valueIndex++) {
+            const valueDef = valueDefs[valueIndex];
+            if (!valueDef) continue;
+            const result = this.computeValueResult(valueDef, datum, index, valueDef.scopes, false);
+            if (!invalidKeyBefore && !result.valid) {
+                partialDelta -= 1;
+            }
+        }
+
+        return partialDelta;
+    }
+
+    private decrementMissing(def: any, scopes: string | string[]) {
+        if (!def?.missing) {
+            return;
+        }
+
+        const scopeList = Array.isArray(scopes) ? scopes : [scopes];
+
+        for (const scope of scopeList) {
+            if (scope == null) continue;
+            const current = def.missing.get(scope) ?? 0;
+            if (current <= 1) {
+                def.missing.delete(scope);
+            } else {
+                def.missing.set(scope, current - 1);
+            }
+        }
     }
 
     /**
@@ -392,18 +514,13 @@ export class ProcessedDataMutator {
             return;
         }
 
-        // Update domain.values for affected columns
         this.updateValueDomains(processedData, affectedColumns);
-
-        // Update domain.keys for affected keys
         this.updateKeyDomains(processedData, affectedKeys);
 
-        // Clear groups domain for grouped data (not yet handled by mutation)
         if (processedData.type === 'grouped' && processedData.domain.groups) {
             processedData.domain.groups = processedData.domain.groups.map(() => []);
         }
 
-        // Clear aggregation values domain (not yet handled by mutation)
         if (affectedColumns.size > 0 && processedData.domain.aggValues) {
             processedData.domain.aggValues = [];
         }
@@ -413,15 +530,21 @@ export class ProcessedDataMutator {
      * Update domain.values for affected value columns.
      */
     private updateValueDomains(processedData: ProcessedData<any>, affectedColumns: Set<number>): void {
+        const valueDomains = processedData.domain?.values;
+        if (!valueDomains) return;
+
+        const valueDefs = processedData.defs?.values ?? [];
+
         for (const columnIndex of affectedColumns) {
-            if (columnIndex >= processedData.columns.length || columnIndex >= processedData.domain.values.length) {
+            if (columnIndex >= processedData.columns.length || columnIndex >= valueDomains.length) {
                 continue;
             }
 
             const column = processedData.columns[columnIndex];
-            const isDiscrete = this.isColumnDiscrete(processedData, columnIndex);
+            const def = valueDefs[columnIndex];
+            const isDiscrete = def?.valueType === 'category';
 
-            processedData.domain.values[columnIndex] = this.calculateDomainRange(column, isDiscrete);
+            valueDomains[columnIndex] = this.calculateDomainRange(column, !!isDiscrete);
         }
     }
 
@@ -429,23 +552,26 @@ export class ProcessedDataMutator {
      * Update domain.keys for affected key arrays.
      */
     private updateKeyDomains(processedData: ProcessedData<any>, affectedKeys: Set<number>): void {
+        const keyDomains = processedData.domain?.keys;
+        if (!keyDomains) return;
+
+        const keyDefs = processedData.defs?.keys ?? [];
+
         for (const keyIndex of affectedKeys) {
-            if (keyIndex >= processedData.keys.length || keyIndex >= processedData.domain.keys.length) {
+            if (keyIndex >= processedData.keys.length || keyIndex >= keyDomains.length) {
                 continue;
             }
 
-            // For keys, we need to aggregate values from all scopes
             const keyMaps = processedData.keys[keyIndex];
             const allKeyValues: any[] = [];
-
-            for (const [_scopeId, keyArray] of keyMaps) {
+            for (const [, keyArray] of keyMaps) {
                 allKeyValues.push(...keyArray);
             }
 
-            // Keys are typically discrete (categories), but we'll handle both cases
-            const isDiscrete = this.isKeyDiscrete(processedData, keyIndex);
+            const def = keyDefs[keyIndex];
+            const isDiscrete = def?.valueType ? def.valueType === 'category' : true;
 
-            processedData.domain.keys[keyIndex] = this.calculateDomainRange(allKeyValues, isDiscrete);
+            keyDomains[keyIndex] = this.calculateDomainRange(allKeyValues, !!isDiscrete);
         }
     }
 
@@ -482,88 +608,5 @@ export class ProcessedDataMutator {
 
             return result;
         }
-    }
-
-    /**
-     * Determine if a value column is discrete (categorical) or continuous.
-     * This is a simplified heuristic since we don't have access to the original
-     * PropertyDefinition here. In a future implementation, this information
-     * should be passed from DataModel.
-     */
-    private isColumnDiscrete(processedData: ProcessedData<any>, columnIndex: number): boolean {
-        // TODO: This should use the actual PropertyDefinition.valueType when available
-        // For now, use a simple heuristic based on data types in the column
-
-        if (columnIndex >= processedData.columns.length) {
-            return false;
-        }
-
-        const column = processedData.columns[columnIndex];
-        if (column.length === 0) {
-            return false; // Default to continuous for empty columns
-        }
-
-        // Sample the first few non-null values to determine type
-        let numberCount = 0;
-        let stringCount = 0;
-        let sampleCount = 0;
-        const maxSamples = Math.min(10, column.length);
-
-        for (let i = 0; i < column.length && sampleCount < maxSamples; i++) {
-            const value = column[i];
-            if (value == null) continue;
-
-            sampleCount++;
-            if (typeof value === 'number' || value instanceof Date) {
-                numberCount++;
-            } else {
-                stringCount++;
-            }
-        }
-
-        // If more strings than numbers, consider it discrete
-        return stringCount > numberCount;
-    }
-
-    /**
-     * Determine if a key array is discrete (categorical) or continuous.
-     * Keys are typically discrete, but we'll apply the same heuristic.
-     */
-    private isKeyDiscrete(processedData: ProcessedData<any>, keyIndex: number): boolean {
-        // Keys are typically discrete (categorical), so default to true
-        // Apply same heuristic as columns for consistency
-
-        if (keyIndex >= processedData.keys.length) {
-            return true;
-        }
-
-        const keyMaps = processedData.keys[keyIndex];
-        const allValues: any[] = [];
-
-        // Collect values from all scopes
-        for (const [_scopeId, keyArray] of keyMaps) {
-            allValues.push(...keyArray.slice(0, 10)); // Sample first 10 from each scope
-        }
-
-        if (allValues.length === 0) {
-            return true; // Default to discrete for empty keys
-        }
-
-        // Sample values to determine type
-        let numberCount = 0;
-        let stringCount = 0;
-
-        for (const value of allValues) {
-            if (value == null) continue;
-
-            if (typeof value === 'number' || value instanceof Date) {
-                numberCount++;
-            } else {
-                stringCount++;
-            }
-        }
-
-        // Keys are usually discrete, so bias towards discrete unless clearly numeric
-        return stringCount >= numberCount;
     }
 }
