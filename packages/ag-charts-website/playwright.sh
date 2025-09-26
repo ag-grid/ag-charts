@@ -109,6 +109,7 @@ if [ "$1" == "--host" ] ; then
     -e NX_BASE \
     -e AG_FORCE_ALL_TESTS \
     -e AG_SKIP_NATIVE_DEP_VERSION_CHECK \
+    -e AG_E2E_EXPERIMENT_HARNESS \
     ${EXTRA_DOCKER_ARGS} \
     --name ${container_name} \
     mcr.microsoft.com/playwright:v1.45.0-jammy \

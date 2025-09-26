@@ -111,7 +111,7 @@ export function createTestCase(
             test.slow(framework === 'angular', 'allow more time for Angular load times');
 
             // Load example and wait for things to settle.
-            await gotoExample(page, url);
+            await gotoExample(page, url, { framework });
 
             await initialCallback?.(page);
 

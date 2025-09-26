@@ -1,0 +1,444 @@
+---
+import type { InternalFramework } from '@ag-grid-types';
+import { getIsDev } from '@utils/env';
+import { getBoilerPlateUrl } from '@utils/pages';
+import { SystemJs } from '@components/example-runner/framework-templates/lib/SystemJs';
+
+export const prerender = false;
+
+const { internalFramework } = Astro.params as { internalFramework: InternalFramework };
+const supportedFrameworks: InternalFramework[] = [
+    'typescript',
+    'reactFunctional',
+    'reactFunctionalTs',
+    'angular',
+    'vue3',
+];
+
+if (!supportedFrameworks.includes(internalFramework)) {
+    throw new Error(`E2E harness does not support framework: ${internalFramework}`);
+}
+
+const isDev = getIsDev();
+const boilerplatePath = getBoilerPlateUrl({ library: 'charts', internalFramework });
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>AG Charts E2E Harness – {internalFramework}</title>
+        <style>
+            :root {
+                color-scheme: light dark;
+            }
+
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                background: transparent;
+            }
+
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #ag-harness-root {
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body data-framework={internalFramework}>
+        <div id="ag-harness-root"></div>
+        <SystemJs
+            isDev={isDev}
+            boilerplatePath={boilerplatePath}
+            appLocation={''}
+            startFile={''}
+            internalFramework={internalFramework}
+            deferImport={true}
+        />
+        <script>
+            /**
+             * @typedef {'typescript' | 'reactFunctional' | 'reactFunctionalTs' | 'angular' | 'vue3'} InternalFrameworkId
+             * @typedef {{styleFiles?: string[], scriptFiles?: string[], files?: Object<string, string>, entryFileName?: string}} ExampleContents
+             * @typedef {Window & {
+             *     AG_CHARTS_SYSTEMJS?: {
+             *         ready?: Promise<any>;
+             *         load?: (moduleId: string) => Promise<any>;
+             *     };
+             *     agChartsHarnessLoad?: (exampleUrl: string) => Promise<boolean>;
+             *     agChartsHarnessFramework?: InternalFrameworkId;
+             * }} HarnessWindow
+             */
+
+            const frameworkAttr = document.body.getAttribute('data-framework');
+            if (frameworkAttr == null) {
+                throw new Error('Harness framework data attribute missing');
+            }
+            const framework = /** @type {InternalFrameworkId} */ (frameworkAttr);
+
+            const harnessRootElement = document.getElementById('ag-harness-root');
+            if (!(harnessRootElement instanceof HTMLElement)) {
+                throw new Error('Harness root element missing');
+            }
+            const harnessRoot = /** @type {HTMLElement} */ (harnessRootElement);
+
+            const harnessWindow = /** @type {HarnessWindow} */ (window);
+
+            const STYLE_ATTRIBUTE = 'data-ag-harness-style';
+            const SCRIPT_ATTRIBUTE = 'data-ag-harness-script';
+            const EXTERNAL_SCRIPT_ATTRIBUTE = 'data-ag-harness-external';
+            const BASE_ATTRIBUTE = 'data-ag-harness-base';
+            const HARNESS_PACKAGE_PREFIX = '__agHarnessApp';
+            const harnessPackageName = HARNESS_PACKAGE_PREFIX + '-' + framework;
+
+            let currentExamplePrefix = null;
+            const externalScriptPromises = new Map();
+
+            function sleep(ms) {
+                return new Promise(function (resolve) {
+                    setTimeout(resolve, ms);
+                });
+            }
+
+            async function waitForSystem() {
+                let attempts = 0;
+                while (!harnessWindow.AG_CHARTS_SYSTEMJS || !harnessWindow.AG_CHARTS_SYSTEMJS.ready) {
+                    if (attempts++ > 500) {
+                        throw new Error('Timed out waiting for SystemJS to initialise');
+                    }
+                    await sleep(10);
+                }
+
+                return harnessWindow.AG_CHARTS_SYSTEMJS.ready;
+            }
+
+            function toAbsoluteUrl(exampleUrl, file) {
+                const base = exampleUrl.endsWith('/') ? exampleUrl : exampleUrl + '/';
+                return new URL(file, base).toString();
+            }
+
+            function clearExistingStyles() {
+                const links = Array.from(document.head.querySelectorAll('link[' + STYLE_ATTRIBUTE + ']'));
+                for (const link of links) {
+                    link.remove();
+                }
+            }
+
+            function applyStyles(exampleUrl, styleFiles) {
+                const files = Array.isArray(styleFiles) ? styleFiles : [];
+                clearExistingStyles();
+                for (const file of files) {
+                    const href = toAbsoluteUrl(exampleUrl, file);
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = href;
+                    link.setAttribute(STYLE_ATTRIBUTE, '');
+                    document.head.appendChild(link);
+                }
+            }
+
+            async function applyScripts(exampleUrl, scriptFiles) {
+                const existingScripts = Array.from(document.body.querySelectorAll('script[' + SCRIPT_ATTRIBUTE + ']'));
+                for (const script of existingScripts) {
+                    script.remove();
+                }
+
+                const files = Array.isArray(scriptFiles) ? scriptFiles : [];
+                for (const file of files) {
+                    // eslint-disable-next-line no-await-in-loop
+                    await new Promise(function (resolve, reject) {
+                        const script = document.createElement('script');
+                        script.src = toAbsoluteUrl(exampleUrl, file);
+                        script.async = false;
+                        script.setAttribute(SCRIPT_ATTRIBUTE, '');
+                        script.onload = function () {
+                            resolve();
+                        };
+                        script.onerror = function () {
+                            reject(new Error('Failed to load script ' + file));
+                        };
+                        document.body.appendChild(script);
+                    });
+                }
+            }
+
+            function resetExampleDom(indexHtml) {
+                let fragment = indexHtml;
+
+                if (framework === 'angular') {
+                    fragment = '<my-app></my-app>';
+                } else if (framework === 'reactFunctional' || framework === 'reactFunctionalTs') {
+                    fragment = '<div id="root"></div>';
+                } else if (framework === 'vue3') {
+                    fragment = '<div id="app"><my-component></my-component></div>';
+                } else if (fragment == null) {
+                    fragment = '<div id="root"></div>';
+                }
+
+                harnessRoot.innerHTML = fragment || '';
+            }
+
+            function getRegistryEntries(system) {
+                const registries = [];
+                if (system && typeof system.entries === 'function') {
+                    registries.push(Array.from(system.entries()));
+                }
+                if (system && system.registry && typeof system.registry.entries === 'function') {
+                    registries.push(Array.from(system.registry.entries()));
+                }
+                return registries;
+            }
+
+            function purgeExampleModules(system, examplePrefix) {
+                if (!system || typeof system.delete !== 'function') {
+                    return;
+                }
+
+                const registries = getRegistryEntries(system);
+                const seen = new Set();
+                for (const registryEntries of registries) {
+                    for (const entry of registryEntries) {
+                        const key = entry[0];
+                        if (seen.has(key)) continue;
+                        seen.add(key);
+                        const shouldDelete =
+                            examplePrefix == null ||
+                            key.indexOf(examplePrefix) === 0 ||
+                            key.indexOf(harnessPackageName) === 0 ||
+                            key === 'app' ||
+                            key.indexOf('app/') === 0;
+                        if (shouldDelete) {
+                            try {
+                                system.delete(key);
+                            } catch (error) {
+                                console.warn('Failed to purge module', key, error);
+                            }
+                        }
+                    }
+                }
+            }
+
+            async function fetchContents(exampleUrl) {
+                const response = await fetch(exampleUrl + '/contents.json', { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error('Unable to fetch contents.json for ' + exampleUrl);
+                }
+                return /** @type {ExampleContents} */ (await response.json());
+            }
+
+            function ensureExternalScript(id, src) {
+                if (externalScriptPromises.has(id)) {
+                    return externalScriptPromises.get(id);
+                }
+
+                const selector = 'script[' + EXTERNAL_SCRIPT_ATTRIBUTE + '="' + id + '"]';
+                const existing = document.querySelector(selector);
+                if (existing) {
+                    if (existing.dataset && existing.dataset.loaded === 'true') {
+                        return Promise.resolve();
+                    }
+
+                    const existingPromise = new Promise(function (resolve, reject) {
+                        existing.addEventListener(
+                            'load',
+                            function () {
+                                if (existing.dataset) {
+                                    existing.dataset.loaded = 'true';
+                                }
+                                resolve();
+                            },
+                            { once: true }
+                        );
+                        existing.addEventListener(
+                            'error',
+                            function () {
+                                reject(new Error('Failed to load external script ' + src));
+                            },
+                            { once: true }
+                        );
+                    });
+                    externalScriptPromises.set(id, existingPromise);
+                    return existingPromise;
+                }
+
+                const promise = new Promise(function (resolve, reject) {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.async = false;
+                    script.setAttribute(EXTERNAL_SCRIPT_ATTRIBUTE, id);
+                    script.addEventListener('load', function () {
+                        if (script.dataset) {
+                            script.dataset.loaded = 'true';
+                        }
+                        resolve(void 0);
+                    });
+                    script.addEventListener('error', function () {
+                        reject(new Error('Failed to load external script ' + src));
+                    });
+                    document.head.appendChild(script);
+                });
+
+                promise.catch(function () {
+                    externalScriptPromises.delete(id);
+                });
+                externalScriptPromises.set(id, promise);
+                return promise;
+            }
+
+            function removeHarnessBase() {
+                const base = document.head.querySelector('base[' + BASE_ATTRIBUTE + ']');
+                if (base && base.parentElement) {
+                    base.parentElement.removeChild(base);
+                }
+            }
+
+            function setHarnessBase(href) {
+                let base = document.head.querySelector('base[' + BASE_ATTRIBUTE + ']');
+                if (!base) {
+                    base = document.createElement('base');
+                    base.setAttribute(BASE_ATTRIBUTE, '');
+                    document.head.appendChild(base);
+                }
+                base.href = href;
+            }
+
+            function updateBaseHrefForFramework(exampleUrl) {
+                if (framework === 'angular') {
+                    const href = exampleUrl.endsWith('/') ? exampleUrl : exampleUrl + '/';
+                    setHarnessBase(href);
+                } else {
+                    removeHarnessBase();
+                }
+            }
+
+
+            function resetAngularState() {
+                if (framework !== 'angular') {
+                    return;
+                }
+
+                var ngGlobal = harnessWindow.ng;
+                if (!ngGlobal) {
+                    return;
+                }
+
+                var resetFns = [
+                    ngGlobal.ɵresetCompiledComponents,
+                    ngGlobal.core && ngGlobal.core.ɵresetCompiledComponents,
+                    ngGlobal.testing && ngGlobal.testing.ɵresetCompiledComponents,
+                ];
+                for (var i = 0; i < resetFns.length; i++) {
+                    var resetFn = resetFns[i];
+                    if (typeof resetFn === 'function') {
+                        try {
+                            resetFn();
+                            break;
+                        } catch (resetError) {
+                            /* ignore */
+                        }
+                    }
+                }
+
+                var destroyFns = [
+                    ngGlobal.destroyPlatform,
+                    ngGlobal.core && ngGlobal.core.destroyPlatform,
+                ];
+                for (var j = 0; j < destroyFns.length; j++) {
+                    var destroyFn = destroyFns[j];
+                    if (typeof destroyFn === 'function') {
+                        try {
+                            destroyFn();
+                            break;
+                        } catch (destroyError) {
+                            /* ignore */
+                        }
+                    }
+                }
+
+                if (Array.isArray(ngGlobal.platforms)) {
+                    ngGlobal.platforms.length = 0;
+                }
+            }
+            async function ensureFrameworkPrerequisites(exampleUrl) {
+                updateBaseHrefForFramework(exampleUrl);
+
+                if (framework === 'angular') {
+                    resetAngularState();
+                    await ensureExternalScript(
+                        'angular-core-js',
+                        'https://cdn.jsdelivr.net/npm/core-js-bundle@3.6.5/minified.js'
+                    );
+                    await ensureExternalScript(
+                        'angular-zone',
+                        'https://cdn.jsdelivr.net/npm/zone.js@0.11.2/dist/zone.min.js'
+                    );
+                }
+            }
+
+            async function loadExample(exampleUrl) {
+                const system = await waitForSystem();
+                await ensureFrameworkPrerequisites(exampleUrl);
+                const contents = await fetchContents(exampleUrl);
+
+                applyStyles(exampleUrl, contents.styleFiles);
+                await applyScripts(exampleUrl, contents.scriptFiles);
+
+                const files = contents.files || {};
+                const indexFragment = Object.prototype.hasOwnProperty.call(files, 'index.html')
+                    ? files['index.html']
+                    : null;
+                resetExampleDom(indexFragment);
+
+                if (currentExamplePrefix) {
+                    purgeExampleModules(system, currentExamplePrefix);
+                }
+                currentExamplePrefix = exampleUrl;
+
+                const entryFile = contents.entryFileName;
+                if (!entryFile) {
+                    throw new Error('Missing entry file for example ' + exampleUrl);
+                }
+
+                const mainEntry = entryFile.charAt(0) === '.' ? entryFile : './' + entryFile;
+                let extension = 'js';
+                const lastDot = entryFile.lastIndexOf('.');
+                if (lastDot !== -1 && lastDot < entryFile.length - 1) {
+                    extension = entryFile.slice(lastDot + 1);
+                }
+
+                system.config({
+                    map: {
+                        [harnessPackageName]: exampleUrl,
+                    },
+                    packages: {
+                        [harnessPackageName]: {
+                            main: mainEntry,
+                            defaultExtension: extension,
+                        },
+                    },
+                });
+
+                const loader = harnessWindow.AG_CHARTS_SYSTEMJS;
+                if (!loader || typeof loader.load !== 'function') {
+                    throw new Error('SystemJS harness loader missing');
+                }
+                await loader.load(harnessPackageName);
+            }
+
+            harnessWindow.agChartsHarnessLoad = async function agChartsHarnessLoad(exampleUrl) {
+                if (!exampleUrl || typeof exampleUrl !== 'string') {
+                    throw new Error('agChartsHarnessLoad requires an example url');
+                }
+
+                await loadExample(exampleUrl);
+                return true;
+            };
+
+            harnessWindow.agChartsHarnessFramework = framework;
+        </script>
+    </body>
+</html>

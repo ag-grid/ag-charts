@@ -4,6 +4,8 @@ import { CacheRoute } from 'playwright-network-cache';
 
 import { waitForChartUpdate } from './util';
 
+const HARNESS_EXPERIMENT_ENABLED = process.env.AG_E2E_EXPERIMENT_HARNESS === '1';
+
 // Stability proxy function from fixture.ts
 function stabilityProxy(page: Page, instance: any) {
     return new Proxy(instance, {
@@ -82,7 +84,7 @@ export class WorkerContextPool implements ContextPool {
         // Close stray tabs to keep the window count stable.
         await Promise.all(additional.map((page) => page.close()));
 
-        if (primary && !primary.isClosed()) {
+        if (!HARNESS_EXPERIMENT_ENABLED && primary && !primary.isClosed()) {
             try {
                 await primary.goto('about:blank', { waitUntil: 'load' });
             } catch {
@@ -184,13 +186,15 @@ export const contextTest = test.extend<ContextTestFixture>({
 
             await use(page);
 
-            try {
-                if (!page.isClosed()) {
-                    // Return to a neutral state for the next test.
-                    await page.goto('about:blank', { waitUntil: 'load' });
+            if (!HARNESS_EXPERIMENT_ENABLED) {
+                try {
+                    if (!page.isClosed()) {
+                        // Return to a neutral state for the next test.
+                        await page.goto('about:blank', { waitUntil: 'load' });
+                    }
+                } catch {
+                    // Ignore navigation failures; pool reset will handle recovery.
                 }
-            } catch {
-                // Ignore navigation failures; pool reset will handle recovery.
             }
         },
         { scope: 'test' },

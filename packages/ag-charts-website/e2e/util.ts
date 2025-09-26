@@ -6,6 +6,8 @@ import { expect, test } from './fixture';
 
 const baseUrl = process.env.PUBLIC_SITE_URL ?? 'https://localhost:4600/charts';
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
+const HARNESS_FRAMEWORKS = new Set<string>(['typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3']);
+const HARNESS_ENABLED = process.env.AG_E2E_EXPERIMENT_HARNESS === '1';
 
 export const SELECTORS = {
     wrapper: '.ag-charts-wrapper',
@@ -56,6 +58,26 @@ export function toExamplePageUrl(page: string, example: string, framework: (type
 
 export function toGalleryPageUrls(example: string) {
     return [{ framework: 'vanilla', url: `${baseUrl}/gallery/examples/${example}`, example }];
+}
+
+function extractFrameworkFromUrl(exampleUrl: string): string | undefined {
+    try {
+        const parsed = new URL(exampleUrl);
+        const segments = parsed.pathname.split('/').filter(Boolean);
+        const chartsIndex = segments.indexOf('charts');
+        if (chartsIndex >= 0 && segments.length > chartsIndex + 1) {
+            return segments[chartsIndex + 1];
+        }
+        return segments[0];
+    } catch {
+        const sanitized = exampleUrl.split('?')[0].split('#')[0];
+        const segments = sanitized.split('/').filter(Boolean);
+        const chartsIndex = segments.indexOf('charts');
+        if (chartsIndex >= 0 && segments.length > chartsIndex + 1) {
+            return segments[chartsIndex + 1];
+        }
+        return segments[0];
+    }
 }
 
 export function setupIntrinsicAssertions(
@@ -166,11 +188,64 @@ export function repeat(repCount: number, fn: () => unknown) {
     }
 }
 
-export async function gotoExample(
-    page: Page,
-    url: string,
-    opts = { skipStabilityChecks: false, skipNetworkIdle: false }
-) {
+type GotoExampleOptions = {
+    skipStabilityChecks?: boolean;
+    skipNetworkIdle?: boolean;
+    framework?: string;
+};
+
+async function ensureHarnessPage(page: Page, framework: string) {
+    const harnessUrl = new URL(`e2e/examples/${framework}`, baseUrl).toString();
+
+    if (!page.url().startsWith(harnessUrl)) {
+        await page.goto(`${harnessUrl}#e2e=true`);
+    }
+
+    await page.waitForLoadState('domcontentloaded');
+    await expect
+        .poll(() =>
+            page.evaluate(() => {
+                return typeof (window as any).agChartsHarnessLoad === 'function';
+            })
+        )
+        .toBeTruthy();
+}
+
+export async function gotoExample(page: Page, url: string, opts: GotoExampleOptions = {}) {
+    const { skipStabilityChecks = false, framework } = opts;
+
+    let resolvedFramework = framework;
+    if (!resolvedFramework) {
+        const inferred = extractFrameworkFromUrl(url);
+        if (inferred && HARNESS_FRAMEWORKS.has(inferred)) {
+            resolvedFramework = inferred;
+        }
+    }
+
+    const useHarness = Boolean(HARNESS_ENABLED && resolvedFramework && HARNESS_FRAMEWORKS.has(resolvedFramework));
+
+    if (useHarness) {
+        await ensureHarnessPage(page, resolvedFramework!);
+        await page.evaluate((exampleUrl) => {
+            const loader = (window as any).agChartsHarnessLoad;
+            if (typeof loader !== 'function') {
+                throw new Error('Harness loader is not ready');
+            }
+            return loader(exampleUrl);
+        }, url);
+
+        await expect(page.locator(SELECTORS.canvas).first()).toBeVisible({ timeout: 10_000 });
+        for (const elements of await page.locator(SELECTORS.canvas).all()) {
+            await expect(elements).toBeVisible();
+        }
+
+        if (!skipStabilityChecks) {
+            await waitForAllChartUpdates(page);
+        }
+
+        return;
+    }
+
     await page.goto(url + '#e2e=true');
 
     await page.waitForLoadState('load');
@@ -185,7 +260,7 @@ export async function gotoExample(
         await expect(elements).toBeVisible();
     }
 
-    if (opts.skipStabilityChecks) return;
+    if (skipStabilityChecks) return;
     await waitForAllChartUpdates(page);
 }
 

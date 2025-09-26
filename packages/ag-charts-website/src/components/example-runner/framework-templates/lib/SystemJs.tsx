@@ -9,6 +9,7 @@ interface Props {
     appLocation: string;
     startFile: string;
     internalFramework: InternalFramework;
+    deferImport?: boolean;
 }
 
 type Paths = Record<string, string>;
@@ -55,7 +56,15 @@ const publishedConfiguration = {
     chartPaths: {},
 };
 
+function normalizeFramework(framework: InternalFramework) {
+    if (framework === 'reactFunctional' || framework === 'reactFunctionalTs') {
+        return 'react';
+    }
+    return framework;
+}
+
 function getRelevantConfig(configuration: Configuration, framework: InternalFramework) {
+    const normalizedFramework = normalizeFramework(framework);
     const filterByFramework = (k: string) => {
         const inverseFrameworks: Record<string, string[]> = {
             react: ['angular', 'vue3'],
@@ -63,7 +72,8 @@ function getRelevantConfig(configuration: Configuration, framework: InternalFram
             vue3: ['angular', 'react'],
             typescript: ['angular', 'react', 'vue3'],
         };
-        return !inverseFrameworks[framework].some((f) => k.endsWith(f));
+        const exclusions = inverseFrameworks[normalizedFramework] ?? [];
+        return !exclusions.some((f) => k.endsWith(f));
     };
 
     const buildChartCopy = (config: Paths) => {
@@ -87,7 +97,14 @@ function getRelevantConfig(configuration: Configuration, framework: InternalFram
  * Our framework examples use SystemJS to load the various dependencies. This component is used to insert the required
  * code to load SystemJS and the relevant modules depending on the framework.
  */
-export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFramework, isDev }: Props) => {
+export const SystemJs = ({
+    boilerplatePath,
+    appLocation,
+    startFile,
+    internalFramework,
+    isDev,
+    deferImport,
+}: Props) => {
     const systemJsPath = pathJoin(boilerplatePath, `systemjs.config${isDev ? '.dev' : ''}.js`);
     const systemJsVersion =
         internalFramework === 'angular'
@@ -131,11 +148,66 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
             />
             <script src={systemJsVersion} />
             <script src={systemJsPath} />
-            <script
-                dangerouslySetInnerHTML={{
-                    __html: `System.import('${startFile}').catch(function(err) { console.error(err); });`,
-                }}
-            />
+            {deferImport ? (
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+            (function(){
+                var readyResolve;
+                var readyPromise = new Promise(function(resolve){ readyResolve = resolve; });
+                window.AG_CHARTS_SYSTEMJS = window.AG_CHARTS_SYSTEMJS || {};
+                window.AG_CHARTS_SYSTEMJS.ready = readyPromise;
+
+                function markReady() {
+                    if (readyResolve) {
+                        var resolve = readyResolve;
+                        readyResolve = null;
+                        resolve(window.System);
+                    }
+                }
+
+                if (window.System && typeof window.System.import === 'function') {
+                    markReady();
+                } else {
+                    var checkInterval = setInterval(function(){
+                        if (window.System && typeof window.System.import === 'function') {
+                            clearInterval(checkInterval);
+                            markReady();
+                        }
+                    }, 10);
+                }
+
+                window.AG_CHARTS_SYSTEMJS.load = async function load(startFile) {
+                    await window.AG_CHARTS_SYSTEMJS.ready;
+
+                    if (!startFile) {
+                        throw new Error('SystemJS harness load called without a startFile');
+                    }
+
+                    if (typeof window.System.delete === 'function') {
+                        try {
+                            window.System.delete(startFile);
+                        } catch (e) {
+                            console.warn('System.delete failed for', startFile, e);
+                        }
+                    }
+
+                    return window.System.import(startFile).catch(function (err) {
+                        console.error(err);
+                        throw err;
+                    });
+                };
+            })();
+        `,
+                    }}
+                />
+            ) : (
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `System.import('${startFile}').catch(function(err) { console.error(err); });`,
+                    }}
+                />
+            )}
         </>
     );
 };
