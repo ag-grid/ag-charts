@@ -7,7 +7,7 @@ import {
 
 import { type DatumType, getData } from './data';
 
-const options: AgCartesianChartOptions<DatumType, never> = {
+const options: AgCartesianChartOptions<DatumType, unknown> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [

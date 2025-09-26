@@ -8,7 +8,7 @@ import {
 
 import { type DatumType, getData } from './data';
 
-const styler = (params: AgRangeBarSeriesStylerParams<DatumType, never>): AgRangeBarSeriesStyle | undefined => {
+const styler = (params: AgRangeBarSeriesStylerParams<DatumType, unknown>): AgRangeBarSeriesStyle | undefined => {
     if (params.yLowKey === 'gain_low')
         return {
             fill: 'cyan',
@@ -26,7 +26,7 @@ const styler = (params: AgRangeBarSeriesStylerParams<DatumType, never>): AgRange
     return {};
 };
 
-const itemStyler = (params: AgRangeBarSeriesItemStylerParams<DatumType, never>): AgRangeBarSeriesStyle => {
+const itemStyler = (params: AgRangeBarSeriesItemStylerParams<DatumType, unknown>): AgRangeBarSeriesStyle => {
     if (params.datum[params.xKey] === 'February') {
         if (params.yLowKey === 'gain_low') {
             return { fill: 'gold', cornerRadius: 0 };
@@ -37,7 +37,7 @@ const itemStyler = (params: AgRangeBarSeriesItemStylerParams<DatumType, never>):
     return {};
 };
 
-const options: AgCartesianChartOptions<DatumType, never> = {
+const options: AgCartesianChartOptions<DatumType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [

@@ -7,7 +7,7 @@ import {
 
 import { type DatumType, getData } from './data';
 
-const styler = (params: AgRangeBarSeriesStylerParams<DatumType, never>): AgRangeBarSeriesStyle | undefined => {
+const styler = (params: AgRangeBarSeriesStylerParams<DatumType, unknown>): AgRangeBarSeriesStyle | undefined => {
     if (params.yLowKey === 'gain_low')
         return {
             fill: 'cyan',
@@ -25,7 +25,7 @@ const styler = (params: AgRangeBarSeriesStylerParams<DatumType, never>): AgRange
     return {};
 };
 
-const options: AgCartesianChartOptions<DatumType, never> = {
+const options: AgCartesianChartOptions<DatumType, unknown> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
