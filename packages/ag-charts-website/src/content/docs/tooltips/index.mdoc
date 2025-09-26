@@ -167,7 +167,7 @@ The tooltip's content can be customised within the default template by using a `
 
 ```js
 tooltip: {
-    renderer: function ({ datum, xKey, yKey }) {
+    renderer: function ({ datum, xKey, yKey, yName }) {
         return {
             heading: 'Clothing Production',
             title: yName.toUpperCase(),

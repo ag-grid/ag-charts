@@ -214,12 +214,14 @@ Use the `series.marker` property to customise markers.
 
 ```js
 series: [
+    {
     stroke: 'maroon',
     marker: {
         shape: 'square', // defaults to 'circle'
         size: 20,
         fill: 'red',
         stroke: 'maroon',
+    },
     },
 ]
 ```
@@ -530,7 +532,7 @@ return (
 
 {% if isFramework("angular") %}
 
-```js
+```ts
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -654,7 +656,7 @@ return (
 
 {% if isFramework("angular") %}
 
-```js
+```ts
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -680,7 +682,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js
+```ts
 template: `<ag-gauge :options="options"/>`,
 components: {
     'ag-gauge': AgGauge,

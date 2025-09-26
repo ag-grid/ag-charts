@@ -13,7 +13,7 @@ Financial Charts come pre-configured with built-in features – just add your da
 
 {% if isFramework("javascript") %}
 
-```js
+```ts
 import { AgCharts, AgFinancialChartOptions } from "ag-charts-enterprise";
 
 import { getData } from "./data";
@@ -54,7 +54,7 @@ root.render(<ChartExample />);
 
 {% if isFramework("angular") %}
 
-```js
+```ts
 import { Component } from '@angular/core';
 import { AgFinancialCharts } from 'ag-charts-angular';
 import { AgFinancialChartOptions } from 'ag-charts-enterprise';
@@ -132,7 +132,7 @@ For custom data keys, map your data properties to the appropriate [AgFinancialCh
 
 Financial Chart features can be enabled or disabled via the following properties:
 
-```js
+```ts
 const options: AgFinancialChartOptions = {
   // ...
   navigator: false, // disabled by default
@@ -160,7 +160,7 @@ However, this can also be done programmatically.
 
 The default chart type is `candlestick`. To use a different chart type, set the `chartType` property.
 
-```js
+```ts
 const options: AgFinancialChartOptions = {
   // ...
   chartType: 'line', // Set to line
@@ -179,7 +179,7 @@ The following chart types are supported:
 
 Use the `theme` property in `AgFinancialChartOptions` to customise chart styles.
 
-```js
+```ts
 const options: AgFinancialChartOptions = {
   // ...
   theme: {
