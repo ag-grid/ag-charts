@@ -1018,6 +1018,134 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     },
   ],
+  "originalDataSources": Map {
+    "test" => [
+      {
+        "engine-size": 130,
+      },
+      {
+        "engine-size": 130,
+      },
+      {
+        "engine-size": 152,
+      },
+      {
+        "engine-size": 109,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 131,
+      },
+      {
+        "engine-size": 131,
+      },
+      {
+        "engine-size": 108,
+      },
+      {
+        "engine-size": 108,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 61,
+      },
+      {
+        "engine-size": 90,
+      },
+    ],
+  },
+  "originalToTransformedMap": Map {
+    "test" => Map {
+      {
+        "engine-size": 130,
+      } => 0,
+      {
+        "engine-size": 130,
+      } => 1,
+      {
+        "engine-size": 152,
+      } => 2,
+      {
+        "engine-size": 109,
+      } => 3,
+      {
+        "engine-size": 136,
+      } => 4,
+      {
+        "engine-size": 136,
+      } => 5,
+      {
+        "engine-size": 136,
+      } => 6,
+      {
+        "engine-size": 136,
+      } => 7,
+      {
+        "engine-size": 131,
+      } => 8,
+      {
+        "engine-size": 131,
+      } => 9,
+      {
+        "engine-size": 108,
+      } => 10,
+      {
+        "engine-size": 108,
+      } => 11,
+      {
+        "engine-size": 164,
+      } => 12,
+      {
+        "engine-size": 164,
+      } => 13,
+      {
+        "engine-size": 164,
+      } => 14,
+      {
+        "engine-size": 209,
+      } => 15,
+      {
+        "engine-size": 209,
+      } => 16,
+      {
+        "engine-size": 209,
+      } => 17,
+      {
+        "engine-size": 61,
+      } => 18,
+      {
+        "engine-size": 90,
+      } => 19,
+    },
+  },
   "partialValidDataCount": 0,
   "reduced": {
     "sortedGroupDomain": [
@@ -4205,6 +4333,8 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       ],
     },
   ],
+  "originalDataSources": Any<Map>,
+  "originalToTransformedMap": Any<Map>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -5180,6 +5310,8 @@ exports[`DataModel repeated property processing should generated the expected re
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [],
+  "originalDataSources": Any<Map>,
+  "originalToTransformedMap": Any<Map>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -5347,6 +5479,8 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [],
+  "originalDataSources": Any<Map>,
+  "originalToTransformedMap": Any<Map>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
