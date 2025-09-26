@@ -41,38 +41,36 @@ The properties of a feature are represented as a JSON object. While there is no 
 
 When using a Map Series which requires topology, both the `topology` and the `data` must be provided in the chart or series options.
 
-```ts
-const chartOptions = {
-    series: [
-        {
-            type: 'map-shape',
-            topology: {
-                type: 'FeatureCollection',
-                features: [
-                    {
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Polygon',
-                            coordinates: [], // Coordinates omitted for brevity
-                        },
-                        properties: {
-                            name: 'United Kingdom',
-                            code: 'GB',
-                        },
+```js
+series: [
+    {
+        type: 'map-shape',
+        topology: {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [...],
                     },
-                ],
-                // ...
-            },
-            data: [
-                { country: 'United Kingdom', population: 67330000 },
-                { country: 'France', population: 67500000 },
-                // ...
+                    properties: {
+                        name: 'United Kingdom',
+                        code: 'GB'
+                    }
+                }
             ],
-            idKey: 'country',
-            topologyIdKey: 'name', // default value
+            // ...
         },
-    ],
-};
+        data: [
+            { country: 'United Kingdom', population: 67330000 },
+            { country: 'France', population: 67500000 },
+            // ...
+        ],
+        idKey: 'country',
+        topologyIdKey: 'name' //default value
+    }
+]
 ```
 
 -   Each item in the data must contain a field that refers to the associated geometry for that data item. In the above example this is the `country` field.

@@ -15,7 +15,7 @@ The tooltip content is based on the data values and keys of the series. If provi
 series: [
     { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' },
     { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made', yName: 'Hats Made' },
-];
+],
 ```
 
 In this example:
@@ -35,6 +35,7 @@ By default a shared tooltip will be used for most cartesian charts containing 3 
 {% chartExampleRunner title="Tooltip Mode" name="tooltip-mode" type="generated" /%}
 
 ```js
+// Chart options only
 tooltip: {
     mode: 'shared', // or 'single' or 'compact'
 }
@@ -58,7 +59,7 @@ tooltip: {
         anchorTo: 'node',
         placement: 'top',
     },
-}
+},
 ```
 
 Fallback positions can be provided in an array of `placement` values. The tooltip will use the first position that has sufficient space.
@@ -69,7 +70,7 @@ tooltip: {
         anchorTo: 'node',
         placement: ['left', 'right'],
     },
-}
+},
 ```
 
 In the above example:
@@ -96,7 +97,7 @@ Use the `tooltip.showArrow` option to change this behaviour.
 ```js
 tooltip: {
     showArrow: false,
-}
+},
 ```
 
 ## Tooltip Pagination
@@ -108,6 +109,7 @@ Pagination allows cycling through overlapping datapoints by hovering and then cl
 Pagination will only become available when two or more data points are under the cursor.
 
 ```js
+// Chart options only
 tooltip: {
     pagination: true,
 }
@@ -177,7 +179,7 @@ tooltip: {
             ],
         };
     },
-}
+},
 ```
 
 In this configuration:
@@ -211,7 +213,7 @@ series: [
             },
         },
     },
-];
+],
 ```
 
 In this configuration:

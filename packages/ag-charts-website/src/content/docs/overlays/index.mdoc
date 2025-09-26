@@ -44,9 +44,9 @@ overlays: {
         text: 'Some custom noVisibleSeries message',
     },
     unsupportedBrowser: {
-        text: 'Some custom unsupportedBrowser message',
-    },
-}
+        text: 'Some custom unsupportedBrowser message'
+    }
+},
 ```
 
 ### Custom Overlay
@@ -58,9 +58,9 @@ If finer grained control is required, a renderer can be provided to allow full c
 ```js
 overlays: {
     noData: {
-        renderer: () => '<em>Custom message for <strong>missing data</strong></em>',
+        renderer: () => '<em>Custom message for <strong>missing data</strong></em>'
     },
-}
+},
 ```
 
 ### Custom Loading Spinner
@@ -85,7 +85,7 @@ overlays: {
             return container;
         },
     },
-}
+},
 ```
 
 ## API Reference

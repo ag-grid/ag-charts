@@ -83,20 +83,20 @@ property which can be used to dynamically customise the chart style based on the
 {% chartExampleRunner title="Dynamic Highlight" name="balance-sheet" type="generated" /%}
 
 ```js
-label: {
-    itemStyler: (params) => {
-        switch (params.highlightState) {
-            case 'highlighted-series':
-                return { fontSize: 10 };
-            case 'unhighlighted-item':
-                return { color: 'lightgray' };
-            case 'highlighted-item':
-                return { fontWeight: 'bold' };
-            default:
-                return { color: 'transparent' };
-        }
+    label: {
+        itemStyler: (params) => {
+            switch (params.highlightState) {
+                case 'highlighted-series':
+                    return { fontSize: 10 };
+                case 'unhighlighted-item':
+                    return { color: 'lightgray' };
+                case 'highlighted-item':
+                    return { fontWeight: 'bold' };
+                default:
+                    return { color: 'transparent' };
+            }
+        },
     },
-}
 ```
 
 In this example:

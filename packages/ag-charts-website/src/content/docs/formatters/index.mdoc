@@ -32,16 +32,22 @@ For ease of use, the formatter can also be an object keyed by property, providin
 {% chartExampleRunner title="Formatter" name="formatter" type="generated" /%}
 
 ```js
-formatter: {
-    x: (params) => {
-        const formatter = params.unit === 'year' ? yearFormatter : dateFormatter;
-        return formatter.format(params.value);
-    },
-    y: (params) => `${magnitudeFormatter.format(params.value)} Mw`,
-    size: (params) => deathsFormatter.format(params.value),
-    label: (params) => {
-        if (params.source === 'series-label') return params.datum.flag;
-    },
+{
+    formatter: {
+        x: (params) => {
+            const formatter = params.unit === 'year' ? yearFormatter : dateFormatter;
+            return formatter.format(params.value);
+        },
+        y: (params) => {
+            return `${magnitudeFormatter.format(params.value)} Mw`;
+        },
+        size: (params) => {
+            return deathsFormatter.format(params.value);
+        },
+        label: (params) => {
+            if (params.source === 'series-label') return params.datum.flag;
+        },
+    }
 }
 ```
 
@@ -73,9 +79,11 @@ A formatter can also be specified as a format string, which is a static string t
 {% chartExampleRunner title="Format String" name="format-string" type="generated" /%}
 
 ```js
-formatter: {
-    x: '%b %Y',
-    y: '$#{0>6.2f}',
+{
+    formatter: {
+        x: "%b %Y",
+        y: "$#{0>6.2f}",
+    },
 }
 ```
 
