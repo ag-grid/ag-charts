@@ -90,7 +90,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js
+```jsx wrapper="reactHooks"
 const [chartOptions, setChartOptions] = useState({
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
@@ -118,7 +118,7 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
+```js wrapper="reactHooks"
 const options =
     ref <
     AgChartOptions >
@@ -158,7 +158,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js
+```jsx wrapper="reactHooks"
 const [chartOptions, setChartOptions] = useState({
     axes: [
         { type: 'category', position: 'bottom' },
@@ -188,7 +188,7 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
+```jsx wrapper="reactHooks"
 const options =
     ref <
     AgChartOptions >

@@ -11,7 +11,7 @@ The dynamic chart state can be saved, restored and updated at runtime.
 
 Use the buttons to save and restore both the Legend and Zoom states.
 
-```js
+```js wrapper="skip"
 function saveState() {
     const newState = chart.getState();
     // save to database...
@@ -49,7 +49,7 @@ Additionally, mutating this option at runtime will modify the chart state dynami
 
 The objects provided to this property should be the same as the object returned from the `getState()` method.
 
-```js
+```js wrapper="object"
 initialState: {
  zoom: {
             rangeX: {

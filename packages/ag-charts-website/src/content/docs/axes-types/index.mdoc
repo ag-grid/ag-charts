@@ -19,7 +19,7 @@ The category axis shows discrete categories or groups of data, unlike the [Numbe
 use a continuous scale. For instance, in a bar chart of sales per product, the category axis shows the products as
 different groups, and the number axis displays the corresponding sale value for each group.
 
-```js
+```js wrapper="object"
 axes: [
     {
         type: 'category',
@@ -43,7 +43,7 @@ To use a grouped category axis, the `xKey` needs to reference an array of string
 For example, to create the above example comparing Olympic medal counts by hierarchical location, the data must include an array with the regions,
 countries, and cities.
 
-```js
+```js wrapper="object"
 data: [
     { location: ['Europe', 'United Kingdom', 'London'], gold: 27, silver: 23, bronze: 17 },
     { location: ['Europe', 'United Kingdom', 'Manchester'], gold: 12, silver: 8, bronze: 10 },
@@ -61,7 +61,7 @@ aligning them to visually represent the nested relationships between categories.
 Ticks and labels for all levels inherit styles from the axis options by default.
 To style each level differently, use the `depthOptions` array, where each entry corresponds to a hierarchy level, starting at the leaf level.
 
-```js
+```js wrapper="object"
 type: 'grouped-category',
 depthOptions: [
     {}, // Skip depth 0 - the nearest to the axis, no unique styles.
@@ -81,7 +81,7 @@ in a number axis will depend on their magnitude.
 Instead of using an [Axis Interval](./axes-intervals/) with one item per value, the number axis will determine the range of all values,
 round it up and try to segment the rounded range with evenly spaced intervals.
 
-```js
+```js wrapper="object"
 axes: [
     {
         type: 'number',
