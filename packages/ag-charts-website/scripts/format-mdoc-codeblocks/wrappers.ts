@@ -6,6 +6,43 @@ export interface WrapStrategy {
 }
 
 /**
+ * Helper function to check if code contains documentation placeholders
+ * This is a simplified version of the function in formatter.ts for use in wrap strategies
+ */
+function hasPlaceholderPatterns(code: string): boolean {
+    const trimmed = code.trim();
+
+    // Basic placeholder patterns that indicate documentation shorthand
+    const basicPatterns = [
+        /{\s*\.\.\.\s*}/, // {...}
+        /\[\s*\.\.\.\s*\]/, // [...]
+        /\/\/\s*\.\.\.\s*$/, // // ... (end of line)
+        /^\s*\/\/\s*\.\.\.\s*$/, // // ... (whole line)
+        /\/\*\s*\.\.\.\s*\*\//, // /* ... */
+        /=\s*useState\s*\(\s*{\s*\.\.\.\s*}\s*\)/, // useState({...})
+        /ref<[^>]+>\s*\(\s*{\s*\.\.\.\s*}\s*\)/, // ref<Type>({...})
+        /\w+\s*=\s*{\s*\.\.\.\s*}/, // variable = {...}
+        /function\s+\w*\s*\([^)]*\)\s*{\s*\.\.\.\s*}/, // function() { ... }
+        /=>\s*{\s*\.\.\.\s*}/, // => { ... }
+        /=>\s*\.\.\./, // => ...
+    ];
+
+    // Partial object patterns (documentation shorthand for objects in function context)
+    // These patterns detect objects that appear to be parts of larger expressions
+    const partialObjectPatterns = [
+        /^\s*\{[\s\S]*?\}\s*\)\s*;?\s*$/, // { ... }); or { ... })
+        /^\s*\{[\s\S]*?\}\s*,\s*$/, // { ... }, - partial object in array
+        /^\s*\{[\s\S]*?\}\s*\]\s*;?\s*$/, // { ... }]; - partial object ending array
+        /^\s*\{[\s\S]*?\}\s*\]\s*,\s*$/, // { ... }], - partial object ending array with comma
+    ];
+
+    return (
+        basicPatterns.some((pattern) => pattern.test(code)) ||
+        partialObjectPatterns.some((pattern) => pattern.test(trimmed))
+    );
+}
+
+/**
  * Strategy for wrapping function body code
  */
 const functionWrapStrategy: WrapStrategy = {
@@ -25,6 +62,10 @@ const functionWrapStrategy: WrapStrategy = {
     },
     canHandle: (code: string, _lang: string) => {
         const trimmed = code.trim();
+        // Don't try to wrap placeholder patterns
+        if (hasPlaceholderPatterns(code)) {
+            return false;
+        }
         if (/^(const|let|var|class|function|import|export)\b/.test(trimmed)) {
             return false;
         }
@@ -80,10 +121,14 @@ const objectWrapStrategy: WrapStrategy = {
                     .trim();
 
                 // Prettier adds a comma after the object property when it's wrapped
-                // We need to remove it if it's there
+                // We need to remove it if it's there, but avoid adding semicolons
                 if (content.endsWith(',')) {
                     content = content.slice(0, -1).trimEnd();
                 }
+
+                // Also check for semicolons that may have been incorrectly added
+                // and remove them if they appear after closing braces
+                content = content.replace(/(\});\s*$/, '$1');
 
                 return content;
             }
@@ -102,6 +147,10 @@ const objectWrapStrategy: WrapStrategy = {
     },
     canHandle: (code: string, _lang: string) => {
         const trimmed = code.trim();
+        // Don't try to wrap placeholder patterns - but be careful with spread operator
+        if (hasPlaceholderPatterns(code)) {
+            return false;
+        }
         if (/(^|\n)\s*(import|export)\b/.test(code.trimStart())) {
             return false;
         }
@@ -115,8 +164,8 @@ const objectWrapStrategy: WrapStrategy = {
             /^["'][^"']+["']\s*:/.test(trimmed) ||
             // Computed property
             /^\[.*\]\s*:/.test(trimmed) ||
-            // Spread operator
-            trimmed.includes('...') ||
+            // Spread operator (but not placeholder patterns)
+            (trimmed.includes('...') && !trimmed.includes('{...}') && !trimmed.includes('[...]')) ||
             // Getter/setter
             /^get\s+\w+/.test(trimmed) ||
             /^set\s+\w+/.test(trimmed) ||
@@ -137,24 +186,49 @@ const arrayWrapStrategy: WrapStrategy = {
     unwrap: (formatted: string) => {
         const lines = formatted.split('\n');
         if (lines.length >= 3) {
-            // Remove first and last lines
+            // Remove first and last lines (const __temp__ = [ and ];)
             // Remove the 4-space indentation
-            const content = lines
+            let content = lines
                 .slice(1, -1)
                 .map((line) => line.replace(/^\s{4}/, ''))
                 .join('\n');
+
+            // Handle trailing commas that might be added by prettier for array elements
+            // Remove trailing comma if it was added during formatting
+            content = content.replace(/,\s*$/, '');
+
+            // Also remove any trailing semicolon that may have been added
+            content = content.replace(/;\s*$/, '');
+
             return content;
         }
         return formatted;
     },
     canHandle: (code: string, _lang: string) => {
         const trimmed = code.trim();
-        // Only handle explicit array literals or object literals that look like array entries
+        // Don't try to wrap placeholder patterns
+        if (hasPlaceholderPatterns(code)) {
+            return false;
+        }
+        // Handle explicit array literals
         if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
             return true;
         }
+        // Handle object literals that look like array entries (end with comma)
         if (trimmed.startsWith('{') && trimmed.endsWith('},')) {
             return true;
+        }
+        // Handle partial array elements that might be objects in array context
+        // Look for patterns that suggest this is meant to be in an array
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            // Check if it contains array-like patterns or multiple similar objects
+            const hasArrayLikeContent =
+                /,\s*\{/.test(trimmed) || // Multiple objects separated by commas
+                /\[\s*\{/.test(trimmed) || // Object inside array brackets
+                /\}\s*,\s*\{/.test(trimmed); // Objects separated by commas
+            if (hasArrayLikeContent) {
+                return true;
+            }
         }
         return false;
     },
@@ -188,7 +262,7 @@ const expressionWrapStrategy: WrapStrategy = {
                 return Math.min(acc, leading);
             }, -1);
             const safeIndent = indent > 0 ? indent : 0;
-            const dedented = bodyLines
+            let dedented = bodyLines
                 .map((line) => {
                     if (safeIndent === 0 || line.trim() === '') {
                         return line.trim() === '' ? '' : line;
@@ -196,22 +270,31 @@ const expressionWrapStrategy: WrapStrategy = {
                     return line.startsWith(' '.repeat(safeIndent)) ? line.slice(safeIndent) : line.replace(/^\s+/, '');
                 })
                 .join('\n');
+
+            // Remove trailing semicolons that may have been added after closing braces
+            dedented = dedented.replace(/(\});\s*$/, '$1');
+
             return dedented;
         }
-        // Single line case
-        return formatted.replace(/^\(/, '').replace(/\);?$/, '');
+        // Single line case - also remove semicolons after closing braces
+        let result = formatted.replace(/^\(/, '').replace(/\);?$/, '');
+        result = result.replace(/(\});\s*$/, '$1');
+        return result;
     },
     canHandle: (code: string, _lang: string) => {
         const trimmed = code.trim();
+        // Don't try to wrap placeholder patterns
+        if (hasPlaceholderPatterns(code)) {
+            return false;
+        }
         const hasModuleSyntax = /(^|\n)\s*(import|export)\b/.test(code.trimStart());
         if (hasModuleSyntax) {
             return false;
         }
         // Allow plain object literals that represent option blocks
         if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-            const containsPlaceholder = trimmed.includes('...');
             const looksLikeTypeAnnotation = /:\s*[^,{}()]+;/.test(trimmed);
-            if (!containsPlaceholder && !looksLikeTypeAnnotation) {
+            if (!looksLikeTypeAnnotation) {
                 return true;
             }
             return false;
@@ -286,6 +369,11 @@ const reactComponentWrapStrategy: WrapStrategy = {
             return false;
         }
 
+        // Don't try to wrap placeholder patterns
+        if (hasPlaceholderPatterns(code)) {
+            return false;
+        }
+
         const trimmed = code.trim();
         const hasJsx = /<\w/.test(code);
         if (!hasJsx) {
@@ -350,6 +438,10 @@ const jsxWrapStrategy: WrapStrategy = {
         if (language !== 'jsx' && language !== 'tsx') {
             return false;
         }
+        // Don't try to wrap placeholder patterns
+        if (hasPlaceholderPatterns(code)) {
+            return false;
+        }
         const hasModuleSyntax = /(^|\n)\s*(import|export)\b/.test(code.trimStart());
         if (hasModuleSyntax) {
             return false;
@@ -377,6 +469,11 @@ const typeWrapStrategy: WrapStrategy = {
     canHandle: (code: string, _lang: string) => {
         const trimmed = code.trim();
         if (trimmed === '') {
+            return false;
+        }
+
+        // Don't try to wrap placeholder patterns
+        if (hasPlaceholderPatterns(code)) {
             return false;
         }
 
@@ -415,6 +512,11 @@ const interfacePropertyWrapStrategy: WrapStrategy = {
     canHandle: (code: string, _lang: string) => {
         const trimmed = code.trim();
         if (!trimmed.endsWith(';')) {
+            return false;
+        }
+
+        // Don't try to wrap placeholder patterns
+        if (hasPlaceholderPatterns(code)) {
             return false;
         }
 
