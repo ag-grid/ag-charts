@@ -406,34 +406,3 @@ if [[ -n "${AG_GRID_DOCUMENTATION_ROOT:-}" ]]; then
         ln -sf "$AG_GRID_DOCUMENTATION_ROOT/docs/design-decisions/charts" docs
     fi
 fi
-
-# Add MCPs if UPDATE_MCP_CONFIG is enabled
-if [ "$UPDATE_MCP_CONFIG" = true ]; then
-    function add_mcp() {
-        local name=$1
-        local scope=$2
-        local command=$3
-        shift 3
-        local args=$@
-        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Project") ; then
-            claude mcp remove "$name" -s project
-        fi
-        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Local") ; then
-            claude mcp remove "$name" -s local
-        fi
-        claude mcp add "$name" -s $scope -- "$command" $args
-    }
-
-    add_mcp fetch project yarn run mcp-fetch
-    add_mcp sequential-thinking project yarn run mcp-server-sequential-thinking
-    add_mcp context7 project yarn run context7-mcp
-    add_mcp puppeteer project yarn run mcp-server-puppeteer
-
-    if command -v docker >/dev/null 2>&1; then
-        if [ -n "${JIRA_URL}" ] && [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_API_TOKEN}" ]; then
-            add_mcp ag-jira local docker run -i --rm -e JIRA_URL=${JIRA_URL} -e JIRA_USERNAME=${JIRA_USERNAME} -e JIRA_API_TOKEN=${JIRA_API_TOKEN} ghcr.io/sooperset/mcp-atlassian:latest
-        else
-            echo "JIRA_URL, JIRA_USERNAME, and JIRA_API_TOKEN are not set, skipping ag-jira"
-        fi
-    fi
-fi
