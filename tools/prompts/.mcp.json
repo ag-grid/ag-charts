@@ -1,5 +1,4 @@
 {
-    "contextFileName": "AGENTS.md",
     "mcpServers": {
         "fetch": {
             "type": "stdio",
@@ -24,6 +23,13 @@
             "command": "yarn",
             "args": ["run", "--silent", "mcp-server-puppeteer"],
             "env": {}
+        },
+        "chrome-devtools": {
+            "type": "stdio",
+            "command": "tools/prompts/nvm-exec.sh",
+            "args": ["--silent", "22", "npx", "-y", "--silent", "chrome-devtools-mcp@latest"],
+            "env": {}
         }
-    }
+    },
+    "contextFileName": "AGENTS.md"
 }
