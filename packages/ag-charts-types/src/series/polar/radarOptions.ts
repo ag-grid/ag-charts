@@ -1,4 +1,9 @@
-import type { ContextCallbackParams, DatumCallbackParams } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, Opacity } from '../../chart/types';
@@ -12,8 +17,11 @@ import type {
 } from '../seriesOptions';
 import type { AgRadialSeriesOptionsKeys, AgRadialSeriesOptionsNames } from './radialOptions';
 
-export interface AgRadarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends StrokeOptions,
+export interface AgRadarSeriesThemeableOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+    TStyle extends AgRadarSeriesStyle = AgRadarSeriesStyle,
+> extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
@@ -24,20 +32,25 @@ export interface AgRadarSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgRadarSeriesStylerParams<TDatum, TContext, TStyle>, TStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgRadarLineHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgRadarHighlightStyleOptions<TStyle>>;
 }
 
-export interface AgRadarLineHighlightStyleOptions extends StrokeOptions, LineDashOptions {
+type AgRadarHighlightStyleOptions<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'marker'> & {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
-}
+};
 
-export interface AgBaseRadarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+export interface AgBaseRadarSeriesOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+    TStyle extends AgRadarSeriesStyle = AgRadarSeriesStyle,
+> extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
-        AgRadarSeriesThemeableOptions<TDatum, TContext> {
+        AgRadarSeriesThemeableOptions<TDatum, TContext, TStyle> {
     type: 'radar-line' | 'radar-area';
 }
 
@@ -57,6 +70,16 @@ export type AgRadarSeriesItemStylerParams<
     AgRadialSeriesOptionsKeys<TDatum> &
     StrokeOptions &
     LineDashOptions;
+
+export type AgRadarSeriesStylerParams<TDatum, TContext, TStyle extends AgRadarSeriesStyle> = SeriesCallbackParams &
+    ContextCallbackParams<TContext> &
+    AgRadialSeriesOptionsKeys<TDatum> &
+    Required<TStyle>;
+
+export interface AgRadarSeriesStyle extends StrokeOptions, LineDashOptions {
+    /** Configuration for the markers used in the series. */
+    marker?: AgSeriesMarkerStyle;
+}
 
 export type AgRadarSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &
     AgRadialSeriesOptionsNames;
