@@ -39,7 +39,7 @@ This document outlines the implementation plan for adding efficient transaction 
 
 #### Task 1.1: Create Change Description System
 
--   [ ] Create `DataChangeDescriptor` interface in `/packages/ag-charts-community/src/chart/data/dataChangeDescriptor.ts`
+-   [x] Create `DataChangeDescriptor` interface in `/packages/ag-charts-community/src/chart/data/dataChangeDescriptor.ts`
     ```typescript
     export interface DataChangeDescriptor {
         // Removed indices (sorted ascending) with their original data
@@ -69,8 +69,8 @@ This document outlines the implementation plan for adding efficient transaction 
     }
     ```
     <!-- RESOLVED: Arrays provide deterministic ordering, old data included for proper domain/aggregation updates -->
--   [ ] Create `DataChangeDescriptorBuilder` class alongside the interface for creation/validation logic
--   [ ] Add unit tests for DataChangeDescriptor creation and validation
+-   [x] Create `DataChangeDescriptorBuilder` class alongside the interface for creation/validation logic
+-   [x] Add unit tests for DataChangeDescriptor creation and validation
 <!-- RESOLVED: Builder class will provide creation logic and validation methods -->
 
 #### Task 1.2: Implement Index Mapping Utilities
@@ -177,7 +177,7 @@ This document outlines the implementation plan for adding efficient transaction 
     -   Caller should pass `skipAnimations: true` to `chart.update()`
         <!-- RESOLVED: AnimationValidation flags prevent animations, chart.update() has skipAnimations option -->
         <!-- CONCERN: `chart.applyTransaction()` currently calls `chart.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true })` with no hook for `skipAnimations`; where is this option wired in so the public API keeps working without extra user glue code? -->
-    <!-- QUESTION: Are we also flipping the global update flag so that downstream diff/animation processors skip their work when validations are false? Otherwise the animation system still runs and inspects mutated arrays. -->
+        <!-- QUESTION: Are we also flipping the global update flag so that downstream diff/animation processors skip their work when validations are false? Otherwise the animation system still runs and inspects mutated arrays. -->
 
 #### Task 2.2: Create ProcessedDataMutator Class
 
@@ -221,8 +221,8 @@ This document outlines the implementation plan for adding efficient transaction 
     -   **ACCEPTED TRADE-OFF**: Rollback would require extra memory/time and obfuscate bugs
     -   Errors during mutation indicate implementation bugs that must be fixed, not runtime conditions
     -   If mutation fails, the chart state is corrupted and requires page reload
-    <!-- RESOLVED: We accept these trade-offs for performance and debugging clarity -->
-    <!-- CONCERN: Stating "reload the page" is not an operational plan; can we at least reset `processedData` by re-running `processData` so the chart survives instead of crashing the app? -->
+        <!-- RESOLVED: We accept these trade-offs for performance and debugging clarity -->
+        <!-- CONCERN: Stating "reload the page" is not an operational plan; can we at least reset `processedData` by re-running `processData` so the chart survives instead of crashing the app? -->
 -   [ ] Add integration tests with DataModel
 <!-- RESOLVED: Fail-fast approach - any error is a bug to be fixed, not recovered from -->
 
