@@ -75,7 +75,7 @@ This document outlines the implementation plan for adding efficient transaction 
 
 #### Task 1.2: Implement Index Mapping Utilities
 
--   [ ] Extend `/packages/ag-charts-community/src/chart/series/cartesian/diffUtil.ts` with index mapping capabilities
+-   [x] Extend `/packages/ag-charts-community/src/chart/series/cartesian/diffUtil.ts` with index mapping capabilities
     -   Add `IndexMapper` class to existing diff utilities
     -   Methods needed:
         -   `applyRemovals(indices: number[]): void`
@@ -86,7 +86,7 @@ This document outlines the implementation plan for adding efficient transaction 
     -   Target O(log r) lookup performance where r = number of ranges (typically small)
     -   Support range-based shifts from DataChangeDescriptor.indexShiftRanges
     <!-- RESOLVED: Range-based approach reduces memory from O(n) to O(r) where r << n -->
--   [ ] Add comprehensive unit tests for IndexMapper
+-   [x] Add comprehensive unit tests for IndexMapper
 
 #### Task 1.3: Build Transaction Analyzer
 
