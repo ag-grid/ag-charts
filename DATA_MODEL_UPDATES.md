@@ -230,8 +230,8 @@ This document outlines the implementation plan for adding efficient transaction 
 
 #### Task 3.1: Implement Array Update Utilities
 
--   [ ] Create `/packages/ag-charts-community/src/chart/data/arrayUpdater.ts`
--   [ ] Implement generic array manipulation with index management:
+-   [x] Create `/packages/ag-charts-community/src/chart/data/arrayUpdater.ts`
+-   [x] Implement generic array manipulation with index management:
     ```typescript
     export class ArrayUpdater<T> {
         static applyChanges<T>(
@@ -241,13 +241,13 @@ This document outlines the implementation plan for adding efficient transaction 
         ): void;
     }
     ```
--   [ ] Operations to support:
+-   [x] Operations to support:
     -   **Mutate arrays in-place using splice**
     -   Remove items at indices (splice in reverse order)
     -   Insert items at new indices
     -   Update items in place
     -   No array cloning - direct manipulation for performance
--   [ ] Add unit tests for edge cases (empty arrays, single items, etc.)
+-   [x] Add unit tests for edge cases (empty arrays, single items, etc.)
 <!-- RESOLVED: indexShifts map old->new for lookups only, array splice operations handle actual movement -->
 
 #### Task 3.2: Update Columns and Keys
