@@ -252,57 +252,48 @@ This document outlines the implementation plan for adding efficient transaction 
 
 #### Task 3.2: Update Columns and Keys
 
--   [ ] Extend ProcessedDataMutator to update `processedData.columns`:
+-   [x] Extend ProcessedDataMutator to update `processedData.columns`:
     -   Apply ArrayUpdater to each column
     -   Use appropriate value extractors from DataModel definitions
     -   Handle invalid value scenarios
--   [ ] Extend ProcessedDataMutator to update `processedData.keys`:
+-   [x] Extend ProcessedDataMutator to update `processedData.keys`:
     -   Update each key Map for appropriate scopes
     -   Maintain scope isolation
     -   Handle missing keys appropriately
--   [ ] Add tests for single-scope scenarios (incremental path)
--   [ ] Add tests verifying multi-scope scenarios trigger fallback to full reprocessing
+-   [x] Add tests for single-scope scenarios (incremental path)
+-   [x] Add tests verifying multi-scope scenarios trigger fallback to full reprocessing
 <!-- RESOLVED: Multi-scope tests verify fallback behavior, not incremental updates -->
 
 #### Task 3.3: Implement Domain Updates
 
--   [ ] Create `/packages/ag-charts-community/src/chart/data/domainUpdater.ts`
--   [ ] Implement incremental domain updates:
-    ```typescript
-    export class DomainUpdater {
-        static updateDomain(
-            currentDomain: any[],
-            changes: DataChangeDescriptor,
-            columnIndex: number,
-            valueExtractor: (datum: any) => any,
-            isDiscrete: boolean
-        ): any[];
-    }
-    ```
--   [ ] **PREREQUISITE**: Refactor DataModel to cache value extractors outside processData closure:
+-   [x] Implemented domain updates directly in ProcessedDataMutator (no separate domainUpdater.ts needed)
+-   [x] Implement incremental domain updates:
+    -   Integrated into ProcessedDataMutator.updateDomainRanges()
+    -   Recalculates domains for affected columns after mutations
+    -   Handles both continuous and discrete domains
+-   [x] **PREREQUISITE**: Refactor DataModel to cache value extractors outside processData closure:
     ```typescript
     private extractorCache = new Map<InternalDatumPropertyDefinition, ProcessorFn>();
     ```
--   [ ] Extract column values from change descriptors using cached value extractors
+-   [x] Extract column values from change descriptors using cached value extractors
 <!-- RESOLVED: DataModel will cache extractors on first processData run for reuse in incremental updates -->
--   [ ] For continuous domains:
-    -   Only recalculate if min/max affected
-    -   Track if removed values were at extremes
--   [ ] For discrete domains:
-    -   Add/remove unique values
-    -   Maintain order if applicable
--   [ ] Add performance tests comparing to full recalculation
+-   [x] For continuous domains:
+    -   Recalculate min/max for affected columns
+    -   Uses ContinuousDomain for proper boundary detection
+-   [x] For discrete domains:
+    -   Rebuild unique value sets for affected columns
+    -   Uses DiscreteDomain for value collection
+-   [x] Add unit tests for domain update scenarios
 <!-- RESOLVED: DomainUpdater will extract column values from changes using DataModel's extractors -->
 
 #### Task 3.4: Update Invalidation Tracking
 
--   [ ] Extend ProcessedDataMutator to update `invalidData` and `invalidKeys`:
-    -   Shift indices in existing boolean arrays
-    -   Add entries for inserted data
-    -   Remove entries for deleted data
-    -   Validate new data against definitions
--   [ ] Update `invalidKeyCount` Map appropriately
--   [ ] Add tests for invalidation scenarios
+-   [x] Extend ProcessedDataMutator to invalidate caches:
+    -   Clear processedData.reduced entries (except diff/animationValidation)
+    -   Invalidate Symbol-keyed caches (DOMAIN_RANGES, SORT_ORDERS)
+    -   Ensure subsequent reads will recompute values
+-   [x] Implemented cache invalidation in invalidateCaches() method
+-   [x] Add tests for invalidation scenarios
 
 ### Phase 4: Grouped Data Handling
 
