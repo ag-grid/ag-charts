@@ -246,7 +246,7 @@ Themes can also be customised or created with the [Theming API](/themes-api/).
 
 Use `params` to set styles across the whole chart, `palette` to define the colour palette used for the datapoints, and `overrides` to change a specific default within the base theme.
 
-```ts wrapper="object"
+```ts
 const customTheme: AgChartTheme = {
     palette: {
         //these are used by each series in rotation
@@ -309,7 +309,7 @@ tooltip: {
 
 Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
 
-```js wrapper="object"
+```ts wrapper="object"
 {
     renderer: function (params) {
         return (
