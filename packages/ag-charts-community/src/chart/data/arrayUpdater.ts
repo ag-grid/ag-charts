@@ -8,6 +8,55 @@ import type { DataChangeDescriptor } from './dataChangeDescriptor';
  * 1. Removals (in reverse order to preserve indices)
  * 2. Updates (modify existing items)
  * 3. Insertions (add new items at specified indices)
+ *
+ * @example Basic array mutation
+ * ```typescript
+ * const data = ['a', 'b', 'c', 'd', 'e'];
+ * const changes = DataChangeDescriptorBuilder.create()
+ *     .addRemoval(1, 'b')        // Remove 'b' at index 1
+ *     .addInsertion(2, 'x')      // Insert 'x' at index 2
+ *     .addUpdate(3, 'd', 'D')    // Update 'd' to 'D' at index 3
+ *     .build();
+ *
+ * ArrayUpdater.applyChanges(data, changes);
+ * // Result: ['a', 'c', 'x', 'D', 'e']
+ * ```
+ *
+ * @example With custom extractor function
+ * ```typescript
+ * const values = [10, 20, 30, 40];
+ * const changes = DataChangeDescriptorBuilder.create()
+ *     .addInsertion(1, { value: 15 })
+ *     .build();
+ *
+ * ArrayUpdater.applyChanges(values, changes, (datum) => datum.value);
+ * // Result: [10, 15, 20, 30, 40]
+ * ```
+ *
+ * @remarks
+ * **Performance Characteristics:**
+ * - O(r + i + u) where r=removals, i=insertions, u=updates
+ * - In-place mutations avoid memory allocations
+ * - Optimized splice operations for array manipulation
+ * - Minimal data copying through direct index manipulation
+ *
+ * **Operation Ordering:**
+ * The specific ordering is critical for correctness:
+ * - **Removals first**: Processed in reverse order (high to low index) to prevent index invalidation
+ * - **Updates second**: Modify existing items at their current positions (adjusted for removals)
+ * - **Insertions last**: Add new items accounting for all previous operations
+ *
+ * **Index Management:**
+ * - Removal indices are validated against original array bounds
+ * - Update indices are adjusted to account for completed removals
+ * - Insertion indices account for cumulative offset from previous insertions
+ * - All operations maintain array integrity throughout the process
+ *
+ * **Error Handling:**
+ * - Validates array bounds for all operations before starting
+ * - Checks for conflicting operations (e.g., update + remove at same index)
+ * - Throws descriptive errors for out-of-bounds or invalid operations
+ * - Fails fast to prevent partial updates that could corrupt data
  */
 export class ArrayUpdater {
     /**

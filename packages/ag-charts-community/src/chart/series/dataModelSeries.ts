@@ -97,7 +97,12 @@ export abstract class DataModelSeries<
         // Merge properties of this series with properties of all the attached series-options
         opts.props.push(...(this.getModulePropertyDefinitions() as PropertyDefinition<K>[]));
 
-        const { dataModel, processedData } = await dataController.request<D, K, G>(this.id, dataRef?.data ?? [], opts);
+        const { dataModel, processedData } = await dataController.request<D, K, G>(
+            this.id,
+            dataRef?.data ?? [],
+            opts,
+            dataRef
+        );
 
         this.dataModel = dataModel;
         this.processedData = processedData;

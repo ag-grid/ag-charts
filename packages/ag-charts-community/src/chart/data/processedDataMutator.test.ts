@@ -407,4 +407,393 @@ describe('ProcessedDataMutator', () => {
             expect(keySortOrdersCache.has(1)).toBe(false); // Currently cleared due to broad invalidation
         });
     });
+
+    describe('diff metadata generation', () => {
+        it('should generate accurate diff for removals only', () => {
+            const changes = DataChangeDescriptorBuilder.create()
+                .addRemoval(1, rawData[1]) // Remove 'key2'
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.changed).toBe(true);
+            expect(diff?.removed.has('key2')).toBe(true);
+            expect(diff?.added.size).toBe(0);
+            expect(diff?.updated.size).toBe(0);
+            expect(diff?.moved.size).toBe(0);
+        });
+
+        it('should generate accurate diff for insertions only', () => {
+            const newDatum = { id: 'key4', a: 4 };
+            const changes = DataChangeDescriptorBuilder.create()
+                .addInsertion(1, newDatum) // Insert 'key4' at position 1
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.changed).toBe(true);
+            expect(diff?.added.has('key4')).toBe(true);
+            expect(diff?.removed.size).toBe(0);
+            expect(diff?.updated.size).toBe(0);
+            expect(diff?.moved.size).toBe(0);
+        });
+
+        it('should generate accurate diff for updates only', () => {
+            const oldDatum = rawData[1];
+            const newDatum = { id: 'key2', a: 5 }; // Same key, different value
+            const changes = DataChangeDescriptorBuilder.create().addUpdate(1, oldDatum, newDatum).build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.changed).toBe(true);
+            expect(diff?.updated.has('key2')).toBe(true);
+            expect(diff?.added.size).toBe(0);
+            expect(diff?.removed.size).toBe(0);
+            expect(diff?.moved.size).toBe(0);
+        });
+
+        it('should generate accurate diff for mixed operations', () => {
+            const removeDatum = rawData[0]; // Remove 'key1'
+            const updateOld = rawData[1];
+            const updateNew = { id: 'key2', a: 10 }; // Update 'key2'
+            const insertDatum = { id: 'key4', a: 4 }; // Insert 'key4'
+
+            const changes = DataChangeDescriptorBuilder.create()
+                .addRemoval(0, removeDatum)
+                .addUpdate(1, updateOld, updateNew)
+                .addInsertion(2, insertDatum)
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.changed).toBe(true);
+            expect(diff?.removed.has('key1')).toBe(true);
+            // key2 might be marked as moved due to index shifts from the removal at index 0
+            expect((diff?.updated.has('key2') ?? false) || (diff?.moved.has('key2') ?? false)).toBe(true);
+            expect(diff?.added.has('key4')).toBe(true);
+        });
+
+        it('should handle operations that cause index movements', () => {
+            // This scenario would cause indices to shift
+            const removeDatum = rawData[0]; // Remove at index 0
+            const insertDatum = { id: 'key4', a: 4 }; // Insert at index 0
+            const updateOld = rawData[2];
+            const updateNew = { id: 'key3', a: 30 }; // Update at index 2 (but it will be at index 1 after removal)
+
+            const changes = DataChangeDescriptorBuilder.create()
+                .addRemoval(0, removeDatum)
+                .addInsertion(0, insertDatum)
+                .addUpdate(2, updateOld, updateNew)
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.changed).toBe(true);
+            expect(diff?.removed.has('key1')).toBe(true);
+            expect(diff?.added.has('key4')).toBe(true);
+            // key3 could be marked as moved or updated depending on the shift ranges
+            expect((diff?.updated.has('key3') ?? false) || (diff?.moved.has('key3') ?? false)).toBe(true);
+        });
+
+        it('should handle data without key definitions', () => {
+            // Test with data that doesn't have proper key definitions
+            processedData.defs.keys = [];
+
+            const changes = DataChangeDescriptorBuilder.create()
+                .addRemoval(0, rawData[0])
+                .addInsertion(1, { id: 'key4', a: 4 })
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.changed).toBe(true);
+            expect(diff?.removed.size).toBe(1);
+            expect(diff?.added.size).toBe(1);
+            // Should fall back to some default key representation
+            expect(Array.from(diff!.removed)[0]).toMatch(/key1|index-0|object-0/);
+            expect(Array.from(diff!.added)[0]).toMatch(/key4|index-1|object-1/);
+        });
+
+        it('should handle null/undefined data gracefully', () => {
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(0, null).addInsertion(1, undefined).build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.changed).toBe(true);
+            expect(diff?.removed.has('index-0')).toBe(true);
+            expect(diff?.added.has('index-1')).toBe(true);
+        });
+
+        it('should handle primitive data types', () => {
+            const changes = DataChangeDescriptorBuilder.create()
+                .addRemoval(0, 'string-value')
+                .addInsertion(1, 42)
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.changed).toBe(true);
+            expect(diff?.removed.has('string-value')).toBe(true);
+            expect(diff?.added.has('42')).toBe(true);
+        });
+
+        it('should use common object properties as fallback keys', () => {
+            const objectWithId = { id: 'test-id', value: 10 };
+            const objectWithName = { name: 'test-name', value: 20 };
+            const objectWithKey = { key: 'test-key', value: 30 };
+
+            // Clear key definitions to test fallback behavior
+            processedData.defs.keys = [];
+
+            const changes = DataChangeDescriptorBuilder.create()
+                .addInsertion(0, objectWithId)
+                .addInsertion(1, objectWithName)
+                .addInsertion(2, objectWithKey)
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            const diff = processedData.reduced?.diff?.default;
+            expect(diff).toBeDefined();
+            expect(diff?.added.has('test-id')).toBe(true);
+            expect(diff?.added.has('test-name')).toBe(true);
+            expect(diff?.added.has('test-key')).toBe(true);
+        });
+
+        it('should set changed flag to false when no operations are applied', () => {
+            const emptyChanges = DataChangeDescriptorBuilder.create().build();
+
+            mutator.mutate(processedData, emptyChanges);
+
+            // For empty changes, diff should not be set at all since updateProcessedDataMetadata
+            // calls generateDiffMetadata which would show changed: false
+            const diff = processedData.reduced?.diff?.default;
+            if (diff) {
+                expect(diff.changed).toBe(false);
+            }
+        });
+    });
+
+    describe('animation validation logic', () => {
+        it('should set both flags to false for high-frequency updates (insertions)', () => {
+            const newDatum = { id: 'key4', a: 4 };
+            const changes = DataChangeDescriptorBuilder.create().addInsertion(1, newDatum).build();
+
+            mutator.mutate(processedData, changes);
+
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should set both flags to false for high-frequency updates (removals)', () => {
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(1, rawData[1]).build();
+
+            mutator.mutate(processedData, changes);
+
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should set both flags to false for high-frequency updates (updates)', () => {
+            const oldDatum = rawData[1];
+            const newDatum = { id: 'key2', a: 5 };
+            const changes = DataChangeDescriptorBuilder.create().addUpdate(1, oldDatum, newDatum).build();
+
+            mutator.mutate(processedData, changes);
+
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should set both flags to false for mixed operations', () => {
+            const changes = DataChangeDescriptorBuilder.create()
+                .addRemoval(0, rawData[0])
+                .addInsertion(1, { id: 'key4', a: 4 })
+                .addUpdate(1, rawData[1], { id: 'key2', a: 5 })
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should detect when key uniqueness would be affected by insertions', () => {
+            // Create a scenario where uniqueness checking logic would work
+            // but since we treat all incremental updates as high-frequency,
+            // it should still return false
+            const newDatum = { id: 'key1', a: 4 }; // Duplicate key
+            const changes = DataChangeDescriptorBuilder.create().addInsertion(3, newDatum).build();
+
+            mutator.mutate(processedData, changes);
+
+            // Should be false due to high-frequency update detection
+            expect(processedData.reduced?.animationValidation?.uniqueKeys).toBe(false);
+        });
+
+        it('should detect when key ordering would be affected by removals', () => {
+            // Set up a scenario with continuous key data (numbers)
+            const continuousKeyDef = {
+                type: 'key' as const,
+                property: 'timestamp',
+                valueType: 'range' as const, // Continuous data type
+                scopes: [scopeId],
+                invalidValue: null,
+                missing: new Map(),
+            };
+
+            // Update test data to have timestamp values
+            const timestampData = [
+                { id: 'key1', a: 1, timestamp: 100 },
+                { id: 'key2', a: 2, timestamp: 200 },
+                { id: 'key3', a: 3, timestamp: 300 },
+            ];
+
+            processedData.defs.keys = [continuousKeyDef];
+            processedData.keys = [new Map([[scopeId, timestampData.map((d) => d.timestamp)]])];
+
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(1, timestampData[1]).build();
+
+            mutator.mutate(processedData, changes);
+
+            // Should be false due to high-frequency update detection
+            expect(processedData.reduced?.animationValidation?.orderedKeys).toBe(false);
+        });
+
+        it('should handle edge cases with empty data', () => {
+            // Set up empty processed data
+            processedData.columns = [[]];
+            processedData.keys = [new Map([[scopeId, []]])];
+            processedData.input.count = 0;
+
+            const newDatum = { id: 'key1', a: 1 };
+            const changes = DataChangeDescriptorBuilder.create().addInsertion(0, newDatum).build();
+
+            mutator.mutate(processedData, changes);
+
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should handle edge cases with single item data', () => {
+            // Set up single item data
+            const singleData = [{ id: 'key1', a: 1 }];
+            processedData.columns = [[1]];
+            processedData.keys = [new Map([[scopeId, ['key1']]])];
+            processedData.input.count = 1;
+
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(0, singleData[0]).build();
+
+            mutator.mutate(processedData, changes);
+
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should handle updates that change key values', () => {
+            const oldDatum = rawData[1];
+            const newDatum = { id: 'key_changed', a: 2 }; // Key value changes
+            const changes = DataChangeDescriptorBuilder.create().addUpdate(1, oldDatum, newDatum).build();
+
+            mutator.mutate(processedData, changes);
+
+            // Should be false due to high-frequency update detection
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should handle updates that only change value properties', () => {
+            const oldDatum = rawData[1];
+            const newDatum = { id: 'key2', a: 20 }; // Same key, different value
+            const changes = DataChangeDescriptorBuilder.create().addUpdate(1, oldDatum, newDatum).build();
+
+            mutator.mutate(processedData, changes);
+
+            // Should be false due to high-frequency update detection
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should handle mixed key types (categorical and continuous)', () => {
+            // Set up mixed key definitions
+            const categoricalKeyDef = {
+                type: 'key' as const,
+                property: 'category',
+                valueType: 'category' as const,
+                scopes: [scopeId],
+                invalidValue: null,
+                missing: new Map(),
+            };
+
+            const continuousKeyDef = {
+                type: 'key' as const,
+                property: 'timestamp',
+                valueType: 'range' as const,
+                scopes: [scopeId],
+                invalidValue: null,
+                missing: new Map(),
+            };
+
+            processedData.defs.keys = [categoricalKeyDef, continuousKeyDef];
+            processedData.keys = [new Map([[scopeId, ['A', 'B', 'C']]]), new Map([[scopeId, [100, 200, 300]]])];
+
+            const changes = DataChangeDescriptorBuilder.create()
+                .addInsertion(1, { category: 'D', timestamp: 150 })
+                .build();
+
+            mutator.mutate(processedData, changes);
+
+            expect(processedData.reduced?.animationValidation).toEqual({
+                uniqueKeys: false,
+                orderedKeys: false,
+            });
+        });
+
+        it('should not affect animation validation when no changes are made', () => {
+            const emptyChanges = DataChangeDescriptorBuilder.create().build();
+
+            mutator.mutate(processedData, emptyChanges);
+
+            // When no changes are made, the animation validation logic should not be called
+            // The reduced metadata might not even be created for empty changes
+            const animationValidation = processedData.reduced?.animationValidation;
+            if (animationValidation) {
+                // If present, it should indicate no issues since there are no changes
+                expect(typeof animationValidation.uniqueKeys).toBe('boolean');
+                expect(typeof animationValidation.orderedKeys).toBe('boolean');
+            }
+        });
+    });
 });

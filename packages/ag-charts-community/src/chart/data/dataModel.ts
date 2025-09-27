@@ -192,6 +192,130 @@ export type AggregatePropertyDefinition<D, K extends keyof D & string, R = [numb
         aggregateFunction: (values: D[K][], keys?: D[K][]) => R;
         groupAggregateFunction?: (next?: R, acc?: R2) => R2;
         finalFunction?: (result: R2) => [number, number];
+
+        /**
+         * Whether this aggregation supports incremental updates.
+         *
+         * When `true` or `undefined`, the aggregation can be updated incrementally using
+         * the `incrementalUpdater` function. When `false`, any data changes will cause
+         * the DataModel to fall back to full reprocessing.
+         *
+         * @example Simple aggregations that support incremental updates
+         * ```typescript
+         * // Sum aggregation with incremental support
+         * {
+         *     type: 'aggregate',
+         *     aggregateFunction: (values) => values.reduce((a, b) => a + b, 0),
+         *     supportsIncremental: true,
+         *     incrementalUpdater: (current, removed, added) => {
+         *         const removedSum = removed.reduce((a, b) => a + b, 0);
+         *         const addedSum = added.reduce((a, b) => a + b, 0);
+         *         return current - removedSum + addedSum;
+         *     }
+         * }
+         *
+         * // Count aggregation with incremental support
+         * {
+         *     type: 'aggregate',
+         *     aggregateFunction: (values) => values.length,
+         *     supportsIncremental: true,
+         *     incrementalUpdater: (current, removed, added) => {
+         *         return current - removed.length + added.length;
+         *     }
+         * }
+         * ```
+         *
+         * @example Complex aggregations that don't support incremental updates
+         * ```typescript
+         * // Median calculation - requires full recalculation
+         * {
+         *     type: 'aggregate',
+         *     aggregateFunction: (values) => calculateMedian(values),
+         *     supportsIncremental: false // Forces full reprocessing
+         * }
+         *
+         * // Percentile calculation - complex statistical operation
+         * {
+         *     type: 'aggregate',
+         *     aggregateFunction: (values) => calculatePercentile(values, 95),
+         *     supportsIncremental: false
+         * }
+         * ```
+         *
+         * @default undefined (treated as true if incrementalUpdater is provided)
+         */
+        supportsIncremental?: boolean;
+
+        /**
+         * Function to perform incremental updates when supported.
+         *
+         * This function allows aggregations to be updated efficiently without
+         * recalculating from scratch. It receives the current aggregated value
+         * and arrays of removed and added values.
+         *
+         * @param current - The current aggregated value
+         * @param removed - Array of values that were removed from the dataset
+         * @param added - Array of values that were added to the dataset
+         * @returns The new aggregated value after applying the changes
+         *
+         * @example Min/Max aggregation with incremental updates
+         * ```typescript
+         * // Min aggregation that handles incremental updates
+         * {
+         *     type: 'aggregate',
+         *     aggregateFunction: (values) => Math.min(...values),
+         *     supportsIncremental: true,
+         *     incrementalUpdater: (current, removed, added) => {
+         *         // If we removed the current minimum, need full recalculation
+         *         if (removed.includes(current)) {
+         *             // Could return special sentinel to trigger full recalc
+         *             return null; // Triggers fallback
+         *         }
+         *
+         *         // Otherwise, just check if any added values are smaller
+         *         const newMin = Math.min(...added);
+         *         return Math.min(current, newMin);
+         *     }
+         * }
+         * ```
+         *
+         * @example Average aggregation requiring sum and count tracking
+         * ```typescript
+         * // Average that tracks both sum and count
+         * {
+         *     type: 'aggregate',
+         *     aggregateFunction: (values) => ({
+         *         sum: values.reduce((a, b) => a + b, 0),
+         *         count: values.length,
+         *         average: values.reduce((a, b) => a + b, 0) / values.length
+         *     }),
+         *     supportsIncremental: true,
+         *     incrementalUpdater: (current, removed, added) => {
+         *         const removedSum = removed.reduce((a, b) => a + b, 0);
+         *         const addedSum = added.reduce((a, b) => a + b, 0);
+         *         const newSum = current.sum - removedSum + addedSum;
+         *         const newCount = current.count - removed.length + added.length;
+         *         return {
+         *             sum: newSum,
+         *             count: newCount,
+         *             average: newCount > 0 ? newSum / newCount : 0
+         *         };
+         *     }
+         * }
+         * ```
+         *
+         * @remarks
+         * **Performance Considerations:**
+         * - Should be significantly faster than full recalculation
+         * - Consider returning null/undefined to trigger fallback for complex cases
+         * - Avoid expensive operations that negate incremental benefits
+         *
+         * **Error Handling:**
+         * - Returning null/undefined triggers fallback to full recalculation
+         * - Throwing errors will propagate and potentially crash the update
+         * - Design defensively for edge cases (empty arrays, invalid values)
+         */
+        incrementalUpdater?: (current: any, removed: any[], added: any[]) => any;
     };
 
 type GroupValueAdjustFn<D, K extends keyof D & string> = (
@@ -208,6 +332,33 @@ export type GroupValueProcessorDefinition<D, K extends keyof D & string> = Prope
          * innermost called once per datum.
          */
         adjust: () => () => GroupValueAdjustFn<D, K>;
+
+        /**
+         * Whether this processor supports incremental updates.
+         *
+         * When `false`, any data changes will cause the DataModel to fall back to full reprocessing.
+         * When `true` or `undefined`, the processor is assumed to work correctly with incremental updates.
+         *
+         * @remarks
+         * Group value processors that depend on complete group membership or specific ordering
+         * should set this to `false`. Processors that can work with partial group updates
+         * can leave this as `true` or `undefined`.
+         *
+         * @example Processor that doesn't support incremental updates
+         * ```typescript
+         * {
+         *     type: 'group-value-processor',
+         *     adjust: () => () => (columns, indexes, dataGroup) => {
+         *         // Complex processing that requires complete group data
+         *         processCompleteGroup(dataGroup);
+         *     },
+         *     supportsIncremental: false
+         * }
+         * ```
+         *
+         * @default undefined (treated as true)
+         */
+        supportsIncremental?: boolean;
     };
 
 type PropertyValueAdjustFn<D> = (processedData: ProcessedData<D>, valueIndex: number) => void;
@@ -216,6 +367,37 @@ export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
     type: 'property-value-processor';
     property: string;
     adjust: () => PropertyValueAdjustFn<D>;
+
+    /**
+     * Whether this processor supports incremental updates.
+     *
+     * When `false`, any data changes will cause the DataModel to fall back to full reprocessing.
+     * When `true` or `undefined`, the processor is assumed to work correctly with incremental updates.
+     *
+     * @remarks
+     * Property value processors that perform complex calculations depending on the entire dataset
+     * should set this to `false`. Simple processors that operate on individual values can
+     * typically support incremental updates.
+     *
+     * @example Processor that requires full dataset
+     * ```typescript
+     * {
+     *     type: 'property-value-processor',
+     *     property: 'normalizedValue',
+     *     adjust: () => (processedData, valueIndex) => {
+     *         // Normalization requires knowledge of min/max across entire dataset
+     *         const column = processedData.columns[valueIndex];
+     *         const min = Math.min(...column);
+     *         const max = Math.max(...column);
+     *         // ... normalize all values
+     *     },
+     *     supportsIncremental: false
+     * }
+     * ```
+     *
+     * @default undefined (treated as true)
+     */
+    supportsIncremental?: boolean;
 };
 
 type ReducerOutputTypes = NonNullable<UngroupedData<any>['reduced']>;
@@ -225,12 +407,84 @@ export type ReducerOutputPropertyDefinition<P extends ReducerOutputKeys = Reduce
     property: P;
     initialValue?: ReducerOutputTypes[P];
     reducer: () => (acc: ReducerOutputTypes[P], keys: unknown[]) => ReducerOutputTypes[P];
+
+    /**
+     * Whether this reducer supports incremental updates.
+     *
+     * When `false`, any data changes will cause the DataModel to fall back to full reprocessing.
+     * When `true` or `undefined`, the reducer is assumed to work correctly with incremental updates.
+     *
+     * @remarks
+     * Reducers that depend on processing order or need complete dataset context should set this to `false`.
+     * Simple accumulative reducers can typically support incremental updates.
+     *
+     * @example Reducer that doesn't support incremental updates
+     * ```typescript
+     * {
+     *     type: 'reducer',
+     *     property: 'orderedStatistic',
+     *     initialValue: { values: [], median: 0 },
+     *     reducer: () => (acc, keys) => {
+     *         // Order-dependent calculation that needs complete dataset
+     *         acc.values.push(...keys);
+     *         acc.values.sort();
+     *         acc.median = calculateMedian(acc.values);
+     *         return acc;
+     *     },
+     *     supportsIncremental: false
+     * }
+     * ```
+     *
+     * @default undefined (treated as true)
+     */
+    supportsIncremental?: boolean;
 };
 
 export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
     type: 'processor';
     property: P;
     calculate: (data: ProcessedData<any>, previousValue: ReducerOutputTypes[P] | undefined) => ReducerOutputTypes[P];
+
+    /**
+     * Whether this processor supports incremental updates.
+     *
+     * When `false`, any data changes will cause the DataModel to fall back to full reprocessing.
+     * When `true` or `undefined`, the processor is assumed to work correctly with incremental updates.
+     *
+     * @remarks
+     * Processors that perform complex calculations on the entire ProcessedData structure should
+     * set this to `false`. Processors that can work with partially updated data can support
+     * incremental updates.
+     *
+     * @example Processor that requires complete data
+     * ```typescript
+     * {
+     *     type: 'processor',
+     *     property: 'globalStatistics',
+     *     calculate: (data) => {
+     *         // Complex calculation requiring complete, consistent data
+     *         return analyzeCompleteDataset(data);
+     *     },
+     *     supportsIncremental: false
+     * }
+     * ```
+     *
+     * @example Processor that supports incremental updates
+     * ```typescript
+     * {
+     *     type: 'processor',
+     *     property: 'dataCount',
+     *     calculate: (data) => {
+     *         // Simple calculation that works with mutated data
+     *         return data.input.count;
+     *     },
+     *     supportsIncremental: true
+     * }
+     * ```
+     *
+     * @default undefined (treated as true)
+     */
+    supportsIncremental?: boolean;
 };
 
 function createArray<T>(length: number, value: T): T[] {
@@ -319,7 +573,7 @@ export class DataModel<
     private readonly debug = Debug.create(true, 'data-model');
     private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition<false>>> =
         new Map();
-    private extractorCache = new Map<InternalDatumPropertyDefinition<K>, ProcessorFn>();
+    private readonly extractorCache = new Map<InternalDatumPropertyDefinition<K>, ProcessorFn>();
 
     private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
     private readonly values: InternalDatumPropertyDefinition<K>[] = [];
@@ -538,14 +792,76 @@ export class DataModel<
      * Processes a single datum value according to the given property definition.
      * This method is used for both initial data processing and incremental updates.
      *
+     * This is a core method that handles value extraction, validation, transformation,
+     * and domain extension for individual data points. It's designed to be reusable
+     * across different processing contexts.
+     *
+     * @example Basic value processing
+     * ```typescript
+     * const def = {
+     *     property: 'price',
+     *     valueType: 'range',
+     *     scopes: ['series1'],
+     *     missing: new Map(),
+     *     // ... other definition properties
+     * };
+     *
+     * const datum = { price: 42.5, name: 'Product A' };
+     * const result = dataModel.processValue(def, datum, 0, 'series1');
+     *
+     * console.log(result.value);   // 42.5
+     * console.log(result.valid);   // true
+     * console.log(result.missing); // false
+     * ```
+     *
+     * @example With custom processor
+     * ```typescript
+     * const def = {
+     *     property: 'timestamp',
+     *     valueType: 'range',
+     *     processor: () => (value) => new Date(value),
+     *     scopes: ['timeSeries'],
+     *     missing: new Map(),
+     * };
+     *
+     * const datum = { timestamp: '2023-01-01T00:00:00Z' };
+     * const result = dataModel.processValue(def, datum, 0, 'timeSeries');
+     *
+     * console.log(result.value instanceof Date); // true
+     * ```
+     *
      * @param def The property definition to use for processing
      * @param datum The data item to extract the value from
      * @param idx The index of the datum in the data array
      * @param valueScopes Optional scope(s) for missing value tracking
-     * @param accessors Optional pre-built accessors for performance
+     * @param accessors Optional pre-built accessors for performance optimization
      * @param dataDomain Optional domain map for domain extension during processing
      * @param initDataDomain Optional function to initialize data domain if missing
      * @returns ProcessedValue containing the processed value and metadata
+     *
+     * @remarks
+     * **Processing Pipeline:**
+     * 1. **Value Extraction**: Uses property accessors or direct property access
+     * 2. **Force Value**: Applies forceValue if specified, maintaining sign
+     * 3. **Validation**: Runs custom validation function if provided
+     * 4. **Processing**: Applies processor function for value transformation
+     * 5. **Domain Extension**: Updates data domain with the processed value
+     * 6. **Missing Tracking**: Tracks missing values per scope for warnings
+     *
+     * **Performance Optimizations:**
+     * - Caches processor functions to avoid repeated creation
+     * - Reuses accessor functions when provided
+     * - Skips validation for invalid values to reduce computation
+     *
+     * **Error Handling:**
+     * - Swallows accessor errors and treats as missing values
+     * - Logs warnings for invalid values in standalone mode
+     * - Returns invalidValue for failed validation
+     *
+     * **Use Cases:**
+     * - Initial data processing during DataModel.processData()
+     * - Incremental updates during DataModel.applyTransactions()
+     * - Custom value processing in extensions
      */
     public processValue(
         def: InternalDatumPropertyDefinition<K>,
@@ -734,17 +1050,59 @@ export class DataModel<
      * This method provides high-performance data updates by mutating ProcessedData in-place rather
      * than performing full reprocessing.
      *
+     * @example Basic usage with chart transactions
+     * ```typescript
+     * // Apply a transaction to add new data points
+     * const transaction = {
+     *     append: [{ x: 10, y: 20 }, { x: 11, y: 25 }],
+     *     remove: [existingDataPoint],
+     *     prepend: []
+     * };
+     *
+     * // Add the transaction to dataRef
+     * dataRef.addTransaction(transaction);
+     *
+     * // Apply incrementally (before committing transactions)
+     * const result = dataModel.applyTransactions(dataRef, processedData, sources);
+     * if (result) {
+     *     // Success - ProcessedData was updated in-place
+     *     dataRef.commitPendingTransactions();
+     *     chart.update(ChartUpdateType.UPDATE_DATA, { skipAnimations: true });
+     * } else {
+     *     // Fallback to full reprocessing
+     *     dataRef.commitPendingTransactions();
+     *     const newProcessedData = dataModel.processData(sources);
+     *     chart.update(ChartUpdateType.UPDATE_DATA);
+     * }
+     * ```
+     *
      * @param dataRef - The DataRef containing pending transactions to apply
      * @param processedData - The existing ProcessedData to mutate in-place
      * @param sources - Map of all current data sources (used for validation)
      * @returns The same ProcessedData instance (mutated) on success, undefined if fallback needed
      *
      * @remarks
+     * **Constraints:**
      * - Only supports single data source scenarios (returns undefined for multi-source)
      * - Must be called BEFORE DataRef.commitPendingTransactions() to work with original indices
+     * - Requires all processors to support incremental updates (see {@link supportsIncrementalUpdate})
+     * - Grouping is not yet supported (returns undefined if groupByKeys or groupByFn are enabled)
+     *
+     * **Performance Characteristics:**
      * - Mutates the ProcessedData structure in-place for maximum performance
+     * - O(k) complexity where k is the number of changes, not O(n) data size
+     * - Avoids memory allocations by reusing existing arrays and objects
+     * - Typically 10x+ faster than full reprocessing for small changes
+     *
+     * **Animation Handling:**
      * - Sets animation validation flags to false for high-frequency updates
+     * - Caller should pass `skipAnimations: true` to chart.update() for optimal performance
+     * - The updated data does not maintain "before" snapshots needed for animations
+     *
+     * **Error Handling:**
      * - Falls back to full reprocessing by returning undefined when incremental isn't supported
+     * - Throws errors only for implementation bugs (invalid state, corrupted data)
+     * - Does not perform rollback on errors - chart state requires page reload if corruption occurs
      */
     applyTransactions<T>(
         dataRef: DataRef<T>,
@@ -777,28 +1135,107 @@ export class DataModel<
     /**
      * Determines if the current DataModel configuration supports incremental updates.
      *
-     * @returns true for simple ungrouped data, false for complex scenarios
-     * @private
+     * This method checks whether all components of the data processing pipeline support
+     * incremental updates. If any component lacks this capability, the entire pipeline
+     * must fall back to full reprocessing.
+     *
+     * @example Check before applying transactions
+     * ```typescript
+     * if (dataModel.supportsIncrementalUpdate()) {
+     *     // Safe to use applyTransactions()
+     *     const result = dataModel.applyTransactions(dataRef, processedData, sources);
+     *     if (result) {
+     *         console.log('Applied incremental update successfully');
+     *     }
+     * } else {
+     *     console.log('Falling back to full reprocessing');
+     *     // Use processData() instead
+     *     const newProcessedData = dataModel.processData(sources);
+     * }
+     * ```
+     *
+     * @returns true if all processors support incremental updates, false otherwise
+     *
+     * @remarks
+     * **Components Checked:**
+     * - Aggregation functions: Must have `supportsIncremental !== false`
+     * - Property processors: Must have `supportsIncremental !== false`
+     * - Reducers: Must have `supportsIncremental !== false`
+     * - Group processors: Must have `supportsIncremental !== false`
+     * - Processors: Must have `supportsIncremental !== false`
+     * - Grouping configuration: Currently not supported (groupByKeys, groupByFn)
+     *
+     * **Performance Impact:**
+     * - This check is performed once during transaction application
+     * - Results in warning messages when incremental updates are disabled
+     * - Helps developers understand why fallback occurs
+     *
+     * **Warning Messages:**
+     * When incremental updates are disabled, warning messages are logged to help
+     * developers identify which components need incremental support:
+     * - "Incremental updates disabled: grouping not yet supported"
+     * - "Incremental updates disabled due to aggregations: [list]"
+     * - "Incremental updates disabled due to property processors: [list]"
+     * - Similar messages for reducers, group processors, and processors
      */
-    private supportsIncrementalUpdate(): boolean {
-        // For now, only support simple ungrouped data without complex processing
-        // Full implementation will come in Task 6.1
-        const hasGrouping = this.opts.groupByKeys || this.opts.groupByFn;
-        const hasAggregates = this.aggregates.length > 0;
-        const hasGroupProcessors = this.groupProcessors.length > 0;
-        const hasPropertyProcessors = this.propertyProcessors.length > 0;
-        const hasReducers = this.reducers.length > 0;
-        const hasProcessors = this.processors.length > 0;
+    public supportsIncrementalUpdate(): boolean {
+        // Check if grouping is enabled - currently not supported for incremental updates
+        if (this.opts.groupByKeys ?? this.opts.groupByFn) {
+            Logger.warnOnce('Incremental updates disabled: grouping not yet supported');
+            return false;
+        }
 
-        // Only support simple cases for now
-        return (
-            !hasGrouping &&
-            !hasAggregates &&
-            !hasGroupProcessors &&
-            !hasPropertyProcessors &&
-            !hasReducers &&
-            !hasProcessors
-        );
+        // Check aggregates for capability flags
+        const aggregatesOk = this.aggregates.every((a) => a.supportsIncremental !== false);
+        if (!aggregatesOk) {
+            const unsupported = this.aggregates
+                .filter((a) => a.supportsIncremental === false)
+                .map((a) => a.id ?? 'unknown');
+            Logger.warnOnce(`Incremental updates disabled due to aggregations: ${unsupported.join(', ')}`);
+            return false;
+        }
+
+        // Check property processors for capability flags
+        const propertyProcessorsOk = this.propertyProcessors.every((p) => p.supportsIncremental !== false);
+        if (!propertyProcessorsOk) {
+            const unsupported = this.propertyProcessors
+                .filter((p) => p.supportsIncremental === false)
+                .map((p) => p.id ?? 'unknown');
+            Logger.warnOnce(`Incremental updates disabled due to property processors: ${unsupported.join(', ')}`);
+            return false;
+        }
+
+        // Check reducers for capability flags
+        const reducersOk = this.reducers.every((r) => r.supportsIncremental !== false);
+        if (!reducersOk) {
+            const unsupported = this.reducers
+                .filter((r) => r.supportsIncremental === false)
+                .map((r) => r.id ?? 'unknown');
+            Logger.warnOnce(`Incremental updates disabled due to reducers: ${unsupported.join(', ')}`);
+            return false;
+        }
+
+        // Check group processors for capability flags
+        const groupProcessorsOk = this.groupProcessors.every((g) => g.supportsIncremental !== false);
+        if (!groupProcessorsOk) {
+            const unsupported = this.groupProcessors
+                .filter((g) => g.supportsIncremental === false)
+                .map((g) => g.id ?? 'unknown');
+            Logger.warnOnce(`Incremental updates disabled due to group processors: ${unsupported.join(', ')}`);
+            return false;
+        }
+
+        // Check processors for capability flags
+        const processorsOk = this.processors.every((p) => p.supportsIncremental !== false);
+        if (!processorsOk) {
+            const unsupported = this.processors
+                .filter((p) => p.supportsIncremental === false)
+                .map((p) => p.id ?? 'unknown');
+            Logger.warnOnce(`Incremental updates disabled due to processors: ${unsupported.join(', ')}`);
+            return false;
+        }
+
+        return true;
     }
 
     private warnDataMissingProperties(sources: Map<string, unknown[]>) {

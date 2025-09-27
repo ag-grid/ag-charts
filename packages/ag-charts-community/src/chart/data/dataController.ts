@@ -1,4 +1,4 @@
-import { getWindow } from 'ag-charts-core';
+import { Logger, getWindow } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
@@ -11,6 +11,7 @@ import {
     type PropertyDefinition,
     type UngroupedData,
 } from './dataModel';
+import type { DataRef } from './dataRef';
 
 interface RequestedProcessing<
     D extends object,
@@ -20,6 +21,7 @@ interface RequestedProcessing<
     id: string;
     opts: DataModelOptions<K, any, false>;
     data: D[];
+    dataRef?: DataRef<D>;
     resolve: (result: Result<D, K, G>) => void;
     reject: (reason?: any) => void;
 }
@@ -51,20 +53,21 @@ export class DataController {
 
     public constructor(
         private readonly mode: ChartMode,
-        readonly suppressFieldDotNotation: boolean
+        readonly suppressFieldDotNotation: boolean,
+        private readonly enableIncrementalUpdates: boolean = true
     ) {}
 
     public async request<
         D extends object,
         K extends keyof D & string = keyof D & string,
         G extends boolean | undefined = undefined,
-    >(id: string, data: D[], opts: DataModelOptions<K, any, false>) {
+    >(id: string, data: D[], opts: DataModelOptions<K, any, false>, dataRef?: DataRef<D>) {
         if (this.status !== 'setup') {
             throw new Error(`AG Charts - data request after data setup phase.`);
         }
 
         return new Promise<Result<D, K, G>>((resolve, reject) => {
-            this.requested.push({ id, opts, data, resolve, reject });
+            this.requested.push({ id, opts, data, dataRef, resolve, reject });
         });
     }
 
@@ -89,10 +92,36 @@ export class DataController {
 
         for (const { data, ids, opts, resolves, rejects } of merged) {
             const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, data, ids, opts));
+            const incrementallyUpdatableCache =
+                this.enableIncrementalUpdates && !reusableCache
+                    ? this.findIncrementallyUpdatableCache(cachedData, ids, opts)
+                    : null;
 
             let dataModel: DataModel<any, string>;
             let processedData: UngroupedData<any> | undefined;
-            if (reusableCache == null) {
+
+            if (reusableCache) {
+                // Found exact match cached data - use it directly
+                ({ dataModel, processedData } = reusableCache);
+            } else if (incrementallyUpdatableCache) {
+                // Found cached data that can be incrementally updated
+                ({ dataModel, processedData } = incrementallyUpdatableCache);
+
+                if (this.attemptIncrementalUpdate(valid, dataModel, processedData, opts, ids)) {
+                    // Incremental update was successful - processedData was mutated in-place
+                    // No additional work needed
+                } else {
+                    // Incremental update failed - fall back to full reprocessing
+                    try {
+                        const sources = new Map(valid.map((v) => [v.id, v.data]));
+                        processedData = dataModel.processData(sources);
+                    } catch (error) {
+                        rejects.forEach((cb) => cb(error));
+                        continue;
+                    }
+                }
+            } else {
+                // No cached data - perform full processing
                 try {
                     dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
                     const sources = new Map(valid.map((v) => [v.id, v.data]));
@@ -101,8 +130,6 @@ export class DataController {
                     rejects.forEach((cb) => cb(error));
                     continue;
                 }
-            } else {
-                ({ dataModel, processedData } = reusableCache);
             }
 
             nextCachedData.push({ opts, data, ids, dataModel, processedData });
@@ -124,6 +151,114 @@ export class DataController {
         }
 
         return nextCachedData;
+    }
+
+    /**
+     * Finds cached data that can be incrementally updated.
+     * This looks for cached data with the same options and IDs but potentially different data references.
+     *
+     * @param cachedData All cached data items
+     * @param ids Request IDs
+     * @param opts DataModel options
+     * @returns Cached data item that can be incrementally updated, or null
+     */
+    private findIncrementallyUpdatableCache(cachedData: CachedData | undefined, ids: string[], opts: any) {
+        if (!cachedData) return null;
+
+        for (const cacheItem of cachedData) {
+            // Check if IDs and options match (but data reference might be different)
+            const { ids: cachedIds, opts: cachedOpts } = cacheItem;
+
+            // Import the equality checking functions we need
+            const arraysEqual = (a: string[], b: string[]) => {
+                if (a.length !== b.length) return false;
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i] !== b[i]) return false;
+                }
+                return true;
+            };
+
+            // Check if IDs match
+            if (!arraysEqual(ids, cachedIds)) continue;
+
+            // Check if options match (reuse the same logic as canReuseCachedData but skip data check)
+            if (this.optsEqual(opts, cachedOpts)) {
+                return cacheItem;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Simplified version of options equality check from caching.ts
+     */
+    private optsEqual(a: any, b: any): boolean {
+        // This is a simplified check - in practice, we'd want to reuse the logic from caching.ts
+        // For now, we'll do a basic structural comparison
+        try {
+            return JSON.stringify(a) === JSON.stringify(b);
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Attempts to apply incremental updates to existing processedData.
+     *
+     * @param validRequests Valid requests to check for DataRef objects
+     * @param dataModel Existing DataModel to use for incremental updates
+     * @param processedData Existing ProcessedData to mutate in-place
+     * @param opts DataModel options
+     * @param ids Request IDs
+     * @returns true if incremental update was successful, false otherwise
+     */
+    private attemptIncrementalUpdate(
+        validRequests: RequestedProcessing<any, any, any>[],
+        dataModel: DataModel<any, string>,
+        processedData: UngroupedData<any> | undefined,
+        _opts: any,
+        ids: string[]
+    ): boolean {
+        if (!processedData) {
+            return false;
+        }
+
+        // Check if incremental updates are supported by the DataModel
+        if (!dataModel.supportsIncrementalUpdate()) {
+            return false;
+        }
+
+        // Find requests with DataRef objects that have pending transactions
+        const dataRefRequests = validRequests.filter(
+            (req) => req.dataRef?.hasPendingTransactions() && ids.includes(req.id)
+        );
+        if (dataRefRequests.length === 0) {
+            return false;
+        }
+
+        // Only support single source scenarios for incremental updates
+        const sources = new Map(validRequests.map((v) => [v.id, v.data]));
+        if (sources.size !== 1) {
+            Logger.warnOnce('Incremental updates disabled: multiple data sources not supported');
+            return false;
+        }
+
+        // Attempt incremental update for the first DataRef with pending transactions
+        const dataRefRequest = dataRefRequests[0];
+        try {
+            const result = dataModel.applyTransactions(dataRefRequest.dataRef!, processedData, sources);
+            if (result) {
+                this.debug('DataController.attemptIncrementalUpdate() - success for', dataRefRequest.id);
+                return true;
+            } else {
+                this.debug('DataController.attemptIncrementalUpdate() - failed for', dataRefRequest.id);
+                return false;
+            }
+        } catch (error) {
+            this.debug('DataController.attemptIncrementalUpdate() - error for', dataRefRequest.id, error);
+            return false;
+        }
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {

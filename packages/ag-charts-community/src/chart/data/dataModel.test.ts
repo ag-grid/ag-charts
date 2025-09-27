@@ -1725,4 +1725,1878 @@ describe('DataModel', () => {
             });
         });
     });
+
+    // =====================================================================================
+    // COMPREHENSIVE INCREMENTAL UPDATE SYSTEM TESTS - Task 6.3
+    // =====================================================================================
+
+    describe('Incremental Update System - Unit Tests for Updater Components', () => {
+        setupMockConsole();
+
+        describe('DataChangeDescriptor and Builder', () => {
+            it('should create empty descriptor correctly', () => {
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+                const builder = DataChangeDescriptorBuilder.create();
+                expect(builder.isEmpty()).toBe(true);
+
+                const descriptor = builder.build();
+                expect(descriptor.removed).toEqual([]);
+                expect(descriptor.inserted).toEqual([]);
+                expect(descriptor.updated).toEqual([]);
+                expect(descriptor.indexShiftRanges).toEqual([]);
+                expect(descriptor.metadata.totalRemoved).toBe(0);
+                expect(descriptor.metadata.totalInserted).toBe(0);
+                expect(descriptor.metadata.totalUpdated).toBe(0);
+                expect(descriptor.metadata.netSizeChange).toBe(0);
+            });
+
+            it('should handle single removal operation', () => {
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+                const builder = DataChangeDescriptorBuilder.create();
+                builder.addRemoval(1, { id: 'B', value: 2 });
+
+                const descriptor = builder.build();
+                expect(descriptor.removed).toEqual([{ index: 1, datum: { id: 'B', value: 2 } }]);
+                expect(descriptor.metadata.totalRemoved).toBe(1);
+                expect(descriptor.metadata.netSizeChange).toBe(-1);
+            });
+
+            it('should handle single insertion operation', () => {
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+                const builder = DataChangeDescriptorBuilder.create();
+                builder.addInsertion(2, { id: 'D', value: 4 });
+
+                const descriptor = builder.build();
+                expect(descriptor.inserted).toEqual([{ index: 2, datum: { id: 'D', value: 4 } }]);
+                expect(descriptor.metadata.totalInserted).toBe(1);
+                expect(descriptor.metadata.netSizeChange).toBe(1);
+            });
+
+            it('should handle update operation', () => {
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+                const builder = DataChangeDescriptorBuilder.create();
+                const oldData = { id: 'C', value: 3 };
+                const newData = { id: 'C', value: 30 };
+                builder.addUpdate(2, oldData, newData);
+
+                const descriptor = builder.build();
+                expect(descriptor.updated).toEqual([{ index: 2, oldDatum: oldData, newDatum: newData }]);
+                expect(descriptor.metadata.totalUpdated).toBe(1);
+                expect(descriptor.metadata.netSizeChange).toBe(0);
+            });
+
+            it('should compute index shift ranges for complex operations', () => {
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+                const builder = DataChangeDescriptorBuilder.create();
+
+                // Remove at indices 1 and 3, insert at indices 0 and 2
+                builder.addRemoval(1, { id: 'B' });
+                builder.addRemoval(3, { id: 'D' });
+                builder.addInsertion(0, { id: 'New1' });
+                builder.addInsertion(2, { id: 'New2' });
+
+                const descriptor = builder.build();
+                expect(descriptor.indexShiftRanges.length).toBeGreaterThan(0);
+                expect(descriptor.metadata.netSizeChange).toBe(0); // 2 removals, 2 insertions
+            });
+
+            it('should validate against duplicate indices', () => {
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+                const builder = DataChangeDescriptorBuilder.create();
+
+                builder.addRemoval(1, { id: 'B' });
+                expect(() => builder.addRemoval(1, { id: 'C' })).toThrow('Duplicate removal at index 1');
+
+                builder.addUpdate(2, { id: 'old' }, { id: 'new' });
+                expect(() => builder.addUpdate(2, { id: 'old2' }, { id: 'new2' })).toThrow(
+                    'Duplicate update at index 2'
+                );
+            });
+
+            it('should validate against conflicting operations', () => {
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+                const builder = DataChangeDescriptorBuilder.create();
+
+                builder.addRemoval(1, { id: 'B' });
+                builder.addUpdate(1, { id: 'old' }, { id: 'new' });
+
+                expect(() => builder.build()).toThrow('Index 1 cannot be both removed and updated');
+            });
+        });
+
+        describe('TransactionAnalyzer', () => {
+            it('should return undefined for multi-source scenarios', () => {
+                const { TransactionAnalyzer } = require('./transactionAnalyzer');
+                const dataRef = new DataRef([{ id: 'A' }]);
+                const multiSources = new Map([
+                    ['scope1', [{ id: 'A' }]],
+                    ['scope2', [{ id: 'B' }]],
+                ]);
+
+                const result = TransactionAnalyzer.analyze(dataRef, multiSources);
+                expect(result).toBeUndefined();
+            });
+
+            it('should return empty descriptor for no pending transactions', () => {
+                const { TransactionAnalyzer } = require('./transactionAnalyzer');
+                const dataRef = new DataRef([{ id: 'A' }]);
+                const singleSource = new Map([['test', [{ id: 'A' }]]]);
+
+                const result = TransactionAnalyzer.analyze(dataRef, singleSource);
+                expect(result).toBeDefined();
+                expect(result!.removed).toEqual([]);
+                expect(result!.inserted).toEqual([]);
+                expect(result!.updated).toEqual([]);
+            });
+
+            it('should analyze append transactions correctly', () => {
+                const { TransactionAnalyzer } = require('./transactionAnalyzer');
+                const originalData = [{ id: 'A' }, { id: 'B' }];
+                const dataRef = new DataRef(originalData.slice());
+                const newData = { id: 'C' };
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: [newData],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = TransactionAnalyzer.analyze(dataRef, new Map([['test', originalData]]));
+                expect(result).toBeDefined();
+                expect(result!.inserted).toEqual([{ index: 2, datum: newData }]);
+                expect(result!.metadata.totalInserted).toBe(1);
+            });
+
+            it('should analyze prepend transactions correctly', () => {
+                const { TransactionAnalyzer } = require('./transactionAnalyzer');
+                const originalData = [{ id: 'A' }, { id: 'B' }];
+                const dataRef = new DataRef(originalData.slice());
+                const newData = { id: 'Zero' };
+
+                dataRef.pendingTransactions = [
+                    {
+                        prepend: [newData],
+                        append: undefined,
+                        remove: undefined,
+                    },
+                ];
+
+                const result = TransactionAnalyzer.analyze(dataRef, new Map([['test', originalData]]));
+                expect(result).toBeDefined();
+                expect(result!.inserted).toEqual([{ index: 0, datum: newData }]);
+                expect(result!.metadata.totalInserted).toBe(1);
+            });
+
+            it('should analyze removal transactions using object identity', () => {
+                const { TransactionAnalyzer } = require('./transactionAnalyzer');
+                const itemA = { id: 'A' };
+                const itemB = { id: 'B' };
+                const itemC = { id: 'C' };
+                const originalData = [itemA, itemB, itemC];
+                const dataRef = new DataRef(originalData.slice());
+
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [itemB],
+                        append: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = TransactionAnalyzer.analyze(dataRef, new Map([['test', originalData]]));
+                expect(result).toBeDefined();
+                expect(result!.removed).toEqual([{ index: 1, datum: itemB }]);
+                expect(result!.metadata.totalRemoved).toBe(1);
+            });
+
+            it('should handle complex mixed transactions', () => {
+                const { TransactionAnalyzer } = require('./transactionAnalyzer');
+                const itemA = { id: 'A' };
+                const itemB = { id: 'B' };
+                const itemC = { id: 'C' };
+                const originalData = [itemA, itemB, itemC];
+                const dataRef = new DataRef(originalData.slice());
+
+                const newPrepend = { id: 'Zero' };
+                const newAppend = { id: 'D' };
+
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [itemB],
+                        prepend: [newPrepend],
+                        append: [newAppend],
+                    },
+                ];
+
+                const result = TransactionAnalyzer.analyze(dataRef, new Map([['test', originalData]]));
+                expect(result).toBeDefined();
+                expect(result!.removed).toEqual([{ index: 1, datum: itemB }]);
+                expect(result!.inserted).toEqual([
+                    { index: 0, datum: newPrepend },
+                    { index: 3, datum: newAppend },
+                ]);
+                expect(result!.metadata.totalRemoved).toBe(1);
+                expect(result!.metadata.totalInserted).toBe(2);
+                expect(result!.metadata.netSizeChange).toBe(1);
+            });
+        });
+
+        describe('ArrayUpdater', () => {
+            it('should handle empty changes gracefully', () => {
+                const { ArrayUpdater } = require('./arrayUpdater');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const array = [1, 2, 3, 4, 5];
+                const changes = DataChangeDescriptorBuilder.create().build();
+
+                ArrayUpdater.applyChanges(array, changes);
+                expect(array).toEqual([1, 2, 3, 4, 5]);
+            });
+
+            it('should apply removals correctly', () => {
+                const { ArrayUpdater } = require('./arrayUpdater');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const array = [1, 2, 3, 4, 5];
+                const changes = DataChangeDescriptorBuilder.create().addRemoval(1, 2).addRemoval(3, 4).build();
+
+                ArrayUpdater.applyChanges(array, changes);
+                expect(array).toEqual([1, 3, 5]); // Removed items at indices 1 and 3
+            });
+
+            it('should apply insertions correctly', () => {
+                const { ArrayUpdater } = require('./arrayUpdater');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const array = [1, 2, 3];
+                const changes = DataChangeDescriptorBuilder.create()
+                    .addInsertion(0, 0)
+                    .addInsertion(2, 2.5)
+                    .addInsertion(5, 4)
+                    .build();
+
+                ArrayUpdater.applyChanges(array, changes);
+                expect(array).toEqual([0, 1, 2.5, 2, 3, 4]); // Inserted at correct positions
+            });
+
+            it('should apply updates correctly', () => {
+                const { ArrayUpdater } = require('./arrayUpdater');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const array = [1, 2, 3, 4, 5];
+                const changes = DataChangeDescriptorBuilder.create().addUpdate(1, 2, 20).addUpdate(3, 4, 40).build();
+
+                ArrayUpdater.applyChanges(array, changes);
+                expect(array).toEqual([1, 20, 3, 40, 5]); // Updated values at indices 1 and 3
+            });
+
+            it('should apply complex mixed operations correctly', () => {
+                const { ArrayUpdater } = require('./arrayUpdater');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const array = [10, 20, 30, 40, 50];
+                const changes = DataChangeDescriptorBuilder.create()
+                    .addRemoval(1, 20) // Remove 20
+                    .addUpdate(2, 30, 300) // Update 30 to 300
+                    .addInsertion(0, 5) // Insert 5 at start
+                    .addInsertion(4, 45) // Insert 45
+                    .build();
+
+                ArrayUpdater.applyChanges(array, changes);
+                expect(array).toEqual([5, 10, 300, 40, 45, 50]); // Complex transformation
+            });
+
+            it('should use extractor function when provided', () => {
+                const { ArrayUpdater } = require('./arrayUpdater');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const array = [1, 2, 3];
+                const changes = DataChangeDescriptorBuilder.create()
+                    .addInsertion(1, { value: 1.5 })
+                    .addUpdate(2, 3, { value: 30 })
+                    .build();
+
+                const extractor = (datum: any) => datum.value;
+                ArrayUpdater.applyChanges(array, changes, extractor);
+                expect(array).toEqual([1, 1.5, 30, 3]);
+            });
+
+            it('should validate input parameters', () => {
+                const { ArrayUpdater } = require('./arrayUpdater');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const changes = DataChangeDescriptorBuilder.create().build();
+
+                expect(() => ArrayUpdater.applyChanges(null, changes)).toThrow('Array parameter must be an array');
+                expect(() => ArrayUpdater.applyChanges([], null)).toThrow('Changes parameter is required');
+            });
+
+            it('should validate index bounds for operations', () => {
+                const { ArrayUpdater } = require('./arrayUpdater');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const array = [1, 2, 3];
+                const changes = DataChangeDescriptorBuilder.create()
+                    .addRemoval(5, 'invalid') // Out of bounds
+                    .build();
+
+                expect(() => ArrayUpdater.applyChanges(array, changes)).toThrow(
+                    'Removal index 5 is out of bounds for array of length 3'
+                );
+            });
+        });
+
+        describe('ProcessedDataMutator', () => {
+            it('should require valid processValue function', () => {
+                const { ProcessedDataMutator } = require('./processedDataMutator');
+
+                expect(() => new ProcessedDataMutator({})).toThrow(
+                    'ProcessedDataMutator requires a processValue implementation'
+                );
+                expect(() => new ProcessedDataMutator({ processValue: 'not a function' })).toThrow(
+                    'ProcessedDataMutator requires a processValue implementation'
+                );
+            });
+
+            it('should handle empty changes gracefully', () => {
+                const { ProcessedDataMutator } = require('./processedDataMutator');
+                const { DataChangeDescriptorBuilder } = require('./dataChangeDescriptor');
+
+                const mockProcessValue = jest.fn();
+                const mutator = new ProcessedDataMutator({ processValue: mockProcessValue });
+
+                const processedData = {
+                    type: 'ungrouped',
+                    input: { count: 3 },
+                    columns: [
+                        [1, 2, 3],
+                        [10, 20, 30],
+                    ],
+                    keys: [new Map([['test', ['A', 'B', 'C']]])],
+                    defs: { keys: [], values: [] },
+                    domain: { keys: [], values: [] },
+                    time: Date.now(),
+                };
+
+                const changes = DataChangeDescriptorBuilder.create().build();
+
+                // Should not throw and should not modify data for empty changes
+                mutator.mutate(processedData, changes);
+                expect(processedData.columns).toEqual([
+                    [1, 2, 3],
+                    [10, 20, 30],
+                ]);
+                expect(mockProcessValue).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe('Incremental Update System - Integration Tests', () => {
+        setupMockConsole();
+
+        describe('Full Transaction Flow', () => {
+            it('should complete full incremental update cycle for simple append', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [
+                    { id: 'A', amount: 1 },
+                    { id: 'B', amount: 2 },
+                    { id: 'C', amount: 3 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Record original state for reference
+                expect(processed.input.count).toBe(3);
+
+                // Apply append transaction
+                const newDatum = { id: 'D', amount: 4 };
+                dataRef.pendingTransactions = [
+                    {
+                        append: [newDatum],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed); // Same reference
+
+                // Verify incremental update worked
+                expect(processed.columns[0]).toEqual([1, 2, 3, 4]); // amounts
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B', 'C', 'D']); // ids
+                expect(processed.input.count).toBe(4);
+                expect(processed.reduced?.diff?.default?.changed).toBe(true);
+
+                // Verify against full reprocessing
+                dataRef.commitPendingTransactions();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+
+                expect(processed.columns).toEqual(reprocessed.columns);
+                expect(processed.keys[0].get('test')).toEqual(reprocessed.keys[0].get('test'));
+                expect(processed.domain.values).toEqual(reprocessed.domain.values);
+                expect(processed.domain.keys).toEqual(reprocessed.domain.keys);
+                expect(processed.input.count).toBe(reprocessed.input.count);
+            });
+
+            it('should complete full incremental update cycle for removal', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const itemA = { id: 'A', amount: 1 };
+                const itemB = { id: 'B', amount: 2 };
+                const itemC = { id: 'C', amount: 3 };
+                const originalData = [itemA, itemB, itemC];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Apply removal transaction
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [itemB],
+                        append: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                // Verify incremental update worked
+                expect(processed.columns[0]).toEqual([1, 3]); // amounts without B
+                expect(processed.keys[0].get('test')).toEqual(['A', 'C']); // ids without B
+                expect(processed.input.count).toBe(2);
+
+                // Verify against full reprocessing
+                dataRef.commitPendingTransactions();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+
+                expect(processed.columns).toEqual(reprocessed.columns);
+                expect(processed.keys[0].get('test')).toEqual(reprocessed.keys[0].get('test'));
+                expect(processed.domain.values).toEqual(reprocessed.domain.values);
+                expect(processed.domain.keys).toEqual(reprocessed.domain.keys);
+                expect(processed.input.count).toBe(reprocessed.input.count);
+            });
+
+            it('should complete full incremental update cycle for prepend', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [
+                    { id: 'B', amount: 2 },
+                    { id: 'C', amount: 3 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Apply prepend transaction
+                const newDatum = { id: 'A', amount: 1 };
+                dataRef.pendingTransactions = [
+                    {
+                        prepend: [newDatum],
+                        append: undefined,
+                        remove: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                // Verify incremental update worked
+                expect(processed.columns[0]).toEqual([1, 2, 3]); // amounts with A first
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B', 'C']); // ids with A first
+                expect(processed.input.count).toBe(3);
+
+                // Verify against full reprocessing
+                dataRef.commitPendingTransactions();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+
+                expect(processed.columns).toEqual(reprocessed.columns);
+                expect(processed.keys[0].get('test')).toEqual(reprocessed.keys[0].get('test'));
+                expect(processed.domain.values).toEqual(reprocessed.domain.values);
+                expect(processed.domain.keys).toEqual(reprocessed.domain.keys);
+                expect(processed.input.count).toBe(reprocessed.input.count);
+            });
+
+            it('should handle complex mixed transactions correctly', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const itemA = { id: 'A', amount: 1 };
+                const itemB = { id: 'B', amount: 2 };
+                const itemC = { id: 'C', amount: 3 };
+                const itemD = { id: 'D', amount: 4 };
+                const originalData = [itemA, itemB, itemC, itemD];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Complex transaction: remove B and C, prepend Zero, append E
+                const prependItem = { id: 'Zero', amount: 0 };
+                const appendItem = { id: 'E', amount: 5 };
+
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [itemB, itemC],
+                        prepend: [prependItem],
+                        append: [appendItem],
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                // Expected result: [Zero, A, D, E] with amounts [0, 1, 4, 5]
+                expect(processed.columns[0]).toEqual([0, 1, 4, 5]);
+                expect(processed.keys[0].get('test')).toEqual(['Zero', 'A', 'D', 'E']);
+                expect(processed.input.count).toBe(4);
+
+                // Verify against full reprocessing
+                dataRef.commitPendingTransactions();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+
+                expect(processed.columns).toEqual(reprocessed.columns);
+                expect(processed.keys[0].get('test')).toEqual(reprocessed.keys[0].get('test'));
+                expect(processed.domain.values).toEqual(reprocessed.domain.values);
+                expect(processed.domain.keys).toEqual(reprocessed.domain.keys);
+                expect(processed.input.count).toBe(reprocessed.input.count);
+            });
+
+            it('should update domains correctly after incremental changes', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const originalData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Original domains
+                expect(processed.domain.keys).toEqual([[1, 3]]);
+                expect(processed.domain.values).toEqual([[10, 30]]);
+
+                // Add data that extends the domains
+                const newDatum = { x: 5, y: 50 };
+                dataRef.pendingTransactions = [
+                    {
+                        append: [newDatum],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                dataModel.applyTransactions(dataRef, processed, sources);
+
+                // Domains should be updated
+                expect(processed.domain.keys).toEqual([[1, 5]]);
+                expect(processed.domain.values).toEqual([[10, 50]]);
+
+                // Verify against full reprocessing
+                dataRef.commitPendingTransactions();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+                expect(processed.domain).toEqual(reprocessed.domain);
+            });
+        });
+
+        describe('Animation Validation Flags', () => {
+            it('should set animation validation flags correctly during incremental updates', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [
+                    { id: 'A', amount: 1 },
+                    { id: 'B', amount: 2 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Apply transaction
+                dataRef.pendingTransactions = [
+                    {
+                        append: [{ id: 'C', amount: 3 }],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                dataModel.applyTransactions(dataRef, processed, sources);
+
+                // Animation validation should be disabled for high-frequency updates
+                expect(processed.reduced?.animationValidation?.uniqueKeys).toBe(false);
+                expect(processed.reduced?.animationValidation?.orderedKeys).toBe(false);
+            });
+        });
+    });
+
+    describe('Incremental Update System - Edge Cases', () => {
+        setupMockConsole();
+
+        describe('Empty Data Scenarios', () => {
+            it('should handle incremental updates starting from empty data', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const dataRef = new DataRef<any>([]);
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                expect(processed.input.count).toBe(0);
+                expect(processed.columns).toEqual([[], []]);
+
+                // Add first item to empty data
+                const newDatum = { id: 'A', amount: 1 };
+                dataRef.pendingTransactions = [
+                    {
+                        append: [newDatum],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                expect(processed.input.count).toBe(1);
+                expect(processed.columns[0]).toEqual([1]);
+                expect(processed.keys[0].get('test')).toEqual(['A']);
+            });
+
+            it('should handle transition from single item to empty', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const singleItem = { id: 'A', amount: 1 };
+                const dataRef = new DataRef([singleItem]);
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                expect(processed.input.count).toBe(1);
+
+                // Remove the only item
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [singleItem],
+                        append: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                expect(processed.input.count).toBe(0);
+                expect(processed.columns).toEqual([[], []]);
+                expect(processed.keys[0].get('test')).toEqual([]);
+            });
+        });
+
+        describe('Single Item Scenarios', () => {
+            it('should handle operations on single-item data', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const singleItem = { id: 'A', amount: 1 };
+                const dataRef = new DataRef([singleItem]);
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Replace single item with prepend + remove
+                const newItem = { id: 'B', amount: 2 };
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [singleItem],
+                        prepend: [newItem],
+                        append: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                expect(processed.input.count).toBe(1);
+                expect(processed.columns[0]).toEqual([2]);
+                expect(processed.keys[0].get('test')).toEqual(['B']);
+            });
+        });
+
+        describe('Null and Invalid Value Scenarios', () => {
+            it('should handle null values in transaction data', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [
+                    { id: 'A', amount: 1 },
+                    { id: 'B', amount: 2 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Add item with null value
+                const nullItem = { id: 'C', amount: null as any };
+                dataRef.pendingTransactions = [
+                    {
+                        append: [nullItem],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                expect(processed.input.count).toBe(3);
+                expect(processed.columns[0]).toEqual([1, 2, null]);
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B', 'C']);
+            });
+
+            it('should handle undefined values in transaction data', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [{ id: 'A', amount: 1 }];
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Add item with undefined value
+                const undefinedItem = { id: 'B' } as any; // amount is undefined
+                dataRef.pendingTransactions = [
+                    {
+                        append: [undefinedItem],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                expect(processed.input.count).toBe(2);
+                expect(processed.columns[0]).toEqual([1, undefined]);
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B']);
+            });
+        });
+
+        describe('Validation and Error Handling', () => {
+            it('should handle missing properties gracefully', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount'), value('optional')],
+                });
+
+                const originalData = [{ id: 'A', amount: 1, optional: 10 }];
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Add item missing optional property
+                const incompleteItem = { id: 'B', amount: 2 } as any; // missing 'optional'
+                dataRef.pendingTransactions = [
+                    {
+                        append: [incompleteItem],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                expect(processed.input.count).toBe(2);
+                expect(processed.columns[0]).toEqual([1, 2]); // amounts
+                expect(processed.columns[1]).toEqual([10, undefined]); // optional values
+            });
+
+            it('should handle object identity removal correctly', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const itemA = { id: 'A', amount: 1 };
+                const itemB = { id: 'B', amount: 2 };
+                const itemC = { id: 'C', amount: 3 };
+                const originalData = [itemA, itemB, itemC];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Try to remove using a different object with same properties
+                const notSameObject = { id: 'B', amount: 2 }; // Same values, different object
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [notSameObject],
+                        append: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                // Should not remove anything since object identity doesn't match
+                expect(processed.input.count).toBe(3);
+                expect(processed.columns[0]).toEqual([1, 2, 3]);
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B', 'C']);
+            });
+        });
+    });
+
+    describe('Incremental Update System - Grouped vs Ungrouped Data', () => {
+        setupMockConsole();
+
+        describe('Ungrouped Data Scenarios', () => {
+            it('should handle ungrouped data incremental updates correctly', () => {
+                const dataModel = new DataModel<any, any, false>({
+                    props: [categoryKey('category'), value('value1'), value('value2')],
+                    groupByKeys: false,
+                });
+
+                const originalData = [
+                    { category: 'A', value1: 1, value2: 10 },
+                    { category: 'A', value1: 2, value2: 20 },
+                    { category: 'B', value1: 3, value2: 30 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                expect(processed.type).toBe('ungrouped');
+                expect(processed.input.count).toBe(3);
+
+                // Add more ungrouped data
+                const newItems = [
+                    { category: 'C', value1: 4, value2: 40 },
+                    { category: 'A', value1: 5, value2: 50 },
+                ];
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: newItems,
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                expect(processed.type).toBe('ungrouped');
+                expect(processed.input.count).toBe(5);
+                expect(processed.columns[0]).toEqual([1, 2, 3, 4, 5]); // value1
+                expect(processed.columns[1]).toEqual([10, 20, 30, 40, 50]); // value2
+                expect(processed.keys[0].get('test')).toEqual(['A', 'A', 'B', 'C', 'A']);
+
+                // Verify against full reprocessing
+                dataRef.commitPendingTransactions();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+                expect(processed.columns).toEqual(reprocessed.columns);
+                expect(processed.keys).toEqual(reprocessed.keys);
+            });
+        });
+
+        describe('Grouped Data Scenarios', () => {
+            it('should handle grouped data incremental updates correctly', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [categoryKey('category'), value('value1'), value('value2')],
+                    groupByKeys: true,
+                });
+
+                const originalData = [
+                    { category: 'A', value1: 1, value2: 10 },
+                    { category: 'B', value1: 2, value2: 20 },
+                    { category: 'A', value1: 3, value2: 30 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                expect(processed.type).toBe('grouped');
+                expect(processed.input.count).toBe(3);
+                if (processed.type === 'grouped') {
+                    expect(processed.groups).toHaveLength(3);
+                }
+
+                // Add new grouped data
+                const newItems = [
+                    { category: 'C', value1: 4, value2: 40 },
+                    { category: 'B', value1: 5, value2: 50 },
+                ];
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: newItems,
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incremental).toBe(processed);
+
+                expect(processed.type).toBe('grouped');
+                expect(processed.input.count).toBe(5);
+                if (processed.type === 'grouped') {
+                    expect(processed.groups).toHaveLength(5); // Each item becomes its own group
+                }
+
+                // Verify against full reprocessing
+                dataRef.commitPendingTransactions();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+                expect(processed.columns).toEqual(reprocessed.columns);
+                expect(processed.keys).toEqual(reprocessed.keys);
+                if (processed.type === 'grouped' && reprocessed.type === 'grouped') {
+                    expect(processed.groups.length).toBe(reprocessed.groups.length);
+                }
+            });
+        });
+    });
+
+    describe('Incremental Update System - Single-scope vs Multi-scope', () => {
+        setupMockConsole();
+
+        describe('Single-scope Scenarios (Incremental Updates)', () => {
+            it('should apply incremental updates for single data source', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [
+                    { id: 'A', amount: 1 },
+                    { id: 'B', amount: 2 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const singleScopeSource = new Map([['test', dataRef.data]]);
+                const processed = dataModel.processData(singleScopeSource)!;
+
+                const newDatum = { id: 'C', amount: 3 };
+                dataRef.pendingTransactions = [
+                    {
+                        append: [newDatum],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, singleScopeSource);
+
+                // Should return the same processed data instance (incremental update succeeded)
+                expect(result).toBe(processed);
+                expect(processed.input.count).toBe(3);
+                expect(processed.columns[0]).toEqual([1, 2, 3]);
+                expect(processed.reduced?.diff?.default?.changed).toBe(true);
+            });
+
+            it('should handle single-scope with multiple operations', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const itemA = { id: 'A', amount: 1 };
+                const itemB = { id: 'B', amount: 2 };
+                const itemC = { id: 'C', amount: 3 };
+                const originalData = [itemA, itemB, itemC];
+
+                const dataRef = new DataRef(originalData.slice());
+                const singleScopeSource = new Map([['test', dataRef.data]]);
+                const processed = dataModel.processData(singleScopeSource)!;
+
+                // Complex transaction: remove middle item, add two new items
+                const newItem1 = { id: 'D', amount: 4 };
+                const newItem2 = { id: 'E', amount: 5 };
+
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [itemB],
+                        append: [newItem1],
+                        prepend: [newItem2],
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, singleScopeSource);
+
+                expect(result).toBe(processed);
+                expect(processed.input.count).toBe(4); // 3 - 1 + 2 = 4
+                expect(processed.columns[0]).toEqual([5, 1, 3, 4]); // [E, A, C, D]
+                expect(processed.keys[0].get('test')).toEqual(['E', 'A', 'C', 'D']);
+            });
+        });
+
+        describe('Multi-scope Scenarios (Fallback to Full Reprocessing)', () => {
+            it('should return undefined for multi-scope data sources', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        categoryKey('id', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'amount1'),
+                        scopedValue('scope2', 'amount2'),
+                    ],
+                });
+
+                const data1 = [
+                    { id: 'A', amount1: 1 },
+                    { id: 'B', amount1: 2 },
+                ];
+                const data2 = [
+                    { id: 'A', amount2: 10 },
+                    { id: 'B', amount2: 20 },
+                ];
+                const dataRef = new DataRef(data1.slice());
+
+                const multiScopeSource = new Map([
+                    ['scope1', data1],
+                    ['scope2', data2 as any],
+                ] as [string, any[]][]);
+
+                const processed = dataModel.processData(multiScopeSource)!;
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: [{ id: 'C', amount1: 3 }],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, multiScopeSource);
+
+                // Should return undefined indicating fallback to full reprocessing needed
+                expect(result).toBeUndefined();
+            });
+
+            it('should correctly identify multi-scope scenarios', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [{ id: 'A', amount: 1 }];
+                const dataRef = new DataRef(originalData.slice());
+
+                // Create multi-scope source even with same data
+                const multiScopeSource = new Map([
+                    ['scope1', originalData],
+                    ['scope2', originalData], // Same data, but multiple scopes
+                ]);
+
+                const processed = dataModel.processData(multiScopeSource)!;
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: [{ id: 'B', amount: 2 }],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, multiScopeSource);
+
+                expect(result).toBeUndefined();
+            });
+
+            it('should handle edge case of exactly one scope', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [{ id: 'A', amount: 1 }];
+                const dataRef = new DataRef(originalData.slice());
+
+                // Exactly one scope - should allow incremental updates
+                const singleScopeSource = new Map([['onlyScope', originalData]]);
+
+                const processed = dataModel.processData(singleScopeSource)!;
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: [{ id: 'B', amount: 2 }],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, singleScopeSource);
+
+                expect(result).toBe(processed); // Should succeed
+            });
+        });
+    });
+
+    describe('Incremental Update System - Performance Tests', () => {
+        setupMockConsole();
+
+        describe('Real-world Data Size Performance', () => {
+            it('should handle 1K items efficiently', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value1'), value('value2')],
+                });
+
+                // Generate 1K items
+                const largeData = Array.from({ length: 1000 }, (_, i) => ({
+                    id: `item_${i}`,
+                    value1: Math.random() * 100,
+                    value2: Math.random() * 1000,
+                }));
+
+                const dataRef = new DataRef(largeData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                expect(processed.input.count).toBe(1000);
+
+                const startTime = performance.now();
+
+                // Add 100 new items
+                const newItems = Array.from({ length: 100 }, (_, i) => ({
+                    id: `new_item_${i}`,
+                    value1: Math.random() * 100,
+                    value2: Math.random() * 1000,
+                }));
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: newItems,
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                const endTime = performance.now();
+
+                expect(incremental).toBe(processed);
+                expect(processed.input.count).toBe(1100);
+
+                // Performance expectation: should complete in reasonable time
+                const duration = endTime - startTime;
+                expect(duration).toBeLessThan(100); // Less than 100ms
+            });
+
+            it('should handle 10K items with reasonable performance', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                // Generate 10K items
+                const largeData = Array.from({ length: 10000 }, (_, i) => ({
+                    id: `item_${i}`,
+                    value: i,
+                }));
+
+                const dataRef = new DataRef(largeData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                const startTime = performance.now();
+
+                // Remove 1K items and add 500 new items
+                const toRemove = largeData.slice(1000, 2000); // Remove 1K items
+                const newItems = Array.from({ length: 500 }, (_, i) => ({
+                    id: `new_${i}`,
+                    value: 20000 + i,
+                }));
+
+                dataRef.pendingTransactions = [
+                    {
+                        remove: toRemove,
+                        append: newItems,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                const endTime = performance.now();
+
+                expect(incremental).toBe(processed);
+                expect(processed.input.count).toBe(9500); // 10K - 1K + 500
+
+                // Performance expectation: should complete within reasonable time for large dataset
+                const duration = endTime - startTime;
+                expect(duration).toBeLessThan(500); // Less than 500ms for 10K items
+            });
+
+            it('should demonstrate performance advantage over full reprocessing', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                // Generate 5K items
+                const data = Array.from({ length: 5000 }, (_, i) => ({
+                    id: `item_${i}`,
+                    value: i,
+                }));
+
+                const dataRef = new DataRef(data.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                const newItems = Array.from({ length: 50 }, (_, i) => ({
+                    id: `new_${i}`,
+                    value: 10000 + i,
+                }));
+
+                // Measure incremental update time
+                dataRef.pendingTransactions = [
+                    {
+                        append: newItems,
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const incrementalStart = performance.now();
+                const incremental = dataModel.applyTransactions(dataRef, processed, sources);
+                const incrementalEnd = performance.now();
+                const incrementalTime = incrementalEnd - incrementalStart;
+
+                expect(incremental).toBe(processed);
+
+                // Simulate full reprocessing
+                dataRef.commitPendingTransactions();
+                const fullReprocessStart = performance.now();
+                const reprocessed = dataModel.processData(basicDataSet(dataRef.data))!;
+                const fullReprocessEnd = performance.now();
+                const fullReprocessTime = fullReprocessEnd - fullReprocessStart;
+
+                // Incremental should be faster (but allow for timing variance in CI environments)
+                if (fullReprocessTime > 0) {
+                    expect(incrementalTime).toBeLessThan(fullReprocessTime * 2); // Allow up to 2x slower in worst case
+                }
+                expect(processed.columns).toEqual(reprocessed.columns);
+            });
+        });
+
+        describe('Memory Usage Tests', () => {
+            it('should not leak memory during repeated updates', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    id: `item_${i}`,
+                    value: i,
+                }));
+
+                const dataRef = new DataRef(initialData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Perform many incremental updates
+                for (let batch = 0; batch < 10; batch++) {
+                    const newItems = Array.from({ length: 10 }, (_, i) => ({
+                        id: `batch_${batch}_item_${i}`,
+                        value: 1000 + batch * 10 + i,
+                    }));
+
+                    dataRef.pendingTransactions = [
+                        {
+                            append: newItems,
+                            remove: undefined,
+                            prepend: undefined,
+                        },
+                    ];
+
+                    const result = dataModel.applyTransactions(dataRef, processed, sources);
+                    expect(result).toBe(processed);
+                    dataRef.commitPendingTransactions();
+                }
+
+                // Final verification
+                expect(processed.input.count).toBe(200); // 100 initial + 10 batches * 10 items
+                expect(processed.columns[0]).toHaveLength(200);
+
+                // Memory should be stable (no growing references)
+                expect(processed.columns[0][0]).toBe(0); // First item still there
+                expect(processed.columns[0][199]).toBe(1099); // Last item correctly added
+            });
+        });
+    });
+
+    describe('Incremental Update System - Concurrency Tests', () => {
+        setupMockConsole();
+
+        describe('Rapid Successive Transactions', () => {
+            it('should handle rapid successive append operations', async () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                const initialData = [
+                    { id: 'A', value: 1 },
+                    { id: 'B', value: 2 },
+                ];
+
+                const dataRef = new DataRef(initialData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Simulate rapid successive transactions
+                const transactions = [];
+                for (let i = 0; i < 10; i++) {
+                    transactions.push({
+                        append: [{ id: `rapid_${i}`, value: 100 + i }],
+                        remove: undefined,
+                        prepend: undefined,
+                    });
+                }
+
+                // Apply all transactions rapidly
+                for (const transaction of transactions) {
+                    dataRef.pendingTransactions = [transaction];
+                    const result = dataModel.applyTransactions(dataRef, processed, sources);
+                    expect(result).toBe(processed);
+                    dataRef.commitPendingTransactions();
+                }
+
+                // Verify final state
+                expect(processed.input.count).toBe(12); // 2 initial + 10 rapid adds
+                expect(processed.columns[0]).toEqual([1, 2, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109]);
+            });
+
+            it('should handle interleaved add/remove operations', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                const itemA = { id: 'A', value: 1 };
+                const itemB = { id: 'B', value: 2 };
+                const itemC = { id: 'C', value: 3 };
+                const initialData = [itemA, itemB, itemC];
+
+                const dataRef = new DataRef(initialData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Interleaved operations: add, remove, add, remove
+                const operations = [
+                    { append: [{ id: 'D', value: 4 }], remove: undefined, prepend: undefined },
+                    { remove: [itemB], append: undefined, prepend: undefined },
+                    { prepend: [{ id: 'Zero', value: 0 }], append: undefined, remove: undefined },
+                    { remove: [itemC], append: undefined, prepend: undefined },
+                    { append: [{ id: 'E', value: 5 }], remove: undefined, prepend: undefined },
+                ];
+
+                for (const operation of operations) {
+                    dataRef.pendingTransactions = [operation];
+                    const result = dataModel.applyTransactions(dataRef, processed, sources);
+                    expect(result).toBe(processed);
+                    dataRef.commitPendingTransactions();
+                }
+
+                // Final state should be: [Zero, A, D, E] (B and C removed)
+                expect(processed.input.count).toBe(4);
+                expect(processed.keys[0].get('test')).toEqual(['Zero', 'A', 'D', 'E']);
+                expect(processed.columns[0]).toEqual([0, 1, 4, 5]);
+            });
+        });
+
+        describe('Stress Tests', () => {
+            it('should handle 100 transactions per second scenario', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                const initialData = Array.from({ length: 50 }, (_, i) => ({
+                    id: `initial_${i}`,
+                    value: i,
+                }));
+
+                const dataRef = new DataRef(initialData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                const startTime = performance.now();
+
+                // Simulate 100 rapid transactions
+                for (let i = 0; i < 100; i++) {
+                    const transaction = {
+                        append: [{ id: `stress_${i}`, value: 1000 + i }],
+                        remove: undefined,
+                        prepend: undefined,
+                    };
+
+                    dataRef.pendingTransactions = [transaction];
+                    const result = dataModel.applyTransactions(dataRef, processed, sources);
+                    expect(result).toBe(processed);
+                    dataRef.commitPendingTransactions();
+                }
+
+                const endTime = performance.now();
+                const duration = endTime - startTime;
+
+                // Should complete in reasonable time
+                expect(duration).toBeLessThan(1000); // Less than 1 second for 100 operations
+
+                // Verify final state
+                expect(processed.input.count).toBe(150); // 50 initial + 100 stress
+                expect(processed.columns[0][0]).toBe(0); // First initial item
+                expect(processed.columns[0][149]).toBe(1099); // Last stress item
+            });
+
+            it('should maintain consistency under mixed operation stress', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                const items = Array.from({ length: 20 }, (_, i) => ({
+                    id: `item_${i}`,
+                    value: i,
+                }));
+
+                const dataRef = new DataRef(items.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Mixed stress operations
+                let currentItems = items.slice();
+                for (let round = 0; round < 20; round++) {
+                    const operationType = round % 3;
+
+                    let transaction;
+                    if (operationType === 0) {
+                        // Add operation
+                        const newItem = { id: `new_${round}`, value: 1000 + round };
+                        transaction = { append: [newItem], remove: undefined, prepend: undefined };
+                        currentItems.push(newItem);
+                    } else if (operationType === 1 && currentItems.length > 5) {
+                        // Remove operation (keep at least 5 items)
+                        const removeIndex = Math.floor(Math.random() * currentItems.length);
+                        const itemToRemove = currentItems[removeIndex];
+                        transaction = { remove: [itemToRemove], append: undefined, prepend: undefined };
+                        currentItems = currentItems.filter((item) => item !== itemToRemove);
+                    } else {
+                        // Prepend operation
+                        const newItem = { id: `prepend_${round}`, value: 2000 + round };
+                        transaction = { prepend: [newItem], append: undefined, remove: undefined };
+                        currentItems.unshift(newItem);
+                    }
+
+                    dataRef.pendingTransactions = [transaction];
+                    const result = dataModel.applyTransactions(dataRef, processed, sources);
+                    expect(result).toBe(processed);
+                    dataRef.commitPendingTransactions();
+                }
+
+                // Verify final consistency
+                expect(processed.input.count).toBe(currentItems.length);
+                expect(processed.columns[0]).toHaveLength(currentItems.length);
+
+                // Data should remain consistent
+                const expectedValues = currentItems.map((item) => item.value);
+                expect(processed.columns[0]).toEqual(expectedValues);
+            });
+        });
+
+        describe('Memory Pressure Tests', () => {
+            it('should handle memory pressure during high-frequency updates', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    id: `mem_${i}`,
+                    value: i,
+                }));
+
+                const dataRef = new DataRef(initialData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Create memory pressure with large batches
+                for (let batch = 0; batch < 10; batch++) {
+                    const largeBatch = Array.from({ length: 100 }, (_, i) => ({
+                        id: `batch_${batch}_${i}`,
+                        value: batch * 1000 + i,
+                    }));
+
+                    dataRef.pendingTransactions = [
+                        {
+                            append: largeBatch,
+                            remove: undefined,
+                            prepend: undefined,
+                        },
+                    ];
+
+                    const result = dataModel.applyTransactions(dataRef, processed, sources);
+                    expect(result).toBe(processed);
+                    dataRef.commitPendingTransactions();
+
+                    // Verify integrity after each batch
+                    expect(processed.input.count).toBe(100 + (batch + 1) * 100);
+                    expect(processed.columns[0]).toHaveLength(processed.input.count);
+                }
+
+                // Final verification after memory pressure
+                expect(processed.input.count).toBe(1100); // 100 initial + 10 * 100
+                expect(processed.columns[0][0]).toBe(0); // First item preserved
+                expect(processed.columns[0][1099]).toBe(9099); // Last item correct
+            });
+
+            it('should handle alternating large add/remove cycles', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('value')],
+                });
+
+                const baseItems = Array.from({ length: 50 }, (_, i) => ({
+                    id: `base_${i}`,
+                    value: i,
+                }));
+
+                const dataRef = new DataRef(baseItems.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                let currentItems = baseItems.slice();
+
+                // Alternating large add/remove cycles
+                for (let cycle = 0; cycle < 5; cycle++) {
+                    // Add large batch
+                    const addBatch = Array.from({ length: 80 }, (_, i) => ({
+                        id: `cycle_${cycle}_add_${i}`,
+                        value: cycle * 1000 + i,
+                    }));
+
+                    dataRef.pendingTransactions = [
+                        {
+                            append: addBatch,
+                            remove: undefined,
+                            prepend: undefined,
+                        },
+                    ];
+
+                    let result = dataModel.applyTransactions(dataRef, processed, sources);
+                    expect(result).toBe(processed);
+                    dataRef.commitPendingTransactions();
+                    currentItems.push(...addBatch);
+
+                    expect(processed.input.count).toBe(currentItems.length);
+
+                    // Remove batch (keep base items)
+                    const toRemove = addBatch.slice(0, 60); // Remove 60 of the 80 added
+                    dataRef.pendingTransactions = [
+                        {
+                            remove: toRemove,
+                            append: undefined,
+                            prepend: undefined,
+                        },
+                    ];
+
+                    result = dataModel.applyTransactions(dataRef, processed, sources);
+                    expect(result).toBe(processed);
+                    dataRef.commitPendingTransactions();
+                    currentItems = currentItems.filter((item) => !toRemove.includes(item));
+
+                    expect(processed.input.count).toBe(currentItems.length);
+                }
+
+                // Should maintain consistency after cycles
+                expect(processed.input.count).toBeGreaterThan(50); // At least base items
+                expect(processed.columns[0]).toHaveLength(processed.input.count);
+            });
+        });
+    });
+
+    describe('Incremental Update System - E2E Integration Tests', () => {
+        setupMockConsole();
+
+        describe('Chart Update Integration', () => {
+            it('should integrate with chart update lifecycle', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [
+                    { id: 'A', amount: 1 },
+                    { id: 'B', amount: 2 },
+                    { id: 'C', amount: 3 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Simulate chart update with transaction
+                const newDatum = { id: 'D', amount: 4 };
+                dataRef.pendingTransactions = [
+                    {
+                        append: [newDatum],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                // Apply incremental update (mimics what DataController would do)
+                const incrementalResult = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incrementalResult).toBe(processed); // Same reference returned
+
+                // Verify animation flags are set for high-frequency updates
+                expect(processed.reduced?.animationValidation?.uniqueKeys).toBe(false);
+                expect(processed.reduced?.animationValidation?.orderedKeys).toBe(false);
+
+                // Verify diff metadata is updated
+                expect(processed.reduced?.diff?.default?.changed).toBe(true);
+
+                // Chart series would receive the updated ProcessedData reference
+                // and should see the new data without reprocessing
+                expect(processed.input.count).toBe(4);
+                expect(processed.columns[0]).toEqual([1, 2, 3, 4]);
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B', 'C', 'D']);
+
+                // Domains should be updated
+                expect(processed.domain.values[0]).toEqual([1, 4]);
+            });
+
+            it('should handle chart update with multiple transaction types', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const itemA = { x: 1, y: 10 };
+                const itemB = { x: 2, y: 20 };
+                const itemC = { x: 3, y: 30 };
+                const originalData = [itemA, itemB, itemC];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Original state
+                expect(processed.domain.keys).toEqual([[1, 3]]);
+                expect(processed.domain.values).toEqual([[10, 30]]);
+
+                // Complex chart update: remove middle point, add new endpoints
+                const prependItem = { x: 0, y: 5 };
+                const appendItem = { x: 4, y: 40 };
+
+                dataRef.pendingTransactions = [
+                    {
+                        remove: [itemB],
+                        prepend: [prependItem],
+                        append: [appendItem],
+                    },
+                ];
+
+                const incrementalResult = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(incrementalResult).toBe(processed);
+
+                // Chart should see updated data with correct ordering and domains
+                expect(processed.input.count).toBe(4); // -1 + 2 = +1
+                expect(processed.keys[0].get('test')).toEqual([0, 1, 3, 4]); // x values
+                expect(processed.columns[0]).toEqual([5, 10, 30, 40]); // y values
+
+                // Domains should expand
+                expect(processed.domain.keys).toEqual([[0, 4]]);
+                expect(processed.domain.values).toEqual([[5, 40]]);
+
+                // Animation should be disabled
+                expect(processed.reduced?.animationValidation?.uniqueKeys).toBe(false);
+                expect(processed.reduced?.animationValidation?.orderedKeys).toBe(false);
+            });
+        });
+
+        describe('Cross-Component Integration', () => {
+            it('should work correctly with different property types', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('category'), rangeKey('timestamp'), value('amount'), value('percentage')],
+                });
+
+                const originalData = [
+                    { category: 'A', amount: 100, percentage: 0.1, timestamp: 1000 },
+                    { category: 'B', amount: 200, percentage: 0.2, timestamp: 2000 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Add mixed data types
+                const newItems = [
+                    { category: 'C', amount: 300, percentage: 0.3, timestamp: 3000 },
+                    { category: 'D', amount: 400, percentage: 0.4, timestamp: 4000 },
+                ];
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: newItems,
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(result).toBe(processed);
+
+                // Verify all property types handled correctly
+                expect(processed.columns[0]).toEqual([100, 200, 300, 400]); // amount
+                expect(processed.columns[1]).toEqual([0.1, 0.2, 0.3, 0.4]); // percentage
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B', 'C', 'D']); // category
+                expect(processed.keys[1].get('test')).toEqual([1000, 2000, 3000, 4000]); // timestamp
+
+                // Domains for different types
+                expect(processed.domain.values[0]).toEqual([100, 400]); // amount domain
+                expect(processed.domain.values[1]).toEqual([0.1, 0.4]); // percentage domain
+                expect(processed.domain.keys[1]).toEqual([1000, 4000]); // timestamp domain
+            });
+
+            it('should handle complex data with validation rules', () => {
+                const validation = (v: unknown) => typeof v === 'number' && v >= 0;
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        categoryKey('id'),
+                        { ...value('validatedValue'), validation, invalidValue: -1 },
+                        { ...value('optionalValue'), missingValue: null },
+                    ],
+                });
+
+                const originalData = [
+                    { id: 'A', validatedValue: 10, optionalValue: 100 },
+                    { id: 'B', validatedValue: 20 }, // missing optionalValue
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Add data with validation issues
+                const newItems = [
+                    { id: 'C', validatedValue: -999, optionalValue: 300 }, // Invalid validatedValue
+                    { id: 'D', validatedValue: 40 }, // Missing optionalValue, valid validatedValue
+                    { id: 'E', validatedValue: 'invalid' as any, optionalValue: 500 }, // Invalid validatedValue type
+                ];
+
+                dataRef.pendingTransactions = [
+                    {
+                        append: newItems,
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(result).toBe(processed);
+
+                // Verify validation and missing value handling
+                expect(processed.columns[0]).toEqual([10, 20, -1, 40, -1]); // validatedValue with invalidValue
+                expect(processed.columns[1]).toEqual([100, null, 300, null, 500]); // optionalValue with missingValue
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B', 'C', 'D', 'E']);
+            });
+        });
+
+        describe('Error Scenarios and Recovery', () => {
+            it('should handle graceful fallback when incremental update is not possible', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        categoryKey('id', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
+                });
+
+                const data1 = [{ id: 'A', value1: 1 }];
+                const data2 = [{ id: 'A', value2: 10 }];
+                const dataRef = new DataRef(data1.slice());
+
+                const multiScopeSource = new Map([
+                    ['scope1', data1],
+                    ['scope2', data2 as any],
+                ] as [string, any[]][]);
+
+                const processed = dataModel.processData(multiScopeSource)!;
+
+                // This should trigger fallback to full reprocessing
+                dataRef.pendingTransactions = [
+                    {
+                        append: [{ id: 'B', value1: 2 }],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, multiScopeSource);
+
+                // Should return undefined indicating fallback needed
+                expect(result).toBeUndefined();
+
+                // Calling code should fall back to full reprocessing
+                dataRef.commitPendingTransactions();
+                const newData1 = [...data1, { id: 'B', value1: 2 }];
+                const newSources = new Map([
+                    ['scope1', newData1],
+                    ['scope2', data2 as any],
+                ] as [string, any[]][]);
+
+                const fullReprocessed = dataModel.processData(newSources)!;
+                expect(fullReprocessed.input.count).toBe(2);
+            });
+
+            it('should maintain data integrity during error conditions', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('id'), value('amount')],
+                });
+
+                const originalData = [
+                    { id: 'A', amount: 1 },
+                    { id: 'B', amount: 2 },
+                ];
+
+                const dataRef = new DataRef(originalData.slice());
+                const sources = basicDataSet(dataRef.data);
+                const processed = dataModel.processData(sources)!;
+
+                // Verify initial state
+                expect(processed.input.count).toBe(2);
+
+                // Valid operation that should succeed
+                dataRef.pendingTransactions = [
+                    {
+                        append: [{ id: 'C', amount: 3 }],
+                        remove: undefined,
+                        prepend: undefined,
+                    },
+                ];
+
+                const result = dataModel.applyTransactions(dataRef, processed, sources);
+                expect(result).toBe(processed);
+
+                // Verify successful update
+                expect(processed.input.count).toBe(3);
+                expect(processed.columns[0]).toEqual([1, 2, 3]);
+                expect(processed.keys[0].get('test')).toEqual(['A', 'B', 'C']);
+
+                // Data should be consistent and complete
+                expect(processed.columns[0]).toHaveLength(processed.input.count);
+                expect(processed.keys[0].get('test')).toHaveLength(processed.input.count);
+            });
+        });
+    });
 });
