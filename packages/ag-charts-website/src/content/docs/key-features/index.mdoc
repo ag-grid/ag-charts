@@ -310,15 +310,13 @@ tooltip: {
 Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
 
 ```ts wrapper="object"
-{
-    renderer: function (params) {
-        return (
-            '<div class="custom-tooltip">' +
-                params.datum[params.xKey]
-            '</div>'
-        );
-    },
-},
+renderer: (params) => {
+    return (
+        '<div class="custom-tooltip">' +
+            params.datum[params.xKey]
+        '</div>'
+    );
+}
 ```
 
 ### Highlighting Hovered Data

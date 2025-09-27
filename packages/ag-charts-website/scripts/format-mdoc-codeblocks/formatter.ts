@@ -234,8 +234,9 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         filepath,
     };
 
-    // For reactHooks wrapper, remove plugins that conflict with TypeScript parser
-    if (metadata?.wrapper === 'reactHooks') {
+    // For reactHooks wrapper or tsx files, remove plugins that conflict with TypeScript parser
+    // The import sorting plugin uses Babel parser internally which conflicts with TypeScript parser for JSX
+    if (metadata?.wrapper === 'reactHooks' || normalizedLang === 'tsx') {
         delete config.plugins;
         delete config.importOrder;
         delete config.importOrderParserPlugins;
