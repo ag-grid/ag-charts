@@ -191,11 +191,30 @@ export class DataChangeDescriptorBuilder {
             }
         }
 
-        if (currentRange && currentRange.shift !== 0) {
+        if (currentRange) {
             ranges.push(currentRange);
         }
 
-        return ranges;
+        if (ranges.length === 0) {
+            return ranges;
+        }
+
+        const filteredRanges: typeof ranges = [];
+        let seenNonZeroShift = false;
+
+        for (const range of ranges) {
+            if (range.shift !== 0) {
+                seenNonZeroShift = true;
+                filteredRanges.push(range);
+                continue;
+            }
+
+            if (seenNonZeroShift) {
+                filteredRanges.push(range);
+            }
+        }
+
+        return filteredRanges;
     }
 
     /**
@@ -207,7 +226,13 @@ export class DataChangeDescriptorBuilder {
 
         // Sort arrays for consistent output
         const sortedRemoved = [...this.removed].sort((a, b) => a.index - b.index);
-        const sortedInserted = [...this.inserted].sort((a, b) => a.index - b.index);
+        const sortedInserted = this.inserted
+            .map((entry, sequence) => ({ ...entry, sequence }))
+            .sort((a, b) => {
+                const indexDelta = a.index - b.index;
+                return indexDelta !== 0 ? indexDelta : b.sequence - a.sequence;
+            })
+            .map(({ sequence: _sequence, ...entry }) => entry);
         const sortedUpdated = [...this.updated].sort((a, b) => a.index - b.index);
 
         const indexShiftRanges = this.computeIndexShiftRanges();

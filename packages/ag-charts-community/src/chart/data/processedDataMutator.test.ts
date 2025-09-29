@@ -98,11 +98,13 @@ describe('ProcessedDataMutator', () => {
             expect(processedData.keys[0].get('test-scope')).toEqual(['key1', 'key2', 'key3']);
         });
 
-        it('should throw error for grouped data (not yet implemented)', () => {
+        it('should handle grouped data without throwing', () => {
             const groupedData = { ...processedData, type: 'grouped' } as ProcessedData<any>;
-            const changes = DataChangeDescriptorBuilder.create().addInsertion(0, { a: 4 }).build();
+            const changes = DataChangeDescriptorBuilder.create().addInsertion(0, { id: 'key4', a: 4 }).build();
 
-            expect(() => mutator.mutate(groupedData, changes)).toThrow('Grouped data mutations not yet implemented');
+            expect(() => mutator.mutate(groupedData, changes)).not.toThrow();
+            expect(groupedData.columns[0]).toEqual([4, 1, 2, 3]);
+            expect(groupedData.keys[0].get('test-scope')).toEqual(['key4', 'key1', 'key2', 'key3']);
         });
 
         it('should apply simple removal to columns and keys', () => {

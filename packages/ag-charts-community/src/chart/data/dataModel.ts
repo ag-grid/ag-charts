@@ -2,6 +2,8 @@ import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
+import { ArrayUpdater } from './arrayUpdater';
+import type { DataChangeDescriptor } from './dataChangeDescriptor';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 import type { DataRef } from './dataRef';
 import { ProcessedDataMutator } from './processedDataMutator';
@@ -993,6 +995,8 @@ export class DataModel<
     processData(
         sources: Map<string, unknown[]>
     ): (Grouped extends true ? GroupedData<D> : UngroupedData<D>) | undefined {
+        this.extractorCache.clear();
+
         const {
             opts: { groupByKeys, groupByFn },
             aggregates,
@@ -1086,7 +1090,7 @@ export class DataModel<
      * - Only supports single data source scenarios (returns undefined for multi-source)
      * - Must be called BEFORE DataRef.commitPendingTransactions() to work with original indices
      * - Requires all processors to support incremental updates (see {@link supportsIncrementalUpdate})
-     * - Grouping is not yet supported (returns undefined if groupByKeys or groupByFn are enabled)
+     * - Grouped datasets trigger a regrouping pass after column mutations
      *
      * **Performance Characteristics:**
      * - Mutates the ProcessedData structure in-place for maximum performance
@@ -1121,15 +1125,109 @@ export class DataModel<
             return undefined;
         }
 
+        const wasGrouped = processedData.type === 'grouped';
+
         const mutator = new ProcessedDataMutator({
             processValue: this.processValue.bind(this),
         });
         mutator.mutate(processedData, changeDescriptor);
 
+        this.updateDataSources(processedData, changeDescriptor);
+
+        if (wasGrouped && processedData.type === 'grouped') {
+            this.rebuildGroupedState(processedData as GroupedData<any>);
+        }
+
+        this.runPostProcessing(processedData);
+
         // Note: ProcessedDataMutator already sets animation validation flags to false
         // in its updateProcessedDataMetadata method, so we don't need to do it here
 
         return processedData;
+    }
+
+    private updateDataSources(processedData: ProcessedData<any>, changes: DataChangeDescriptor): void {
+        if (
+            changes.metadata.totalInserted === 0 &&
+            changes.metadata.totalRemoved === 0 &&
+            changes.metadata.totalUpdated === 0
+        ) {
+            return;
+        }
+
+        const replacements: Array<[ScopeId, unknown[]]> = [];
+
+        for (const [scope, data] of processedData.dataSources) {
+            if (!Array.isArray(data)) {
+                continue;
+            }
+
+            const next = data.slice();
+            ArrayUpdater.applyChanges(next, changes, (datum) => datum);
+            replacements.push([scope, next]);
+        }
+
+        for (const [scope, next] of replacements) {
+            processedData.dataSources.set(scope, next);
+        }
+    }
+
+    private rebuildGroupedState(processedData: GroupedData<any>): void {
+        const ungroupedView = this.toUngroupedView(processedData);
+        const groupingFn = this.opts.groupByFn ? this.opts.groupByFn(ungroupedView) : undefined;
+        const regrouped = this.groupData(ungroupedView, groupingFn);
+
+        processedData.groups = regrouped.groups;
+        processedData.domain.groups = regrouped.domain.groups;
+        processedData.partialValidDataCount = regrouped.partialValidDataCount;
+        processedData.scopes = regrouped.scopes;
+    }
+
+    private toUngroupedView(processedData: GroupedData<any>): UngroupedData<any> {
+        const { domain, groups: _groups, ...rest } = processedData;
+        return {
+            ...(rest as unknown as UngroupedData<any>),
+            type: 'ungrouped',
+            domain: {
+                ...domain,
+                groups: undefined,
+            },
+        };
+    }
+
+    private runPostProcessing(processedData: ProcessedData<any>): void {
+        const preservedDiff = processedData.reduced?.diff;
+        const preservedAnimation = processedData.reduced?.animationValidation;
+
+        if (processedData.type === 'grouped') {
+            if (this.groupProcessors.length > 0) {
+                this.postProcessGroups(processedData);
+            }
+            if (this.aggregates.length > 0) {
+                this.aggregateGroupedData(processedData);
+            }
+        } else {
+            if (this.aggregates.length > 0) {
+                this.aggregateUngroupedData(processedData);
+            }
+        }
+
+        if (this.propertyProcessors.length > 0) {
+            this.postProcessProperties(processedData);
+        }
+
+        if (this.reducers.length > 0) {
+            this.reduceData(processedData);
+        }
+
+        if (this.processors.length > 0) {
+            this.postProcessData(processedData);
+        }
+
+        if (processedData.reduced) {
+            processedData.reduced.diff = preservedDiff;
+            processedData.reduced.animationValidation = preservedAnimation;
+        }
     }
 
     /**
@@ -1163,7 +1261,7 @@ export class DataModel<
      * - Reducers: Must have `supportsIncremental !== false`
      * - Group processors: Must have `supportsIncremental !== false`
      * - Processors: Must have `supportsIncremental !== false`
-     * - Grouping configuration: Currently not supported (groupByKeys, groupByFn)
+     * - Grouping configuration: Requires supporting group processors and reducers
      *
      * **Performance Impact:**
      * - This check is performed once during transaction application
@@ -1173,18 +1271,11 @@ export class DataModel<
      * **Warning Messages:**
      * When incremental updates are disabled, warning messages are logged to help
      * developers identify which components need incremental support:
-     * - "Incremental updates disabled: grouping not yet supported"
      * - "Incremental updates disabled due to aggregations: [list]"
      * - "Incremental updates disabled due to property processors: [list]"
      * - Similar messages for reducers, group processors, and processors
      */
     public supportsIncrementalUpdate(): boolean {
-        // Check if grouping is enabled - currently not supported for incremental updates
-        if (this.opts.groupByKeys ?? this.opts.groupByFn) {
-            Logger.warnOnce('Incremental updates disabled: grouping not yet supported');
-            return false;
-        }
-
         // Check aggregates for capability flags
         const aggregatesOk = this.aggregates.every((a) => a.supportsIncremental !== false);
         if (!aggregatesOk) {
@@ -1493,7 +1584,8 @@ export class DataModel<
             }
             const columnScopes = new Set(def.scopes);
             const columnScope = first(def.scopes);
-            const columnSource = sources.get(columnScope) as unknown[];
+            const rawColumnSource = columnScope != null ? sources.get(columnScope) : undefined;
+            const columnSource = Array.isArray(rawColumnSource) ? rawColumnSource : [];
             const column = new Array<unknown>();
             const invalidKeys = scopeInvalidKeys.get(columnScope);
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {

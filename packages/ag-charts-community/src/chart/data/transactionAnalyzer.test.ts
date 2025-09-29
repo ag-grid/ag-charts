@@ -125,6 +125,7 @@ describe('TransactionAnalyzer', () => {
 
             expect(result).toBeDefined();
             // Items should be inserted in reverse order to maintain prepend array order
+            // Insertions list reflects application order (append entries first when indices match).
             expect(result?.inserted).toEqual([
                 { index: 0, datum: newItems[1] },
                 { index: 0, datum: newItems[0] },
@@ -466,8 +467,8 @@ describe('TransactionAnalyzer', () => {
 
             expect(result).toBeDefined();
             expect(result?.inserted).toEqual([
-                { index: 0, datum: { id: 1, name: 'First' } },
                 { index: 0, datum: { id: 2, name: 'Second' } },
+                { index: 0, datum: { id: 1, name: 'First' } },
             ]);
             expect(result?.metadata.netSizeChange).toBe(2);
         });

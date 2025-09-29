@@ -12,6 +12,8 @@ import {
     type UngroupedData,
 } from './dataModel';
 import type { DataRef } from './dataRef';
+import { getDataRefForData } from './dataRef';
+import { normaliseAppend, normalisePrepend, normaliseRemoveReferences } from './transactionUtils';
 
 interface RequestedProcessing<
     D extends object,
@@ -66,8 +68,10 @@ export class DataController {
             throw new Error(`AG Charts - data request after data setup phase.`);
         }
 
+        const inferredDataRef = dataRef ?? (getDataRefForData(data) as DataRef<D> | undefined);
+
         return new Promise<Result<D, K, G>>((resolve, reject) => {
-            this.requested.push({ id, opts, data, dataRef, resolve, reject });
+            this.requested.push({ id, opts, data, dataRef: inferredDataRef, resolve, reject });
         });
     }
 
@@ -107,18 +111,18 @@ export class DataController {
                 // Found cached data that can be incrementally updated
                 ({ dataModel, processedData } = incrementallyUpdatableCache);
 
-                if (this.attemptIncrementalUpdate(valid, dataModel, processedData, opts, ids)) {
-                    // Incremental update was successful - processedData was mutated in-place
-                    // No additional work needed
-                } else {
-                    // Incremental update failed - fall back to full reprocessing
-                    try {
+                try {
+                    if (this.attemptIncrementalUpdate(valid, dataModel, processedData, opts, ids)) {
+                        // Incremental update was successful - processedData was mutated in-place
+                        // No additional work needed
+                    } else {
+                        // Incremental update failed - fall back to full reprocessing
                         const sources = new Map(valid.map((v) => [v.id, v.data]));
                         processedData = dataModel.processData(sources);
-                    } catch (error) {
-                        rejects.forEach((cb) => cb(error));
-                        continue;
                     }
+                } catch (error) {
+                    rejects.forEach((cb) => cb(error));
+                    continue;
                 }
             } else {
                 // No cached data - perform full processing
@@ -257,7 +261,7 @@ export class DataController {
             }
         } catch (error) {
             this.debug('DataController.attemptIncrementalUpdate() - error for', dataRefRequest.id, error);
-            return false;
+            throw error;
         }
     }
 
@@ -274,9 +278,22 @@ export class DataController {
                 request.reject(
                     new Error('all series[].data arrays must be of the same length and have matching keys.')
                 );
-            } else {
-                valid.push(request);
+                continue;
             }
+
+            try {
+                const transactions = request.dataRef?.pendingTransactions ?? [];
+                for (const transaction of transactions) {
+                    normaliseAppend(transaction.append);
+                    normalisePrepend(transaction.prepend);
+                    normaliseRemoveReferences(transaction.remove);
+                }
+            } catch (error) {
+                request.reject(error);
+                continue;
+            }
+
+            valid.push(request);
         }
 
         return valid;

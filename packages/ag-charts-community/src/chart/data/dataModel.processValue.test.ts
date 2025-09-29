@@ -1,9 +1,12 @@
+import { expectWarningsCalls, setupMockConsole } from '../test/utils';
 import { DataModel } from './dataModel';
 
 type TestDatumDefinition = any;
 
 describe('DataModel.processValue', () => {
     let dataModel: DataModel<any, any>;
+
+    setupMockConsole();
 
     beforeEach(() => {
         const options = {
@@ -147,6 +150,15 @@ describe('DataModel.processValue', () => {
             const invalidResult = dataModel.processValue(def, invalidDatum, 1);
             expect(invalidResult.value).toBeUndefined();
             expect(invalidResult.valid).toBe(false);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+                [
+                  [
+                    "AG Charts - invalid value of type [number] for [test / undefined] ignored:",
+                    "[-5]",
+                  ],
+                ]
+                `);
         });
 
         it('should use invalidValue for invalid data', () => {

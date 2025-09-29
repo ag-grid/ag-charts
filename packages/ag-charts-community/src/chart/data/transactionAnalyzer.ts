@@ -2,6 +2,7 @@ import type { AgDataTransaction } from 'ag-charts-types';
 
 import { type DataChangeDescriptor, DataChangeDescriptorBuilder } from './dataChangeDescriptor';
 import type { DataRef } from './dataRef';
+import { normaliseAppend, normalisePrepend, normaliseRemoveReferences } from './transactionUtils';
 
 /**
  * Analyzes DataRef pending transactions and converts them to DataChangeDescriptor format.
@@ -160,19 +161,19 @@ export class TransactionAnalyzer {
         currentData: T[],
         builder: DataChangeDescriptorBuilder
     ): void {
-        // Handle removals - these must be processed first to maintain index stability
-        if (transaction.remove && transaction.remove.length > 0) {
-            this.processRemovals(transaction.remove, currentData, builder);
+        const removals = normaliseRemoveReferences(transaction.remove);
+        if (removals.length > 0) {
+            this.processRemovals(removals, currentData, builder);
         }
 
-        // Handle prepend operations (insertions at index 0)
-        if (transaction.prepend && transaction.prepend.length > 0) {
-            this.processPrepends(transaction.prepend, builder);
+        const prepends = normalisePrepend(transaction.prepend);
+        if (prepends.length > 0) {
+            this.processPrepends(prepends, builder);
         }
 
-        // Handle append operations (insertions at end)
-        if (transaction.append && transaction.append.length > 0) {
-            this.processAppends(transaction.append, currentData, builder);
+        const appends = normaliseAppend(transaction.append);
+        if (appends.length > 0) {
+            this.processAppends(appends, currentData, builder);
         }
     }
 
@@ -219,8 +220,7 @@ export class TransactionAnalyzer {
      */
     private static processPrepends<T>(toPrepend: T[], builder: DataChangeDescriptorBuilder): void {
         // Prepend operations insert at index 0
-        // Process in reverse order so the final order matches the input array
-        for (let i = toPrepend.length - 1; i >= 0; i--) {
+        for (let i = 0; i < toPrepend.length; i++) {
             builder.addInsertion(0, toPrepend[i]);
         }
     }

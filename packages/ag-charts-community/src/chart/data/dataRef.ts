@@ -6,6 +6,7 @@ import { applyRemoveByReference, mapToCanonicalReferences, normaliseRemoveRefere
 type DataTransaction<T> = AgDataTransaction<T>;
 
 const debug = Debug.create(true, 'data-ref');
+const dataRefLookup = new WeakMap<readonly unknown[], DataRef<any>>();
 
 export class DataRef<T = unknown> {
     public data: T[];
@@ -14,6 +15,8 @@ export class DataRef<T = unknown> {
     constructor(data: T[], pendingTransactions: DataTransaction<T>[] = []) {
         this.data = data;
         this.pendingTransactions = pendingTransactions;
+
+        dataRefLookup.set(this.data, this);
     }
 
     static wrap<T>(data?: T[]): DataRef<T> | undefined {
@@ -86,6 +89,11 @@ export class DataRef<T = unknown> {
     merge(data: T[]): DataRef<T> {
         return this.data === data ? this : new DataRef<T>(data);
     }
+}
+
+export function getDataRefForData(data: readonly unknown[] | undefined): DataRef<any> | undefined {
+    if (!data) return undefined;
+    return dataRefLookup.get(data);
 }
 
 const FROZEN_DATA = Object.freeze([]) as unknown as unknown[];

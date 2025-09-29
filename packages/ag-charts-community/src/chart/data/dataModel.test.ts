@@ -2365,7 +2365,7 @@ describe('DataModel', () => {
                 const processed = dataModel.processData(sources)!;
 
                 expect(processed.input.count).toBe(0);
-                expect(processed.columns).toEqual([[], []]);
+                expect(processed.columns).toEqual([[]]);
 
                 // Add first item to empty data
                 const newDatum = { id: 'A', amount: 1 };
@@ -2410,7 +2410,7 @@ describe('DataModel', () => {
                 expect(incremental).toBe(processed);
 
                 expect(processed.input.count).toBe(0);
-                expect(processed.columns).toEqual([[], []]);
+                expect(processed.columns).toEqual([[]]);
                 expect(processed.keys[0].get('test')).toEqual([]);
             });
         });

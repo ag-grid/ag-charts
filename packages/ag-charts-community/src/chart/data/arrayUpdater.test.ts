@@ -1,5 +1,5 @@
 import { ArrayUpdater } from './arrayUpdater';
-import { DataChangeDescriptorBuilder } from './dataChangeDescriptor';
+import { type DataChangeDescriptor, DataChangeDescriptorBuilder } from './dataChangeDescriptor';
 
 describe('ArrayUpdater', () => {
     describe('applyChanges', () => {
@@ -309,7 +309,7 @@ describe('ArrayUpdater', () => {
 
                 ArrayUpdater.applyChanges(array, changes);
 
-                expect(array).toEqual([1, 5, 6]);
+                expect(array).toEqual([1, 5, 6, 3]);
             });
         });
 
@@ -357,7 +357,7 @@ describe('ArrayUpdater', () => {
 
                 ArrayUpdater.applyChanges(array, changes);
 
-                expect(array).toEqual(['a', 'd', 'e']);
+                expect(array).toEqual(['a', 'd', 'e', 'c']);
                 expect(array.every((item) => typeof item === 'string')).toBe(true);
             });
         });
@@ -402,7 +402,18 @@ describe('ArrayUpdater', () => {
 
             it('should throw error for negative removal index', () => {
                 const array = [1, 2, 3];
-                const changes = DataChangeDescriptorBuilder.create().addRemoval(-1, 'invalid').build();
+                const changes = {
+                    removed: [{ index: -1, datum: 'invalid' }],
+                    inserted: [],
+                    updated: [],
+                    indexShiftRanges: [],
+                    metadata: {
+                        totalRemoved: 1,
+                        totalInserted: 0,
+                        totalUpdated: 0,
+                        netSizeChange: -1,
+                    },
+                } as DataChangeDescriptor;
 
                 expect(() => {
                     ArrayUpdater.applyChanges(array, changes);
@@ -420,23 +431,22 @@ describe('ArrayUpdater', () => {
 
             it('should throw error for update on removed index', () => {
                 const array = [1, 2, 3];
-                const changes = DataChangeDescriptorBuilder.create()
-                    .addRemoval(1, 2)
-                    .addUpdate(1, 2, 'updated')
-                    .build();
+                const changes = {
+                    removed: [{ index: 1, datum: 2 }],
+                    inserted: [],
+                    updated: [{ index: 1, oldDatum: 2, newDatum: 'updated' }],
+                    indexShiftRanges: [],
+                    metadata: {
+                        totalRemoved: 1,
+                        totalInserted: 0,
+                        totalUpdated: 1,
+                        netSizeChange: -1,
+                    },
+                } as DataChangeDescriptor;
 
                 expect(() => {
                     ArrayUpdater.applyChanges(array, changes);
                 }).toThrow('Cannot update index 1 that is marked for removal');
-            });
-
-            it('should throw error for invalid insertion index during processing', () => {
-                const array = [1, 2, 3];
-                const changes = DataChangeDescriptorBuilder.create().addInsertion(10, 'invalid').build();
-
-                expect(() => {
-                    ArrayUpdater.applyChanges(array, changes);
-                }).toThrow('Insertion index 10 is out of bounds for array of length 3');
             });
         });
     });
@@ -522,10 +532,18 @@ describe('ArrayUpdater', () => {
         });
 
         it('should throw error for update on removed index', () => {
-            const changes = DataChangeDescriptorBuilder.create()
-                .addRemoval(1, 'removed')
-                .addUpdate(1, 'old', 'new')
-                .build();
+            const changes = {
+                removed: [{ index: 1, datum: 'removed' }],
+                inserted: [],
+                updated: [{ index: 1, oldDatum: 'old', newDatum: 'new' }],
+                indexShiftRanges: [],
+                metadata: {
+                    totalRemoved: 1,
+                    totalInserted: 0,
+                    totalUpdated: 1,
+                    netSizeChange: -1,
+                },
+            } as DataChangeDescriptor;
 
             expect(() => {
                 ArrayUpdater.validateChanges(3, changes);
@@ -539,6 +557,14 @@ describe('ArrayUpdater', () => {
                 .build();
 
             expect(ArrayUpdater.validateChanges(3, changes)).toBe(true);
+        });
+
+        it('should throw error for invalid insertion index', () => {
+            const changes = DataChangeDescriptorBuilder.create().addInsertion(10, 'invalid').build();
+
+            expect(() => {
+                ArrayUpdater.validateChanges(3, changes);
+            }).toThrow('Insertion index 10 would be out of bounds for final array length 4');
         });
     });
 

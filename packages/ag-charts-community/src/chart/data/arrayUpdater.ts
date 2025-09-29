@@ -84,17 +84,17 @@ export class ArrayUpdater {
         changes: DataChangeDescriptor,
         extractor?: (datum: any, index: number) => T
     ): void {
+        // Validate input parameters
+        this.validateInputs(array, changes);
+
         // Early return for empty changes to avoid unnecessary work
         if (this.hasNoChanges(changes)) {
             return;
         }
 
-        // Validate input parameters
-        this.validateInputs(array, changes);
-
         // Apply operations in the correct order to maintain index integrity
         this.applyRemovals(array, changes.removed);
-        this.applyUpdates(array, changes.updated, changes.removed, extractor);
+        this.applyUpdates(array, changes.updated, changes.removed, changes.indexShiftRanges, extractor);
         this.applyInsertions(array, changes.inserted, extractor);
     }
 
@@ -168,29 +168,42 @@ export class ArrayUpdater {
         array: T[],
         updates: Array<{ index: number; oldDatum: any; newDatum: any }>,
         removals: Array<{ index: number; datum: any }>,
+        shiftRanges: Array<{ startIndex: number; endIndex: number; shift: number }>,
         extractor?: (datum: any, index: number) => T
     ): void {
         if (updates.length === 0) {
             return;
         }
 
-        // Calculate how many removals occurred before each update index
         const sortedRemovals = [...removals].sort((a, b) => a.index - b.index);
 
-        for (const update of updates) {
-            // Calculate the adjusted index after accounting for removals
-            let adjustedIndex = update.index;
+        let removalPointer = 0;
+        let removalsBeforeUpdate = 0;
 
-            // Count how many removals occurred before this update index
-            for (const removal of sortedRemovals) {
-                if (removal.index < update.index) {
-                    adjustedIndex--;
-                }
+        for (const update of updates) {
+            while (removalPointer < sortedRemovals.length && sortedRemovals[removalPointer].index < update.index) {
+                removalsBeforeUpdate++;
+                removalPointer++;
             }
+
+            const netShift = Math.max(this.getNetShift(update.index, shiftRanges), 0);
+            const adjustedIndex = update.index - netShift - removalsBeforeUpdate;
 
             const newValue = extractor ? extractor(update.newDatum, update.index) : update.newDatum;
             array[adjustedIndex] = newValue;
         }
+    }
+
+    private static getNetShift(
+        index: number,
+        shiftRanges: Array<{ startIndex: number; endIndex: number; shift: number }>
+    ): number {
+        for (const range of shiftRanges) {
+            if (index >= range.startIndex && index <= range.endIndex) {
+                return range.shift;
+            }
+        }
+        return 0;
     }
 
     /**
@@ -210,11 +223,8 @@ export class ArrayUpdater {
         // Sort insertions by index in ascending order
         const sortedInsertions = [...insertions].sort((a, b) => a.index - b.index);
 
-        // Apply insertions with cumulative index adjustment
-        let indexOffset = 0;
-
         for (const insertion of sortedInsertions) {
-            const actualIndex = insertion.index + indexOffset;
+            const actualIndex = insertion.index;
             const newValue = extractor ? extractor(insertion.datum, insertion.index) : insertion.datum;
 
             // Validate that the insertion index is valid
@@ -226,9 +236,6 @@ export class ArrayUpdater {
 
             // Use splice to insert the new element at the calculated index
             array.splice(boundedIndex, 0, newValue);
-
-            // Increment offset for subsequent insertions
-            indexOffset++;
         }
     }
 

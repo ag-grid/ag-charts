@@ -45,6 +45,14 @@ type ProcessedData = {
     };
     partialValidDataCount?: number;
     time: number;
+    groups?: ProcessedGroup[];
+};
+
+type ProcessedGroup = {
+    keys: unknown[];
+    datumIndices: number[][];
+    aggregation: any[];
+    validScopes: Set<string>;
 };
 
 type ProcessValueFn = (
@@ -176,14 +184,13 @@ export class ProcessedDataMutator {
      * // - animation flags are set appropriately
      * ```
      *
-     * @throws {Error} When grouped data mutations are attempted (not yet implemented)
      * @throws {Error} When ProcessedData structure is corrupted or invalid
      * @throws {Error} When single-scope constraint is violated
      *
      * @remarks
      * **Mutation Process:**
      * 1. **Early Exit**: Returns immediately if no changes are present
-     * 2. **Validation**: Checks for supported data types (ungrouped only currently)
+     * 2. **Validation**: Ensures single-scope incremental prerequisites are met
      * 3. **Data Updates**: Applies changes to columns and keys using ArrayUpdater
      * 4. **Cache Invalidation**: Clears affected Symbol-keyed caches
      * 5. **Metadata Update**: Updates diff and animation validation flags
@@ -205,10 +212,6 @@ export class ProcessedDataMutator {
         try {
             if (this.hasNoChanges(changes)) {
                 return;
-            }
-
-            if (processedData.type === 'grouped') {
-                throw new Error('Grouped data mutations not yet implemented');
             }
 
             const { affectedColumns, affectedKeys } = this.applyUngroupedChanges(processedData, changes);
@@ -893,7 +896,7 @@ export class ProcessedDataMutator {
         this.updateKeyDomains(processedData, affectedKeys);
 
         if (processedData.type === 'grouped' && processedData.domain.groups) {
-            processedData.domain.groups = processedData.domain.groups.map(() => []);
+            processedData.domain.groups = (processedData.groups ?? []).map((group: ProcessedGroup) => group.keys);
         }
 
         if (affectedColumns.size > 0 && processedData.domain.aggValues) {

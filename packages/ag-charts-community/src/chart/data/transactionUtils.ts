@@ -1,4 +1,6 @@
 export const REMOVE_ERROR_PREFIX = 'AG Charts - data transaction "remove"';
+export const APPEND_ERROR_PREFIX = 'AG Charts - data transaction "append"';
+export const PREPEND_ERROR_PREFIX = 'AG Charts - data transaction "prepend"';
 
 export function normaliseRemoveReferences<T>(remove?: T[]): T[] {
     if (remove == null) return [];
@@ -6,6 +8,22 @@ export function normaliseRemoveReferences<T>(remove?: T[]): T[] {
         throw new Error(`${REMOVE_ERROR_PREFIX} must be an array.`);
     }
     return remove;
+}
+
+export function normaliseAppend<T>(append?: T[]): T[] {
+    if (append == null) return [];
+    if (!Array.isArray(append)) {
+        throw new Error(`${APPEND_ERROR_PREFIX} must be an array.`);
+    }
+    return append;
+}
+
+export function normalisePrepend<T>(prepend?: T[]): T[] {
+    if (prepend == null) return [];
+    if (!Array.isArray(prepend)) {
+        throw new Error(`${PREPEND_ERROR_PREFIX} must be an array.`);
+    }
+    return prepend;
 }
 
 export function resolveRemovalIndices<T>(source: readonly T[], removals: readonly T[]): number[] {
