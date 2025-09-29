@@ -37,9 +37,7 @@ export class DataRef<T = unknown> {
             return this.data.length;
         }
 
-        return this.pendingTransactions.reduce((acc, { prepend, append, remove }) => {
-            return acc + (prepend?.length ?? 0) + (append?.length ?? 0) - (remove?.length ?? 0);
-        }, this.data.length);
+        return this.previewPendingTransactions().length;
     }
 
     hasPendingTransactions(): boolean {
@@ -84,6 +82,83 @@ export class DataRef<T = unknown> {
         if (debug.check()) {
             debug('DataRef.commitPendingTransactions() - final length', { afterLength: this.data.length });
         }
+    }
+
+    previewPendingTransactions(): T[] {
+        if (!this.hasPendingTransactions()) {
+            return this.data;
+        }
+
+        if (!Array.isArray(this.data)) {
+            throw new Error('AG Charts - dataRef preview expects "data" to be an array.');
+        }
+
+        if (!Array.isArray(this.pendingTransactions)) {
+            throw new Error('AG Charts - dataRef preview expects "pendingTransactions" to be an array.');
+        }
+
+        let preview = this.data;
+        let mutated = false;
+
+        if (debug.check()) {
+            debug('DataRef.previewPendingTransactions() - starting', { baseLength: this.data.length });
+        }
+
+        for (const transaction of this.pendingTransactions) {
+            if (transaction == null || typeof transaction !== 'object') {
+                throw new Error('AG Charts - invalid data transaction encountered.');
+            }
+
+            const removeRefs = normaliseRemoveReferences(transaction.remove);
+            if (removeRefs.length > 0) {
+                if (!mutated) {
+                    preview = this.data.slice();
+                    mutated = true;
+                }
+                const canonical = mapToCanonicalReferences(preview, removeRefs);
+                if (debug.check()) {
+                    debug('DataRef.previewPendingTransactions() - removing rows', {
+                        requested: removeRefs.length,
+                        canonical: canonical.length,
+                    });
+                }
+                applyRemoveByReference(preview, canonical, true);
+            }
+
+            const { prepend, append } = transaction;
+
+            if (prepend != null) {
+                if (!Array.isArray(prepend)) {
+                    throw new Error('AG Charts - data transaction "prepend" must be an array.');
+                }
+                if (prepend.length) {
+                    if (!mutated) {
+                        preview = this.data.slice();
+                        mutated = true;
+                    }
+                    preview.unshift(...prepend);
+                }
+            }
+
+            if (append != null) {
+                if (!Array.isArray(append)) {
+                    throw new Error('AG Charts - data transaction "append" must be an array.');
+                }
+                if (append.length) {
+                    if (!mutated) {
+                        preview = this.data.slice();
+                        mutated = true;
+                    }
+                    preview.push(...append);
+                }
+            }
+        }
+
+        if (debug.check() && mutated) {
+            debug('DataRef.previewPendingTransactions() - preview length', { previewLength: preview.length });
+        }
+
+        return mutated ? preview : this.data;
     }
 
     merge(data: T[]): DataRef<T> {

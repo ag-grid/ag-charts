@@ -1111,10 +1111,11 @@ export class DataModel<
     applyTransactions<T>(
         dataRef: DataRef<T>,
         processedData: ProcessedData<D>,
-        sources: Map<string, unknown[]>
+        sources: Map<string, unknown[]>,
+        precomputedDescriptor?: DataChangeDescriptor
     ): ProcessedData<D> | undefined {
         // Use TransactionAnalyzer to convert pending transactions to structured change descriptor
-        const changeDescriptor = TransactionAnalyzer.analyze(dataRef, sources);
+        const changeDescriptor = precomputedDescriptor ?? TransactionAnalyzer.analyze(dataRef, sources);
         if (changeDescriptor === undefined) {
             // Multi-source scenario detected - fall back to full reprocessing
             return undefined;
@@ -1132,7 +1133,9 @@ export class DataModel<
         });
         mutator.mutate(processedData, changeDescriptor);
 
-        this.updateDataSources(processedData, changeDescriptor);
+        this.syncDataRef(dataRef, changeDescriptor);
+
+        this.updateDataSources(processedData, sources);
 
         if (wasGrouped && processedData.type === 'grouped') {
             this.rebuildGroupedState(processedData as GroupedData<any>);
@@ -1146,29 +1149,22 @@ export class DataModel<
         return processedData;
     }
 
-    private updateDataSources(processedData: ProcessedData<any>, changes: DataChangeDescriptor): void {
-        if (
-            changes.metadata.totalInserted === 0 &&
-            changes.metadata.totalRemoved === 0 &&
-            changes.metadata.totalUpdated === 0
-        ) {
+    private syncDataRef(dataRef: DataRef<any>, changeDescriptor: DataChangeDescriptor): void {
+        ArrayUpdater.applyChanges(dataRef.data, changeDescriptor, (datum) => datum);
+        dataRef.pendingTransactions = [];
+    }
+
+    private updateDataSources(processedData: ProcessedData<any>, sources: Map<string, unknown[]>): void {
+        if (!sources.size) {
             return;
         }
 
-        const replacements: Array<[ScopeId, unknown[]]> = [];
-
-        for (const [scope, data] of processedData.dataSources) {
+        for (const [scope, data] of sources) {
             if (!Array.isArray(data)) {
                 continue;
             }
 
-            const next = data.slice();
-            ArrayUpdater.applyChanges(next, changes, (datum) => datum);
-            replacements.push([scope, next]);
-        }
-
-        for (const [scope, next] of replacements) {
-            processedData.dataSources.set(scope, next);
+            processedData.dataSources.set(scope, data);
         }
     }
 

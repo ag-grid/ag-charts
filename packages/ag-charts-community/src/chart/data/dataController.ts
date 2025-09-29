@@ -1,8 +1,10 @@
-import { Logger, getWindow } from 'ag-charts-core';
+import { getWindow } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
-import { type CachedData, canReuseCachedData } from './caching';
+import { ArrayUpdater } from './arrayUpdater';
+import { type CachedData } from './caching';
+import type { DataChangeDescriptor } from './dataChangeDescriptor';
 import {
     DataModel,
     type DataModelOptions,
@@ -11,8 +13,8 @@ import {
     type PropertyDefinition,
     type UngroupedData,
 } from './dataModel';
-import type { DataRef } from './dataRef';
-import { getDataRefForData } from './dataRef';
+import { DataRef, getDataRefForData } from './dataRef';
+import { TransactionAnalyzer } from './transactionAnalyzer';
 import { normaliseAppend, normalisePrepend, normaliseRemoveReferences } from './transactionUtils';
 
 interface RequestedProcessing<
@@ -22,8 +24,7 @@ interface RequestedProcessing<
 > {
     id: string;
     opts: DataModelOptions<K, any, false>;
-    data: D[];
-    dataRef?: DataRef<D>;
+    dataRef: DataRef<D>;
     resolve: (result: Result<D, K, G>) => void;
     reject: (reason?: any) => void;
 }
@@ -35,7 +36,7 @@ interface MergedRequests<
 > {
     ids: string[];
     opts: DataModelOptions<K, any, true>;
-    data: D[];
+    dataRef: DataRef<D>;
     resolves: ((result: Result<D, K, G>) => void)[];
     rejects: ((reason?: any) => void)[];
 }
@@ -68,10 +69,11 @@ export class DataController {
             throw new Error(`AG Charts - data request after data setup phase.`);
         }
 
-        const inferredDataRef = dataRef ?? (getDataRefForData(data) as DataRef<D> | undefined);
+        const inferredDataRef =
+            dataRef ?? (getDataRefForData(data) as DataRef<D> | undefined) ?? DataRef.wrap(data) ?? DataRef.empty<D>();
 
         return new Promise<Result<D, K, G>>((resolve, reject) => {
-            this.requested.push({ id, opts, data, dataRef: inferredDataRef, resolve, reject });
+            this.requested.push({ id, opts, dataRef: inferredDataRef, resolve, reject });
         });
     }
 
@@ -92,51 +94,68 @@ export class DataController {
             getWindow<{ processedData: any[] }>().processedData = [];
         }
 
+        const dataRefState = this.computeDataRefState(merged);
+        const committedRefs = new Set<DataRef<any>>();
+        const pendingDescriptorCommits = new Map<DataRef<any>, DataChangeDescriptor | null>();
         const nextCachedData: CachedData = [];
 
-        for (const { data, ids, opts, resolves, rejects } of merged) {
-            const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, data, ids, opts));
-            const incrementallyUpdatableCache =
-                this.enableIncrementalUpdates && !reusableCache
-                    ? this.findIncrementallyUpdatableCache(cachedData, ids, opts)
-                    : null;
+        for (const { ids, opts, dataRef, resolves, rejects } of merged) {
+            const { descriptor, preview } = dataRefState.get(dataRef) ?? { descriptor: undefined, preview: undefined };
 
-            let dataModel: DataModel<any, string>;
-            let processedData: UngroupedData<any> | undefined;
+            const sourcesForProcess = new Map<string, unknown[]>();
+            for (const id of ids) {
+                sourcesForProcess.set(id, preview ?? dataRef.data);
+            }
 
-            if (reusableCache) {
-                // Found exact match cached data - use it directly
-                ({ dataModel, processedData } = reusableCache);
-            } else if (incrementallyUpdatableCache) {
-                // Found cached data that can be incrementally updated
-                ({ dataModel, processedData } = incrementallyUpdatableCache);
+            const cachedItem = cachedData?.find(
+                (item) => item.dataRef === dataRef && this.arraysEqual(ids, item.ids) && this.optsEqual(item.opts, opts)
+            );
 
-                try {
-                    if (this.attemptIncrementalUpdate(valid, dataModel, processedData, opts, ids)) {
-                        // Incremental update was successful - processedData was mutated in-place
-                        // No additional work needed
-                    } else {
-                        // Incremental update failed - fall back to full reprocessing
-                        const sources = new Map(valid.map((v) => [v.id, v.data]));
-                        processedData = dataModel.processData(sources);
-                    }
-                } catch (error) {
-                    rejects.forEach((cb) => cb(error));
-                    continue;
-                }
-            } else {
-                // No cached data - perform full processing
-                try {
-                    dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
-                    const sources = new Map(valid.map((v) => [v.id, v.data]));
-                    processedData = dataModel.processData(sources);
-                } catch (error) {
-                    rejects.forEach((cb) => cb(error));
-                    continue;
+            let dataModel: DataModel<any, string> | undefined = cachedItem?.dataModel;
+            let processedData: UngroupedData<any> | undefined = cachedItem?.processedData;
+            let incrementalApplied = false;
+
+            if (cachedItem) {
+                incrementalApplied = this.attemptIncrementalUpdate(
+                    ids[0],
+                    dataRef,
+                    dataModel!,
+                    processedData,
+                    descriptor
+                );
+                if (incrementalApplied) {
+                    committedRefs.add(dataRef);
                 }
             }
 
-            nextCachedData.push({ opts, data, ids, dataModel, processedData });
+            if (!cachedItem) {
+                try {
+                    dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
+                    processedData = dataModel.processData(sourcesForProcess);
+                } catch (error) {
+                    rejects.forEach((cb) => cb(error));
+                    continue;
+                }
+                if (dataRef.hasPendingTransactions()) {
+                    pendingDescriptorCommits.set(dataRef, descriptor ?? null);
+                }
+            } else if (!incrementalApplied) {
+                try {
+                    processedData = dataModel!.processData(sourcesForProcess);
+                } catch (error) {
+                    rejects.forEach((cb) => cb(error));
+                    continue;
+                }
+                if (dataRef.hasPendingTransactions()) {
+                    pendingDescriptorCommits.set(dataRef, descriptor ?? null);
+                }
+            }
+
+            if (!dataModel) {
+                throw new Error('AG Charts - data model not initialised');
+            }
+
+            nextCachedData.push({ ids, opts, dataRef, dataLength: dataRef.data.length, dataModel, processedData });
 
             if (this.debug.check()) {
                 getWindow<any[]>('processedData').push(processedData);
@@ -154,114 +173,102 @@ export class DataController {
             }
         }
 
-        return nextCachedData;
-    }
-
-    /**
-     * Finds cached data that can be incrementally updated.
-     * This looks for cached data with the same options and IDs but potentially different data references.
-     *
-     * @param cachedData All cached data items
-     * @param ids Request IDs
-     * @param opts DataModel options
-     * @returns Cached data item that can be incrementally updated, or null
-     */
-    private findIncrementallyUpdatableCache(cachedData: CachedData | undefined, ids: string[], opts: any) {
-        if (!cachedData) return null;
-
-        for (const cacheItem of cachedData) {
-            // Check if IDs and options match (but data reference might be different)
-            const { ids: cachedIds, opts: cachedOpts } = cacheItem;
-
-            // Import the equality checking functions we need
-            const arraysEqual = (a: string[], b: string[]) => {
-                if (a.length !== b.length) return false;
-                for (let i = 0; i < a.length; i++) {
-                    if (a[i] !== b[i]) return false;
-                }
-                return true;
-            };
-
-            // Check if IDs match
-            if (!arraysEqual(ids, cachedIds)) continue;
-
-            // Check if options match (reuse the same logic as canReuseCachedData but skip data check)
-            if (this.optsEqual(opts, cachedOpts)) {
-                return cacheItem;
+        for (const [dataRef, descriptor] of pendingDescriptorCommits) {
+            if (committedRefs.has(dataRef)) continue;
+            if (descriptor) {
+                this.applyDescriptorToDataRef(dataRef, descriptor);
+            } else if (dataRef.hasPendingTransactions()) {
+                dataRef.commitPendingTransactions();
             }
         }
 
-        return null;
+        return nextCachedData;
     }
 
-    /**
-     * Simplified version of options equality check from caching.ts
-     */
+    private computeDataRefState(
+        groups: MergedRequests<any, any, any>[]
+    ): Map<DataRef<any>, { descriptor?: DataChangeDescriptor; preview?: unknown[] }> {
+        const state = new Map<DataRef<any>, { descriptor?: DataChangeDescriptor; preview?: unknown[] }>();
+
+        for (const { dataRef, ids } of groups) {
+            if (state.has(dataRef)) {
+                continue;
+            }
+
+            let descriptor: DataChangeDescriptor | undefined;
+            let preview: unknown[] | undefined;
+
+            if (dataRef.hasPendingTransactions()) {
+                const analyzerSources = new Map<string, unknown[]>();
+                for (const id of ids) {
+                    analyzerSources.set(id, dataRef.data);
+                }
+                descriptor = TransactionAnalyzer.analyze(dataRef, analyzerSources);
+                if (descriptor) {
+                    preview = ArrayUpdater.applyChangesToCopy(dataRef.data, descriptor, (datum) => datum);
+                } else {
+                    preview = dataRef.previewPendingTransactions();
+                }
+            }
+
+            state.set(dataRef, { descriptor, preview });
+        }
+
+        return state;
+    }
+
+    private attemptIncrementalUpdate(
+        primaryId: string,
+        dataRef: DataRef<any>,
+        dataModel: DataModel<any, string>,
+        processedData: UngroupedData<any> | undefined,
+        descriptor: DataChangeDescriptor | undefined
+    ): boolean {
+        if (
+            !this.enableIncrementalUpdates ||
+            descriptor == null ||
+            !processedData ||
+            !dataModel.supportsIncrementalUpdate() ||
+            !dataRef.hasPendingTransactions()
+        ) {
+            return false;
+        }
+
+        const sources = new Map<string, unknown[]>([[primaryId, dataRef.data]]);
+
+        try {
+            const result = dataModel.applyTransactions(dataRef, processedData, sources, descriptor);
+            if (!result) {
+                this.debug('DataController.attemptIncrementalUpdate() - fallback requested', { seriesId: primaryId });
+                return false;
+            }
+
+            this.debug('DataController.attemptIncrementalUpdate() - success', { seriesId: primaryId });
+            return true;
+        } catch (error) {
+            this.debug('DataController.attemptIncrementalUpdate() - error', { seriesId: primaryId, error });
+            throw error;
+        }
+    }
+
+    private applyDescriptorToDataRef(dataRef: DataRef<any>, descriptor: DataChangeDescriptor): void {
+        ArrayUpdater.applyChanges(dataRef.data, descriptor, (datum) => datum);
+        dataRef.pendingTransactions = [];
+    }
+
+    private arraysEqual(a: string[], b: string[]): boolean {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i += 1) {
+            if (a[i] !== b[i]) return false;
+        }
+        return true;
+    }
+
     private optsEqual(a: any, b: any): boolean {
-        // This is a simplified check - in practice, we'd want to reuse the logic from caching.ts
-        // For now, we'll do a basic structural comparison
         try {
             return JSON.stringify(a) === JSON.stringify(b);
         } catch {
             return false;
-        }
-    }
-
-    /**
-     * Attempts to apply incremental updates to existing processedData.
-     *
-     * @param validRequests Valid requests to check for DataRef objects
-     * @param dataModel Existing DataModel to use for incremental updates
-     * @param processedData Existing ProcessedData to mutate in-place
-     * @param opts DataModel options
-     * @param ids Request IDs
-     * @returns true if incremental update was successful, false otherwise
-     */
-    private attemptIncrementalUpdate(
-        validRequests: RequestedProcessing<any, any, any>[],
-        dataModel: DataModel<any, string>,
-        processedData: UngroupedData<any> | undefined,
-        _opts: any,
-        ids: string[]
-    ): boolean {
-        if (!processedData) {
-            return false;
-        }
-
-        // Check if incremental updates are supported by the DataModel
-        if (!dataModel.supportsIncrementalUpdate()) {
-            return false;
-        }
-
-        // Find requests with DataRef objects that have pending transactions
-        const dataRefRequests = validRequests.filter(
-            (req) => req.dataRef?.hasPendingTransactions() && ids.includes(req.id)
-        );
-        if (dataRefRequests.length === 0) {
-            return false;
-        }
-
-        // Only support single source scenarios for incremental updates
-        const sources = new Map(validRequests.map((v) => [v.id, v.data]));
-        if (sources.size !== 1) {
-            Logger.warnOnce('Incremental updates disabled: multiple data sources not supported');
-            return false;
-        }
-
-        // Attempt incremental update for the first DataRef with pending transactions
-        const dataRefRequest = dataRefRequests[0];
-        try {
-            const result = dataModel.applyTransactions(dataRefRequest.dataRef!, processedData, sources);
-            if (result) {
-                this.debug('DataController.attemptIncrementalUpdate() - success for', dataRefRequest.id);
-                return true;
-            } else {
-                this.debug('DataController.attemptIncrementalUpdate() - failed for', dataRefRequest.id);
-                return false;
-            }
-        } catch (error) {
-            this.debug('DataController.attemptIncrementalUpdate() - error for', dataRefRequest.id, error);
-            throw error;
         }
     }
 
@@ -271,7 +278,7 @@ export class DataController {
         for (const [index, request] of requested.entries()) {
             if (
                 index > 0 &&
-                request.data.length !== requested[0].data.length &&
+                request.dataRef.data.length !== requested[0].dataRef.data.length &&
                 request.opts.groupByData === false &&
                 request.opts.groupByKeys === false
             ) {
@@ -282,7 +289,7 @@ export class DataController {
             }
 
             try {
-                const transactions = request.dataRef?.pendingTransactions ?? [];
+                const transactions = request.dataRef.pendingTransactions ?? [];
                 for (const transaction of transactions) {
                     normaliseAppend(transaction.append);
                     normalisePrepend(transaction.prepend);
@@ -315,7 +322,7 @@ export class DataController {
         return grouped.map(DataController.mergeRequests);
     }
 
-    private static groupMatch({ data, opts }: RequestedProcessing<any, any, any>) {
+    private static groupMatch({ dataRef, opts }: RequestedProcessing<any, any, any>) {
         function keys(props: PropertyDefinition<any>[]) {
             return props
                 .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
@@ -327,7 +334,8 @@ export class DataController {
         const propsKeys = keys(props);
 
         return ([group]: RequestedProcessing<any, any, any>[]) =>
-            (groupByData === false || group.data === data) &&
+            group.dataRef === dataRef &&
+            (groupByData === false || group.dataRef === dataRef) &&
             (group.opts.groupByKeys ?? false) === groupByKeys &&
             group.opts.groupByFn === groupByFn &&
             keys(group.opts.props) === propsKeys;
@@ -342,17 +350,17 @@ export class DataController {
             ids: [],
             rejects: [],
             resolves: [],
-            data: requests[0].data,
+            dataRef: requests[0].dataRef,
             opts: { ...requests[0].opts, props: [] },
         };
 
         const optsByTypeAndDataId = new Map<string, PropertyDefinition<any>[]>();
-        const dataIds = new Map<unknown, number>();
+        const dataIds = new Map<DataRef<any>, number>();
         let nextDataId = 0;
         for (const request of requests) {
             const {
                 id,
-                data,
+                dataRef,
                 resolve,
                 reject,
                 opts: { props, ...opts },
@@ -361,21 +369,21 @@ export class DataController {
             result.ids.push(id);
             result.rejects.push(reject);
             result.resolves.push(resolve);
-            result.data ??= data;
+            result.dataRef ??= dataRef;
             result.opts ??= { ...opts, props: [] };
 
             for (const prop of props) {
-                const clone = { ...prop, scopes: [id], data };
+                const clone = { ...prop, scopes: [id], data: dataRef.data };
                 DataController.createIdsMap(id, clone);
 
                 let dataId: number;
                 if (DataController.crossScopeMergableTypes.has(clone.type)) {
                     dataId = -1;
-                } else if (dataIds.has(data)) {
-                    dataId = dataIds.get(data)!;
+                } else if (dataIds.has(dataRef)) {
+                    dataId = dataIds.get(dataRef)!;
                 } else {
                     dataId = nextDataId++;
-                    dataIds.set(data, dataId);
+                    dataIds.set(dataRef, dataId);
                 }
 
                 const matchKey = `${clone.type}-${dataId}-${clone.groupId}`;
