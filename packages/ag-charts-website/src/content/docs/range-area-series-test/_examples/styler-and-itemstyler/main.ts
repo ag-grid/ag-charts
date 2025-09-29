@@ -13,10 +13,10 @@ const styler = (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRa
     if (params.yLowKey === 'gain_low')
         return {
             fill: 'cyan',
-            lineDash: [3, 3],
+            lineDash: [4, 4],
             lineDashOffset: 5,
             stroke: 'blue',
-            strokeWidth: 7,
+            strokeWidth: 2.5,
         };
     else if (params.yLowKey === 'loss_low')
         return {
@@ -71,7 +71,7 @@ const options: AgCartesianChartOptions<DatumType> = {
             yHighKey: 'loss_high',
             fill: 'olive', // ignored
             stroke: 'navy', // not ignored
-            strokeWidth: 3, // not ignored
+            strokeWidth: 7, // not ignored
             marker: {
                 fill: 'lime', // ignored
                 fillOpacity: 0.5, // not ignored
