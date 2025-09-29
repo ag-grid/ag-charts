@@ -15,6 +15,7 @@ const styler = (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRa
             lineDashOffset: 5,
             stroke: 'blue',
             strokeWidth: 2.5,
+            marker: {},
         };
     else if (params.yLowKey === 'loss_low')
         return {
