@@ -607,13 +607,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const stylerStyle = this.getStyle(isHighlight, highlightState);
             const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
-            datum.style = this.getMarkerStyle(marker, datum, { xKey, yHighKey, yLowKey }, { isHighlight }, undefined, {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
+            const params = { xKey, yHighKey, yLowKey };
+            datum.style = this.getMarkerStyle(
+                marker,
+                datum,
+                params,
+                { isHighlight, highlightState },
+                stylerStyle.marker,
+                {
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                }
+            );
         });
     }
 
