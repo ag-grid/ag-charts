@@ -1,405 +1,410 @@
 import type { DataChangeDescriptor } from './dataChangeDescriptor';
 import type { DataGroup } from './dataModel';
 
-/**
- * Utility class for updating DataGroup membership when data changes occur.
- * Provides efficient in-place updates to group arrays, maintaining consistency
- * across group membership, indices, and scope validity.
- */
+export interface GroupUpdateOptions {
+    keyExtractor: (datum: any, index: number) => any[] | undefined;
+    columnCount: number;
+    columnScopes: Set<string>[];
+    scopeId: string;
+    scopes: Set<string>;
+    originalLength: number;
+}
+
+type ColumnMask = boolean[];
+
+type IndexMapping = {
+    oldToNew: Map<number, number>;
+    insertions: Array<{ datum: any; newIndex: number }>;
+};
+
 export class GroupUpdater {
-    /**
-     * Updates group membership when data changes occur during incremental updates.
-     * Mutates the groups array in-place for performance.
-     *
-     * @param groups - Array of DataGroup objects to update in-place
-     * @param changes - Descriptor of data changes (removals, insertions, updates)
-     * @param keyExtractor - Function to extract group keys from datum objects
-     *
-     * Operations performed:
-     * 1. Remove data from groups (remove indices, delete empty groups)
-     * 2. Update group membership for changed data (move between groups)
-     * 3. Add new data to appropriate groups (create new groups if needed)
-     * 4. Update validScopes for partial invalidity
-     * 5. Maintain index consistency across all groups
-     */
-    static updateGroups(groups: DataGroup[], changes: DataChangeDescriptor, keyExtractor: (datum: any) => any[]): void {
-        // Step 1: Handle removed data
-        GroupUpdater.handleRemovedData(groups, changes);
-
-        // Step 2: Apply index shifts to existing indices after removals
-        GroupUpdater.applyIndexShiftsAfterRemovals(groups, changes);
-
-        // Step 3: Handle updated data (potentially moving between groups)
-        GroupUpdater.handleUpdatedData(groups, changes, keyExtractor);
-
-        // Step 4: Handle inserted data with their final indices
-        GroupUpdater.handleInsertedData(groups, changes, keyExtractor);
-
-        // Step 5: Clean up empty groups
-        GroupUpdater.removeEmptyGroups(groups);
-
-        // Step 6: Update validScopes for groups that had changes
-        GroupUpdater.updateValidScopes(groups, changes);
-    }
-
-    /**
-     * Remove data indices from groups and mark affected groups.
-     * Uses efficient Set-based lookups for O(1) removal checks.
-     * @private
-     */
-    private static handleRemovedData(groups: DataGroup[], changes: DataChangeDescriptor): void {
-        const removedIndices = new Set(changes.removed.map((r) => r.index));
-
-        for (const group of groups) {
-            for (let scopeIdx = 0; scopeIdx < group.datumIndices.length; scopeIdx++) {
-                const indices = group.datumIndices[scopeIdx];
-                if (!indices) continue;
-
-                // For large groups, use efficient filtering instead of repeated splicing
-                if (indices.length > 100) {
-                    // Filter approach is more efficient for large arrays
-                    const filteredIndices = indices.filter((index) => !removedIndices.has(index));
-                    group.datumIndices[scopeIdx] = filteredIndices;
-                } else {
-                    // For smaller groups, continue using splice in reverse order
-                    for (let i = indices.length - 1; i >= 0; i--) {
-                        if (removedIndices.has(indices[i])) {
-                            indices.splice(i, 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Handle updated data that may need to move between groups.
-     * @private
-     */
-    private static handleUpdatedData(
-        groups: DataGroup[],
-        changes: DataChangeDescriptor,
-        keyExtractor: (datum: any) => any[]
-    ): void {
-        const removedIndices = changes.removed.map((r) => r.index).sort((a, b) => a - b);
-
-        for (const update of changes.updated) {
-            const oldKeys = keyExtractor(update.oldDatum);
-            const newKeys = keyExtractor(update.newDatum);
-
-            // Calculate the shifted index for this update (accounting for removals)
-            let shift = 0;
-            for (const removedIndex of removedIndices) {
-                if (removedIndex < update.index) {
-                    shift++;
-                } else {
-                    break;
-                }
-            }
-            const shiftedIndex = update.index - shift;
-
-            // Check if group membership changed
-            if (!GroupUpdater.keysEqual(oldKeys, newKeys)) {
-                // Remove from old group (using shifted index)
-                GroupUpdater.removeFromGroups(groups, shiftedIndex);
-
-                // Add to new group (using shifted index)
-                GroupUpdater.addToGroup(groups, shiftedIndex, newKeys);
-            }
-            // If keys are the same, no group membership change needed
-        }
-    }
-
-    /**
-     * Add new data to appropriate groups, creating groups if necessary.
-     * @private
-     */
-    private static handleInsertedData(
-        groups: DataGroup[],
-        changes: DataChangeDescriptor,
-        keyExtractor: (datum: any) => any[]
-    ): void {
-        for (const insertion of changes.inserted) {
-            const keys = keyExtractor(insertion.datum);
-            GroupUpdater.addToGroup(groups, insertion.index, keys);
-        }
-    }
-
-    /**
-     * Apply index shifts to all group indices to account for removals.
-     * Uses optimized algorithms for different group sizes and leverages
-     * pre-computed shift ranges when available.
-     * @private
-     */
-    private static applyIndexShiftsAfterRemovals(groups: DataGroup[], changes: DataChangeDescriptor): void {
-        const removedIndices = changes.removed.map((r) => r.index).sort((a, b) => a - b);
-
-        // Early exit if no removals
-        if (removedIndices.length === 0) {
+    static updateGroups(groups: DataGroup[], changes: DataChangeDescriptor, options: GroupUpdateOptions): void {
+        if (
+            changes.metadata.totalRemoved === 0 &&
+            changes.metadata.totalInserted === 0 &&
+            changes.metadata.totalUpdated === 0
+        ) {
             return;
         }
 
+        const columnMask = GroupUpdater.createColumnMask(options.columnCount, options.columnScopes, options.scopeId);
+        const groupsByKey = new Map<string, DataGroup>();
         for (const group of groups) {
-            for (const indices of group.datumIndices) {
-                if (!indices || indices.length === 0) continue;
+            groupsByKey.set(GroupUpdater.keyId(group.keys), group);
+        }
 
-                // Use different strategies based on array size
-                if (indices.length > 1000 && removedIndices.length > 10) {
-                    // For very large groups with many removals, use binary search approach
-                    GroupUpdater.applyShiftsWithBinarySearch(indices, removedIndices);
-                } else if (indices.length > 100) {
-                    // For moderately large groups, use the optimized linear approach
-                    GroupUpdater.applyShiftsOptimized(indices, removedIndices);
-                } else {
-                    // For small groups, use the simple approach
-                    GroupUpdater.applyShiftsSimple(indices, removedIndices);
-                }
+        const { oldToNew, insertions } = GroupUpdater.buildIndexMapping(options.originalLength, changes);
+        const { indexToGroup, dirtyGroups } = GroupUpdater.mapExistingIndices(groups, oldToNew, columnMask);
 
-                // Indices should already be sorted from the optimization methods,
-                // but verify for smaller arrays where sort overhead is minimal
-                if (indices.length <= 100) {
-                    indices.sort((a, b) => a - b);
-                }
+        GroupUpdater.relocateUpdatedEntries({
+            changes,
+            options,
+            oldToNew,
+            columnMask,
+            groups,
+            groupsByKey,
+            indexToGroup,
+            dirtyGroups,
+        });
+
+        GroupUpdater.addInsertedEntries({
+            insertions,
+            options,
+            columnMask,
+            groups,
+            groupsByKey,
+            indexToGroup,
+            dirtyGroups,
+        });
+
+        GroupUpdater.removeEmptyGroups(groups, groupsByKey, columnMask, dirtyGroups);
+        GroupUpdater.invalidateScopes(dirtyGroups);
+    }
+
+    private static relocateUpdatedEntries(args: {
+        changes: DataChangeDescriptor;
+        options: GroupUpdateOptions;
+        oldToNew: Map<number, number>;
+        columnMask: ColumnMask;
+        groups: DataGroup[];
+        groupsByKey: Map<string, DataGroup>;
+        indexToGroup: Map<number, DataGroup>;
+        dirtyGroups: Set<DataGroup>;
+    }): void {
+        for (const update of args.changes.updated) {
+            const newIndex = args.oldToNew.get(update.index);
+            if (newIndex == null) {
+                continue;
             }
+
+            const oldKeys = args.options.keyExtractor(update.oldDatum, update.index) ?? [];
+            const newKeys = args.options.keyExtractor(update.newDatum, newIndex) ?? [];
+
+            if (GroupUpdater.keysEqual(oldKeys, newKeys)) {
+                continue;
+            }
+
+            const existingGroup = args.indexToGroup.get(newIndex);
+            if (existingGroup && GroupUpdater.removeIndexFromGroup(existingGroup, newIndex, args.columnMask)) {
+                args.dirtyGroups.add(existingGroup);
+            }
+
+            const targetGroup = GroupUpdater.getOrCreateGroup(
+                args.groups,
+                args.groupsByKey,
+                newKeys,
+                args.options,
+                args.columnMask
+            );
+
+            GroupUpdater.addIndexToGroup(targetGroup, newIndex, args.columnMask);
+            args.dirtyGroups.add(targetGroup);
+            args.indexToGroup.set(newIndex, targetGroup);
         }
     }
 
-    /**
-     * Apply shifts using binary search for very large arrays.
-     * @private
-     */
-    private static applyShiftsWithBinarySearch(indices: number[], removedIndices: number[]): void {
-        for (let i = 0; i < indices.length; i++) {
-            const currentIndex = indices[i];
+    private static addInsertedEntries(args: {
+        insertions: Array<{ datum: any; newIndex: number }>;
+        options: GroupUpdateOptions;
+        columnMask: ColumnMask;
+        groups: DataGroup[];
+        groupsByKey: Map<string, DataGroup>;
+        indexToGroup: Map<number, DataGroup>;
+        dirtyGroups: Set<DataGroup>;
+    }): void {
+        for (const insertion of args.insertions) {
+            const keys = args.options.keyExtractor(insertion.datum, insertion.newIndex) ?? [];
+            const targetGroup = GroupUpdater.getOrCreateGroup(
+                args.groups,
+                args.groupsByKey,
+                keys,
+                args.options,
+                args.columnMask
+            );
 
-            // Binary search to find how many removed indices are before currentIndex
-            let left = 0;
-            let right = removedIndices.length;
-
-            while (left < right) {
-                const mid = Math.floor((left + right) / 2);
-                if (removedIndices[mid] < currentIndex) {
-                    left = mid + 1;
-                } else {
-                    right = mid;
-                }
-            }
-
-            indices[i] = currentIndex - left;
-        }
-
-        // Keep sorted (binary search approach may not preserve order)
-        indices.sort((a, b) => a - b);
-    }
-
-    /**
-     * Apply shifts using optimized linear scan for moderately large arrays.
-     * @private
-     */
-    private static applyShiftsOptimized(indices: number[], removedIndices: number[]): void {
-        let removeIdx = 0;
-        let currentShift = 0;
-
-        // Process indices in order, updating shift as we encounter removal points
-        for (let i = 0; i < indices.length; i++) {
-            const currentIndex = indices[i];
-
-            // Update shift count as we pass removal indices
-            while (removeIdx < removedIndices.length && removedIndices[removeIdx] < currentIndex) {
-                currentShift++;
-                removeIdx++;
-            }
-
-            indices[i] = currentIndex - currentShift;
-        }
-
-        // Indices remain sorted since we process in order
-    }
-
-    /**
-     * Apply shifts using simple approach for small arrays.
-     * @private
-     */
-    private static applyShiftsSimple(indices: number[], removedIndices: number[]): void {
-        for (let i = 0; i < indices.length; i++) {
-            const currentIndex = indices[i];
-            let shift = 0;
-
-            // Count how many removed indices are before this index
-            for (const removedIndex of removedIndices) {
-                if (removedIndex < currentIndex) {
-                    shift++;
-                } else {
-                    break; // removedIndices is sorted, so no more will be < currentIndex
-                }
-            }
-
-            indices[i] = currentIndex - shift;
+            GroupUpdater.addIndexToGroup(targetGroup, insertion.newIndex, args.columnMask);
+            args.dirtyGroups.add(targetGroup);
+            args.indexToGroup.set(insertion.newIndex, targetGroup);
         }
     }
 
-    /**
-     * Remove empty groups from the groups array.
-     * @private
-     */
-    private static removeEmptyGroups(groups: DataGroup[]): void {
-        for (let i = groups.length - 1; i >= 0; i--) {
-            const group = groups[i];
-            const hasData = group.datumIndices.some((indices) => indices && indices.length > 0);
-
-            if (!hasData) {
-                groups.splice(i, 1);
-            }
+    private static createColumnMask(
+        columnCount: number,
+        columnScopes: Set<string>[],
+        scopeId: string
+    ): ColumnMask {
+        const mask: boolean[] = [];
+        for (let columnIdx = 0; columnIdx < columnCount; columnIdx++) {
+            const scopes = columnScopes[columnIdx];
+            mask[columnIdx] = scopes ? scopes.has(scopeId) : false;
         }
+        return mask;
     }
 
-    /**
-     * Update validScopes for groups that were affected by changes.
-     * For now, we mark all groups as requiring validation since determining
-     * exactly which scopes were affected is complex.
-     * @private
-     */
-    private static updateValidScopes(groups: DataGroup[], changes: DataChangeDescriptor): void {
-        // For incremental updates, we need to be conservative about scope validity
-        // Since we don't have perfect tracking of which scopes were affected,
-        // we clear validScopes for all groups that have changes
-        const hasChanges =
-            changes.metadata.totalRemoved > 0 ||
-            changes.metadata.totalInserted > 0 ||
-            changes.metadata.totalUpdated > 0;
+    private static buildIndexMapping(originalLength: number, changes: DataChangeDescriptor): IndexMapping {
+        const working: number[] = Array.from({ length: Math.max(originalLength, 0) }, (_, index) => index);
+        const placeholderMeta = new Map<number, { datum: any }>();
 
-        if (hasChanges) {
-            for (const group of groups) {
-                // Clear validScopes to force revalidation
-                group.validScopes.clear();
+        const removals = [...changes.removed].sort((a, b) => b.index - a.index);
+        for (const removal of removals) {
+            if (removal.index >= 0 && removal.index < working.length) {
+                working.splice(removal.index, 1);
             }
         }
+
+        const insertions = [...changes.inserted].sort((a, b) => a.index - b.index);
+        let placeholderId = 0;
+        for (const insertion of insertions) {
+            const placeholder = -(++placeholderId);
+            placeholderMeta.set(placeholder, { datum: insertion.datum });
+
+            const targetIndex = Math.min(Math.max(insertion.index, 0), working.length);
+            working.splice(targetIndex, 0, placeholder);
+        }
+
+        const oldToNew = new Map<number, number>();
+        const insertionPositions: Array<{ datum: any; newIndex: number }> = [];
+
+        for (let newIndex = 0; newIndex < working.length; newIndex++) {
+            const token = working[newIndex];
+            if (token >= 0) {
+                oldToNew.set(token, newIndex);
+                continue;
+            }
+
+            const meta = placeholderMeta.get(token);
+            if (meta) {
+                insertionPositions.push({ datum: meta.datum, newIndex });
+            }
+        }
+
+        return { oldToNew, insertions: insertionPositions };
     }
 
-    /**
-     * Remove a specific index from all groups.
-     * Uses optimized approach for different group sizes.
-     * @private
-     */
-    private static removeFromGroups(groups: DataGroup[], indexToRemove: number): void {
+    private static mapExistingIndices(
+        groups: DataGroup[],
+        oldToNew: Map<number, number>,
+        columnMask: ColumnMask
+    ): { indexToGroup: Map<number, DataGroup>; dirtyGroups: Set<DataGroup> } {
+        const indexToGroup = new Map<number, DataGroup>();
+        const dirtyGroups = new Set<DataGroup>();
+
         for (const group of groups) {
-            for (let scopeIdx = 0; scopeIdx < group.datumIndices.length; scopeIdx++) {
-                const indices = group.datumIndices[scopeIdx];
-                if (!indices) continue;
+            for (let columnIdx = 0; columnIdx < columnMask.length; columnIdx++) {
+                if (!columnMask[columnIdx]) {
+                    continue;
+                }
 
-                if (indices.length > 100) {
-                    // For large groups, use filter for better performance
-                    const filtered = indices.filter((index) => index !== indexToRemove);
-                    if (filtered.length !== indices.length) {
-                        group.datumIndices[scopeIdx] = filtered;
+                const source = group.datumIndices[columnIdx] ?? [];
+                const updated: number[] = [];
+
+                for (const oldIndex of source) {
+                    const mapped = oldToNew.get(oldIndex);
+                    if (mapped != null) {
+                        updated.push(mapped);
                     }
-                } else {
-                    // For small groups, use indexOf + splice
-                    const removeIdx = indices.indexOf(indexToRemove);
-                    if (removeIdx !== -1) {
-                        indices.splice(removeIdx, 1);
-                    }
+                }
+
+                if (updated.length !== source.length) {
+                    dirtyGroups.add(group);
+                }
+
+                updated.sort((a, b) => a - b);
+
+                const target = group.datumIndices[columnIdx] ?? (group.datumIndices[columnIdx] = []);
+                target.length = 0;
+                target.push(...updated);
+
+                for (const index of updated) {
+                    indexToGroup.set(index, group);
                 }
             }
         }
+
+        return { indexToGroup, dirtyGroups };
     }
 
-    /**
-     * Add an index to the appropriate group, creating the group if necessary.
-     * Uses efficient insertion to maintain sorted order without full sorting.
-     * @private
-     */
-    private static addToGroup(groups: DataGroup[], index: number, keys: any[]): void {
-        // Find existing group with matching keys
-        let targetGroup = groups.find((group) => GroupUpdater.keysEqual(group.keys, keys));
-
-        if (!targetGroup) {
-            // Create new group
-            targetGroup = {
-                keys: [...keys],
-                datumIndices: [],
-                aggregation: [],
-                validScopes: new Set(),
-            };
-            groups.push(targetGroup);
+    private static getOrCreateGroup(
+        groups: DataGroup[],
+        groupsByKey: Map<string, DataGroup>,
+        keys: any[],
+        options: GroupUpdateOptions,
+        columnMask: ColumnMask
+    ): DataGroup {
+        const key = GroupUpdater.keyId(keys);
+        const existing = groupsByKey.get(key);
+        if (existing) {
+            return existing;
         }
 
-        // Add index to first scope column (assuming single-scope for now)
-        // This is a simplification for the current implementation
-        if (targetGroup.datumIndices.length === 0) {
-            targetGroup.datumIndices.push([]);
-        }
+        const group: DataGroup = {
+            keys: [...keys],
+            datumIndices: [],
+            aggregation: [],
+            validScopes: new Set(options.scopes),
+        };
 
-        // Add to the first scope's indices with efficient insertion
-        const firstScopeIndices = targetGroup.datumIndices[0];
-        if (!firstScopeIndices.includes(index)) {
-            GroupUpdater.insertSorted(firstScopeIndices, index);
-        }
-    }
-
-    /**
-     * Insert an index into a sorted array, maintaining sort order.
-     * Uses binary search for large arrays, linear insertion for small arrays.
-     * @private
-     */
-    private static insertSorted(sortedArray: number[], value: number): void {
-        if (sortedArray.length === 0) {
-            sortedArray.push(value);
-            return;
-        }
-
-        if (sortedArray.length < 50) {
-            // For small arrays, use simple linear insertion
-            let insertIndex = 0;
-            while (insertIndex < sortedArray.length && sortedArray[insertIndex] < value) {
-                insertIndex++;
+        // Ensure datum indices arrays exist for relevant columns so future lookups stay predictable.
+        for (let columnIdx = 0; columnIdx < columnMask.length; columnIdx++) {
+            if (columnMask[columnIdx]) {
+                group.datumIndices[columnIdx] = [];
             }
-            sortedArray.splice(insertIndex, 0, value);
-        } else {
-            // For larger arrays, use binary search to find insertion point
-            let left = 0;
-            let right = sortedArray.length;
+        }
 
-            while (left < right) {
-                const mid = Math.floor((left + right) / 2);
-                if (sortedArray[mid] < value) {
-                    left = mid + 1;
-                } else {
-                    right = mid;
-                }
+        groups.push(group);
+        groupsByKey.set(key, group);
+        return group;
+    }
+
+    private static addIndexToGroup(group: DataGroup, index: number, columnMask: ColumnMask): void {
+        for (let columnIdx = 0; columnIdx < columnMask.length; columnIdx++) {
+            if (!columnMask[columnIdx]) {
+                continue;
             }
 
-            sortedArray.splice(left, 0, value);
+            const indices = group.datumIndices[columnIdx] ?? (group.datumIndices[columnIdx] = []);
+            GroupUpdater.insertSorted(indices, index);
         }
     }
 
-    /**
-     * Compare two key arrays for equality.
-     * @private
-     */
-    private static keysEqual(keys1: any[], keys2: any[]): boolean {
-        if (keys1.length !== keys2.length) {
-            return false;
+    private static removeIndexFromGroup(group: DataGroup, index: number, columnMask: ColumnMask): boolean {
+        let removed = false;
+
+        for (let columnIdx = 0; columnIdx < columnMask.length; columnIdx++) {
+            if (!columnMask[columnIdx]) {
+                continue;
+            }
+
+            const indices = group.datumIndices[columnIdx];
+            if (!indices) {
+                continue;
+            }
+
+            const position = indices.indexOf(index);
+            if (position >= 0) {
+                indices.splice(position, 1);
+                removed = true;
+            }
         }
 
-        for (let i = 0; i < keys1.length; i++) {
-            if (keys1[i] !== keys2[i]) {
-                // For object keys, do a deep comparison
-                if (
-                    typeof keys1[i] === 'object' &&
-                    typeof keys2[i] === 'object' &&
-                    keys1[i] != null &&
-                    keys2[i] != null
-                ) {
-                    if (JSON.stringify(keys1[i]) !== JSON.stringify(keys2[i])) {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
+        return removed;
+    }
+
+    private static removeEmptyGroups(
+        groups: DataGroup[],
+        groupsByKey: Map<string, DataGroup>,
+        columnMask: ColumnMask,
+        dirtyGroups: Set<DataGroup>
+    ): void {
+        for (let index = groups.length - 1; index >= 0; index--) {
+            const group = groups[index];
+            if (!GroupUpdater.isGroupEmpty(group, columnMask)) {
+                continue;
+            }
+
+            groups.splice(index, 1);
+            groupsByKey.delete(GroupUpdater.keyId(group.keys));
+            dirtyGroups.delete(group);
+        }
+    }
+
+    private static invalidateScopes(groups: Set<DataGroup>): void {
+        for (const group of groups) {
+            group.validScopes.clear();
+        }
+    }
+
+    private static isGroupEmpty(group: DataGroup, columnMask: ColumnMask): boolean {
+        for (let columnIdx = 0; columnIdx < columnMask.length; columnIdx++) {
+            if (!columnMask[columnIdx]) {
+                continue;
+            }
+
+            const indices = group.datumIndices[columnIdx];
+            if (indices && indices.length > 0) {
+                return false;
             }
         }
 
         return true;
+    }
+
+    private static keysEqual(first: any[], second: any[]): boolean {
+        if (first.length !== second.length) {
+            return false;
+        }
+
+        for (let index = 0; index < first.length; index++) {
+            const a = first[index];
+            const b = second[index];
+            if (a === b) {
+                continue;
+            }
+
+            if (!GroupUpdater.valuesEqual(a, b)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static valuesEqual(a: unknown, b: unknown): boolean {
+        if (a === b) {
+            return true;
+        }
+
+        if (
+            a != null &&
+            b != null &&
+            typeof a === 'object' &&
+            typeof b === 'object'
+        ) {
+            try {
+                return JSON.stringify(a) === JSON.stringify(b);
+            } catch {
+                // Fallback to reference equality when serialization fails.
+                return a === b;
+            }
+        }
+
+        return false;
+    }
+
+    private static keyId(keys: any[]): string {
+        return keys
+            .map((key) => {
+                if (key != null && typeof key === 'object') {
+                    try {
+                        return JSON.stringify(key);
+                    } catch {
+                        return String(key);
+                    }
+                }
+                return String(key);
+            })
+            .join('|');
+    }
+
+    private static insertSorted(array: number[], value: number): void {
+        let left = 0;
+        let right = array.length;
+
+        while (left < right) {
+            const mid = Math.floor((left + right) / 2);
+            const current = array[mid];
+
+            if (current === value) {
+                return;
+            }
+
+            if (current < value) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+
+        array.splice(left, 0, value);
     }
 }

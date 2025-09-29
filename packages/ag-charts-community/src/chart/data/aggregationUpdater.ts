@@ -30,86 +30,71 @@ export class AggregationUpdater {
         changes: DataChangeDescriptor,
         aggregateDefs: AggregatePropertyDefinition<any, any>[],
         columns: any[][],
-        valueGroupIdxLookup: (def: AggregatePropertyDefinition<any, any>) => number[]
+        valueGroupIdxLookup: (def: AggregatePropertyDefinition<any, any>) => number[],
+        keyExtractor: (datum: any, index: number) => any[] | undefined,
+        aggregateDomains?: [number, number][]
     ): void {
-        // Early return if no changes or no aggregations
-        if (AggregationUpdater.hasNoChanges(changes) || aggregateDefs.length === 0) {
+        if (aggregateDefs.length === 0 || AggregationUpdater.hasNoChanges(changes)) {
             return;
         }
 
-        // Track which groups are dirty (need recalculation)
-        const dirtyGroups = new Set<DataGroup>();
-
-        // Mark all groups as dirty for now (optimized implementation would track specifically affected groups)
-        // TODO: In a more optimized implementation, we would only mark groups that:
-        // - Had data removed from them
-        // - Had data added to them
-        // - Had data updated within them
-        for (const group of groups) {
-            dirtyGroups.add(group);
+        const dirtyGroups = AggregationUpdater.collectDirtyGroups(groups, changes, keyExtractor);
+        if (dirtyGroups.size === 0) {
+            return;
         }
 
-        // Update aggregations for each dirty group
-        for (const group of dirtyGroups) {
-            AggregationUpdater.updateGroupAggregations(group, aggregateDefs, columns, valueGroupIdxLookup);
-        }
-    }
-
-    /**
-     * Update aggregations for a single group.
-     * @private
-     */
-    private static updateGroupAggregations(
-        group: DataGroup,
-        aggregateDefs: AggregatePropertyDefinition<any, any>[],
-        columns: any[][],
-        valueGroupIdxLookup: (def: AggregatePropertyDefinition<any, any>) => number[]
-    ): void {
-        group.aggregation ??= [];
-
-        for (const [index, def] of aggregateDefs.entries()) {
-            const indices = valueGroupIdxLookup(def);
-
-            if (def.supportsIncremental && def.incrementalUpdater && group.aggregation[index] != null) {
-                // Use incremental update if supported and we have existing data
-                group.aggregation[index] = AggregationUpdater.updateAggregationIncremental(
+        for (const [aggIndex, def] of aggregateDefs.entries()) {
+            const columnIndexes = valueGroupIdxLookup(def);
+            for (const group of dirtyGroups) {
+                group.aggregation ??= [];
+                group.aggregation[aggIndex] = AggregationUpdater.calculateAggregationFull(
                     group,
                     def,
-                    indices,
-                    columns,
-                    group.aggregation[index]
+                    columnIndexes,
+                    columns
                 );
-            } else {
-                // Fall back to full recalculation
-                group.aggregation[index] = AggregationUpdater.calculateAggregationFull(group, def, indices, columns);
             }
+        }
+
+        if (aggregateDomains) {
+            AggregationUpdater.rebuildAggregateDomains(groups, aggregateDefs, aggregateDomains);
         }
     }
 
-    /**
-     * Perform incremental update for an aggregation using the incrementalUpdater function.
-     * @private
-     */
-    private static updateAggregationIncremental(
-        group: DataGroup,
-        def: AggregatePropertyDefinition<any, any>,
-        indices: number[],
-        columns: any[][],
-        _currentAggregation: any
-    ): any {
-        if (!def.incrementalUpdater) {
-            throw new Error('Incremental updater not available');
+    private static collectDirtyGroups(
+        groups: DataGroup[],
+        changes: DataChangeDescriptor,
+        keyExtractor: (datum: any, index: number) => any[] | undefined
+    ): Set<DataGroup> {
+        const dirtyGroups = new Set<DataGroup>();
+        const groupLookup = new Map<string, DataGroup>();
+
+        for (const group of groups) {
+            groupLookup.set(AggregationUpdater.keyId(group.keys), group);
         }
 
-        // For now, we don't track specific removed/added values within a group,
-        // so we fall back to full recalculation
-        // TODO: In a more sophisticated implementation, we would track:
-        // - Values that were removed from this group
-        // - Values that were added to this group
-        // - Use these with the incrementalUpdater function
+        const markGroup = (datum: any, index: number) => {
+            const keys = keyExtractor(datum, index) ?? [];
+            const group = groupLookup.get(AggregationUpdater.keyId(keys));
+            if (group) {
+                dirtyGroups.add(group);
+            }
+        };
 
-        // For this initial implementation, fall back to full calculation
-        return AggregationUpdater.calculateAggregationFull(group, def, indices, columns);
+        for (const removal of changes.removed) {
+            markGroup(removal.datum, removal.index);
+        }
+
+        for (const update of changes.updated) {
+            markGroup(update.oldDatum, update.index);
+            markGroup(update.newDatum, update.index);
+        }
+
+        for (const insertion of changes.inserted) {
+            markGroup(insertion.datum, insertion.index);
+        }
+
+        return dirtyGroups;
     }
 
     /**
@@ -142,6 +127,40 @@ export class AggregationUpdater {
 
         const finalValues = def.finalFunction?.(groupAggValues) ?? groupAggValues;
         return finalValues;
+    }
+
+    private static rebuildAggregateDomains(
+        groups: DataGroup[],
+        aggregateDefs: AggregatePropertyDefinition<any, any>[],
+        aggregateDomains: [number, number][]
+    ): void {
+        for (const [index] of aggregateDefs.entries()) {
+            const domain = (aggregateDomains[index] = [Infinity, -Infinity]);
+
+            for (const group of groups) {
+                const value = group.aggregation?.[index];
+                if (value == null) {
+                    continue;
+                }
+
+                ContinuousDomain.extendDomain(value, domain);
+            }
+        }
+    }
+
+    private static keyId(keys: any[]): string {
+        return keys
+            .map((key) => {
+                if (key != null && typeof key === 'object') {
+                    try {
+                        return JSON.stringify(key);
+                    } catch {
+                        return String(key);
+                    }
+                }
+                return String(key);
+            })
+            .join('|');
     }
 
     /**

@@ -214,6 +214,8 @@ export class ProcessedDataMutator {
                 return;
             }
 
+            this.validateProcessedData(processedData);
+
             const { affectedColumns, affectedKeys } = this.applyUngroupedChanges(processedData, changes);
 
             this.invalidateCaches(processedData, affectedColumns, affectedKeys);
@@ -222,6 +224,26 @@ export class ProcessedDataMutator {
         } catch (error) {
             const message = `ProcessedDataMutator failed: ${error instanceof Error ? error.message : String(error)}`;
             throw new Error(message);
+        }
+    }
+
+    private validateProcessedData(processedData: ProcessedData): void {
+        if (processedData.type !== 'ungrouped' && processedData.type !== 'grouped') {
+            throw new Error(`Unsupported processed data type: ${processedData.type as string}`);
+        }
+
+        const valueDefs = processedData.defs?.values ?? [];
+        if (processedData.columns.length < valueDefs.length) {
+            throw new Error('ProcessedData columns count does not match value definitions.');
+        }
+
+        const keyDefs = processedData.defs?.keys ?? [];
+        if (processedData.keys.length < keyDefs.length) {
+            throw new Error('ProcessedData keys count does not match key definitions.');
+        }
+
+        if (processedData.type === 'grouped' && !Array.isArray(processedData.groups)) {
+            throw new Error('Grouped ProcessedData must include groups.');
         }
     }
 

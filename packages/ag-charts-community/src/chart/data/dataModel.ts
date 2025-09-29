@@ -7,6 +7,8 @@ import type { DataChangeDescriptor } from './dataChangeDescriptor';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 import type { DataRef } from './dataRef';
 import { ProcessedDataMutator } from './processedDataMutator';
+import { GroupUpdater } from './groupUpdater';
+import { AggregationUpdater } from './aggregationUpdater';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
 import { TransactionAnalyzer } from './transactionAnalyzer';
@@ -1127,6 +1129,7 @@ export class DataModel<
         }
 
         const wasGrouped = processedData.type === 'grouped';
+        const originalLength = processedData.columns[0]?.length ?? 0;
 
         const mutator = new ProcessedDataMutator({
             processValue: this.processValue.bind(this),
@@ -1138,7 +1141,15 @@ export class DataModel<
         this.updateDataSources(processedData, sources);
 
         if (wasGrouped && processedData.type === 'grouped') {
-            this.rebuildGroupedState(processedData as GroupedData<any>);
+            const groupedUpdateSucceeded = this.updateGroupedState(
+                processedData as GroupedData<any>,
+                changeDescriptor,
+                originalLength
+            );
+
+            if (!groupedUpdateSucceeded) {
+                this.rebuildGroupedState(processedData as GroupedData<any>);
+            }
         }
 
         this.runPostProcessing(processedData);
@@ -1177,6 +1188,103 @@ export class DataModel<
         processedData.domain.groups = regrouped.domain.groups;
         processedData.partialValidDataCount = regrouped.partialValidDataCount;
         processedData.scopes = regrouped.scopes;
+    }
+
+    private updateGroupedState(
+        processedData: GroupedData<any>,
+        changes: DataChangeDescriptor,
+        originalLength: number
+    ): boolean {
+        if (
+            changes.metadata.totalRemoved === 0 &&
+            changes.metadata.totalInserted === 0 &&
+            changes.metadata.totalUpdated === 0
+        ) {
+            return true;
+        }
+
+        let scopeId: string;
+        try {
+            scopeId = this.getSingleScopeId(processedData.scopes);
+        } catch {
+            Logger.warnOnce('Incremental group updates require single-scope data. Falling back to full regroup.');
+            return false;
+        }
+
+        const groupingFn = this.opts.groupByFn ? this.opts.groupByFn(this.toUngroupedView(processedData)) : undefined;
+        const keyDefs = processedData.defs.keys as InternalDatumPropertyDefinition<any>[] | undefined;
+
+        if (!keyDefs || keyDefs.length === 0) {
+            Logger.warnOnce('Incremental group updates require at least one key definition. Falling back to full regroup.');
+            return false;
+        }
+
+        const keyExtractor = this.createGroupKeyExtractor(processedData, groupingFn);
+        const columnCount = processedData.columns.length;
+        const columnScopes = processedData.columnScopes;
+        const scopes = processedData.scopes;
+
+        try {
+            processedData.groups ??= [];
+            GroupUpdater.updateGroups(processedData.groups, changes, {
+                keyExtractor,
+                columnCount,
+                columnScopes,
+                scopeId,
+                scopes,
+                originalLength,
+            });
+
+            if (this.aggregates.length > 0) {
+                processedData.domain.aggValues ??= this.aggregates.map((): [number, number] => [Infinity, -Infinity]);
+
+                AggregationUpdater.updateAggregations(
+                    processedData.groups,
+                    changes,
+                    this.aggregates,
+                    processedData.columns,
+                    (def) => this.valueGroupIdxLookup(def),
+                    keyExtractor,
+                    processedData.domain.aggValues
+                );
+            }
+
+            processedData.domain.groups = processedData.groups.map((group) => group.keys);
+            return true;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            Logger.warnOnce(`Incremental group update failed: ${message}. Falling back to full regroup.`);
+            return false;
+        }
+    }
+
+    private getSingleScopeId(scopes: Set<string>): string {
+        const iterator = scopes.values();
+        const firstScope = iterator.next();
+        const secondScope = iterator.next();
+
+        if (firstScope.done || !secondScope.done) {
+            throw new Error('Expected single scope for incremental updates');
+        }
+
+        return firstScope.value;
+    }
+
+    private createGroupKeyExtractor(
+        processedData: GroupedData<any>,
+        groupingFn?: GroupingFn<any>
+    ): (datum: any, index: number) => any[] {
+        const keyDefs = processedData.defs.keys as InternalDatumPropertyDefinition<any>[];
+        const accessors = this.buildAccessors(keyDefs);
+
+        return (datum: any, index: number) => {
+            const keys = keyDefs.map((def) => {
+                const result = this.processValue(def, datum, index, undefined, accessors);
+                return result.value;
+            });
+
+            return groupingFn ? groupingFn(keys) : keys;
+        };
     }
 
     private toUngroupedView(processedData: GroupedData<any>): UngroupedData<any> {
