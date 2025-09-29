@@ -44,7 +44,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             styler: (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRangeAreaSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
-                        return { marker: { fill: 'fuschia', size: 35 } };
+                        return { marker: { fill: 'fuchsia', size: 35 } };
                     case 'unhighlighted-item':
                         return { marker: { fill: 'darkslateblue', size: 20 } };
                     case 'highlighted-series':
