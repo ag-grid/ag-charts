@@ -71,8 +71,8 @@ The array should contain a minimum of two objects, with each object providing op
             colorStops: [
                 { color: '#70C1FF', stop: 0.1 },
                 { color: '#FFD86F', stop: 0.3 },
-                { color: '#FF9A60', stop: 0.5},
-                { color: '#D16BA5' },  //will continue to the end
+                { color: '#FF9A60', stop: 0.5 },
+                { color: '#D16BA5' }, //will continue to the end
             ],
         },
     },
@@ -100,7 +100,7 @@ Any of the [stock patterns](#reference-AgPatternColor-pattern) can be provided i
     series: {
         fill: {
             type: 'pattern',
-            pattern: 'stars'
+            pattern: 'stars',
         },
     },
 }
@@ -129,7 +129,7 @@ SVG Path Data can be used to create custom patterns. The path can be a line or a
     series: {
         fill: {
             type: 'pattern',
-            path: 'M0,6 Q4,1 8,6 T16,6' // svg path data string
+            path: 'M0,6 Q4,1 8,6 T16,6', // svg path data string
         },
     },
 }
@@ -157,7 +157,7 @@ Any image url or data:url can be provided in the `fill.url` property to fill sha
     series: {
         fill: {
             type: 'image',
-            url: 'url'
+            url: 'url',
         },
     },
 }
@@ -188,7 +188,7 @@ Images can be tiled by using the `repeat` property.
         fill: {
             type: 'image',
             url: 'url',
-            repeat: 'repeat-x'
+            repeat: 'repeat-x',
         },
     },
 }

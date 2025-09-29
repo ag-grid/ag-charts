@@ -22,15 +22,15 @@ These include a `type` as well as `_Key` properties to connect to the visualisat
 
 ```js wrapper="object"
 data: [
-    {year: '2001', women: 25},
-    {country: '2003', value: 26},
+    { year: '2001', women: 25 },
+    { country: '2003', value: 26 },
 ],
 series: [
     {
         type: 'bar',
         xKey: 'year',
         yKey: 'women',
-    }
+    },
 ]
 ```
 
@@ -99,7 +99,7 @@ axes: [
         type: 'number',
         position: 'left',
         interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
-    }
+    },
 ],
 ```
 
@@ -149,7 +149,7 @@ Use the `legend` options to configure the legend position and size and to disabl
 legend: {
     enabled: true, // defaults to true for charts with multiple series
     position: 'top', // 'bottom', 'right', 'left',
-    toggleSeries: false
+    toggleSeries: false,
 }
 ```
 
@@ -166,8 +166,8 @@ axes: [
                 value: 11,
             },
             {
-                type: "range",
-                range: ["Jun", "Sep"],
+                type: 'range',
+                range: ['Jun', 'Sep'],
             },
         ],
     },
@@ -311,12 +311,8 @@ Use the `tooltip.renderer` callback function to customise the content of the too
 
 ```ts wrapper="object"
 renderer: (params) => {
-    return (
-        '<div class="custom-tooltip">' +
-            params.datum[params.xKey] +
-        '</div>'
-    );
-}
+    return '<div class="custom-tooltip">' + params.datum[params.xKey] + '</div>';
+};
 ```
 
 ### Highlighting Hovered Data
@@ -358,7 +354,7 @@ Register `listeners` to respond to [Events](./events/) on the chart.
         {
             listeners: {
                 seriesNodeClick: (params) => {
-                    console.log('node clicked')
+                    console.log('node clicked');
                 },
             },
         },
@@ -367,10 +363,10 @@ Register `listeners` to respond to [Events](./events/) on the chart.
     legend: {
         listeners: {
             legendItemClick: (params) => {
-                console.log('item clicked')
+                console.log('item clicked');
             },
         },
-    }
+    },
 }
 ```
 
@@ -442,7 +438,7 @@ The y-axis will automatically adjust to fit the visible items. This is controlle
 zoom: {
     autoScaling: {
         enabled: true,
-    }
+    },
 }
 ```
 
@@ -474,15 +470,15 @@ contextMenu: {
             label: 'Say hello',
             action: () => log('Hello world!'),
         },
-        "separator",
+        'separator',
         {
-            showOn: "series-node",
-            label: "Say hello to a node",
+            showOn: 'series-node',
+            label: 'Say hello to a node',
             action: ({ datum, yKey }) => {
-               console.log(`Hello ${yKey} in ${datum.month}!`);
+                console.log(`Hello ${yKey} in ${datum.month}!`);
             },
-        }
-    ]
+        },
+    ],
 }
 ```
 
@@ -521,9 +517,7 @@ const [options, setOptions] = useState({
     data: getData(),
 });
 
-return (
-    <AgFinancialCharts options={options} />
-);
+return <AgFinancialCharts options={options} />;
 ```
 
 {% /if %}
@@ -645,9 +639,7 @@ const [options, setOptions] = useState({
     },
 });
 
-return (
-    <AgGauge options={options} />
-);
+return <AgGauge options={options} />;
 ```
 
 {% /if %}
@@ -694,7 +686,7 @@ data() {
                 min: 0,
                 max: 100,
             },
-        }
+        },
     };
 }
 ```

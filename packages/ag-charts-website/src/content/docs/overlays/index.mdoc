@@ -44,8 +44,8 @@ overlays: {
         text: 'Some custom noVisibleSeries message',
     },
     unsupportedBrowser: {
-        text: 'Some custom unsupportedBrowser message'
-    }
+        text: 'Some custom unsupportedBrowser message',
+    },
 },
 ```
 
@@ -58,7 +58,7 @@ If finer grained control is required, a renderer can be provided to allow full c
 ```js wrapper="object"
 overlays: {
     noData: {
-        renderer: () => '<em>Custom message for <strong>missing data</strong></em>'
+        renderer: () => '<em>Custom message for <strong>missing data</strong></em>',
     },
 },
 ```

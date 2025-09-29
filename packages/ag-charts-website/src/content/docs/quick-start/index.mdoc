@@ -253,8 +253,8 @@ Return the `AgCharts` component with the `chartOptions` as a prop:
 
 ```jsx wrapper="reactHooks"
 return (
-  // AgCharts component with options passed as prop
-  <AgCharts options={chartOptions} />
+    // AgCharts component with options passed as prop
+    <AgCharts options={chartOptions} />
 );
 ```
 
@@ -309,11 +309,10 @@ export class AppComponent {
 Chart options are set as an `ag-charts` component attribute.
 
 ```ts wrapper="object"
-template:
-  `<ag-charts
-    style="height: 100%"
-    [options]="chartOptions">
-   </ag-charts>`,
+    template: `<ag-charts
+ style="height: 100%"
+ [options]="chartOptions">
+</ag-charts>`,
 ```
 
 {% /if %}

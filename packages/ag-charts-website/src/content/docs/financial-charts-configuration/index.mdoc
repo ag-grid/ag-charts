@@ -31,22 +31,22 @@ const chart = AgCharts.createFinancialChart(options);
 {% if isFramework("react") %}
 
 ```tsx
-import React, { useState } from "react";
-import { createRoot } from "react-dom/client";
-import { AgFinancialCharts } from "ag-charts-react";
-import { AgFinancialChartOptions } from "ag-charts-enterprise";
-import { getData } from "./data";
-import "ag-charts-enterprise";
+import React, { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { AgFinancialCharts } from 'ag-charts-react';
+import { AgFinancialChartOptions } from 'ag-charts-enterprise';
+import { getData } from './data';
+import 'ag-charts-enterprise';
 
 const ChartExample = () => {
-  const [options, setOptions] = useState<AgFinancialChartOptions>({
-    data: getData(),
-  });
+    const [options, setOptions] = useState<AgFinancialChartOptions>({
+        data: getData(),
+    });
 
-  return <AgFinancialCharts options={options as any} />;
+    return <AgFinancialCharts options={options as any} />;
 };
 
-const root = createRoot(document.getElementById("root")!);
+const root = createRoot(document.getElementById('root')!);
 root.render(<ChartExample />);
 ```
 

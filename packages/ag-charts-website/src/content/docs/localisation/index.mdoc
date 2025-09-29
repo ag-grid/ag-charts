@@ -68,7 +68,7 @@ import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 {
     locale: {
         localeText: AG_CHARTS_LOCALE_FR_FR,
-    }
+    },
 }
 ```
 
@@ -97,12 +97,12 @@ Overrides for individual translations can be done by applying overrides to an ex
             toolbarZoomPanRight: 'Pan the Chart Right',
             toolbarZoomPanStart: 'Pan the Chart to the Start',
             toolbarZoomPanEnd: 'Pan the Chart to the End',
-            toolbarZoomReset: 'Reset the Chart\'s Zoom',
+            toolbarZoomReset: "Reset the Chart's Zoom",
             contextMenuDownload: 'Save this Chart to My Computer',
             contextMenuZoomToCursor: 'Zoom the Chart to Your Cursor',
             contextMenuPanToCursor: 'Pan the Chart to Your Cursor',
         },
-    }
+    },
 }
 ```
 
@@ -120,7 +120,7 @@ Values can be formatted by appending a format style in square brackets, like `'$
             ariaAnnounceChart: 'chart with ${seriesCount} series',
             ariaValuePanRange: '${min}[percent] to ${max}[percent]',
         },
-    }
+    },
 }
 ```
 
@@ -135,8 +135,8 @@ You can integrate the internationalisation framework using the `getLocaleText` o
     locale: {
         getLocaleText({ key, defaultValue, variables }) {
             return internationalisationFramework.getLocaleText({ key, defaultValue, variables });
-        }
-    }
+        },
+    },
 }
 ```
 

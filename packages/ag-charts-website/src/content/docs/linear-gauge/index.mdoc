@@ -43,9 +43,7 @@ const [options, setOptions] = useState({
     },
 });
 
-return (
-    <AgGauge options={options} />
-);
+return <AgGauge options={options} />;
 ```
 
 {% /if %}
@@ -90,7 +88,7 @@ components: {
 data() {
     return {
         options: {
-            type: "linear-gauge",
+            type: 'linear-gauge',
             value: 80,
             scale: {
                 min: 0,
@@ -181,7 +179,7 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
     segmentation: {
         enabled: true,
         interval: {
-            count: 4
+            count: 4,
         },
         spacing: 2,
     },

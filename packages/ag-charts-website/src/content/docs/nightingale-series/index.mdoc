@@ -53,10 +53,7 @@ The inner radius can be used to create a 'donut' effect.
 To create this 'donut' effect, use the `innerRadiusRatio` option on the Radius Number Axis.
 
 ```js wrapper="object"
-axes: [
-    { type: 'angle-category' },
-    { type: 'radius-number', innerRadiusRatio: 0.2 },
-],
+axes: [{ type: 'angle-category' }, { type: 'radius-number', innerRadiusRatio: 0.2 }],
 ```
 
 Any value between `0` and `1` will set the inner radius as a proportion of the overall radius.
@@ -71,10 +68,7 @@ The following options are used to control the padding between different elements
 -   `groupPaddingInner`: Spacing within a group, ranges from `0` (columns touching) to `1` (widest gap).
 
 ```js wrapper="object"
-axes: [
-    { type: 'angle-category', groupPaddingInner: 0.2, paddingInner: 0.3 },
-    { type: 'radius-number' },
-],
+axes: [{ type: 'angle-category', groupPaddingInner: 0.2, paddingInner: 0.3 }, { type: 'radius-number' }],
 ```
 
 ### Axis Label Orientation

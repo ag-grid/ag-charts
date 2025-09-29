@@ -36,14 +36,12 @@ const [options, setOptions] = useState({
     type: 'radial-gauge',
     value: 80,
     scale: {
-      min: 0,
-      max: 100,
+        min: 0,
+        max: 100,
     },
 });
 
-return (
-    <AgGauge options={options} />
-);
+return <AgGauge options={options} />;
 ```
 
 {% /if %}
@@ -84,13 +82,13 @@ components: {
 data() {
     return {
         options: {
-            type: "radial-gauge",
+            type: 'radial-gauge',
             value: 80,
             scale: {
                 min: 0,
                 max: 100,
             },
-        }
+        },
     };
 }
 ```
@@ -171,7 +169,7 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
     segmentation: {
         enabled: true,
         interval: {
-            count: 4
+            count: 4,
         },
         spacing: 2,
     },

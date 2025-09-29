@@ -47,7 +47,7 @@ For ease of use, the formatter can also be an object keyed by property, providin
         label: (params) => {
             if (params.source === 'series-label') return params.datum.flag;
         },
-    }
+    },
 }
 ```
 
@@ -81,8 +81,8 @@ A formatter can also be specified as a format string, which is a static string t
 ```js wrapper="object"
 {
     formatter: {
-        x: "%b %Y",
-        y: "$#{0>6.2f}",
+        x: '%b %Y',
+        y: '$#{0>6.2f}',
     },
 }
 ```
