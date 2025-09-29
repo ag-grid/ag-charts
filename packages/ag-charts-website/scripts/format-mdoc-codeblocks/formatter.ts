@@ -184,7 +184,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
     };
 
     // For reactHooks wrapper, use .tsx extension to properly handle JSX
-    const effectiveExtension = metadata?.wrapper === 'reactHooks' ? '.tsx' : (extensionMap[normalizedLang] ?? '.js');
+    const effectiveExtension = metadata?.wrapper === 'reactHooks' ? '.tsx' : extensionMap[normalizedLang] ?? '.js';
     const filepath = `snippet${effectiveExtension}`;
 
     // Determine the parser based on language and content
@@ -224,13 +224,14 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
     }
 
     // Override with specific settings for consistency
-    const config = {
-        ...prettierConfig,
+    const config: prettier.Options & Record<string, unknown> = {
+        ...(prettierConfig as prettier.Options),
         parser,
-        printWidth: 120,
+        printWidth: 160,
         tabWidth: 4,
         semi: true,
-        trailingComma: 'es5' as const,
+        singleQuote: true,
+        trailingComma: 'es5',
         filepath,
     };
 
@@ -306,7 +307,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
 /**
  * Process an mdoc file and format all code blocks
  */
-async function processMdocContent(
+export async function processMdocContent(
     content: string,
     filePath?: string
 ): Promise<{ formatted: string; changed: boolean }> {

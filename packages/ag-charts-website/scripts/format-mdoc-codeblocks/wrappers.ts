@@ -12,6 +12,50 @@ export interface WrapStrategy {
     unwrap: (formatted: string) => string;
 }
 
+function removeCommonIndent(lines: string[]): string[] {
+    const nonEmptyIndents = lines
+        .filter((line) => line.trim() !== '')
+        .map((line) => line.match(/^[\t ]*/)?.[0] ?? '');
+
+    if (nonEmptyIndents.length === 0) {
+        return lines;
+    }
+
+    let commonPrefix = nonEmptyIndents[0];
+    for (const indent of nonEmptyIndents.slice(1)) {
+        while (!indent.startsWith(commonPrefix) && commonPrefix.length > 0) {
+            commonPrefix = commonPrefix.slice(0, -1);
+        }
+        if (commonPrefix.length === 0) {
+            break;
+        }
+    }
+
+    if (commonPrefix.length === 0) {
+        return lines;
+    }
+
+    return lines.map((line) => (line.startsWith(commonPrefix) ? line.slice(commonPrefix.length) : line));
+}
+
+function trimEmptyEdgeLines(lines: string[]): string[] {
+    let start = 0;
+    let end = lines.length;
+
+    while (start < end && lines[start].trim() === '') {
+        start++;
+    }
+
+    while (end > start && lines[end - 1].trim() === '') {
+        end--;
+    }
+
+    return lines.slice(start, end);
+}
+
+// Marker that lets us recover whether the original snippet ended with a trailing comma.
+const OBJECT_STATE_MARKER_REGEX = /\/\/ __OBJECT_WRAPPER_STATE__:hadTrailingComma=(true|false)\n/;
+
 /**
  * For bare object literals that are meant to be assigned to a variable.
  * Use when: Code block contains just object properties or a complete object literal.
@@ -30,8 +74,17 @@ const objectStrategy: WrapStrategy = {
             const hadSemicolon = trimmed.endsWith('};');
             return `// __HAD_SEMICOLON__:${hadSemicolon}\nconst __temp__ = ${code}`;
         }
+        const lines = code.split('\n');
+        let lastContentLine = '';
+        for (let i = lines.length - 1; i >= 0; i--) {
+            if (lines[i].trim() !== '') {
+                lastContentLine = lines[i];
+                break;
+            }
+        }
+        const hadTrailingComma = lastContentLine.trimEnd().endsWith(',');
         // Otherwise, it's object properties without braces, so wrap them
-        return `const __temp__ = {\n${code}\n};`;
+        return `// __OBJECT_WRAPPER_STATE__:hadTrailingComma=${hadTrailingComma}\nconst __temp__ = {\n${code}\n};`;
     },
     unwrap: (formatted: string) => {
         // Handle complete objects (with marker comment)
@@ -56,14 +109,31 @@ const objectStrategy: WrapStrategy = {
         }
 
         // Handle object properties (without braces)
-        const lines = formatted.split('\n');
-        // Remove the wrapper lines
-        const filtered = lines.filter((line, idx) => {
-            if (idx === 0 && line.trim() === 'const __temp__ = {') return false;
-            if (idx === lines.length - 1 && line.trim() === '};') return false;
-            return true;
+        let shouldKeepTrailingComma = true;
+        formatted = formatted.replace(OBJECT_STATE_MARKER_REGEX, (_match, value) => {
+            shouldKeepTrailingComma = value === 'true';
+            return '';
         });
-        return filtered.join('\n');
+
+        const prefixMatch = formatted.match(/^const __temp__ = {\n/);
+        if (!prefixMatch) {
+            return formatted;
+        }
+
+        let body = formatted.slice(prefixMatch[0].length);
+        body = body.replace(/\r?\n};\s*$/, '');
+
+        const lines = body.split('\n');
+
+        const trimmedLines = trimEmptyEdgeLines(lines);
+        const dedentedLines = removeCommonIndent(trimmedLines);
+        let result = dedentedLines.join('\n');
+
+        if (!shouldKeepTrailingComma) {
+            result = result.replace(/,(\s*)$/, '$1');
+        }
+
+        return result;
     },
 };
 

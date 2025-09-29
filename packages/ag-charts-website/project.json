@@ -67,6 +67,7 @@
     },
     "format:mdoc": {
       "command": "tsx scripts/format-mdoc-codeblocks.ts --write",
+      "cache": false,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
@@ -75,6 +76,7 @@
     },
     "format:mdoc:check": {
       "command": "tsx scripts/format-mdoc-codeblocks.ts --check || echo \"Run this command to fix formatting errors:\\nnx format:mdoc ag-charts-website\"",
+      "cache": false,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
