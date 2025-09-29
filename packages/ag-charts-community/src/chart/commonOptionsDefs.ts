@@ -141,6 +141,9 @@ const tooltipPlacementValidator = union(
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 export const textOrSegments = or(
     string,
+    // TODO remove undocumented in next major version, or make official and add to external types
+    undocumented(number),
+    undocumented(date),
     arrayOfDefs<TextSegment>(
         {
             text: required(string),
@@ -631,7 +634,7 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,
-    formatter: callback,
+    formatter: callbackOf(textOrSegments),
     format: numberFormatValidator,
     itemStyler: callbackDefs<AgChartLabelStyleOptions>({
         enabled: boolean,

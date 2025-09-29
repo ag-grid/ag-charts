@@ -6,7 +6,7 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
-    callback,
+    callbackOf,
     color,
     constant,
     defined,
@@ -64,7 +64,7 @@ import {
     radiusCategoryAxisOptionsDefs,
     radiusNumberAxisOptionsDefs,
 } from '../axesOptionsEnterpriseDefs';
-import { commonChartOptionsDefs, numberFormatValidator } from '../commonOptionsDefs';
+import { commonChartOptionsDefs, numberFormatValidator, textOrSegments } from '../commonOptionsDefs';
 import { areaSeriesThemeableOptionsDef } from '../series/cartesian/areaSeriesOptionsDef';
 import { barSeriesThemeableOptionsDef } from '../series/cartesian/barSeriesOptionsDef';
 import { bubbleSeriesThemeableOptionsDef } from '../series/cartesian/bubbleSeriesOptionsDef';
@@ -157,7 +157,7 @@ const navigatorOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
             avoidCollisions: boolean,
             spacing: positiveNumber,
             format: numberFormatValidator,
-            formatter: callback,
+            formatter: callbackOf(textOrSegments),
             interval: {
                 minSpacing: positiveNumber,
                 maxSpacing: positiveNumber,
