@@ -23,7 +23,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
                     case 'highlighted-item':
                         return { marker: { fill: 'yellow', size: 35, shape: 'star' } };
                     case 'unhighlighted-item':
-                        return { marker: { fill: 'indigo', size: 20, fillOpacity: 0.2 } };
+                        return { marker: { fill: 'cyan', size: 20, fillOpacity: 0.2 } };
                     case 'highlighted-series':
                         return { fill: 'gold', strokeWidth: 4 };
                     case 'unhighlighted-series':
@@ -46,7 +46,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
                     case 'highlighted-item':
                         return { marker: { fill: 'fuschia', size: 35 } };
                     case 'unhighlighted-item':
-                        return { marker: { fill: 'lightgray', size: 20 } };
+                        return { marker: { fill: 'darkslateblue', size: 20 } };
                     case 'highlighted-series':
                         return { fill: 'limegreen', strokeWidth: 4 };
                     case 'unhighlighted-series':
