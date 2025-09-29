@@ -576,8 +576,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const { processedData, axes, properties } = this;
-        const { marker } = properties;
-        const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
+        const { marker, styler } = properties;
+        const markerStyle = styler ? this.getStyle(false).marker : undefined;
+        const markersEnabled = markerEnabled(
+            processedData!.input.count,
+            axes[ChartAxisDirection.X]!.scale,
+            marker,
+            markerStyle
+        );
 
         if (marker.isDirty()) {
             datumSelection.clear();
@@ -678,10 +684,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     private getStyle(
         highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
-    ): Required<AgRangeAreaSeriesStyle> & { marker: { size: number }; opacity: number } {
+    ): Required<AgRangeAreaSeriesStyle> & { marker: { enabled: boolean; size: number }; opacity: number } {
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, styler } =
             this.properties;
-        let stylerResult: AgRangeAreaSeriesStyle = {};
+        let stylerResult: AgRangeAreaSeriesStyle & { marker?: { enabled?: boolean } } = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
             stylerResult =
@@ -701,6 +707,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
             strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
             marker: {
+                enabled: stylerResult.marker?.enabled ?? marker.enabled,
                 fill: stylerResult.marker?.fill ?? marker.fill,
                 fillOpacity: stylerResult.marker?.fillOpacity ?? marker.fillOpacity,
                 shape: stylerResult.marker?.shape ?? marker.shape,
@@ -710,8 +717,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 stroke: stylerResult.marker?.stroke ?? marker.stroke,
                 strokeOpacity: stylerResult.marker?.strokeOpacity ?? marker.strokeOpacity,
                 strokeWidth: stylerResult.marker?.strokeWidth ?? marker.strokeWidth,
-            } satisfies RequireOptional<AgSeriesMarkerStyle>,
-        };
+            } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
+        } satisfies RequireOptional<AgRangeAreaSeriesStyle> & { marker: { enabled: boolean }; opacity: number };
     }
 
     private makeStylerParams(
