@@ -500,17 +500,20 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     },
 };
 
+const rangeBarStyleCallback = callbackDefs<AgRangeBarSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+});
+
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     grouped: boolean,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgRangeBarSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: rangeBarStyleCallback,
+    itemStyler: rangeBarStyleCallback,
     label: {
         ...seriesLabelOptionsDefs,
         placement: union('inside', 'outside'),
