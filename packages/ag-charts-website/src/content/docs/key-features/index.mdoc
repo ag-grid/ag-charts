@@ -313,7 +313,7 @@ Use the `tooltip.renderer` callback function to customise the content of the too
 renderer: (params) => {
     return (
         '<div class="custom-tooltip">' +
-            params.datum[params.xKey]
+            params.datum[params.xKey] +
         '</div>'
     );
 }
@@ -516,7 +516,7 @@ AgCharts.createFinancialChart(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```jsx wrapper="reactHooks"
 const [options, setOptions] = useState({
     data: getData(),
 });
@@ -635,13 +635,13 @@ AgCharts.createGauge(options);
 
 {% if isFramework("react") %}
 
-```jsx
+```jsx wrapper="reactHooks"
 const [options, setOptions] = useState({
     type: 'radial-gauge', // or 'linear-gauge'
     value: 80,
     scale: {
-      min: 0,
-      max: 100,
+        min: 0,
+        max: 100,
     },
 });
 
