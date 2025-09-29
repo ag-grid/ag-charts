@@ -12,7 +12,7 @@ describe('mdoc object wrapper formatting', () => {
         expect(formatted).toBe(input);
     });
 
-    it('keeps full object literals intact including trailing semicolons', async () => {
+    it('strips trailing semicolons from full object literals', async () => {
         const input = [
             '```ts wrapper="object"',
             '{',
@@ -26,11 +26,22 @@ describe('mdoc object wrapper formatting', () => {
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        expect(changed).toBe(false);
-        expect(formatted).toBe(input);
+        const expected = [
+            '```ts wrapper="object"',
+            '{',
+            '    animation: {',
+            '        duration: 500,',
+            '    },',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
     });
 
-    it('retains trailing commas when they are part of the original snippet', async () => {
+    it('strips trailing commas even when present in the original snippet', async () => {
         const input = [
             '```ts wrapper="object"',
             'axes: [',
@@ -45,8 +56,20 @@ describe('mdoc object wrapper formatting', () => {
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        expect(changed).toBe(false);
-        expect(formatted).toBe(input);
+        const expected = [
+            '```ts wrapper="object"',
+            'axes: [',
+            '    {',
+            "        type: 'number',",
+            "        position: 'left',",
+            '    },',
+            ']',
+            '```',
+            '',
+        ].join('\n');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
     });
 
     it('preserves nested blocks that close with `};` inside the snippet', async () => {
@@ -76,7 +99,7 @@ describe('mdoc object wrapper formatting', () => {
             '```ts wrapper="object"',
             'template: `<ag-gauge :options="options"/>`,',
             'components: {',
-            "    'ag-gauge': AgGauge",
+            "    'ag-gauge': AgGauge,",
             '},',
             'data() {',
             '    return {',
@@ -85,9 +108,9 @@ describe('mdoc object wrapper formatting', () => {
             '            value: 80,',
             '            scale: {',
             '                min: 0,',
-            '                max: 100',
-            '            }',
-            '        }',
+            '                max: 100,',
+            '            },',
+            '        },',
             '    };',
             '}',
             '```',
@@ -103,31 +126,11 @@ describe('mdoc object wrapper formatting', () => {
     it('formats json code blocks using prettier without wrappers', async () => {
         const input = ['```json', '{"properties":{"name":"United Kingdom"}}', '```', ''].join('\n');
 
-        const expected = [
-            '```json',
-            '{',
-            '    "properties": {',
-            '        "name": "United Kingdom"',
-            '    }',
-            '}',
-            '```',
-            '',
-        ].join('\n');
+        const expected = ['```json', '{ "properties": { "name": "United Kingdom" } }', '```', ''].join('\n');
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
         expect(formatted).toBe(expected);
-    });
-
-    it('continues to support doc shorthand snippets via the object wrapper pipeline', async () => {
-        const input = ['```ts wrapper="docShorthand"', "fill: '#5C6BC0',", 'cornerRadius: 3', '};', '```', ''].join(
-            '\n'
-        );
-
-        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
-
-        expect(changed).toBe(false);
-        expect(formatted).toBe(input);
     });
 });

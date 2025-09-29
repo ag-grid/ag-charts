@@ -227,7 +227,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
 
     // Override with specific settings for consistency
     const config: prettier.Options & Record<string, unknown> = {
-        ...(prettierConfig as prettier.Options),
+        ...prettierConfig,
         parser,
         printWidth: 160,
         tabWidth: 4,
