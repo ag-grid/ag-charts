@@ -56,7 +56,7 @@ function extractCodeBlocks(content: string): CodeBlock[] {
     // Updated regex to capture optional metadata after language
     // Matches: ```js wrapper="object" or ```js or ```javascript etc.
     // NOTE: Order matters - longer patterns must come first to prevent partial matches
-    const codeBlockRegex = /```(javascript|typescript|jsx|tsx|js|ts)([^\n]*)\n([\s\S]*?)```/g;
+    const codeBlockRegex = /```(javascript|typescript|json|jsx|tsx|js|ts)([\t\f\v \u00a0][^\n]*)?\n([\s\S]*?)```/g;
 
     // Calculate line numbers for all positions
     const lines = content.split('\n');
@@ -77,7 +77,7 @@ function extractCodeBlocks(content: string): CodeBlock[] {
     let match;
     while ((match = codeBlockRegex.exec(content)) !== null) {
         const lineNumber = getLineNumber(match.index) + 1; // Convert to 1-based
-        const meta = match[2].trim(); // Optional metadata after language
+        const meta = match[2] ? match[2].trim() : ''; // Optional metadata after language
         blocks.push({
             fullMatch: match[0],
             lang: match[1],
@@ -181,6 +181,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         ts: '.ts',
         typescript: '.ts',
         tsx: '.tsx',
+        json: '.json',
     };
 
     // For reactHooks wrapper, use .tsx extension to properly handle JSX
@@ -195,6 +196,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         ts: 'typescript',
         typescript: 'typescript',
         tsx: 'typescript',
+        json: 'json',
     };
 
     // Auto-detect TypeScript syntax even in jsx/js blocks
@@ -260,7 +262,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         return result;
     } catch (error) {
         // If wrapper metadata specified, use it
-        if (metadata.wrapper) {
+        if (metadata.wrapper && normalizedLang !== 'json') {
             const wrapResult = applyWrapper(codeToFormat, lang, metadata.wrapper);
             if (!wrapResult) {
                 const preview = getSnippetPreview(code);

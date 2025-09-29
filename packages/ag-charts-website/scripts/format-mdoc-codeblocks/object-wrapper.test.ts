@@ -100,6 +100,26 @@ describe('mdoc object wrapper formatting', () => {
         expect(formatted).toBe(expected);
     });
 
+    it('formats json code blocks using prettier without wrappers', async () => {
+        const input = ['```json', '{"properties":{"name":"United Kingdom"}}', '```', ''].join('\n');
+
+        const expected = [
+            '```json',
+            '{',
+            '    "properties": {',
+            '        "name": "United Kingdom"',
+            '    }',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
+    });
+
     it('continues to support doc shorthand snippets via the object wrapper pipeline', async () => {
         const input = ['```ts wrapper="docShorthand"', "fill: '#5C6BC0',", 'cornerRadius: 3', '};', '```', ''].join(
             '\n'
