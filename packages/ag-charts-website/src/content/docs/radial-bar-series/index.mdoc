@@ -16,7 +16,7 @@ series: [
     { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'software', angleName: 'Software' },
     { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'hardware', angleName: 'Hardware' },
     { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'services', angleName: 'Services' },
-],
+]
 ```
 
 In this configuration:
@@ -39,7 +39,7 @@ series: [
     { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'software', stacked: true },
     { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'hardware', stacked: true },
     { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'services', stacked: true },
-],
+]
 ```
 
 ## Customisation
@@ -53,7 +53,7 @@ The inner radius can be used to create a 'donut' effect.
 This is changed via the `innerRadiusRatio` option on the Radius Category Axis.
 
 ```js wrapper="object"
-axes: [{ type: 'angle-number' }, { type: 'radius-category', innerRadiusRatio: 0.3 }],
+axes: [{ type: 'angle-number' }, { type: 'radius-category', innerRadiusRatio: 0.3 }]
 ```
 
 Any value between `0` and `1` will set the inner radius as a proportion of the overall radius.
@@ -71,7 +71,7 @@ The following options are used to control the padding between different elements
 axes: [
     { type: 'angle-number', groupPaddingInner: 0.5, paddingInner: 0.5 },
     { type: 'radius-category', groupPaddingInner: 0.5, paddingInner: 0.5, paddingOuter: 0.25 },
-],
+]
 ```
 
 ### Axis Label Orientation
@@ -95,7 +95,7 @@ axes: [
         },
     },
     { type: 'radius-category' },
-],
+]
 ```
 
 ### Axis Angles
@@ -115,7 +115,7 @@ axes: [
         type: 'radius-category',
         positionAngle: 270, //equivalent to -90
     },
-],
+]
 ```
 
 ## API Reference

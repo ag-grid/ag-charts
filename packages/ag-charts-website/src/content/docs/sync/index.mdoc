@@ -14,7 +14,7 @@ Enable chart synchronization by configuring the `sync` option on at least two ch
 ```js wrapper="object"
 sync: {
     enabled: true,
-},
+}
 ```
 
 In the above example:
@@ -37,7 +37,7 @@ Synchronize the axis domain of multiple charts, to ensure they all show the same
 sync: {
     axes: 'y', // Options are `x`, `y`, `xy`
     nodeInteraction: false,
-},
+}
 ```
 
 In the above example:
@@ -66,7 +66,7 @@ This synchronisation is enabled by default. To disable, set `nodeInteraction` to
 ```js wrapper="object"
 sync: {
     nodeInteraction: false,
-},
+}
 ```
 
 {% note %}
@@ -86,7 +86,7 @@ Disable automatic zoom synchronization to manage zoom levels independently.
 ```js wrapper="object"
 sync: {
     zoom: false,
-},
+}
 ```
 
 ## Synchronization Groups
@@ -98,7 +98,7 @@ Use `groupId` to synchronize charts within the same group, supporting multiple i
 ```js wrapper="object"
 sync: {
     groupId: 'Group 1',
-},
+}
 ```
 
 In the above example:
