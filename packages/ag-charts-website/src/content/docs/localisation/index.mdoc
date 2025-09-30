@@ -258,9 +258,9 @@ const App = () => {
 
 {% tabItem id="React I18Next" label="React I18Next" %}
 
-```js
+```tsx
 import i18next from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
 
 i18next.use(initReactI18next).init({
     lng: 'fr',
@@ -274,7 +274,7 @@ i18next.use(initReactI18next).init({
 });
 
 const MyChart = () => {
-     const { i18n, t } = useTranslation();
+    const { i18n, t } = useTranslation();
 
     const options = {
         // ...
