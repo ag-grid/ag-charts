@@ -3,7 +3,7 @@ import { getWindow } from 'ag-charts-core';
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { ArrayUpdater } from './arrayUpdater';
-import { type CachedData } from './caching';
+import { type CachedData, canReuseCachedData } from './caching';
 import type { DataChangeDescriptor } from './dataChangeDescriptor';
 import {
     DataModel,
@@ -107,9 +107,22 @@ export class DataController {
                 sourcesForProcess.set(id, preview ?? dataRef.data);
             }
 
-            const cachedItem = cachedData?.find(
-                (item) => item.dataRef === dataRef && this.arraysEqual(ids, item.ids) && this.optsEqual(item.opts, opts)
-            );
+            // Optimized cache lookup with fast path for incremental updates
+            const cachedItem = cachedData?.find((item) => {
+                // Quick reference checks first
+                if (item.dataRef !== dataRef) return false;
+                if (!this.arraysEqual(ids, item.ids)) return false;
+
+                // Fast path: For incremental updates (transactions pending), skip expensive opts check
+                // Opts don't change between incremental updates, so we can safely assume they match
+                if (dataRef.hasPendingTransactions()) {
+                    return true;
+                }
+
+                // Slow path: For new requests (no pending transactions), do full opts comparison
+                // This uses the optimized comparison from caching.ts instead of JSON.stringify
+                return canReuseCachedData(item, dataRef, ids, opts);
+            });
 
             let dataModel: DataModel<any, string> | undefined = cachedItem?.dataModel;
             let processedData: UngroupedData<any> | undefined = cachedItem?.processedData;
@@ -262,14 +275,6 @@ export class DataController {
             if (a[i] !== b[i]) return false;
         }
         return true;
-    }
-
-    private optsEqual(a: any, b: any): boolean {
-        try {
-            return JSON.stringify(a) === JSON.stringify(b);
-        } catch {
-            return false;
-        }
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {

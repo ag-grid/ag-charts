@@ -70,11 +70,13 @@ describe('GroupUpdater', () => {
 
     it('moves updated datum to matching group when keys change', () => {
         const groups = [createGroup(['A'], [0, 1]), createGroup(['B'], [2])];
-        const changes = DataChangeDescriptorBuilder.create()
-            .addUpdate(1, { category: 'A' }, { category: 'B' })
-            .build();
+        const changes = DataChangeDescriptorBuilder.create().addUpdate(1, { category: 'A' }, { category: 'B' }).build();
 
-        GroupUpdater.updateGroups(groups, changes, defaultOptions(deriveOriginalLength(groups)));
+        // Add groupingFn to enable merging behavior (multi-scope or custom grouping merges by key)
+        GroupUpdater.updateGroups(groups, changes, {
+            ...defaultOptions(deriveOriginalLength(groups)),
+            groupingFn: (keys: any[]) => keys, // Identity function to enable merging
+        });
 
         expect(groups.find((g) => g.keys[0] === 'A')?.datumIndices[0]).toEqual([0]);
         expect(groups.find((g) => g.keys[0] === 'B')?.datumIndices[0]).toEqual([1, 2]);
@@ -87,7 +89,11 @@ describe('GroupUpdater', () => {
             .addInsertion(3, { category: 'B' })
             .build();
 
-        GroupUpdater.updateGroups(groups, changes, defaultOptions(deriveOriginalLength(groups)));
+        // Add groupingFn to enable merging behavior (multi-scope or custom grouping merges by key)
+        GroupUpdater.updateGroups(groups, changes, {
+            ...defaultOptions(deriveOriginalLength(groups)),
+            groupingFn: (keys: any[]) => keys, // Identity function to enable merging
+        });
 
         const groupA = groups.find((g) => g.keys[0] === 'A');
         const groupB = groups.find((g) => g.keys[0] === 'B');

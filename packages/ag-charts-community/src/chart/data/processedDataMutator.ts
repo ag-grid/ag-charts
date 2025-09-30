@@ -220,7 +220,7 @@ export class ProcessedDataMutator {
 
             this.invalidateCaches(processedData, affectedColumns, affectedKeys);
             this.updateProcessedDataMetadata(processedData, changes);
-            this.updateDomainRanges(processedData, affectedColumns, affectedKeys);
+            this.updateDomainRanges(processedData, changes, affectedColumns, affectedKeys);
         } catch (error) {
             const message = `ProcessedDataMutator failed: ${error instanceof Error ? error.message : String(error)}`;
             throw new Error(message);
@@ -242,8 +242,9 @@ export class ProcessedDataMutator {
             throw new Error('ProcessedData keys count does not match key definitions.');
         }
 
-        if (processedData.type === 'grouped' && !Array.isArray(processedData.groups)) {
-            throw new Error('Grouped ProcessedData must include groups.');
+        if (processedData.type === 'grouped' && !processedData.groups) {
+            // Initialize groups array if not present for grouped data
+            processedData.groups = [];
         }
     }
 
@@ -266,14 +267,24 @@ export class ProcessedDataMutator {
         // Store the first key definition for diff generation
         this.currentKeyDef = keyDefs.length > 0 ? keyDefs[0] : null;
 
+        // Track only columns and keys that are actually affected by changes
+        // This avoids unnecessary domain recalculations
         const affectedColumns = new Set<number>();
-        for (let i = 0; i < processedData.columns.length; i++) {
-            affectedColumns.add(i);
-        }
-
         const affectedKeys = new Set<number>();
-        for (let i = 0; i < processedData.keys.length; i++) {
-            affectedKeys.add(i);
+
+        // If there are any changes, all keys are potentially affected
+        // (since key values determine data identity and grouping)
+        const hasChanges =
+            changes.metadata.totalRemoved > 0 ||
+            changes.metadata.totalInserted > 0 ||
+            changes.metadata.totalUpdated > 0;
+
+        if (hasChanges) {
+            for (let i = 0; i < processedData.keys.length; i++) {
+                affectedKeys.add(i);
+            }
+            // For columns, we'll mark them as affected after we process values
+            // This allows us to skip domain recalculation for unchanged columns
         }
 
         const columnCount = Math.min(valueDefs.length, processedData.columns.length);
@@ -313,6 +324,13 @@ export class ProcessedDataMutator {
 
         for (const { datum, index } of oldEntries) {
             if (datum == null || index < 0) continue;
+
+            // Mark all columns as affected for this removal/update
+            // This ensures cache invalidation works correctly
+            for (let valueIndex = 0; valueIndex < columnCount; valueIndex++) {
+                affectedColumns.add(valueIndex);
+            }
+
             partialValidDataCount += this.adjustOldDatum(
                 datum,
                 index,
@@ -344,6 +362,8 @@ export class ProcessedDataMutator {
             for (let valueIndex = 0; valueIndex < columnCount; valueIndex++) {
                 const valueResult = valueResults[valueIndex];
                 if (!valueResult) continue;
+                // Mark this column as affected since we're processing a new/updated value for it
+                affectedColumns.add(valueIndex);
                 if (!invalidKey && !valueResult.valid) {
                     partialValidDataCount += 1;
                 }
@@ -903,10 +923,11 @@ export class ProcessedDataMutator {
 
     /**
      * Update domain ranges for affected columns and keys after mutations.
-     * Recalculates domain ranges based on the mutated data instead of clearing them.
+     * Uses incremental updates when possible to avoid O(n) recalculation.
      */
     private updateDomainRanges(
         processedData: ProcessedData,
+        changes: DataChangeDescriptor,
         affectedColumns: Set<number>,
         affectedKeys: Set<number>
     ): void {
@@ -914,8 +935,8 @@ export class ProcessedDataMutator {
             return;
         }
 
-        this.updateValueDomains(processedData, affectedColumns);
-        this.updateKeyDomains(processedData, affectedKeys);
+        this.updateValueDomains(processedData, changes, affectedColumns);
+        this.updateKeyDomains(processedData, changes, affectedKeys);
 
         if (processedData.type === 'grouped' && processedData.domain.groups) {
             processedData.domain.groups = (processedData.groups ?? []).map((group: ProcessedGroup) => group.keys);
@@ -928,8 +949,15 @@ export class ProcessedDataMutator {
 
     /**
      * Update domain.values for affected value columns.
+     * Uses incremental extension when possible to avoid O(n) iteration.
+     * The extendDomainRange method handles the decision of whether to use
+     * incremental or full recalculation based on data type and changes.
      */
-    private updateValueDomains(processedData: ProcessedData, affectedColumns: Set<number>): void {
+    private updateValueDomains(
+        processedData: ProcessedData,
+        changes: DataChangeDescriptor,
+        affectedColumns: Set<number>
+    ): void {
         const valueDomains = processedData.domain?.values;
         if (!valueDomains) return;
 
@@ -943,15 +971,31 @@ export class ProcessedDataMutator {
             const column = processedData.columns[columnIndex];
             const def = valueDefs[columnIndex];
             const isDiscrete = def?.valueType === 'category';
+            const existingDomain = valueDomains[columnIndex];
 
-            valueDomains[columnIndex] = this.calculateDomainRange(column, !!isDiscrete);
+            // Always use extendDomainRange - it will decide whether to use
+            // incremental or full recalc based on data type and changes
+            valueDomains[columnIndex] = this.extendDomainRange(
+                existingDomain ?? [],
+                column,
+                changes,
+                columnIndex,
+                !!isDiscrete
+            );
         }
     }
 
     /**
      * Update domain.keys for affected key arrays.
+     * Uses incremental extension when possible to avoid O(n) iteration.
+     * The extendDomainRange method handles the decision of whether to use
+     * incremental or full recalculation based on data type and changes.
      */
-    private updateKeyDomains(processedData: ProcessedData, affectedKeys: Set<number>): void {
+    private updateKeyDomains(
+        processedData: ProcessedData,
+        changes: DataChangeDescriptor,
+        affectedKeys: Set<number>
+    ): void {
         const keyDomains = processedData.domain?.keys;
         if (!keyDomains) return;
 
@@ -970,8 +1014,93 @@ export class ProcessedDataMutator {
 
             const def = keyDefs[keyIndex];
             const isDiscrete = def?.valueType ? def.valueType === 'category' : true;
+            const existingDomain = keyDomains[keyIndex];
 
-            keyDomains[keyIndex] = this.calculateDomainRange(allKeyValues, !!isDiscrete);
+            // Always use extendDomainRange - it will decide whether to use
+            // incremental or full recalc based on data type and changes
+            keyDomains[keyIndex] = this.extendDomainRange(
+                existingDomain ?? [],
+                allKeyValues,
+                changes,
+                keyIndex,
+                !!isDiscrete
+            );
+        }
+    }
+
+    /**
+     * Extend an existing domain with only the new/updated values.
+     * For continuous domains: O(k) where k = number of changes (or O(n) if removals might affect min/max)
+     * For discrete domains: O(n) full recalc (necessary for correctness with removals/order)
+     *
+     * This method is called AFTER columns have been updated.
+     */
+    private extendDomainRange(
+        existingDomain: any[],
+        allValues: any[],
+        changes: DataChangeDescriptor,
+        _columnIndex: number,
+        isDiscrete: boolean
+    ): any[] {
+        if (isDiscrete) {
+            // For discrete domains, must rebuild from actual data because:
+            // 1. We can't track which specific values were removed without data scan
+            // 2. Order matters for categorical data (domain should reflect data order)
+            // 3. Discrete domains are typically small (10-100 categories), so O(n) is acceptable
+            return this.calculateDomainRange(allValues, true);
+        } else {
+            // For continuous domains, we can be smarter about incremental updates
+
+            // Check if column is now empty
+            if (allValues.length === 0) {
+                return [];
+            }
+
+            // If there are removals, we need full recalculation because
+            // the removed values might have been the min or max
+            if (changes.metadata.totalRemoved > 0) {
+                return this.calculateDomainRange(allValues, false);
+            }
+
+            // Insertions/updates only: can extend incrementally (O(k))
+            let [min, max] = existingDomain as [number | Date, number | Date];
+
+            // Handle uninitialized domains
+            if (min === Infinity || max === -Infinity) {
+                min = Infinity as any;
+                max = -Infinity as any;
+            }
+
+            // Extend with only the new/updated values (O(k))
+            for (const insertion of changes.inserted) {
+                const value = allValues[insertion.index];
+                if (value != null && (typeof value === 'number' || value instanceof Date)) {
+                    if (min === Infinity || value < min) {
+                        min = value;
+                    }
+                    if (max === -Infinity || value > max) {
+                        max = value;
+                    }
+                }
+            }
+            for (const update of changes.updated) {
+                const value = allValues[update.index];
+                if (value != null && (typeof value === 'number' || value instanceof Date)) {
+                    if (min === Infinity || value < min) {
+                        min = value;
+                    }
+                    if (max === -Infinity || value > max) {
+                        max = value;
+                    }
+                }
+            }
+
+            // Return empty array if no valid values found
+            if (min === Infinity || max === -Infinity) {
+                return [];
+            }
+
+            return [min, max];
         }
     }
 

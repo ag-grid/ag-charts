@@ -2,13 +2,13 @@ import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
+import { AggregationUpdater } from './aggregationUpdater';
 import { ArrayUpdater } from './arrayUpdater';
 import type { DataChangeDescriptor } from './dataChangeDescriptor';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 import type { DataRef } from './dataRef';
-import { ProcessedDataMutator } from './processedDataMutator';
 import { GroupUpdater } from './groupUpdater';
-import { AggregationUpdater } from './aggregationUpdater';
+import { ProcessedDataMutator } from './processedDataMutator';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
 import { TransactionAnalyzer } from './transactionAnalyzer';
@@ -1215,7 +1215,9 @@ export class DataModel<
         const keyDefs = processedData.defs.keys as InternalDatumPropertyDefinition<any>[] | undefined;
 
         if (!keyDefs || keyDefs.length === 0) {
-            Logger.warnOnce('Incremental group updates require at least one key definition. Falling back to full regroup.');
+            Logger.warnOnce(
+                'Incremental group updates require at least one key definition. Falling back to full regroup.'
+            );
             return false;
         }
 
@@ -1233,6 +1235,7 @@ export class DataModel<
                 scopeId,
                 scopes,
                 originalLength,
+                groupingFn,
             });
 
             if (this.aggregates.length > 0) {

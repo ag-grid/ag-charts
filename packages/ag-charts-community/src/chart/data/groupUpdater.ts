@@ -8,6 +8,7 @@ export interface GroupUpdateOptions {
     scopeId: string;
     scopes: Set<string>;
     originalLength: number;
+    groupingFn?: (keys: any[]) => any[];
 }
 
 type ColumnMask = boolean[];
@@ -128,11 +129,7 @@ export class GroupUpdater {
         }
     }
 
-    private static createColumnMask(
-        columnCount: number,
-        columnScopes: Set<string>[],
-        scopeId: string
-    ): ColumnMask {
+    private static createColumnMask(columnCount: number, columnScopes: Set<string>[], scopeId: string): ColumnMask {
         const mask: boolean[] = [];
         for (let columnIdx = 0; columnIdx < columnCount; columnIdx++) {
             const scopes = columnScopes[columnIdx];
@@ -155,7 +152,7 @@ export class GroupUpdater {
         const insertions = [...changes.inserted].sort((a, b) => a.index - b.index);
         let placeholderId = 0;
         for (const insertion of insertions) {
-            const placeholder = -(++placeholderId);
+            const placeholder = -++placeholderId;
             placeholderMeta.set(placeholder, { datum: insertion.datum });
 
             const targetIndex = Math.min(Math.max(insertion.index, 0), working.length);
@@ -231,12 +228,20 @@ export class GroupUpdater {
         options: GroupUpdateOptions,
         columnMask: ColumnMask
     ): DataGroup {
-        const key = GroupUpdater.keyId(keys);
-        const existing = groupsByKey.get(key);
-        if (existing) {
-            return existing;
+        // Match the full reprocessing behavior from dataModel.ts groupData():
+        // Only merge items by key when we have multi-scope data or a custom grouping function.
+        // For single-scope data without custom grouping, each datum gets its own group.
+        const shouldMergeByKey = options.scopes.size !== 1 || options.groupingFn != null;
+
+        if (shouldMergeByKey) {
+            const key = GroupUpdater.keyId(keys);
+            const existing = groupsByKey.get(key);
+            if (existing) {
+                return existing;
+            }
         }
 
+        // Create new group (always for single-scope, or when key doesn't exist for multi-scope)
         const group: DataGroup = {
             keys: [...keys],
             datumIndices: [],
@@ -252,7 +257,12 @@ export class GroupUpdater {
         }
 
         groups.push(group);
-        groupsByKey.set(key, group);
+
+        // Only register in groupsByKey if we're using it for merging
+        if (shouldMergeByKey) {
+            groupsByKey.set(GroupUpdater.keyId(keys), group);
+        }
+
         return group;
     }
 
@@ -354,12 +364,7 @@ export class GroupUpdater {
             return true;
         }
 
-        if (
-            a != null &&
-            b != null &&
-            typeof a === 'object' &&
-            typeof b === 'object'
-        ) {
+        if (a != null && b != null && typeof a === 'object' && typeof b === 'object') {
             try {
                 return JSON.stringify(a) === JSON.stringify(b);
             } catch {
