@@ -212,10 +212,10 @@ export class DataController {
             let preview: unknown[] | undefined;
 
             if (dataRef.hasPendingTransactions()) {
+                // When multiple series share the same dataRef, use a single source entry
+                // to allow TransactionAnalyzer to handle the scenario (it only supports single-source)
                 const analyzerSources = new Map<string, unknown[]>();
-                for (const id of ids) {
-                    analyzerSources.set(id, dataRef.data);
-                }
+                analyzerSources.set(ids[0], dataRef.data);
                 descriptor = TransactionAnalyzer.analyze(dataRef, analyzerSources);
                 if (descriptor) {
                     preview = ArrayUpdater.applyChangesToCopy(dataRef.data, descriptor, (datum) => datum);

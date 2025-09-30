@@ -70,14 +70,9 @@ describe('AggregationUpdater', () => {
     });
 
     it('recomputes aggregations for groups affected by key updates', () => {
-        const groups = [
-            createGroup('A', [0]),
-            createGroup('B', [1, 2]),
-        ];
+        const groups = [createGroup('A', [0]), createGroup('B', [1, 2])];
         const columns = [[10, 25, 30]];
-        const changes = DataChangeDescriptorBuilder.create()
-            .addUpdate(1, { key: 'A' }, { key: 'B' })
-            .build();
+        const changes = DataChangeDescriptorBuilder.create().addUpdate(1, { key: 'A' }, { key: 'B' }).build();
 
         AggregationUpdater.updateAggregations(
             groups,
