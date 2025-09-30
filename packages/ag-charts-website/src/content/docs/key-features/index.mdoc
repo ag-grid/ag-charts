@@ -302,16 +302,20 @@ Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is r
 [Tooltip modes](./tooltips/#tooltip-modes) include a shared tooltip which includes the values for all series, and a compact tooltip for smaller charts.
 
 ```js format="snippet"
-tooltip: {
-    mode: 'shared', // or 'single' or 'compact'
+{
+    tooltip: {
+        mode: 'shared', // or 'single' or 'compact'
+    },
 }
 ```
 
 Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
 
 ```ts format="snippet"
-renderer: (params) => {
-    return '<div class="custom-tooltip">' + params.datum[params.xKey] + '</div>';
+tooltip: {
+    renderer: (params) => {
+        return '<div class="custom-tooltip">' + params.datum[params.xKey] + '</div>';
+    },
 }
 ```
 
@@ -322,14 +326,16 @@ Items and Series are [highlighted](./series-highlighting/) when hovered.
 Use `highlight` options to [customise](./series-highlighting/#customisation) highlighted and unhighlighted items and series:
 
 ```js format="snippet"
-highlight: {
-    // Attributes that apply to the highlighted item only.
-    highlightedItem: {
-        strokeWidth: 5,
-    },
-    // Attributes that apply to all other series.
-    unhighlightedSeries: {
-        opacity: 0.2,
+{
+    highlight: {
+        // Attributes that apply to the highlighted item only.
+        highlightedItem: {
+            strokeWidth: 5,
+        },
+        // Attributes that apply to all other series.
+        unhighlightedSeries: {
+            opacity: 0.2,
+        },
     },
 }
 ```
@@ -391,12 +397,14 @@ function restoreState() {
 You can also use the `initialState` property to set the [initial state](./api-state/#initial-state) of the chart when it loads.
 
 ```js format="snippet"
-initialState: {
-    zoom: {
-        rangeX: {
-            start: {
-                __type: 'date',
-                value: new Date('2021-01-01').getTime(),
+{
+    initialState: {
+        zoom: {
+            rangeX: {
+                start: {
+                    __type: 'date',
+                    value: new Date('2021-01-01').getTime(),
+                },
             },
         },
     },
@@ -425,8 +433,10 @@ In the above example you can [Zoom](./zoom/) by scrolling over the chart, or by 
 To enable [Zooming](./zoom/), set the `zoom` property to `true`.
 
 ```js format="snippet"
-zoom: {
-    enabled: true,
+{
+    zoom: {
+        enabled: true,
+    },
 }
 ```
 
@@ -435,9 +445,11 @@ See the [Zoom Options](/options/#reference-AgChartOptions-zoom) for further cust
 The y-axis will automatically adjust to fit the visible items. This is controlled by the `autoScaling` option.
 
 ```js format="snippet"
-zoom: {
-    autoScaling: {
-        enabled: true,
+{
+    zoom: {
+        autoScaling: {
+            enabled: true,
+        },
     },
 }
 ```
@@ -449,10 +461,12 @@ Zooming and Panning can be done with the [Navigator](./navigator/).
 A [Mini Chart](./navigator/#mini-chart) can also be displayed within the Navigator to give additional context.
 
 ```js format="snippet"
-navigator: {
-    enabled: true,
-    miniChart: {
+{
+    navigator: {
         enabled: true,
+        miniChart: {
+            enabled: true,
+        },
     },
 }
 ```
@@ -462,23 +476,25 @@ navigator: {
 The [Context Menu](./context-menu/) provides [Zoom](./zoom/) and [Download](./api-download/) functionality, as well as allowing element specific [custom actions](./context-menu/#custom-actions).
 
 ```js format="snippet"
-contextMenu: {
-    enabled: true,
-    items: [
-        {
-            showOn: 'always',
-            label: 'Say hello',
-            action: () => log('Hello world!'),
-        },
-        'separator',
-        {
-            showOn: 'series-node',
-            label: 'Say hello to a node',
-            action: ({ datum, yKey }) => {
-                console.log(`Hello ${yKey} in ${datum.month}!`);
+{
+    contextMenu: {
+        enabled: true,
+        items: [
+            {
+                showOn: 'always',
+                label: 'Say hello',
+                action: () => log('Hello world!'),
             },
-        },
-    ],
+            'separator',
+            {
+                showOn: 'series-node',
+                label: 'Say hello to a node',
+                action: ({ datum, yKey }) => {
+                    console.log(`Hello ${yKey} in ${datum.month}!`);
+                },
+            },
+        ],
+    },
 }
 ```
 
@@ -570,35 +586,37 @@ The [Map Series](./maps/) types enable visualising geographic data in different 
 To create a map chart, provide a [Map Topology](./map-topology/) in [GeoJSON](https://geojson.org/) format and link the correct property in the `properties` key:
 
 ```js format="snippet"
-series: [
-    {
-        type: 'map-shape',
-        topology: {
-            type: 'FeatureCollection',
-            features: [
-                {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: [...],
-                    },
-                    properties: {
-                        name: 'United Kingdom',
-                        code: 'GB'
+{
+    series: [
+        {
+            type: 'map-shape',
+            topology: {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Polygon',
+                            coordinates: [...],
+                        },
+                        properties: {
+                            name: 'United Kingdom',
+                            code: 'GB'
+                        }
                     }
-                }
+                ],
+                // ...
+            },
+            data: [
+                { country: 'United Kingdom', population: 67330000 },
+                { country: 'France', population: 67500000 },
+                // ...
             ],
-            // ...
-        },
-        data: [
-            { country: 'United Kingdom', population: 67330000 },
-            { country: 'France', population: 67500000 },
-            // ...
-        ],
-        idKey: 'country',
-        topologyIdKey: 'name' //default value
-    }
-]
+            idKey: 'country',
+            topologyIdKey: 'name' //default value
+        }
+    ]
+}
 ```
 
 ### Gauges {% enterpriseIcon /%}

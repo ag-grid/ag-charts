@@ -308,11 +308,11 @@ export class AppComponent {
 
 Chart options are set as an `ag-charts` component attribute.
 
-```ts format="snippet"
-    template: `<ag-charts
- style="height: 100%"
- [options]="chartOptions">
-</ag-charts>`
+```tsx
+@Component({
+    template: ` <ag-charts style="height: 100%" [options]="chartOptions"></ag-charts> `,
+})
+class AppComponent {}
 ```
 
 {% /if %}
