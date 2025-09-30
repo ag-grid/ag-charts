@@ -7,6 +7,7 @@
     "importOrderParserPlugins": ["typescript", "decorators-legacy"],
     "importOrderSeparation": true,
     "importOrderSortSpecifiers": true,
+    "embeddedLanguageFormatting": "off",
     "overrides": [
         {
             "files": [
@@ -35,14 +36,12 @@
             "files": "*.mdoc",
             "options": {
                 "parser": "markdown",
-                "embeddedLanguageFormatting": "auto"
             }
         },
         {
             "files": "*.md",
             "options": {
                 "parser": "markdown",
-                "embeddedLanguageFormatting": "auto"
             }
         }
     ],

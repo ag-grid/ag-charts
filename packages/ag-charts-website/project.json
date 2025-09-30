@@ -77,7 +77,7 @@
         "{projectRoot}/scripts/format-mdoc-codeblocks/**/*.ts",
         "{projectRoot}/.prettierrc.json"
       ],
-      "outputs": ["{projectRoot}/src/**/*.mdoc"]
+      "outputs": []
     },
     "format:mdoc:check": {
       "command": "tsx scripts/format-mdoc-codeblocks.ts --check || echo \"Run this command to fix formatting errors:\\nnx format:mdoc ag-charts-website\"",
