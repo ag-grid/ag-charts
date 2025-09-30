@@ -576,30 +576,236 @@ describe('mdoc object wrapper formatting', () => {
         expect(formatted).toBe(expected);
     });
 
-    it('documents limitation: code with placeholder comments may not format perfectly', async () => {
-        // This test documents a known limitation: When code contains placeholder
-        // comments like `// ...`, Prettier may not add trailing commas because it
-        // treats the code as incomplete. This is expected Prettier behavior.
+    it('formats code with placeholder comments correctly', async () => {
+        // Code with placeholder comments like `// ...` is now formatted correctly.
+        // Previously, a containsDocumentationPlaceholders check prevented formatting,
+        // but this was removed as it masked genuine syntax errors.
         const input = [
             '```js format="snippet"',
             'series: [',
             '    {',
             '        // ...',
             '        interpolation: {',
-            "            type: 'smooth'",
+            "            type: 'smooth'", // Missing trailing comma
             '        },',
             '    },',
-            '],',
+            '],', // Extra trailing comma
             '```',
             '',
         ].join('\n');
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        // Currently, Prettier doesn't modify this code because the `// ...` comment
-        // makes it look incomplete. The trailing comma on `],` remains.
-        // This requires manual fixing in the source files.
-        expect(changed).toBe(false);
-        expect(formatted).toBe(input);
+        const expected = [
+            '```js format="snippet"',
+            'series: [',
+            '    {',
+            '        // ...',
+            '        interpolation: {',
+            "            type: 'smooth',", // Trailing comma added
+            '        },',
+            '    },',
+            ']', // Trailing comma removed
+            '```',
+            '',
+        ].join('\n');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
+    });
+
+    it('formats code with block comment placeholders', async () => {
+        const input = [
+            '```js format="snippet"',
+            'marker: {',
+            '    /* ... */',
+            '    fill: {',
+            "        type: 'gradient'",
+            '    }',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        const expected = [
+            '```js format="snippet"',
+            'marker: {',
+            '    /* ... */',
+            '    fill: {',
+            "        type: 'gradient',",
+            '    },',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
+    });
+
+    it('formats code with regular comments (not placeholders)', async () => {
+        const input = [
+            '```js format="snippet"',
+            'axes: [',
+            '    {',
+            '        // This is a regular comment',
+            "        type: 'number'",
+            '    }',
+            ']',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        const expected = [
+            '```js format="snippet"',
+            'axes: [',
+            '    {',
+            '        // This is a regular comment',
+            "        type: 'number',",
+            '    },',
+            ']',
+            '```',
+            '',
+        ].join('\n');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
+    });
+});
+
+describe('previously masked syntax errors', () => {
+    it('throws error for array with missing object wrapper (invalid syntax)', async () => {
+        // This pattern was in fills.mdoc - array without proper object structure
+        // Previously masked by containsDocumentationPlaceholders check
+        const input = [
+            '```js format="snippet"',
+            'series: [',
+            '    // ...',
+            '    fill: {',
+            "        type: 'gradient'",
+            '    }',
+            ']',
+            '```',
+            '',
+        ].join('\n');
+
+        // This is invalid syntax - fill property needs to be inside an object
+        await expect(processMdocContent(input, 'virtual.mdoc')).rejects.toThrow(/Unexpected token/);
+    });
+
+    it('throws error for semicolon inside object (invalid syntax)', async () => {
+        // This pattern was in markers.mdoc and map-topology.mdoc
+        // Previously masked by containsDocumentationPlaceholders check
+        const input = [
+            '```js format="snippet"',
+            '{',
+            '    series: [',
+            '        {',
+            '            marker: {',
+            "                shape: 'square'",
+            '            }',
+            '        }',
+            '    ];', // Invalid - semicolon inside object
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        // This is invalid syntax - array closing with semicolon inside object
+        await expect(processMdocContent(input, 'virtual.mdoc')).rejects.toThrow(/Unexpected token/);
+    });
+
+    it('throws error for trailing comma after array in statement (invalid syntax)', async () => {
+        // This pattern was in sunburst-series.mdoc
+        // Previously masked by containsDocumentationPlaceholders check
+        const input = [
+            '```js format="snippet"',
+            'let data = [',
+            '    {',
+            "        name: 'Item 1',",
+            '        children: []',
+            '    }',
+            '],', // Invalid - trailing comma after array in let statement
+            '```',
+            '',
+        ].join('\n');
+
+        // This is invalid syntax - trailing comma after array closing in let statement
+        await expect(processMdocContent(input, 'virtual.mdoc')).rejects.toThrow(/Unexpected token/);
+    });
+
+    it('formats correctly fixed version of array with object wrapper', async () => {
+        // This is the CORRECT version of the fills.mdoc pattern after manual fixing
+        const input = [
+            '```js format="snippet"',
+            'series: [',
+            '    {',
+            '        // ...',
+            '        fill: {',
+            "            type: 'gradient'",
+            '        }',
+            '    }',
+            ']',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        const expected = [
+            '```js format="snippet"',
+            'series: [',
+            '    {',
+            '        // ...',
+            '        fill: {',
+            "            type: 'gradient',",
+            '        },',
+            '    },',
+            ']',
+            '```',
+            '',
+        ].join('\n');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
+    });
+});
+
+describe('code that should not use format="snippet"', () => {
+    it('throws error for code with this keyword', async () => {
+        // Angular code with this.chartOptions cannot be formatted as snippet
+        const input = [
+            '```ts format="snippet"',
+            'this.chartOptions = {',
+            '    title: { text: "Chart" }',
+            '};',
+            '```',
+            '',
+        ].join('\n');
+
+        await expect(processMdocContent(input, 'virtual.mdoc')).rejects.toThrow(/expected/i);
+    });
+
+    it('throws error for code with top-level await', async () => {
+        // Top-level await is not valid in snippet context
+        const input = ['```js format="snippet"', 'await someFunction();', '```', ''].join('\n');
+
+        await expect(processMdocContent(input, 'virtual.mdoc')).rejects.toThrow();
+    });
+
+    it('formats complete JSX without format metadata', async () => {
+        // Complete JSX components should not use format="snippet"
+        const input = ['```jsx', 'const MyComponent = () => {', '    return <div>Hello</div>;', '};', '```', ''].join(
+            '\n'
+        );
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(false); // Already properly formatted
+        expect(formatted).toContain('const MyComponent = () => {');
     });
 });
