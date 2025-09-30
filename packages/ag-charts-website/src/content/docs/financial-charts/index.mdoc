@@ -27,7 +27,7 @@ AgCharts.createFinancialChart(options);
 
 {% if isFramework("react") %}
 
-```jsx wrapper="reactHooks"
+```jsx format="reactHooks"
 const [options, setOptions] = useState({
     data: getData(),
 });
@@ -60,7 +60,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js wrapper="object"
+```js format="object"
 template: `<ag-financial-charts:options="options"/>`,
 components: {
     'ag-financial-charts': AgFinancialCharts,

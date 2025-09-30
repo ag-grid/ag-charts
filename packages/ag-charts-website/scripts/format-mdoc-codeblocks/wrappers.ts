@@ -1,9 +1,9 @@
 /**
- * Wrapper strategies for formatting partial code snippets.
+ * Format strategies for formatting partial code snippets.
  * Each strategy wraps code to make it valid JS/TS for Prettier, then unwraps after formatting.
  *
- * Usage: Add wrapper="strategyName" metadata to code blocks that need wrapping.
- * Example: ```js wrapper="object"
+ * Usage: Add format="strategyName" metadata to code blocks that need wrapping.
+ * Example: ```js format="object"
  */
 
 export interface WrapStrategy {
@@ -232,8 +232,8 @@ const reactHooksStrategy: WrapStrategy = {
 };
 
 /**
- * Map of all available wrapper strategies.
- * Use the strategy name in code block metadata: ```js wrapper="object"
+ * Map of all available format strategies.
+ * Use the strategy name in code block metadata: ```js format="object"
  */
 export const wrapperStrategies: Record<string, WrapStrategy> = {
     object: objectStrategy,

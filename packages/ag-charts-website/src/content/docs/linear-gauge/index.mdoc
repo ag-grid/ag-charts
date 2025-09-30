@@ -33,7 +33,7 @@ AgCharts.createGauge(options);
 
 To create a Linear Gauge, use the `<AgGauge />` component with the type `linear-gauge`.
 
-```jsx wrapper="reactHooks"
+```jsx format="reactHooks"
 const [options, setOptions] = useState({
     type: 'linear-gauge',
     value: 80,
@@ -80,7 +80,7 @@ export class AppComponent {
 
 To create a Linear Gauge, use the `AgGauge` component with the type `linear-gauge`.
 
-```js wrapper="object"
+```js format="object"
 template: `<ag-gauge :options="options"/>`,
 components: {
     'ag-gauge': AgGauge,
@@ -114,7 +114,7 @@ In this configuration:
 
 To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
-```js wrapper="object"
+```js format="object"
 {
     direction: 'horizontal',
 }
@@ -126,7 +126,7 @@ To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
 {% chartExampleRunner title="Thickness" name="thickness" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     thickness: 100,
     bar: {
@@ -147,7 +147,7 @@ An label can be configured with the `label` property.
 
 {% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 300 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     label: {
         enabled: true,
@@ -174,7 +174,7 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
 
 {% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     segmentation: {
         enabled: true,
@@ -198,7 +198,7 @@ In this configuration:
 
 {% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     cornerRadius: 99,
     cornerMode: 'container',
@@ -218,7 +218,7 @@ Both the bar and scale can be displayed using a solid fill.
 
 {% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     scale: {
         fill: '#f5f6fa',
@@ -235,7 +235,7 @@ Multiple colours can be specified using the `fills` property.
 
 {% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     bar: {
         fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
@@ -255,7 +255,7 @@ The default behaviour is to space out the colours evenly. This can be customised
 
 {% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     bar: {
         fills: [
@@ -283,7 +283,7 @@ Gauges often display targets or thresholds to provide context to the displayed d
 
 {% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     targets: [
         {
@@ -303,7 +303,7 @@ In this configuration:
 
 {% chartExampleRunner title="Target Customisation" name="custom-targets" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     targets: [
         {
@@ -347,7 +347,7 @@ The Linear Gauge is used to create a Bullet Series.
 
 {% chartExampleRunner title="Bullet" name="bullet" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js wrapper="object"
+```js format="object"
 {
     type: "linear-gauge",
     //...

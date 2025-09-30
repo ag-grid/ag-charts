@@ -12,7 +12,7 @@ making it easier to gauge area-based trends.
 
 To create a Radar Area Series, use the `radar-area` series type.
 
-```js wrapper="object"
+```js format="object"
 series: [
     { type: 'radar-area', angleKey: 'department', radiusKey: 'quality', radiusName: `Quality` },
     { type: 'radar-area', angleKey: 'department', radiusKey: 'efficiency', radiusName: `Efficiency` },
@@ -38,7 +38,7 @@ For Polar Axes, there are two shape options:
 
 To switch to the `circle` shape, use the following `axes` configuration:
 
-```js wrapper="object"
+```js format="object"
 axes: [
     { type: 'angle-category', shape: 'circle' },
     { type: 'radius-number', shape: 'circle' },
@@ -57,7 +57,7 @@ To change Angle Axis Label orientation, use the `label.orientation` property wit
 
 The following configuration changes the orientation of the Axis Labels to `parallel` :
 
-```js wrapper="object"
+```js format="object"
 axes: [
     {
         type: 'angle-category',
@@ -75,7 +75,7 @@ axes: [
 
 Customise the Radius Axis Line position via `positionAngle` and Axis Label rotation using `label.rotation`:
 
-```js wrapper="object"
+```js format="object"
 axes: [
     { type: 'angle-category' },
     {

@@ -226,7 +226,7 @@ import { AgCharts } from 'ag-charts-react';
 
 ### Define Chart Data and Series
 
-```tsx wrapper="reactHooks"
+```tsx format="reactHooks"
 const ChartExample = () => {
     // Chart Options: Control & configure the chart
     const [chartOptions, setChartOptions] = useState({
@@ -251,7 +251,7 @@ const ChartExample = () => {
 
 Return the `AgCharts` component with the `chartOptions` as a prop:
 
-```jsx wrapper="reactHooks"
+```jsx format="reactHooks"
 return (
     // AgCharts component with options passed as prop
     <AgCharts options={chartOptions} />
@@ -266,7 +266,7 @@ return (
 
 ### Import the Angular Chart
 
-```ts wrapper="object"
+```ts format="object"
 // Angular Chart Component
 import { AgCharts } from 'ag-charts-angular';
 // Chart Options Type Interface
@@ -275,7 +275,7 @@ import { AgChartOptions } from 'ag-charts-community';
 
 ### Define Chart Data and Series
 
-```ts wrapper="object"
+```ts format="object"
 // Angular Chart Component
 @Component({
     selector: 'app-root',
@@ -308,7 +308,7 @@ export class AppComponent {
 
 Chart options are set as an `ag-charts` component attribute.
 
-```ts wrapper="object"
+```ts format="object"
     template: `<ag-charts
  style="height: 100%"
  [options]="chartOptions">

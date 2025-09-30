@@ -12,7 +12,7 @@ tree is represented by a rectangle, with the area of the rectangle representing 
 
 The Treemap Series is designed to display a single series and is created using the `treemap` series type.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'treemap',
@@ -23,7 +23,7 @@ series: [
 
 The data passed in should be an array of nodes, with each node optionally containing children.
 
-```js wrapper="object"
+```js format="object"
 let data = [
     {
         title: 'Pensions',
@@ -53,7 +53,7 @@ However, the Treemap Series is best suited to providing size values to provide r
 
 The `sizeKey` can be used to provide a numeric value to adjust the relative sizing. Additionally, the optional `sizeName` property can be set to set the title that appears next to the value in tooltips.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'treemap',
@@ -74,7 +74,7 @@ Tiles can also be coloured using a scale. This lets you add an extra dimension o
 
 Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'treemap',
@@ -101,7 +101,7 @@ It's possible to override the default colours, or the colours on a group or tile
 {% chartExampleRunner title="Other Colours" name="other-colors" type="generated" /%}
 
 <!-- prettier-ignore -->
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'treemap',
@@ -132,7 +132,7 @@ For leaf nodes only, they can contain secondary labels, and their labels can als
 
 Labels can be customised through the `group` and `tile` properties for non-leaf nodes and leaf nodes, respectively.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'treemap',
@@ -174,7 +174,7 @@ Various spacing values can be adjusted to tweak the layout of the chart.
 
 {% chartExampleRunner title="Custom Layout" name="layout" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'treemap',
@@ -212,7 +212,7 @@ The Gradient Legend aids in matching the colour coding of the Treemap Series to 
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'treemap',
@@ -231,7 +231,7 @@ gradientLegend: {
 
 By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     position: 'right',
 }
@@ -243,7 +243,7 @@ When the position is `left` or `right`, the Gradient Legend displays the values 
 
 {% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     gradient: {
         thickness: 50,
@@ -263,7 +263,7 @@ It is possible to customise the font, colour and padding of the labels by using 
 
 {% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     scale: {
         label: {

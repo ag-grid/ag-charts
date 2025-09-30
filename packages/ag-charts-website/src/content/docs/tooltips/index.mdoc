@@ -11,7 +11,7 @@ The tooltip content is based on the data values and keys of the series. If provi
 
 {% chartExampleRunner title="Default Tooltip" name="default-tooltip" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' },
     { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made', yName: 'Hats Made' },
@@ -34,7 +34,7 @@ By default a shared tooltip will be used for most cartesian charts containing 3 
 
 {% chartExampleRunner title="Tooltip Mode" name="tooltip-mode" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 // Chart options only
 tooltip: {
     mode: 'shared', // or 'single' or 'compact'
@@ -53,7 +53,7 @@ The tooltip is anchored to the node. Use `tooltip.position.anchorTo`, and option
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 tooltip: {
     position: {
         anchorTo: 'node',
@@ -64,7 +64,7 @@ tooltip: {
 
 Fallback positions can be provided in an array of `placement` values. The tooltip will use the first position that has sufficient space.
 
-```js wrapper="object"
+```js format="object"
 tooltip: {
     position: {
         anchorTo: 'node',
@@ -94,7 +94,7 @@ The default tooltip displays an arrow below it to indicate its exact point of or
 
 Use the `tooltip.showArrow` option to change this behaviour.
 
-```js wrapper="object"
+```js format="object"
 tooltip: {
     showArrow: false,
 }
@@ -108,7 +108,7 @@ Pagination allows cycling through overlapping datapoints by hovering and then cl
 
 Pagination will only become available when two or more data points are under the cursor.
 
-```js wrapper="object"
+```js format="object"
 // Chart options only
 tooltip: {
     pagination: true,
@@ -165,7 +165,7 @@ The tooltip's content can be customised within the default template by using a `
 
 {% chartExampleRunner title="Modifying Tooltip Content" name="tooltip-content-title" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 tooltip: {
     renderer: function ({ datum, xKey, yKey, yName }) {
         return {
@@ -195,7 +195,7 @@ To use a completely custom tooltip instead of modifying the contents of the defa
 
 {% chartExampleRunner title="Column Series with Tooltip Renderer" name="tooltip-renderer" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'bar',

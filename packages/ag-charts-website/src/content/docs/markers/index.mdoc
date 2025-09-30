@@ -8,7 +8,7 @@ Marker attributes such as `shape`, `size`, `fill` and `stroke` are configurable 
 
 These options are identical across series types, but differ in their location. Series without lines, such as `scatter` and `bubble` have these options on the series level, otherwise they are contained within the `marker` property.
 
-```js wrapper="object"
+```js format="object"
 series: [
     // ...
     marker: {
@@ -58,7 +58,7 @@ All we do is render two partial circles with the `cubicArc` command and then two
 
 Inside the marker config of a series we then use this callback function rather than using one of the predefined shape names:
 
-```js wrapper="object"
+```js format="object"
 marker: {
     shape: heart,
     size: 16,

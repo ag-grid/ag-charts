@@ -10,7 +10,7 @@ A Bubble Series extends the Scatter Series by using the size of each marker to r
 
 To create a Bubble Series use the `'bubble'` series type, and provide a `sizeKey` for the variable that will determine the size of each bubble or marker.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'bubble',
@@ -45,7 +45,7 @@ It is possible to use `size` to set the minimum possible marker size, and `maxSi
 
 To manually set the value domain used to calculate the size, use `domain`. This is particularly useful when showing multiple Bubble Series in the same chart.
 
-```js wrapper="object"
+```js format="object"
 series: {
     //...
     size: 10, //defaults to 7
@@ -65,7 +65,7 @@ Using the above configuration
 
 It is possible to customise the fill, stroke and shape of the markers used in the Bubble Series.
 
-```js wrapper="object"
+```js format="object"
 series: {
     //...
     shape: 'square',

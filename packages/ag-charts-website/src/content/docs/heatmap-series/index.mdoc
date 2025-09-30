@@ -12,7 +12,7 @@ A Heatmap Series displays data in a matrix format, using colours to denote the m
 
 To create a Heatmap Series, use the `heatmap` series type.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'heatmap',
@@ -37,7 +37,7 @@ In this configuration:
 
 Series items colours can be customised via the `colorRange` configuration array.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'heatmap',
@@ -57,7 +57,7 @@ The `colorRange` array must contain 2 or more values.
 
 If `label.enabled` is set to `true`, the labels will show the numeric value from `colorKey`.
 
-```js wrapper="object"
+```js format="object"
 colorKey: 'temperature',
 label: {
     enabled: true,
@@ -76,7 +76,7 @@ The Gradient Legend aids in matching the colour coding of the heatmap series to 
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'heatmap',
@@ -96,7 +96,7 @@ gradientLegend: {
 
 By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     position: 'right',
 }
@@ -108,7 +108,7 @@ When the position is `left` or `right`, the Gradient Legend displays the values 
 
 {% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     gradient: {
         thickness: 50,
@@ -128,7 +128,7 @@ In the above configuration:
 
 It is possible to customise the font, colour and padding of the labels by using the `scale` options.
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     scale: {
         label: {

@@ -15,7 +15,7 @@ To create a Map Line Series, use the `map-line` series type and provide data and
 A Map Line Series should be combined with a [Map Shape Background Series](./map-shapes/#background-shapes).
 {% /note %}
 
-```js wrapper="object"
+```js format="object"
 data: data,
 topology: topology,
 series: [
@@ -44,7 +44,7 @@ In this configuration:
 
 To colour the lines based on the magnitude of the data, use `colorKey`.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'map-line',
@@ -70,7 +70,7 @@ See [Colour Range](./heatmap-series/#colour-range) and [Gradient Legend](./heatm
 
 To vary the width of the line to denote the magnitude of the data values use `sizeKey`, `strokeWidth` and `maxStrokeWidth`.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'map-line',
@@ -98,7 +98,7 @@ This can be useful to provide context for other series.
 
 {% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'map-line-background',

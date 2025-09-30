@@ -93,15 +93,15 @@ function extractCodeBlocks(content: string): CodeBlock[] {
 }
 
 /**
- * Parse metadata string to extract wrapper strategy
+ * Parse metadata string to extract format strategy
  */
-function parseMetadata(meta?: string): { wrapper?: string } {
+function parseMetadata(meta?: string): { format?: string } {
     if (!meta) return {};
 
-    // Extract wrapper strategy
-    const wrapperMatch = meta.match(/wrapper=["']([^"']+)["']/);
-    if (wrapperMatch) {
-        return { wrapper: wrapperMatch[1] };
+    // Extract format strategy (supports both 'format' and deprecated 'wrapper')
+    const formatMatch = meta.match(/(?:format|wrapper)=["']([^"']+)["']/);
+    if (formatMatch) {
+        return { format: formatMatch[1] };
     }
 
     return {};
@@ -184,8 +184,8 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         json: '.json',
     };
 
-    // For reactHooks wrapper, use .tsx extension to properly handle JSX
-    const effectiveExtension = metadata?.wrapper === 'reactHooks' ? '.tsx' : extensionMap[normalizedLang] ?? '.js';
+    // For reactHooks format, use .tsx extension to properly handle JSX
+    const effectiveExtension = metadata?.format === 'reactHooks' ? '.tsx' : extensionMap[normalizedLang] ?? '.js';
     const filepath = `snippet${effectiveExtension}`;
 
     // Determine the parser based on language and content
@@ -220,8 +220,8 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         parser = 'typescript';
     }
 
-    // For reactHooks wrapper, use TypeScript parser since we set .tsx extension
-    if (metadata?.wrapper === 'reactHooks') {
+    // For reactHooks format, use TypeScript parser since we set .tsx extension
+    if (metadata?.format === 'reactHooks') {
         parser = 'typescript';
     }
 
@@ -237,9 +237,9 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         filepath,
     };
 
-    // For reactHooks wrapper or tsx files, remove plugins that conflict with TypeScript parser
+    // For reactHooks format or tsx files, remove plugins that conflict with TypeScript parser
     // The import sorting plugin uses Babel parser internally which conflicts with TypeScript parser for JSX
-    if (metadata?.wrapper === 'reactHooks' || normalizedLang === 'tsx') {
+    if (metadata?.format === 'reactHooks' || normalizedLang === 'tsx') {
         delete config.plugins;
         delete config.importOrder;
         delete config.importOrderParserPlugins;
@@ -251,12 +251,12 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
     const hasTrailingNewline = code.endsWith('\n');
     const codeToFormat = hasTrailingNewline ? code.slice(0, -1) : code;
 
-    // If wrapper metadata specified, use it to ensure proper unwrapping (e.g., semicolon stripping)
-    if (metadata.wrapper && normalizedLang !== 'json') {
-        const wrapResult = applyWrapper(codeToFormat, lang, metadata.wrapper);
+    // If format metadata specified, use it to ensure proper unwrapping (e.g., semicolon stripping)
+    if (metadata.format && normalizedLang !== 'json') {
+        const wrapResult = applyWrapper(codeToFormat, lang, metadata.format);
         if (!wrapResult) {
             const preview = getSnippetPreview(code);
-            throw new Error(`Unknown wrapper strategy "${metadata.wrapper}". Preview:\n${preview}`);
+            throw new Error(`Unknown format strategy "${metadata.format}". Preview:\n${preview}`);
         }
 
         try {
@@ -275,7 +275,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
             }
             const detailText = details.length ? `\n${details.join('\n')}` : '';
             throw new Error(
-                `Unable to format ${lang} code block with wrapper "${metadata.wrapper}". Preview:\n${preview}${detailText}`
+                `Unable to format ${lang} code block with format "${metadata.format}". Preview:\n${preview}${detailText}`
             );
         }
     }

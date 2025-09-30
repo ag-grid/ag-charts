@@ -11,7 +11,7 @@ tree is represented by a segment on a radial circle, with the area of the sum of
 
 The Sunburst Series is designed to display a single series and is created using the `sunburst` series type.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'sunburst',
@@ -22,7 +22,7 @@ series: [
 
 The data passed in should be an array of nodes, with each node optionally containing children.
 
-```js wrapper="object"
+```js format="object"
 let data = [
     {
         name: 'Mariah Vaughan',
@@ -58,7 +58,7 @@ However, the Sunburst Series is best suited to providing size values to provide 
 
 The `sizeKey` can be used to provide a numeric value to adjust the relative sizing. Additionally, the optional `sizeName` property can be set to set the title that appears next to the value in tooltips.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'sunburst',
@@ -77,7 +77,7 @@ Sectors can also be coloured using a scale. This lets you add an extra dimension
 
 Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'sunburst',
@@ -101,7 +101,7 @@ In this configuration:
 
 {% chartExampleRunner title="Other Colours" name="other-colors" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'sunburst',
@@ -127,7 +127,7 @@ All segments can contain both labels and secondary labels, which can be shrunk t
 
 {% chartExampleRunner title="Labels" name="labels" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'sunburst',
@@ -162,7 +162,7 @@ The Gradient Legend aids in matching the colour coding of the Sunburst Series to
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 series: [
     {
         type: 'sunburst',
@@ -181,7 +181,7 @@ gradientLegend: {
 
 By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     position: 'right',
 }
@@ -193,7 +193,7 @@ When the position is `left` or `right`, the Gradient Legend displays the values 
 
 {% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     gradient: {
         thickness: 50,
@@ -213,7 +213,7 @@ It is possible to customise the font, colour and padding of the labels by using 
 
 {% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 gradientLegend: {
     scale: {
         label: {

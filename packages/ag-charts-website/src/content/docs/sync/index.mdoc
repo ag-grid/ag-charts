@@ -11,7 +11,7 @@ Synchronize multiple charts to align data insights and interactive elements, off
 
 Enable chart synchronization by configuring the `sync` option on at least two charts. By default this will synchronize the axis domain, zoom, and user node interactions along the x axis.
 
-```js wrapper="object"
+```js format="object"
 sync: {
     enabled: true,
 }
@@ -33,7 +33,7 @@ Synchronize the axis domain of multiple charts, to ensure they all show the same
 
 {% chartExampleRunner title="Axes Synchronization" name="axes-sync" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 sync: {
     axes: 'y', // Options are `x`, `y`, `xy`
     nodeInteraction: false,
@@ -63,7 +63,7 @@ In the above example:
 
 This synchronisation is enabled by default. To disable, set `nodeInteraction` to `false`.
 
-```js wrapper="object"
+```js format="object"
 sync: {
     nodeInteraction: false,
 }
@@ -83,7 +83,7 @@ Maintains shared zoom level and position on the synchronized axes across charts.
 
 Disable automatic zoom synchronization to manage zoom levels independently.
 
-```js wrapper="object"
+```js format="object"
 sync: {
     zoom: false,
 }
@@ -95,7 +95,7 @@ Use `groupId` to synchronize charts within the same group, supporting multiple i
 
 {% chartExampleRunner title="Group Synchronization" name="group-sync" type="generated" /%}
 
-```js wrapper="object"
+```js format="object"
 sync: {
     groupId: 'Group 1',
 }
