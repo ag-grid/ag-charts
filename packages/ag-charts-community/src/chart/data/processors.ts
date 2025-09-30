@@ -508,6 +508,15 @@ export function accumulateGroup(
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
         adjust,
+        // Accumulation processors cannot support incremental updates because they mutate
+        // columns in-place and are not idempotent. When columns are incrementally updated,
+        // they already contain accumulated values from the previous frame. Re-running the
+        // accumulation processor would accumulate on top of those, causing exponential growth.
+        // To support incremental updates, we would need to either:
+        // 1. Store raw values separately and copy them before each accumulation pass
+        // 2. Create a smarter processor that can detect and handle already-accumulated values
+        // For now, we disable incremental updates and use full reprocessing for correctness.
+        supportsIncremental: false,
     };
 }
 
