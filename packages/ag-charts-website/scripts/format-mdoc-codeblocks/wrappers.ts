@@ -13,9 +13,7 @@ export interface WrapStrategy {
 }
 
 function removeCommonIndent(lines: string[]): string[] {
-    const nonEmptyIndents = lines
-        .filter((line) => line.trim() !== '')
-        .map((line) => line.match(/^[\t ]*/)?.[0] ?? '');
+    const nonEmptyIndents = lines.filter((line) => line.trim() !== '').map((line) => line.match(/^[\t ]*/)?.[0] ?? '');
 
     if (nonEmptyIndents.length === 0) {
         return lines;
@@ -65,17 +63,38 @@ const objectStrategy: WrapStrategy = {
     name: 'object',
     wrap: (code: string) => {
         const trimmed = code.trim();
+
+        // Check if this is a complete statement (const, let, var, import, export, function, class)
+        // These don't need object wrapping - they're already valid code
+        // Handle leading comments and decorators by finding the first statement keyword
+        // This regex looks for statement keywords anywhere in the code, not just at the start
+        const hasStatementKeyword =
+            /^(const|let|var|import|export|function|class|interface|type)\s/m.test(trimmed) || // At line start
+            /(?:^|\n)\s*(const|let|var|import|export|function|class|interface|type)\s/.test(trimmed); // After newline
+        if (hasStatementKeyword) {
+            return code;
+        }
+
         // Check if this is a complete object literal that already has braces
         if (trimmed.startsWith('{') && (trimmed.endsWith('}') || trimmed.endsWith('};'))) {
             // It's already a complete object, just assign it
             const hadSemicolon = trimmed.endsWith('};');
-            return `// __HAD_SEMICOLON__:${hadSemicolon}\nconst __temp__ = ${code}`;
+            // For complete objects, only strip the trailing semicolon after the closing brace
+            // Don't strip semicolons inside (they may be in function bodies)
+            const fixedCode = hadSemicolon ? code.slice(0, -1) : code;
+            return `// __HAD_SEMICOLON__:${hadSemicolon}\nconst __temp__ = ${fixedCode}`;
         }
-        // Otherwise, it's object properties without braces, so wrap them
-        return `const __temp__ = {\n${code}\n};`;
+
+        // Otherwise, it's object properties without braces
+        // Strip semicolons from simple property lines (invalid syntax in objects)
+        // Only strip semicolons that appear to be at the end of property declarations
+        // Match: key: value; or key: value; //comment
+        // Don't match semicolons inside braces (function bodies, nested objects)
+        const fixedCode = code.replace(/^(\s*\w+\s*:\s*[^{;]+);(\s*(?:\/\/[^\n]*)?)$/gm, '$1$2');
+        return `const __temp__ = {\n${fixedCode}\n};`;
     },
     unwrap: (formatted: string) => {
-        // Handle complete objects (with marker comment)
+        // Handle complete objects (with marker comment) - check this FIRST before complete statement check
         const hadSemicolonMatch = formatted.match(/\/\/ __HAD_SEMICOLON__:(true|false)\n/);
         if (hadSemicolonMatch) {
             formatted = formatted.replace(/\/\/ __HAD_SEMICOLON__:(true|false)\n/, '');
@@ -88,23 +107,33 @@ const objectStrategy: WrapStrategy = {
             }
         }
 
-        // Handle object properties (without braces)
+        // Handle object properties (without braces) - check this SECOND before complete statement check
         const prefixMatch = formatted.match(/^const __temp__ = {\n/);
-        if (!prefixMatch) {
+        if (prefixMatch) {
+            let body = formatted.slice(prefixMatch[0].length);
+            body = body.replace(/\r?\n};\s*$/, '');
+
+            const lines = body.split('\n');
+
+            const trimmedLines = trimEmptyEdgeLines(lines);
+            const dedentedLines = removeCommonIndent(trimmedLines);
+            let result = dedentedLines.join('\n');
+            result = result.replace(/[;,](\s*)$/, '$1');
+
+            return result;
+        }
+
+        // Handle complete statements (no wrapping was done) - check this LAST
+        const trimmed = formatted.trim();
+        const hasStatementKeyword =
+            /^(const|let|var|import|export|function|class|interface|type)\s/m.test(trimmed) ||
+            /(?:^|\n)\s*(const|let|var|import|export|function|class|interface|type)\s/.test(trimmed);
+        if (hasStatementKeyword) {
             return formatted;
         }
 
-        let body = formatted.slice(prefixMatch[0].length);
-        body = body.replace(/\r?\n};\s*$/, '');
-
-        const lines = body.split('\n');
-
-        const trimmedLines = trimEmptyEdgeLines(lines);
-        const dedentedLines = removeCommonIndent(trimmedLines);
-        let result = dedentedLines.join('\n');
-        result = result.replace(/[;,](\s*)$/, '$1');
-
-        return result;
+        // If we get here, something unexpected happened, return as-is
+        return formatted;
     },
 };
 
@@ -142,22 +171,31 @@ const reactHooksStrategy: WrapStrategy = {
         // Find component body
         const startIdx = lines.findIndex((line) => line.includes('function Component() {'));
 
+        if (startIdx === -1) {
+            return formatted;
+        }
+
         // Try to find our added return null first
         const returnNullIdx = lines.findIndex((line) => line.trim() === 'return null;');
 
-        // If we don't find return null, look for the closing brace
-        const endIdx = returnNullIdx !== -1 ? returnNullIdx : lines.length - 1;
-
-        if (startIdx !== -1) {
-            // Get lines between function declaration and end
-            const content = lines.slice(startIdx + 1, endIdx);
-            // Remove empty lines at the end
-            while (content.length > 0 && content[content.length - 1].trim() === '') {
-                content.pop();
-            }
-            return content.join('\n');
+        // Find the last closing brace (the component's closing brace)
+        let endIdx = lines.length - 1;
+        while (endIdx > startIdx && lines[endIdx].trim() !== '}') {
+            endIdx--;
         }
-        return formatted;
+
+        // If we found return null, use that as the end, otherwise use the line before the closing brace
+        const contentEndIdx = returnNullIdx !== -1 ? returnNullIdx : endIdx;
+
+        // Get lines between function declaration and end
+        const content = lines.slice(startIdx + 1, contentEndIdx);
+
+        // Remove empty lines at the end
+        while (content.length > 0 && content[content.length - 1].trim() === '') {
+            content.pop();
+        }
+
+        return content.join('\n');
     },
 };
 
