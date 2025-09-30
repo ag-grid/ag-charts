@@ -103,8 +103,11 @@ export class DataController {
             const { descriptor, preview } = dataRefState.get(dataRef) ?? { descriptor: undefined, preview: undefined };
 
             const sourcesForProcess = new Map<string, unknown[]>();
+            // When multiple series share the same dataRef, all sources point to the same data
+            // but we need entries for all series IDs to satisfy property scope requirements
+            const sharedData = preview ?? dataRef.data;
             for (const id of ids) {
-                sourcesForProcess.set(id, preview ?? dataRef.data);
+                sourcesForProcess.set(id, sharedData);
             }
 
             // Optimized cache lookup with fast path for incremental updates

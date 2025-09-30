@@ -592,6 +592,148 @@ describe('ProcessedDataMutator', () => {
         });
     });
 
+    describe('multi-scope support', () => {
+        it('should handle multiple scopes pointing to the same data source', () => {
+            // Set up multiple scopes (representing multiple series) sharing the same data
+            const scope1 = 'series-1';
+            const scope2 = 'series-2';
+            const sharedData = [
+                { id: 'key1', a: 1 },
+                { id: 'key2', a: 2 },
+                { id: 'key3', a: 3 },
+            ];
+
+            const multiScopeProcessedData: ProcessedData<any> = {
+                type: 'ungrouped',
+                input: { count: sharedData.length },
+                scopes: new Set([scope1, scope2]),
+                dataSources: new Map([
+                    [scope1, sharedData],
+                    [scope2, sharedData], // Same data reference
+                ]),
+                invalidKeys: undefined,
+                invalidKeyCount: undefined,
+                invalidData: undefined,
+                keys: [
+                    new Map([
+                        [scope1, sharedData.map((d) => d.id)],
+                        [scope2, sharedData.map((d) => d.id)],
+                    ]),
+                ],
+                columns: [sharedData.map((d) => d.a)],
+                columnScopes: [new Set([scope1, scope2])],
+                domain: {
+                    keys: [sharedData.map((d) => d.id)],
+                    values: [[1, 3]],
+                },
+                defs: {
+                    keys: [
+                        {
+                            type: 'key',
+                            property: 'id',
+                            valueType: 'category',
+                            scopes: [scope1, scope2],
+                            invalidValue: null,
+                            missing: new Map(),
+                        },
+                    ],
+                    values: [
+                        {
+                            type: 'value',
+                            property: 'a',
+                            valueType: 'range',
+                            scopes: [scope1, scope2],
+                            invalidValue: null,
+                            missing: new Map(),
+                        },
+                    ],
+                    allScopesHaveSameDefs: true,
+                },
+                partialValidDataCount: 0,
+                time: Date.now(),
+            } as unknown as ProcessedData<any>;
+
+            Object.defineProperty(multiScopeProcessedData, Symbol('domain-ranges'), { value: new Map() });
+            Object.defineProperty(multiScopeProcessedData, Symbol('key-sort-orders'), { value: new Map() });
+            Object.defineProperty(multiScopeProcessedData, Symbol('column-sort-orders'), { value: new Map() });
+
+            // Apply a removal - this should work without throwing "single-scope" error
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(1, sharedData[1]).build();
+
+            expect(() => mutator.mutate(multiScopeProcessedData, changes)).not.toThrow();
+
+            // Verify the mutation worked correctly
+            expect(multiScopeProcessedData.columns[0]).toEqual([1, 3]);
+            // Only the first scope (returned by getSingleScope) gets its keys updated
+            // This is sufficient because all scopes share the same data source
+            expect(multiScopeProcessedData.keys[0].get(scope1)).toEqual(['key1', 'key3']);
+        });
+
+        it('should throw error for multiple scopes with different data sources', () => {
+            const scope1 = 'series-1';
+            const scope2 = 'series-2';
+            const data1 = [{ id: 'key1', a: 1 }];
+            const data2 = [{ id: 'key2', a: 2 }]; // Different data array
+
+            const multiSourceProcessedData: ProcessedData<any> = {
+                type: 'ungrouped',
+                input: { count: 2 },
+                scopes: new Set([scope1, scope2]),
+                dataSources: new Map([
+                    [scope1, data1],
+                    [scope2, data2], // Different data reference
+                ]),
+                invalidKeys: undefined,
+                invalidKeyCount: undefined,
+                invalidData: undefined,
+                keys: [
+                    new Map([
+                        [scope1, ['key1']],
+                        [scope2, ['key2']],
+                    ]),
+                ],
+                columns: [[1, 2]],
+                columnScopes: [new Set([scope1, scope2])],
+                domain: { keys: [['key1', 'key2']], values: [[1, 2]] },
+                defs: {
+                    keys: [
+                        {
+                            type: 'key',
+                            property: 'id',
+                            valueType: 'category',
+                            scopes: [scope1, scope2],
+                            invalidValue: null,
+                            missing: new Map(),
+                        },
+                    ],
+                    values: [
+                        {
+                            type: 'value',
+                            property: 'a',
+                            valueType: 'range',
+                            scopes: [scope1, scope2],
+                            invalidValue: null,
+                            missing: new Map(),
+                        },
+                    ],
+                    allScopesHaveSameDefs: true,
+                },
+                partialValidDataCount: 0,
+                time: Date.now(),
+            } as unknown as ProcessedData<any>;
+
+            Object.defineProperty(multiSourceProcessedData, Symbol('domain-ranges'), { value: new Map() });
+            Object.defineProperty(multiSourceProcessedData, Symbol('key-sort-orders'), { value: new Map() });
+            Object.defineProperty(multiSourceProcessedData, Symbol('column-sort-orders'), { value: new Map() });
+
+            const changes = DataChangeDescriptorBuilder.create().addRemoval(0, data1[0]).build();
+
+            expect(() => mutator.mutate(multiSourceProcessedData, changes)).toThrow(
+                /Incremental updates currently support single-scope data only/
+            );
+        });
+    });
+
     describe('animation validation logic', () => {
         it('should set both flags to false for high-frequency updates (insertions)', () => {
             const newDatum = { id: 'key4', a: 4 };

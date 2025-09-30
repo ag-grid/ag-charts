@@ -466,12 +466,22 @@ export class ProcessedDataMutator {
     }
 
     private getSingleScope(processedData: ProcessedData): string {
-        const iterator = processedData.scopes.values();
-        const { value, done } = iterator.next();
-        if (done || iterator.next().done === false) {
-            throw new Error('Incremental updates currently support single-scope data only');
+        const scopes = Array.from(processedData.scopes);
+
+        // Check if all scopes reference the same data source
+        if (scopes.length > 1) {
+            const dataSources = new Set(scopes.map((scope) => processedData.dataSources.get(scope)));
+            if (dataSources.size > 1) {
+                throw new Error('Incremental updates currently support single-scope data only');
+            }
         }
-        return value;
+
+        if (scopes.length === 0) {
+            throw new Error('Incremental updates require at least one scope');
+        }
+
+        // Return the first scope - all scopes point to the same data
+        return scopes[0];
     }
 
     private computeKeyResultsForDatum(

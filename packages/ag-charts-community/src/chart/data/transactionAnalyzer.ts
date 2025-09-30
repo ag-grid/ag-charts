@@ -187,11 +187,18 @@ export class TransactionAnalyzer {
         const removalIndices: Array<{ index: number; datum: T }> = [];
 
         for (const itemToRemove of toRemove) {
+            let found = false;
             // Find all matching indices (there could be duplicates)
             for (let i = 0; i < currentData.length; i++) {
                 if (currentData[i] === itemToRemove) {
                     removalIndices.push({ index: i, datum: itemToRemove });
+                    found = true;
                 }
+            }
+            if (!found) {
+                throw new Error(
+                    `AG Charts - TransactionAnalyzer: Cannot find item to remove. ${JSON.stringify(itemToRemove)}`
+                );
             }
         }
 
@@ -220,8 +227,8 @@ export class TransactionAnalyzer {
      */
     private static processPrepends<T>(toPrepend: T[], builder: DataChangeDescriptorBuilder): void {
         // Prepend operations insert at index 0
-        for (let i = 0; i < toPrepend.length; i++) {
-            builder.addInsertion(0, toPrepend[i]);
+        for (const item of toPrepend) {
+            builder.addInsertion(0, item);
         }
     }
 
