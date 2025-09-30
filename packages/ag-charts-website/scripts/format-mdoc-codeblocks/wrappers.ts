@@ -66,12 +66,26 @@ const objectStrategy: WrapStrategy = {
 
         // Check if this is a complete statement (const, let, var, import, export, function, class)
         // These don't need object wrapping - they're already valid code
-        // Handle leading comments and decorators by finding the first statement keyword
-        // This regex looks for statement keywords anywhere in the code, not just at the start
-        const hasStatementKeyword =
-            /^(const|let|var|import|export|function|class|interface|type)\s/m.test(trimmed) || // At line start
-            /(?:^|\n)\s*(const|let|var|import|export|function|class|interface|type)\s/.test(trimmed); // After newline
-        if (hasStatementKeyword) {
+
+        // First, strip leading comments
+        let codeWithoutComments = trimmed.replace(/^(?:\/\/[^\n]*\n\s*)*/, '');
+
+        // Check for decorators (after stripping comments)
+        const hasDecorator = /^@\w+/.test(codeWithoutComments);
+        if (hasDecorator) {
+            // Look for statement keywords after any decorator and its closing parens/braces
+            const hasStatementAfterDecorator =
+                /^\s*(const|let|var|import|export|function|class|interface|type)\s/m.test(codeWithoutComments);
+            if (hasStatementAfterDecorator) {
+                return code;
+            }
+        }
+
+        // For code without decorators, check if it starts with a statement keyword
+        const startsWithStatement = /^(const|let|var|import|export|function|class|interface|type)\s/.test(
+            codeWithoutComments
+        );
+        if (startsWithStatement) {
             return code;
         }
 
@@ -125,10 +139,25 @@ const objectStrategy: WrapStrategy = {
 
         // Handle complete statements (no wrapping was done) - check this LAST
         const trimmed = formatted.trim();
-        const hasStatementKeyword =
-            /^(const|let|var|import|export|function|class|interface|type)\s/m.test(trimmed) ||
-            /(?:^|\n)\s*(const|let|var|import|export|function|class|interface|type)\s/.test(trimmed);
-        if (hasStatementKeyword) {
+
+        // First, strip leading comments
+        let codeWithoutComments = trimmed.replace(/^(?:\/\/[^\n]*\n\s*)*/, '');
+
+        // Check for decorators (after stripping comments)
+        const hasDecorator = /^@\w+/.test(codeWithoutComments);
+        if (hasDecorator) {
+            const hasStatementAfterDecorator =
+                /^\s*(const|let|var|import|export|function|class|interface|type)\s/m.test(codeWithoutComments);
+            if (hasStatementAfterDecorator) {
+                return formatted;
+            }
+        }
+
+        // For code without decorators, check if it starts with a statement keyword
+        const startsWithStatement = /^(const|let|var|import|export|function|class|interface|type)\s/.test(
+            codeWithoutComments
+        );
+        if (startsWithStatement) {
             return formatted;
         }
 

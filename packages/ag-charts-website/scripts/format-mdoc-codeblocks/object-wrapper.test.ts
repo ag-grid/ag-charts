@@ -168,4 +168,175 @@ describe('mdoc object wrapper formatting', () => {
         expect(changed).toBe(true);
         expect(formatted).toBe(expected);
     });
+
+    it('does not wrap complete statements (const, import, etc.)', async () => {
+        const input = [
+            '```ts wrapper="object"',
+            'const myTheme = {',
+            '    palette: {',
+            "        fills: ['#5C2983', '#0076C5'],",
+            '    },',
+            '};',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        // Code is already properly formatted, so no changes expected
+        expect(changed).toBe(false);
+        expect(formatted).toBe(input);
+    });
+
+    it('handles objects with function bodies containing semicolons', async () => {
+        const input = [
+            '```js wrapper="object"',
+            '{',
+            '    formatter: {',
+            '        x: (params) => {',
+            '            const value = params.value;',
+            '            return value.toString();',
+            '        },',
+            '        y: (params) => {',
+            '            return `Value: ${params.value}`;',
+            '        },',
+            '    },',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        const expected = [
+            '```js wrapper="object"',
+            '{',
+            '    formatter: {',
+            '        x: (params) => {',
+            '            const value = params.value;',
+            '            return value.toString();',
+            '        },',
+            '        y: (params) => {',
+            '            return `Value: ${params.value}`;',
+            '        },',
+            '    },',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(false);
+        expect(formatted).toBe(expected);
+    });
+
+    it('handles Angular decorators with export statements', async () => {
+        const input = [
+            '```ts wrapper="object"',
+            '@Component({',
+            "    selector: 'app-root',",
+            '    standalone: true,',
+            '})',
+            'export class AppComponent {',
+            '    constructor() {}',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        const expected = [
+            '```ts wrapper="object"',
+            '@Component({',
+            "    selector: 'app-root',",
+            '    standalone: true,',
+            '})',
+            'export class AppComponent {',
+            '    constructor() {}',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(false);
+        expect(formatted).toBe(expected);
+    });
+
+    it('handles decorators with leading comments', async () => {
+        const input = [
+            '```ts wrapper="object"',
+            '// Angular Chart Component',
+            '@Component({',
+            "    selector: 'app-root',",
+            '})',
+            'export class AppComponent {}',
+            '```',
+            '',
+        ].join('\n');
+
+        const expected = [
+            '```ts wrapper="object"',
+            '// Angular Chart Component',
+            '@Component({',
+            "    selector: 'app-root',",
+            '})',
+            'export class AppComponent {}',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(false);
+        expect(formatted).toBe(expected);
+    });
+
+    it('handles import statements with leading comments', async () => {
+        const input = [
+            '```ts wrapper="object"',
+            '// Angular Chart Component',
+            "import { AgCharts } from 'ag-charts-angular';",
+            '// Chart Options Type Interface',
+            "import { AgChartOptions } from 'ag-charts-community';",
+            '```',
+            '',
+        ].join('\n');
+
+        const expected = [
+            '```ts wrapper="object"',
+            '// Angular Chart Component',
+            "import { AgCharts } from 'ag-charts-angular';",
+            '// Chart Options Type Interface',
+            "import { AgChartOptions } from 'ag-charts-community';",
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(false);
+        expect(formatted).toBe(expected);
+    });
+
+    it('converts semicolons in simple property lines', async () => {
+        const input = ['```js wrapper="object"', 'padding: 4; //padding of 4px on all sides', '```', ''].join('\n');
+
+        // Semicolon is stripped, and since it's wrapped in an object, Prettier adds a comma
+        const expected = ['```js wrapper="object"', 'padding: 4, //padding of 4px on all sides', '```', ''].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
+    });
+
+    it('fixes semicolons inside complete object literals', async () => {
+        const input = ['```js wrapper="object"', '{', "    styleNonce: '416d1177',", '}', '```', ''].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        // Already has comma, no changes needed
+        expect(changed).toBe(false);
+        expect(formatted).toBe(input);
+    });
 });
