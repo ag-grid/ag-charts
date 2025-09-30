@@ -120,7 +120,7 @@ axes: [
             autoRotate: false, // enabled by default
         },
     },
-];
+]
 ```
 
 ### Value Formatting
@@ -191,7 +191,7 @@ series: [
             },
         },
     },
-];
+]
 ```
 
 ## Layout and Styling
@@ -223,7 +223,7 @@ series: [
             stroke: 'maroon',
         },
     },
-];
+]
 ```
 
 ### Chart Elements
@@ -312,7 +312,7 @@ Use the `tooltip.renderer` callback function to customise the content of the too
 ```ts wrapper="object"
 renderer: (params) => {
     return '<div class="custom-tooltip">' + params.datum[params.xKey] + '</div>';
-};
+}
 ```
 
 ### Highlighting Hovered Data
@@ -513,11 +513,11 @@ AgCharts.createFinancialChart(options);
 {% if isFramework("react") %}
 
 ```jsx wrapper="reactHooks"
-const [options, setOptions] = useState({
-    data: getData(),
-});
+    const [options, setOptions] = useState({
+        data: getData(),
+    });
 
-return <AgFinancialCharts options={options} />;
+    return <AgFinancialCharts options={options} />;
 ```
 
 {% /if %}
@@ -630,16 +630,16 @@ AgCharts.createGauge(options);
 {% if isFramework("react") %}
 
 ```jsx wrapper="reactHooks"
-const [options, setOptions] = useState({
-    type: 'radial-gauge', // or 'linear-gauge'
-    value: 80,
-    scale: {
-        min: 0,
-        max: 100,
-    },
-});
+    const [options, setOptions] = useState({
+        type: 'radial-gauge', // or 'linear-gauge'
+        value: 80,
+        scale: {
+            min: 0,
+            max: 100,
+        },
+    });
 
-return <AgGauge options={options} />;
+    return <AgGauge options={options} />;
 ```
 
 {% /if %}
