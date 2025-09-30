@@ -21,9 +21,11 @@ interface DataPoint {
 let currentData: DataPoint[] = [];
 
 // Data generation function (moved up)
-function getData(inputData: DataPoint[] = []): DataPoint[] {
+function getData(inputData: DataPoint[] = []): [DataPoint[], DataPoint[], DataPoint[]] {
     const data = [...inputData];
     const dataCount = millisecondsOfData / refreshRateInMilliseconds;
+    const added: DataPoint[] = [];
+    const removed: DataPoint[] = [];
 
     if (data.length === 0) {
         // Initialize with full history
@@ -38,9 +40,10 @@ function getData(inputData: DataPoint[] = []): DataPoint[] {
                 series4: 25 + Math.random() * 35,
             });
         }
+        added.push(...data);
     } else {
         // Update data: remove oldest, add newest
-        data.shift();
+        removed.push(data.shift()!);
         const lastTime = data[data.length - 1].time;
         data.push({
             time: lastTime + refreshRateInMilliseconds,
@@ -49,13 +52,14 @@ function getData(inputData: DataPoint[] = []): DataPoint[] {
             series3: 20 + Math.random() * 30,
             series4: 25 + Math.random() * 35,
         });
+        added.push(data.at(-1)!);
     }
 
-    return data;
+    return [data, added, removed];
 }
 
 // Initialize data
-currentData = getData();
+[currentData] = getData();
 
 // Chart options with stacked line configuration
 const options: AgChartOptions = {
@@ -156,17 +160,6 @@ async function updateMethod(method: string) {
     if (cpuElement) {
         cpuElement.textContent = `CPU: 0%`;
     }
-
-    // When switching methods, ensure the chart and our tracking are in sync
-    // Don't create new data, just ensure we're tracking what's in the chart
-    if (method === 'applyTransaction') {
-        // When switching to applyTransaction, we need to ensure currentData
-        // contains the exact object references that are in the chart
-        // The safest way is to reset with fresh data
-        currentData = getData();
-        await chart.updateDelta({ data: currentData });
-    }
-    // No need to reset when switching to updateDelta since it replaces all data anyway
 }
 
 function updateRate(value: string) {
@@ -187,35 +180,15 @@ async function updateChartData() {
     const startTime = performance.now();
 
     try {
+        const [updatedData, appended, removed] = getData(currentData);
+        currentData = updatedData;
+
         if (currentUpdateMethod === 'applyTransaction') {
-            // For applyTransaction with stacked lines, incremental grouping should help
-            const dataCount = millisecondsOfData / refreshRateInMilliseconds;
-
-            // Only remove if we're at capacity
-            if (currentData.length >= dataCount) {
-                // Remove the oldest data point - keep the exact reference
-                const removed = [currentData.shift()!];
-
-                // Generate new data point
-                const lastTime = currentData.length > 0 ? currentData[currentData.length - 1].time : START_TIMESTAMP;
-                const newDataPoint: DataPoint = {
-                    time: lastTime + refreshRateInMilliseconds,
-                    series1: 10 + Math.random() * 20,
-                    series2: 15 + Math.random() * 25,
-                    series3: 20 + Math.random() * 30,
-                    series4: 25 + Math.random() * 35,
-                };
-
-                currentData.push(newDataPoint);
-
-                await chart.applyTransaction({
-                    remove: removed,
-                    append: [newDataPoint],
-                });
-            }
+            await chart.applyTransaction({
+                remove: removed,
+                append: appended,
+            });
         } else {
-            // updateDelta requires full reprocessing
-            currentData = getData(currentData);
             await chart.updateDelta({ data: currentData });
         }
 
