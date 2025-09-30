@@ -34,16 +34,16 @@ AgCharts.createGauge(options);
 To create a Linear Gauge, use the `<AgGauge />` component with the type `linear-gauge`.
 
 ```jsx wrapper="reactHooks"
-    const [options, setOptions] = useState({
-        type: 'linear-gauge',
-        value: 80,
-        scale: {
-            min: 0,
-            max: 100,
-        },
-    });
+const [options, setOptions] = useState({
+    type: 'linear-gauge',
+    value: 80,
+    scale: {
+        min: 0,
+        max: 100,
+    },
+});
 
-    return <AgGauge options={options} />;
+return <AgGauge options={options} />;
 ```
 
 {% /if %}

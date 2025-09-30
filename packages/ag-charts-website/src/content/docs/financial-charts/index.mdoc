@@ -28,11 +28,11 @@ AgCharts.createFinancialChart(options);
 {% if isFramework("react") %}
 
 ```jsx wrapper="reactHooks"
-    const [options, setOptions] = useState({
-        data: getData(),
-    });
+const [options, setOptions] = useState({
+    data: getData(),
+});
 
-    return <AgFinancialCharts options={options} />;
+return <AgFinancialCharts options={options} />;
 ```
 
 {% /if %}

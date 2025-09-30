@@ -217,12 +217,15 @@ const reactHooksStrategy: WrapStrategy = {
         const contentEndIdx = returnNullIdx !== -1 ? returnNullIdx : endIdx;
 
         // Get lines between function declaration and end
-        const content = lines.slice(startIdx + 1, contentEndIdx);
+        let content = lines.slice(startIdx + 1, contentEndIdx);
 
         // Remove empty lines at the end
         while (content.length > 0 && content[content.length - 1].trim() === '') {
             content.pop();
         }
+
+        // Remove common indentation (Prettier indents code inside the function)
+        content = removeCommonIndent(content);
 
         return content.join('\n');
     },

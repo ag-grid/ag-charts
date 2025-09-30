@@ -339,4 +339,55 @@ describe('mdoc object wrapper formatting', () => {
         expect(changed).toBe(false);
         expect(formatted).toBe(input);
     });
+
+    it('removes indentation from reactHooks code blocks', async () => {
+        const input = [
+            '```jsx wrapper="reactHooks"',
+            'const [options, setOptions] = useState({',
+            "    type: 'linear-gauge',",
+            '    value: 80,',
+            '});',
+            '',
+            'return <AgGauge options={options} />;',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        // Should remain without indentation
+        expect(changed).toBe(false);
+        expect(formatted).toBe(input);
+    });
+
+    it('removes incorrect indentation added by previous formatter runs', async () => {
+        const input = [
+            '```jsx wrapper="reactHooks"',
+            '    const [options, setOptions] = useState({',
+            "        type: 'linear-gauge',",
+            '        value: 80,',
+            '    });',
+            '',
+            '    return <AgGauge options={options} />;',
+            '```',
+            '',
+        ].join('\n');
+
+        const expected = [
+            '```jsx wrapper="reactHooks"',
+            'const [options, setOptions] = useState({',
+            "    type: 'linear-gauge',",
+            '    value: 80,',
+            '});',
+            '',
+            'return <AgGauge options={options} />;',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
+    });
 });
