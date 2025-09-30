@@ -133,4 +133,39 @@ describe('mdoc object wrapper formatting', () => {
         expect(changed).toBe(true);
         expect(formatted).toBe(expected);
     });
+
+    it('strips trailing semicolons even when code is valid JavaScript', async () => {
+        // This tests the case where code is valid JS (formats without wrapper)
+        // but we still want semicolon stripping via the wrapper
+        const input = [
+            '```ts wrapper="object"',
+            '{',
+            '    value: 80,',
+            '    scale: {',
+            '        min: 0,',
+            '        max: 100',
+            '    }',
+            '};',
+            '```',
+            '',
+        ].join('\n');
+
+        const expected = [
+            '```ts wrapper="object"',
+            '{',
+            '    value: 80,',
+            '    scale: {',
+            '        min: 0,',
+            '        max: 100,',
+            '    },',
+            '}',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        expect(changed).toBe(true);
+        expect(formatted).toBe(expected);
+    });
 });

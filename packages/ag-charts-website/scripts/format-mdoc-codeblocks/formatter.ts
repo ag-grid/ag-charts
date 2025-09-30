@@ -251,7 +251,36 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
     const hasTrailingNewline = code.endsWith('\n');
     const codeToFormat = hasTrailingNewline ? code.slice(0, -1) : code;
 
-    // First, try to format as-is (complete code)
+    // If wrapper metadata specified, use it to ensure proper unwrapping (e.g., semicolon stripping)
+    if (metadata.wrapper && normalizedLang !== 'json') {
+        const wrapResult = applyWrapper(codeToFormat, lang, metadata.wrapper);
+        if (!wrapResult) {
+            const preview = getSnippetPreview(code);
+            throw new Error(`Unknown wrapper strategy "${metadata.wrapper}". Preview:\n${preview}`);
+        }
+
+        try {
+            const formatted = await prettier.format(wrapResult.wrapped, config);
+            const unwrapped = wrapResult.strategy.unwrap(formatted);
+            let result = unwrapped.replace(/\n$/, '');
+            if (hasTrailingNewline) {
+                result += '\n';
+            }
+            return result;
+        } catch (error) {
+            const preview = getSnippetPreview(code);
+            const details: string[] = [];
+            if (error instanceof Error && error.message) {
+                details.push(`Error: ${error.message}`);
+            }
+            const detailText = details.length ? `\n${details.join('\n')}` : '';
+            throw new Error(
+                `Unable to format ${lang} code block with wrapper "${metadata.wrapper}". Preview:\n${preview}${detailText}`
+            );
+        }
+    }
+
+    // No wrapper specified, try to format as-is (complete code)
     try {
         const formatted = await prettier.format(codeToFormat, config);
         // Prettier adds a trailing newline, remove it
@@ -261,43 +290,11 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         }
         return result;
     } catch (error) {
-        // If wrapper metadata specified, use it
-        if (metadata.wrapper && normalizedLang !== 'json') {
-            const wrapResult = applyWrapper(codeToFormat, lang, metadata.wrapper);
-            if (!wrapResult) {
-                const preview = getSnippetPreview(code);
-                throw new Error(`Unknown wrapper strategy "${metadata.wrapper}". Preview:\n${preview}`);
-            }
-
-            try {
-                const formatted = await prettier.format(wrapResult.wrapped, config);
-                const unwrapped = wrapResult.strategy.unwrap(formatted);
-                let result = unwrapped.replace(/\n$/, '');
-                if (hasTrailingNewline) {
-                    result += '\n';
-                }
-                return result;
-            } catch (error2) {
-                const preview = getSnippetPreview(code);
-                const details: string[] = [];
-                if (error instanceof Error && error.message) {
-                    details.push(`Original error: ${error.message}`);
-                }
-                if (error2 instanceof Error && error2.message) {
-                    details.push(`Wrapped error: ${error2.message}`);
-                }
-                const detailText = details.length ? `\n${details.join('\n')}` : '';
-                throw new Error(
-                    `Unable to format ${lang} code block with wrapper "${metadata.wrapper}". Preview:\n${preview}${detailText}`
-                );
-            }
-        }
-
         // No wrapper specified, formatting failed
         const preview = getSnippetPreview(code);
         const details: string[] = [];
         if (error instanceof Error && error.message) {
-            details.push(`Original error: ${error.message}`);
+            details.push(`Error: ${error.message}`);
         }
         const detailText = details.length ? `\n${details.join('\n')}` : '';
         throw new Error(
