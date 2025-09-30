@@ -19,7 +19,7 @@ interface CodeBlock {
     startIndex: number;
     endIndex: number;
     lineNumber: number;
-    meta?: string; // Metadata string after language (e.g., wrapper="object")
+    meta?: string; // Metadata string after language (e.g., format="snippet")
 }
 
 /**
@@ -54,7 +54,7 @@ function validateFilePath(filePath: string): void {
 function extractCodeBlocks(content: string): CodeBlock[] {
     const blocks: CodeBlock[] = [];
     // Updated regex to capture optional metadata after language
-    // Matches: ```js wrapper="object" or ```js or ```javascript etc.
+    // Matches: ```js format="snippet" or ```js or ```javascript etc.
     // NOTE: Order matters - longer patterns must come first to prevent partial matches
     const codeBlockRegex = /```(javascript|typescript|json|jsx|tsx|js|ts)([\t\f\v \u00a0][^\n]*)?\n([\s\S]*?)```/g;
 

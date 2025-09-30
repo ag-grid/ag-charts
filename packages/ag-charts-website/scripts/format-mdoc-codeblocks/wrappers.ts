@@ -3,7 +3,7 @@
  * Each strategy wraps code to make it valid JS/TS for Prettier, then unwraps after formatting.
  *
  * Usage: Add format="strategyName" metadata to code blocks that need wrapping.
- * Example: ```js format="object"
+ * Example: ```js format="snippet"
  */
 
 export interface WrapStrategy {
@@ -52,15 +52,18 @@ function trimEmptyEdgeLines(lines: string[]): string[] {
 }
 
 /**
- * For bare object literals that are meant to be assigned to a variable.
- * Use when: Code block contains just object properties or a complete object literal.
+ * For code snippets that may be partial objects, complete objects, or complete statements.
+ * Intelligently detects the type and wraps only if needed.
+ *
+ * Use when: Code block contains object properties, object literals, or complete statements.
  *
  * Examples:
  * - `{ type: 'bar', xKey: 'month' }` (complete object)
  * - `type: 'bar', xKey: 'month'` (object properties without braces)
+ * - `const x = 5;` (complete statement - not wrapped)
  */
-const objectStrategy: WrapStrategy = {
-    name: 'object',
+const snippetStrategy: WrapStrategy = {
+    name: 'snippet',
     wrap: (code: string) => {
         const trimmed = code.trim();
 
@@ -233,10 +236,10 @@ const reactHooksStrategy: WrapStrategy = {
 
 /**
  * Map of all available format strategies.
- * Use the strategy name in code block metadata: ```js format="object"
+ * Use the strategy name in code block metadata: ```js format="snippet"
  */
 export const wrapperStrategies: Record<string, WrapStrategy> = {
-    object: objectStrategy,
+    snippet: snippetStrategy,
     reactHooks: reactHooksStrategy,
 };
 

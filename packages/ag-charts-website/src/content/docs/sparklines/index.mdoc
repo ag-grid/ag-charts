@@ -70,7 +70,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js format="object"
+```js format="snippet"
 template: `<ag-sparkline :options="options"/>`,
 components: {
     'ag-sparkline': AgSparkline,
@@ -104,7 +104,7 @@ In this configuration:
 
 {% chartExampleRunner title="Customised Sparkline" name="customised-sparkline" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     type: 'bar',
     fill: '#5C6BC0',
@@ -118,7 +118,7 @@ Each of the Bar, Line, and Area Sparklines can be customised using the associate
 
 {% chartExampleRunner title="Sparkline Axes" name="sparkline-axes" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     axis: {
         type: 'time',

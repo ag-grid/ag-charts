@@ -76,7 +76,7 @@ A chart can have more than one series, which can be useful when comparing datase
 
 {% if isFramework("javascript") %}
 
-```js format="object"
+```js format="snippet"
 const options = {
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
@@ -104,7 +104,7 @@ const [chartOptions, setChartOptions] = useState({
 
 {% if isFramework("angular") %}
 
-```ts format="object"
+```ts format="snippet"
 this.chartOptions = {
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' } as AgBarSeriesOptions, // Existing 'Bar' Series, using 'iceCreamSales' data-points
@@ -141,7 +141,7 @@ The chart above shows both series in a single chart, but given that the data-set
 
 {% if isFramework("javascript") %}
 
-```js format="object"
+```js format="snippet"
 const options = {
     axes: [
         { type: 'category', position: 'bottom' },
@@ -171,7 +171,7 @@ const [chartOptions, setChartOptions] = useState({
 
 {% if isFramework("angular") %}
 
-```js format="object"
+```js format="snippet"
 this.chartOptions = {
     axes: [
         { type: 'category', position: 'bottom' },
@@ -221,7 +221,7 @@ Titles and subtitles can also be added to the chart via the `title` and `subtitl
 
 {% if isFramework("javascript") %}
 
-```js format="object"
+```js format="snippet"
 const options = {
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
@@ -233,7 +233,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js format="object"
+```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
@@ -245,7 +245,7 @@ const [chartOptions, setChartOptions] = useState({
 
 {% if isFramework("angular") %}
 
-```ts format="object"
+```ts format="snippet"
 this.chartOptions = {
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
@@ -277,7 +277,7 @@ You may have noticed that the chart added a Legend when we added a second series
 
 {% if isFramework("javascript") %}
 
-```js format="object"
+```js format="snippet"
 const options = {
     legend: {
         position: 'right',
@@ -290,7 +290,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js format="object"
+```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
     legend: {
         position: 'right',
@@ -303,7 +303,7 @@ const [chartOptions, setChartOptions] = useState({
 
 {% if isFramework("angular") %}
 
-```js format="object"
+```js format="snippet"
 this.chartOptions = {
     legend: {
         position: 'right',
@@ -340,7 +340,7 @@ As you can see, our Legend and Tooltips use the property name from the data dire
 
 {% if isFramework("javascript") %}
 
-```js format="object"
+```js format="snippet"
 const options = {
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
@@ -354,7 +354,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js format="object"
+```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
@@ -368,7 +368,7 @@ const [chartOptions, setChartOptions] = useState({
 
 {% if isFramework("angular") %}
 
-```js format="object"
+```js format="snippet"
 this.chartOptions = {
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
@@ -407,7 +407,7 @@ The `formatter` should be a function that receives the axis label data and retur
 
 {% if isFramework("javascript") %}
 
-```js format="object"
+```js format="snippet"
 const options = {
     axes: [
         // ...
@@ -431,7 +431,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js format="object"
+```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
     axes: [
         // ...
@@ -455,7 +455,7 @@ const [chartOptions, setChartOptions] = useState({
 
 {% if isFramework("angular") %}
 
-```js format="object"
+```js format="snippet"
 this.chartOptions = {
     axes: [
         // ...
@@ -479,7 +479,7 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js format="object"
+```js format="snippet"
 this.chartOptions = {
     axes: [
         // ...

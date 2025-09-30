@@ -4,7 +4,7 @@ import { processMdocContent } from './formatter';
 
 describe('mdoc object wrapper formatting', () => {
     it('preserves property-only snippets without adding wrapper artefacts', async () => {
-        const input = ['```ts format="object"', 'contextMenu: {', '    enabled: false,', '}', '```', ''].join('\n');
+        const input = ['```ts format="snippet"', 'contextMenu: {', '    enabled: false,', '}', '```', ''].join('\n');
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
@@ -14,7 +14,7 @@ describe('mdoc object wrapper formatting', () => {
 
     it('strips trailing semicolons from full object literals', async () => {
         const input = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '{',
             '    animation: {',
             '        duration: 500,',
@@ -27,7 +27,7 @@ describe('mdoc object wrapper formatting', () => {
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         const expected = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '{',
             '    animation: {',
             '        duration: 500,',
@@ -43,7 +43,7 @@ describe('mdoc object wrapper formatting', () => {
 
     it('strips trailing commas even when present in the original snippet', async () => {
         const input = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             'axes: [',
             '    {',
             "        type: 'number',",
@@ -57,7 +57,7 @@ describe('mdoc object wrapper formatting', () => {
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         const expected = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             'axes: [',
             '    {',
             "        type: 'number',",
@@ -74,7 +74,7 @@ describe('mdoc object wrapper formatting', () => {
 
     it('preserves nested blocks that close with `};` inside the snippet', async () => {
         const input = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             'template: `<ag-gauge :options="options"/>`,',
             'components: {',
             "    'ag-gauge': AgGauge",
@@ -96,7 +96,7 @@ describe('mdoc object wrapper formatting', () => {
         ].join('\n');
 
         const expected = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             'template: `<ag-gauge :options="options"/>`,',
             'components: {',
             "    'ag-gauge': AgGauge,",
@@ -138,7 +138,7 @@ describe('mdoc object wrapper formatting', () => {
         // This tests the case where code is valid JS (formats without wrapper)
         // but we still want semicolon stripping via the wrapper
         const input = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '{',
             '    value: 80,',
             '    scale: {',
@@ -151,7 +151,7 @@ describe('mdoc object wrapper formatting', () => {
         ].join('\n');
 
         const expected = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '{',
             '    value: 80,',
             '    scale: {',
@@ -171,7 +171,7 @@ describe('mdoc object wrapper formatting', () => {
 
     it('does not wrap complete statements (const, import, etc.)', async () => {
         const input = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             'const myTheme = {',
             '    palette: {',
             "        fills: ['#5C2983', '#0076C5'],",
@@ -190,7 +190,7 @@ describe('mdoc object wrapper formatting', () => {
 
     it('handles objects with function bodies containing semicolons', async () => {
         const input = [
-            '```js format="object"',
+            '```js format="snippet"',
             '{',
             '    formatter: {',
             '        x: (params) => {',
@@ -207,7 +207,7 @@ describe('mdoc object wrapper formatting', () => {
         ].join('\n');
 
         const expected = [
-            '```js format="object"',
+            '```js format="snippet"',
             '{',
             '    formatter: {',
             '        x: (params) => {',
@@ -231,7 +231,7 @@ describe('mdoc object wrapper formatting', () => {
 
     it('handles Angular decorators with export statements', async () => {
         const input = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '@Component({',
             "    selector: 'app-root',",
             '    standalone: true,',
@@ -244,7 +244,7 @@ describe('mdoc object wrapper formatting', () => {
         ].join('\n');
 
         const expected = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '@Component({',
             "    selector: 'app-root',",
             '    standalone: true,',
@@ -264,7 +264,7 @@ describe('mdoc object wrapper formatting', () => {
 
     it('handles decorators with leading comments', async () => {
         const input = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '// Angular Chart Component',
             '@Component({',
             "    selector: 'app-root',",
@@ -275,7 +275,7 @@ describe('mdoc object wrapper formatting', () => {
         ].join('\n');
 
         const expected = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '// Angular Chart Component',
             '@Component({',
             "    selector: 'app-root',",
@@ -293,7 +293,7 @@ describe('mdoc object wrapper formatting', () => {
 
     it('handles import statements with leading comments', async () => {
         const input = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '// Angular Chart Component',
             "import { AgCharts } from 'ag-charts-angular';",
             '// Chart Options Type Interface',
@@ -303,7 +303,7 @@ describe('mdoc object wrapper formatting', () => {
         ].join('\n');
 
         const expected = [
-            '```ts format="object"',
+            '```ts format="snippet"',
             '// Angular Chart Component',
             "import { AgCharts } from 'ag-charts-angular';",
             '// Chart Options Type Interface',
@@ -319,10 +319,10 @@ describe('mdoc object wrapper formatting', () => {
     });
 
     it('converts semicolons in simple property lines', async () => {
-        const input = ['```js format="object"', 'padding: 4; //padding of 4px on all sides', '```', ''].join('\n');
+        const input = ['```js format="snippet"', 'padding: 4; //padding of 4px on all sides', '```', ''].join('\n');
 
         // Semicolon is stripped, and since it's wrapped in an object, Prettier adds a comma
-        const expected = ['```js format="object"', 'padding: 4, //padding of 4px on all sides', '```', ''].join('\n');
+        const expected = ['```js format="snippet"', 'padding: 4, //padding of 4px on all sides', '```', ''].join('\n');
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
@@ -331,7 +331,7 @@ describe('mdoc object wrapper formatting', () => {
     });
 
     it('fixes semicolons inside complete object literals', async () => {
-        const input = ['```js format="object"', '{', "    styleNonce: '416d1177',", '}', '```', ''].join('\n');
+        const input = ['```js format="snippet"', '{', "    styleNonce: '416d1177',", '}', '```', ''].join('\n');
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 

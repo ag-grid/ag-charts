@@ -14,7 +14,7 @@ By default, bars are grouped, enabling side-by-side comparison of data against t
 
 To create a Bar Series, use the `bar` series type.
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
     { type: 'bar', xKey: 'quarter', yKey: 'mac', yName: 'Mac' },
@@ -36,7 +36,7 @@ In this configuration:
 
 To show a Horizontal Bar Series, set `direction: 'horizontal'`.
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'bar', direction: 'horizontal', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
     // ...
@@ -54,7 +54,7 @@ Stacked bars are useful for visualising data in a cumulative manner across diffe
 
 To stack bars enable the `stacked` series option.
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true },
     // ...
@@ -67,7 +67,7 @@ series: [
 
 The `normalizedTo` series option allows normalising bar totals to any non-zero value.
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, normalizedTo: 100 },
     // ...
@@ -81,7 +81,7 @@ series: [
 The `stackGroup` property allows for stacking bars in distinct sets by specifying which series are grouped together.
 Series with an unspecified `stackGroup` will be stacked together by default.
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stackGroup: 'Devices' },
     { type: 'bar', xKey: 'quarter', yKey: 'mac', stackGroup: 'Devices' },
@@ -110,7 +110,7 @@ To display the bars in hierarchical grouped categories, use a [Grouped Category 
 
 The corner radius can be customised with the `cornerRadius` property.
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, cornerRadius: 10 },
     { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true, cornerRadius: 10 },

@@ -11,7 +11,7 @@ A Donut Series has all the benefits of a Pie Series and allows displaying multip
 
 To create a Donut Series, use the `donut` series type.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         type: 'donut',
@@ -31,7 +31,7 @@ The `innerLabels` property can be used to put several lines of text in the space
 
 The colour of the centre area can be changed by using `innerCircle`.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         // ...
@@ -60,7 +60,7 @@ series: [
 
 To render multiple Donut Series in a single chart without overlapping, set an `outerRadiusRatio` in conjunction with an `innerRadiusRatio`.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         // outer series
@@ -92,7 +92,7 @@ In the above configuration:
 
 Providing a matching `legendItemKey` allows synchronising of legend items across multiple Donut Series. When a legend item is clicked, all items with a matching `legendItemKey` are toggled.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         // ...

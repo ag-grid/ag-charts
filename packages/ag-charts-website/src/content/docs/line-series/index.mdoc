@@ -11,7 +11,7 @@ A Line Series visualises continuous data, and is typically used to see trends or
 
 To create a Line Series, use the `line` series type. If no `type` is provided, a Line Series will be created by default.
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'line', xKey: 'quarter', yKey: 'petrol', yName: 'Petrol' },
     { type: 'line', xKey: 'quarter', yKey: 'diesel', yName: 'Diesel' },
@@ -34,7 +34,7 @@ Note that the [Legend](./legend/) automatically reflects the customisation of th
 
 Labels can be displayed above each data point. Use the `label` option to enable and style the labels.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         // ...
@@ -52,7 +52,7 @@ Please see the [API Reference](./line-series/#reference-AgLineSeriesOptions-labe
 
 Markers are displayed by default in the Line Series. Use the `marker` option to style or disable the markers.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         // ...
@@ -75,7 +75,7 @@ A straight line is used to connect points by default in the Line Series. Use the
 
 {% chartExampleRunner title="Customised Line Style" name="line-style" type="generated" /%}
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         // ...

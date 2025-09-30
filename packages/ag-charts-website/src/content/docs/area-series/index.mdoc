@@ -11,7 +11,7 @@ An Area Series is used to visualise continuous data, and is primarily used to co
 
 To create an Area series use the `'area'` series type.
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'area', xKey: 'month', yKey: 'subscriptions', yName: 'Subscriptions' },
     { type: 'area', xKey: 'month', yKey: 'services', yName: 'Services' },
@@ -35,7 +35,7 @@ Setting `stacked: true` will enable the series stacking behaviour.
 
 {% chartExampleRunner title="Stacked Area Series" name="stacked-area" type="generated" /%}
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'area', xKey: 'month', yKey: 'subscriptions', yName: 'Subscriptions', stacked: true },
     { type: 'area', xKey: 'month', yKey: 'services', yName: 'Services', stacked: true },
@@ -50,7 +50,7 @@ It is possible to normalize to any non-zero value.
 
 {% chartExampleRunner title="Normalized Stacked Area Series" name="normalized-area" type="generated" /%}
 
-```js format="object"
+```js format="snippet"
 series: [
     { type: 'area', xKey: 'month', yKey: 'subscriptions', yName: 'Subscriptions', stacked: true, normalizedTo: 1000 },
     { type: 'area', xKey: 'month', yKey: 'services', yName: 'Services', stacked: true, normalizedTo: 1000 },
@@ -76,7 +76,7 @@ A straight line is used to connect points by default in the Area Series. Use the
 
 {% chartExampleRunner title="Customised Line Style" name="line-style" type="generated" /%}
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         // ...

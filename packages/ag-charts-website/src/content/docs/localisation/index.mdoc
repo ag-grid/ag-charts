@@ -64,7 +64,7 @@ The locale `AG_CHARTS_LOCALE_EN_US` is also exported from `ag-charts-community`/
 import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 ```
 
-```js format="object"
+```js format="snippet"
 {
     locale: {
         localeText: AG_CHARTS_LOCALE_FR_FR,
@@ -86,7 +86,7 @@ Overrides for individual translations can be done by applying overrides to an ex
 
 {% chartExampleRunner title="Custom Text Values" name="custom-text-values" type="generated" /%}
 
-```js format="object"
+```js format="snippet"
 {
     locale: {
         localeText: {
@@ -112,7 +112,7 @@ Some translations have parameters, which can be included in the translation usin
 
 Values can be formatted by appending a format style in square brackets, like `'${value}[percent]'`. The available formatters are `[number]`, `[percent]`, `[date]`, `[time]`, and `[datetime]`.
 
-```js format="object"
+```js format="snippet"
 {
     locale: {
         localeText: {
@@ -130,7 +130,7 @@ Please see [All Built-In Translations](./localisation/#all-built-in-translations
 
 You can integrate the internationalisation framework using the `getLocaleText` option within the `locale` options.
 
-```js format="object"
+```js format="snippet"
 {
     locale: {
         getLocaleText({ key, defaultValue, variables }) {
@@ -150,7 +150,7 @@ If you return `undefined` from this function, it will fall back to the default b
 
 {% tabItem id="FormatJS" label="FormatJS" %}
 
-```js format="object"
+```js format="snippet"
 import { createIntl } from '@formatjs/intl';
 
 const intl = createIntl({
@@ -178,7 +178,7 @@ AgCharts.create({
 
 {% tabItem id="I18Next" label="I18Next" %}
 
-```js format="object"
+```js format="snippet"
 import i18next from 'i18next';
 
 await i18next.init({
@@ -259,7 +259,7 @@ const App = () => {
 
 {% tabItem id="React I18Next" label="React I18Next" %}
 
-```js format="object"
+```js format="snippet"
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 

@@ -11,7 +11,7 @@ A Histogram Series shows the frequency distribution of data values, providing a 
 
 To create a Histogram Series, use the `histogram` series type and provide an `xKey`.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         type: 'histogram',
@@ -35,7 +35,7 @@ In this configuration:
 
 The approximate number of bins to aim for can be overridden by setting the `binCount` property.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         type: 'histogram',
@@ -51,7 +51,7 @@ series: [
 
 Rather than specifying the number of bins, it is possible to explicitly give the start and end values for each bin.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         type: 'histogram',
@@ -83,7 +83,7 @@ If both `bins` and `binCount` properties are provided, `binCount` takes preceden
 
 To provide Y values as well as X values, specify both `xKey` and `yKey` properties.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         type: 'histogram',
@@ -105,7 +105,7 @@ series: [
 
 The default aggregation method is `sum`. Use the `aggregation` option to change this to `count` or `mean`.
 
-```js format="object"
+```js format="snippet"
 series: [
     {
         type: 'histogram',

@@ -74,7 +74,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js format="object"
+```js format="snippet"
 template: `<ag-gauge :options="options"/>`,
 components: {
     'ag-gauge': AgGauge,
@@ -110,7 +110,7 @@ In this configuration:
 
 It is possible to display the data value using a bar, a needle or both. These are both rendered over the scale.
 
-```js format="object"
+```js format="snippet"
 {
     needle: {
         enabled: true,
@@ -134,7 +134,7 @@ For customisation of both the bar and needle, see below or the [API Reference](#
 
 Up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
 
-```js format="object"
+```js format="snippet"
 {
     label: {
         formatter({ value }) {
@@ -164,7 +164,7 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
 
 {% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     segmentation: {
         enabled: true,
@@ -188,7 +188,7 @@ In this configuration:
 
 {% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     cornerRadius: 99,
     cornerMode: 'container',
@@ -206,7 +206,7 @@ In this configuration:
 
 The `startAngle` and `endAngle` properties can be used to customise the start and end position of the gauge.
 
-```js format="object"
+```js format="snippet"
 {
     startAngle: -135,
     endAngle: 135,
@@ -223,7 +223,7 @@ Both the bar and scale can be displayed using a solid fill.
 
 {% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     scale: {
         fill: '#f5f6fa',
@@ -240,7 +240,7 @@ Multiple colours can be specified using the `fills` property.
 
 {% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     bar: {
         fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
@@ -260,7 +260,7 @@ The default behaviour is to space out the colours evenly. This can be customised
 
 {% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     bar: {
         fills: [
@@ -288,7 +288,7 @@ Gauges often display targets or thresholds to provide context to the displayed d
 
 {% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     targets: [
         {
@@ -308,7 +308,7 @@ In this configuration:
 
 {% chartExampleRunner title="Target Customisation" name="custom-targets" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js format="object"
+```js format="snippet"
 {
     targets: [
         {
