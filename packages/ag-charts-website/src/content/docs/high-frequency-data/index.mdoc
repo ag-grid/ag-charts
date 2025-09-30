@@ -19,3 +19,9 @@ The following example demonstrates the performance improvement of incremental gr
 The following example demonstrates high-frequency updates across multiple area charts, simulating a monitoring dashboard for multiple systems. Each chart displays system and user CPU load with data updating every 50ms when the feed is running.
 
 {% chartExampleRunner title="High Frequency Multi-Chart" name="high-freq-multi-chart" type="generated" /%}
+
+## High Volume Line Series
+
+This example is tuned for high-volume datasets. It starts with 100,000 data points and can add or remove batches of 100 points at a time. Use the controls to compare the cost of full `updateDelta()` refreshes against incremental `applyTransaction()` updates while the data stream maintains a constant window size.
+
+{% chartExampleRunner title="High Frequency High Volume" name="high-freq-high-volume" type="generated" /%}
