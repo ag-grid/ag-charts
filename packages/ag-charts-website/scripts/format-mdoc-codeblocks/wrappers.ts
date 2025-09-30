@@ -71,7 +71,7 @@ const snippetStrategy: WrapStrategy = {
         // These don't need object wrapping - they're already valid code
 
         // First, strip leading comments
-        let codeWithoutComments = trimmed.replace(/^(?:\/\/[^\n]*\n\s*)*/, '');
+        const codeWithoutComments = trimmed.replace(/^(?:\/\/[^\n]*\n\s*)*/, '');
 
         // Check for decorators (after stripping comments)
         const hasDecorator = /^@\w+/.test(codeWithoutComments);
@@ -159,7 +159,7 @@ const snippetStrategy: WrapStrategy = {
         const trimmed = formatted.trim();
 
         // First, strip leading comments
-        let codeWithoutComments = trimmed.replace(/^(?:\/\/[^\n]*\n\s*)*/, '');
+        const codeWithoutComments = trimmed.replace(/^(?:\/\/[^\n]*\n\s*)*/, '');
 
         // Check for decorators (after stripping comments)
         const hasDecorator = /^@\w+/.test(codeWithoutComments);
@@ -201,7 +201,7 @@ const reactHooksStrategy: WrapStrategy = {
         const importLine = hasReactImport ? '' : "import React from 'react';\n\n";
 
         // Check if code already has a return statement
-        const hasReturn = /\breturn\s+[\(\<]/.test(code);
+        const hasReturn = /\breturn\s+[(<]/.test(code);
         const returnStatement = hasReturn ? '' : '\n    return null;';
 
         return `${importLine}function Component() {\n${code}${returnStatement}\n}`;

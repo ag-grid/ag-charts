@@ -22,19 +22,14 @@ series: [
 
 The data passed in should be an array of nodes, with each node optionally containing children.
 
-```js format="snippet"
+```js
 let data = [
     {
         name: 'Mariah Vaughan',
         children: [
             {
                 name: 'Bushra Thomas',
-                children: [
-                    { name: 'Cyrus Henderson' },
-                    { name: 'Dora Jordan' },
-                    { name: 'Skyla Downs' },
-                    { name: "Elissa O'Sullivan" },
-                ],
+                children: [{ name: 'Cyrus Henderson' }, { name: 'Dora Jordan' }, { name: 'Skyla Downs' }, { name: "Elissa O'Sullivan" }],
             },
         ],
         // ...
@@ -43,7 +38,7 @@ let data = [
         name: 'Nathanael Villa',
         // ...
     },
-],
+];
 ```
 
 The `labelKey` defines what will appear as the title for each sector.
@@ -172,7 +167,7 @@ series: [
 ],
 gradientLegend: {
     enabled: true,
-},
+}
 ```
 
 ### Position

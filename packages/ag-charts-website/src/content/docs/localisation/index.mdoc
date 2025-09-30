@@ -218,11 +218,11 @@ AgCharts.create({
 
 {% tabItem id="React Intl" label="React Intl" %}
 
-```jsx
+```tsx
 import { IntlProvider, useIntl } from 'react-intl';
 
 const messages = {
-    'contextMenuDownload': 'Téléchargez une copie de ce tableau',
+    contextMenuDownload: 'Téléchargez une copie de ce tableau',
 };
 
 const MyChart = () => {
@@ -231,7 +231,8 @@ const MyChart = () => {
     const options = {
         // ...
         locale: {
-            getLocaleText({ key, variables }) {
+            getLocaleText(params) {
+                const { key, variables } = params;
                 if (!intl.messages[key]) {
                     // Fallback to default behaviour for missing messages
                     return undefined;
@@ -242,26 +243,26 @@ const MyChart = () => {
     };
 
     return <AgCharts options={options} />;
-}
+};
 
 const App = () => {
     return (
         <IntlProvider locale="fr-FR" messages={messages}>
             <MyChart />
-        <IntlProvider>
+        </IntlProvider>
     );
-}
+};
 ```
 
 {% /tabItem %}
 
 {% tabItem id="React I18Next" label="React I18Next" %}
 
-```js format="snippet"
+```js
 import i18next from 'i18next';
-import { initReactI18next, useTranslation } from 'react-i18next';
+import { initReactI18next } from 'react-i18next';
 
-await i18next.use(initReactI18next).init({
+i18next.use(initReactI18next).init({
     lng: 'fr',
     resources: {
         fr: {
@@ -278,7 +279,8 @@ const MyChart = () => {
     const options = {
         // ...
         locale: {
-            getLocaleText({ key, variables }) {
+            getLocaleText(params) {
+                const { key, variables } = params;
                 if (!i18n.exists(key)) {
                     // Fallback to default behaviour for missing messages
                     return undefined;
@@ -289,7 +291,7 @@ const MyChart = () => {
     };
 
     return <AgCharts options={options} />;
-}
+};
 ```
 
 {% /tabItem %}

@@ -405,7 +405,7 @@ describe('mdoc object wrapper formatting', () => {
     it('handles Unicode characters in code', async () => {
         const input = ['```js format="snippet"', "label: '温度 (°C)',", "tooltip: '数据点',", '```', ''].join('\n');
 
-        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+        const { formatted } = await processMdocContent(input, 'virtual.mdoc');
 
         // Should preserve Unicode characters
         expect(formatted).toContain('温度');
@@ -471,7 +471,7 @@ describe('mdoc object wrapper formatting', () => {
             '\n'
         );
 
-        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+        const { formatted } = await processMdocContent(input, 'virtual.mdoc');
 
         // Should preserve emoji characters
         expect(formatted).toContain('📊');
@@ -574,5 +574,32 @@ describe('mdoc object wrapper formatting', () => {
 
         expect(changed).toBe(true);
         expect(formatted).toBe(expected);
+    });
+
+    it('documents limitation: code with placeholder comments may not format perfectly', async () => {
+        // This test documents a known limitation: When code contains placeholder
+        // comments like `// ...`, Prettier may not add trailing commas because it
+        // treats the code as incomplete. This is expected Prettier behavior.
+        const input = [
+            '```js format="snippet"',
+            'series: [',
+            '    {',
+            '        // ...',
+            '        interpolation: {',
+            "            type: 'smooth'",
+            '        },',
+            '    },',
+            '],',
+            '```',
+            '',
+        ].join('\n');
+
+        const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
+
+        // Currently, Prettier doesn't modify this code because the `// ...` comment
+        // makes it look incomplete. The trailing comma on `],` remains.
+        // This requires manual fixing in the source files.
+        expect(changed).toBe(false);
+        expect(formatted).toBe(input);
     });
 });

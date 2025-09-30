@@ -586,37 +586,37 @@ The [Map Series](./maps/) types enable visualising geographic data in different 
 To create a map chart, provide a [Map Topology](./map-topology/) in [GeoJSON](https://geojson.org/) format and link the correct property in the `properties` key:
 
 ```js format="snippet"
-{
-    series: [
-        {
-            type: 'map-shape',
-            topology: {
-                type: 'FeatureCollection',
-                features: [
-                    {
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Polygon',
-                            coordinates: [...],
-                        },
-                        properties: {
-                            name: 'United Kingdom',
-                            code: 'GB'
-                        }
-                    }
-                ],
-                // ...
-            },
-            data: [
-                { country: 'United Kingdom', population: 67330000 },
-                { country: 'France', population: 67500000 },
-                // ...
+series: [
+    {
+        type: 'map-shape',
+        topology: {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [
+                            /*...*/
+                        ],
+                    },
+                    properties: {
+                        name: 'United Kingdom',
+                        code: 'GB',
+                    },
+                },
             ],
-            idKey: 'country',
-            topologyIdKey: 'name' //default value
-        }
-    ]
-}
+            // ...
+        },
+        data: [
+            { country: 'United Kingdom', population: 67330000 },
+            { country: 'France', population: 67500000 },
+            // ...
+        ],
+        idKey: 'country',
+        topologyIdKey: 'name', //default value
+    },
+]
 ```
 
 ### Gauges {% enterpriseIcon /%}

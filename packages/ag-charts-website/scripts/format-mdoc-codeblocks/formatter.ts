@@ -129,72 +129,11 @@ function parseMetadata(meta?: string): { format?: string } {
 }
 
 /**
- * Check if code contains documentation placeholders that should not be formatted.
- *
- * Documentation often includes placeholder code like `{...}` or `// ...` to indicate
- * where users should add their own code. These placeholders should not be formatted
- * as they may not be valid syntax and are meant to be illustrative rather than functional.
- *
- * This function detects several types of placeholders:
- * 1. Simple placeholders: `{...}`, `...`, `// ...`, `/* ... *\/`
- * 2. Placeholder objects/arrays: `{prop: ..., ...}`, `[..., ...]`
- * 3. Mixed code with placeholders: `useState({...})`, `variable = {...}`
- * 4. Function body placeholders: `() => {...}`, `function() {...}`
- *
- * @param code - The code string to check for placeholders
- * @returns true if the code contains documentation placeholders that should skip formatting
- */
-function containsDocumentationPlaceholders(code: string): boolean {
-    const trimmed = code.trim();
-
-    // Simple placeholder patterns that match the entire code block
-    const simplePlaceholderPatterns = [
-        /^{\s*\.\.\.\s*}$/, // Just `{...}` or `{ ... }`
-        /^\/\/\s*\.\.\.$/, // Just `// ...`
-        /^\/\*\s*\.\.\.\s*\*\/$/, // Just `/* ... */`
-        /^\.\.\.$/, // Just `...`
-        /^{\s*[^}]*\.\.\.\s*[^}]*}$/, // Object with ellipsis like `{prop: ...}` or `{..., prop}`
-        /^\[\s*[^\]]*\.\.\.\s*[^\]]*\]$/, // Array with ellipsis like `[..., item]`
-    ];
-
-    // Mixed code patterns where placeholders appear alongside real code
-    const mixedPlaceholderPatterns = [
-        /=\s*useState\s*\(\s*{\s*\.\.\.\s*}\s*\)/, // React: `const [state] = useState({...})`
-        /ref<[^>]+>\s*\(\s*{\s*\.\.\.\s*}\s*\)/, // Vue: `ref<Type>({...})`
-        /\w+\s*=\s*{\s*\.\.\.\s*}/, // Assignment: `variable = {...}`
-        /\w+\s*\(\s*{\s*\.\.\.\s*}\s*\)/, // Function call: `someFunc({...})`
-        /function\s+\w*\s*\([^)]*\)\s*{\s*\.\.\.\s*}/, // Function with placeholder body: `function foo() {...}`
-        /\([^)]*\)\s*=>\s*{\s*\.\.\.\s*}/, // Arrow function with placeholder body: `() => {...}`
-        /\([^)]*\)\s*=>\s*\.\.\./, // Arrow function returning placeholder: `() => ...`
-    ];
-
-    // Check for individual lines that are comment placeholders
-    const lines = code.split('\n').map((line) => line.trim());
-    const hasCommentPlaceholders = lines.some(
-        (line) =>
-            /^\/\/\s*\.\.\.\s*$/.test(line) || // Line containing just `// ...`
-            /^\/\*\s*\.\.\.\s*\*\/$/.test(line) // Line containing just `/* ... */`
-    );
-
-    // Return true if any placeholder pattern is found
-    return (
-        simplePlaceholderPatterns.some((pattern) => pattern.test(trimmed)) ||
-        mixedPlaceholderPatterns.some((pattern) => pattern.test(code)) ||
-        hasCommentPlaceholders
-    );
-}
-
-/**
  * Format a single code block, handling partial code appropriately
  */
 async function formatCodeBlock(code: string, lang: string, meta?: string): Promise<string> {
     // Parse metadata
     const metadata = parseMetadata(meta);
-
-    // Skip formatting for documentation placeholders
-    if (containsDocumentationPlaceholders(code)) {
-        return code;
-    }
 
     // Get prettier config from project
     const prettierConfig = (await prettier.resolveConfig(process.cwd())) ?? {};
