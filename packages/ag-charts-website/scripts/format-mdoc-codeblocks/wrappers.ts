@@ -92,14 +92,29 @@ const snippetStrategy: WrapStrategy = {
             return code;
         }
 
-        // Check if this is a complete object literal that already has braces
-        if (trimmed.startsWith('{') && (trimmed.endsWith('}') || trimmed.endsWith('};'))) {
-            // It's already a complete object, just assign it
-            const hadSemicolon = trimmed.endsWith('};');
-            // For complete objects, only strip the trailing semicolon after the closing brace
+        // Check if this is a complete object or array literal that already has braces/brackets
+        const isCompleteObject = trimmed.startsWith('{') && (trimmed.endsWith('}') || trimmed.endsWith('};'));
+        const isCompleteArray = trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('];'));
+
+        if (isCompleteObject || isCompleteArray) {
+            // It's already a complete object/array, just assign it
+            const hadSemicolon = trimmed.endsWith('};') || trimmed.endsWith('];');
+            // For complete objects/arrays, only strip the trailing semicolon after the closing brace/bracket
             // Don't strip semicolons inside (they may be in function bodies)
             const fixedCode = hadSemicolon ? code.slice(0, -1) : code;
             return `// __HAD_SEMICOLON__:${hadSemicolon}\nconst __temp__ = ${fixedCode}`;
+        }
+
+        // Check if this is a property assignment (key: value or key: {...} or key: [...])
+        // These need to be wrapped in an object but we should strip trailing semicolons
+        const propertyPattern = /^\s*[\w$]+\s*:\s*/;
+        if (propertyPattern.test(trimmed)) {
+            // It's a property assignment
+            // Strip semicolons: both at end of line and before comments
+            // Handle: padding: 4; //comment -> padding: 4, //comment
+            // Handle: series: [...]; -> series: [...]
+            const fixedCode = code.replace(/;(\s*(?:\/\/[^\n]*)?)$/gm, '$1');
+            return `const __temp__ = {\n${fixedCode}\n};`;
         }
 
         // Otherwise, it's object properties without braces

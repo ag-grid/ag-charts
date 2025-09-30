@@ -67,20 +67,30 @@
     },
     "format:mdoc": {
       "command": "tsx scripts/format-mdoc-codeblocks.ts --write",
-      "cache": false,
+      "cache": true,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
-      "inputs": ["{projectRoot}/src/**/*.mdoc"],
-      "outputs": []
+      "inputs": [
+        "{projectRoot}/src/**/*.mdoc",
+        "{projectRoot}/scripts/format-mdoc-codeblocks.ts",
+        "{projectRoot}/scripts/format-mdoc-codeblocks/**/*.ts",
+        "{projectRoot}/.prettierrc.json"
+      ],
+      "outputs": ["{projectRoot}/src/**/*.mdoc"]
     },
     "format:mdoc:check": {
       "command": "tsx scripts/format-mdoc-codeblocks.ts --check || echo \"Run this command to fix formatting errors:\\nnx format:mdoc ag-charts-website\"",
-      "cache": false,
+      "cache": true,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
-      "inputs": ["{projectRoot}/src/**/*.mdoc"],
+      "inputs": [
+        "{projectRoot}/src/**/*.mdoc",
+        "{projectRoot}/scripts/format-mdoc-codeblocks.ts",
+        "{projectRoot}/scripts/format-mdoc-codeblocks/**/*.ts",
+        "{projectRoot}/.prettierrc.json"
+      ],
       "outputs": []
     },
     "test": {

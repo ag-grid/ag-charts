@@ -93,7 +93,28 @@ function extractCodeBlocks(content: string): CodeBlock[] {
 }
 
 /**
- * Parse metadata string to extract format strategy
+ * Parse metadata string to extract format strategy.
+ *
+ * The metadata string appears after the language identifier in code blocks and
+ * specifies how the code should be formatted. Format strategies help handle
+ * partial code snippets that aren't valid standalone code.
+ *
+ * Supported format strategies:
+ * - `snippet`: For object/array properties or partial syntax that needs wrapping
+ *   Example: ```ts format="snippet"
+ *            contextMenu: { enabled: false }
+ *            ```
+ *
+ * - `reactHooks`: For React hook usage that should appear at component root level
+ *   Example: ```jsx format="reactHooks"
+ *            const [options, setOptions] = useState({...});
+ *            return <Component />;
+ *            ```
+ *
+ * The function also supports the deprecated `wrapper` attribute name for backward compatibility.
+ *
+ * @param meta - The metadata string from the code block (e.g., 'format="snippet"')
+ * @returns An object containing the format strategy, or empty if no strategy specified
  */
 function parseMetadata(meta?: string): { format?: string } {
     if (!meta) return {};
@@ -108,51 +129,56 @@ function parseMetadata(meta?: string): { format?: string } {
 }
 
 /**
- * Check if code contains documentation placeholders that should not be formatted
+ * Check if code contains documentation placeholders that should not be formatted.
+ *
+ * Documentation often includes placeholder code like `{...}` or `// ...` to indicate
+ * where users should add their own code. These placeholders should not be formatted
+ * as they may not be valid syntax and are meant to be illustrative rather than functional.
+ *
+ * This function detects several types of placeholders:
+ * 1. Simple placeholders: `{...}`, `...`, `// ...`, `/* ... *\/`
+ * 2. Placeholder objects/arrays: `{prop: ..., ...}`, `[..., ...]`
+ * 3. Mixed code with placeholders: `useState({...})`, `variable = {...}`
+ * 4. Function body placeholders: `() => {...}`, `function() {...}`
+ *
+ * @param code - The code string to check for placeholders
+ * @returns true if the code contains documentation placeholders that should skip formatting
  */
 function containsDocumentationPlaceholders(code: string): boolean {
     const trimmed = code.trim();
 
-    // Check for various placeholder patterns
-    const placeholderPatterns = [
-        /^{\s*\.\.\.\s*}$/, // { ... } or {...}
-        /^\/\/\s*\.\.\.$/, // // ...
-        /^\/\*\s*\.\.\.\s*\*\/$/, // /* ... */
-        /^\.\.\.$/, // just ...
-        // Object with ellipsis placeholder
-        /^{\s*[^}]*\.\.\.\s*[^}]*}$/,
-        // Array with ellipsis placeholder
-        /^\[\s*[^\]]*\.\.\.\s*[^\]]*\]$/,
+    // Simple placeholder patterns that match the entire code block
+    const simplePlaceholderPatterns = [
+        /^{\s*\.\.\.\s*}$/, // Just `{...}` or `{ ... }`
+        /^\/\/\s*\.\.\.$/, // Just `// ...`
+        /^\/\*\s*\.\.\.\s*\*\/$/, // Just `/* ... */`
+        /^\.\.\.$/, // Just `...`
+        /^{\s*[^}]*\.\.\.\s*[^}]*}$/, // Object with ellipsis like `{prop: ...}` or `{..., prop}`
+        /^\[\s*[^\]]*\.\.\.\s*[^\]]*\]$/, // Array with ellipsis like `[..., item]`
     ];
 
-    // Enhanced patterns for mixed code and placeholders
+    // Mixed code patterns where placeholders appear alongside real code
     const mixedPlaceholderPatterns = [
-        // Mixed assignment patterns like: const [state, setState] = useState({...});
-        /=\s*useState\s*\(\s*{\s*\.\.\.\s*}\s*\)/,
-        // Mixed reference patterns like: ref<AgChartOptions>({...})
-        /ref<[^>]+>\s*\(\s*{\s*\.\.\.\s*}\s*\)/,
-        // Direct assignment with placeholder: variable = {...}
-        /\w+\s*=\s*{\s*\.\.\.\s*}/,
-        // Function calls with placeholder objects: someFunc({...})
-        /\w+\s*\(\s*{\s*\.\.\.\s*}\s*\)/,
-        // Function body placeholder patterns
-        /function\s+\w*\s*\([^)]*\)\s*{\s*\.\.\.\s*}/,
-        /\([^)]*\)\s*=>\s*{\s*\.\.\.\s*}/,
-        // Arrow function with placeholder body
-        /\([^)]*\)\s*=>\s*\.\.\./,
+        /=\s*useState\s*\(\s*{\s*\.\.\.\s*}\s*\)/, // React: `const [state] = useState({...})`
+        /ref<[^>]+>\s*\(\s*{\s*\.\.\.\s*}\s*\)/, // Vue: `ref<Type>({...})`
+        /\w+\s*=\s*{\s*\.\.\.\s*}/, // Assignment: `variable = {...}`
+        /\w+\s*\(\s*{\s*\.\.\.\s*}\s*\)/, // Function call: `someFunc({...})`
+        /function\s+\w*\s*\([^)]*\)\s*{\s*\.\.\.\s*}/, // Function with placeholder body: `function foo() {...}`
+        /\([^)]*\)\s*=>\s*{\s*\.\.\.\s*}/, // Arrow function with placeholder body: `() => {...}`
+        /\([^)]*\)\s*=>\s*\.\.\./, // Arrow function returning placeholder: `() => ...`
     ];
 
-    // Also check for lines containing comment placeholders
+    // Check for individual lines that are comment placeholders
     const lines = code.split('\n').map((line) => line.trim());
     const hasCommentPlaceholders = lines.some(
         (line) =>
-            /^\/\/\s*\.\.\.\s*$/.test(line) || // // ...
-            /^\/\*\s*\.\.\.\s*\*\/$/.test(line) // /* ... */
+            /^\/\/\s*\.\.\.\s*$/.test(line) || // Line containing just `// ...`
+            /^\/\*\s*\.\.\.\s*\*\/$/.test(line) // Line containing just `/* ... */`
     );
 
     // Return true if any placeholder pattern is found
     return (
-        placeholderPatterns.some((pattern) => pattern.test(trimmed)) ||
+        simplePlaceholderPatterns.some((pattern) => pattern.test(trimmed)) ||
         mixedPlaceholderPatterns.some((pattern) => pattern.test(code)) ||
         hasCommentPlaceholders
     );
@@ -199,30 +225,34 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         json: 'json',
     };
 
-    // Auto-detect TypeScript syntax even in jsx/js blocks
-    const hasTypeScriptSyntax =
-        (/<[^>]+>/.test(code) && /[a-zA-Z_$][a-zA-Z0-9_$]*</.test(code)) || // Generic types like Type<Generic>
-        /:\s*[a-zA-Z_$][a-zA-Z0-9_$]*(\[\]|\|)/.test(code) || // Type annotations
-        /as\s+[a-zA-Z_$][a-zA-Z0-9_$]*/.test(code) || // Type assertions
-        /interface\s+[a-zA-Z_$]/.test(code) || // Interface declarations
-        /type\s+[a-zA-Z_$]/.test(code) || // Type alias declarations
-        /\?\.\w/.test(code) || // Optional chaining
-        /!\s*;/.test(code) || // Non-null assertion
-        /document\.getElementById\([^)]+\)!/.test(code); // Non-null assertion on DOM elements
-
     let parser = parserMap[normalizedLang] ?? 'babel';
-
-    // Override to TypeScript parser if TS syntax detected in JS/JSX blocks
-    if (
-        (normalizedLang === 'jsx' || normalizedLang === 'js' || normalizedLang === 'javascript') &&
-        hasTypeScriptSyntax
-    ) {
-        parser = 'typescript';
-    }
 
     // For reactHooks format, use TypeScript parser since we set .tsx extension
     if (metadata?.format === 'reactHooks') {
         parser = 'typescript';
+    } else if (normalizedLang === 'jsx' || normalizedLang === 'js' || normalizedLang === 'javascript') {
+        // Auto-detect TypeScript syntax in JS/JSX blocks by attempting to parse with TypeScript
+        // This is more reliable than regex patterns and leverages Prettier's own parser
+        // First check for TS-specific patterns to avoid unnecessary parsing
+        const hasTSPatterns =
+            /:\s*\w+(\[\]|\||&|<)/.test(code) || // Type annotations with arrays, unions, intersections, or generics
+            /\bas\s+\w/.test(code) || // Type assertions
+            /\b(interface|type)\s+\w/.test(code) || // Type declarations
+            /!\s*[;.]/.test(code); // Non-null assertions
+
+        if (hasTSPatterns) {
+            try {
+                // Test if the code can be parsed as TypeScript
+                await prettier.format(code, {
+                    parser: 'typescript',
+                    filepath: 'test.ts',
+                });
+                // If parsing succeeds, use TypeScript parser
+                parser = 'typescript';
+            } catch {
+                // If parsing as TypeScript fails, stick with babel parser
+            }
+        }
     }
 
     // Override with specific settings for consistency
@@ -296,9 +326,20 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
         if (error instanceof Error && error.message) {
             details.push(`Error: ${error.message}`);
         }
+
+        // Provide helpful suggestions based on the code content
+        const suggestions: string[] = [];
+        if (/^[a-zA-Z_$][\w$]*:/.test(code.trim())) {
+            suggestions.push('Try adding format="snippet" for property-only code');
+        }
+        if (/useState|useEffect|useRef/.test(code)) {
+            suggestions.push('Try adding format="reactHooks" for React hook code');
+        }
+
+        const suggestionText = suggestions.length ? `\nSuggestions: ${suggestions.join(', ')}` : '';
         const detailText = details.length ? `\n${details.join('\n')}` : '';
         throw new Error(
-            `Unable to format ${lang} code block. Consider adding wrapper metadata. Preview:\n${preview}${detailText}`
+            `Unable to format ${lang} code block. Consider adding format metadata.${suggestionText}\nPreview:\n${preview}${detailText}`
         );
     }
 }
