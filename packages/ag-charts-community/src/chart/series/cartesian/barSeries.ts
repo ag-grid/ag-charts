@@ -521,6 +521,10 @@ export class BarSeries extends AbstractBarSeries<
             const datum = rawData[datumIndex];
 
             const yRawValue = yRawValues[datumIndex];
+
+            // Skip rendering bars for missing values
+            if (yRawValue == null) return;
+
             const yFilterValue = yFilterValues != null ? Number(yFilterValues[datumIndex]) : undefined;
             const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
 
