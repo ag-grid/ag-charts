@@ -14,7 +14,6 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
     chartTypes: ['polar'],
 
     identifier: 'pie',
-    moduleFactory: (ctx) => new PieSeries(ctx),
     themeTemplate: pieTheme,
 };
 
@@ -24,6 +23,7 @@ export const NewPieSeriesModule: SeriesModuleDefinition<AgPieSeriesOptions> = {
     chartType: 'polar',
 
     options: pieSeriesOptionsDef,
+    themeTemplate: pieTheme,
 
     create: (ctx: ModuleContext) => new PieSeries(ctx),
 };

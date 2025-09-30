@@ -12,7 +12,6 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     packageType: 'enterprise',
     chartTypes: ['standalone'],
     identifier: 'treemap',
-    moduleFactory: (ctx) => new TreemapSeries(ctx),
     solo: true,
     themeTemplate: {
         series: {

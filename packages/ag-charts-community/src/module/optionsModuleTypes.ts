@@ -1,8 +1,8 @@
 import type { Point } from 'ag-charts-core';
+import type { SeriesType } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
-import type { SeriesType } from '../chart/mapping/types';
 import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { ScaleType } from '../scale/scale';
 import type { BaseOptionsModule, ModuleInstance } from './baseModule';

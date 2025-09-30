@@ -12,7 +12,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     chartTypes: ['standalone'],
 
     identifier: 'radial-gauge',
-    moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,

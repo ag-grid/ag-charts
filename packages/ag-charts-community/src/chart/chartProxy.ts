@@ -1,4 +1,4 @@
-import type { DeepPartial } from 'ag-charts-core';
+import { type DeepPartial, ModuleRegistry } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -9,7 +9,6 @@ import type {
 
 import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
 import type { LicenseManager } from '../module/enterpriseModule';
-import { moduleRegistry } from '../module/module';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Debug } from '../util/debug';
 import { deepClone } from '../util/json';
@@ -198,7 +197,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
         const state = proxy.getState();
 
-        const isEnterprise = moduleRegistry.hasEnterpriseModules();
+        const isEnterprise = ModuleRegistry.hasEnterpriseModules();
         const processedOverrides: Partial<AgChartOptions> = {
             ...chart.chartOptions.processedOverrides,
             container: document.createElement('div'),

@@ -1,6 +1,3 @@
-// Entry point to implement and test our tree-shaking abilities
-import { _ModuleSupport } from 'ag-charts-community';
-
 import {
     AngleCategoryAxisModule,
     AngleNumberAxisModule,
@@ -38,7 +35,7 @@ import { SunburstSeriesModule } from './series/sunburst';
 import { TreemapSeriesModule } from './series/treemap';
 import { WaterfallSeriesModule } from './series/waterfall';
 
-export const ModuleRegistry = _ModuleSupport.ModuleRegistry;
+export { ModuleRegistry } from 'ag-charts-core';
 
 export {
     OrdinalTimeAxisModule,

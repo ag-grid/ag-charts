@@ -16,12 +16,6 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'range-area',
-    moduleFactory: (ctx) => new RangeAreaSeries(ctx),
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
-    defaultAxes: [
-        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
-        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
-    ],
     themeTemplate: RANGE_AREA_SERIES_THEME,
 };
 
@@ -32,6 +26,12 @@ export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOpti
     enterprise: true,
 
     options: rangeAreaSeriesOptionsDef,
+    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
+    defaultAxes: [
+        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
+        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
+    ],
+    themeTemplate: RANGE_AREA_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RangeAreaSeries(ctx),
 };

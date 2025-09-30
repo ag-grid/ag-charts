@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBubbleSeriesOptions } from 'ag-charts-types';
+import type { AgBubbleSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -15,6 +15,41 @@ import { BubbleSeries } from './bubbleSeries';
 import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
 
+const themeTemplate: ExtensibleTheme<'bubble'> = {
+    series: {
+        shape: 'circle',
+        size: 7,
+        maxSize: 30,
+        fill: {
+            $applySwitch: [
+                { $path: 'type' },
+                { $palette: 'fill' },
+                ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                ['image', FILL_IMAGE_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
+            ],
+        },
+        stroke: { $palette: 'stroke' },
+        fillOpacity: 0.8,
+        maxRenderedItems: 10_000,
+        label: {
+            ...LABEL_BOXING_DEFAULTS,
+            enabled: false,
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'textColor' },
+        },
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+            position: {
+                anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
+            },
+        },
+        highlight: multiSeriesHighlightStyle(),
+    },
+};
+
 export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -22,7 +57,15 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'bubble',
-    moduleFactory: (ctx) => new BubbleSeries(ctx),
+    themeTemplate,
+};
+
+export const NewBubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {
+    type: 'series',
+    name: 'bubble',
+    chartType: 'cartesian',
+
+    options: bubbleSeriesOptionsDef,
     predictAxis: predictCartesianAxis,
     defaultAxes: [
         {
@@ -34,48 +77,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             position: CARTESIAN_POSITION.LEFT,
         },
     ],
-    themeTemplate: {
-        series: {
-            shape: 'circle',
-            size: 7,
-            maxSize: 30,
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
-            stroke: { $palette: 'stroke' },
-            fillOpacity: 0.8,
-            maxRenderedItems: 10_000,
-            label: {
-                ...LABEL_BOXING_DEFAULTS,
-                enabled: false,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'textColor' },
-            },
-            tooltip: {
-                range: { $path: ['/tooltip/range', 'nearest'] },
-                position: {
-                    anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
-                },
-            },
-            highlight: multiSeriesHighlightStyle(),
-        },
-    },
-};
-
-export const NewBubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {
-    type: 'series',
-    name: 'bubble',
-    chartType: 'cartesian',
-
-    options: bubbleSeriesOptionsDef,
+    themeTemplate,
 
     create: (ctx: ModuleContext) => new BubbleSeries(ctx),
 };

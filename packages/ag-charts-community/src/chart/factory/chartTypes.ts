@@ -42,5 +42,4 @@ class ChartDefaults extends Map<ChartType, object> {
 }
 
 export const chartTypes = new ChartTypes();
-export const publicChartTypes = new ChartTypes();
 export const chartDefaults = new ChartDefaults();

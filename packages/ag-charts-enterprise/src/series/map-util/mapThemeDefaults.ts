@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
-export const MAP_THEME_DEFAULTS: _ModuleSupport.ExtensibleTheme<'map-shape' | 'map-line' | 'map-marker'> = {
+export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map-marker'> = {
     zoom: {
         axes: 'xy',
         anchorPointX: 'pointer',

@@ -12,11 +12,7 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'range-bar',
-    moduleFactory: (ctx) => new RangeBarSeries(ctx),
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
-    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: RANGE_BAR_SERIES_THEME,
-    groupable: true,
 };
 
 export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOptions> = {
@@ -24,8 +20,12 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     name: 'range-bar',
     chartType: 'cartesian',
     enterprise: true,
+    groupable: true,
 
     options: rangeBarSeriesOptionsDef,
+    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
+    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
+    themeTemplate: RANGE_BAR_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RangeBarSeries(ctx),
 };

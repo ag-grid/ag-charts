@@ -12,7 +12,6 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     chartTypes: ['topology'],
 
     identifier: 'map-shape',
-    moduleFactory: (ctx) => new MapShapeSeries(ctx),
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

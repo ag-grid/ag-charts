@@ -12,8 +12,6 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     solo: true,
 
     identifier: 'sankey',
-    moduleFactory: (ctx) => new SankeySeries(ctx),
-
     themeTemplate: {
         seriesArea: {
             padding: {

@@ -3,6 +3,7 @@ import {
     CleanupRegistry,
     Logger,
     type ModuleInstance,
+    ModuleRegistry,
     createId,
     entries,
     getWindow,
@@ -21,6 +22,8 @@ import type {
     AgMiniChartSeriesOptions,
     AgPolarAxisOptions,
     FormatterConfiguration,
+    SeriesOptionsTypes,
+    SeriesType,
     TextOrSegments,
 } from 'ag-charts-types';
 
@@ -61,18 +64,16 @@ import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
-import { axisRegistry } from './factory/axisRegistry';
 import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
-import { seriesRegistry } from './factory/seriesRegistry';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { LayoutElement } from './layout/layoutManager';
 import type { ChartLegend, ChartLegendType } from './legend/legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
-import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/types';
+import { isAgCartesianChartOptions } from './mapping/types';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
@@ -1450,7 +1451,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         miniChart: any,
         miniChartSeries: NonNullable<AgChartOptions['series']>,
         completeOptions: AgChartOptions,
-        oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] }
+        oldOpts: AgChartOptions & { type?: SeriesType }
     ) {
         const oldSeries =
             (oldOpts?.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? oldOpts?.series;
@@ -1676,7 +1677,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): UnknownSeries {
-        const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as UnknownSeries;
+        const seriesModule = ModuleRegistry.getSeriesModule(seriesOptions.type);
+        const seriesInstance = seriesModule!.create(this.getModuleContext()) as UnknownSeries;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
         return seriesInstance;
@@ -1738,7 +1740,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         for (let index = 0; index < options.length; index++) {
             const axisOptions = options[index];
-            const axis = axisRegistry.create(axisOptions.type, moduleContext);
+            const axis = ModuleRegistry.getAxisModule(axisOptions.type)!.create(moduleContext) as any;
             this.applyAxisModules(axis, axisOptions);
             jsonApply(axis, axisOptions, { path: `axes[${index}]`, skip });
 

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
@@ -7,7 +8,7 @@ const {
     FILL_PATTERN_DEFAULTS,
 } = _ModuleSupport;
 
-export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'>['themeTemplate'] = {
+export const NIGHTINGALE_SERIES_THEME: ExtensibleTheme<'nightingale'> = {
     series: {
         fill: {
             $applySwitch: [

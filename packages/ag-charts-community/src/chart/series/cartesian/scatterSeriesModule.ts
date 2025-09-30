@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgScatterSeriesOptions } from 'ag-charts-types';
+import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -15,6 +15,45 @@ import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
 
+const themeTemplate: ExtensibleTheme<'scatter'> = {
+    series: {
+        shape: 'circle',
+        size: 7,
+        fill: {
+            $applySwitch: [
+                { $path: 'type' },
+                { $palette: 'fill' },
+                ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                ['image', FILL_IMAGE_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
+            ],
+        },
+        stroke: { $palette: 'stroke' },
+        fillOpacity: 0.8,
+        maxRenderedItems: 10_000,
+        label: {
+            ...LABEL_BOXING_DEFAULTS,
+            enabled: false,
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'textColor' },
+        },
+        errorBar: {
+            cap: {
+                lengthRatio: 1,
+            },
+        },
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+            position: {
+                anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
+            },
+        },
+        highlight: multiSeriesHighlightStyle(),
+    },
+};
+
 export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -22,7 +61,15 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'scatter',
-    moduleFactory: (ctx) => new ScatterSeries(ctx),
+    themeTemplate,
+};
+
+export const NewScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
+    type: 'series',
+    name: 'scatter',
+    chartType: 'cartesian',
+
+    options: scatterSeriesOptionsDef,
     predictAxis: predictCartesianAxis,
     defaultAxes: [
         {
@@ -34,52 +81,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             position: CARTESIAN_POSITION.LEFT,
         },
     ],
-    themeTemplate: {
-        series: {
-            shape: 'circle',
-            size: 7,
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
-            stroke: { $palette: 'stroke' },
-            fillOpacity: 0.8,
-            maxRenderedItems: 10_000,
-            label: {
-                ...LABEL_BOXING_DEFAULTS,
-                enabled: false,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'textColor' },
-            },
-            errorBar: {
-                cap: {
-                    lengthRatio: 1,
-                },
-            },
-            tooltip: {
-                range: { $path: ['/tooltip/range', 'nearest'] },
-                position: {
-                    anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
-                },
-            },
-            highlight: multiSeriesHighlightStyle(),
-        },
-    },
-};
-
-export const NewScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
-    type: 'series',
-    name: 'scatter',
-    chartType: 'cartesian',
-
-    options: scatterSeriesOptionsDef,
+    themeTemplate,
 
     create: (ctx: ModuleContext) => new ScatterSeries(ctx),
 };

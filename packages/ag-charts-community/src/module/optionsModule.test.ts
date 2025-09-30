@@ -8,12 +8,12 @@ import type {
     AgChartOptions,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
+    SeriesType,
 } from 'ag-charts-types';
 
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { setupModules } from '../chart/factory/setupModules';
-import { SeriesType } from '../chart/mapping/types';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { ChartOptions } from './optionsModule';

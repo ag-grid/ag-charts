@@ -1,11 +1,15 @@
+import type { DatumDefault, SeriesDefaultAxes, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
+
 import type { OptionsDefs, ValidationResult } from '../utils/validation';
 
 export enum ModuleType {
-    Axis = 'axis',
     Chart = 'chart',
-    Preset = 'preset',
-    Plugin = 'plugin',
+    Axis = 'axis',
     Series = 'series',
+    Plugin = 'plugin',
+    AxisPlugin = 'axis:plugin',
+    SeriesPlugin = 'series:plugin',
+    Preset = 'preset',
 }
 
 export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModule extends ModuleType.Axis
@@ -58,6 +62,18 @@ export interface AxisModuleDefinition<TOptions> extends ModuleDefinition<ModuleT
 
 export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Series, TOptions> {
     chartType: string;
+
+    groupable?: boolean;
+    stackable?: boolean;
+    stackedByDefault?: boolean;
+    solo?: boolean;
+
+    predictAxis?: (
+        direction: any,
+        datum: DatumDefault,
+        seriesOptions: any
+    ) => SeriesPredictAxis<SeriesType> | undefined;
+    defaultAxes?: SeriesDefaultAxes<SeriesType>;
 }
 
 export interface PluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Plugin, TOptions> {

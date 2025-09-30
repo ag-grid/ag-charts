@@ -12,7 +12,6 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     chartTypes: ['topology'],
 
     identifier: 'map-shape-background',
-    moduleFactory: (ctx) => new MapShapeBackgroundSeries(ctx),
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

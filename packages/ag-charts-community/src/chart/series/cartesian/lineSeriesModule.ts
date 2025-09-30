@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgLineSeriesOptions } from 'ag-charts-types';
+import type { AgLineSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -17,6 +17,55 @@ import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
 import { predictCartesianTimeAxis } from './util';
 
+const themeTemplate: ExtensibleTheme<'line'> = {
+    series: {
+        stroke: SAFE_STROKE_FILL_OPERATION,
+        strokeWidth: 2,
+        strokeOpacity: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
+        interpolation: {
+            type: 'linear',
+        },
+        marker: {
+            shape: 'circle',
+            size: 7,
+            strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
+                ],
+            },
+            stroke: { $palette: 'stroke' },
+        },
+        label: {
+            ...LABEL_BOXING_DEFAULTS,
+            enabled: false,
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'textColor' },
+        },
+        errorBar: {
+            cap: {
+                lengthRatio: 1,
+            },
+        },
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+            position: {
+                anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
+            },
+        },
+        highlight: multiSeriesHighlightStyle(),
+        segmentation: SEGMENTATION_DEFAULTS,
+    },
+};
+
 export const LineSeriesModule: SeriesModule<'line'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -24,8 +73,16 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'line',
-    moduleFactory: (ctx) => new LineSeries(ctx),
+    themeTemplate,
+};
+
+export const NewLineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
+    type: 'series',
+    name: 'line',
+    chartType: 'cartesian',
     stackable: true,
+
+    options: lineSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,
     defaultAxes: [
         {
@@ -37,62 +94,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             position: CARTESIAN_POSITION.BOTTOM,
         },
     ],
-    themeTemplate: {
-        series: {
-            stroke: SAFE_STROKE_FILL_OPERATION,
-            strokeWidth: 2,
-            strokeOpacity: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
-            interpolation: {
-                type: 'linear',
-            },
-            marker: {
-                shape: 'circle',
-                size: 7,
-                strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
-                fill: {
-                    $applySwitch: [
-                        { $path: 'type' },
-                        { $palette: 'fill' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                    ],
-                },
-                stroke: { $palette: 'stroke' },
-            },
-            label: {
-                ...LABEL_BOXING_DEFAULTS,
-                enabled: false,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'textColor' },
-            },
-            errorBar: {
-                cap: {
-                    lengthRatio: 1,
-                },
-            },
-            tooltip: {
-                range: { $path: ['/tooltip/range', 'nearest'] },
-                position: {
-                    anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
-                },
-            },
-            highlight: multiSeriesHighlightStyle(),
-            segmentation: SEGMENTATION_DEFAULTS,
-        },
-    },
-};
-
-export const NewLineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
-    type: 'series',
-    name: 'line',
-    chartType: 'cartesian',
-
-    options: lineSeriesOptionsDef,
+    themeTemplate,
 
     create: (ctx: ModuleContext) => new LineSeries(ctx),
 };

@@ -12,9 +12,6 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'waterfall',
-    solo: true,
-    moduleFactory: (ctx) => new WaterfallSeries(ctx),
-    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: WATERFALL_SERIES_THEME,
 };
 
@@ -23,8 +20,11 @@ export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOpti
     name: 'waterfall',
     chartType: 'cartesian',
     enterprise: true,
+    solo: true,
 
     options: waterfallSeriesOptionsDef,
+    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
+    themeTemplate: WATERFALL_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new WaterfallSeries(ctx),
 };

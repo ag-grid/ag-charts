@@ -14,11 +14,7 @@ export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
     chartTypes: ['polar'],
 
     identifier: 'radial-bar',
-    moduleFactory: (ctx) => new RadialBarSeries(ctx),
-    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY }],
     themeTemplate: RADIAL_BAR_SERIES_THEME,
-    stackable: true,
-    groupable: true,
 };
 
 export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOptions> = {
@@ -26,8 +22,12 @@ export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOpti
     name: 'radial-bar',
     chartType: 'polar',
     enterprise: true,
+    stackable: true,
+    groupable: true,
 
     options: radialBarSeriesOptionsDef,
+    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY }],
+    themeTemplate: RADIAL_BAR_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RadialBarSeries(ctx),
 };

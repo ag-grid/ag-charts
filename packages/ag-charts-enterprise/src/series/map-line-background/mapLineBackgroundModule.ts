@@ -12,7 +12,6 @@ export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-back
     chartTypes: ['topology'],
 
     identifier: 'map-line-background',
-    moduleFactory: (ctx) => new MapLineBackgroundSeries(ctx),
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

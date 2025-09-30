@@ -16,11 +16,6 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'heatmap',
-    moduleFactory: (ctx) => new HeatmapSeries(ctx),
-    defaultAxes: [
-        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.LEFT },
-        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
-    ],
     themeTemplate: HEATMAP_SERIES_THEME,
 };
 
@@ -31,6 +26,11 @@ export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions>
     enterprise: true,
 
     options: heatmapSeriesOptionsDef,
+    defaultAxes: [
+        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.LEFT },
+        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
+    ],
+    themeTemplate: HEATMAP_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new HeatmapSeries(ctx),
 };

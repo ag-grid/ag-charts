@@ -12,11 +12,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'box-plot',
-    moduleFactory: (ctx) => new BoxPlotSeries(ctx),
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
-    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: BOX_PLOT_SERIES_THEME,
-    groupable: true,
 };
 
 export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions> = {
@@ -24,8 +20,12 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     name: 'box-plot',
     chartType: 'cartesian',
     enterprise: true,
+    groupable: true,
 
     options: boxPlotSeriesOptionsDef,
+    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
+    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
+    themeTemplate: BOX_PLOT_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new BoxPlotSeries(ctx),
 };

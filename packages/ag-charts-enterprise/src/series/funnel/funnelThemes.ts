@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
@@ -81,7 +82,7 @@ export const FUNNEL_SERIES_AXES: any = [
     },
 ];
 
-export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTemplate'] = {
+export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
     series: {
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },

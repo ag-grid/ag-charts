@@ -100,31 +100,6 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'context', contextKey: 'sharedToolbar', chartTypes: ['cartesian'] },
 ];
 
-export function isEnterpriseSeriesType(type: string) {
-    return EXPECTED_ENTERPRISE_MODULES.some((s) => s.type === 'series' && s.identifier === type);
-}
-
-function getEnterpriseSeriesChartTypes(type: string) {
-    return EXPECTED_ENTERPRISE_MODULES.find((s) => s.type === 'series' && s.identifier === type)?.chartTypes;
-}
-
-export function isEnterpriseCartesian(seriesType: string) {
-    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'cartesian');
-    return type === 'cartesian';
-}
-export function isEnterprisePolar(seriesType: string) {
-    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'polar');
-    return type === 'polar';
-}
-export function isEnterpriseTopology(seriesType: string) {
-    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'topology');
-    return type === 'topology';
-}
-export function isEnterpriseStandalone(seriesType: string) {
-    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'standalone');
-    return type === 'standalone';
-}
-
 type UnknownPackage = { packageType: string } | EnterpriseModuleStub;
 function isEnterpriseModule(module: UnknownPackage): module is EnterpriseModuleStub {
     return module.packageType === 'enterprise';

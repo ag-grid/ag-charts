@@ -16,12 +16,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     chartTypes: ['polar'],
 
     identifier: 'nightingale',
-    moduleFactory: (ctx) => new NightingaleSeries(ctx),
-    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: NIGHTINGALE_SERIES_THEME,
-    stackable: true,
-    groupable: true,
-    stackedByDefault: true,
 };
 
 export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeriesOptions> = {
@@ -29,8 +24,13 @@ export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeries
     name: 'nightingale',
     chartType: 'polar',
     enterprise: true,
+    stackable: true,
+    groupable: true,
+    stackedByDefault: true,
 
     options: nightingaleSeriesOptionsDef,
+    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
+    themeTemplate: NIGHTINGALE_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new NightingaleSeries(ctx),
 };

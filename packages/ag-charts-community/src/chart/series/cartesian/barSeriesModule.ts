@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBarSeriesOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -17,6 +17,71 @@ import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 import { predictCartesianTimeAxis } from './util';
 
+const themeTemplate: ExtensibleTheme<'bar'> = {
+    zoom: {
+        autoScaling: {
+            enabled: {
+                $and: [
+                    { $eq: [{ $path: '../axes' }, 'x'] },
+                    { $not: { $eq: [{ $path: '/series/0/direction' }, 'horizontal'] } },
+                ],
+            },
+        },
+    },
+    series: {
+        direction: 'vertical',
+        fill: {
+            $applySwitch: [
+                { $path: 'type' },
+                { $palette: 'fill' },
+                ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                ['image', FILL_IMAGE_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
+            ],
+        },
+        stroke: { $palette: 'stroke' },
+        fillOpacity: 1,
+        strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+        lineDash: [0],
+        lineDashOffset: 0,
+        label: {
+            ...LABEL_BOXING_DEFAULTS,
+            padding: { $isUserOption: ['./spacing', 0, 8] } as any, // compatibility with old `padding` property (now named `spacing`).
+            enabled: false,
+            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            color: {
+                $if: [
+                    {
+                        $or: [
+                            { $eq: [{ $path: './placement' }, 'outside-start'] },
+                            { $eq: [{ $path: './placement' }, 'outside-end'] },
+                        ],
+                    },
+                    { $ref: 'textColor' },
+                    { $ref: 'chartBackgroundColor' },
+                ],
+            },
+            placement: 'inside-center',
+        },
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
+        errorBar: {
+            cap: {
+                lengthRatio: 0.3,
+            },
+        },
+        highlight: multiSeriesHighlightStyle(),
+        segmentation: SEGMENTATION_DEFAULTS,
+    },
+};
+
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -24,83 +89,20 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'bar',
-    moduleFactory: (ctx) => new BarSeries(ctx),
-    stackable: true,
-    groupable: true,
-    predictAxis: predictCartesianTimeAxis,
-    defaultAxes: DIRECTION_SWAP_AXES,
-    themeTemplate: {
-        zoom: {
-            autoScaling: {
-                enabled: {
-                    $and: [
-                        { $eq: [{ $path: '../axes' }, 'x'] },
-                        { $not: { $eq: [{ $path: '/series/0/direction' }, 'horizontal'] } },
-                    ],
-                },
-            },
-        },
-        series: {
-            direction: 'vertical',
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
-            stroke: { $palette: 'stroke' },
-            fillOpacity: 1,
-            strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-            lineDash: [0],
-            lineDashOffset: 0,
-            label: {
-                ...LABEL_BOXING_DEFAULTS,
-                padding: { $isUserOption: ['./spacing', 0, 8] } as any, // compatibility with old `padding` property (now named `spacing`).
-                enabled: false,
-                fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                color: {
-                    $if: [
-                        {
-                            $or: [
-                                { $eq: [{ $path: './placement' }, 'outside-start'] },
-                                { $eq: [{ $path: './placement' }, 'outside-end'] },
-                            ],
-                        },
-                        { $ref: 'textColor' },
-                        { $ref: 'chartBackgroundColor' },
-                    ],
-                },
-                placement: 'inside-center',
-            },
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
-            errorBar: {
-                cap: {
-                    lengthRatio: 0.3,
-                },
-            },
-            highlight: multiSeriesHighlightStyle(),
-            segmentation: SEGMENTATION_DEFAULTS,
-        },
-    },
+    themeTemplate,
 };
 
 export const NewBarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     type: 'series',
     name: 'bar',
     chartType: 'cartesian',
+    stackable: true,
+    groupable: true,
 
     options: barSeriesOptionsDef,
+    predictAxis: predictCartesianTimeAxis,
+    defaultAxes: DIRECTION_SWAP_AXES,
+    themeTemplate,
 
     create: (ctx: ModuleContext) => new BarSeries(ctx),
 };

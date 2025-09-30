@@ -23,7 +23,7 @@ export abstract class BaseModuleInstance {
     }
 }
 
-export class ModuleRegistry {
+class ModuleRegistry {
     readonly modules: Module[] = [];
 
     private readonly dependencies: Map<string, string[]> = new Map();

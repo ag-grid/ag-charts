@@ -14,7 +14,6 @@ export const DonutSeriesModule: SeriesModule<'donut'> = {
     chartTypes: ['polar'],
 
     identifier: 'donut',
-    moduleFactory: (ctx) => new DonutSeries(ctx),
     themeTemplate: donutTheme,
 };
 
@@ -24,6 +23,7 @@ export const NewDonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> 
     chartType: 'polar',
 
     options: donutSeriesOptionsDef,
+    themeTemplate: donutTheme,
 
     create: (ctx: ModuleContext) => new DonutSeries(ctx),
 };

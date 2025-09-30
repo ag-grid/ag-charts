@@ -12,9 +12,6 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'funnel',
-    moduleFactory: (ctx) => new FunnelSeries(ctx),
-    solo: true,
-    defaultAxes: FUNNEL_SERIES_AXES,
     themeTemplate: FUNNEL_SERIES_THEME,
 };
 
@@ -23,8 +20,11 @@ export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> =
     name: 'funnel',
     chartType: 'cartesian',
     enterprise: true,
+    solo: true,
 
     options: funnelSeriesOptionsDef,
+    defaultAxes: FUNNEL_SERIES_AXES,
+    themeTemplate: FUNNEL_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new FunnelSeries(ctx),
 };

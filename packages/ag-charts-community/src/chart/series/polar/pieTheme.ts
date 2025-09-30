@@ -1,4 +1,5 @@
-import type { ExtensibleTheme } from '../../../module/coreModules';
+import type { ExtensibleTheme } from 'ag-charts-types';
+
 import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {

@@ -21,6 +21,7 @@ import type {
     FormatterParams,
     FormatterPropertyType,
     HighlightState as PublicHighlightState,
+    SeriesType,
     TextOrSegments,
 } from 'ag-charts-types';
 
@@ -54,7 +55,6 @@ import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
-import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import type { SeriesMarker } from './seriesMarker';

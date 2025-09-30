@@ -1,31 +1,11 @@
-import type {
-    AgCartesianChartOptions,
-    AgCartesianSeriesOptions,
-    AgChartOptions,
-    AgChartThemeOverrides,
-    AgFlowProportionSeriesOptions,
-    AgHierarchySeriesOptions,
-    AgLinearGaugeOptions,
-    AgPolarChartOptions,
-    AgPolarSeriesOptions,
-    AgRadialGaugeOptions,
-    AgStandaloneSeriesOptions,
-    AgTopologySeriesOptions,
-    DatumDefault,
-    WithThemeParams,
-} from 'ag-charts-types';
+import type { ExtensibleTheme, SeriesType } from 'ag-charts-types';
 
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartType } from '../chart/factory/chartTypes';
 import type { ChartLegend, ChartLegendType } from '../chart/legend/legendDatum';
-import type { Series } from '../chart/series/series';
-import type { DatumIndexType } from '../chart/series/seriesTypes';
 import type { BaseModule, BaseOptionsModule, ModuleInstance } from './baseModule';
-import type { RequiredSeriesType } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
 type ModuleInstanceFactory<M> = (moduleContext: ModuleContext) => M;
-export type SeriesFactory = ModuleInstanceFactory<Series<DatumIndexType, any, object, any>>;
 export type LegendFactory = ModuleInstanceFactory<ChartLegend>;
 
 export interface RemovableModule {
@@ -58,64 +38,9 @@ export interface LegendModule extends BaseOptionsModule, RemovableModule {
     themeTemplate?: object;
 }
 
-type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
-
-type Themes = AgChartThemeOverrides & {
-    'linear-gauge'?: { series: AgLinearGaugeOptions };
-    'radial-gauge'?: { series: AgRadialGaugeOptions };
-};
-
-export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = WithThemeParams<NonNullable<Themes[SeriesType]>>;
-
-export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
-    SeriesOptionsTypes,
-    { type: SeriesType }
->;
-
-type Axes = Record<Required<AgCartesianSeriesOptions>['type'], AgCartesianChartOptions['axes']> &
-    Record<Required<AgPolarSeriesOptions>['type'], AgPolarChartOptions['axes']> &
-    Record<Required<AgHierarchySeriesOptions>['type'], never> &
-    Record<Required<AgTopologySeriesOptions>['type'], never> &
-    Record<Required<AgFlowProportionSeriesOptions>['type'], never> &
-    Record<Required<AgStandaloneSeriesOptions>['type'], never> &
-    Record<'radial-gauge' | 'linear-gauge', never>;
-
-export type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = WithThemeParams<Axes[SeriesType]>;
-
-type Axis = Record<Required<AgCartesianSeriesOptions>['type'], NonNullable<AgCartesianChartOptions['axes']>[number]> &
-    Record<Required<AgPolarSeriesOptions>['type'], NonNullable<AgPolarChartOptions['axes']>[number]> &
-    Record<Required<AgHierarchySeriesOptions>['type'], never> &
-    Record<Required<AgTopologySeriesOptions>['type'], never> &
-    Record<Required<AgFlowProportionSeriesOptions>['type'], never> &
-    Record<Required<AgStandaloneSeriesOptions>['type'], never> &
-    Record<'radial-gauge' | 'linear-gauge', never>;
-
-export type SeriesPredictAxis<SeriesType extends RequiredSeriesType> = Axis[SeriesType];
-
-export type SeriesTooltipDefaults = {
-    range: 'exact' | 'nearest' | number;
-};
-
-export interface SeriesModule<
-    SeriesType extends RequiredSeriesType = RequiredSeriesType,
-    _ChartType extends ChartType = ChartType,
-> extends BaseOptionsModule<_ChartType> {
+export interface SeriesModule<TSeries extends SeriesType = SeriesType, _ChartType extends ChartType = ChartType>
+    extends BaseOptionsModule<_ChartType> {
     type: 'series';
-
-    identifier: SeriesType;
-    moduleFactory: SeriesFactory;
-    hidden?: boolean;
-
-    predictAxis?: (
-        direction: ChartAxisDirection,
-        datum: DatumDefault,
-        seriesOptions: SeriesTypeOptions<SeriesType>
-    ) => SeriesPredictAxis<SeriesType> | undefined;
-    defaultAxes?: SeriesDefaultAxes<SeriesType>;
-    themeTemplate: ExtensibleTheme<SeriesType>;
-    solo?: boolean;
-    stackable?: boolean;
-    groupable?: boolean;
-    stackedByDefault?: boolean;
-    swapDefaultAxesCondition?: (opts: SeriesTypeOptions<SeriesType>) => boolean;
+    identifier: TSeries;
+    themeTemplate: ExtensibleTheme<TSeries>;
 }

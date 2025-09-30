@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
-export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['themeTemplate'] = {
+export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
     series: {
         stroke: {
             $if: [

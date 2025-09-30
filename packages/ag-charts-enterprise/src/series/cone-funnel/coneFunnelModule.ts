@@ -13,9 +13,6 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'cone-funnel',
-    moduleFactory: (ctx) => new ConeFunnelSeries(ctx),
-    solo: true,
-    defaultAxes: FUNNEL_SERIES_AXES,
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
 };
 
@@ -24,8 +21,11 @@ export const ConeFunnelSeriesModule: SeriesModuleDefinition<AgConeFunnelSeriesOp
     name: 'cone-funnel',
     chartType: 'cartesian',
     enterprise: true,
+    solo: true,
 
     options: coneFunnelSeriesOptionsDef,
+    defaultAxes: FUNNEL_SERIES_AXES,
+    themeTemplate: CONE_FUNNEL_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new ConeFunnelSeries(ctx),
 };

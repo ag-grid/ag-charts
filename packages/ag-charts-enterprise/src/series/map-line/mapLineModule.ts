@@ -12,7 +12,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     chartTypes: ['topology'],
 
     identifier: 'map-line',
-    moduleFactory: (ctx) => new MapLineSeries(ctx),
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

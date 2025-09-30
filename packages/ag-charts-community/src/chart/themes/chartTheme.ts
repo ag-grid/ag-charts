@@ -1,4 +1,4 @@
-import { entries, isArray } from 'ag-charts-core';
+import { ModuleRegistry, ModuleType, entries, isArray } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeOptions,
@@ -70,18 +70,28 @@ type ChartTypeConfig = {
     commonOptions: (keyof AgCommonThemeableChartOptions)[];
 };
 
+function listSeriesByChartType(chartType: string): string[] {
+    const seriesTypes: string[] = [];
+    for (const seriesDef of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+        if (seriesDef.chartType === chartType) {
+            seriesTypes.push(seriesDef.name);
+        }
+    }
+    return seriesTypes;
+}
+
 const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get cartesian(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
+        return { seriesTypes: listSeriesByChartType('cartesian'), commonOptions: ['zoom', 'navigator'] };
     },
     get polar(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.polarTypes, commonOptions: [] };
+        return { seriesTypes: listSeriesByChartType('polar'), commonOptions: [] };
     },
     get topology(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
+        return { seriesTypes: listSeriesByChartType('topology'), commonOptions: [] };
     },
     get standalone(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.standaloneTypes, commonOptions: [] };
+        return { seriesTypes: listSeriesByChartType('standalone'), commonOptions: [] };
     },
 };
 

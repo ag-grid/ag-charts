@@ -1,10 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
 } = _ModuleSupport;
 
-export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'>['themeTemplate'] = {
+export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
     series: {
         direction: 'vertical',
         fills: {

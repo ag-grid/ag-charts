@@ -12,7 +12,6 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     chartTypes: ['topology'],
 
     identifier: 'map-marker',
-    moduleFactory: (ctx) => new MapMarkerSeries(ctx),
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
