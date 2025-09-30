@@ -13,7 +13,7 @@ To create a Sparkline, use the `createSparkline` API.
 
 {% if isFramework("javascript") %}
 
-```js wrapper="object"
+```ts
 const options = {
     type: 'bar',
     container: document.getElementById('myChart'),
@@ -45,7 +45,7 @@ return <AgSparkline options={options} />;
 
 {% if isFramework("angular") %}
 
-```ts wrapper="object"
+```ts
 @Component({
     selector: 'app-root',
     standalone: true,

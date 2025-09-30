@@ -182,7 +182,7 @@ Load the AG Charts library and create a blank container div:
 
 Create the Chart inside of your container div using `create`.
 
-```js wrapper="object"
+```js
 // Chart Options
 const options = {};
 
@@ -192,7 +192,7 @@ const chart = agCharts.AgCharts.create(options);
 
 ### Define Chart Data and Series
 
-```js wrapper="object"
+```js
 // Chart Options
 const options = {
     // Container: HTML Element to hold the chart
@@ -219,14 +219,14 @@ const options = {
 
 ### Import the React Chart
 
-```js wrapper="object"
+```js
 // React Chart Component
 import { AgCharts } from 'ag-charts-react';
 ```
 
 ### Define Chart Data and Series
 
-```js wrapper="object"
+```tsx wrapper="reactHooks"
 const ChartExample = () => {
     // Chart Options: Control & configure the chart
     const [chartOptions, setChartOptions] = useState({

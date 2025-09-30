@@ -9,7 +9,7 @@ Themes allow you to customise the appearance of your charts. They provide defaul
 
 Every chart uses the `'ag-default'` theme unless configured otherwise.
 
-```js wrapper="object"
+```js
 AgCharts.create({
     theme: 'ag-default', // optional, implied
     //...
@@ -22,7 +22,7 @@ AgCharts.create({
 
 The following themes are provided out-of-the-box:
 
-```ts wrapper="object"
+```ts
 type AgChartThemeName =
     | 'ag-default'
     | 'ag-default-dark'
@@ -61,7 +61,7 @@ If there are more groups of data than colours in the palette, the colours will b
 
 {% chartExampleRunner title="Palette" name="palettes" type="generated"  /%}
 
-```js wrapper="object"
+```js
 const myTheme = {
     palette: {
         fills: ['#006f9b', '#ff7faa', '#00994d', '#ff8833', '#00a0dd'],
@@ -80,7 +80,7 @@ The `params` object is used to set styles across the whole chart in one place.
 
 {% chartExampleRunner title="Theme Parameters" name="theme-parameters" type="generated"  /%}
 
-```js wrapper="object"
+```js
 const myTheme = {
     palette: {
         fills: ['#006f9b', '#ff7faa', '#00994d', '#ff8833', '#00a0dd'],

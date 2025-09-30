@@ -303,7 +303,7 @@ Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is r
 
 ```js wrapper="object"
 tooltip: {
-    mode: 'shared'; // or 'single' or 'compact'
+    mode: 'shared', // or 'single' or 'compact'
 }
 ```
 
@@ -376,7 +376,7 @@ The dynamic [State](./api-state/) of the chart can be saved and restored. This i
 
 Use the `getState()` and `setState()` APIs to retrieve and restore the current state of the chart.
 
-```js wrapper="object"
+```js
 function saveState() {
     const newState = chart.getState();
     // save to database...

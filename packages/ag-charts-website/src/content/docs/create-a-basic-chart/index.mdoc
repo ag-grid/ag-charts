@@ -118,17 +118,15 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js wrapper="reactHooks"
-const options =
-    ref <
-    AgChartOptions >
+```tsx wrapper="reactHooks"
+const options = ref<AgChartOptions>({
     {
         series: [
             { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
             { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
         ],
         // ...
-    };
+    });
 ```
 
 {% /if %}
@@ -188,9 +186,8 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```jsx wrapper="reactHooks"
-const options =
-    ref <
+```tsx wrapper="reactHooks"
+const options = ref<AgChartOptions>({
     AgChartOptions >
     {
         axes: [
@@ -199,7 +196,7 @@ const options =
             { type: 'number', position: 'right', keys: ['avgTemp'] },
         ],
         // ...
-    };
+    });
 ```
 
 {% /if %}
@@ -260,7 +257,7 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```ts
+```tsx wrapper="reactHooks"
 const options = ref<AgChartOptions>({
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
@@ -319,16 +316,14 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js wrapper="object"
-const options =
-    ref <
-    AgChartOptions >
+```tsx wrapper="reactHooks"
+const options = ref<AgChartOptions>({
     {
         legend: {
             position: 'right',
         },
         // ...
-    };
+    });
 ```
 
 {% /if %}
@@ -387,17 +382,15 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js wrapper="object"
-const options =
-    ref <
-    AgChartOptions >
+```tsx wrapper="reactHooks"
+const options = ref<AgChartOptions>({
     {
         series: [
             { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
             // ...
         ],
         // ...
-    };
+    });
 ```
 
 {% /if %}

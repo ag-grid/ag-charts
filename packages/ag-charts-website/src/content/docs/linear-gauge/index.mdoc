@@ -13,7 +13,7 @@ The data is represented by a bar indicating the value.
 
 To create a Linear Gauge, use the `createGauge` API with the type `linear-gauge`.
 
-```js wrapper="object"
+```js
 const options = {
     type: 'linear-gauge',
     container: document.getElementById('myChart'),
@@ -34,16 +34,17 @@ AgCharts.createGauge(options);
 To create a Linear Gauge, use the `<AgGauge />` component with the type `linear-gauge`.
 
 ```jsx wrapper="reactHooks"
-const [options, setOptions] = useState({
-    type: 'linear-gauge',
-    value: 80,
-    scale: {
-        min: 0,
-        max: 100,
-    },
-});
+    const [options, setOptions] = useState({
+        type: 'linear-gauge',
+        value: 80,
+        scale: {
+            min: 0,
+            max: 100,
+        },
+    });
 
-return <AgGauge options={options} />;
+    return <AgGauge options={options} />;
+}
 ```
 
 {% /if %}
@@ -52,7 +53,7 @@ return <AgGauge options={options} />;
 
 To create a Linear Gauge, use the `<ag-gauge />` component with the type `linear-gauge`.
 
-```ts wrapper="object"
+```ts
 @Component({
     selector: 'app-root',
     standalone: true,
@@ -128,10 +129,10 @@ To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
 ```js wrapper="object"
 {
-    thickness: 100;
+    thickness: 100,
     bar: {
-        thickness: 50;
-    }
+        thickness: 50,
+    },
 }
 ```
 
