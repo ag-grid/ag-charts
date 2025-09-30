@@ -1,16 +1,35 @@
 import {
     type AxisModuleDefinition,
+    type AxisPluginModuleDefinition,
     type ChartModuleDefinition,
     type ModuleDefinition,
     ModuleType,
     type ModuleTypeSwitch,
+    type PluginModuleDefinition,
     type PresetModuleDefinition,
     type SeriesModuleDefinition,
+    type SeriesPluginModuleDefinition,
 } from '../interfaces/moduleDefinition';
 
-const registeredModules: Map<string, { def: ModuleDefinition; version: string }> = new Map();
+interface ModuleState {
+    def: ModuleDefinition;
+    version: string;
+}
 
-export function register(def: ModuleDefinition, version: string): void {
+const registeredModules: Map<string, ModuleState> = new Map();
+
+export function register(
+    def:
+        | ModuleDefinition
+        | ChartModuleDefinition<any>
+        | AxisModuleDefinition<any>
+        | SeriesModuleDefinition<any>
+        | PresetModuleDefinition<any>
+        | PluginModuleDefinition<any>
+        | AxisPluginModuleDefinition<any>
+        | SeriesPluginModuleDefinition<any>,
+    version: string
+): void {
     // Allow enterprise modules to overwrite community modules def.
     const { def: existingDefinition, version: existingVersion } = registeredModules.get(def.name) ?? {};
 
@@ -68,6 +87,12 @@ export function hasModule(moduleName: string): boolean {
     return registeredModules.has(moduleName);
 }
 
+export function* listModules(): Generator<ModuleDefinition> {
+    for (const definition of registeredModules.values()) {
+        yield definition.def;
+    }
+}
+
 export function* listModulesByType<T extends ModuleType>(moduleType: T): Generator<ModuleTypeSwitch<T>> {
     for (const definition of registeredModules.values()) {
         if (isModuleType(moduleType, definition.def)) {
@@ -115,7 +140,7 @@ export function hasEnterpriseModules(): boolean {
     return false;
 }
 
-function isModuleType<T extends ModuleType>(
+export function isModuleType<T extends ModuleType>(
     moduleType: T,
     definition: ModuleDefinition | undefined
 ): definition is ModuleTypeSwitch<T> {

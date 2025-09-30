@@ -1035,10 +1035,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    async updateData() {
-        this.series.forEach((s) => s.setChartData(this.data));
-        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.(this.data));
-        await Promise.all(modulePromises);
+    updateData() {
+        this.ctx.eventsHub.emit('data:update', this.data);
     }
 
     private _cachedData: CachedData | undefined = undefined;

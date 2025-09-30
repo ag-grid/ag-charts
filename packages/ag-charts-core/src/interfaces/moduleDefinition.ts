@@ -1,4 +1,4 @@
-import type { DatumDefault, SeriesDefaultAxes, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
+import type { DatumDefault, ExtensibleTheme, SeriesDefaultAxes, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
 import type { OptionsDefs, ValidationResult } from '../utils/validation';
 
@@ -12,28 +12,36 @@ export enum ModuleType {
     Preset = 'preset',
 }
 
-export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModule extends ModuleType.Axis
-    ? AxisModuleDefinition<TOptions>
-    : TModule extends ModuleType.Chart
-      ? ChartModuleDefinition<TOptions>
-      : TModule extends ModuleType.Preset
-        ? PresetModuleDefinition<TOptions>
-        : TModule extends ModuleType.Plugin
-          ? PluginModuleDefinition<TOptions>
-          : TModule extends ModuleType.Series
-            ? SeriesModuleDefinition<TOptions>
-            : never;
+export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModule extends ModuleType.Chart
+    ? ChartModuleDefinition<TOptions>
+    : TModule extends ModuleType.Axis
+      ? AxisModuleDefinition<TOptions>
+      : TModule extends ModuleType.Series
+        ? SeriesModuleDefinition<TOptions>
+        : TModule extends ModuleType.Preset
+          ? PresetModuleDefinition<TOptions>
+          : TModule extends ModuleType.Plugin
+            ? PluginModuleDefinition<TOptions>
+            : TModule extends ModuleType.AxisPlugin
+              ? AxisPluginModuleDefinition<TOptions>
+              : TModule extends ModuleType.SeriesPlugin
+                ? SeriesPluginModuleDefinition<TOptions>
+                : never;
 
-export interface ModuleInstance {}
+export interface ModuleInstance {
+    updateData?(this: void, data: unknown): void;
+    destroy?(this: void): void;
+}
 
 export interface ModuleDefinition<TModule extends ModuleType = ModuleType, TOptions = any> {
     type: `${TModule}` | TModule;
     name: string;
     enterprise?: boolean;
     placeholder?: boolean;
+    attachToContext?: boolean;
 
     style?: string; // css string to inject into a style element
-    themeTemplate?: object; // module's default theme template
+    themeTemplate?: ExtensibleTheme<any>; // module's default theme template
     options: OptionsDefs<TOptions>; // options definitions validation
 
     // Utility Methods:
@@ -78,4 +86,14 @@ export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<Modul
 
 export interface PluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Plugin, TOptions> {
     chartType?: string;
+}
+
+export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.AxisPlugin, TOptions> {
+    chartType?: string;
+    axisTypes?: string[];
+}
+
+export interface SeriesPluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.SeriesPlugin, TOptions> {
+    chartType?: string;
+    seriesTypes?: string[];
 }

@@ -87,6 +87,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
+
+        this.cleanup.register(this.ctx.eventsHub.on('data:update', (data) => this.updateData(data)));
     }
 
     override destroy() {
@@ -94,6 +96,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             return;
         }
 
+        super.destroy();
         this.destroySeries(this.series);
 
         this.axes.forEach((a) => a.destroy());

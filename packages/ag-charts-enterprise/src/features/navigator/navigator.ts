@@ -212,13 +212,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         this.domProxy.updateZoom();
     }
 
-    updateData(data: any) {
-        return this.miniChart?.updateData(data);
-    }
-
     async processData(dataController: _ModuleSupport.DataController) {
-        if (this.miniChart) {
-            return this.miniChart?.processData(dataController);
-        }
+        return this.miniChart?.processData(dataController);
     }
 }

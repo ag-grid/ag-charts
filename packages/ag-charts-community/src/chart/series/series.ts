@@ -401,7 +401,10 @@ export abstract class Series<
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
 
-        this.cleanup.register(this.ctx?.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)));
+        this.cleanup.register(
+            this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),
+            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event))
+        );
     }
 
     attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {

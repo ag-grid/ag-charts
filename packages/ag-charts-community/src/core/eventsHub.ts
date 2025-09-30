@@ -20,6 +20,7 @@ export interface EventsHubMap {
     'context-menu:complete': ContextMenuEvent;
     'data:load': { data: object };
     'data:error': null;
+    'data:update': unknown[];
     'data:source-change': null;
     'dom:container-change': null;
     'dom:hidden': null;

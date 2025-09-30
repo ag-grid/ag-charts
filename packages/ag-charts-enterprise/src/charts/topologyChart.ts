@@ -32,8 +32,8 @@ export class TopologyChart extends Chart {
         return 'topology' as const;
     }
 
-    override async updateData() {
-        await super.updateData();
+    override updateData() {
+        super.updateData();
 
         const options = this.getOptions() as AgTopologyChartOptions;
         if (this.topology !== options.topology) {
@@ -52,7 +52,8 @@ export class TopologyChart extends Chart {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
 
-        const seriesRect = layoutBox.clone().shrink(this.modulesManager.getModule<any>('seriesArea').getPadding());
+        const seriesAreaModule = this.modulesManager.getModule('seriesArea') as any;
+        const seriesRect = layoutBox.clone().shrink(seriesAreaModule.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
