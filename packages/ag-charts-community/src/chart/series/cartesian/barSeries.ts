@@ -644,6 +644,7 @@ export class BarSeries extends AbstractBarSeries<
                 }
             }
         } else if (processedData.type === 'grouped') {
+            const invalidData = processedData.invalidData?.get(this.id);
             const width = barWidth;
             const yRangeIndex = isStacked ? dataModel.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
             const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
@@ -664,6 +665,7 @@ export class BarSeries extends AbstractBarSeries<
 
                 for (const datumIndex of datumIndices) {
                     const x = xPosition(datumIndex);
+                    if (invalidData?.[datumIndex] === true) continue;
 
                     const yRawValue = yRawValues[datumIndex];
                     const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
