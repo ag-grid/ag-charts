@@ -173,7 +173,7 @@ const snippetStrategy: WrapStrategy = {
 
                 const trimmedLines = trimEmptyEdgeLines(lines);
                 const dedentedLines = removeCommonIndent(trimmedLines);
-                let result = dedentedLines.join('\n');
+                const result = dedentedLines.join('\n');
                 // Don't strip trailing comma/semicolon for preserved braces - Prettier adds commas for object properties
 
                 // For preserved braces, wrap result back in braces with proper indentation
