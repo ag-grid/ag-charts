@@ -119,6 +119,16 @@ const snippetStrategy: WrapStrategy = {
                 return `// __PRESERVE_BRACES__:true\nconst __temp__ = {\n${fixedCode}\n};`;
             }
 
+            // Check if it's an object property (e.g., tooltip: { ... })
+            // This handles both single-line and multi-line objects
+            const objectPropertyPattern = /^\s*[\w$]+\s*:\s*\{[\s\S]*\}\s*;?\s*$/;
+            if (objectPropertyPattern.test(trimmed)) {
+                // It's a property with object value - wrap it and preserve structure
+                const hadSemicolon = trimmed.endsWith(';');
+                const fixedCode = hadSemicolon ? code.slice(0, -1) : code;
+                return `// __PRESERVE_BRACES__:true\nconst __temp__ = {\n${fixedCode}\n};`;
+            }
+
             // It's a property assignment
             // Strip semicolons: both at end of line and before comments
             // Handle: padding: 4; //comment -> padding: 4, //comment

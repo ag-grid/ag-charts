@@ -37,8 +37,10 @@ By default a shared tooltip will be used for most cartesian charts containing 3 
 {% chartExampleRunner title="Tooltip Mode" name="tooltip-mode" type="generated" /%}
 
 ```js format="snippet"
-tooltip: {
-    mode: 'shared', // or 'single' or 'compact'
+{
+    tooltip: {
+        mode: 'shared', // or 'single' or 'compact'
+    },
 }
 ```
 
@@ -55,10 +57,12 @@ The tooltip is anchored to the node. Use `tooltip.position.anchorTo`, and option
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
 ```js format="snippet"
-tooltip: {
-    position: {
-        anchorTo: 'node',
-        placement: 'top',
+{
+    tooltip: {
+        position: {
+            anchorTo: 'node',
+            placement: 'top',
+        },
     },
 }
 ```
@@ -66,10 +70,12 @@ tooltip: {
 Fallback positions can be provided in an array of `placement` values. The tooltip will use the first position that has sufficient space.
 
 ```js format="snippet"
-tooltip: {
-    position: {
-        anchorTo: 'node',
-        placement: ['left', 'right'],
+{
+    tooltip: {
+        position: {
+            anchorTo: 'node',
+            placement: ['left', 'right'],
+        },
     },
 }
 ```
@@ -96,8 +102,10 @@ The default tooltip displays an arrow below it to indicate its exact point of or
 Use the `tooltip.showArrow` option to change this behaviour.
 
 ```js format="snippet"
-tooltip: {
-    showArrow: false,
+{
+    tooltip: {
+        showArrow: false,
+    },
 }
 ```
 
@@ -110,9 +118,10 @@ Pagination allows cycling through overlapping datapoints by hovering and then cl
 Pagination will only become available when two or more data points are under the cursor.
 
 ```js format="snippet"
-// Chart options only
-tooltip: {
-    pagination: true,
+{
+    tooltip: {
+        pagination: true,
+    },
 }
 ```
 
@@ -167,18 +176,20 @@ The tooltip's content can be customised within the default template by using a `
 {% chartExampleRunner title="Modifying Tooltip Content" name="tooltip-content-title" type="generated" /%}
 
 ```js format="snippet"
-tooltip: {
-    renderer: function ({ datum, xKey, yKey, yName }) {
-        return {
-            heading: 'Clothing Production',
-            title: yName.toUpperCase(),
-            data: [
-                {
-                    label: datum[xKey],
-                    value: datum[yKey].toFixed(1),
-                },
-            ],
-        };
+{
+    tooltip: {
+        renderer: function ({ datum, xKey, yKey, yName }) {
+            return {
+                heading: 'Clothing Production',
+                title: yName.toUpperCase(),
+                data: [
+                    {
+                        label: datum[xKey],
+                        value: datum[yKey].toFixed(1),
+                    },
+                ],
+            };
+        },
     },
 }
 ```
