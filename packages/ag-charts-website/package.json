@@ -8,7 +8,7 @@
     "@angular/compiler": "^16.0.0",
     "@angular/platform-browser": "^17.0.0",
     "@astrojs/check": "^0.9.4",
-    "@astrojs/markdoc": "0.15.5",
+    "@astrojs/markdoc": "0.15.7",
     "@astrojs/prism": "3.3.0",
     "@astrojs/react": "^4.3.0",
     "@astrojs/sitemap": "3.5.1",
