@@ -12,18 +12,20 @@ tree is represented by a segment on a radial circle, with the area of the sum of
 The Sunburst Series is designed to display a single series and is created using the `sunburst` series type.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'sunburst',
-        labelKey: 'name',
-    },
-]
+{
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'name',
+        },
+    ],
+}
 ```
 
 The data passed in should be an array of nodes, with each node optionally containing children.
 
 ```js
-let data = [
+const data = [
     {
         name: 'Mariah Vaughan',
         children: [
@@ -54,14 +56,16 @@ However, the Sunburst Series is best suited to providing size values to provide 
 The `sizeKey` can be used to provide a numeric value to adjust the relative sizing. Additionally, the optional `sizeName` property can be set to set the title that appears next to the value in tooltips.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'sunburst',
-        labelKey: 'name',
-        sizeKey: 'gdp',
-        sizeName: 'GDP',
-    },
-]
+{
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'name',
+            sizeKey: 'gdp',
+            sizeName: 'GDP',
+        },
+    ],
+}
 ```
 
 ## Colour Scales
@@ -73,17 +77,19 @@ Sectors can also be coloured using a scale. This lets you add an extra dimension
 Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'sunburst',
-        labelKey: 'name',
-        sizeKey: 'gdp',
-        sizeName: 'GDP',
-        colorKey: 'gdpChange',
-        colorName: 'Change',
-        colorRange: ['#FF9800', '#8BC34A'],
-    },
-]
+{
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'name',
+            sizeKey: 'gdp',
+            sizeName: 'GDP',
+            colorKey: 'gdpChange',
+            colorName: 'Change',
+            colorRange: ['#FF9800', '#8BC34A'],
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -97,15 +103,17 @@ In this configuration:
 {% chartExampleRunner title="Other Colours" name="other-colors" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'sunburst',
-        labelKey: 'name',
-        sizeKey: 'gdp',
-        sizeName: 'GDP',
-        fills: ['#D32F2F', '#FF5722', '#283593'],
-    },
-]
+{
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'name',
+            sizeKey: 'gdp',
+            sizeName: 'GDP',
+            fills: ['#D32F2F', '#FF5722', '#283593'],
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -123,24 +131,26 @@ All segments can contain both labels and secondary labels, which can be shrunk t
 {% chartExampleRunner title="Labels" name="labels" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'sunburst',
-        labelKey: 'name',
-        secondaryLabelKey: 'gdpChange',
-        sizeKey: 'gdp',
-        sizeName: 'GDP',
-        label: {
-            fontSize: 14,
-            minimumFontSize: 9,
-            spacing: 2,
+{
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'name',
+            secondaryLabelKey: 'gdpChange',
+            sizeKey: 'gdp',
+            sizeName: 'GDP',
+            label: {
+                fontSize: 14,
+                minimumFontSize: 9,
+                spacing: 2,
+            },
+            secondaryLabel: {
+                formatter: ({ value }) => (value != null ? percentageFormatter.format(value) : undefined),
+            },
+            padding: 3,
         },
-        secondaryLabel: {
-            formatter: ({ value }) => (value != null ? percentageFormatter.format(value) : undefined),
-        },
-        padding: 3,
-    },
-]
+    ],
+}
 ```
 
 In this configuration:

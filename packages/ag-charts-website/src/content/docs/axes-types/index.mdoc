@@ -20,12 +20,14 @@ use a continuous scale. For instance, in a bar chart of sales per product, the c
 different groups, and the number axis displays the corresponding sale value for each group.
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'category',
-        position: 'bottom',
-    },
-]
+{
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+    ],
+}
 ```
 
 The category axis will attempt to render an [Axis Label](./axes-labels/), [Grid Line](./axes-grid-lines/) and Tick for each category with even spacing.
@@ -44,15 +46,17 @@ For example, to create the above example comparing Olympic medal counts by hiera
 countries, and cities.
 
 ```js format="snippet"
-data: [
-    { location: ['Europe', 'United Kingdom', 'London'], gold: 27, silver: 23, bronze: 17 },
-    { location: ['Europe', 'United Kingdom', 'Manchester'], gold: 12, silver: 8, bronze: 10 },
-    { location: ['Asia', 'China', 'Beijing'], gold: 38, silver: 32, bronze: 18 },
-    { location: ['Asia', 'China', 'Shanghai'], gold: 20, silver: 15, bronze: 12 },
-    { location: ['Asia', 'Japan', 'Tokyo'], gold: 27, silver: 14, bronze: 17 },
-    { location: ['North America', 'United States', 'Los Angeles'], gold: 46, silver: 37, bronze: 38 },
-    { location: ['North America', 'Canada', 'Toronto'], gold: 8, silver: 6, bronze: 10 },
-]
+{
+    data: [
+        { location: ['Europe', 'United Kingdom', 'London'], gold: 27, silver: 23, bronze: 17 },
+        { location: ['Europe', 'United Kingdom', 'Manchester'], gold: 12, silver: 8, bronze: 10 },
+        { location: ['Asia', 'China', 'Beijing'], gold: 38, silver: 32, bronze: 18 },
+        { location: ['Asia', 'China', 'Shanghai'], gold: 20, silver: 15, bronze: 12 },
+        { location: ['Asia', 'Japan', 'Tokyo'], gold: 27, silver: 14, bronze: 17 },
+        { location: ['North America', 'United States', 'Los Angeles'], gold: 46, silver: 37, bronze: 38 },
+        { location: ['North America', 'Canada', 'Toronto'], gold: 8, silver: 6, bronze: 10 },
+    ],
+}
 ```
 
 The grouped category axis will render [Axis Labels](./axes-labels/), [Grid Lines](./axes-grid-lines/), and Ticks for each level in the hierarchy,
@@ -82,12 +86,14 @@ Instead of using an [Axis Interval](./axes-intervals/) with one item per value, 
 round it up and try to segment the rounded range with evenly spaced intervals.
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'number',
-        position: 'left',
-    },
-]
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+}
 ```
 
 For a full list of configuration options see [Number Axis Options](#reference-AgNumberAxisOptions).

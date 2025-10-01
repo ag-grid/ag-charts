@@ -65,18 +65,20 @@ In this configuration:
 To vary the size of the marker to denote the magnitude of the data values use `sizeKey`, `size` and `maxSize`.
 
 ```js format="snippet"
-series: [
-    // ...
-    {
-        type: 'map-marker',
-        latitudeKey: 'lat',
-        longitudeKey: 'lon',
-        sizeKey: 'count',
-        sizeName: 'Count',
-        size: 3,
-        maxSize: 50,
-    },
-]
+{
+    series: [
+        // ...
+        {
+            type: 'map-marker',
+            latitudeKey: 'lat',
+            longitudeKey: 'lon',
+            sizeKey: 'count',
+            sizeName: 'Count',
+            size: 3,
+            maxSize: 50,
+        },
+    ],
+}
 ```
 
 In this configuration:

@@ -12,11 +12,13 @@ A Radial Column Series, also called _Circular Column_, visualises data through r
 To create a Radial Column Series, use the `radial-column` series type.
 
 ```js format="snippet"
-series: [
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software' },
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware' },
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services' },
-]
+{
+    series: [
+        { type: 'radial-column', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software' },
+        { type: 'radial-column', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware' },
+        { type: 'radial-column', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services' },
+    ],
+}
 ```
 
 In this configuration:
@@ -35,11 +37,13 @@ allowing analysis of both single data points and overall category totals.
 To stack columns in a Radial Column Series, enable the `stacked` series property.
 
 ```js format="snippet"
-series: [
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'software', stacked: true },
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'hardware', stacked: true },
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'services', stacked: true },
-]
+{
+    series: [
+        { type: 'radial-column', angleKey: 'quarter', radiusKey: 'software', stacked: true },
+        { type: 'radial-column', angleKey: 'quarter', radiusKey: 'hardware', stacked: true },
+        { type: 'radial-column', angleKey: 'quarter', radiusKey: 'services', stacked: true },
+    ],
+}
 ```
 
 ## Customisation
@@ -53,7 +57,9 @@ The inner radius can be used to create a 'donut' effect.
 This is changed via the `innerRadiusRatio` option on the Radius Number Axis.
 
 ```js format="snippet"
-axes: [{ type: 'angle-category' }, { type: 'radius-number', innerRadiusRatio: 0.2 }]
+{
+    axes: [{ type: 'angle-category' }, { type: 'radius-number', innerRadiusRatio: 0.2 }],
+}
 ```
 
 Any value between `0` and `1` will set the inner radius as a proportion of the overall radius.
@@ -68,10 +74,12 @@ The following options are used to control the padding between different elements
 -   `groupPaddingInner`: Spacing within a group, ranges from `0` (columns touching) to `1` (widest gap).
 
 ```js format="snippet"
-axes: [
-    { type: 'angle-category', groupPaddingInner: 0.5, paddingInner: 0.5 },
-    { type: 'radius-number', innerRadiusRatio: 0.2 },
-]
+{
+    axes: [
+        { type: 'angle-category', groupPaddingInner: 0.5, paddingInner: 0.5 },
+        { type: 'radius-number', innerRadiusRatio: 0.2 },
+    ],
+}
 ```
 
 ### Axis Label Orientation
@@ -87,15 +95,17 @@ To change Angle Axis Label orientation, use the `label.orientation` property wit
 The following configuration changes the orientation of the Axis Labels to `parallel` :
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'angle-category',
-        label: {
-            orientation: 'parallel',
+{
+    axes: [
+        {
+            type: 'angle-category',
+            label: {
+                orientation: 'parallel',
+            },
         },
-    },
-    { type: 'radius-number' },
-]
+        { type: 'radius-number' },
+    ],
+}
 ```
 
 ### Radius Axis Position
@@ -105,16 +115,18 @@ axes: [
 Customise the Radius Axis Line position via `positionAngle` and Axis Label rotation using `label.rotation`:
 
 ```js format="snippet"
-axes: [
-    { type: 'angle-category' },
-    {
-        type: 'radius-number',
-        positionAngle: 90,
-        label: {
-            rotation: -90,
+{
+    axes: [
+        { type: 'angle-category' },
+        {
+            type: 'radius-number',
+            positionAngle: 90,
+            label: {
+                rotation: -90,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ## API Reference

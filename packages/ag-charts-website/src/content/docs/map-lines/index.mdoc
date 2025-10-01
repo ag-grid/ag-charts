@@ -45,14 +45,16 @@ In this configuration:
 To colour the lines based on the magnitude of the data, use `colorKey`.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'map-line',
-        idKey: 'name',
-        colorKey: 'dailyVehicles',
-        colorName: 'Daily Vehicles',
-    },
-]
+{
+    series: [
+        {
+            type: 'map-line',
+            idKey: 'name',
+            colorKey: 'dailyVehicles',
+            colorName: 'Daily Vehicles',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -71,16 +73,18 @@ See [Colour Range](./heatmap-series/#colour-range) and [Gradient Legend](./heatm
 To vary the width of the line to denote the magnitude of the data values use `sizeKey`, `strokeWidth` and `maxStrokeWidth`.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'map-line',
-        idKey: 'name',
-        sizeKey: 'dailyVehicles',
-        sizeName: 'Daily Vehicles',
-        strokeWidth: 1,
-        maxStrokeWidth: 3,
-    },
-]
+{
+    series: [
+        {
+            type: 'map-line',
+            idKey: 'name',
+            sizeKey: 'dailyVehicles',
+            sizeName: 'Daily Vehicles',
+            strokeWidth: 1,
+            maxStrokeWidth: 3,
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -99,13 +103,15 @@ This can be useful to provide context for other series.
 {% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'map-line-background',
-        topology: backgroundTopology,
-    },
-    // ...
-]
+{
+    series: [
+        {
+            type: 'map-line-background',
+            topology: backgroundTopology,
+        },
+        // ...
+    ],
+}
 ```
 
 {% note %}

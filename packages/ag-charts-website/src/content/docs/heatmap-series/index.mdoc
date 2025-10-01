@@ -13,14 +13,16 @@ A Heatmap Series displays data in a matrix format, using colours to denote the m
 To create a Heatmap Series, use the `heatmap` series type.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-    },
-]
+{
+    series: [
+        {
+            type: 'heatmap',
+            xKey: 'month',
+            yKey: 'year',
+            colorKey: 'temperature',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -38,15 +40,17 @@ In this configuration:
 Series items colours can be customised via the `colorRange` configuration array.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-        colorRange: ['#43a2ca', '#a8ddb5', '#f0f9e8'],
-    },
-]
+{
+    series: [
+        {
+            type: 'heatmap',
+            xKey: 'month',
+            yKey: 'year',
+            colorKey: 'temperature',
+            colorRange: ['#43a2ca', '#a8ddb5', '#f0f9e8'],
+        },
+    ],
+}
 ```
 
 The `colorRange` array must contain 2 or more values.

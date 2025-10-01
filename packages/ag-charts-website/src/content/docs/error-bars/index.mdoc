@@ -12,17 +12,19 @@ Error Bars visually represent the variability or uncertainty of data, indicating
 This example adds Error Bars to a [Bar Series](./bar-series/) using the `errorBar` series option:
 
 ```js format="snippet"
-series: [
-    {
-        type: 'bar',
-        xKey: 'month',
-        yKey: 'dividends',
-        errorBar: {
-            yLowerKey: 'lowerCI',
-            yUpperKey: 'upperCI',
+{
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'dividends',
+            errorBar: {
+                yLowerKey: 'lowerCI',
+                yUpperKey: 'upperCI',
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:
@@ -41,20 +43,22 @@ Error Bars are only supported in [Bar](./bar-series/), [Line](./line-series/) an
 This example adds Double Error Bars to a Line Series using the `errorBar` series option:
 
 ```js format="snippet"
-series: [
-    {
-        type: 'line',
-        xKey: 'expiry',
-        yKey: 'price',
-        errorBar: {
-            xLowerKey: 'expiryLo',
-            xUpperKey: 'expiryHi',
-            yLowerKey: 'priceLo',
-            yUpperKey: 'priceHi',
+{
+    series: [
+        {
+            type: 'line',
+            xKey: 'expiry',
+            yKey: 'price',
+            errorBar: {
+                xLowerKey: 'expiryLo',
+                xUpperKey: 'expiryHi',
+                yLowerKey: 'priceLo',
+                yUpperKey: 'priceHi',
+            },
+            tooltip: { renderer: customTooltipRenderer },
         },
-        tooltip: { renderer: customTooltipRenderer },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:

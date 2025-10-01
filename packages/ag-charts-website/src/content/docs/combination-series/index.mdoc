@@ -12,20 +12,22 @@ It is possible to create Combination Charts using the following series types: `b
 The `type` property must be specified explicitly on each individual series object in the `series` options array, as shown below:
 
 ```js format="snippet"
-series: [
-    {
-        type: 'bar', // use 'bar' series
-        xKey: 'year',
-        yKey: 'men',
-        // ...other series options
-    },
-    {
-        type: 'line', // use 'line' series
-        xKey: 'year',
-        yKey: 'portions',
-        // ...other series options
-    },
-]
+{
+    series: [
+        {
+            type: 'bar', // use 'bar' series
+            xKey: 'year',
+            yKey: 'men',
+            // ...other series options
+        },
+        {
+            type: 'line', // use 'line' series
+            xKey: 'year',
+            yKey: 'portions',
+            // ...other series options
+        },
+    ],
+}
 ```
 
 The snippet above shows the configuration required for a combination chart consisting of a `bar` and `line` series.

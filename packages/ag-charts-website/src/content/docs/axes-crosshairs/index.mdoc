@@ -15,15 +15,17 @@ or snapping to a highlighted item. Band highlights emphasize the entire category
 To enable the crosshair feature for a given axis, use the `crosshair` property on the `axes` options object as shown below:
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'number',
-        position: 'left',
-        crosshair: {
-            enabled: true,
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            crosshair: {
+                enabled: true,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ## Snap
@@ -33,15 +35,17 @@ By default, the crosshair will snap to the position of the highlighted node.
 This default behaviour can be modified by using the crosshair `snap` option. When `snap` is `false`, the crosshair will follow the mouse pointer rather than snapping to the highlighted item.
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'number',
-        position: 'bottom',
-        crosshair: {
-            snap: false,
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+            crosshair: {
+                snap: false,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 {% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" /%}
@@ -182,14 +186,16 @@ Band highlights shade the entire hovered category or date on the chart.
 To enable the band highlight for a given axis, use the `bandHighlight` property in the `axes` options object.
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'category',
-        bandHighlight: {
-            enabled: true,
+{
+    axes: [
+        {
+            type: 'category',
+            bandHighlight: {
+                enabled: true,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 In the above example:

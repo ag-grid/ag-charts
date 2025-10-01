@@ -21,17 +21,19 @@ Every series has its own [series options](/options/#reference-AgChartOptions-ser
 These include a `type` as well as `_Key` properties to connect to the visualisation to the data, such as `xKey` and `yKey` for cartesian charts.
 
 ```js format="snippet"
-data: [
-    { year: '2001', women: 25 },
-    { country: '2003', value: 26 },
-],
-series: [
-    {
-        type: 'bar',
-        xKey: 'year',
-        yKey: 'women',
-    },
-]
+{
+    data: [
+        { year: '2001', women: 25 },
+        { country: '2003', value: 26 },
+    ],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'women',
+        },
+    ],
+}
 ```
 
 ### Axes
@@ -42,16 +44,18 @@ These do not need to be configured unless customisation is required.
 Use `axes.position` to control the position of the axis, and `axes.type` to define the type.
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'category', // category | grouped-category | number | log | time | ordinal-time
-        position: 'bottom', // top | right | bottom | left
-    },
-    {
-        type: 'number', // category | grouped-category | number | log | time | ordinal-time
-        position: 'left', // top | right | bottom | left
-    },
-]
+{
+    axes: [
+        {
+            type: 'category', // category | grouped-category | number | log | time | ordinal-time
+            position: 'bottom', // top | right | bottom | left
+        },
+        {
+            type: 'number', // category | grouped-category | number | log | time | ordinal-time
+            position: 'left', // top | right | bottom | left
+        },
+    ],
+}
 ```
 
 Polar charts such as the [Radar Line Series](./radar-line-series), use [Polar Axes](./radar-line-series/#customisation) which have similar options.
@@ -65,25 +69,27 @@ Charts can have more than one axis in each direction, allowing for series with d
 Use the axes `keys` property to link the series `_Key` property to the axis.
 
 ```js format="snippet"
-axes: [
-    // x-axis
-    {
-        type: 'category',
-        position: 'bottom',
-    },
-    // primary y-axis
-    {
-        type: 'number',
-        position: 'left',
-        keys: ['women', 'men'],
-    },
-    // secondary y-axis
-    {
-        type: 'number',
-        position: 'right',
-        keys: ['portions'],
-    },
-]
+{
+    axes: [
+        // x-axis
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        // primary y-axis
+        {
+            type: 'number',
+            position: 'left',
+            keys: ['women', 'men'],
+        },
+        // secondary y-axis
+        {
+            type: 'number',
+            position: 'right',
+            keys: ['portions'],
+        },
+    ],
+}
 ```
 
 ### Axis Intervals
@@ -94,13 +100,15 @@ Intervals can be defined in [steps](./axes-intervals/#step), [absolute values](.
 Use `axes.interval` to control the interval of the axis.
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'number',
-        position: 'left',
-        interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
-    },
-]
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
+        },
+    ],
+}
 ```
 
 ### Axis Labels
@@ -110,17 +118,19 @@ axes: [
 Use `axes.label` to control the appearance of the axis labels.
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'number',
-        position: 'left',
-        label: {
-            minSpacing: 20,
-            avoidCollisions: false, // enabled by default
-            autoRotate: false, // enabled by default
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            label: {
+                minSpacing: 20,
+                avoidCollisions: false, // enabled by default
+                autoRotate: false, // enabled by default
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ### Value Formatting
@@ -158,20 +168,22 @@ legend: {
 Use the `crossLines` array in the axis options to add `line` or `range` [Cross Lines](./axes-cross-lines/) along any axis.
 
 ```js format="snippet"
-axes: [
-    {
-        crossLines: [
-            {
-                type: 'line',
-                value: 11,
-            },
-            {
-                type: 'range',
-                range: ['Jun', 'Sep'],
-            },
-        ],
-    },
-]
+{
+    axes: [
+        {
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 11,
+                },
+                {
+                    type: 'range',
+                    range: ['Jun', 'Sep'],
+                },
+            ],
+        },
+    ],
+}
 ```
 
 ### Conditional Styling
@@ -181,17 +193,19 @@ axes: [
 Use the `itemStyler` callback function to customise the appearance of a specific bar or marker:
 
 ```js format="snippet"
-series: [
-    {
-        marker: {
-            itemStyler: ({ datum, xKey, fill, highlighted }) => {
-                return {
-                    fill: datum[xKey] === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
-                };
+{
+    series: [
+        {
+            marker: {
+                itemStyler: ({ datum, xKey, fill, highlighted }) => {
+                    return {
+                        fill: datum[xKey] === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
+                    };
+                },
             },
         },
-    },
-]
+    ],
+}
 ```
 
 ## Layout and Styling
@@ -213,17 +227,19 @@ Strokes can have a `stroke` colour, as well as a `strokeWidth` and a `lineDash[]
 Use the `series.marker` property to customise markers.
 
 ```js format="snippet"
-series: [
-    {
-        stroke: 'maroon',
-        marker: {
-            shape: 'square', // defaults to 'circle'
-            size: 20,
-            fill: 'red',
+{
+    series: [
+        {
             stroke: 'maroon',
+            marker: {
+                shape: 'square', // defaults to 'circle'
+                size: 20,
+                fill: 'red',
+                stroke: 'maroon',
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ### Chart Elements
@@ -586,37 +602,39 @@ The [Map Series](./maps/) types enable visualising geographic data in different 
 To create a map chart, provide a [Map Topology](./map-topology/) in [GeoJSON](https://geojson.org/) format and link the correct property in the `properties` key:
 
 ```js format="snippet"
-series: [
-    {
-        type: 'map-shape',
-        topology: {
-            type: 'FeatureCollection',
-            features: [
-                {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: [
-                            /*...*/
-                        ],
+{
+    series: [
+        {
+            type: 'map-shape',
+            topology: {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Polygon',
+                            coordinates: [
+                                /*...*/
+                            ],
+                        },
+                        properties: {
+                            name: 'United Kingdom',
+                            code: 'GB',
+                        },
                     },
-                    properties: {
-                        name: 'United Kingdom',
-                        code: 'GB',
-                    },
-                },
+                ],
+                // ...
+            },
+            data: [
+                { country: 'United Kingdom', population: 67330000 },
+                { country: 'France', population: 67500000 },
+                // ...
             ],
-            // ...
+            idKey: 'country',
+            topologyIdKey: 'name', //default value
         },
-        data: [
-            { country: 'United Kingdom', population: 67330000 },
-            { country: 'France', population: 67500000 },
-            // ...
-        ],
-        idKey: 'country',
-        topologyIdKey: 'name', //default value
-    },
-]
+    ],
+}
 ```
 
 ### Gauges {% enterpriseIcon /%}

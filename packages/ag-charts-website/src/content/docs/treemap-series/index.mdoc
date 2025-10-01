@@ -13,12 +13,14 @@ tree is represented by a rectangle, with the area of the rectangle representing 
 The Treemap Series is designed to display a single series and is created using the `treemap` series type.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'treemap',
-        labelKey: 'title',
-    },
-]
+{
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'title',
+        },
+    ],
+}
 ```
 
 The data passed in should be an array of nodes, with each node optionally containing children.
@@ -54,14 +56,16 @@ However, the Treemap Series is best suited to providing size values to provide r
 The `sizeKey` can be used to provide a numeric value to adjust the relative sizing. Additionally, the optional `sizeName` property can be set to set the title that appears next to the value in tooltips.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'treemap',
-        labelKey: 'title',
-        sizeKey: 'total',
-        sizeName: 'Total',
-    },
-]
+{
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'title',
+            sizeKey: 'total',
+            sizeName: 'Total',
+        },
+    ],
+}
 ```
 
 Only the sizes of leaf nodes will be accounted for when computing the relative sizes. When sizes are used, the nodes will be re-ordered so larger nodes appear towards the top left corner.
@@ -75,17 +79,19 @@ Tiles can also be coloured using a scale. This lets you add an extra dimension o
 Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'treemap',
-        labelKey: 'title',
-        sizeKey: 'total',
-        sizeName: 'Total',
-        colorKey: 'change',
-        colorName: 'Change',
-        colorRange: ['#43A047', '#FF5722'],
-    },
-]
+{
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'title',
+            sizeKey: 'total',
+            sizeName: 'Total',
+            colorKey: 'change',
+            colorName: 'Change',
+            colorRange: ['#43A047', '#FF5722'],
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -102,16 +108,18 @@ It's possible to override the default colours, or the colours on a group or tile
 
 <!-- prettier-ignore -->
 ```js format="snippet"
-series: [
-    {
-        type: 'treemap',
-        labelKey: 'name',
-        sizeKey: 'total',
-        sizeName: 'Total',
-        fills: ['#E64A19', '#F57C00', '#FFA000', '#FBC02D', '#AFB42B', '#689F38', '#388E3C', '#00796B', '#0097A7', '#0288D1'],
-        strokes: ['#D84315', '#EF6C00', '#FF8F00', '#F9A825', '#9E9D24', '#558B2F', '#2E7D32', '#00695C', '#00838F', '#0277BD'],
-    },
-]
+{
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'name',
+            sizeKey: 'total',
+            sizeName: 'Total',
+            fills: ['#E64A19', '#F57C00', '#FFA000', '#FBC02D', '#AFB42B', '#689F38', '#388E3C', '#00796B', '#0097A7', '#0288D1'],
+            strokes: ['#D84315', '#EF6C00', '#FF8F00', '#F9A825', '#9E9D24', '#558B2F', '#2E7D32', '#00695C', '#00838F', '#0277BD'],
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -133,31 +141,33 @@ For leaf nodes only, they can contain secondary labels, and their labels can als
 Labels can be customised through the `group` and `tile` properties for non-leaf nodes and leaf nodes, respectively.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'treemap',
-        labelKey: 'title',
-        secondaryLabelKey: 'total',
-        sizeKey: 'total',
-        sizeName: 'Total',
-        group: {
-            label: {
-                fontSize: 18,
-                spacing: 2,
+{
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'title',
+            secondaryLabelKey: 'total',
+            sizeKey: 'total',
+            sizeName: 'Total',
+            group: {
+                label: {
+                    fontSize: 18,
+                    spacing: 2,
+                },
+            },
+            tile: {
+                label: {
+                    fontSize: 24,
+                    minimumFontSize: 9,
+                    spacing: 8,
+                },
+                secondaryLabel: {
+                    formatter: (params) => `£${params.value.toFixed(1)}bn`,
+                },
             },
         },
-        tile: {
-            label: {
-                fontSize: 24,
-                minimumFontSize: 9,
-                spacing: 8,
-            },
-            secondaryLabel: {
-                formatter: (params) => `£${params.value.toFixed(1)}bn`,
-            },
-        },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:
@@ -175,22 +185,24 @@ Various spacing values can be adjusted to tweak the layout of the chart.
 {% chartExampleRunner title="Custom Layout" name="layout" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'treemap',
-        labelKey: 'title',
-        sizeKey: 'total',
-        sizeName: 'Total',
-        group: {
-            padding: 12,
-            gap: 5,
+{
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'title',
+            sizeKey: 'total',
+            sizeName: 'Total',
+            group: {
+                padding: 12,
+                gap: 5,
+            },
+            tile: {
+                padding: 10,
+                gap: 2,
+            },
         },
-        tile: {
-            padding: 10,
-            gap: 2,
-        },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:

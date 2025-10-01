@@ -12,16 +12,18 @@ A Candlestick Series shows open and close data with bars, and high and low data 
 To create a Candlestick Series, use the `candlestick` series type.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'candlestick',
-        xKey: 'date',
-        lowKey: 'low',
-        openKey: 'open',
-        closeKey: 'close',
-        highKey: 'high',
-    },
-]
+{
+    series: [
+        {
+            type: 'candlestick',
+            xKey: 'date',
+            lowKey: 'low',
+            openKey: 'open',
+            closeKey: 'close',
+            highKey: 'high',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -45,28 +47,30 @@ The properties `item.up` and `item.down` control the display of rising and falli
 Candlestick wicks inherit series item styles but can be individually customised. Here, the `wick` property on `item.up` and `item.down` is used to customise the wick line styles of the rising and falling candlestick items.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'candlestick',
-        // ...
-        item: {
-            up: {
-                fill: 'transparent',
-                stroke: '#2b5c95',
-                wick: {
-                    strokeWidth: 2,
+{
+    series: [
+        {
+            type: 'candlestick',
+            // ...
+            item: {
+                up: {
+                    fill: 'transparent',
+                    stroke: '#2b5c95',
+                    wick: {
+                        strokeWidth: 2,
+                    },
                 },
-            },
-            down: {
-                fill: '#5090dc',
-                stroke: '#2b5c95',
-                wick: {
-                    strokeWidth: 2,
+                down: {
+                    fill: '#5090dc',
+                    stroke: '#2b5c95',
+                    wick: {
+                        strokeWidth: 2,
+                    },
                 },
             },
         },
-    },
-]
+    ],
+}
 ```
 
 ## API Reference

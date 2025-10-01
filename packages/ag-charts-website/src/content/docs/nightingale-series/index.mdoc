@@ -13,11 +13,13 @@ value. It can simplify the comparison of datasets across multiple categories, pr
 To create a Nightingale Series, use the `nightingale` series type.
 
 ```js format="snippet"
-series: [
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software' },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware' },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services' },
-]
+{
+    series: [
+        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software' },
+        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware' },
+        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services' },
+    ],
+}
 ```
 
 In this configuration:
@@ -35,11 +37,13 @@ Grouping sectors is used when you want to compare multiple data series side by s
 To group sectors in a Nightingale Series, enable the `grouped` series property.
 
 ```js format="snippet"
-series: [
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software', grouped: true },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware', grouped: true },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services', grouped: true },
-]
+{
+    series: [
+        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software', grouped: true },
+        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware', grouped: true },
+        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services', grouped: true },
+    ],
+}
 ```
 
 ## Customisation
@@ -53,7 +57,9 @@ The inner radius can be used to create a 'donut' effect.
 To create this 'donut' effect, use the `innerRadiusRatio` option on the Radius Number Axis.
 
 ```js format="snippet"
-axes: [{ type: 'angle-category' }, { type: 'radius-number', innerRadiusRatio: 0.2 }]
+{
+    axes: [{ type: 'angle-category' }, { type: 'radius-number', innerRadiusRatio: 0.2 }],
+}
 ```
 
 Any value between `0` and `1` will set the inner radius as a proportion of the overall radius.
@@ -68,7 +74,9 @@ The following options are used to control the padding between different elements
 -   `groupPaddingInner`: Spacing within a group, ranges from `0` (columns touching) to `1` (widest gap).
 
 ```js format="snippet"
-axes: [{ type: 'angle-category', groupPaddingInner: 0.2, paddingInner: 0.3 }, { type: 'radius-number' }]
+{
+    axes: [{ type: 'angle-category', groupPaddingInner: 0.2, paddingInner: 0.3 }, { type: 'radius-number' }],
+}
 ```
 
 ### Axis Label Orientation
@@ -84,15 +92,17 @@ To change Angle Axis Label orientation, use the `label.orientation` property wit
 The following configuration changes the orientation of the Axis Labels to `parallel` :
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'angle-category',
-        label: {
-            orientation: 'parallel',
+{
+    axes: [
+        {
+            type: 'angle-category',
+            label: {
+                orientation: 'parallel',
+            },
         },
-    },
-    { type: 'radius-number' },
-]
+        { type: 'radius-number' },
+    ],
+}
 ```
 
 ### Radius Axis Position
@@ -102,16 +112,18 @@ axes: [
 Customise the Radius Axis Line position via `positionAngle` and Axis Label rotation using `label.rotation`:
 
 ```js format="snippet"
-axes: [
-    { type: 'angle-category' },
-    {
-        type: 'radius-number',
-        positionAngle: 90,
-        label: {
-            rotation: -90,
+{
+    axes: [
+        { type: 'angle-category' },
+        {
+            type: 'radius-number',
+            positionAngle: 90,
+            label: {
+                rotation: -90,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ## API Reference

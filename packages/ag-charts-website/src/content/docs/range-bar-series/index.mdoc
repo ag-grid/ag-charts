@@ -12,14 +12,16 @@ A Range Bar Series uses vertical or horizontal bars to show the range between hi
 The Range Bar Series is created using the `range-bar` series type.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'range-bar',
-        xKey: 'department',
-        yLowKey: 'low',
-        yHighKey: 'high',
-    },
-]
+{
+    series: [
+        {
+            type: 'range-bar',
+            xKey: 'department',
+            yLowKey: 'low',
+            yHighKey: 'high',
+        },
+    ],
+}
 ```
 
 The `yLowKey` and `yHighKey` are used to retrieve the range of values for the Y axis.
@@ -31,28 +33,30 @@ Multiple Range Bar Series can be combined into a single chart.
 {% chartExampleRunner title="Multiple Range Bar Series" name="multiple-range-bars" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'range-bar',
-        xKey: 'date',
-        yLowKey: 'start',
-        yHighKey: 'gain',
-        xName: 'Month',
-        yLowName: 'Start',
-        yHighName: 'End',
-        yName: 'Gained',
-    },
-    {
-        type: 'range-bar',
-        xKey: 'date',
-        yLowKey: 'loss',
-        yHighKey: 'gain',
-        xName: 'Month',
-        yLowName: 'End',
-        yHighName: 'Start',
-        yName: 'Lost',
-    },
-]
+{
+    series: [
+        {
+            type: 'range-bar',
+            xKey: 'date',
+            yLowKey: 'start',
+            yHighKey: 'gain',
+            xName: 'Month',
+            yLowName: 'Start',
+            yHighName: 'End',
+            yName: 'Gained',
+        },
+        {
+            type: 'range-bar',
+            xKey: 'date',
+            yLowKey: 'loss',
+            yHighKey: 'gain',
+            xName: 'Month',
+            yLowName: 'End',
+            yHighName: 'Start',
+            yName: 'Lost',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -86,17 +90,19 @@ Series labels can be enabled using the `label` options.
 {% chartExampleRunner title="Range Bar Label" name="range-bar-labels" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        // ...
-        label: {
-            padding: 10,
-            formatter: ({ itemId, value }) => {
-                return `£${value.toFixed(0)}K ${itemId === 'low' ? '↓' : '↑'}`;
+{
+    series: [
+        {
+            // ...
+            label: {
+                padding: 10,
+                formatter: ({ itemId, value }) => {
+                    return `£${value.toFixed(0)}K ${itemId === 'low' ? '↓' : '↑'}`;
+                },
             },
         },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:
@@ -111,12 +117,14 @@ The corner radius can be customised with the `cornerRadius` property.
 {% chartExampleRunner title="Customising Corner Radius" name="customising-corner-radius" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        // ...
-        cornerRadius: 10,
-    },
-]
+{
+    series: [
+        {
+            // ...
+            cornerRadius: 10,
+        },
+    ],
+}
 ```
 
 ## Horizontal Range Bar
@@ -126,15 +134,17 @@ series: [
 To create a Horizontal Range Bar Series, set `direction: 'horizontal'`.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'range-bar',
-        direction: 'horizontal',
-        xKey: 'department',
-        yLowKey: 'low',
-        yHighKey: 'high',
-    },
-]
+{
+    series: [
+        {
+            type: 'range-bar',
+            direction: 'horizontal',
+            xKey: 'department',
+            yLowKey: 'low',
+            yHighKey: 'high',
+        },
+    ],
+}
 ```
 
 When the `direction` is `'horizontal'` the `xKey` will determine categories on the y-axis, while the `yLowKey` and `yHighKey` will be used to provide numerical values along the x-axis.

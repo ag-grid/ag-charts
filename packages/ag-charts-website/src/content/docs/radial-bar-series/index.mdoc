@@ -12,11 +12,13 @@ A Radial Bar Series, also called _Circular Bar_, visualises data through rectang
 To create a Radial Bar Series, use the `radial-bar` series type.
 
 ```js format="snippet"
-series: [
-    { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'software', angleName: 'Software' },
-    { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'hardware', angleName: 'Hardware' },
-    { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'services', angleName: 'Services' },
-]
+{
+    series: [
+        { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'software', angleName: 'Software' },
+        { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'hardware', angleName: 'Hardware' },
+        { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'services', angleName: 'Services' },
+    ],
+}
 ```
 
 In this configuration:
@@ -35,11 +37,13 @@ allowing analysis of both single data points and overall category totals.
 To stack bars in a Radial Bar Series, enable the `stacked` series property.
 
 ```js format="snippet"
-series: [
-    { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'software', stacked: true },
-    { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'hardware', stacked: true },
-    { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'services', stacked: true },
-]
+{
+    series: [
+        { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'software', stacked: true },
+        { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'hardware', stacked: true },
+        { type: 'radial-bar', radiusKey: 'quarter', angleKey: 'services', stacked: true },
+    ],
+}
 ```
 
 ## Customisation
@@ -53,7 +57,9 @@ The inner radius can be used to create a 'donut' effect.
 This is changed via the `innerRadiusRatio` option on the Radius Category Axis.
 
 ```js format="snippet"
-axes: [{ type: 'angle-number' }, { type: 'radius-category', innerRadiusRatio: 0.3 }]
+{
+    axes: [{ type: 'angle-number' }, { type: 'radius-category', innerRadiusRatio: 0.3 }],
+}
 ```
 
 Any value between `0` and `1` will set the inner radius as a proportion of the overall radius.
@@ -68,10 +74,12 @@ The following options are used to control the padding between different elements
 -   `groupPaddingInner`: Spacing within a group, ranges from `0` (bars touching) to `1` (widest gap).
 
 ```js format="snippet"
-axes: [
-    { type: 'angle-number', groupPaddingInner: 0.5, paddingInner: 0.5 },
-    { type: 'radius-category', groupPaddingInner: 0.5, paddingInner: 0.5, paddingOuter: 0.25 },
-]
+{
+    axes: [
+        { type: 'angle-number', groupPaddingInner: 0.5, paddingInner: 0.5 },
+        { type: 'radius-category', groupPaddingInner: 0.5, paddingInner: 0.5, paddingOuter: 0.25 },
+    ],
+}
 ```
 
 ### Axis Label Orientation
@@ -87,15 +95,17 @@ To change Angle Axis Label orientation, use the `label.orientation` property wit
 The following configuration changes the orientation of the Axis Labels to `parallel` :
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'angle-number',
-        label: {
-            orientation: 'parallel',
+{
+    axes: [
+        {
+            type: 'angle-number',
+            label: {
+                orientation: 'parallel',
+            },
         },
-    },
-    { type: 'radius-category' },
-]
+        { type: 'radius-category' },
+    ],
+}
 ```
 
 ### Axis Angles
@@ -105,17 +115,19 @@ axes: [
 To change Angle Axis circumference, use the `startAngle` and `endAngle` properties. To change the Radius Axis start angle, use `positionAngle` property.
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'angle-number',
-        startAngle: -90,
-        endAngle: 90,
-    },
-    {
-        type: 'radius-category',
-        positionAngle: 270, //equivalent to -90
-    },
-]
+{
+    axes: [
+        {
+            type: 'angle-number',
+            startAngle: -90,
+            endAngle: 90,
+        },
+        {
+            type: 'radius-category',
+            positionAngle: 270, //equivalent to -90
+        },
+    ],
+}
 ```
 
 ## API Reference

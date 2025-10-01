@@ -14,28 +14,30 @@ A Cross Line can either be a `line` or a `range`, and multiple Cross Lines can b
 {% chartExampleRunner title="Adding Cross Lines" name="axis-cross-lines-adding" type="generated" /%}
 
 ```js format="snippet"
-axes: [
-    {
-        position: 'left',
-        type: 'number',
-        crossLines: [
-            {
-                type: 'line',
-                value: 11,
-            },
-        ],
-    },
-    {
-        position: 'bottom',
-        type: 'category',
-        crossLines: [
-            {
-                type: 'range',
-                range: ['Jun', 'Sep'],
-            },
-        ],
-    },
-]
+{
+    axes: [
+        {
+            position: 'left',
+            type: 'number',
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 11,
+                },
+            ],
+        },
+        {
+            position: 'bottom',
+            type: 'category',
+            crossLines: [
+                {
+                    type: 'range',
+                    range: ['Jun', 'Sep'],
+                },
+            ],
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -49,20 +51,22 @@ In this configuration:
 {% chartExampleRunner title="Customising Cross Lines" name="axis-cross-lines-customising" type="generated" /%}
 
 ```js format="snippet"
-crossLines: [
-    {
-        type: 'range',
-        range: [new Date(2019, 4, 1), new Date(2019, 6, 1)],
-        strokeWidth: 0,
-        fill: '#7290C4',
-        fillOpacity: 0.4,
-        label: {
-            text: 'Price Peak',
-            position: 'top',
-            fontSize: 14,
+{
+    crossLines: [
+        {
+            type: 'range',
+            range: [new Date(2019, 4, 1), new Date(2019, 6, 1)],
+            strokeWidth: 0,
+            fill: '#7290C4',
+            fillOpacity: 0.4,
+            label: {
+                text: 'Price Peak',
+                position: 'top',
+                fontSize: 14,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:
@@ -77,36 +81,38 @@ Cross Lines are also available for Polar Axes. These have the same configuration
 {% chartExampleRunner title="Polar Axis Angle Crosslines" name="polar-axes-crosslines-angle" type="generated" /%}
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'angle-category',
-        shape: 'circle',
-        crossLines: [
-            {
-                type: 'range',
-                range: ['Technical Skills', 'Communication'],
-                label: {
-                    text: 'Valuable Skills',
+{
+    axes: [
+        {
+            type: 'angle-category',
+            shape: 'circle',
+            crossLines: [
+                {
+                    type: 'range',
+                    range: ['Technical Skills', 'Communication'],
+                    label: {
+                        text: 'Valuable Skills',
+                    },
                 },
-            },
-        ],
-    },
-    {
-        type: 'radius-number',
-        shape: 'circle',
-        crossLines: [
-            {
-                type: 'line',
-                stroke: 'red',
-                value: 6,
-                label: {
-                    text: 'Minimal\nRequirement',
-                    positionAngle: 180,
+            ],
+        },
+        {
+            type: 'radius-number',
+            shape: 'circle',
+            crossLines: [
+                {
+                    type: 'line',
+                    stroke: 'red',
+                    value: 6,
+                    label: {
+                        text: 'Minimal\nRequirement',
+                        positionAngle: 180,
+                    },
                 },
-            },
-        ],
-    },
-]
+            ],
+        },
+    ],
+}
 ```
 
 ## API Reference

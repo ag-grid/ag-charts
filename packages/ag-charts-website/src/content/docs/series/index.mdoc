@@ -11,11 +11,13 @@ series-specific options, but there are some common options between them.
 Every series configuration can specify a `type` to declare how the data set should be rendered:
 
 ```js format="snippet"
-series: [
-    {
-        type: 'pie',
-    },
-]
+{
+    series: [
+        {
+            type: 'pie',
+        },
+    ],
+}
 ```
 
 If unspecified, we default to the optional `type` specified for the chart. Failing that we
@@ -30,14 +32,16 @@ By default each series is based on data from the root-level `data` option. It is
 each series to declare its own data:
 
 ```js format="snippet"
-series: [
-    {
-        data: [
-            { name: 'Apples', count: 10 },
-            { name: 'Oranges', count: 10 },
-        ],
-    },
-]
+{
+    series: [
+        {
+            data: [
+                { name: 'Apples', count: 10 },
+                { name: 'Oranges', count: 10 },
+            ],
+        },
+    ],
+}
 ```
 
 The data should be an array of objects. Common options like `xKey`, `yKey`, `angleKey` specify

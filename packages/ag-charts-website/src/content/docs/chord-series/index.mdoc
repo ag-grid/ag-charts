@@ -11,14 +11,16 @@ A Chord Series visualises movement or change between different items, using node
 To create a Chord Series, use the `chord` series type.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'chord',
-        fromKey: 'from',
-        toKey: 'to',
-        sizeKey: 'size',
-    },
-]
+{
+    series: [
+        {
+            type: 'chord',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -36,19 +38,21 @@ In this configuration:
 The styling of all nodes can be customised using the `node` property.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'chord',
-        fromKey: 'from',
-        toKey: 'to',
-        sizeKey: 'size',
-        node: {
-            fill: '#34495e',
-            stroke: '#2c3e50',
-            strokeWidth: 2,
+{
+    series: [
+        {
+            type: 'chord',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: {
+                fill: '#34495e',
+                stroke: '#2c3e50',
+                strokeWidth: 2,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ### Link Style
@@ -58,21 +62,23 @@ series: [
 The styling of all links can be customised using the `link` property.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'chord',
-        fromKey: 'from',
-        toKey: 'to',
-        sizeKey: 'size',
-        link: {
-            fill: '#34495e',
-            fillOpacity: 0.25,
-            stroke: '#2c3e50',
-            strokeWidth: 1,
-            strokeOpacity: 0.25,
+{
+    series: [
+        {
+            type: 'chord',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            link: {
+                fill: '#34495e',
+                fillOpacity: 0.25,
+                stroke: '#2c3e50',
+                strokeWidth: 1,
+                strokeOpacity: 0.25,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ## API Reference

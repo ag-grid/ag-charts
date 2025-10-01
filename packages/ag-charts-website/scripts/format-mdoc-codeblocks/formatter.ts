@@ -169,29 +169,6 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
     // For reactHooks format, use TypeScript parser since we set .tsx extension
     if (metadata?.format === 'reactHooks') {
         parser = 'typescript';
-    } else if (normalizedLang === 'jsx' || normalizedLang === 'js' || normalizedLang === 'javascript') {
-        // Auto-detect TypeScript syntax in JS/JSX blocks by attempting to parse with TypeScript
-        // This is more reliable than regex patterns and leverages Prettier's own parser
-        // First check for TS-specific patterns to avoid unnecessary parsing
-        const hasTSPatterns =
-            /:\s*\w+(\[\]|\||&|<)/.test(code) || // Type annotations with arrays, unions, intersections, or generics
-            /\bas\s+\w/.test(code) || // Type assertions
-            /\b(interface|type)\s+\w/.test(code) || // Type declarations
-            /!\s*[;.]/.test(code); // Non-null assertions
-
-        if (hasTSPatterns) {
-            try {
-                // Test if the code can be parsed as TypeScript
-                await prettier.format(code, {
-                    parser: 'typescript',
-                    filepath: 'test.ts',
-                });
-                // If parsing succeeds, use TypeScript parser
-                parser = 'typescript';
-            } catch {
-                // If parsing as TypeScript fails, stick with babel parser
-            }
-        }
     }
 
     // Override with specific settings for consistency

@@ -12,10 +12,12 @@ The tooltip content is based on the data values and keys of the series. If provi
 {% chartExampleRunner title="Default Tooltip" name="default-tooltip" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' },
-    { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made', yName: 'Hats Made' },
-]
+{
+    series: [
+        { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' },
+        { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made', yName: 'Hats Made' },
+    ],
+}
 ```
 
 In this example:
@@ -35,7 +37,6 @@ By default a shared tooltip will be used for most cartesian charts containing 3 
 {% chartExampleRunner title="Tooltip Mode" name="tooltip-mode" type="generated" /%}
 
 ```js format="snippet"
-// Chart options only
 tooltip: {
     mode: 'shared', // or 'single' or 'compact'
 }
@@ -196,24 +197,26 @@ To use a completely custom tooltip instead of modifying the contents of the defa
 {% chartExampleRunner title="Column Series with Tooltip Renderer" name="tooltip-renderer" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'bar',
-        tooltip: {
-            renderer: function (params) {
-                return (
-                    '<div class="my-tooltip" style="--color:' +
-                    params.fill +
-                    '">' +
-                    params.datum[params.xKey] +
-                    '&nbsp;&#10172;&nbsp;' +
-                    params.datum[params.yKey].toFixed(0) +
-                    '</div>'
-                );
+{
+    series: [
+        {
+            type: 'bar',
+            tooltip: {
+                renderer: function (params) {
+                    return (
+                        '<div class="my-tooltip" style="--color:' +
+                        params.fill +
+                        '">' +
+                        params.datum[params.xKey] +
+                        '&nbsp;&#10172;&nbsp;' +
+                        params.datum[params.yKey].toFixed(0) +
+                        '</div>'
+                    );
+                },
             },
         },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:

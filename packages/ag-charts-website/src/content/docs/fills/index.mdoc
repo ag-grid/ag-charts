@@ -29,14 +29,16 @@ The `fill` attribute is set at the series level.
 Solid fills use a CSS colour string. Gradient and Pattern fills require an object with type `gradient` or `pattern`.
 
 ```js format="snippet"
-series: [
-    {
-        // ...
-        fill: {
-            type: 'gradient',
+{
+    series: [
+        {
+            // ...
+            fill: {
+                type: 'gradient',
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ### Markers
@@ -44,16 +46,18 @@ series: [
 [Series Markers](./markers) support the same fill options. The `fill` attribute is contained in the `marker` property of the `series` options.
 
 ```js format="snippet"
-series: [
-    {
-        // ...
-        marker: {
-            fill: {
-                type: 'gradient',
+{
+    series: [
+        {
+            // ...
+            marker: {
+                fill: {
+                    type: 'gradient',
+                },
             },
         },
-    },
-]
+    ],
+}
 ```
 
 ## Gradients
@@ -69,17 +73,19 @@ The array should contain a minimum of two objects, with each object providing op
 
 ```js format="snippet"
 {
-    series: {
-        fill: {
-            type: 'gradient',
-            colorStops: [
-                { color: '#70C1FF', stop: 0.1 },
-                { color: '#FFD86F', stop: 0.3 },
-                { color: '#FF9A60', stop: 0.5 },
-                { color: '#D16BA5' }, //will continue to the end
-            ],
+    series: [
+        {
+            fill: {
+                type: 'gradient',
+                colorStops: [
+                    { color: '#70C1FF', stop: 0.1 },
+                    { color: '#FFD86F', stop: 0.3 },
+                    { color: '#FF9A60', stop: 0.5 },
+                    { color: '#D16BA5' }, //will continue to the end
+                ],
+            },
         },
-    },
+    ],
 }
 ```
 
@@ -101,12 +107,14 @@ Any of the [stock patterns](#reference-AgPatternColor-pattern) can be provided i
 
 ```js format="snippet"
 {
-    series: {
-        fill: {
-            type: 'pattern',
-            pattern: 'stars',
+    series: [
+        {
+            fill: {
+                type: 'pattern',
+                pattern: 'stars',
+            },
         },
-    },
+    ],
 }
 ```
 
@@ -130,12 +138,14 @@ SVG Path Data can be used to create custom patterns. The path can be a line or a
 
 ```js format="snippet"
 {
-    series: {
-        fill: {
-            type: 'pattern',
-            path: 'M0,6 Q4,1 8,6 T16,6', // svg path data string
+    series: [
+        {
+            fill: {
+                type: 'pattern',
+                path: 'M0,6 Q4,1 8,6 T16,6', // svg path data string
+            },
         },
-    },
+    ],
 }
 ```
 
@@ -158,12 +168,14 @@ Any image url or data:url can be provided in the `fill.url` property to fill sha
 
 ```js format="snippet"
 {
-    series: {
-        fill: {
-            type: 'image',
-            url: 'url',
+    series: [
+        {
+            fill: {
+                type: 'image',
+                url: 'url',
+            },
         },
-    },
+    ],
 }
 ```
 
@@ -188,13 +200,15 @@ Images can be tiled by using the `repeat` property.
 
 ```js format="snippet"
 {
-    series: {
-        fill: {
-            type: 'image',
-            url: 'url',
-            repeat: 'repeat-x',
+    series: [
+        {
+            fill: {
+                type: 'image',
+                url: 'url',
+                repeat: 'repeat-x',
+            },
         },
-    },
+    ],
 }
 ```
 

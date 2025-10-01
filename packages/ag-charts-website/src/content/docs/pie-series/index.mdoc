@@ -12,7 +12,9 @@ A Pie Series displays categorical data as proportional slices within a circle.
 To create a Pie Series, use the `pie` series type.
 
 ```js format="snippet"
-series: [{ type: 'pie', angleKey: 'amount', legendItemKey: 'asset' }]
+{
+    series: [{ type: 'pie', angleKey: 'amount', legendItemKey: 'asset' }],
+}
 ```
 
 In this configuration:
@@ -30,18 +32,20 @@ The Pie Series supports two types of label related to individual sectors.
 {% chartExampleRunner title="Pie Chart with Labels" name="pie-labels" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'pie',
-        angleKey: 'amount',
-        calloutLabelKey: 'asset',
-        sectorLabelKey: 'amount',
-        sectorLabel: {
-            color: 'white',
-            fontWeight: 'bold',
+{
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            calloutLabelKey: 'asset',
+            sectorLabelKey: 'amount',
+            sectorLabel: {
+                color: 'white',
+                fontWeight: 'bold',
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:
@@ -63,14 +67,16 @@ It is possible to visualise a second variable in the Pie Series by using the `ra
 {% chartExampleRunner title="Sectors with Different Radii" name="sector-radius" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'pie',
-        radiusKey: 'yield',
-        angleKey: 'amount',
-        legendItemKey: 'asset',
-    },
-]
+{
+    series: [
+        {
+            type: 'pie',
+            radiusKey: 'yield',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+        },
+    ],
+}
 ```
 
 ## API Reference

@@ -109,6 +109,16 @@ const snippetStrategy: WrapStrategy = {
         // These need to be wrapped in an object but we should strip trailing semicolons
         const propertyPattern = /^\s*[\w$]+\s*:\s*/;
         if (propertyPattern.test(trimmed)) {
+            // Check if it's an array property containing objects with braces (e.g., series: [{ ... }])
+            // This handles both single-line and multi-line arrays
+            const arrayWithObjectPattern = /^\s*[\w$]+\s*:\s*\[[\s\S]*\{[\s\S]*\}[\s\S]*\]\s*;?\s*$/;
+            if (arrayWithObjectPattern.test(trimmed)) {
+                // It's a property with array of objects - wrap it and preserve structure
+                const hadSemicolon = trimmed.endsWith(';');
+                const fixedCode = hadSemicolon ? code.slice(0, -1) : code;
+                return `// __PRESERVE_BRACES__:true\nconst __temp__ = {\n${fixedCode}\n};`;
+            }
+
             // It's a property assignment
             // Strip semicolons: both at end of line and before comments
             // Handle: padding: 4; //comment -> padding: 4, //comment
@@ -136,6 +146,29 @@ const snippetStrategy: WrapStrategy = {
                 let obj = match[1].trim();
                 obj = obj.replace(/[;,](\s*)$/, '$1');
                 return obj;
+            }
+        }
+
+        // Handle object properties with preserved braces (e.g., series: [{ ... }])
+        const preserveBracesMatch = formatted.match(/\/\/ __PRESERVE_BRACES__:true\n/);
+        if (preserveBracesMatch) {
+            formatted = formatted.replace(/\/\/ __PRESERVE_BRACES__:true\n/, '');
+
+            const prefixMatch = formatted.match(/^const __temp__ = {\n/);
+            if (prefixMatch) {
+                let body = formatted.slice(prefixMatch[0].length);
+                body = body.replace(/\r?\n};\s*$/, '');
+
+                const lines = body.split('\n');
+
+                const trimmedLines = trimEmptyEdgeLines(lines);
+                const dedentedLines = removeCommonIndent(trimmedLines);
+                let result = dedentedLines.join('\n');
+                // Don't strip trailing comma/semicolon for preserved braces - Prettier adds commas for object properties
+
+                // For preserved braces, wrap result back in braces with proper indentation
+                const indentedLines = result.split('\n').map((line) => (line.trim() ? `    ${line}` : line));
+                return `{\n${indentedLines.join('\n')}\n}`;
             }
         }
 

@@ -13,10 +13,12 @@ making it easier to gauge area-based trends.
 To create a Radar Area Series, use the `radar-area` series type.
 
 ```js format="snippet"
-series: [
-    { type: 'radar-area', angleKey: 'department', radiusKey: 'quality', radiusName: `Quality` },
-    { type: 'radar-area', angleKey: 'department', radiusKey: 'efficiency', radiusName: `Efficiency` },
-]
+{
+    series: [
+        { type: 'radar-area', angleKey: 'department', radiusKey: 'quality', radiusName: `Quality` },
+        { type: 'radar-area', angleKey: 'department', radiusKey: 'efficiency', radiusName: `Efficiency` },
+    ],
+}
 ```
 
 In this configuration:
@@ -39,10 +41,12 @@ For Polar Axes, there are two shape options:
 To switch to the `circle` shape, use the following `axes` configuration:
 
 ```js format="snippet"
-axes: [
-    { type: 'angle-category', shape: 'circle' },
-    { type: 'radius-number', shape: 'circle' },
-]
+{
+    axes: [
+        { type: 'angle-category', shape: 'circle' },
+        { type: 'radius-number', shape: 'circle' },
+    ],
+}
 ```
 
 ### Axis Label Orientation
@@ -58,15 +62,17 @@ To change Angle Axis Label orientation, use the `label.orientation` property wit
 The following configuration changes the orientation of the Axis Labels to `parallel` :
 
 ```js format="snippet"
-axes: [
-    {
-        type: 'angle-category',
-        label: {
-            orientation: 'parallel',
+{
+    axes: [
+        {
+            type: 'angle-category',
+            label: {
+                orientation: 'parallel',
+            },
         },
-    },
-    { type: 'radius-number' },
-]
+        { type: 'radius-number' },
+    ],
+}
 ```
 
 ### Radius Axis Position
@@ -76,16 +82,18 @@ axes: [
 Customise the Radius Axis Line position via `positionAngle` and Axis Label rotation using `label.rotation`:
 
 ```js format="snippet"
-axes: [
-    { type: 'angle-category' },
-    {
-        type: 'radius-number',
-        positionAngle: 72,
-        label: {
-            rotation: -72,
+{
+    axes: [
+        { type: 'angle-category' },
+        {
+            type: 'radius-number',
+            positionAngle: 72,
+            label: {
+                rotation: -72,
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 ## API Reference

@@ -12,27 +12,29 @@ making it easier to highlight thresholds, distinguish data ranges, or separate a
 The `segmentation` option takes a `key` to determine which axis to use, and a `segments` array for the styles.
 
 ```ts format="snippet"
-series: [
-    {
-        type: 'area',
-        yKey: 'variance',
-        xKey: 'date',
-        strokeWidth: 2,
-        fillOpacity: 0.3,
-        fill: 'green', //used for the series
-        stroke: 'green', //used for the series
-        segmentation: {
-            key: 'y', //segment along the y-axis
-            segments: [
-                {
-                    stop: 0, //domain minimum until 0
-                    fill: 'red', //used for this segment
-                    stroke: 'red', //used for this segment
-                },
-            ],
+{
+    series: [
+        {
+            type: 'area',
+            yKey: 'variance',
+            xKey: 'date',
+            strokeWidth: 2,
+            fillOpacity: 0.3,
+            fill: 'green', //used for the series
+            stroke: 'green', //used for the series
+            segmentation: {
+                key: 'y', //segment along the y-axis
+                segments: [
+                    {
+                        stop: 0, //domain minimum until 0
+                        fill: 'red', //used for this segment
+                        stroke: 'red', //used for this segment
+                    },
+                ],
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 In this configuration:
@@ -48,22 +50,24 @@ Set `segmentation.key: 'x'` to segment along the `xKey` axis, or `segmentation.k
 {% chartExampleRunner title="Segmentation" name="segmentation-x-direction" type="generated" /%}
 
 ```ts format="snippet"
-series: [
-    {
-        type: 'line',
-        xKey: 'date',
-        yKey: 'value',
-        segmentation: {
-            key: 'x',
-            segments: [
-                {
-                    start: new Date('2025-01-01'),
-                    lineDash: [5, 10],
-                },
-            ],
+{
+    series: [
+        {
+            type: 'line',
+            xKey: 'date',
+            yKey: 'value',
+            segmentation: {
+                key: 'x',
+                segments: [
+                    {
+                        start: new Date('2025-01-01'),
+                        lineDash: [5, 10],
+                    },
+                ],
+            },
         },
-    },
-]
+    ],
+}
 ```
 
 In the example above:

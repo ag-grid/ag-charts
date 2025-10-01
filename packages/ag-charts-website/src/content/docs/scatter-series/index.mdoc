@@ -11,16 +11,18 @@ A Scatter Series identifies the correlation between values across two categories
 To create a Scatter Series use the `'scatter'` series type.
 
 ```js format="snippet"
-series: [
-    {
-        type: 'scatter',
-        title: 'Male',
-        xKey: 'height',
-        xName: 'Height',
-        yKey: 'weight',
-        yName: 'Weight',
-    },
-]
+{
+    series: [
+        {
+            type: 'scatter',
+            title: 'Male',
+            xKey: 'height',
+            xName: 'Height',
+            yKey: 'weight',
+            yName: 'Weight',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -37,11 +39,15 @@ In this configuration:
 It is possible to customise the fill, stroke and shape of the markers used in the Scatter Series.
 
 ```js format="snippet"
-series: {
-    //...
-    shape: 'square',
-    fill: '#e36f6ab5',
-    stroke: '#9f4e4a',
+{
+    series: [
+        {
+            //...
+            shape: 'square',
+            fill: '#e36f6ab5',
+            stroke: '#9f4e4a',
+        },
+    ],
 }
 ```
 
