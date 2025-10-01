@@ -23,7 +23,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
                 itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
                     switch (params.highlightState) {
                         case 'highlighted-item':
-                            return { size: 35, shape: 'star' /* must have marker.fill 'yellow' */};
+                            return { size: 35, shape: 'star' /* must have marker.fill 'yellow' */ };
                         case 'unhighlighted-item':
                             return { size: 20, fill: 'teal' /* must override 'blanchedalmonde' */, fillOpacity: 0.2 };
                         default:
@@ -57,7 +57,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
                 itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
                     switch (params.highlightState) {
                         case 'highlighted-item':
-                            return { size: 35, /* must have marker.fill 'fuchsia' */ };
+                            return { size: 35 /* must have marker.fill 'fuchsia' */ };
                         case 'unhighlighted-item':
                             return { fill: 'darkslateblue' /* must override 'cyan'*/, size: 20 };
                         default:
