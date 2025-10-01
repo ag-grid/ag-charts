@@ -1140,6 +1140,13 @@ export class DataModel<
 
         this.updateDataSources(processedData, sources);
 
+        // Perform selective re-extraction for columns affected by non-incremental group processors
+        // Must happen AFTER syncDataRef and updateDataSources so we extract from the updated data
+        const columnsToReextract = this.getColumnsRequiringReextraction();
+        if (columnsToReextract && columnsToReextract.length > 0) {
+            this.applySelectiveReextraction(processedData, processedData.dataSources, columnsToReextract);
+        }
+
         if (wasGrouped && processedData.type === 'grouped') {
             const groupedUpdateSucceeded = this.updateGroupedState(
                 processedData as GroupedData<any>,
@@ -1313,10 +1320,8 @@ export class DataModel<
             if (this.aggregates.length > 0) {
                 this.aggregateGroupedData(processedData);
             }
-        } else {
-            if (this.aggregates.length > 0) {
-                this.aggregateUngroupedData(processedData);
-            }
+        } else if (this.aggregates.length > 0) {
+            this.aggregateUngroupedData(processedData);
         }
 
         if (this.propertyProcessors.length > 0) {
@@ -1413,14 +1418,18 @@ export class DataModel<
             return false;
         }
 
-        // Check group processors for capability flags
+        // Check group processors for capability flags - selective re-extraction handles these
         const groupProcessorsOk = this.groupProcessors.every((g) => g.supportsIncremental !== false);
         if (!groupProcessorsOk) {
+            // Group processors with supportsIncremental: false can be handled via selective
+            // re-extraction, so we don't return false here. The getColumnsRequiringReextraction()
+            // method will identify which columns need to be re-extracted.
             const unsupported = this.groupProcessors
                 .filter((g) => g.supportsIncremental === false)
                 .map((g) => g.id ?? 'unknown');
-            Logger.warnOnce(`Incremental updates disabled due to group processors: ${unsupported.join(', ')}`);
-            return false;
+            Logger.warnOnce(
+                `Using selective re-extraction for columns affected by group processors: ${unsupported.join(', ')}`
+            );
         }
 
         // Check processors for capability flags
@@ -1434,6 +1443,28 @@ export class DataModel<
         }
 
         return true;
+    }
+
+    /**
+     * Identifies columns that need selective re-extraction due to non-incremental group processors.
+     * Returns array of column indices that should be re-extracted, or undefined if no re-extraction needed.
+     */
+    private getColumnsRequiringReextraction(): number[] | undefined {
+        const nonIncrementalProcessors = this.groupProcessors.filter((g) => g.supportsIncremental === false);
+
+        if (nonIncrementalProcessors.length === 0) {
+            return undefined; // All processors support incremental
+        }
+
+        const affectedColumnIndices = new Set<number>();
+        for (const processor of nonIncrementalProcessors) {
+            const columnIndices = this.valueGroupIdxLookup(processor);
+            for (const idx of columnIndices) {
+                affectedColumnIndices.add(idx);
+            }
+        }
+
+        return Array.from(affectedColumnIndices).sort((a, b) => a - b);
     }
 
     private warnDataMissingProperties(sources: Map<string, unknown[]>) {
@@ -1725,6 +1756,99 @@ export class DataModel<
         }
 
         return { columns, columnScopes: allColumnScopes, partialValidDataCount, maxDataLength };
+    }
+
+    /**
+     * Selectively re-extracts specific columns from source data.
+     * Similar to extractValues but only processes columns at the specified indices.
+     * Used for hybrid incremental updates where most columns are updated incrementally
+     * but certain columns (affected by non-incremental group processors) need full re-extraction.
+     */
+    private selectiveExtractValues(
+        invalidData: Map<ScopeId, boolean[]>,
+        valueDefs: InternalDatumPropertyDefinition<K>[],
+        columnIndicesToReextract: number[],
+        sources: Map<string, unknown[]>,
+        scopeInvalidKeys: Map<ScopeId, boolean[]>,
+        processValue: (
+            def: InternalDatumPropertyDefinition<K>,
+            datum: any,
+            idx: number,
+            scopes: string | string[]
+        ) => ProcessedValue
+    ): Map<number, unknown[]> {
+        const reextractedColumns = new Map<number, unknown[]>();
+
+        for (const columnIndex of columnIndicesToReextract) {
+            const def = valueDefs[columnIndex];
+            if (!def) continue;
+
+            const { invalidValue } = def;
+
+            const columnScope = first(def.scopes);
+            const rawColumnSource = columnScope != null ? sources.get(columnScope) : undefined;
+            const columnSource = Array.isArray(rawColumnSource) ? rawColumnSource : [];
+            const column = new Array<unknown>();
+            const invalidKeys = scopeInvalidKeys.get(columnScope);
+
+            for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
+                if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') continue;
+
+                const valueDatum = columnSource[datumIndex];
+                const invalidKey = invalidKeys != null ? invalidKeys[datumIndex] : false;
+
+                const result = processValue(def, valueDatum, datumIndex, def.scopes);
+                let value = result.value;
+
+                if (invalidKey || !result.valid) {
+                    this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData);
+                }
+
+                if (invalidKey) {
+                    value = invalidValue;
+                } else if (!result.valid) {
+                    value = invalidValue;
+                }
+
+                column[datumIndex] = value;
+            }
+
+            reextractedColumns.set(columnIndex, column);
+        }
+
+        return reextractedColumns;
+    }
+
+    /**
+     * Applies selective re-extraction by replacing specified columns in processedData.
+     * This is used during incremental updates when certain columns are affected by
+     * non-incremental group processors (like accumulation) that need fresh raw values.
+     */
+    private applySelectiveReextraction(
+        processedData: ProcessedData<D>,
+        sources: Map<string, unknown[]>,
+        columnIndicesToReextract: number[]
+    ): void {
+        // Re-extract the specified columns with fresh raw values
+        const reextractedColumns = this.selectiveExtractValues(
+            processedData.invalidData ?? new Map(),
+            this.values,
+            columnIndicesToReextract,
+            sources,
+            processedData.invalidKeys ?? new Map(),
+            this.processValue.bind(this)
+        );
+
+        // Replace values in existing column arrays (in-place) rather than replacing the arrays themselves
+        // This preserves array object identity which may be important for subsequent operations
+        for (const [columnIndex, newColumnValues] of reextractedColumns) {
+            const existingColumn = processedData.columns[columnIndex];
+            if (!existingColumn) continue;
+
+            // Clear and repopulate the existing array
+            existingColumn.length = 0;
+            existingColumn.push(...newColumnValues);
+        }
     }
 
     private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {

@@ -508,14 +508,16 @@ export function accumulateGroup(
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
         adjust,
-        // Accumulation processors cannot support incremental updates because they mutate
-        // columns in-place and are not idempotent. When columns are incrementally updated,
-        // they already contain accumulated values from the previous frame. Re-running the
-        // accumulation processor would accumulate on top of those, causing exponential growth.
-        // To support incremental updates, we would need to either:
-        // 1. Store raw values separately and copy them before each accumulation pass
-        // 2. Create a smarter processor that can detect and handle already-accumulated values
-        // For now, we disable incremental updates and use full reprocessing for correctness.
+        // Accumulation processors mutate columns in-place and are not idempotent.
+        // When columns are incrementally updated, they already contain accumulated values
+        // from the previous frame. Re-running the accumulation processor would accumulate
+        // on top of those, causing exponential growth.
+        //
+        // This flag triggers selective re-extraction in DataModel.applyTransactions():
+        // - Most columns are updated incrementally (O(k) for k changes)
+        // - Columns affected by this processor are selectively re-extracted (O(n))
+        // - This provides a performance improvement over full reprocessing (O(n × m))
+        //   while maintaining correctness for accumulation operations
         supportsIncremental: false,
     };
 }
