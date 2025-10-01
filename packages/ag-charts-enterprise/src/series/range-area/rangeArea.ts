@@ -472,6 +472,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const segments = this.contextNodeData?.segments;
 
+        const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightState(highlightDatum, false);
+        const highlightStyle = this.getHighlightStyle();
+
         const {
             strokeWidth,
             stroke: strokeColor,
@@ -481,7 +485,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fill: seriesFill,
             fillOpacity,
             opacity,
-        } = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
+        } = mergeDefaults(highlightStyle, this.getStyle(false, highlightState));
 
         stroke.setProperties({
             segments,
