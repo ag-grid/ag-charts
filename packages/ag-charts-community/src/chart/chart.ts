@@ -690,7 +690,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             case ChartUpdateType.UPDATE_DATA:
                 if (this.checkUpdateShortcut(ChartUpdateType.UPDATE_DATA)) break;
 
-                await this.updateData();
+                this.updateData();
                 updateSplits('⬇️');
             // fallthrough
 

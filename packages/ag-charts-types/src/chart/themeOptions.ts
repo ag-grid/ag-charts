@@ -27,7 +27,6 @@ import type { AgRadarLineSeriesStyle } from '../series/polar/radarLineOptions';
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
-import type { SeriesType } from '../series/seriesTypes';
 import type { AgChordSeriesThemeableOptions } from '../series/standalone/chordOptions';
 import type { AgFlowProportionSeriesOptions } from '../series/standalone/flowProportionOptions';
 import type { AgPyramidSeriesThemeableOptions } from '../series/standalone/pyramidOptions';
@@ -398,7 +397,7 @@ type ThemesMap<TDatum = DatumDefault, TContext = ContextDefault> = AgChartThemeO
 };
 
 export type ExtensibleTheme<
-    SType extends SeriesType,
+    SType extends keyof ThemesMap<any, any>,
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > = WithThemeParams<NonNullable<ThemesMap<TDatum, TContext>[SType]>>;
