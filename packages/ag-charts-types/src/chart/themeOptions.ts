@@ -1,5 +1,4 @@
 import type { AgInitialStateThemeableOptions } from '../api/initialStateOptions';
-import type { AgLinearGaugeOptions, AgRadialGaugeOptions } from '../chartBuilderOptions';
 import type { AgLinearGaugeTarget, AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugeTarget, AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
 import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
@@ -48,7 +47,6 @@ import type {
 } from './cartesianOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
-import type { WithThemeParams } from './operationOptions';
 import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from './polarOptions';
 import type { AgChartThemeParams } from './themeParamsOptions';
 import type { ContextDefault, CssColor, DatumDefault } from './types';
@@ -390,17 +388,6 @@ export interface AgPresetOverrides<TDatum = DatumDefault, TContext = ContextDefa
 export interface AgThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgChartThemeOverrides<TDatum, TContext>,
         AgPresetOverrides<TDatum, TContext> {}
-
-type ThemesMap<TDatum = DatumDefault, TContext = ContextDefault> = AgChartThemeOverrides<TDatum, TContext> & {
-    'linear-gauge'?: { series: AgLinearGaugeOptions<TDatum, TContext> };
-    'radial-gauge'?: { series: AgRadialGaugeOptions<TDatum, TContext> };
-};
-
-export type ExtensibleTheme<
-    SType extends keyof ThemesMap<any, any>,
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = WithThemeParams<NonNullable<ThemesMap<TDatum, TContext>[SType]>>;
 
 // Use Typescript function types to verify that all series types are present in the manually
 // maintained AgBaseChartThemeOverrides type.
