@@ -11,19 +11,21 @@ A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a d
 
 To create a Box Plot Series, use the `box-plot` series type.
 
-```js
-series: [
-    {
-        type: 'box-plot',
-        yName: 'Employee Salaries',
-        xKey: 'department',
-        minKey: 'min',
-        q1Key: 'q1',
-        medianKey: 'median',
-        q3Key: 'q3',
-        maxKey: 'max',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'box-plot',
+            yName: 'Employee Salaries',
+            xKey: 'department',
+            minKey: 'min',
+            q1Key: 'q1',
+            medianKey: 'median',
+            q3Key: 'q3',
+            maxKey: 'max',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -44,15 +46,17 @@ Note the default orientation of a Box Plot is vertical.
 
 To show a Horizontal Box Plot, set `direction: 'horizontal'`.
 
-```js
-series: [
-    {
-        type: 'box-plot',
-        direction: 'horizontal',
-        xKey: 'department',
-        // ...
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'box-plot',
+            direction: 'horizontal',
+            xKey: 'department',
+            // ...
+        },
+    ],
+}
 ```
 
 Note that the `xKey` specifies the category values, regardless of series orientation.
@@ -64,21 +68,23 @@ Note that the `xKey` specifies the category values, regardless of series orienta
 Box Plot whiskers and caps typically inherit series styles but can be individually customised. Here, the `whisker` and
 `cap` properties are used to customise whisker line styles and cap length.
 
-```js
-series: [
-    {
-        type: 'box-plot',
-        // Other series options...
-        whisker: {
-            stroke: '#098a89',
-            strokeWidth: 3,
-            lineDash: [2, 1],
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'box-plot',
+            // Other series options...
+            whisker: {
+                stroke: '#098a89',
+                strokeWidth: 3,
+                lineDash: [2, 1],
+            },
+            cap: {
+                lengthRatio: 0.8, // 80% of bar's width (default is 0.5)
+            },
         },
-        cap: {
-            lengthRatio: 0.8, // 80% of bar's width (default is 0.5)
-        },
-    },
-];
+    ],
+}
 ```
 
 ## Box Plot With Outliers
@@ -88,19 +94,21 @@ series: [
 Box plots are commonly paired with outliers to offer a more comprehensive view of the data. This is easily achieved by
 combining a Box Plot Series with a [Scatter Series](./scatter-series/), as shown below:
 
-```js
-series: [
-    {
-        data: boxPlotData,
-        type: 'box-plot',
-        // ...
-    },
-    {
-        data: outliersData,
-        type: 'scatter',
-        // ...
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            data: boxPlotData,
+            type: 'box-plot',
+            // ...
+        },
+        {
+            data: outliersData,
+            type: 'scatter',
+            // ...
+        },
+    ],
+}
 ```
 
 ## API Reference

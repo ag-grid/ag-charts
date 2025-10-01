@@ -21,3 +21,5 @@ external/ag-website-shared/src/components/documentation-archive/DocumentationArc
 
 # With script tag
 packages/ag-charts-website/src/components/example-runner/components/FrameworkTemplate.astro
+
+.prettierrc

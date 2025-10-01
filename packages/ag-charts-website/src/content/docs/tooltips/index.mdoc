@@ -11,11 +11,13 @@ The tooltip content is based on the data values and keys of the series. If provi
 
 {% chartExampleRunner title="Default Tooltip" name="default-tooltip" type="generated" /%}
 
-```js
-series: [
-    { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' },
-    { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made', yName: 'Hats Made' },
-];
+```js format="snippet"
+{
+    series: [
+        { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' },
+        { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made', yName: 'Hats Made' },
+    ],
+}
 ```
 
 In this example:
@@ -34,9 +36,11 @@ By default a shared tooltip will be used for most cartesian charts containing 3 
 
 {% chartExampleRunner title="Tooltip Mode" name="tooltip-mode" type="generated" /%}
 
-```js
-tooltip: {
-    mode: 'shared', // or 'single' or 'compact'
+```js format="snippet"
+{
+    tooltip: {
+        mode: 'shared', // or 'single' or 'compact'
+    },
 }
 ```
 
@@ -52,22 +56,26 @@ The tooltip is anchored to the node. Use `tooltip.position.anchorTo`, and option
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
-```js
-tooltip: {
-    position: {
-        anchorTo: 'node',
-        placement: 'top',
+```js format="snippet"
+{
+    tooltip: {
+        position: {
+            anchorTo: 'node',
+            placement: 'top',
+        },
     },
 }
 ```
 
 Fallback positions can be provided in an array of `placement` values. The tooltip will use the first position that has sufficient space.
 
-```js
-tooltip: {
-    position: {
-        anchorTo: 'node',
-        placement: ['left', 'right'],
+```js format="snippet"
+{
+    tooltip: {
+        position: {
+            anchorTo: 'node',
+            placement: ['left', 'right'],
+        },
     },
 }
 ```
@@ -93,9 +101,11 @@ The default tooltip displays an arrow below it to indicate its exact point of or
 
 Use the `tooltip.showArrow` option to change this behaviour.
 
-```js
-tooltip: {
-    showArrow: false,
+```js format="snippet"
+{
+    tooltip: {
+        showArrow: false,
+    },
 }
 ```
 
@@ -107,9 +117,11 @@ Pagination allows cycling through overlapping datapoints by hovering and then cl
 
 Pagination will only become available when two or more data points are under the cursor.
 
-```js
-tooltip: {
-    pagination: true,
+```js format="snippet"
+{
+    tooltip: {
+        pagination: true,
+    },
 }
 ```
 
@@ -163,19 +175,21 @@ The tooltip's content can be customised within the default template by using a `
 
 {% chartExampleRunner title="Modifying Tooltip Content" name="tooltip-content-title" type="generated" /%}
 
-```js
-tooltip: {
-    renderer: function ({ datum, xKey, yKey }) {
-        return {
-            heading: 'Clothing Production',
-            title: yName.toUpperCase(),
-            data: [
-                {
-                    label: datum[xKey],
-                    value: datum[yKey].toFixed(1),
-                },
-            ],
-        };
+```js format="snippet"
+{
+    tooltip: {
+        renderer: function ({ datum, xKey, yKey, yName }) {
+            return {
+                heading: 'Clothing Production',
+                title: yName.toUpperCase(),
+                data: [
+                    {
+                        label: datum[xKey],
+                        value: datum[yKey].toFixed(1),
+                    },
+                ],
+            };
+        },
     },
 }
 ```
@@ -193,25 +207,27 @@ To use a completely custom tooltip instead of modifying the contents of the defa
 
 {% chartExampleRunner title="Column Series with Tooltip Renderer" name="tooltip-renderer" type="generated" /%}
 
-```js
-series: [
-    {
-        type: 'bar',
-        tooltip: {
-            renderer: function (params) {
-                return (
-                    '<div class="my-tooltip" style="--color:' +
-                    params.fill +
-                    '">' +
-                    params.datum[params.xKey] +
-                    '&nbsp;&#10172;&nbsp;' +
-                    params.datum[params.yKey].toFixed(0) +
-                    '</div>'
-                );
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            tooltip: {
+                renderer: function (params) {
+                    return (
+                        '<div class="my-tooltip" style="--color:' +
+                        params.fill +
+                        '">' +
+                        params.datum[params.xKey] +
+                        '&nbsp;&#10172;&nbsp;' +
+                        params.datum[params.yKey].toFixed(0) +
+                        '</div>'
+                    );
+                },
             },
         },
-    },
-];
+    ],
+}
 ```
 
 In this configuration:

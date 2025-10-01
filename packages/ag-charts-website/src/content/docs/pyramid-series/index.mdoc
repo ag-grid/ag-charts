@@ -11,14 +11,16 @@ A Pyramid Series is a triangular shaped visualization that uses the height of ea
 
 To create a Pyramid Series, use the `pyramid` series type.
 
-```js
-series: [
-    {
-        type: 'pyramid',
-        stageKey: 'group',
-        valueKey: 'value',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'pyramid',
+            stageKey: 'group',
+            valueKey: 'value',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -32,8 +34,10 @@ In this configuration:
 
 To create a horizontal Pyramid Series, set the `direction` to `horizontal`.
 
-```js
-direction: 'horizontal';
+```js format="snippet"
+{
+    direction: 'horizontal',
+}
 ```
 
 ## Reverse Pyramid
@@ -42,8 +46,10 @@ direction: 'horizontal';
 
 To reverse a Pyramid Series, set `reverse` to `true`.
 
-```js
-reverse: true;
+```js format="snippet"
+{
+    reverse: true,
+}
 ```
 
 ## Customisation
@@ -54,8 +60,10 @@ reverse: true;
 
 The colours in a Pyramid Series can be customised with the `fills` property.
 
-```js
-fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'];
+```js format="snippet"
+{
+    fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
+}
 ```
 
 ### Shape
@@ -64,8 +72,10 @@ fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'];
 
 The shape of the triangle can be set using the `aspectRatio` property.
 
-```js
-aspectRatio: 3 / 2;
+```js format="snippet"
+{
+    aspectRatio: 3 / 2,
+}
 ```
 
 In this configuration:

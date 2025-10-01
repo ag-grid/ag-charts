@@ -21,9 +21,11 @@ In this example:
 
 Collision avoidance is enabled by default, to disable set `label.avoidCollisions` to false.
 
-```js
-label: {
-    avoidCollisions: false,
+```js format="snippet"
+{
+    label: {
+        avoidCollisions: false,
+    },
 }
 ```
 
@@ -38,9 +40,11 @@ Wrapping behaviour is set with the `label.wrapping` property:
 -   `'hyphenate'` - Similar to `'always'`, but inserts a hyphen (`-`) when wrapping in the middle of a word.
 -   `'never'` - Disables wrapping. Labels will remain on a single line, with the next avoidance strategy being used.
 
-```js
-label: {
-    wrapping: 'hyphenate',
+```js format="snippet"
+{
+    label: {
+        wrapping: 'hyphenate',
+    },
 }
 ```
 
@@ -78,9 +82,11 @@ Label skipping is performed automatically when there is a high likelihood of col
 
 A collision is defined as labels coming within 10 pixels of each other. This minimum gap allowed between the axis labels before skipping can be configured using the `label.minSpacing` property.
 
-```js
-label: {
-    minSpacing: 20,
+```js format="snippet"
+{
+    label: {
+        minSpacing: 20,
+    },
 }
 ```
 
@@ -103,9 +109,13 @@ The `label.formatter` callback allows maximum flexibility for controlling what a
 
 {% chartExampleRunner title="Axis Label Formatter" name="axis-label-formatter" type="generated" /%}
 
-```js
-label: {
-    formatter: (params) => params.value * 100 + '%',
+```js format="snippet"
+{
+    label: {
+        formatter: function (params) {
+            return params.value * 100 + '%';
+        },
+    },
 }
 ```
 
@@ -130,15 +140,19 @@ also be used.
 
 {% chartExampleRunner title="Label Format" name="axis-label-format" type="generated" /%}
 
-```js
-label: {
-    format: '%b %Y',
+```js format="snippet"
+{
+    label: {
+        format: '%b %Y',
+    },
 }
 ```
 
-```js
-label: {
-    format: '$#{0>6.2f}',
+```js format="snippet"
+{
+    label: {
+        format: '$#{0>6.2f}',
+    },
 }
 ```
 

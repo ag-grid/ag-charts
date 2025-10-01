@@ -134,7 +134,12 @@ async function main() {
     if (errors.length > 0) {
         console.error(`\nErrors encountered in ${errors.length} file(s):`);
         for (const { file, error } of errors) {
-            console.error(`  ${file}: ${error.message}`);
+            // If error message already contains file path with line number, use it directly
+            if (error.message.includes(file)) {
+                console.error(`  ${error.message}`);
+            } else {
+                console.error(`  ${file}: ${error.message}`);
+            }
         }
     }
 

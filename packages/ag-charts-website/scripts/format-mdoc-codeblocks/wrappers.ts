@@ -1,471 +1,321 @@
+/**
+ * Format strategies for formatting partial code snippets.
+ * Each strategy wraps code to make it valid JS/TS for Prettier, then unwraps after formatting.
+ *
+ * Usage: Add format="strategyName" metadata to code blocks that need wrapping.
+ * Example: ```js format="snippet"
+ */
+
 export interface WrapStrategy {
     name: string;
     wrap: (code: string, lang: string) => string;
     unwrap: (formatted: string) => string;
-    canHandle: (code: string, lang: string) => boolean;
 }
 
-/**
- * Strategy for wrapping function body code
- */
-const functionWrapStrategy: WrapStrategy = {
-    name: 'function',
-    wrap: (code: string, _lang: string) => `function __temp__() {\n${code}\n}`,
-    unwrap: (formatted: string) => {
-        const lines = formatted.split('\n');
-        if (lines.length >= 3) {
-            // Remove first and last lines (function declaration and closing brace)
-            // Also remove the 4-space indentation added by the function body
-            return lines
-                .slice(1, -1)
-                .map((line) => line.replace(/^\s{4}/, ''))
-                .join('\n');
+function removeCommonIndent(lines: string[]): string[] {
+    const nonEmptyIndents = lines.filter((line) => line.trim() !== '').map((line) => line.match(/^[\t ]*/)?.[0] ?? '');
+
+    if (nonEmptyIndents.length === 0) {
+        return lines;
+    }
+
+    let commonPrefix = nonEmptyIndents[0];
+    for (const indent of nonEmptyIndents.slice(1)) {
+        while (!indent.startsWith(commonPrefix) && commonPrefix.length > 0) {
+            commonPrefix = commonPrefix.slice(0, -1);
         }
-        return formatted;
-    },
-    canHandle: (code: string, _lang: string) => {
-        const trimmed = code.trim();
-        if (/^(const|let|var|class|function|import|export)\b/.test(trimmed)) {
-            return false;
-        }
-        return (
-            trimmed.startsWith('return') ||
-            trimmed.startsWith('if') ||
-            trimmed.startsWith('for') ||
-            trimmed.startsWith('while') ||
-            trimmed.includes('=>') ||
-            trimmed.includes('switch') ||
-            trimmed.includes('try') ||
-            trimmed.includes('throw')
-        );
-    },
-};
-
-/**
- * Strategy for wrapping object properties
- */
-const objectWrapStrategy: WrapStrategy = {
-    name: 'object',
-    wrap: (code: string, _lang: string) => {
-        // Always wrap as an object property - this is the most reliable approach
-        // Use replace with regex for better performance on large strings
-        const indentedCode = code.replace(/^/gm, '    ');
-        return `const __temp__ = {\n    // __ORIGINAL_START__\n    ${indentedCode}\n    // __ORIGINAL_END__\n};`;
-    },
-    unwrap: (formatted: string) => {
-        // Remove the wrapper comments and extract the original code
-        const startMarker = '// __ORIGINAL_START__';
-        const endMarker = '// __ORIGINAL_END__';
-
-        const startIndex = formatted.indexOf(startMarker);
-        const endIndex = formatted.indexOf(endMarker);
-
-        if (startIndex !== -1 && endIndex !== -1) {
-            // Extract content between markers
-            const afterStart = formatted.substring(startIndex + startMarker.length);
-            const contentEnd = afterStart.indexOf(endMarker);
-            if (contentEnd !== -1) {
-                let content = afterStart.substring(0, contentEnd);
-
-                // Remove the indentation that was added
-                const lines = content.split('\n');
-                // Filter out empty lines at start and end
-                const nonEmptyLines = lines.filter((line, idx) => {
-                    // Keep all non-empty lines and lines in the middle
-                    return line.trim() !== '' || (idx > 0 && idx < lines.length - 1);
-                });
-                content = nonEmptyLines
-                    .map((line) => line.replace(/^\s{4}/, ''))
-                    .join('\n')
-                    .trim();
-
-                // Prettier adds a comma after the object property when it's wrapped
-                // We need to remove it if it's there
-                if (content.endsWith(',')) {
-                    content = content.slice(0, -1).trimEnd();
-                }
-
-                return content;
-            }
-        }
-
-        // Fallback to old unwrap logic if markers not found
-        const lines = formatted.split('\n');
-        if (lines.length >= 3 && formatted.startsWith('const __temp__')) {
-            const content = lines
-                .slice(1, -1)
-                .map((line) => line.replace(/^\s{4}/, ''))
-                .join('\n');
-            return content;
-        }
-        return formatted;
-    },
-    canHandle: (code: string, _lang: string) => {
-        const trimmed = code.trim();
-        if (/(^|\n)\s*(import|export)\b/.test(code.trimStart())) {
-            return false;
-        }
-        if (/^(const|let|var|class|function)\b/.test(trimmed)) {
-            return false;
-        }
-        return (
-            // Property: value pattern
-            /^[a-zA-Z_$][a-zA-Z0-9_$]*\s*:/.test(trimmed) ||
-            // String key
-            /^["'][^"']+["']\s*:/.test(trimmed) ||
-            // Computed property
-            /^\[.*\]\s*:/.test(trimmed) ||
-            // Spread operator
-            trimmed.includes('...') ||
-            // Getter/setter
-            /^get\s+\w+/.test(trimmed) ||
-            /^set\s+\w+/.test(trimmed) ||
-            // Method shorthand
-            /^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/.test(trimmed) ||
-            // Async method
-            /^async\s+[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/.test(trimmed)
-        );
-    },
-};
-
-/**
- * Strategy for wrapping array elements
- */
-const arrayWrapStrategy: WrapStrategy = {
-    name: 'array',
-    wrap: (code: string, _lang: string) => `const __temp__ = [\n${code}\n];`,
-    unwrap: (formatted: string) => {
-        const lines = formatted.split('\n');
-        if (lines.length >= 3) {
-            // Remove first and last lines
-            // Remove the 4-space indentation
-            const content = lines
-                .slice(1, -1)
-                .map((line) => line.replace(/^\s{4}/, ''))
-                .join('\n');
-            return content;
-        }
-        return formatted;
-    },
-    canHandle: (code: string, _lang: string) => {
-        const trimmed = code.trim();
-        // Only handle explicit array literals or object literals that look like array entries
-        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-            return true;
-        }
-        if (trimmed.startsWith('{') && trimmed.endsWith('},')) {
-            return true;
-        }
-        return false;
-    },
-};
-
-// Note: We previously had a partialArrayElementStrategy here, but it was removed
-// because the pattern { ... }, ]; is intentionally malformed documentation shorthand
-// to indicate "this object is the last element of an array".
-// We should not try to format these as they are pseudo-code, not valid JavaScript.
-
-/**
- * Strategy for wrapping expressions
- */
-const expressionWrapStrategy: WrapStrategy = {
-    name: 'expression',
-    wrap: (code: string, _lang: string) => `(\n${code}\n);`,
-    unwrap: (formatted: string) => {
-        const lines = formatted.split('\n');
-        const lastLine = lines[lines.length - 1]?.trim();
-        if (lines.length >= 2 && lines[0].startsWith('(') && lastLine?.endsWith(');')) {
-            const bodyLines = lines.slice(1, -1);
-            const indent = bodyLines.reduce<number>((acc, line) => {
-                if (line.trim() === '') {
-                    return acc;
-                }
-                const match = line.match(/^(\s*)/);
-                const leading = match ? match[1].length : 0;
-                if (acc === -1) {
-                    return leading;
-                }
-                return Math.min(acc, leading);
-            }, -1);
-            const safeIndent = indent > 0 ? indent : 0;
-            const dedented = bodyLines
-                .map((line) => {
-                    if (safeIndent === 0 || line.trim() === '') {
-                        return line.trim() === '' ? '' : line;
-                    }
-                    return line.startsWith(' '.repeat(safeIndent)) ? line.slice(safeIndent) : line.replace(/^\s+/, '');
-                })
-                .join('\n');
-            return dedented;
-        }
-        // Single line case
-        return formatted.replace(/^\(/, '').replace(/\);?$/, '');
-    },
-    canHandle: (code: string, _lang: string) => {
-        const trimmed = code.trim();
-        const hasModuleSyntax = /(^|\n)\s*(import|export)\b/.test(code.trimStart());
-        if (hasModuleSyntax) {
-            return false;
-        }
-        // Allow plain object literals that represent option blocks
-        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-            const containsPlaceholder = trimmed.includes('...');
-            const looksLikeTypeAnnotation = /:\s*[^,{}()]+;/.test(trimmed);
-            if (!containsPlaceholder && !looksLikeTypeAnnotation) {
-                return true;
-            }
-            return false;
-        }
-        if (/^(const|let|var|class|function)\b/.test(trimmed)) {
-            return false;
-        }
-        return (
-            // Method chains
-            trimmed.includes('.') ||
-            // Function calls
-            (trimmed.includes('(') && trimmed.includes(')')) ||
-            // Array/object access
-            trimmed.includes('[') ||
-            // Template literals
-            trimmed.includes('`')
-        );
-    },
-};
-
-/**
- * Strategy for wrapping JSX elements
- */
-const reactComponentWrapStrategy: WrapStrategy = {
-    name: 'reactComponent',
-    wrap: (code: string) => {
-        const indentedCode = code.replace(/^/gm, '    ');
-        return `const __TempComponent = () => {\n${indentedCode}\n};`;
-    },
-    unwrap: (formatted: string) => {
-        const lines = formatted.split('\n');
-        if (lines.length >= 3) {
-            const startIndex = lines.findIndex((line) => line.includes('const __TempComponent ='));
-            const endIndex = lines.length - 1;
-
-            if (startIndex !== -1 && lines[endIndex].trim() === '};') {
-                const bodyLines = lines.slice(startIndex + 1, endIndex);
-
-                const indent = bodyLines.reduce((acc, line) => {
-                    if (line.trim() === '') {
-                        return acc;
-                    }
-                    const match = line.match(/^(\s*)/);
-                    const leading = match ? match[1].length : 0;
-                    if (acc === -1) {
-                        return leading;
-                    }
-                    return Math.min(acc, leading);
-                }, -1);
-
-                const safeIndent = indent > 0 ? indent : 0;
-                const dedented = bodyLines
-                    .map((line) => {
-                        if (safeIndent === 0 || line.trim() === '') {
-                            return line.trim() === '' ? '' : line;
-                        }
-                        return line.startsWith(' '.repeat(safeIndent))
-                            ? line.slice(safeIndent)
-                            : line.replace(/^\s+/, '');
-                    })
-                    .join('\n');
-
-                return dedented;
-            }
-        }
-
-        return formatted;
-    },
-    canHandle: (code: string, lang: string) => {
-        const language = lang.toLowerCase();
-        if (language !== 'jsx' && language !== 'tsx') {
-            return false;
-        }
-
-        const trimmed = code.trim();
-        const hasJsx = /<\w/.test(code);
-        if (!hasJsx) {
-            return false;
-        }
-
-        const looksLikeAngular =
-            /@Component\b/.test(code) ||
-            /from\s+['"]@angular\//.test(code) ||
-            /standalone\s*:\s*true/.test(code) ||
-            /template\s*:`/.test(code);
-        if (looksLikeAngular) {
-            return false;
-        }
-
-        const looksLikeVue =
-            /from\s+['"]vue['"]/.test(code) ||
-            /createApp\s*\(/.test(code) ||
-            /components\s*:\s*\{/.test(code) ||
-            /setup\s*\(/.test(code);
-        if (looksLikeVue) {
-            return false;
-        }
-
-        const hasModuleSyntax = /(^|\n)\s*(import|export)\b/.test(code.trimStart());
-        if (hasModuleSyntax) {
-            return false;
-        }
-
-        const hasReactImports = /from\s+['"]react(?:-dom)?['"]/.test(code) || /import\s+React/.test(code);
-        const hasReactDom = /\bcreateRoot\b/.test(code) || /\bReactDOM\b/.test(code);
-        const startsWithReturn = trimmed.startsWith('return');
-        const startsWithHookInitialisation = /^(const|let)\s+\[[^\]]+\]\s*=\s*use(State|Reducer|Transition)/.test(
-            trimmed
-        );
-
-        return hasReactImports || hasReactDom || startsWithReturn || startsWithHookInitialisation;
-    },
-};
-
-const jsxWrapStrategy: WrapStrategy = {
-    name: 'jsx',
-    wrap: (code: string, _lang: string) => `const __temp__ = (\n${code}\n);`,
-    unwrap: (formatted: string) => {
-        const lines = formatted.split('\n');
-        if (lines.length >= 3) {
-            // Check if it's wrapped with const __temp__ = ( ... );
-            if (lines[0].includes('const __temp__ =') && lines[lines.length - 1] === ');') {
-                // Remove first and last lines
-                // Remove indentation
-                const content = lines
-                    .slice(1, -1)
-                    .map((line) => line.replace(/^\s{4}/, ''))
-                    .join('\n');
-                return content;
-            }
-        }
-        return formatted;
-    },
-    canHandle: (code: string, lang: string) => {
-        const language = lang.toLowerCase();
-        if (language !== 'jsx' && language !== 'tsx') {
-            return false;
-        }
-        const hasModuleSyntax = /(^|\n)\s*(import|export)\b/.test(code.trimStart());
-        if (hasModuleSyntax) {
-            return false;
-        }
-
-        const trimmed = code.trim();
-        if (!trimmed.startsWith('<')) {
-            return false;
-        }
-        // Look for JSX patterns
-        return trimmed.includes('<') && trimmed.includes('>');
-    },
-};
-
-/**
- * Strategy for wrapping TypeScript types
- */
-const typeWrapStrategy: WrapStrategy = {
-    name: 'type',
-    wrap: (code: string, _lang: string) => `type __Temp__ = ${code};`,
-    unwrap: (formatted: string) => {
-        // Remove the type wrapper
-        return formatted.replace(/^type __Temp__ = /, '').replace(/;$/, '');
-    },
-    canHandle: (code: string, _lang: string) => {
-        const trimmed = code.trim();
-        if (trimmed === '') {
-            return false;
-        }
-
-        if (/^\s*type\s+[a-zA-Z_$]/.test(trimmed) || /^\s*interface\s+[a-zA-Z_$]/.test(trimmed)) {
-            return true;
-        }
-
-        const looksLikeTypeLiteral = trimmed.startsWith('{') && /:\s*[^,{}()]+;/.test(trimmed);
-        if (looksLikeTypeLiteral) {
-            return true;
-        }
-
-        return false;
-    },
-};
-
-/**
- * Strategy for wrapping interface properties
- */
-const interfacePropertyWrapStrategy: WrapStrategy = {
-    name: 'interfaceProperty',
-    wrap: (code: string, _lang: string) => `interface __Temp__ {\n${code}\n}`,
-    unwrap: (formatted: string) => {
-        const lines = formatted.split('\n');
-        if (lines.length >= 3) {
-            // Remove interface wrapper
-            // Remove indentation
-            const content = lines
-                .slice(1, -1)
-                .map((line) => line.replace(/^\s{4}/, ''))
-                .join('\n');
-            return content;
-        }
-        return formatted;
-    },
-    canHandle: (code: string, _lang: string) => {
-        const trimmed = code.trim();
-        if (!trimmed.endsWith(';')) {
-            return false;
-        }
-
-        // Look for interface property or method signature patterns
-        // Must NOT have an opening brace after the colon (which would make it an object literal)
-        return (
-            // Property with type annotation (but not object literal)
-            (/^(readonly\s+)?[a-zA-Z_$][a-zA-Z0-9_$]*\??\s*:/.test(trimmed) &&
-                !/^\w+\s*:\s*\{/.test(trimmed) &&
-                !trimmed.includes('=') &&
-                !trimmed.includes('function') &&
-                !trimmed.includes('=>')) ||
-            // String key
-            /^["'][^"']+["']\s*:/.test(trimmed) ||
-            // Computed property
-            /^\[.*\]\s*:/.test(trimmed) ||
-            // Method signature
-            /^(readonly\s+)?[a-zA-Z_$][a-zA-Z0-9_$]*\??\s*\(/.test(trimmed)
-        );
-    },
-};
-
-/**
- * Ordered list of strategies to try
- */
-export const wrapStrategies: WrapStrategy[] = [
-    reactComponentWrapStrategy,
-    jsxWrapStrategy,
-    typeWrapStrategy,
-    interfacePropertyWrapStrategy,
-    objectWrapStrategy,
-    arrayWrapStrategy,
-    expressionWrapStrategy,
-    functionWrapStrategy,
-];
-
-/**
- * Try to wrap code with an appropriate strategy
- */
-export function tryWrapCode(code: string, lang: string): { wrapped: string; strategy: WrapStrategy } | null {
-    // Try each strategy in order
-    for (const strategy of wrapStrategies) {
-        if (strategy.canHandle(code, lang)) {
-            return {
-                wrapped: strategy.wrap(code, lang),
-                strategy,
-            };
+        if (commonPrefix.length === 0) {
+            break;
         }
     }
 
-    // If no specific strategy matches, return null to indicate
-    // that the code should be formatted as-is
-    return null;
+    if (commonPrefix.length === 0) {
+        return lines;
+    }
+
+    return lines.map((line) => (line.startsWith(commonPrefix) ? line.slice(commonPrefix.length) : line));
+}
+
+function trimEmptyEdgeLines(lines: string[]): string[] {
+    let start = 0;
+    let end = lines.length;
+
+    while (start < end && lines[start].trim() === '') {
+        start++;
+    }
+
+    while (end > start && lines[end - 1].trim() === '') {
+        end--;
+    }
+
+    return lines.slice(start, end);
+}
+
+/**
+ * For code snippets that may be partial objects, complete objects, or complete statements.
+ * Intelligently detects the type and wraps only if needed.
+ *
+ * Use when: Code block contains object properties, object literals, or complete statements.
+ *
+ * Examples:
+ * - `{ type: 'bar', xKey: 'month' }` (complete object)
+ * - `type: 'bar', xKey: 'month'` (object properties without braces)
+ * - `const x = 5;` (complete statement - not wrapped)
+ */
+const snippetStrategy: WrapStrategy = {
+    name: 'snippet',
+    wrap: (code: string) => {
+        const trimmed = code.trim();
+
+        // Check if this is a complete statement (const, let, var, import, export, function, class)
+        // These don't need object wrapping - they're already valid code
+
+        // First, strip leading comments
+        const codeWithoutComments = trimmed.replace(/^(?:\/\/[^\n]*\n\s*)*/, '');
+
+        // Check for decorators (after stripping comments)
+        const hasDecorator = /^@\w+/.test(codeWithoutComments);
+        if (hasDecorator) {
+            // Look for statement keywords after any decorator and its closing parens/braces
+            const hasStatementAfterDecorator =
+                /^\s*(const|let|var|import|export|function|class|interface|type)\s/m.test(codeWithoutComments);
+            if (hasStatementAfterDecorator) {
+                return code;
+            }
+        }
+
+        // For code without decorators, check if it starts with a statement keyword
+        const startsWithStatement = /^(const|let|var|import|export|function|class|interface|type)\s/.test(
+            codeWithoutComments
+        );
+        if (startsWithStatement) {
+            return code;
+        }
+
+        // Check if this is a complete object or array literal that already has braces/brackets
+        const isCompleteObject = trimmed.startsWith('{') && (trimmed.endsWith('}') || trimmed.endsWith('};'));
+        const isCompleteArray = trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('];'));
+
+        if (isCompleteObject || isCompleteArray) {
+            // It's already a complete object/array, just assign it
+            const hadSemicolon = trimmed.endsWith('};') || trimmed.endsWith('];');
+            // For complete objects/arrays, only strip the trailing semicolon after the closing brace/bracket
+            // Don't strip semicolons inside (they may be in function bodies)
+            const fixedCode = hadSemicolon ? code.slice(0, -1) : code;
+            return `// __HAD_SEMICOLON__:${hadSemicolon}\nconst __temp__ = ${fixedCode}`;
+        }
+
+        // Check if this is a property assignment (key: value or key: {...} or key: [...])
+        // These need to be wrapped in an object but we should strip trailing semicolons
+        const propertyPattern = /^\s*[\w$]+\s*:\s*/;
+        if (propertyPattern.test(trimmed)) {
+            // Check if it's an array property containing objects with braces (e.g., series: [{ ... }])
+            // This handles both single-line and multi-line arrays
+            const arrayWithObjectPattern = /^\s*[\w$]+\s*:\s*\[[\s\S]*\{[\s\S]*\}[\s\S]*\]\s*;?\s*$/;
+            if (arrayWithObjectPattern.test(trimmed)) {
+                // It's a property with array of objects - wrap it and preserve structure
+                const hadSemicolon = trimmed.endsWith(';');
+                const fixedCode = hadSemicolon ? code.slice(0, -1) : code;
+                return `// __PRESERVE_BRACES__:true\nconst __temp__ = {\n${fixedCode}\n};`;
+            }
+
+            // Check if it's an object property (e.g., tooltip: { ... })
+            // This handles both single-line and multi-line objects
+            const objectPropertyPattern = /^\s*[\w$]+\s*:\s*\{[\s\S]*\}\s*;?\s*$/;
+            if (objectPropertyPattern.test(trimmed)) {
+                // It's a property with object value - wrap it and preserve structure
+                const hadSemicolon = trimmed.endsWith(';');
+                const fixedCode = hadSemicolon ? code.slice(0, -1) : code;
+                return `// __PRESERVE_BRACES__:true\nconst __temp__ = {\n${fixedCode}\n};`;
+            }
+
+            // It's a property assignment
+            // Strip semicolons: both at end of line and before comments
+            // Handle: padding: 4; //comment -> padding: 4, //comment
+            // Handle: series: [...]; -> series: [...]
+            const fixedCode = code.replace(/;(\s*(?:\/\/[^\n]*)?)$/gm, '$1');
+            return `const __temp__ = {\n${fixedCode}\n};`;
+        }
+
+        // Otherwise, it's object properties without braces
+        // Strip semicolons from simple property lines (invalid syntax in objects)
+        // Only strip semicolons that appear to be at the end of property declarations
+        // Match: key: value; or key: value; //comment
+        // Don't match semicolons inside braces (function bodies, nested objects)
+        const fixedCode = code.replace(/^(\s*\w+\s*:\s*[^{;]+);(\s*(?:\/\/[^\n]*)?)$/gm, '$1$2');
+        return `const __temp__ = {\n${fixedCode}\n};`;
+    },
+    unwrap: (formatted: string) => {
+        // Handle complete objects (with marker comment) - check this FIRST before complete statement check
+        const hadSemicolonMatch = formatted.match(/\/\/ __HAD_SEMICOLON__:(true|false)\n/);
+        if (hadSemicolonMatch) {
+            formatted = formatted.replace(/\/\/ __HAD_SEMICOLON__:(true|false)\n/, '');
+
+            const match = formatted.match(/^const __temp__ = ([\s\S]+)$/);
+            if (match) {
+                let obj = match[1].trim();
+                obj = obj.replace(/[;,](\s*)$/, '$1');
+                return obj;
+            }
+        }
+
+        // Handle object properties with preserved braces (e.g., series: [{ ... }])
+        const preserveBracesMatch = formatted.match(/\/\/ __PRESERVE_BRACES__:true\n/);
+        if (preserveBracesMatch) {
+            formatted = formatted.replace(/\/\/ __PRESERVE_BRACES__:true\n/, '');
+
+            const prefixMatch = formatted.match(/^const __temp__ = {\n/);
+            if (prefixMatch) {
+                let body = formatted.slice(prefixMatch[0].length);
+                body = body.replace(/\r?\n};\s*$/, '');
+
+                const lines = body.split('\n');
+
+                const trimmedLines = trimEmptyEdgeLines(lines);
+                const dedentedLines = removeCommonIndent(trimmedLines);
+                const result = dedentedLines.join('\n');
+                // Don't strip trailing comma/semicolon for preserved braces - Prettier adds commas for object properties
+
+                // For preserved braces, wrap result back in braces with proper indentation
+                const indentedLines = result.split('\n').map((line) => (line.trim() ? `    ${line}` : line));
+                return `{\n${indentedLines.join('\n')}\n}`;
+            }
+        }
+
+        // Handle object properties (without braces) - check this SECOND before complete statement check
+        const prefixMatch = formatted.match(/^const __temp__ = {\n/);
+        if (prefixMatch) {
+            let body = formatted.slice(prefixMatch[0].length);
+            body = body.replace(/\r?\n};\s*$/, '');
+
+            const lines = body.split('\n');
+
+            const trimmedLines = trimEmptyEdgeLines(lines);
+            const dedentedLines = removeCommonIndent(trimmedLines);
+            let result = dedentedLines.join('\n');
+            result = result.replace(/[;,](\s*)$/, '$1');
+
+            return result;
+        }
+
+        // Handle complete statements (no wrapping was done) - check this LAST
+        const trimmed = formatted.trim();
+
+        // First, strip leading comments
+        const codeWithoutComments = trimmed.replace(/^(?:\/\/[^\n]*\n\s*)*/, '');
+
+        // Check for decorators (after stripping comments)
+        const hasDecorator = /^@\w+/.test(codeWithoutComments);
+        if (hasDecorator) {
+            const hasStatementAfterDecorator =
+                /^\s*(const|let|var|import|export|function|class|interface|type)\s/m.test(codeWithoutComments);
+            if (hasStatementAfterDecorator) {
+                return formatted;
+            }
+        }
+
+        // For code without decorators, check if it starts with a statement keyword
+        const startsWithStatement = /^(const|let|var|import|export|function|class|interface|type)\s/.test(
+            codeWithoutComments
+        );
+        if (startsWithStatement) {
+            return formatted;
+        }
+
+        // If we get here, something unexpected happened, return as-is
+        return formatted;
+    },
+};
+
+/**
+ * For React hooks that need component context.
+ * Use when: Code block contains useState, useEffect, or other hooks without a component.
+ *
+ * Examples:
+ * - `const [value, setValue] = useState(0);`
+ * - `useEffect(() => { ... }, []);`
+ * - Multiple hooks used together
+ */
+const reactHooksStrategy: WrapStrategy = {
+    name: 'reactHooks',
+    wrap: (code: string) => {
+        // Add React import if not present
+        const hasReactImport = /import\s+(?:\*\s+as\s+)?React/.test(code);
+        const importLine = hasReactImport ? '' : "import React from 'react';\n\n";
+
+        // Check if code already has a return statement
+        const hasReturn = /\breturn\s+[(<]/.test(code);
+        const returnStatement = hasReturn ? '' : '\n    return null;';
+
+        return `${importLine}function Component() {\n${code}${returnStatement}\n}`;
+    },
+    unwrap: (formatted: string) => {
+        const lines = formatted.split('\n');
+
+        // Remove added React import if we added it
+        const importIdx = lines.findIndex((line) => line === "import React from 'react';");
+        if (importIdx !== -1 && lines[importIdx + 1] === '') {
+            lines.splice(importIdx, 2);
+        }
+
+        // Find component body
+        const startIdx = lines.findIndex((line) => line.includes('function Component() {'));
+
+        if (startIdx === -1) {
+            return formatted;
+        }
+
+        // Try to find our added return null first
+        const returnNullIdx = lines.findIndex((line) => line.trim() === 'return null;');
+
+        // Find the last closing brace (the component's closing brace)
+        let endIdx = lines.length - 1;
+        while (endIdx > startIdx && lines[endIdx].trim() !== '}') {
+            endIdx--;
+        }
+
+        // If we found return null, use that as the end, otherwise use the line before the closing brace
+        const contentEndIdx = returnNullIdx !== -1 ? returnNullIdx : endIdx;
+
+        // Get lines between function declaration and end
+        let content = lines.slice(startIdx + 1, contentEndIdx);
+
+        // Remove empty lines at the end
+        while (content.length > 0 && content[content.length - 1].trim() === '') {
+            content.pop();
+        }
+
+        // Remove common indentation (Prettier indents code inside the function)
+        content = removeCommonIndent(content);
+
+        return content.join('\n');
+    },
+};
+
+/**
+ * Map of all available format strategies.
+ * Use the strategy name in code block metadata: ```js format="snippet"
+ */
+export const wrapperStrategies: Record<string, WrapStrategy> = {
+    snippet: snippetStrategy,
+    reactHooks: reactHooksStrategy,
+};
+
+/**
+ * Apply a wrapper strategy by name.
+ * Returns null if the strategy doesn't exist.
+ */
+export function applyWrapper(
+    code: string,
+    lang: string,
+    strategyName: string
+): { wrapped: string; strategy: WrapStrategy } | null {
+    const strategy = wrapperStrategies[strategyName];
+    if (!strategy) {
+        return null;
+    }
+    return {
+        wrapped: strategy.wrap(code, lang),
+        strategy,
+    };
 }

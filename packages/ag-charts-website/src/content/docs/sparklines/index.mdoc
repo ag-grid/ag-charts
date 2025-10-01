@@ -29,7 +29,7 @@ AgCharts.createSparkline(options);
 
 {% if isFramework("react") %}
 
-```tsx
+```jsx format="reactHooks"
 const [options, setOptions] = useState({
     type: 'bar',
     container: document.getElementById('myChart'),
@@ -70,7 +70,7 @@ export class AppComponent {
 
 {% if isFramework("vue") %}
 
-```js
+```js format="snippet"
 template: `<ag-sparkline :options="options"/>`,
 components: {
     'ag-sparkline': AgSparkline,
@@ -104,10 +104,12 @@ In this configuration:
 
 {% chartExampleRunner title="Customised Sparkline" name="customised-sparkline" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js
-type: 'bar',
-fill: '#5C6BC0',
-cornerRadius: 3
+```js format="snippet"
+{
+    type: 'bar',
+    fill: '#5C6BC0',
+    cornerRadius: 3,
+}
 ```
 
 Each of the Bar, Line, and Area Sparklines can be customised using the associated series options. Unlike the default chart, there is no array of series. Instead, the series options are put at the top level. See the documentation for [Bar Series](./bar-series), [Line Series](./line-series), and [Area Series](./area-series).
@@ -116,15 +118,17 @@ Each of the Bar, Line, and Area Sparklines can be customised using the associate
 
 {% chartExampleRunner title="Sparkline Axes" name="sparkline-axes" type="generated" options={ "exampleHeight": 320 } /%}
 
-```js
-axis: {
-    type: 'time',
-    visible: true,
-    stroke: '#66A4',
-    strokeWidth: 1,
-},
-min: 125,
-max: 150
+```js format="snippet"
+{
+    axis: {
+        type: 'time',
+        visible: true,
+        stroke: '#66A4',
+        strokeWidth: 1,
+    },
+    min: 125,
+    max: 150,
+}
 ```
 
 In this configuration:

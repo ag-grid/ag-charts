@@ -22,7 +22,7 @@ Bringing the highlighted series to the front makes it stand out, especially when
 
 The `bringToFront` property is disabled by default, and can be enabled in the `highlight` options.
 
-```js
+```js format="snippet"
 highlight: {
     bringToFront: true,
 }
@@ -36,7 +36,7 @@ In the above example:
 
 {% chartExampleRunner title="Area Series with Custom Highlight Style" name="basic-area" type="generated" /%}
 
-```js
+```js format="snippet"
 highlight: {
     // Attributes that apply to the currently highlighted item.
     highlightedItem: {
@@ -82,7 +82,7 @@ property which can be used to dynamically customise the chart style based on the
 
 {% chartExampleRunner title="Dynamic Highlight" name="balance-sheet" type="generated" /%}
 
-```js
+```js format="snippet"
 label: {
     itemStyler: (params) => {
         switch (params.highlightState) {

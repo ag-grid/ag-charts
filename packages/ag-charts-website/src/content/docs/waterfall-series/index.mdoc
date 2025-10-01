@@ -12,14 +12,16 @@ falling bars to create a cascading waterfall effect.
 
 The Waterfall Series is designed to display a single series and is created using the `waterfall` series type.
 
-```js
-series: [
-    {
-        type: 'waterfall',
-        xKey: 'financials',
-        yKey: 'amount',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'waterfall',
+            xKey: 'financials',
+            yKey: 'amount',
+        },
+    ],
+}
 ```
 
 The `xKey` defines categories for the [Category Axis](./axes-types/#category), and the `yKey` supplies numerical
@@ -41,19 +43,21 @@ These values are automatically calculated based on the following criteria:
 
 Total and Subtotal values are added to the `totals` array within the `series` options object.
 
-```js
-series: [
-    {
-        type: 'waterfall',
-        xKey: 'financials',
-        yKey: 'amount',
-        totals: [
-            { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
-            { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
-            { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
-        ],
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'waterfall',
+            xKey: 'financials',
+            yKey: 'amount',
+            totals: [
+                { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
+                { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
+                { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
+            ],
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -70,29 +74,31 @@ In this configuration:
 
 Series items are customised via the `item` configuration object.
 
-```js
-series: [
-    {
-        type: 'waterfall',
-        xKey: 'financials',
-        yKey: 'amount',
-        item: {
-            positive: {
-                fill: '#4A90E2',
-                stroke: '#4A90E2',
-            },
-            negative: {
-                fill: '#FF6B6B',
-                stroke: '#FF6B6B',
-            },
-            total: {
-                name: 'Total / Subtotal',
-                fill: '#404066',
-                stroke: '#404066',
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'waterfall',
+            xKey: 'financials',
+            yKey: 'amount',
+            item: {
+                positive: {
+                    fill: '#4A90E2',
+                    stroke: '#4A90E2',
+                },
+                negative: {
+                    fill: '#FF6B6B',
+                    stroke: '#FF6B6B',
+                },
+                total: {
+                    name: 'Total / Subtotal',
+                    fill: '#404066',
+                    stroke: '#404066',
+                },
             },
         },
-    },
-];
+    ],
+}
 ```
 
 In this configuration:
@@ -109,18 +115,20 @@ Total legend item and tooltips.
 
 Connector lines between the bars can be customised using the `line` property.
 
-```js
-series: [
-    {
-        type: 'waterfall',
-        xKey: 'financials',
-        yKey: 'amount',
-        line: {
-            strokeWidth: 4,
-            stroke: 'red',
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'waterfall',
+            xKey: 'financials',
+            yKey: 'amount',
+            line: {
+                strokeWidth: 4,
+                stroke: 'red',
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 To remove the connector lines, set `line.enabled` to `false`.
@@ -131,15 +139,17 @@ To remove the connector lines, set `line.enabled` to `false`.
 
 To show a Horizontal Waterfall Series, set `direction: 'horizontal'`.
 
-```js
-series: [
-    {
-        type: 'waterfall',
-        direction: 'horizontal',
-        xKey: 'financials',
-        yKey: 'amount',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'waterfall',
+            direction: 'horizontal',
+            xKey: 'financials',
+            yKey: 'amount',
+        },
+    ],
+}
 ```
 
 When the `direction` is `'horizontal'` the `xKey` will define categories on the y-axis, while the `yKey` will represent numerical

@@ -148,7 +148,7 @@ You can test AG Charts Enterprise locally without a licence. To test in producti
 {% if isFramework("react") %}
 Import the `AgCharts` component from the `ag-charts-react` package:
 
-```ts
+```js
 import { AgCharts } from 'ag-charts-react';
 ```
 
@@ -205,11 +205,11 @@ See the [Installing Enterprise Licence Key](./license-install/) docs for more in
 
 To use AG Charts in your React application, return the `AgCharts` component with your chart options:
 
-```tsx
+```tsx format="reactHooks"
 const MyChart = () => {
     // Define chart options; mutating this object will cause the chart to update
     const [chartOptions, setChartOptions] = useState({
-        /* ... */
+        /*...*/
     });
 
     // Return the AgCharts component with the chart options
@@ -228,13 +228,15 @@ To use AG Charts in your Angular application, return the `ag-charts` component w
     selector: 'app-root',
     standalone: true,
     imports: [AgCharts],
-    template: `<ag-charts style="height: 100%" [options]="chartOptions"></ag-charts>`,
+    template: `<ag-charts style="height: 100%" [options]="chartOptions"> </ag-charts>`,
 })
 export class AppComponent {
+    // Chart Options
     public chartOptions: AgChartOptions;
-
     constructor() {
-        this.chartOptions = {};
+        this.chartOptions = {
+            /*...*/
+        };
     }
 }
 ```
@@ -253,7 +255,7 @@ To use AG Charts in your Vue application, return the `ag-charts` component with 
 <script>
     setup() {
       return {
-        ref<AgChartOptions>({...}),
+        ref<AgChartOptions>({/*...*/}),
       };
     },
 </script>
@@ -265,10 +267,10 @@ To use AG Charts in your Vue application, return the `ag-charts` component with 
 
 To use AG Charts in your JavaScript application, use the `create` API to create a chart with your chart options:
 
-```js
+```js format="snippet"
 // Chart Options
 const options = {
-    /* ... */
+    /*...*/
 };
 
 // Create Chart

@@ -35,14 +35,13 @@
             "files": "*.mdoc",
             "options": {
                 "parser": "markdown",
-                "embeddedLanguageFormatting": "auto"
+                "embeddedLanguageFormatting": "off"
             }
         },
         {
             "files": "*.md",
             "options": {
-                "parser": "markdown",
-                "embeddedLanguageFormatting": "auto"
+                "parser": "markdown"
             }
         }
     ],

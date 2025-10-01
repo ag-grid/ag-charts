@@ -19,13 +19,13 @@ The Legend is placed below the series area by default. Use the `position` proper
 
 The `position` property accepts either a string specifying one of the [nine preset positions](#reference-AgChartLegendOptions-position), or an object for more control including [Floating](#floating), and [Offsets](#offset-and-spacing).
 
-```js
+```js format="snippet"
 legend: {
     position: 'bottom', // 'top', 'right', 'left', 'top-right', 'right-top' ...
 }
 ```
 
-```js
+```js format="snippet"
 legend: {
     position: {
         placement: 'bottom', // 'top', 'right', 'left', 'top-right', 'right-top' ...,
@@ -49,7 +49,7 @@ The Legend can be drawn above the Series Area using the `floating: true` propert
 
 {% chartExampleRunner title="Floating Legend" name="legend-floating" type="generated" /%}
 
-```js
+```js format="snippet"
 legend: {
     position: {
         placement: 'right-top', // start at the right-top
@@ -66,7 +66,7 @@ It is possible to manually offset the position of the Legend, as well as control
 
 {% chartExampleRunner title="Legend Spacing / Offset" name="legend-spacing-offsets" type="generated" /%}
 
-```js
+```js format="snippet"
 legend: {
     spacing: 20,
     position: {
@@ -95,7 +95,7 @@ It is possible to add padding between and within the Legend items.
 
 {% chartExampleRunner title="Legend Constraints" name="legend-constraints" type="generated" /%}
 
-```js
+```js format="snippet"
 legend: {
     item: {
         maxWidth: 130,
@@ -114,7 +114,7 @@ The Legend item includes a line, representing the stroke style of the series. Us
 
 {% chartExampleRunner title="Series Stroke" name="legend-seriesStroke" type="generated" /%}
 
-```js
+```js format="snippet"
 legend: {
     item: {
         showSeriesStroke: false,
@@ -154,7 +154,7 @@ See the [API Reference](#reference-AgChartLegendOptions-item-label) and [Fills &
 The look of the Legend markers is based on the styling of the series that they represent.
 It is possible to override this behaviour and set the `size`, `stroke` and `shape` of the `legend.item.marker`.
 
-```js
+```js format="snippet"
 legend: {
     item: {
         marker: {
@@ -171,7 +171,7 @@ legend: {
 The look of the Legend item lines is based on the styling of the series that they represent.
 It is possible to override this behaviour and set the `strokeWidth` and `length` of the `legend.item.line`.
 
-```js
+```js format="snippet"
 legend: {
     item: {
         line: {
@@ -203,7 +203,7 @@ Pie series sectors do not toggle when a Legend item is double clicked.
 
 To disable series toggling on Legend item click or double click, set the `legend.toggleSeries` property to `false`.
 
-```js
+```js format="snippet"
 legend: {
     toggleSeries: false,
 }
@@ -211,7 +211,7 @@ legend: {
 
 To prevent the last visible series from being hidden, use the `preventHidingAll` option.
 
-```js
+```js format="snippet"
 legend: {
     preventHidingAll: true,
 }

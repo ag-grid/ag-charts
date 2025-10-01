@@ -14,16 +14,18 @@ or snapping to a highlighted item. Band highlights emphasize the entire category
 
 To enable the crosshair feature for a given axis, use the `crosshair` property on the `axes` options object as shown below:
 
-```js
-axes: [
-    {
-        type: 'number',
-        position: 'left',
-        crosshair: {
-            enabled: true,
+```js format="snippet"
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            crosshair: {
+                enabled: true,
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 ## Snap
@@ -32,16 +34,18 @@ By default, the crosshair will snap to the position of the highlighted node.
 
 This default behaviour can be modified by using the crosshair `snap` option. When `snap` is `false`, the crosshair will follow the mouse pointer rather than snapping to the highlighted item.
 
-```js
-axes: [
-    {
-        type: 'number',
-        position: 'bottom',
-        crosshair: {
-            snap: false,
+```js format="snippet"
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+            crosshair: {
+                snap: false,
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 {% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" /%}
@@ -50,7 +54,7 @@ axes: [
 
 Crosshair styles such as `stroke`, `strokeWidth` and `lineDash` are customisable via `AgCrosshairOptions`.
 
-```js
+```js format="snippet"
 crosshair: {
     stroke: '#2b5c95',
     strokeWidth: 2,
@@ -64,7 +68,7 @@ crosshair: {
 
 The crosshair label will be displayed along the axis by default. The label can be removed via the crosshair `label` option as shown in the code snippet below:
 
-```js
+```js format="snippet"
 crosshair: {
     label: {
         enabled: false, // removes crosshair label
@@ -76,7 +80,7 @@ crosshair: {
 
 The label position relative to the crosshair can be modified using the `xOffset` and `yOffset` properties in `crosshair.label` options as shown below:
 
-```js
+```js format="snippet"
 crosshair: {
     label: {
         xOffset: -55, // positions label -55px to the right of the start of the crosshair line
@@ -109,7 +113,7 @@ See [Formatters Inheritance and Precedence](./formatters/#inheritance-and-preced
 
 The default crosshair label is customisable using the crosshair label `renderer` option as shown below:
 
-```js
+```js format="snippet"
 crosshair: {
     label: {
         renderer: labelRenderer, // Add label renderer callback function to customise label styles and content
@@ -181,15 +185,17 @@ Band highlights shade the entire hovered category or date on the chart.
 
 To enable the band highlight for a given axis, use the `bandHighlight` property in the `axes` options object.
 
-```js
-axes: [
-    {
-        type: 'category',
-        bandHighlight: {
-            enabled: true,
+```js format="snippet"
+{
+    axes: [
+        {
+            type: 'category',
+            bandHighlight: {
+                enabled: true,
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 In the above example:

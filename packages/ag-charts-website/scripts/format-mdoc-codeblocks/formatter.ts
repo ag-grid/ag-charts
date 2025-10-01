@@ -2,8 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as prettier from 'prettier';
 
-import { getParserForLang } from './utils';
-import { tryWrapCode } from './wrappers';
+import { applyWrapper } from './wrappers';
 
 function getSnippetPreview(code: string, maxLines = 6): string {
     const lines = code.trim().split('\n');
@@ -19,6 +18,8 @@ interface CodeBlock {
     code: string;
     startIndex: number;
     endIndex: number;
+    lineNumber: number;
+    meta?: string; // Metadata string after language (e.g., format="snippet")
 }
 
 /**
@@ -52,16 +53,39 @@ function validateFilePath(filePath: string): void {
  */
 function extractCodeBlocks(content: string): CodeBlock[] {
     const blocks: CodeBlock[] = [];
-    const codeBlockRegex = /```(js|javascript|jsx|ts|typescript|tsx)\n([\s\S]*?)```/g;
+    // Updated regex to capture optional metadata after language
+    // Matches: ```js format="snippet" or ```js or ```javascript etc.
+    // NOTE: Order matters - longer patterns must come first to prevent partial matches
+    const codeBlockRegex = /```(javascript|typescript|json|jsx|tsx|js|ts)([\t\f\v \u00a0][^\n]*)?\n([\s\S]*?)```/g;
+
+    // Calculate line numbers for all positions
+    const lines = content.split('\n');
+    const lineStarts: number[] = [0];
+    for (let i = 0; i < lines.length - 1; i++) {
+        lineStarts.push(lineStarts[i] + lines[i].length + 1);
+    }
+
+    function getLineNumber(index: number): number {
+        for (let i = 0; i < lineStarts.length; i++) {
+            if (index < lineStarts[i]) {
+                return i; // Line numbers are 1-based for display
+            }
+        }
+        return lineStarts.length;
+    }
 
     let match;
     while ((match = codeBlockRegex.exec(content)) !== null) {
+        const lineNumber = getLineNumber(match.index) + 1; // Convert to 1-based
+        const meta = match[2] ? match[2].trim() : ''; // Optional metadata after language
         blocks.push({
             fullMatch: match[0],
             lang: match[1],
-            code: match[2],
+            code: match[3], // Code is now in capture group 3
             startIndex: match.index,
             endIndex: match.index + match[0].length,
+            lineNumber,
+            meta: meta || undefined,
         });
     }
 
@@ -69,10 +93,47 @@ function extractCodeBlocks(content: string): CodeBlock[] {
 }
 
 /**
+ * Parse metadata string to extract format strategy.
+ *
+ * The metadata string appears after the language identifier in code blocks and
+ * specifies how the code should be formatted. Format strategies help handle
+ * partial code snippets that aren't valid standalone code.
+ *
+ * Supported format strategies:
+ * - `snippet`: For object/array properties or partial syntax that needs wrapping
+ *   Example: ```ts format="snippet"
+ *            contextMenu: { enabled: false }
+ *            ```
+ *
+ * - `reactHooks`: For React hook usage that should appear at component root level
+ *   Example: ```jsx format="reactHooks"
+ *            const [options, setOptions] = useState({...});
+ *            return <Component />;
+ *            ```
+ *
+ * The function also supports the deprecated `wrapper` attribute name for backward compatibility.
+ *
+ * @param meta - The metadata string from the code block (e.g., 'format="snippet"')
+ * @returns An object containing the format strategy, or empty if no strategy specified
+ */
+function parseMetadata(meta?: string): { format?: string } {
+    if (!meta) return {};
+
+    // Extract format strategy (supports both 'format' and deprecated 'wrapper')
+    const formatMatch = meta.match(/(?:format|wrapper)=["']([^"']+)["']/);
+    if (formatMatch) {
+        return { format: formatMatch[1] };
+    }
+
+    return {};
+}
+
+/**
  * Format a single code block, handling partial code appropriately
  */
-async function formatCodeBlock(code: string, lang: string): Promise<string> {
-    const parser = getParserForLang(lang);
+async function formatCodeBlock(code: string, lang: string, meta?: string): Promise<string> {
+    // Parse metadata
+    const metadata = parseMetadata(meta);
 
     // Get prettier config from project
     const prettierConfig = (await prettier.resolveConfig(process.cwd())) ?? {};
@@ -85,47 +146,63 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
         ts: '.ts',
         typescript: '.ts',
         tsx: '.tsx',
+        json: '.json',
     };
-    const filepath = `snippet${extensionMap[normalizedLang] ?? '.js'}`;
+
+    // For reactHooks format, use .tsx extension to properly handle JSX
+    const effectiveExtension = metadata?.format === 'reactHooks' ? '.tsx' : extensionMap[normalizedLang] ?? '.js';
+    const filepath = `snippet${effectiveExtension}`;
+
+    // Determine the parser based on language and content
+    const parserMap: Record<string, string> = {
+        js: 'babel',
+        javascript: 'babel',
+        jsx: 'babel',
+        ts: 'typescript',
+        typescript: 'typescript',
+        tsx: 'typescript',
+        json: 'json',
+    };
+
+    let parser = parserMap[normalizedLang] ?? 'babel';
+
+    // For reactHooks format, use TypeScript parser since we set .tsx extension
+    if (metadata?.format === 'reactHooks') {
+        parser = 'typescript';
+    }
 
     // Override with specific settings for consistency
-    const config = {
+    const config: prettier.Options & Record<string, unknown> = {
         ...prettierConfig,
         parser,
-        printWidth: 120,
+        printWidth: 160,
         tabWidth: 4,
-        singleQuote: true,
         semi: true,
-        trailingComma: 'es5' as const,
+        singleQuote: true,
+        trailingComma: 'es5',
         filepath,
     };
+
+    // For reactHooks format or tsx files, remove plugins that conflict with TypeScript parser
+    // The import sorting plugin uses Babel parser internally which conflicts with TypeScript parser for JSX
+    if (metadata?.format === 'reactHooks' || normalizedLang === 'tsx') {
+        delete config.plugins;
+        delete config.importOrder;
+        delete config.importOrderParserPlugins;
+        delete config.importOrderSeparation;
+        delete config.importOrderSortSpecifiers;
+    }
 
     // Check if original code had a trailing newline
     const hasTrailingNewline = code.endsWith('\n');
     const codeToFormat = hasTrailingNewline ? code.slice(0, -1) : code;
 
-    // First, try to format as-is (complete code)
-    try {
-        const formatted = await prettier.format(codeToFormat, config);
-        // Prettier adds a trailing newline, remove it
-        let result = formatted.replace(/\n$/, '');
-        if (hasTrailingNewline) {
-            result += '\n';
-        }
-        return result;
-    } catch (error) {
-        const wrapResult = tryWrapCode(codeToFormat, lang);
-
+    // If format metadata specified, use it to ensure proper unwrapping (e.g., semicolon stripping)
+    if (metadata.format && normalizedLang !== 'json') {
+        const wrapResult = applyWrapper(codeToFormat, lang, metadata.format);
         if (!wrapResult) {
-            const preview = getSnippetPreview(codeToFormat);
-            const details: string[] = [];
-            if (error instanceof Error && error.message) {
-                details.push(`Original error: ${error.message}`);
-            }
-            const detailText = details.length ? `\n${details.join('\n')}` : '';
-            throw new Error(
-                `Unable to format ${lang} code block. No wrap strategy matched. Preview:\n${preview}${detailText}`
-            );
+            const preview = getSnippetPreview(code);
+            throw new Error(`Unknown format strategy "${metadata.format}". Preview:\n${preview}`);
         }
 
         try {
@@ -136,27 +213,60 @@ async function formatCodeBlock(code: string, lang: string): Promise<string> {
                 result += '\n';
             }
             return result;
-        } catch (error2) {
-            const preview = getSnippetPreview(codeToFormat);
+        } catch (error) {
+            const preview = getSnippetPreview(code);
             const details: string[] = [];
             if (error instanceof Error && error.message) {
-                details.push(`Original error: ${error.message}`);
-            }
-            if (error2 instanceof Error && error2.message) {
-                details.push(`Wrapped error: ${error2.message}`);
+                details.push(`Error: ${error.message}`);
             }
             const detailText = details.length ? `\n${details.join('\n')}` : '';
             throw new Error(
-                `Unable to format ${lang} code block with wrap strategy "${wrapResult.strategy.name}". Preview:\n${preview}${detailText}`
+                `Unable to format ${lang} code block with format "${metadata.format}". Preview:\n${preview}${detailText}`
             );
         }
+    }
+
+    // No wrapper specified, try to format as-is (complete code)
+    try {
+        const formatted = await prettier.format(codeToFormat, config);
+        // Prettier adds a trailing newline, remove it
+        let result = formatted.replace(/\n$/, '');
+        if (hasTrailingNewline) {
+            result += '\n';
+        }
+        return result;
+    } catch (error) {
+        // No wrapper specified, formatting failed
+        const preview = getSnippetPreview(code);
+        const details: string[] = [];
+        if (error instanceof Error && error.message) {
+            details.push(`Error: ${error.message}`);
+        }
+
+        // Provide helpful suggestions based on the code content
+        const suggestions: string[] = [];
+        if (/^[a-zA-Z_$][\w$]*:/.test(code.trim())) {
+            suggestions.push('Try adding format="snippet" for property-only code');
+        }
+        if (/useState|useEffect|useRef/.test(code)) {
+            suggestions.push('Try adding format="reactHooks" for React hook code');
+        }
+
+        const suggestionText = suggestions.length ? `\nSuggestions: ${suggestions.join(', ')}` : '';
+        const detailText = details.length ? `\n${details.join('\n')}` : '';
+        throw new Error(
+            `Unable to format ${lang} code block. Consider adding format metadata.${suggestionText}\nPreview:\n${preview}${detailText}`
+        );
     }
 }
 
 /**
  * Process an mdoc file and format all code blocks
  */
-async function processMdocContent(content: string): Promise<{ formatted: string; changed: boolean }> {
+export async function processMdocContent(
+    content: string,
+    filePath?: string
+): Promise<{ formatted: string; changed: boolean }> {
     const blocks = extractCodeBlocks(content);
 
     if (blocks.length === 0) {
@@ -168,21 +278,29 @@ async function processMdocContent(content: string): Promise<{ formatted: string;
     let hasChanges = false;
 
     for (const block of blocks) {
-        const formattedCode = await formatCodeBlock(block.code, block.lang);
+        try {
+            const formattedCode = await formatCodeBlock(block.code, block.lang, block.meta);
 
-        if (formattedCode !== block.code) {
-            hasChanges = true;
+            if (formattedCode !== block.code) {
+                hasChanges = true;
 
-            // Ensure there's a newline before the closing ``` markers
-            const codeWithNewline = formattedCode.endsWith('\n') ? formattedCode : formattedCode + '\n';
-            const newBlock = `\`\`\`${block.lang}\n${codeWithNewline}\`\`\``;
+                // Reconstruct the code block with metadata
+                const metaPart = block.meta ? ` ${block.meta}` : '';
+                const codeWithNewline = formattedCode.endsWith('\n') ? formattedCode : formattedCode + '\n';
+                const newBlock = `\`\`\`${block.lang}${metaPart}\n${codeWithNewline}\`\`\``;
 
-            const adjustedStart = block.startIndex + offset;
-            const adjustedEnd = block.endIndex + offset;
+                const adjustedStart = block.startIndex + offset;
+                const adjustedEnd = block.endIndex + offset;
 
-            result = result.substring(0, adjustedStart) + newBlock + result.substring(adjustedEnd);
+                result = result.substring(0, adjustedStart) + newBlock + result.substring(adjustedEnd);
 
-            offset += newBlock.length - block.fullMatch.length;
+                offset += newBlock.length - block.fullMatch.length;
+            }
+        } catch (error) {
+            // Re-throw error with line number information
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const lineInfo = filePath ? `${filePath}:${block.lineNumber}` : `Line ${block.lineNumber}`;
+            throw new Error(`${lineInfo}: ${errorMessage}`);
         }
     }
 
@@ -195,7 +313,7 @@ async function processMdocContent(content: string): Promise<{ formatted: string;
 export async function formatMdocFile(filePath: string): Promise<boolean> {
     validateFilePath(filePath);
     const content = fs.readFileSync(filePath, 'utf-8');
-    const { formatted, changed } = await processMdocContent(content);
+    const { formatted, changed } = await processMdocContent(content, filePath);
 
     if (changed) {
         fs.writeFileSync(filePath, formatted, 'utf-8');
@@ -210,6 +328,6 @@ export async function formatMdocFile(filePath: string): Promise<boolean> {
 export async function checkMdocFile(filePath: string): Promise<boolean> {
     validateFilePath(filePath);
     const content = fs.readFileSync(filePath, 'utf-8');
-    const { changed } = await processMdocContent(content);
+    const { changed } = await processMdocContent(content, filePath);
     return changed;
 }

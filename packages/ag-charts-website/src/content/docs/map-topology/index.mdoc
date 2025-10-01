@@ -31,9 +31,11 @@ There are seven geometry types used, as listed in the table below.
 The properties of a feature are represented as a JSON object. While there is no standard for which properties are included, they typically contain the name of the feature in the property called `name`.
 
 ```json
-"properties": {
-    "name": "United Kingdom",
-    "code": "GB"
+{
+    "properties": {
+        "name": "United Kingdom",
+        "code": "GB"
+    }
 }
 ```
 
@@ -41,8 +43,8 @@ The properties of a feature are represented as a JSON object. While there is no 
 
 When using a Map Series which requires topology, both the `topology` and the `data` must be provided in the chart or series options.
 
-```ts
-const chartOptions = {
+```js format="snippet"
+{
     series: [
         {
             type: 'map-shape',
@@ -69,10 +71,10 @@ const chartOptions = {
                 // ...
             ],
             idKey: 'country',
-            topologyIdKey: 'name', // default value
+            topologyIdKey: 'name', //default value
         },
     ],
-};
+}
 ```
 
 -   Each item in the data must contain a field that refers to the associated geometry for that data item. In the above example this is the `country` field.
