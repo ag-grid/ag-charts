@@ -479,7 +479,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private getSeriesGroupingOptions(series: SeriesOptionsTypes & GroupingOptions) {
-        const { groupable, stackable, stackedByDefault } = ModuleRegistry.getSeriesModule(series.type)!;
+        const { groupable, stackable, stackedByDefault = false } = ModuleRegistry.getSeriesModule(series.type)!;
 
         if (series.grouped && !groupable) {
             Logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
