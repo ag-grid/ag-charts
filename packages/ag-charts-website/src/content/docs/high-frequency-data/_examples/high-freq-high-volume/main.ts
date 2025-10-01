@@ -1,5 +1,7 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+(window as any).agChartsDebug = ['scene:stats'];
+
 type Datum = {
     timestamp: number;
     value: number;

@@ -8,6 +8,22 @@ enterprise: true
 
 {% chartExampleRunner title="High Frequency Data" name="high-freq-line" type="generated" /%}
 
+## Area Series
+
+{% chartExampleRunner title="High Frequency Area" name="high-freq-area" type="generated" /%}
+
+## Bar Series
+
+{% chartExampleRunner title="High Frequency Bar" name="high-freq-bar" type="generated" /%}
+
+## Scatter Series
+
+{% chartExampleRunner title="High Frequency Scatter" name="high-freq-scatter" type="generated" /%}
+
+## Candlestick Series
+
+{% chartExampleRunner title="High Frequency Candlestick" name="high-freq-candlestick" type="generated" /%}
+
 ## Stacked Line Series
 
 The following example demonstrates the performance improvement of incremental grouping with stacked line charts. When using `applyTransaction()` with the new incremental grouping feature, the chart only processes new data points instead of regrouping all data. Compare the CPU usage between `updateDelta()` (full reprocessing) and `applyTransaction()` (incremental updates).
