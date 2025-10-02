@@ -154,7 +154,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
         }
     }
 
-    public getItemEnabled({ seriesId, itemId }: { seriesId?: string; itemId?: any } = {}) {
+    public getItemEnabled({ seriesId, itemId }: { seriesId?: string; itemId?: string | number } = {}) {
         return this.getDatum({ seriesId, itemId })?.enabled ?? true;
     }
 }
