@@ -94,7 +94,7 @@ function createTypecheckTarget(): { [targetName: string]: TargetConfiguration<an
             options: {
                 parallel: false,
                 commands: [
-                    'echo \'{ "extends": "../../../../../tsconfig.examples.json", "include": ["**/*.ts"] }\' > {projectRoot}/tsconfig.json',
+                    'echo \'{ "extends": "../../../../../../tsconfig.examples.json", "include": ["**/*.ts"] }\' > {projectRoot}/tsconfig.example.json',
                     'yarn tsc --noEmit -p {projectRoot}/tsconfig.example.json',
                     'rm {projectRoot}/tsconfig.example.json',
                 ],
