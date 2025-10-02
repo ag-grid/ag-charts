@@ -1,4 +1,6 @@
 import {
+    type AgRangeAreaSeriesItemStylerParams,
+    type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
     type AgRangeAreaSeriesOptions,
     type AgRangeAreaSeriesStyle,
@@ -603,7 +605,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { xKey, yLowKey, yHighKey, marker } = this.properties;
+        const { marker } = this.properties;
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, datum) => {
@@ -611,7 +613,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const stylerStyle = this.getStyle(isHighlight, highlightState);
             const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
-            const params = { xKey, yHighKey, yLowKey };
+            const params = this.makeItemStylerParams(datum.itemId);
             datum.style = this.getMarkerStyle(
                 marker,
                 datum,
@@ -784,11 +786,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         } satisfies ResultRules;
     }
 
+    private makeItemStylerParams(itemId: AgRangeAreaSeriesItemType): AgRangeAreaSeriesItemStylerParams<unknown> {
+        const { xKey, yLowKey, yHighKey } = this.properties;
+        return { xKey, yLowKey, yHighKey, itemId };
+    }
+
     override getTooltipContent(
         datumIndex: number,
         removeThisDatum: RangeAreaMarkerDatum | undefined
     ): _ModuleSupport.TooltipContent | undefined {
-        const itemId = removeThisDatum?.itemId ?? 'high';
+        const itemId: AgRangeAreaSeriesItemType = removeThisDatum?.itemId ?? 'high';
 
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = properties;
@@ -805,10 +812,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         if (xValue == null) return;
 
         const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(itemId);
         const format = this.getMarkerStyle(
             this.properties.marker,
             { datumIndex, datum },
-            { xKey, yLowKey, yHighKey },
+            params,
             { isHighlight: false },
             stylerStyle.marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
@@ -1012,13 +1020,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
-        const { xKey, yLowKey, yHighKey } = this.properties;
         const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(datum.itemId);
 
         return this.getMarkerStyle(
             this.properties.marker,
             datum,
-            { xKey, yLowKey, yHighKey },
+            params,
             { isHighlight: true },
             undefined,
             stylerStyle
