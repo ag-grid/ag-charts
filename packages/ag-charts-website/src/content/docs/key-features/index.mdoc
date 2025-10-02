@@ -156,10 +156,12 @@ formatter: function (params) {
 Use the `legend` options to configure the legend position and size and to disable the series toggling functionality on legend click.
 
 ```js format="snippet"
-legend: {
-    enabled: true, // defaults to true for charts with multiple series
-    position: 'top', // 'bottom', 'right', 'left',
-    toggleSeries: false,
+{
+    legend: {
+        enabled: true, // defaults to true for charts with multiple series
+        position: 'top', // 'bottom', 'right', 'left',
+        toggleSeries: false,
+    },
 }
 ```
 
@@ -328,9 +330,11 @@ Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is r
 Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
 
 ```ts format="snippet"
-tooltip: {
-    renderer: (params) => {
-        return '<div class="custom-tooltip">' + params.datum[params.xKey] + '</div>';
+{
+    tooltip: {
+        renderer: (params) => {
+            return '<div class="custom-tooltip">' + params.datum[params.xKey] + '</div>';
+        },
     },
 }
 ```

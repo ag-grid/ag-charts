@@ -82,14 +82,16 @@ and [Scatter](./scatter-series/) series.
 This example shows different Error Bar Cap and Whiskers customisations:
 
 ```js format="snippet"
-errorBar: {
-    // ...
-    stroke: 'pink', // Whisker stroke colour
-    strokeWidth: 2, // Whisker stroke width
-    cap: {
-        stroke: 'red', // Cap stroke colour (otherwise inherits from whisker)
-        strokeWidth: 5, // Cap stroke width (otherwise inherits from whisker)
-        length: 25, // Cap length as an absolute width
+{
+    errorBar: {
+        // ...
+        stroke: 'pink', // Whisker stroke colour
+        strokeWidth: 2, // Whisker stroke width
+        cap: {
+            stroke: 'red', // Cap stroke colour (otherwise inherits from whisker)
+            strokeWidth: 5, // Cap stroke width (otherwise inherits from whisker)
+            length: 25, // Cap length as an absolute width
+        },
     },
 }
 ```

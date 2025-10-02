@@ -33,18 +33,20 @@ When an [unsupported browser](./supported-browsers/) is detected and the chart m
 These messages can be customised through `overlays`:
 
 ```js format="snippet"
-overlays: {
-    loading: {
-        text: 'Some custom loading message',
-    },
-    noData: {
-        text: 'Some custom noData message',
-    },
-    noVisibleSeries: {
-        text: 'Some custom noVisibleSeries message',
-    },
-    unsupportedBrowser: {
-        text: 'Some custom unsupportedBrowser message',
+{
+    overlays: {
+        loading: {
+            text: 'Some custom loading message',
+        },
+        noData: {
+            text: 'Some custom noData message',
+        },
+        noVisibleSeries: {
+            text: 'Some custom noVisibleSeries message',
+        },
+        unsupportedBrowser: {
+            text: 'Some custom unsupportedBrowser message',
+        },
     },
 }
 ```
@@ -56,9 +58,11 @@ If finer grained control is required, a renderer can be provided to allow full c
 {% chartExampleRunner title="Custom Overlay for Missing Data" name="no-data" type="generated" /%}
 
 ```js format="snippet"
-overlays: {
-    noData: {
-        renderer: () => '<em>Custom message for <strong>missing data</strong></em>',
+{
+    overlays: {
+        noData: {
+            renderer: () => '<em>Custom message for <strong>missing data</strong></em>',
+        },
     },
 }
 ```
@@ -68,21 +72,23 @@ overlays: {
 {% chartExampleRunner title="Custom Overlay for Loading Data" name="loading-custom" type="generated" /%}
 
 ```js format="snippet"
-overlays: {
-    loading: {
-        renderer: () => {
-            const container = document.createElement('div');
-            // ... styles
+{
+    overlays: {
+        loading: {
+            renderer: () => {
+                const container = document.createElement('div');
+                // ... styles
 
-            const spinner = document.createElement('div');
-            // ... styles
+                const spinner = document.createElement('div');
+                // ... styles
 
-            const animation = document.createElement('style');
-            // ... keyframes
+                const animation = document.createElement('style');
+                // ... keyframes
 
-            container.append(spinner, animation);
+                container.append(spinner, animation);
 
-            return container;
+                return container;
+            },
         },
     },
 }

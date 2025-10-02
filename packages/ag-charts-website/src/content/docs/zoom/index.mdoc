@@ -11,8 +11,10 @@ AG Charts allows zooming into charts, making it easier to navigate large dataset
 To enable this feature, set `zoom.enabled` to `true`.
 
 ```ts format="snippet"
-zoom: {
-    enabled: true,
+{
+    zoom: {
+        enabled: true,
+    },
 }
 ```
 
@@ -48,9 +50,11 @@ In the example below, we set the anchor point for both axes to the mouse pointer
 {% chartExampleRunner title="Zoom Anchor Point" name="zoom-anchor-point" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    anchorPointX: 'pointer',
-    anchorPointY: 'pointer',
+{
+    zoom: {
+        anchorPointX: 'pointer',
+        anchorPointY: 'pointer',
+    },
 }
 ```
 
@@ -63,8 +67,10 @@ In the example below, we change the step to `0.4`.
 {% chartExampleRunner title="Zoom Scrolling Step" name="zoom-scrolling-step" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    scrollingStep: 0.4,
+{
+    zoom: {
+        scrollingStep: 0.4,
+    },
 }
 ```
 
@@ -77,8 +83,10 @@ In the example below, we enable zoom on both the `x` and `y` axes.
 {% chartExampleRunner title="Zoom Axes" name="zoom-axes" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    axes: 'xy',
+{
+    zoom: {
+        axes: 'xy',
+    },
 }
 ```
 
@@ -95,8 +103,10 @@ In the example below, panning can only be done by holding down the `shift` key w
 {% chartExampleRunner title="Zoom Pan Key" name="zoom-pan-key" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    panKey: 'shift',
+{
+    zoom: {
+        panKey: 'shift',
+    },
 }
 ```
 
@@ -109,11 +119,13 @@ In the example below, the user can only zoom in by selection, and can only zoom 
 {% chartExampleRunner title="Zoom Selecting" name="zoom-selecting" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    enableAxisDragging: false,
-    enablePanning: false,
-    enableScrolling: false,
-    enableSelecting: true,
+{
+    zoom: {
+        enableAxisDragging: false,
+        enablePanning: false,
+        enableScrolling: false,
+        enableSelecting: true,
+    },
 }
 ```
 
@@ -126,8 +138,10 @@ To disable this behaviour, use `enableTwoFingerZoom: false`.
 {% chartExampleRunner title="Two Finger Zoom-Pan Disabled" name="two-finger-disabled" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    enableTwoFingerZoom: false,
+{
+    zoom: {
+        enableTwoFingerZoom: false,
+    },
 }
 ```
 
@@ -159,8 +173,10 @@ The example below demonstrates setting `minVisibleItems` to `10`, preventing the
 {% chartExampleRunner title="Zoom Min Visible Items" name="zoom-min-visible-items" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    minVisibleItems: 10,
+{
+    zoom: {
+        minVisibleItems: 10,
+    },
 }
 ```
 
@@ -172,9 +188,11 @@ This is enabled by default. To disable, use `autoScaling: false`.
 {% chartExampleRunner title="Auto Scaling" name="auto-scaling" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    autoScaling: {
-        enabled: false,
+{
+    zoom: {
+        autoScaling: {
+            enabled: false,
+        },
     },
 }
 ```
@@ -223,43 +241,45 @@ It is possible to customise the visibility, order and grouping of buttons, as we
 {% chartExampleRunner title="Customised Zoom Buttons" name="zoom-custom-buttons" type="generated" /%}
 
 ```ts format="snippet"
-zoom: {
-    buttons: {
-        visible: 'always',
-        buttons: [
-            {
-                icon: 'zoom-in',
-                tooltip: 'Decrease Visible Range',
-                value: 'zoom-in',
-                label: 'In',
-                section: 'zoom',
-            },
-            {
-                icon: 'zoom-out',
-                tooltip: 'Increase Visible Range',
-                value: 'zoom-out',
-                label: 'Out',
-                section: 'zoom',
-            },
-            {
-                icon: 'pan-start',
-                tooltip: 'Pan to Start',
-                value: 'pan-start',
-                section: 'pan',
-            },
-            {
-                icon: 'pan-end',
-                tooltip: 'Pan to End',
-                value: 'pan-end',
-                section: 'pan',
-            },
-            {
-                tooltip: 'Undo all Zoom',
-                value: 'reset',
-                label: 'Reset',
-                section: 'reset',
-            },
-        ],
+{
+    zoom: {
+        buttons: {
+            visible: 'always',
+            buttons: [
+                {
+                    icon: 'zoom-in',
+                    tooltip: 'Decrease Visible Range',
+                    value: 'zoom-in',
+                    label: 'In',
+                    section: 'zoom',
+                },
+                {
+                    icon: 'zoom-out',
+                    tooltip: 'Increase Visible Range',
+                    value: 'zoom-out',
+                    label: 'Out',
+                    section: 'zoom',
+                },
+                {
+                    icon: 'pan-start',
+                    tooltip: 'Pan to Start',
+                    value: 'pan-start',
+                    section: 'pan',
+                },
+                {
+                    icon: 'pan-end',
+                    tooltip: 'Pan to End',
+                    value: 'pan-end',
+                    section: 'pan',
+                },
+                {
+                    tooltip: 'Undo all Zoom',
+                    value: 'reset',
+                    label: 'Reset',
+                    section: 'reset',
+                },
+            ],
+        },
     },
 }
 ```
@@ -281,9 +301,11 @@ Use the `dataSource` option to asynchronously load in new data as the chart is z
 {% chartExampleRunner title="Asynchronous Loading" name="zoom-async" type="generated" /%}
 
 ```ts format="snippet"
-dataSource: {
-    getData: ({ windowStart, windowEnd }) => {
-        return FakeServer.get(windowStart, windowEnd);
+{
+    dataSource: {
+        getData: ({ windowStart, windowEnd }) => {
+            return FakeServer.get(windowStart, windowEnd);
+        },
     },
 }
 ```

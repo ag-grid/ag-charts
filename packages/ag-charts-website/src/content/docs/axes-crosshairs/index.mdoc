@@ -55,10 +55,12 @@ This default behaviour can be modified by using the crosshair `snap` option. Whe
 Crosshair styles such as `stroke`, `strokeWidth` and `lineDash` are customisable via `AgCrosshairOptions`.
 
 ```js format="snippet"
-crosshair: {
-    stroke: '#2b5c95',
-    strokeWidth: 2,
-    lineDash: [5, 10],
+{
+    crosshair: {
+        stroke: '#2b5c95',
+        strokeWidth: 2,
+        lineDash: [5, 10],
+    },
 }
 ```
 
@@ -69,9 +71,11 @@ crosshair: {
 The crosshair label will be displayed along the axis by default. The label can be removed via the crosshair `label` option as shown in the code snippet below:
 
 ```js format="snippet"
-crosshair: {
-    label: {
-        enabled: false, // removes crosshair label
+{
+    crosshair: {
+        label: {
+            enabled: false, // removes crosshair label
+        },
     },
 }
 ```
@@ -81,10 +85,12 @@ crosshair: {
 The label position relative to the crosshair can be modified using the `xOffset` and `yOffset` properties in `crosshair.label` options as shown below:
 
 ```js format="snippet"
-crosshair: {
-    label: {
-        xOffset: -55, // positions label -55px to the right of the start of the crosshair line
-        yOffset: 40, // positions label 40px down from the start of the crosshair line
+{
+    crosshair: {
+        label: {
+            xOffset: -55, // positions label -55px to the right of the start of the crosshair line
+            yOffset: 40, // positions label 40px down from the start of the crosshair line
+        },
     },
 }
 ```
@@ -114,9 +120,11 @@ See [Formatters Inheritance and Precedence](./formatters/#inheritance-and-preced
 The default crosshair label is customisable using the crosshair label `renderer` option as shown below:
 
 ```js format="snippet"
-crosshair: {
-    label: {
-        renderer: labelRenderer, // Add label renderer callback function to customise label styles and content
+{
+    crosshair: {
+        label: {
+            renderer: labelRenderer, // Add label renderer callback function to customise label styles and content
+        },
     },
 }
 ```
