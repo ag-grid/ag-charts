@@ -4,40 +4,43 @@ import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 // (window as any).agChartsDebug = ['scene:stats', 'data-model', 'data-ref'];
 
 const STREAM_INTERVAL_MS = 10;
-const DATA_INTERVAL_MS = 250;
 const MAX_POINTS = 600;
+
+// Simple LCG pseudo-random number generator for repeatable randomness
+function createSeededRandom(seed: number) {
+    let state = seed;
+    return () => {
+        state = (state * 1664525 + 1013904223) % 2 ** 32;
+        return state / 2 ** 32;
+    };
+}
 
 function createLiveDatumFactory(getData: () => any[], mode = 'append') {
     return () => {
         const currentData = getData();
 
-        // Get timestamp based on current data state
-        let timestamp: number;
+        // Get index based on current data state
         let index: number;
 
         if (mode === 'append') {
             const lastDatum = currentData.at(-1);
-            timestamp = lastDatum ? lastDatum.timestamp + DATA_INTERVAL_MS : START_TIMESTAMP;
-            // Calculate index for append based on timestamp
-            index = Math.floor((timestamp - START_TIMESTAMP) / DATA_INTERVAL_MS);
+            index = lastDatum ? lastDatum.index + 1 : 0;
         } else {
             const firstDatum = currentData.at(0);
-            timestamp = firstDatum ? firstDatum.timestamp - DATA_INTERVAL_MS : START_TIMESTAMP;
-            // Calculate index for prepend based on timestamp
-            index = Math.floor((timestamp - START_TIMESTAMP) / DATA_INTERVAL_MS);
+            index = firstDatum ? firstDatum.index - 1 : 0;
         }
 
-        // Calculate price using the deterministic formula based on index
-        let price = 100;
-        for (let i = 0; i <= index; i++) {
-            const drift = Math.sin(i / 12) * 0.7 + Math.cos(i / 24) * 0.4;
-            price = Number((price + drift).toFixed(2));
-        }
+        // Create seeded random for this specific index
+        const random = createSeededRandom(index * 12345 + 67890);
+
+        // Generate pseudo-random x and y values
+        const x = index + (random() - 0.5) * 0.8;
+        const y = 50 + Math.sin(index / 10) * 20 + (random() - 0.5) * 15;
 
         const datum = {
-            timestamp,
-            price,
-            volume: 600 + Math.round((Math.sin(index / 8) + 1) * 220),
+            index,
+            x: Number(x.toFixed(2)),
+            y: Number(y.toFixed(2)),
         };
         return datum;
     };
@@ -114,21 +117,22 @@ class RapidDataFeed {
 }
 
 /* @ag-options-extract */
-const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
-function createSeedData(count = 30 * 60 * (1000 / DATA_INTERVAL_MS)) {
-    const data: { timestamp: number; price: number; volume: number }[] = [];
-    let price = 100;
-    let timestamp = START_TIMESTAMP;
+function createSeedData(count = 7200) {
+    const data: { index: number; x: number; y: number }[] = [];
 
     for (let i = 0; i < count; i++) {
-        const drift = Math.sin(i / 12) * 0.7 + Math.cos(i / 24) * 0.4;
-        price = Number((price + drift).toFixed(2));
+        // Create seeded random for this specific index
+        const random = createSeededRandom(i * 12345 + 67890);
+
+        // Generate pseudo-random x and y values
+        const x = i + (random() - 0.5) * 0.8;
+        const y = 50 + Math.sin(i / 10) * 20 + (random() - 0.5) * 15;
+
         data.push({
-            timestamp,
-            price,
-            volume: 600 + Math.round((Math.sin(i / 8) + 1) * 220),
+            index: i,
+            x: Number(x.toFixed(2)),
+            y: Number(y.toFixed(2)),
         });
-        timestamp += DATA_INTERVAL_MS;
     }
 
     return data;
@@ -143,23 +147,19 @@ const options: AgCartesianChartOptions = {
     series: [
         {
             type: 'scatter',
-            xKey: 'timestamp',
-            yKey: 'price',
-            size: 4,
+            xKey: 'x',
+            yKey: 'y',
+            // size: 4,
         },
     ],
     axes: [
         {
-            type: 'time',
+            type: 'number',
             position: 'bottom',
-            label: { format: '%H:%M:%S' },
         },
         {
             type: 'number',
             position: 'left',
-            label: {
-                formatter: (params) => `$${params.value.toFixed(2)}`,
-            },
         },
     ],
 };
