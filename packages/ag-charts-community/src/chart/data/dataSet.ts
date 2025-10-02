@@ -141,8 +141,3 @@ export class DataSet<T = unknown> {
         return this.data === data ? this : new DataSet<T>(data);
     }
 }
-
-const FROZEN_DATA = Object.freeze([]) as unknown as unknown[];
-const FROZEN_TRANSACTIONS = Object.freeze([]) as unknown as DataTransaction<unknown>[];
-
-export const EMPTY_DATA_SET = Object.freeze(new DataSet<unknown>(FROZEN_DATA, FROZEN_TRANSACTIONS));
