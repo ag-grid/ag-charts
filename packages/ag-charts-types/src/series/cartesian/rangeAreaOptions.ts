@@ -82,10 +82,10 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
     /** Style options for the area when the yHigh value is lower than the yLow value, when the area is inverted. */
-    negativeStyle?: AgRangeAreaSeriesNegativeStyle;
+    invertedStyle?: AgRangeAreaSeriesInvertedStyle;
 }
 
-export type AgRangeAreaSeriesNegativeStyle = FillOptions & {
+export type AgRangeAreaSeriesInvertedStyle = FillOptions & {
     enabled?: boolean;
 };
 

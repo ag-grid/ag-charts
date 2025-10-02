@@ -49,7 +49,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
         },
         highlight: _ModuleSupport.multiSeriesHighlightStyle(),
         segmentation: _ModuleSupport.SEGMENTATION_DEFAULTS,
-        negativeStyle: {
+        invertedStyle: {
             enabled: false,
             fill: {
                 $applySwitch: [

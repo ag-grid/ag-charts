@@ -501,7 +501,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     }),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     segmentation: shapeSegmentation,
-    negativeStyle: {
+    invertedStyle: {
         enabled: boolean,
         ...fillOptionsDef,
     },

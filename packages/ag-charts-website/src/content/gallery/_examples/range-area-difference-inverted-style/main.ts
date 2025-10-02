@@ -23,7 +23,7 @@ const options: AgCartesianChartOptions = {
             fill: 'green',
             fillOpacity: 0.5,
             strokeWidth: 0,
-            negativeStyle: {
+            invertedStyle: {
                 fill: 'red',
             },
         },

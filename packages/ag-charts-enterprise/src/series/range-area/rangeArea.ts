@@ -364,7 +364,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         );
 
         let intersectionSegments: _ModuleSupport.Segment[] | undefined = undefined;
-        if (this.properties.negativeStyle.enabled) {
+        if (this.properties.invertedStyle.enabled) {
             const startsInverted = yHighValues[0] < yLowValues[0];
             const intersectionXValues = findRangeAreaIntersections(
                 highSpans,
@@ -378,7 +378,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 this.chart.seriesRect,
                 this.ctx.scene,
                 startsInverted,
-                this.properties.negativeStyle
+                this.properties.invertedStyle
             );
         }
 

@@ -89,15 +89,15 @@ Each segment in the `segments` array is defined by bounds and provides style ove
     -   These are the same styling keys available on the series, such as `stroke` and `fill`.
     -   Unspecified properties fall back to the main series options or defaults.
 
-## Range Area Negative Styling
+## Range Area Inverted Styling
 
-Range Area series support a special type of segmentation styling called **negative styling** for handling inverted segments.
+Range Area series support a special type of segmentation styling called **inverted styling** for handling inverted segments.
 
 Inverted segments are automatically detected when the range area series encounters data points where the `yHighKey` value is less than the `yLowKey` value.
 
 This feature allows visual differentiation for ranges that represent negative differences or inverted states.
 
-{% chartExampleRunner title="Range Area Negative Style" name="range-area-negative-style" type="generated" /%}
+{% chartExampleRunner title="Range Area Inverted Style" name="range-area-inverted-style" type="generated" /%}
 
 ```js
 series: [
@@ -106,7 +106,7 @@ series: [
         xKey: 'quarter',
         yLowKey: 'projected',
         yHighKey: 'actual',
-        negativeStyle: {
+        invertedStyle: {
             fill: 'red',
         },
     },
@@ -116,8 +116,8 @@ series: [
 In this configuration:
 
 -   **Normal segments** where `high > low` use the series `fill` color.
--   **Inverted segments** where `high < low` use the `negativeStyle.fill` color (red).
--   The `negativeStyle` object supports `fill` and `fillOpacity`.
+-   **Inverted segments** where `high < low` use the `invertedStyle.fill` color (red).
+-   The `invertedStyle` object supports `fill` and `fillOpacity`.
 
 ## API Reference
 
@@ -127,8 +127,8 @@ In this configuration:
 {% apiReference id="AgSeriesShapeSegmentOptions" /%}
 {% /tabItem %}
 
-{% tabItem id="AgRangeAreaSeriesNegativeStyle" label="Range Area Negative Style" %}
-{% apiReference id="AgRangeAreaSeriesNegativeStyle" /%}
+{% tabItem id="AgRangeAreaSeriesInvertedStyle" label="Range Area Inverted Style" %}
+{% apiReference id="AgRangeAreaSeriesInvertedStyle" /%}
 {% /tabItem %}
 
 {% /tabs %}

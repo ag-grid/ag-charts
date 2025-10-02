@@ -25,7 +25,7 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     yLowName: string,
     yHighName: string,
     segmentation: shapeSegmentation,
-    negativeStyle: {
+    invertedStyle: {
         enabled: boolean,
         ...fillOptionsDef,
     },
