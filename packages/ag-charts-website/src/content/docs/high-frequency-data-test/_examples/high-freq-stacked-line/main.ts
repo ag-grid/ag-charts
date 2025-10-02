@@ -184,7 +184,7 @@ async function updateChartData() {
         currentData = updatedData;
 
         if (currentUpdateMethod === 'applyTransaction') {
-            await chart.applyTransaction({
+            await (chart as any).applyTransaction({
                 remove: removed,
                 append: appended,
             });

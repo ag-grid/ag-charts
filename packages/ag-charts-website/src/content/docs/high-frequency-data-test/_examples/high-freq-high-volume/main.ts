@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 (window as any).agChartsDebug = ['scene:stats'];
 
@@ -129,7 +129,7 @@ async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; 
     const start = performance.now();
 
     if (currentUpdateMethod === 'applyTransaction') {
-        await chart.applyTransaction({
+        await (chart as any).applyTransaction({
             append: append.length ? append : undefined,
             remove: remove.length ? remove : undefined,
         });

@@ -235,13 +235,13 @@ const updateCallback = async () => {
             case 'applyTransaction-remove-first':
                 const removedFirst = data.shift();
                 if (removedFirst) {
-                    chart.applyTransaction({ remove: [removedFirst] });
+                    (chart as any).applyTransaction({ remove: [removedFirst] });
                 }
                 break;
             case 'applyTransaction-remove-last':
                 const removedLast = data.pop();
                 if (removedLast) {
-                    chart.applyTransaction({ remove: [removedLast] });
+                    (chart as any).applyTransaction({ remove: [removedLast] });
                 }
                 break;
             case 'updateDelta-remove-first':
@@ -260,11 +260,11 @@ const updateCallback = async () => {
         switch (method) {
             case 'applyTransaction-append':
                 data = data.concat(newDatum);
-                chart.applyTransaction({ append: [newDatum] });
+                (chart as any).applyTransaction({ append: [newDatum] });
                 break;
             case 'applyTransaction-prepend':
                 data = [newDatum].concat(data);
-                chart.applyTransaction({ prepend: [newDatum] });
+                (chart as any).applyTransaction({ prepend: [newDatum] });
                 break;
             case 'updateDelta-append':
                 data = data.concat(newDatum);

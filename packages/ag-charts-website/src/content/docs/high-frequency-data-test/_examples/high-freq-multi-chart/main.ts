@@ -1,4 +1,5 @@
 // @ag-skip-fws
+// @ag-skip-container-check
 import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const refreshRateInMilliseconds = 50;
@@ -43,14 +44,14 @@ const commonConfig = {
     },
     series: [
         {
-            type: 'area',
+            type: 'area' as const,
             xKey: 'time',
             yKey: 'system',
             stacked: true,
             yName: 'System',
         },
         {
-            type: 'area',
+            type: 'area' as const,
             xKey: 'time',
             yKey: 'user',
             stacked: true,
@@ -59,8 +60,8 @@ const commonConfig = {
     ],
     axes: [
         {
-            type: 'time',
-            position: 'bottom',
+            type: 'time' as const,
+            position: 'bottom' as const,
             nice: false,
             label: {
                 enabled: false,
@@ -70,8 +71,8 @@ const commonConfig = {
             },
         },
         {
-            type: 'number',
-            position: 'left',
+            type: 'number' as const,
+            position: 'left' as const,
             title: {
                 enabled: false,
             },
@@ -88,14 +89,14 @@ const commonConfig = {
 };
 
 function createChart(index: number): [AgChartOptions, any] {
-    const options: AgChartOptions = {
+    const options = {
         container: document.getElementById('myChart' + index),
         data: getData([], index),
         title: {
             text: 'Host ' + index,
         },
         ...commonConfig,
-    };
+    } as AgChartOptions;
 
     return [options, AgCharts.create(options)];
 }
@@ -159,7 +160,7 @@ async function updateChartsData() {
             const removed = oldData.length > 0 ? [oldData.at(0)] : [];
             const added = opts.data.length > 0 ? [opts.data.at(-1)] : [];
 
-            await chart.applyTransaction({ remove: removed, append: added });
+            await (chart as any).applyTransaction({ remove: removed, append: added });
         } else {
             await chart.updateDelta({ data: opts.data });
         }
