@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { DataController } from './dataController';
 import type { DataModelOptions, DatumPropertyDefinition } from './dataModel';
-import { DataRef } from './dataRef';
+import { DataSet } from './dataSet';
 
 describe('DataController', () => {
     let controller: DataController;
@@ -29,9 +29,9 @@ describe('DataController', () => {
                 },
             ],
         };
-        const dataRef = new DataRef(data);
-        const promise1 = controller.request('test1', dataRef, def);
-        const promise2 = controller.request('test2', dataRef, def);
+        const dataSet = new DataSet(data);
+        const promise1 = controller.request('test1', dataSet, def);
+        const promise2 = controller.request('test2', dataSet, def);
 
         controller.execute();
         const results = await Promise.all([promise1, promise2]);
@@ -42,8 +42,8 @@ describe('DataController', () => {
     });
 
     it('should merge compatible requests with different ids', async () => {
-        const dataRef = new DataRef(data);
-        const promise1 = controller.request('test1', dataRef, {
+        const dataSet = new DataSet(data);
+        const promise1 = controller.request('test1', dataSet, {
             props: [
                 {
                     id: 'keyProp1-key',
@@ -59,7 +59,7 @@ describe('DataController', () => {
             ],
         });
 
-        const promise2 = controller.request('test2', dataRef, {
+        const promise2 = controller.request('test2', dataSet, {
             props: [
                 {
                     id: 'keyProp2-key',
@@ -84,7 +84,7 @@ describe('DataController', () => {
     });
 
     it('should not merge incompatible requests', async () => {
-        const promise1 = controller.request('test1', new DataRef(data), {
+        const promise1 = controller.request('test1', new DataSet(data), {
             props: [
                 {
                     id: 'keyProp1-key',
@@ -100,7 +100,7 @@ describe('DataController', () => {
             ],
         });
 
-        const promise2 = controller.request('test2', new DataRef(data), {
+        const promise2 = controller.request('test2', new DataSet(data), {
             props: [
                 {
                     id: 'keyProp2-key',
@@ -127,8 +127,8 @@ describe('DataController', () => {
     });
 
     it('should merge compatible requests', async () => {
-        const dataRef = new DataRef(data);
-        const promise1 = controller.request('test1', dataRef, {
+        const dataSet = new DataSet(data);
+        const promise1 = controller.request('test1', dataSet, {
             props: [
                 {
                     id: 'keyProp1-key',
@@ -151,7 +151,7 @@ describe('DataController', () => {
             ],
         });
 
-        const promise2 = controller.request('test2', dataRef, {
+        const promise2 = controller.request('test2', dataSet, {
             props: [
                 {
                     id: 'keyProp1-key',
@@ -226,7 +226,7 @@ describe('DataController', () => {
             { keyProp1: 2022, valueProp1: 300 },
         ];
 
-        const promise1 = controller.request('test1', new DataRef(data), {
+        const promise1 = controller.request('test1', new DataSet(data), {
             props: [
                 {
                     id: 'keyProp1-key',
@@ -280,8 +280,8 @@ describe('DataController', () => {
                 ],
             };
 
-            const promise1 = controller.request('test1', new DataRef(data1), def);
-            const promise2 = controller.request('test2', new DataRef(data2), def);
+            const promise1 = controller.request('test1', new DataSet(data1), def);
+            const promise2 = controller.request('test2', new DataSet(data2), def);
 
             controller.execute();
             const results = await Promise.all([promise1, promise2]);
@@ -303,7 +303,7 @@ describe('DataController', () => {
                 { keyProp1: '2022', valueProp1: 60 },
             ];
 
-            const promise1 = controller.request('test1', new DataRef(data1), {
+            const promise1 = controller.request('test1', new DataSet(data1), {
                 props: [
                     {
                         id: 'keyProp1-key',
@@ -320,7 +320,7 @@ describe('DataController', () => {
                 ],
             });
 
-            const promise2 = controller.request('test2', new DataRef(data2), {
+            const promise2 = controller.request('test2', new DataSet(data2), {
                 props: [
                     {
                         id: 'keyProp1-key',
@@ -348,7 +348,7 @@ describe('DataController', () => {
             const data1 = [{ valueProp1: 100 }, { valueProp1: 200 }, { valueProp1: 300 }];
             const data2 = [{ valueProp1: 40 }, { valueProp1: 50 }, { valueProp1: 60 }];
 
-            const promise1 = controller.request('test1', new DataRef(data1), {
+            const promise1 = controller.request('test1', new DataSet(data1), {
                 props: [
                     {
                         id: 'valueProp1-key1',
@@ -367,7 +367,7 @@ describe('DataController', () => {
                 ],
             });
 
-            const promise2 = controller.request('test2', new DataRef(data2), {
+            const promise2 = controller.request('test2', new DataSet(data2), {
                 props: [
                     {
                         id: 'valueProp1-key1',
@@ -423,8 +423,8 @@ describe('DataController', () => {
                 ] satisfies DatumPropertyDefinition<any>[],
             };
 
-            const promise1 = controller.request('test1', new DataRef(data1), def);
-            const promise2 = controller.request('test2', new DataRef(data2), def);
+            const promise1 = controller.request('test1', new DataSet(data1), def);
+            const promise2 = controller.request('test2', new DataSet(data2), def);
 
             controller.execute();
             const results = await Promise.all([promise1, promise2]);

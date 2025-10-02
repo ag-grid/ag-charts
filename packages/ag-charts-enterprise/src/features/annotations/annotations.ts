@@ -574,8 +574,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         // data model and we don't have missing props of `date` and `volume`.
         // Request a data model with no extra props, we expect the required keys of `date` and `volume` will already
         // be provided by the series, so we can skip duplicate processing.
-        const dataRef = _ModuleSupport.DataRef.wrap(this.data) ?? _ModuleSupport.DataRef.empty();
-        const { dataModel, processedData } = await dataController.request('annotations', dataRef, {
+        const dataSet = _ModuleSupport.DataSet.wrap(this.data) ?? _ModuleSupport.DataSet.empty();
+        const { dataModel, processedData } = await dataController.request('annotations', dataSet, {
             props,
         });
         this.dataModel = dataModel;

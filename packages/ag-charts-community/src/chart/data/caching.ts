@@ -2,12 +2,12 @@ import { arraysEqual } from 'ag-charts-core';
 
 import { objectsEqual } from '../../util/object';
 import type { DataModel, DataModelOptions, PropertyDefinition, UngroupedData } from './dataModel';
-import type { DataRef } from './dataRef';
+import type { DataSet } from './dataSet';
 
 interface CachedDataItem<D extends object, K extends keyof D & string = keyof D & string> {
     ids: string[];
     opts: DataModelOptions<K, any>;
-    dataRef: DataRef<D>;
+    dataSet: DataSet<D>;
     dataLength: number;
     dataModel: DataModel<any, any, any>;
     processedData: UngroupedData<any> | undefined;
@@ -69,15 +69,15 @@ function optsEqual(a: DataModelOptions<any, any, true>, b: DataModelOptions<any,
 
 export function canReuseCachedData<D extends object, K extends keyof D & string = keyof D & string>(
     cachedDataItem: CachedDataItem<any, any>,
-    dataRef: DataRef<D>,
+    dataSet: DataSet<D>,
     ids: string[],
     opts: DataModelOptions<K, any>
 ) {
-    if (dataRef !== cachedDataItem.dataRef) {
+    if (dataSet !== cachedDataItem.dataSet) {
         return false;
     }
 
-    if (cachedDataItem.dataRef.data.length !== cachedDataItem.dataLength) {
+    if (cachedDataItem.dataSet.data.length !== cachedDataItem.dataLength) {
         return false;
     }
 

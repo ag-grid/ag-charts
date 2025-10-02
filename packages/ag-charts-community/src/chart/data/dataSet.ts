@@ -5,10 +5,10 @@ import { applyRemoveByReference, mapToCanonicalReferences, normaliseRemoveRefere
 
 type DataTransaction<T> = AgDataTransaction<T>;
 
-const debug = Debug.create(true, 'data-ref');
-const dataRefLookup = new WeakMap<readonly unknown[], DataRef<any>>();
+const debug = Debug.create(true, 'data-set');
+const dataSetLookup = new WeakMap<readonly unknown[], DataSet<any>>();
 
-export class DataRef<T = unknown> {
+export class DataSet<T = unknown> {
     public data: T[];
     public pendingTransactions: DataTransaction<T>[];
 
@@ -16,20 +16,20 @@ export class DataRef<T = unknown> {
         this.data = data;
         this.pendingTransactions = pendingTransactions;
 
-        dataRefLookup.set(this.data, this);
+        dataSetLookup.set(this.data, this);
     }
 
-    static wrap<T>(data?: T[]): DataRef<T> | undefined {
+    static wrap<T>(data?: T[]): DataSet<T> | undefined {
         if (data == null) return undefined;
-        return new DataRef<T>(data);
+        return new DataSet<T>(data);
     }
 
-    static empty<T = unknown>(): DataRef<T> {
-        return new DataRef<T>([]);
+    static empty<T = unknown>(): DataSet<T> {
+        return new DataSet<T>([]);
     }
 
-    static isDataRef(value: unknown): value is DataRef<any> {
-        return value instanceof DataRef;
+    static isDataSet(value: unknown): value is DataSet<any> {
+        return value instanceof DataSet;
     }
 
     netSize(): number {
@@ -51,7 +51,7 @@ export class DataRef<T = unknown> {
 
         const beforeLength = this.data.length;
         if (debug.check()) {
-            debug('DataRef.commitPendingTransactions() - starting', { beforeLength });
+            debug('DataSet.commitPendingTransactions() - starting', { beforeLength });
         }
 
         for (const transaction of this.pendingTransactions) {
@@ -59,7 +59,7 @@ export class DataRef<T = unknown> {
             if (removeRefs.length > 0) {
                 const canonical = mapToCanonicalReferences(this.data, removeRefs);
                 if (debug.check()) {
-                    debug('DataRef.commitPendingTransactions() - removing rows', {
+                    debug('DataSet.commitPendingTransactions() - removing rows', {
                         requested: removeRefs.length,
                         canonical: canonical.length,
                     });
@@ -80,7 +80,7 @@ export class DataRef<T = unknown> {
         this.pendingTransactions = [];
 
         if (debug.check()) {
-            debug('DataRef.commitPendingTransactions() - final length', { afterLength: this.data.length });
+            debug('DataSet.commitPendingTransactions() - final length', { afterLength: this.data.length });
         }
     }
 
@@ -90,18 +90,18 @@ export class DataRef<T = unknown> {
         }
 
         if (!Array.isArray(this.data)) {
-            throw new Error('AG Charts - dataRef preview expects "data" to be an array.');
+            throw new Error('AG Charts - dataSet preview expects "data" to be an array.');
         }
 
         if (!Array.isArray(this.pendingTransactions)) {
-            throw new Error('AG Charts - dataRef preview expects "pendingTransactions" to be an array.');
+            throw new Error('AG Charts - dataSet preview expects "pendingTransactions" to be an array.');
         }
 
         let preview = this.data;
         let mutated = false;
 
         if (debug.check()) {
-            debug('DataRef.previewPendingTransactions() - starting', { baseLength: this.data.length });
+            debug('DataSet.previewPendingTransactions() - starting', { baseLength: this.data.length });
         }
 
         for (const transaction of this.pendingTransactions) {
@@ -117,7 +117,7 @@ export class DataRef<T = unknown> {
                 }
                 const canonical = mapToCanonicalReferences(preview, removeRefs);
                 if (debug.check()) {
-                    debug('DataRef.previewPendingTransactions() - removing rows', {
+                    debug('DataSet.previewPendingTransactions() - removing rows', {
                         requested: removeRefs.length,
                         canonical: canonical.length,
                     });
@@ -155,31 +155,31 @@ export class DataRef<T = unknown> {
         }
 
         if (debug.check() && mutated) {
-            debug('DataRef.previewPendingTransactions() - preview length', { previewLength: preview.length });
+            debug('DataSet.previewPendingTransactions() - preview length', { previewLength: preview.length });
         }
 
         return mutated ? preview : this.data;
     }
 
-    merge(data: T[]): DataRef<T> {
-        return this.data === data ? this : new DataRef<T>(data);
+    merge(data: T[]): DataSet<T> {
+        return this.data === data ? this : new DataSet<T>(data);
     }
 }
 
-export function getDataRefForData(data: readonly unknown[] | undefined): DataRef<any> | undefined {
+export function getDataSetForData(data: readonly unknown[] | undefined): DataSet<any> | undefined {
     if (!data) return undefined;
-    return dataRefLookup.get(data);
+    return dataSetLookup.get(data);
 }
 
 const FROZEN_DATA = Object.freeze([]) as unknown as unknown[];
 const FROZEN_TRANSACTIONS = Object.freeze([]) as unknown as DataTransaction<unknown>[];
 
-export const EMPTY_DATA_REF = Object.freeze(new DataRef<unknown>(FROZEN_DATA, FROZEN_TRANSACTIONS));
+export const EMPTY_DATA_SET = Object.freeze(new DataSet<unknown>(FROZEN_DATA, FROZEN_TRANSACTIONS));
 
-/** @deprecated Use `DataRef.wrap()` instead. */
+/** @deprecated Use `DataSet.wrap()` instead. */
 export function wrapRawData(): undefined;
 export function wrapRawData(data: undefined): undefined;
-export function wrapRawData<T>(data: T[]): DataRef<T>;
-export function wrapRawData<T>(data?: T[]): DataRef<T> | undefined {
-    return DataRef.wrap(data);
+export function wrapRawData<T>(data: T[]): DataSet<T>;
+export function wrapRawData<T>(data?: T[]): DataSet<T> | undefined {
+    return DataSet.wrap(data);
 }

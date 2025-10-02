@@ -62,7 +62,7 @@ import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
-import { DataRef, wrapRawData } from './data/dataRef';
+import { DataSet, wrapRawData } from './data/dataSet';
 import { axisRegistry } from './factory/axisRegistry';
 import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
@@ -153,7 +153,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     })
     container?: HTMLElement;
 
-    public data: DataRef = DataRef.empty();
+    public data: DataSet = DataSet.empty();
 
     @ActionOnSet<Chart>({
         newValue(value) {
@@ -372,7 +372,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = this.data = new DataRef(event.data);
+                this.data = this.data = new DataSet(event.data);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -1320,9 +1320,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (deltaOptions.data) {
-            // Always create a new DataRef for updateDelta to ensure cache invalidation
-            // This ensures the cache check (DataRef reference equality) will fail
-            this.data = new DataRef(deltaOptions.data);
+            // Always create a new DataSet for updateDelta to ensure cache invalidation
+            // This ensures the cache check (DataSet reference equality) will fail
+            this.data = new DataSet(deltaOptions.data);
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);

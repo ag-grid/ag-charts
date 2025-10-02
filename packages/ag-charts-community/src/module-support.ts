@@ -66,7 +66,7 @@ export * from './chart/axis/generateTicks';
 export * from './chart/axis/generateTicksUtils';
 export * from './chart/data/dataController';
 export * from './chart/data/dataModel';
-export * from './chart/data/dataRef';
+export * from './chart/data/dataSet';
 export * from './chart/data/dataService';
 export * from './chart/data/processors';
 export * from './chart/data/aggregateFunctions';

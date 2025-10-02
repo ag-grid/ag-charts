@@ -8,7 +8,7 @@ import { objectsEqual } from '../../util/object';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
-import { DataRef } from '../data/dataRef';
+import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
@@ -91,7 +91,7 @@ export abstract class DataModelSeries<
         G extends boolean | undefined = undefined,
     >(
         dataController: DataController,
-        dataRef: DataRef<D> | undefined,
+        dataSet: DataSet<D> | undefined,
         opts: DataModelOptions<K, boolean | undefined, false>
     ) {
         // Merge properties of this series with properties of all the attached series-options
@@ -99,7 +99,7 @@ export abstract class DataModelSeries<
 
         const { dataModel, processedData } = await dataController.request<D, K, G>(
             this.id,
-            dataRef ?? DataRef.empty(),
+            dataSet ?? DataSet.empty(),
             opts
         );
 

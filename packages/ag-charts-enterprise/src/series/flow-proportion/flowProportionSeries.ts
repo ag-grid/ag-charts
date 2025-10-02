@@ -177,7 +177,7 @@ export abstract class FlowProportionSeries<
             nodes != null
                 ? nodesDataController.request<any, any, true>(
                       this.id,
-                      _ModuleSupport.DataRef.wrap(nodes) ?? _ModuleSupport.DataRef.empty(),
+                      _ModuleSupport.DataSet.wrap(nodes) ?? _ModuleSupport.DataSet.empty(),
                       {
                           props: [
                               keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),

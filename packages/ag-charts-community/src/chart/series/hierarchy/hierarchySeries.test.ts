@@ -1,6 +1,6 @@
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
-import { wrapRawData } from '../../data/dataRef';
+import { wrapRawData } from '../../data/dataSet';
 import type { SeriesTooltip } from '../seriesTooltip';
 import { HierarchyNode, HierarchySeries } from './hierarchySeries';
 import { HierarchySeriesProperties } from './hierarchySeriesProperties';
