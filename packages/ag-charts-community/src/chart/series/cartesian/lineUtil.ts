@@ -40,7 +40,7 @@ export type LineSpanPointDatum = {
 };
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
-    readonly itemId?: undefined;
+    readonly itemId?: never;
     readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
