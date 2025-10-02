@@ -10,7 +10,7 @@ import { Sector } from '../scene/shape/sector';
 import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
-import { wrapRawData } from './data/dataSet';
+import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
 import {
     clickAction,
@@ -500,9 +500,9 @@ describe('Chart', () => {
                     },
                 ],
             });
-            expect(chart.data).toEqual(wrapRawData(moreData));
-            expect(chart.series[0].data).toEqual(wrapRawData(moreData));
-            expect(chart.series[1].data).toEqual(wrapRawData(lessData));
+            expect(chart.data).toEqual(DataSet.wrap(moreData));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(moreData));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(lessData));
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -521,9 +521,9 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chart.data).toEqual(wrapRawData(moreData));
-            expect(chart.series[0].data).toEqual(wrapRawData(lessData));
-            expect(chart.series[1].data).toEqual(wrapRawData(moreData));
+            expect(chart.data).toEqual(DataSet.wrap(moreData));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(lessData));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(moreData));
 
             await updateChart(chartProxy, {
                 data: moreData,

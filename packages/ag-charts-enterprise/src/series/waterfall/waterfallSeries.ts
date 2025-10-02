@@ -38,7 +38,7 @@ const {
     applyShapeStyle,
     mergeDefaults,
     getItemStylesPerItemId,
-    wrapRawData,
+    DataSet,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<Point> & {
@@ -150,7 +150,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { processedData } = await this.requestDataModel<any, any, true>(
             dataController,
-            wrapRawData(dataWithTotals),
+            DataSet.wrap(dataWithTotals),
             {
                 props: [
                     keyProperty(xKey, xScaleType, { id: `xValue` }),

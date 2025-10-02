@@ -77,6 +77,9 @@ export function canReuseCachedData<D extends object, K extends keyof D & string 
         return false;
     }
 
+    // Check if the underlying data array has been mutated since caching
+    // Even though the DataSet reference matches, the data array could have been modified
+    // directly (e.g., via commitPendingTransactions) without creating a new DataSet
     if (cachedDataItem.dataSet.data.length !== cachedDataItem.dataLength) {
         return false;
     }

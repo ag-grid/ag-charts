@@ -6,8 +6,23 @@ import { applyRemoveByReference, mapToCanonicalReferences, normaliseRemoveRefere
 type DataTransaction<T> = AgDataTransaction<T>;
 
 const debug = Debug.create(true, 'data-set');
-const dataSetLookup = new WeakMap<readonly unknown[], DataSet<any>>();
 
+/**
+ * Encapsulates chart data with support for transactional updates.
+ *
+ * DataSet wraps a raw data array and manages pending transactions (append, prepend, remove operations)
+ * that can be committed incrementally for high-performance data updates.
+ *
+ * @example
+ * ```typescript
+ * // Create a DataSet from raw data
+ * const dataSet = new DataSet([{ x: 1, y: 2 }, { x: 2, y: 4 }]);
+ *
+ * // Apply transactions
+ * dataSet.pendingTransactions.push({ append: [{ x: 3, y: 6 }] });
+ * dataSet.commitPendingTransactions();
+ * ```
+ */
 export class DataSet<T = unknown> {
     public data: T[];
     public pendingTransactions: DataTransaction<T>[];
@@ -15,35 +30,73 @@ export class DataSet<T = unknown> {
     constructor(data: T[], pendingTransactions: DataTransaction<T>[] = []) {
         this.data = data;
         this.pendingTransactions = pendingTransactions;
-
-        dataSetLookup.set(this.data, this);
     }
 
+    /**
+     * Wraps raw data array in a DataSet, or returns undefined if data is null/undefined.
+     */
     static wrap<T>(data?: T[]): DataSet<T> | undefined {
         if (data == null) return undefined;
         return new DataSet<T>(data);
     }
 
+    /**
+     * Creates an empty DataSet with no data.
+     */
     static empty<T = unknown>(): DataSet<T> {
         return new DataSet<T>([]);
     }
 
+    /**
+     * Type guard to check if a value is a DataSet instance.
+     */
     static isDataSet(value: unknown): value is DataSet<any> {
         return value instanceof DataSet;
     }
 
+    /**
+     * Returns the net size of the data after applying all pending transactions.
+     * This calculates the final data length without mutating the underlying array.
+     *
+     * Note: This assumes transactions don't have overlapping updates (i.e., removes
+     * don't target items in append/prepend arrays). This is a safe assumption for
+     * typical usage where transactions operate on existing data.
+     */
     netSize(): number {
         if (!this.hasPendingTransactions()) {
             return this.data.length;
         }
 
-        return this.previewPendingTransactions().length;
+        let netLength = this.data.length;
+
+        for (const transaction of this.pendingTransactions) {
+            const removeRefs = normaliseRemoveReferences(transaction.remove);
+            netLength -= removeRefs.length;
+
+            if (Array.isArray(transaction.prepend)) {
+                netLength += transaction.prepend.length;
+            }
+            if (Array.isArray(transaction.append)) {
+                netLength += transaction.append.length;
+            }
+        }
+
+        return Math.max(0, netLength);
     }
 
+    /**
+     * Checks if there are any pending transactions waiting to be committed.
+     */
     hasPendingTransactions(): boolean {
         return this.pendingTransactions.length > 0;
     }
 
+    /**
+     * Commits all pending transactions by applying them to the underlying data array in-place.
+     * This mutates the data array and clears the pending transactions queue.
+     *
+     * Transactions are applied in order: remove, then prepend, then append.
+     */
     commitPendingTransactions(): void {
         if (!this.hasPendingTransactions()) {
             return;
@@ -84,102 +137,12 @@ export class DataSet<T = unknown> {
         }
     }
 
-    previewPendingTransactions(): T[] {
-        if (!this.hasPendingTransactions()) {
-            return this.data;
-        }
-
-        if (!Array.isArray(this.data)) {
-            throw new Error('AG Charts - dataSet preview expects "data" to be an array.');
-        }
-
-        if (!Array.isArray(this.pendingTransactions)) {
-            throw new Error('AG Charts - dataSet preview expects "pendingTransactions" to be an array.');
-        }
-
-        let preview = this.data;
-        let mutated = false;
-
-        if (debug.check()) {
-            debug('DataSet.previewPendingTransactions() - starting', { baseLength: this.data.length });
-        }
-
-        for (const transaction of this.pendingTransactions) {
-            if (transaction == null || typeof transaction !== 'object') {
-                throw new Error('AG Charts - invalid data transaction encountered.');
-            }
-
-            const removeRefs = normaliseRemoveReferences(transaction.remove);
-            if (removeRefs.length > 0) {
-                if (!mutated) {
-                    preview = this.data.slice();
-                    mutated = true;
-                }
-                const canonical = mapToCanonicalReferences(preview, removeRefs);
-                if (debug.check()) {
-                    debug('DataSet.previewPendingTransactions() - removing rows', {
-                        requested: removeRefs.length,
-                        canonical: canonical.length,
-                    });
-                }
-                applyRemoveByReference(preview, canonical, true);
-            }
-
-            const { prepend, append } = transaction;
-
-            if (prepend != null) {
-                if (!Array.isArray(prepend)) {
-                    throw new Error('AG Charts - data transaction "prepend" must be an array.');
-                }
-                if (prepend.length) {
-                    if (!mutated) {
-                        preview = this.data.slice();
-                        mutated = true;
-                    }
-                    preview.unshift(...prepend);
-                }
-            }
-
-            if (append != null) {
-                if (!Array.isArray(append)) {
-                    throw new Error('AG Charts - data transaction "append" must be an array.');
-                }
-                if (append.length) {
-                    if (!mutated) {
-                        preview = this.data.slice();
-                        mutated = true;
-                    }
-                    preview.push(...append);
-                }
-            }
-        }
-
-        if (debug.check() && mutated) {
-            debug('DataSet.previewPendingTransactions() - preview length', { previewLength: preview.length });
-        }
-
-        return mutated ? preview : this.data;
-    }
-
     merge(data: T[]): DataSet<T> {
         return this.data === data ? this : new DataSet<T>(data);
     }
-}
-
-export function getDataSetForData(data: readonly unknown[] | undefined): DataSet<any> | undefined {
-    if (!data) return undefined;
-    return dataSetLookup.get(data);
 }
 
 const FROZEN_DATA = Object.freeze([]) as unknown as unknown[];
 const FROZEN_TRANSACTIONS = Object.freeze([]) as unknown as DataTransaction<unknown>[];
 
 export const EMPTY_DATA_SET = Object.freeze(new DataSet<unknown>(FROZEN_DATA, FROZEN_TRANSACTIONS));
-
-/** @deprecated Use `DataSet.wrap()` instead. */
-export function wrapRawData(): undefined;
-export function wrapRawData(data: undefined): undefined;
-export function wrapRawData<T>(data: T[]): DataSet<T>;
-export function wrapRawData<T>(data?: T[]): DataSet<T> | undefined {
-    return DataSet.wrap(data);
-}

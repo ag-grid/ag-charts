@@ -62,7 +62,7 @@ import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
-import { DataSet, wrapRawData } from './data/dataSet';
+import { DataSet } from './data/dataSet';
 import { axisRegistry } from './factory/axisRegistry';
 import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
@@ -372,7 +372,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = this.data = new DataSet(event.data);
+                this.data = new DataSet(event.data);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -1725,7 +1725,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(wrapRawData(data));
+            target.setOptionsData(DataSet.wrap(data));
         }
 
         if (listeners) {
@@ -1786,10 +1786,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     async applyTransaction(transaction: AgDataTransaction) {
+        // Note: Validation happens at the public API layer (AgChartInstanceProxy)
         await this.updateMutex.acquire(() => {
             this.data.pendingTransactions.push(transaction);
+            this.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true, skipAnimations: true });
         });
-
-        this.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true, skipAnimations: true });
     }
 }

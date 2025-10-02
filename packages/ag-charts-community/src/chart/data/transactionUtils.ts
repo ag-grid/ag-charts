@@ -17,11 +17,19 @@ export function normaliseRemoveReferences<T>(remove: T | T[] | undefined): T[] {
  * Maps user-provided removal references to canonical references that match
  * the actual data array indices. Uses reference equality.
  *
- * @param data - The source data array
- * @param removeRefs - Array of datum references to remove
+ * @param data - The source data array (must be non-null array)
+ * @param removeRefs - Array of datum references to remove (must be non-null array)
  * @returns Array of unique datum references that exist in the data array
  */
 export function mapToCanonicalReferences<T>(data: readonly T[], removeRefs: readonly T[]): T[] {
+    if (!Array.isArray(data)) {
+        throw new Error('AG Charts - mapToCanonicalReferences expects "data" to be an array.');
+    }
+
+    if (!Array.isArray(removeRefs)) {
+        throw new Error('AG Charts - mapToCanonicalReferences expects "removeRefs" to be an array.');
+    }
+
     if (removeRefs.length === 0) {
         return [];
     }
@@ -54,12 +62,20 @@ export function mapToCanonicalReferences<T>(data: readonly T[], removeRefs: read
  * Removes items from an array by reference equality.
  * Optimized for performance with minimal memory allocation.
  *
- * @param data - The array to remove items from
- * @param removeRefs - Array of references to remove
+ * @param data - The array to remove items from (must be non-null array)
+ * @param removeRefs - Array of references to remove (must be non-null array)
  * @param mutate - If true, mutates data in-place; if false, returns new array
  * @returns The array with items removed (either mutated original or new array)
  */
 export function applyRemoveByReference<T>(data: T[], removeRefs: readonly T[], mutate: boolean): T[] {
+    if (!Array.isArray(data)) {
+        throw new Error('AG Charts - applyRemoveByReference expects "data" to be an array.');
+    }
+
+    if (!Array.isArray(removeRefs)) {
+        throw new Error('AG Charts - applyRemoveByReference expects "removeRefs" to be an array.');
+    }
+
     if (removeRefs.length === 0) {
         return mutate ? data : data.slice();
     }
