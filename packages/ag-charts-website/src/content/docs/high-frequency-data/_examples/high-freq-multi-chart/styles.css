@@ -1,0 +1,14 @@
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+    height: 400px;
+}
+
+.chart-grid > div {
+    height: 100%;
+    width: 100%;
+    min-height: 180px;
+}

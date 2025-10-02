@@ -1,0 +1,14 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+        <button onclick="addBatch()">Add 100</button>
+        <button onclick="removeBatch()">Remove 100</button>
+        <select id="methodSelect" onchange="updateMethod(this.value)">
+            <option value="applyTransaction">applyTransaction()</option>
+            <option value="updateDelta">updateDelta()</option>
+        </select>
+        <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+        <span id="dataCount" style="margin-left: 10px">Points: 100000</span>
+    </div>
+</div>
+<div id="myChart"></div>
