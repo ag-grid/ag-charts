@@ -1305,4 +1305,49 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
     });
+
+    describe('AG-15773 itemStyler itemId', () => {
+        it('should render high and low markers differently', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { month: 'January', low: 1200, high: 1500 },
+                    { month: 'February', low: 1500, high: 1650 },
+                    { month: 'March', low: 1700, high: 1920 },
+                    { month: 'April', low: 1800, high: 2100 },
+                    { month: 'May', low: 2000, high: 2300 },
+                    { month: 'June', low: 2450, high: 2100 },
+                    { month: 'July', low: 2600, high: 2300 },
+                    { month: 'August', low: 2200, high: 2550 },
+                    { month: 'September', low: 2000, high: 2400 },
+                    { month: 'October', low: 1900, high: 2250 },
+                    { month: 'November', low: 1750, high: 2100 },
+                    { month: 'December', low: 1600, high: 1950 },
+                ],
+                legend: { item: { line: { length: 50 } } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'month',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        marker: {
+                            size: 25,
+                            itemStyler: (params) => {
+                                switch (params.itemId) {
+                                    case 'high':
+                                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
+                                    case 'low':
+                                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
+                                    default:
+                                        return {};
+                                }
+                            },
+                        },
+                    },
+                ],
+            };
+            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+            await compare();
+        });
+    });
 });
