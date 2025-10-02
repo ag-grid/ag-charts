@@ -187,8 +187,10 @@ gradientLegend: {
 By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
 
 ```js format="snippet"
-gradientLegend: {
-    position: 'right',
+{
+    gradientLegend: {
+        position: 'right',
+    },
 }
 ```
 
@@ -199,10 +201,12 @@ When the position is `left` or `right`, the Gradient Legend displays the values 
 {% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
 
 ```js format="snippet"
-gradientLegend: {
-    gradient: {
-        thickness: 50,
-        preferredLength: 400,
+{
+    gradientLegend: {
+        gradient: {
+            thickness: 50,
+            preferredLength: 400,
+        },
     },
 }
 ```
@@ -219,16 +223,18 @@ It is possible to customise the font, colour and padding of the labels by using 
 {% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
 
 ```js format="snippet"
-gradientLegend: {
-    scale: {
-        label: {
-            fontSize: 20,
-            fontStyle: 'italic',
-            fontWeight: 'bold',
-            fontFamily: 'serif',
-            color: 'red',
+{
+    gradientLegend: {
+        scale: {
+            label: {
+                fontSize: 20,
+                fontStyle: 'italic',
+                fontWeight: 'bold',
+                fontFamily: 'serif',
+                color: 'red',
+            },
+            padding: 20,
         },
-        padding: 20,
     },
 }
 ```

@@ -18,17 +18,19 @@ Grid lines can be styled via the `gridLine.style` property on each axis.
 {% chartExampleRunner title="Axis Grid Lines" name="axis-grid-lines" type="generated" /%}
 
 ```js format="snippet"
-gridLine: {
-    style: [
-        {
-            stroke: 'gray',
-            lineDash: [10, 5],
-        },
-        {
-            stroke: 'lightgray',
-            lineDash: [5, 5],
-        },
-    ],
+{
+    gridLine: {
+        style: [
+            {
+                stroke: 'gray',
+                lineDash: [10, 5],
+            },
+            {
+                stroke: 'lightgray',
+                lineDash: [5, 5],
+            },
+        ],
+    },
 }
 ```
 
@@ -49,15 +51,17 @@ Alternating band shading can be achieved using the `fill` and `fillOpacity` prop
 {% chartExampleRunner title="Axis Grid Fills" name="axis-grid-fills" type="generated" /%}
 
 ```js format="snippet"
-gridLine: {
-    style: [
-        {
-            fill: '#999',
-            fillOpacity: 0.1,
-            strokeWidth: 0, //don't show lines around the bands
-        },
-        {}, //empty object for an unshaded band
-    ],
+{
+    gridLine: {
+        style: [
+            {
+                fill: '#999',
+                fillOpacity: 0.1,
+                strokeWidth: 0, //don't show lines around the bands
+            },
+            {}, //empty object for an unshaded band
+        ],
+    },
 }
 ```
 
