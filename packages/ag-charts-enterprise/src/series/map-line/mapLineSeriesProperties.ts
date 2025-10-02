@@ -13,6 +13,7 @@ const { Property, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
 export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    readonly itemId: string;
     readonly idValue: string;
     readonly labelValue: string | undefined;
     readonly colorValue: number | undefined;

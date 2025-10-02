@@ -419,7 +419,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         value: any;
         yLowValue: any;
         yHighValue: any;
-        itemId: string;
+        itemId: AgRangeAreaSeriesItemType;
         inverted: boolean;
         datum: any;
         series: RangeAreaSeries;

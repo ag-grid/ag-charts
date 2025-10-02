@@ -919,13 +919,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.resetConnectorLinesPath(data);
     }
 
-    protected override updatePaths(opts: {
-        seriesHighlighted?: boolean;
-        itemId?: string;
-        contextData: WaterfallContext;
-        paths: _ModuleSupport.Path[];
-        seriesIdx: number;
-    }) {
+    protected override updatePaths(opts: { contextData: WaterfallContext; paths: _ModuleSupport.Path[] }) {
         this.resetConnectorLinesPath({ contextData: opts.contextData, paths: opts.paths });
     }
 

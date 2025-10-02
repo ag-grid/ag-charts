@@ -1,4 +1,9 @@
-import { type AgSeriesMarkerStyle, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgRangeAreaSeriesItemType,
+    type AgSeriesMarkerStyle,
+    type TextOrSegments,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type { Point } from 'ag-charts-core';
 
 import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
@@ -19,7 +24,7 @@ export interface RangeAreaLabelDatum extends Readonly<Point> {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
-    itemId?: string;
+    readonly itemId: AgRangeAreaSeriesItemType;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     style?: AgSeriesMarkerStyle;
 }
@@ -27,12 +32,12 @@ export interface RangeAreaLabelDatum extends Readonly<Point> {
 interface RangeAreaFillPathDatum {
     readonly spans: _ModuleSupport.LinePathSpan[];
     readonly phantomSpans: _ModuleSupport.LinePathSpan[];
-    readonly itemId: string;
+    readonly itemId: AgRangeAreaSeriesItemType;
 }
 
 interface RangeAreaStrokePathDatum {
     readonly spans: _ModuleSupport.LinePathSpan[];
-    readonly itemId: string;
+    readonly itemId: AgRangeAreaSeriesItemType;
 }
 
 export interface RangeAreaContext

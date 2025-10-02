@@ -24,6 +24,7 @@ export interface FlowProportionLinkDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
+    readonly itemId: undefined;
     index: number;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
@@ -36,6 +37,7 @@ export interface FlowProportionNodeDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
+    readonly itemId: undefined;
     index: number;
     linksBefore: TLinkDatum[];
     linksAfter: TLinkDatum[];
