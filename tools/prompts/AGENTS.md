@@ -40,6 +40,8 @@ For detailed information about preferred technologies and architectural constrai
 -   `nx build:umd <package>` – produce UMD bundles for browser distribution smoke-tests.
 -   `nx run-many -t build` – rebuild all packages when changes span the dependency graph.
 -   `nx test <package>` – execute Jest suites for the affected package.
+-   `nx test <package> --testPathPattern="<file-name>"` - test specific test file
+-   `nx test <package> --testPathPattern="<file-name>" --testNamePattern="<test-name>"` - test specific test name in a specific test file
 -   `nx e2e <package>` – run Playwright flows when altering website behaviour.
 -   `nx lint <package>` – apply ESLint and custom rules before final review.
 -   `nx benchmark <package>` – assess performance regressions; filter via `-- -t "pattern"` when needed.
