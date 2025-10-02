@@ -5,7 +5,9 @@ import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
+import { clampArray } from '../util/number';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
+import { CartesianAxis } from './axis/cartesianAxis';
 import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
 import type { TransferableResources } from './chart';
@@ -276,6 +278,9 @@ export class CartesianChart extends Chart {
             axisWidths.set(axis.id, Math.ceil(axisWidth));
         }
 
+        // adjust axis widths for crossAt axes and calculate cross positions
+        const crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect);
+
         const axisGroups = groupBy(this.axes, (axis) => axis.position ?? 'left');
 
         // Step 2) calculate axis offsets and total depth for each position.
@@ -314,7 +319,107 @@ export class CartesianChart extends Chart {
             });
         }
 
+        this.applyAxisCrossing(seriesRect, crossPositions);
+
         return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, overflows };
+    }
+
+    private calculateAxesCrossPositions(axisWidths: Map<string, number>, seriesRect: BBox): Map<string, number> {
+        const crossPositions = new Map<string, number>();
+        const primaryXAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
+        const primaryYAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
+
+        for (const axis of this.axes) {
+            if (!(axis instanceof CartesianAxis && axis.crossAt?.value != null)) continue;
+            const { crossPosition, visible } = this.calculateAxisCrossPosition(axis, primaryXAxis, primaryYAxis);
+
+            axis.setAxisVisible(visible);
+
+            this.adjustAxisWidth(axis, axisWidths, crossPosition, seriesRect, visible);
+
+            if (crossPosition == undefined) continue;
+
+            crossPositions.set(axis.id, crossPosition);
+        }
+
+        return crossPositions;
+    }
+
+    private calculateAxisCrossPosition(
+        axis: CartesianAxis,
+        primaryXAxis: ChartAxis | undefined,
+        primaryYAxis: ChartAxis | undefined
+    ): { crossPosition: number | undefined; visible: boolean } {
+        const perpendicularAxis = axis.direction === ChartAxisDirection.X ? primaryYAxis : primaryXAxis;
+        if (!perpendicularAxis) return { crossPosition: undefined, visible: true };
+
+        const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false });
+
+        if (perpendicularAxis.inRange(crossPosition)) return { crossPosition, visible: true };
+
+        if (axis.crossAt?.sticky === false) {
+            return { crossPosition: undefined, visible: false };
+        }
+
+        const { domain, range } = perpendicularAxis.scale;
+        const clampedPosition = isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
+
+        return { crossPosition: clampedPosition, visible: true };
+    }
+
+    private adjustAxisWidth(
+        axis: CartesianAxis,
+        axisWidths: Map<string, number>,
+        crossPosition: number | undefined,
+        seriesRect: BBox,
+        visible: boolean
+    ): void {
+        const hasCrosshair = axis.getModuleMap().getModule<{ enabled?: boolean }>('crosshair')?.enabled === true;
+        if (hasCrosshair) return;
+
+        const currentWidth = axisWidths.get(axis.id) ?? 0;
+        const adjustedWidth = visible
+            ? this.calculateAxisBleedingWidth(axis, currentWidth, crossPosition, seriesRect)
+            : 0;
+        axisWidths.set(axis.id, adjustedWidth);
+    }
+
+    private calculateAxisBleedingWidth(
+        axis: CartesianAxis,
+        actualWidth: number,
+        crossPosition: number | undefined,
+        seriesRect: BBox
+    ): number {
+        if (crossPosition == null) return actualWidth;
+
+        switch (axis.position) {
+            case 'left':
+            case 'top':
+                return Math.max(0, actualWidth - crossPosition);
+            case 'right':
+                return Math.max(0, crossPosition + actualWidth - seriesRect.width);
+            case 'bottom':
+                return Math.max(0, crossPosition + actualWidth - seriesRect.height);
+            default:
+                return actualWidth;
+        }
+    }
+
+    private applyAxisCrossing(seriesRect: BBox, crossPositions: Map<string, number>) {
+        for (const axis of this.axes) {
+            if (!(axis instanceof CartesianAxis)) continue;
+
+            const crossPosition = crossPositions.get(axis.id);
+            if (crossPosition == null) {
+                axis.crossAxisTranslation.x = 0;
+                axis.crossAxisTranslation.y = 0;
+                continue;
+            }
+
+            const isXDirection = axis.direction === ChartAxisDirection.X;
+            axis.crossAxisTranslation.x = isXDirection ? 0 : seriesRect.x + crossPosition - axis.translation.x;
+            axis.crossAxisTranslation.y = isXDirection ? seriesRect.y + crossPosition - axis.translation.y : 0;
+        }
     }
 
     private buildCrossLinePadding(axisAreaSize: AreaWidthMap) {

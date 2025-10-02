@@ -454,9 +454,7 @@ export abstract class Axis<
         this.updatePosition();
         this.updateSelections();
 
-        this.tickLineGroup.visible = this.tick.enabled;
         this.gridLineGroup.visible = this.gridLine.enabled;
-        this.tickLabelGroup.visible = this.label.enabled;
 
         this.updateLabels();
         this.updateCrossLines();
