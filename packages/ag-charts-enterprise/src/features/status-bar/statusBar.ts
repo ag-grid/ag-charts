@@ -267,7 +267,8 @@ export class StatusBar
 
         if (props.length === 0) return;
 
-        const { processedData, dataModel } = await dataController.request(this.id, this.data, {
+        const dataRef = _ModuleSupport.DataRef.wrap(this.data) ?? _ModuleSupport.DataRef.empty();
+        const { processedData, dataModel } = await dataController.request(this.id, dataRef, {
             props,
         });
 

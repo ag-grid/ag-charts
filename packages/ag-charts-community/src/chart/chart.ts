@@ -17,6 +17,7 @@ import type {
     AgChartInstance,
     AgChartOptions,
     AgColorType,
+    AgDataTransaction,
     AgInitialStateLegendOptions,
     AgMiniChartSeriesOptions,
     AgPolarAxisOptions,
@@ -61,6 +62,7 @@ import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
+import { DataRef, wrapRawData } from './data/dataRef';
 import { axisRegistry } from './factory/axisRegistry';
 import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
@@ -151,7 +153,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     })
     container?: HTMLElement;
 
-    public data: any = [];
+    public data: DataRef = DataRef.empty();
 
     @ActionOnSet<Chart>({
         newValue(value) {
@@ -370,7 +372,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = event.data;
+                this.data = this.data = new DataRef(event.data);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -1218,7 +1220,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this._pendingFactoryUpdatesCount > 0 ||
             this.performUpdateType !== ChartUpdateType.NONE ||
             this.runningUpdateType !== ChartUpdateType.NONE ||
-            this.ctx.scene.waitingForUpdate()
+            this.ctx.scene.waitingForUpdate() ||
+            this.data.hasPendingTransactions()
         ) {
             if (this.destroyed) break;
 
@@ -1227,7 +1230,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.updateMutex.waitForClearAcquireQueue();
             }
 
-            if (this.performUpdateType !== ChartUpdateType.NONE || this.runningUpdateType !== ChartUpdateType.NONE) {
+            if (
+                this.performUpdateType !== ChartUpdateType.NONE ||
+                this.runningUpdateType !== ChartUpdateType.NONE ||
+                this.data.hasPendingTransactions()
+            ) {
                 await this._performUpdateNotify.await();
             }
 
@@ -1313,7 +1320,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (deltaOptions.data) {
-            this.data = deltaOptions.data;
+            // Always create a new DataRef for updateDelta to ensure cache invalidation
+            // This ensures the cache check (DataRef reference equality) will fail
+            this.data = new DataRef(deltaOptions.data);
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
@@ -1716,7 +1725,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(data);
+            target.setOptionsData(wrapRawData(data));
         }
 
         if (listeners) {
@@ -1774,5 +1783,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         for (const [property, listener] of entries(listeners)) {
             source.addEventListener(property, listener);
         }
+    }
+
+    async applyTransaction(transaction: AgDataTransaction) {
+        await this.updateMutex.acquire(() => {
+            this.data.pendingTransactions.push(transaction);
+        });
+
+        this.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true, skipAnimations: true });
     }
 }

@@ -8,6 +8,7 @@ import { objectsEqual } from '../../util/object';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
+import { DataRef } from '../data/dataRef';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
@@ -88,11 +89,19 @@ export abstract class DataModelSeries<
         D extends object,
         K extends keyof D & string = keyof D & string,
         G extends boolean | undefined = undefined,
-    >(dataController: DataController, data: D[] | undefined, opts: DataModelOptions<K, boolean | undefined, false>) {
+    >(
+        dataController: DataController,
+        dataRef: DataRef<D> | undefined,
+        opts: DataModelOptions<K, boolean | undefined, false>
+    ) {
         // Merge properties of this series with properties of all the attached series-options
         opts.props.push(...(this.getModulePropertyDefinitions() as PropertyDefinition<K>[]));
 
-        const { dataModel, processedData } = await dataController.request<D, K, G>(this.id, data ?? [], opts);
+        const { dataModel, processedData } = await dataController.request<D, K, G>(
+            this.id,
+            dataRef ?? DataRef.empty(),
+            opts
+        );
 
         this.dataModel = dataModel;
         this.processedData = processedData;

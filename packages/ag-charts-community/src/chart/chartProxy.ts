@@ -3,6 +3,7 @@ import type {
     AgChartInstance,
     AgChartOptions,
     AgChartState,
+    AgDataTransaction,
     DownloadOptions,
     ImageDataUrlOptions,
 } from 'ag-charts-types';
@@ -111,6 +112,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (!this.chart) throw new Error(DESTROYED_ERROR);
 
         return this.chart.waitForUpdate();
+    }
+
+    async applyTransaction(transaction: AgDataTransaction) {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+        return this.chart.applyTransaction(transaction);
     }
 
     async download(opts?: DownloadOptions) {

@@ -2,6 +2,7 @@
 import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseCartesianChartOptions } from './chart/cartesianOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
+// import type { AgDataTransaction } from './chart/dataTransaction';
 import type { AgBasePolarChartOptions } from './chart/polarOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -186,6 +187,9 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
 
     /** @returns a `Promise` that resolves once any pending changes have been rendered. */
     waitForUpdate(): Promise<void>;
+
+    /** Apply a transaction to the charts data. */
+    // applyTransaction(transaction: AgDataTransaction<TDatum>): Promise<void>;
 
     /**
      * Starts a browser-based image download for the given `AgChartInstance`.

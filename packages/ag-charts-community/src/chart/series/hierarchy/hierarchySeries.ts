@@ -205,7 +205,7 @@ export abstract class HierarchySeries<
 
         const rootNode = appendChildren(
             new NodeClass(this, [], undefined, 0, undefined, 0, undefined, undefined, [], {}),
-            this.data
+            this.data?.data
         );
 
         const colorDomain = [minColor, maxColor];

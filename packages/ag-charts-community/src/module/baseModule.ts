@@ -1,4 +1,5 @@
 import type { DataController } from '../chart/data/dataController';
+import type { DataRef } from '../chart/data/dataRef';
 import type { ChartType } from '../chart/factory/chartTypes';
 import type { BBox } from '../scene/bbox';
 
@@ -10,7 +11,7 @@ export interface LayoutContext {
 
 export interface ModuleInstance {
     processData?: (dataController: DataController) => Promise<void>;
-    updateData?: (data: any) => void;
+    updateData?: (data: DataRef) => void;
     destroy(): void;
 }
 

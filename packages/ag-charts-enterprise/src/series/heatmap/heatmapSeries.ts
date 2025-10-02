@@ -123,7 +123,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
-        if (!xAxis || !yAxis || !this.data?.length) {
+        if (!xAxis || !yAxis || !this.data?.data.length) {
             return;
         }
 

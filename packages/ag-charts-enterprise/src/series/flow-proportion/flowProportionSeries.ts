@@ -175,15 +175,19 @@ export abstract class FlowProportionSeries<
         const nodesDataController = new DataController('standalone', dataController.suppressFieldDotNotation);
         const nodesDataModelPromise =
             nodes != null
-                ? nodesDataController.request<any, any, true>(this.id, nodes, {
-                      props: [
-                          keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
-                          ...(labelKey != null
-                              ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                              : []),
-                      ],
-                      groupByKeys: true,
-                  })
+                ? nodesDataController.request<any, any, true>(
+                      this.id,
+                      _ModuleSupport.DataRef.wrap(nodes) ?? _ModuleSupport.DataRef.empty(),
+                      {
+                          props: [
+                              keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
+                              ...(labelKey != null
+                                  ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
+                                  : []),
+                          ],
+                          groupByKeys: true,
+                      }
+                  )
                 : null;
 
         const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {
