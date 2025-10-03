@@ -202,11 +202,14 @@ export class CartesianChart extends Chart {
         let iterations = 0;
         const maxIterations = 10;
 
+        // Axes that have `crossAt` configured
+        const crossAtAxes = this.axes.filter((axis) => axis.crossAt?.value != null);
+
         do {
             // Start with a good approximation from the last update.
             // This should mean that in many resize cases that only a single pass is needed.
             prevState = newState ?? this.getDefaultState();
-            newState = this.updateAxesPass(new Map(prevState.axisAreaWidths), layoutBox.clone());
+            newState = this.updateAxesPass(new Map(prevState.axisAreaWidths), layoutBox.clone(), crossAtAxes);
 
             if (iterations++ > maxIterations) {
                 Logger.warn('Max iterations reached. Unable to stabilize axes layout.');
@@ -219,7 +222,7 @@ export class CartesianChart extends Chart {
         return newState;
     }
 
-    private updateAxesPass(axisAreaWidths: AreaWidthMap, axisAreaBound: BBox) {
+    private updateAxesPass(axisAreaWidths: AreaWidthMap, axisAreaBound: BBox, crossAtAxes: CartesianAxis[]) {
         const axisWidths: Map<string, number> = new Map();
         const primaryTickCounts: Partial<Record<ChartAxisDirection, AxisPrimaryTickCount>> = {};
 
@@ -287,7 +290,10 @@ export class CartesianChart extends Chart {
         }
 
         // adjust axis widths for crossAt axes and calculate cross positions
-        const crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect);
+        let crossPositions: Map<string, number> | undefined;
+        if (crossAtAxes.length > 0) {
+            crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect, crossAtAxes);
+        }
 
         const axisGroups = groupBy(this.axes, (axis) => axis.position ?? 'left');
 
@@ -327,18 +333,23 @@ export class CartesianChart extends Chart {
             });
         }
 
-        this.applyAxisCrossing(seriesRect, crossPositions);
+        if (crossPositions != null) {
+            this.applyAxisCrossing(seriesRect, crossPositions);
+        }
 
         return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, overflows };
     }
 
-    private calculateAxesCrossPositions(axisWidths: Map<string, number>, seriesRect: BBox): Map<string, number> {
+    private calculateAxesCrossPositions(
+        axisWidths: Map<string, number>,
+        seriesRect: BBox,
+        crossAtAxes: CartesianAxis[]
+    ): Map<string, number> {
         const crossPositions = new Map<string, number>();
         const primaryXAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
         const primaryYAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
 
-        for (const axis of this.axes) {
-            if (axis.crossAt?.value == null) continue;
+        for (const axis of crossAtAxes) {
             const { crossPosition, visible } = this.calculateAxisCrossPosition(axis, primaryXAxis, primaryYAxis);
 
             axis.setAxisVisible(visible);
