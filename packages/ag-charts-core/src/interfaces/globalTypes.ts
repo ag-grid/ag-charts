@@ -14,18 +14,20 @@ export type Mutable<T> = T extends object ? { -readonly [K in keyof T]: Mutable<
 
 export type Defined<T> = T extends undefined ? never : T;
 
-export type DeepRequired<T> = T extends AnyFn
+export type DeepRequired<T, IgnoredKeys extends string = never> = T extends AnyFn
     ? T
     : T extends any[]
-      ? _DeepRequiredArray<T[number]>
+      ? _DeepRequiredArray<T[number], IgnoredKeys>
       : T extends object
-        ? _DeepRequiredObject<T>
+        ? _DeepRequiredObject<T, IgnoredKeys>
         : T;
 
-type _DeepRequiredArray<T> = Array<DeepRequired<Defined<T>>>;
+type _DeepRequiredArray<T, IgnoredKeys extends string> = Array<DeepRequired<Defined<T>, IgnoredKeys>>;
 
-type _DeepRequiredObject<T> = {
-    [K in keyof T]-?: DeepRequired<Defined<T[K]>>;
+type _DeepRequiredObject<T, IgnoredKeys extends string> = {
+    [K in keyof T]-?: K extends IgnoredKeys
+        ? NonNullable<T[K]> // skip recursion, just remove undefined
+        : DeepRequired<Defined<T[K]>, IgnoredKeys>;
 };
 
 export type DeepPartial<T> =
