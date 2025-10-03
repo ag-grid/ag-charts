@@ -32,6 +32,7 @@ const {
     Property,
     DropShadow,
     Label,
+    Deprecated,
 } = _ModuleSupport;
 
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {
@@ -81,18 +82,23 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @Property
     fillOpacity: number = 1;
 
+    @Deprecated('Use item.low.stroke and item.high.stroke instead')
     @Property
     stroke: string = '#99CCFF';
 
+    @Deprecated('Use item.low.strokeWidth and item.high.strokeWidth instead')
     @Property
     strokeWidth: number = 1;
 
+    @Deprecated('Use item.low.strokeOpacity and item.high.strokeOpacity instead')
     @Property
     strokeOpacity: number = 1;
 
+    @Deprecated('Use item.low.lineDash and item.high.lineDash instead')
     @Property
     lineDash: number[] = [0];
 
+    @Deprecated('Use item.low.lineDashOffset and item.high.lineDashOffset instead')
     @Property
     lineDashOffset: number = 0;
 
@@ -108,6 +114,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @Property
     readonly shadow = new DropShadow().set({ enabled: false });
 
+    @Deprecated('Use item.low.marker and item.high.marker instead')
     @Property
     readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys>();
 
