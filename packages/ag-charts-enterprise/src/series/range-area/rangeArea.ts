@@ -711,7 +711,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): StylerResult {
-        const { fill, fillOpacity, item: { low, high }, styler } = this.properties;
+        const { fill, fillOpacity, item, styler } = this.properties;
 
         let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
         if (styler) {
@@ -724,53 +724,36 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 ) ?? {};
         }
 
-        const stylerLow = stylerResult.item?.low;
-        const stylerHigh = stylerResult.item?.high;
-        const stylerLowMarker = stylerLow?.marker;
-        const stylerHighMarker = stylerHigh?.marker;
+        const makeItemResult = (lowOrHigh: 'low' | 'high'): StylerResult['item'][typeof lowOrHigh] => {
+            const stylerItem = stylerResult.item?.[lowOrHigh];
+            const { lineDash, lineDashOffset, marker, stroke, strokeOpacity, strokeWidth } = item[lowOrHigh];
+            return {
+                marker: {
+                    enabled: stylerItem?.marker?.enabled ?? marker.enabled,
+                    fill: stylerItem?.marker?.fill ?? marker.fill ?? fill,
+                    fillOpacity: stylerItem?.marker?.fillOpacity ?? marker.fillOpacity,
+                    shape: stylerItem?.marker?.shape ?? marker.shape,
+                    size: stylerItem?.marker?.size ?? marker.size,
+                    lineDash: stylerItem?.marker?.lineDash ?? marker.lineDash,
+                    lineDashOffset: stylerItem?.marker?.lineDashOffset ?? marker.lineDashOffset,
+                    stroke: stylerItem?.marker?.stroke ?? marker.stroke ?? stroke,
+                    strokeOpacity: stylerItem?.marker?.strokeOpacity ?? marker.strokeOpacity,
+                    strokeWidth: stylerItem?.marker?.strokeWidth ?? marker.strokeWidth,
+                },
+                lineDash: stylerItem?.lineDash ?? lineDash,
+                lineDashOffset: stylerItem?.lineDashOffset ?? lineDashOffset,
+                stroke: stylerItem?.stroke ?? stroke,
+                strokeOpacity: stylerItem?.strokeOpacity ?? strokeOpacity,
+                strokeWidth: stylerItem?.strokeWidth ?? strokeWidth,
+            };
+        };
         return {
             fill: stylerResult.fill ?? fill,
             fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
             opacity: 1,
             item: {
-                low: {
-                    marker: {
-                        enabled: stylerLowMarker?.enabled ?? low.marker.enabled,
-                        fill: stylerLowMarker?.fill ?? low.marker.fill ?? fill,
-                        fillOpacity: stylerLowMarker?.fillOpacity ?? low.marker.fillOpacity,
-                        shape: stylerLowMarker?.shape ?? low.marker.shape,
-                        size: stylerLowMarker?.size ?? low.marker.size,
-                        lineDash: stylerLowMarker?.lineDash ?? low.marker.lineDash,
-                        lineDashOffset: stylerLowMarker?.lineDashOffset ?? low.marker.lineDashOffset,
-                        stroke: stylerLowMarker?.stroke ?? low.marker.stroke ?? low.stroke,
-                        strokeOpacity: stylerLowMarker?.strokeOpacity ?? low.marker.strokeOpacity,
-                        strokeWidth: stylerLowMarker?.strokeWidth ?? low.marker.strokeWidth,
-                    },
-                    lineDash: stylerLow?.lineDash ?? low.lineDash,
-                    lineDashOffset: stylerLow?.lineDashOffset ?? low.lineDashOffset,
-                    stroke: stylerLow?.stroke ?? low.stroke,
-                    strokeOpacity: stylerLow?.strokeOpacity ?? low.strokeOpacity,
-                    strokeWidth: stylerLow?.strokeWidth ?? low.strokeWidth,
-                },
-                high: {
-                    marker: {
-                        enabled: stylerHighMarker?.enabled ?? high.marker.enabled,
-                        fill: stylerHighMarker?.fill ?? high.marker.fill ?? fill,
-                        fillOpacity: stylerHighMarker?.fillOpacity ?? high.marker.fillOpacity,
-                        shape: stylerHighMarker?.shape ?? high.marker.shape,
-                        size: stylerHighMarker?.size ?? high.marker.size,
-                        lineDash: stylerHighMarker?.lineDash ?? high.marker.lineDash,
-                        lineDashOffset: stylerHighMarker?.lineDashOffset ?? high.marker.lineDashOffset,
-                        stroke: stylerHighMarker?.stroke ?? high.marker.stroke ?? high.stroke,
-                        strokeOpacity: stylerHighMarker?.strokeOpacity ?? high.marker.strokeOpacity,
-                        strokeWidth: stylerHighMarker?.strokeWidth ?? high.marker.strokeWidth,
-                    },
-                    lineDash: stylerHigh?.lineDash ?? high.lineDash,
-                    lineDashOffset: stylerHigh?.lineDashOffset ?? high.lineDashOffset,
-                    stroke: stylerHigh?.stroke ?? high.stroke,
-                    strokeOpacity: stylerHigh?.strokeOpacity ?? high.strokeOpacity,
-                    strokeWidth: stylerHigh?.strokeWidth ?? high.strokeWidth,
-                },
+                low: makeItemResult('low'),
+                high: makeItemResult('high'),
             },
         };
     }
@@ -786,8 +769,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         type ParamsRules = DeepRequired<AgRangeAreaSeriesStylerParams<unknown, unknown>, 'fill'>;
         type ResultRules = _ModuleSupport.CallbackParamRules<ParamsRules>;
 
-        const makeItemParam = (lowOrHigh: (typeof item)['low' | 'high']): ResultRules['item']['low' | 'high'] => {
-            const { lineDash, lineDashOffset, marker, stroke, strokeOpacity, strokeWidth } = lowOrHigh;
+        const makeItemParam = (lowOrHigh: 'low' | 'high'): ResultRules['item'][typeof lowOrHigh] => {
+            const { lineDash, lineDashOffset, marker, stroke, strokeOpacity, strokeWidth } = item[lowOrHigh];
             return {
                 marker: {
                     fill: marker.fill ?? fill,
@@ -809,8 +792,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         };
         return {
             item: {
-                low: makeItemParam(item.low),
-                high: makeItemParam(item.high),
+                low: makeItemParam('low'),
+                high: makeItemParam('high'),
             },
             fill,
             fillOpacity,
