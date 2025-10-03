@@ -54,6 +54,34 @@ class RangeAreaInvertedStyle {
     fillOpacity: number = 1;
 }
 
+class RangeAreaLineStyle {
+    @Property
+    stroke: string = '#99CCFF';
+
+    @Property
+    strokeWidth: number = 1;
+
+    @Property
+    strokeOpacity: number = 1;
+
+    @Property
+    lineDash: number[] = [0];
+
+    @Property
+    lineDashOffset: number = 0;
+
+    @Property
+    readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys>();
+}
+
+class RangeAreaItemProperties {
+    @Property
+    low = new RangeAreaLineStyle();
+
+    @Property
+    high = new RangeAreaLineStyle();
+}
+
 export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSeriesOptions> {
     @Property
     xKey!: string;
@@ -107,6 +135,9 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
 
     @Property
     styler?: Styler<unknown, undefined>;
+
+    @Property
+    item = new RangeAreaItemProperties();
 
     @Property
     readonly invertedStyle = new RangeAreaInvertedStyle();
