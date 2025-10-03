@@ -83,12 +83,17 @@ export function applyRemoveByReference<T>(data: T[], removeRefs: readonly T[]): 
     // Build a Set for O(1) lookup
     const toRemove = new Set(removeRefs);
 
-    // Create new array with non-removed items
-    const result: T[] = [];
-    for (const datum of data) {
-        if (!toRemove.has(datum)) {
-            result.push(datum);
+    // In-place removal by shifting elements
+    let writeIndex = 0;
+    for (let readIndex = 0; readIndex < data.length; readIndex++) {
+        if (!toRemove.has(data[readIndex])) {
+            if (writeIndex !== readIndex) {
+                data[writeIndex] = data[readIndex];
+            }
+            writeIndex++;
         }
     }
-    return result;
+    // Truncate array to new length
+    data.length = writeIndex;
+    return data;
 }
