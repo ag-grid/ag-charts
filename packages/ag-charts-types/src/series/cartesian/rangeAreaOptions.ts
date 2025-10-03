@@ -27,7 +27,7 @@ export interface AgRangeAreaSeriesStyle extends StrokeOptions, FillOptions, Line
     marker?: AgSeriesMarkerStyle;
 }
 
-export type AgRangeAreaSeriesItemType = 'high' | 'low';
+export type AgRangeAreaSeriesItemType = 'low' | 'high';
 
 export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
