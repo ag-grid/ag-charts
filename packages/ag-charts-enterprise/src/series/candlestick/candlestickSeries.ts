@@ -139,7 +139,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         } = this;
         const { xKey, yName, showInLegend, legendItemName } = this.properties;
 
-        if (!data?.length || !xKey || legendType !== 'category') {
+        if (!data?.data.length || !xKey || legendType !== 'category') {
             return [];
         }
 

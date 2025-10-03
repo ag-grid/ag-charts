@@ -38,6 +38,7 @@ const {
     applyShapeStyle,
     mergeDefaults,
     getItemStylesPerItemId,
+    DataSet,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<Point> & {
@@ -110,7 +111,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yKey, totals } = this.properties;
-        const { data = [] } = this;
+        const { data } = this;
 
         if (!this.visible) return;
 
@@ -130,7 +131,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return result;
         }, new Map());
 
-        data.forEach((datum, i) => {
+        data?.data.forEach((datum, i) => {
             dataWithTotals.push(datum);
             // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
             // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
@@ -147,42 +148,48 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const yScale = this.getValueAxis()?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
-        const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
-            props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
-                accumulativeValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    id: `yCurrent`,
-                }),
-                accumulativeValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    missingValue: 0,
-                    id: `yCurrentTotal`,
-                }),
-                accumulativeValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    id: `yCurrentPositive`,
-                    validation: positiveNumber,
-                }),
-                accumulativeValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    id: `yCurrentNegative`,
-                    validation: negativeNumber,
-                }),
-                trailingAccumulatedValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    id: `yPrevious`,
-                }),
-                valueProperty(yKey, yScaleType, { id: `yRaw` }), // Raw value pass-through.
-                valueProperty('totalType', 'category', {
-                    id: `totalTypeValue`,
-                    missingValue: undefined,
-                    validation: totalTypeValue,
-                }),
-                ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL, _ModuleSupport.LARGEST_KEY_INTERVAL] : []),
-                ...extraProps,
-            ],
-        });
+        const { processedData } = await this.requestDataModel<any, any, true>(
+            dataController,
+            DataSet.wrap(dataWithTotals),
+            {
+                props: [
+                    keyProperty(xKey, xScaleType, { id: `xValue` }),
+                    accumulativeValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        id: `yCurrent`,
+                    }),
+                    accumulativeValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        missingValue: 0,
+                        id: `yCurrentTotal`,
+                    }),
+                    accumulativeValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        id: `yCurrentPositive`,
+                        validation: positiveNumber,
+                    }),
+                    accumulativeValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        id: `yCurrentNegative`,
+                        validation: negativeNumber,
+                    }),
+                    trailingAccumulatedValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        id: `yPrevious`,
+                    }),
+                    valueProperty(yKey, yScaleType, { id: `yRaw` }), // Raw value pass-through.
+                    valueProperty('totalType', 'category', {
+                        id: `totalTypeValue`,
+                        missingValue: undefined,
+                        validation: totalTypeValue,
+                    }),
+                    ...(isContinuousX
+                        ? [_ModuleSupport.SMALLEST_KEY_INTERVAL, _ModuleSupport.LARGEST_KEY_INTERVAL]
+                        : []),
+                    ...extraProps,
+                ],
+            }
+        );
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
         this.largestDataInterval = processedData.reduced?.largestKeyInterval;

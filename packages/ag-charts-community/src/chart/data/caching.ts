@@ -2,11 +2,13 @@ import { arraysEqual } from 'ag-charts-core';
 
 import { objectsEqual } from '../../util/object';
 import type { DataModel, DataModelOptions, PropertyDefinition, UngroupedData } from './dataModel';
+import type { DataSet } from './dataSet';
 
 interface CachedDataItem<D extends object, K extends keyof D & string = keyof D & string> {
     ids: string[];
     opts: DataModelOptions<K, any>;
-    data: D[];
+    dataSet: DataSet<D>;
+    dataLength: number;
     dataModel: DataModel<any, any, any>;
     processedData: UngroupedData<any> | undefined;
 }
@@ -67,9 +69,20 @@ function optsEqual(a: DataModelOptions<any, any, true>, b: DataModelOptions<any,
 
 export function canReuseCachedData<D extends object, K extends keyof D & string = keyof D & string>(
     cachedDataItem: CachedDataItem<any, any>,
-    data: D[],
+    dataSet: DataSet<D>,
     ids: string[],
     opts: DataModelOptions<K, any>
 ) {
-    return data === cachedDataItem.data && arraysEqual(ids, cachedDataItem.ids) && optsEqual(opts, cachedDataItem.opts);
+    if (dataSet !== cachedDataItem.dataSet) {
+        return false;
+    }
+
+    // Check if the underlying data array has been mutated since caching
+    // Even though the DataSet reference matches, the data array could have been modified
+    // directly (e.g., via commitPendingTransactions) without creating a new DataSet
+    if (cachedDataItem.dataSet.data.length !== cachedDataItem.dataLength) {
+        return false;
+    }
+
+    return arraysEqual(ids, cachedDataItem.ids) && optsEqual(opts, cachedDataItem.opts);
 }
