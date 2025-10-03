@@ -86,7 +86,7 @@ jobs:
               run: yarn nx run-many -t generate-test-files --parallel=3
 
             - name: Build examples
-              run: yarn nx run-many -t generate-examples --parallel=3
+              run: yarn nx run-many -t generate-example --exclude tag:skip-gha-cache --parallel=3
 
             - name: Calculate test matrices
               id: matrix
