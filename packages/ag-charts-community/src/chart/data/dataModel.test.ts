@@ -23,6 +23,7 @@ import type {
     Scoped,
 } from './dataModel';
 import { DataModel, getPathComponents } from './dataModel';
+import { DataSet } from './dataSet';
 import {
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
@@ -108,7 +109,8 @@ const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number
 });
 
 function basicDataSet<T>(data: T[], scopes = ['test']) {
-    return new Map([...scopes.map((s) => [s, data] as const)]);
+    const dataSet = new DataSet(data);
+    return new Map([...scopes.map((s) => [s, dataSet] as const)]);
 }
 
 function expectedKeys(expected: unknown[]) {
@@ -1236,11 +1238,12 @@ describe('DataModel', () => {
 
     describe('missing and invalid data processing - multiple scopes', () => {
         it('should generated the expected results', () => {
+            const rawData = mutilatedBrowserData();
             const data = new Map()
-                .set('test', mutilatedBrowserData())
-                .set('series-a', mutilatedBrowserData())
-                .set('series-b', mutilatedBrowserData())
-                .set('series-c', mutilatedBrowserData());
+                .set('test', new DataSet(rawData))
+                .set('series-a', new DataSet(rawData))
+                .set('series-b', new DataSet(rawData))
+                .set('series-c', new DataSet(rawData));
             const DEFAULTS = {
                 missingValue: null,
                 validation: isFiniteNumber,
@@ -1306,7 +1309,7 @@ describe('DataModel', () => {
                 { kp: 'Q3', vp1: 6, vp2: 9, vp3: 'illegal value' },
                 { kp: 'Q4', vp1: 6, vp2: 9, vp3: 4 },
             ];
-            const data = new Map([...['test', 'scope-1', 'scope-2'].map((s) => [s, rawData] as const)]);
+            const data = new Map([...['test', 'scope-1', 'scope-2'].map((s) => [s, new DataSet(rawData)] as const)]);
 
             it('should record per result data validation status per scope', () => {
                 const result = dataModel.processData(data)!;
@@ -1447,7 +1450,7 @@ describe('DataModel', () => {
                 firefox: d.firefox ? d.firefox * 2 : d.firefox,
             }));
 
-            const allData = basicDataSet(data2).set('test1', data1).set('test2', data2);
+            const allData = basicDataSet(data2).set('test1', new DataSet(data1)).set('test2', new DataSet(data2));
             const processedData = dataModel.processData(allData);
 
             expect(processedData!.columns).toEqual([

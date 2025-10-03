@@ -407,7 +407,7 @@ export class BubbleSeries extends CartesianSeries<
         sizeScale.range = this.getSizeRange();
 
         const textMeasurer = cachedTextMeasurer(label);
-        const rawData = processedData.dataSources.get(this.id);
+        const rawData = processedData.dataSources.get(this.id)?.data;
         if (rawData == null) return;
 
         const padding = expandLabelPadding(label);
@@ -797,7 +797,7 @@ export class BubbleSeries extends CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 

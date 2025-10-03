@@ -3,6 +3,7 @@ import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
+import type { DataSet } from './dataSet';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
 
@@ -37,7 +38,7 @@ type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
 interface CommonMetadata<D> {
     input: { count: number };
     scopes: Set<ScopeId>;
-    dataSources: Map<ScopeId, unknown[]>;
+    dataSources: Map<ScopeId, DataSet<unknown>>;
     invalidKeys: Map<ScopeId, boolean[]> | undefined;
     invalidKeyCount: Map<ScopeId, number> | undefined;
     invalidData: Map<ScopeId, boolean[]> | undefined;
@@ -566,7 +567,7 @@ export class DataModel<
     }
 
     processData(
-        sources: Map<string, unknown[]>
+        sources: Map<string, DataSet<unknown>>
     ): (Grouped extends true ? GroupedData<D> : UngroupedData<D>) | undefined {
         const {
             opts: { groupByKeys, groupByFn },
@@ -620,12 +621,20 @@ export class DataModel<
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
 
-    private warnDataMissingProperties(sources: Map<string, unknown[]>) {
+    public isReprocessingSupported(processedData: ProcessedData<D>): boolean {
+        return processedData.type === 'ungrouped';
+    }
+
+    public reprocessData(_sources: Map<string, DataSet<unknown>>, _processedData: ProcessedData<D>): ProcessedData<D> {
+        throw new Error('reprocessing data is not supported');
+    }
+
+    private warnDataMissingProperties(sources: Map<string, DataSet<unknown>>) {
         if (sources.size === 0) return;
 
         for (const def of iterate(this.keys, this.values)) {
             for (const [scope, missCount] of def.missing) {
-                if (missCount < (sources.get(scope)?.length ?? Infinity)) continue;
+                if (missCount < (sources.get(scope)?.data.length ?? Infinity)) continue;
                 const scopeHint = scope == null ? '' : ` for ${scope}`;
                 Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
             }
@@ -698,7 +707,7 @@ export class DataModel<
         return result;
     }
 
-    private extractData(sources: Map<string, unknown[]>): UngroupedData<D> {
+    private extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
         const { dataDomain, processValue, allScopesHaveSameDefs } = this.initDataDomainProcessor();
 
         const { keys: keyDefs, values: valueDefs } = this;
@@ -758,7 +767,7 @@ export class DataModel<
 
     private extractKeys(
         keyDefs: InternalDatumPropertyDefinition<K>[],
-        sources: Map<string, unknown[]>,
+        sources: Map<string, DataSet<unknown>>,
         processValue: (
             def: InternalDatumPropertyDefinition<K>,
             datum: any,
@@ -792,7 +801,7 @@ export class DataModel<
             allKeys.set(keyDef, keyDefKeys);
 
             for (const scope of keyScopes ?? []) {
-                const data = sources.get(scope) ?? [];
+                const data = sources.get(scope)?.data ?? [];
                 if (scopeDataProcessed.has(data)) {
                     cloneScope(data, scope);
                     continue;
@@ -852,7 +861,7 @@ export class DataModel<
     private extractValues(
         invalidData: Map<ScopeId, boolean[]>,
         valueDefs: InternalDatumPropertyDefinition<K>[],
-        sources: Map<string, unknown[]>,
+        sources: Map<string, DataSet<unknown>>,
         scopeInvalidKeys: Map<ScopeId, boolean[]>,
         processValue: (
             def: InternalDatumPropertyDefinition<K>,
@@ -875,7 +884,7 @@ export class DataModel<
             }
             const columnScopes = new Set(def.scopes);
             const columnScope = first(def.scopes);
-            const columnSource = sources.get(columnScope) as unknown[];
+            const columnSource = sources.get(columnScope)?.data ?? [];
             const column = new Array<unknown>();
             const invalidKeys = scopeInvalidKeys.get(columnScope);
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
@@ -1004,7 +1013,7 @@ export class DataModel<
 
         const onlyScope = first(dataSources.keys());
         const keys = processedData.keys.map((k) => k.get(onlyScope));
-        const rawData = dataSources.get(onlyScope);
+        const rawData = dataSources.get(onlyScope)?.data ?? [];
         processedData.aggregation = rawData?.map((_, datumIndex) => {
             const aggregation: [number, number][] = [];
 
@@ -1121,7 +1130,7 @@ export class DataModel<
                 const onlyScope = isScoped(def) ? def.scopes[0] : first(dataSources.keys());
                 const keyColumns = keys.map((k) => k.get(onlyScope)).filter((k) => k != null);
                 const keysParam = keyColumns.map((): unknown => undefined!);
-                const rawData = dataSources.get(onlyScope)!;
+                const rawData = dataSources.get(onlyScope)?.data ?? [];
                 for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
                     for (let keyIdx = 0; keyIdx < keysParam.length; keyIdx++) {
                         keysParam[keyIdx] = keyColumns[keyIdx]?.[datumIndex];

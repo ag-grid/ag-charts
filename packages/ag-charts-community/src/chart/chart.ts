@@ -1789,7 +1789,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // Note: Validation happens at the public API layer (AgChartInstanceProxy)
 
         await this.updateMutex.acquire(() => {
-            this.data.pendingTransactions.push(transaction);
+            this.data.addTransaction(transaction);
             this.update(ChartUpdateType.UPDATE_DATA, {
                 apiUpdate: true,
                 skipAnimations: true,

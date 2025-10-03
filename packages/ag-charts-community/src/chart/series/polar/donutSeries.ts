@@ -464,7 +464,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         let sum = 0;
         const nodes: PieDonutNodeDatum[] = [];
         const phantomNodes: PieDonutNodeDatum[] | undefined = angleFilterRawValues != null ? [] : undefined;
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const invalidData = processedData.invalidData?.get(this.id);
         rawData.forEach((datum, datumIndex) => {
             if (invalidData?.[datumIndex] === true) return;
@@ -1611,7 +1611,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         if (!dataModel || !processedData) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const processedDataValues = this.getProcessedDataValues(dataModel, processedData);
         const { angleRawValues } = processedDataValues;
         const angleRawValue = angleRawValues[datumIndex];
@@ -1661,7 +1661,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
-        const datum = this.processedData?.dataSources.get(this.id)?.[datumIndex];
+        const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
         const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
         const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
@@ -1714,7 +1714,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const legendData: CategoryLegendDatum[] = [];
 
         const hideZeros = this.properties.hideZeroValueSectorsInLegend;
-        const rawData = processedData.dataSources.get(this.id);
+        const rawData = processedData.dataSources.get(this.id)?.data;
         const invalidData = processedData.invalidData?.get(this.id);
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const datum = rawData?.[datumIndex] as any;

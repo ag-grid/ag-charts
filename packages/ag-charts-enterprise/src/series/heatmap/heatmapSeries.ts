@@ -256,7 +256,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const sizeFittingHeight = () => ({ width, height, meta: null });
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         rawData.forEach((datum, datumIndex) => {
             const xDatum = xValues[datumIndex];
             const yDatum = yValues[datumIndex];
@@ -487,7 +487,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
         const colorValue =

@@ -191,7 +191,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!visible) return context;
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         rawData.forEach((datum, datumIndex) => {
             const xValue = xValues[datumIndex];
             if (xValue == null) return;
@@ -340,7 +340,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const minValue = dataModel.resolveColumnById(this, `minValue`, processedData)[datumIndex];
         const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData)[datumIndex];
@@ -610,7 +610,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId } = this;
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
 
-        const datum = this.processedData?.dataSources.get(seriesId)?.[datumIndex];
+        const datum = this.processedData?.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;

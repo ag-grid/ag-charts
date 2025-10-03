@@ -519,7 +519,7 @@ export class BarSeries extends AbstractBarSeries<
             const xValue = xValues[datumIndex];
             if (xValue == null) return;
 
-            const datum = rawData[datumIndex];
+            const datum = rawData.data[datumIndex];
 
             const yRawValue = yRawValues[datumIndex];
             const yFilterValue = yFilterValues != null ? Number(yFilterValues[datumIndex]) : undefined;
@@ -566,7 +566,7 @@ export class BarSeries extends AbstractBarSeries<
 
             if (yFilterValue != null) {
                 const phantomNodeData = nodeDatum({
-                    datum: rawData[datumIndex],
+                    datum: rawData.data[datumIndex],
                     datumIndex,
                     xValue,
                     yValue: yFilterValue,
@@ -794,7 +794,7 @@ export class BarSeries extends AbstractBarSeries<
         const { id: seriesId } = this;
         const { xKey, yKey, stackGroup } = this.properties;
 
-        const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
+        const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData);
@@ -987,7 +987,7 @@ export class BarSeries extends AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 
