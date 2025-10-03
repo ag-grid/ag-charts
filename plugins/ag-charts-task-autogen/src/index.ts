@@ -1,4 +1,5 @@
 import type { CreateDependencies, CreateNodes, TargetConfiguration } from '@nx/devkit';
+import { readFileSync } from 'fs';
 import { dirname } from 'path';
 
 import * as generateChartThumbnails from './generate-chart-thumbnails';
@@ -37,12 +38,21 @@ export const createNodes: CreateNodes = [
 
         const projectName = `${parentProject}-${uniqueName}`;
         const thumbnails = generateThumbnails(projectName);
+
+        // Check if the main.ts file contains @ag-options-extract annotation
+        const mainTsContent = readFileSync(configFilePath, 'utf-8');
+        const hasOptionsExtract = mainTsContent.includes('@ag-options-extract');
+        const tags = [`scope:${parentProject}`, 'type:generated-example'];
+        if (hasOptionsExtract) {
+            tags.push('skip-gha-cache');
+        }
+
         return {
             projects: {
                 [projectName]: {
                     root: dirname(configFilePath),
                     name: projectName,
-                    tags: [`scope:${parentProject}`, 'type:generated-example'],
+                    tags,
                     targets: {
                         ...createGenerateTarget(thumbnails),
                         ...createTypecheckTarget(),
