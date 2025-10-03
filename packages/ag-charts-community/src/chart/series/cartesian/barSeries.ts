@@ -669,6 +669,7 @@ export class BarSeries extends AbstractBarSeries<
                     if (invalidData?.[datumIndex] === true) continue;
 
                     const yRawValue = yRawValues[datumIndex];
+                    if (yRawValue == null) continue;
                     const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
                     const yStart = isStacked ? Number(yStartValues?.[datumIndex]) : 0;
                     const yEnd = isStacked ? Number(yEndValues?.[datumIndex]) : yRawValue;
@@ -693,8 +694,11 @@ export class BarSeries extends AbstractBarSeries<
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 if (invalidData?.[datumIndex] === true) continue;
 
+                const yRawValue = yRawValues[datumIndex];
+                if (yRawValue == null) continue;
+
                 const x = xPosition(datumIndex);
-                const yEnd = Number(yRawValues[datumIndex]);
+                const yEnd = Number(yRawValue);
 
                 handleDatum(datumIndex, x, width, 0, yEnd, yEnd);
             }
