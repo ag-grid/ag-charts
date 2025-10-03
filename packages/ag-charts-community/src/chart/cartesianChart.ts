@@ -6,6 +6,7 @@ import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
 import { clampArray } from '../util/number';
+import { ActionOnSet } from '../util/proxy';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import { CartesianAxis } from './axis/cartesianAxis';
 import { NumberAxis } from './axis/numberAxis';
@@ -47,13 +48,20 @@ export class CartesianChart extends Chart {
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
 
+    @ActionOnSet<CartesianChart>({
+        changeValue(newValue, oldValue) {
+            this.onAxisChange(newValue, oldValue);
+        },
+    })
+    override axes: CartesianAxis[] = [];
+
     private lastAreaWidths?: AreaWidthMap;
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
     }
 
-    override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
+    override onAxisChange(newValue: CartesianAxis[], oldValue?: CartesianAxis[]) {
         super.onAxisChange(newValue, oldValue);
 
         this.syncAxisChanges(newValue, oldValue);
@@ -330,7 +338,7 @@ export class CartesianChart extends Chart {
         const primaryYAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
 
         for (const axis of this.axes) {
-            if (!(axis instanceof CartesianAxis && axis.crossAt?.value != null)) continue;
+            if (axis.crossAt?.value == null) continue;
             const { crossPosition, visible } = this.calculateAxisCrossPosition(axis, primaryXAxis, primaryYAxis);
 
             axis.setAxisVisible(visible);
@@ -347,8 +355,8 @@ export class CartesianChart extends Chart {
 
     private calculateAxisCrossPosition(
         axis: CartesianAxis,
-        primaryXAxis: ChartAxis | undefined,
-        primaryYAxis: ChartAxis | undefined
+        primaryXAxis: CartesianAxis | undefined,
+        primaryYAxis: CartesianAxis | undefined
     ): { crossPosition: number | undefined; visible: boolean } {
         const perpendicularAxis = axis.direction === ChartAxisDirection.X ? primaryYAxis : primaryXAxis;
         if (!perpendicularAxis) return { crossPosition: undefined, visible: true };
@@ -407,8 +415,6 @@ export class CartesianChart extends Chart {
 
     private applyAxisCrossing(seriesRect: BBox, crossPositions: Map<string, number>) {
         for (const axis of this.axes) {
-            if (!(axis instanceof CartesianAxis)) continue;
-
             const crossPosition = crossPositions.get(axis.id);
             if (crossPosition == null) {
                 axis.crossAxisTranslation.x = 0;
@@ -451,13 +457,13 @@ export class CartesianChart extends Chart {
         return direction === 1 ? Math.min(value, bound + size) : Math.max(value, bound);
     }
 
-    private async getSyncedDomain(axis: ChartAxis) {
+    private async getSyncedDomain(axis: CartesianAxis) {
         const syncModule = this.modulesManager.getModule<SyncModule>('sync');
         if (!syncModule?.enabled) return;
         return await syncModule.getSyncedDomain(axis);
     }
 
-    private syncAxisChanges(newValue: ChartAxis[], oldValue: ChartAxis[] | undefined) {
+    private syncAxisChanges(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
         const syncModule = this.modulesManager.getModule<SyncModule>('sync');
         if (!syncModule?.enabled) return;
 
@@ -470,7 +476,7 @@ export class CartesianChart extends Chart {
         }
     }
 
-    private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
+    private sizeAxis(axis: CartesianAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
         const isNumberAxis = axis instanceof NumberAxis; // Number, log axis
         const isLeftRight = position === 'left' || position === 'right';
 
@@ -508,7 +514,7 @@ export class CartesianChart extends Chart {
     }
 
     private positionAxes(opts: {
-        axes: ChartAxis[];
+        axes: CartesianAxis[];
         position: AgCartesianAxisPosition;
         axisBound: BBox;
         axisWidths: Map<string, number>;
@@ -593,7 +599,7 @@ export class CartesianChart extends Chart {
         return true;
     }
 
-    private clipAxis(axis: ChartAxis, seriesRect: BBox, layoutBBox: BBox) {
+    private clipAxis(axis: CartesianAxis, seriesRect: BBox, layoutBBox: BBox) {
         const gridLinePadding = Math.ceil(axis.gridLine?.width ?? 0);
         const axisLinePadding = Math.ceil(axis.line?.width ?? 0);
 
