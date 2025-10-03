@@ -791,46 +791,43 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): AgRangeAreaSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
-        const {
-            fill,
-            fillOpacity,
-            lineDash,
-            lineDashOffset,
-            marker,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            xKey,
-            yHighKey,
-            yLowKey,
-        } = this.properties;
+        const { fill, fillOpacity, item, xKey, yHighKey, yLowKey } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
 
-        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
-        type ParamsRules = AgRangeAreaSeriesStylerParams<unknown, unknown> & MarkerRules;
+        type ParamsRules = DeepRequired<AgRangeAreaSeriesStylerParams<unknown, unknown>, 'fill'>;
         type ResultRules = _ModuleSupport.CallbackParamRules<ParamsRules>;
+
+        const makeItemParam = (lowOrHigh: (typeof item)['low' | 'high']): ResultRules['item']['low' | 'high'] => {
+            const { lineDash, lineDashOffset, marker, stroke, strokeOpacity, strokeWidth } = lowOrHigh;
+            return {
+                marker: {
+                    fill: marker.fill ?? fill,
+                    fillOpacity: marker.fillOpacity,
+                    size: marker.size,
+                    shape: marker.shape,
+                    stroke: marker.stroke ?? stroke,
+                    strokeOpacity: marker.strokeOpacity,
+                    strokeWidth: marker.strokeWidth,
+                    lineDash: marker.lineDash,
+                    lineDashOffset: marker.lineDashOffset,
+                },
+                lineDash,
+                lineDashOffset,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+            };
+        };
         return {
-            marker: {
-                fill: marker.fill,
-                fillOpacity: marker.fillOpacity,
-                size: marker.size,
-                shape: marker.shape,
-                stroke: marker.stroke,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
+            item: {
+                low: makeItemParam(item.low),
+                high: makeItemParam(item.high),
             },
             fill,
             fillOpacity,
             highlightState,
             highlighted,
-            lineDash,
-            lineDashOffset,
             seriesId,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
             xKey,
             yLowKey,
             yHighKey,
