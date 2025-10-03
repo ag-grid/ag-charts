@@ -67,7 +67,7 @@ export function mapToCanonicalReferences<T>(data: readonly T[], removeRefs: read
  * @param mutate - If true, mutates data in-place; if false, returns new array
  * @returns The array with items removed (either mutated original or new array)
  */
-export function applyRemoveByReference<T>(data: T[], removeRefs: readonly T[], mutate: boolean): T[] {
+export function applyRemoveByReference<T>(data: T[], removeRefs: readonly T[]): T[] {
     if (!Array.isArray(data)) {
         throw new Error('AG Charts - applyRemoveByReference expects "data" to be an array.');
     }
@@ -77,34 +77,18 @@ export function applyRemoveByReference<T>(data: T[], removeRefs: readonly T[], m
     }
 
     if (removeRefs.length === 0) {
-        return mutate ? data : data.slice();
+        return data;
     }
 
     // Build a Set for O(1) lookup
     const toRemove = new Set(removeRefs);
 
-    if (mutate) {
-        // In-place removal by shifting elements
-        let writeIndex = 0;
-        for (let readIndex = 0; readIndex < data.length; readIndex++) {
-            if (!toRemove.has(data[readIndex])) {
-                if (writeIndex !== readIndex) {
-                    data[writeIndex] = data[readIndex];
-                }
-                writeIndex++;
-            }
+    // Create new array with non-removed items
+    const result: T[] = [];
+    for (const datum of data) {
+        if (!toRemove.has(datum)) {
+            result.push(datum);
         }
-        // Truncate array to new length
-        data.length = writeIndex;
-        return data;
-    } else {
-        // Create new array with non-removed items
-        const result: T[] = [];
-        for (const datum of data) {
-            if (!toRemove.has(datum)) {
-                result.push(datum);
-            }
-        }
-        return result;
     }
+    return result;
 }

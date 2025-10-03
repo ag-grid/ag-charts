@@ -58,9 +58,8 @@ export class DataSet<T = unknown> {
      * Returns the net size of the data after applying all pending transactions.
      * This calculates the final data length without mutating the underlying array.
      *
-     * Note: This assumes transactions don't have overlapping updates (i.e., removes
-     * don't target items in append/prepend arrays). This is a safe assumption for
-     * typical usage where transactions operate on existing data.
+     * Note: This assumes transactions don't have duplicate updates in a single transaction
+     * (e.g. removing or adding the same item multiple times).
      */
     netSize(): number {
         if (!this.hasPendingTransactions()) {
@@ -108,6 +107,14 @@ export class DataSet<T = unknown> {
         }
 
         for (const transaction of this.pendingTransactions) {
+            const { prepend, append } = transaction;
+            if (Array.isArray(prepend) && prepend.length) {
+                this.data.unshift(...prepend);
+            }
+            if (Array.isArray(append) && append.length) {
+                this.data.push(...append);
+            }
+
             const removeRefs = normaliseRemoveReferences(transaction.remove);
             if (removeRefs.length > 0) {
                 const canonical = mapToCanonicalReferences(this.data, removeRefs);
@@ -117,16 +124,7 @@ export class DataSet<T = unknown> {
                         canonical: canonical.length,
                     });
                 }
-                applyRemoveByReference(this.data, canonical, true);
-                // Note: mutate=true means this.data was modified in-place
-            }
-
-            const { prepend, append } = transaction;
-            if (Array.isArray(prepend) && prepend.length) {
-                this.data.unshift(...prepend);
-            }
-            if (Array.isArray(append) && append.length) {
-                this.data.push(...append);
+                applyRemoveByReference(this.data, canonical);
             }
         }
 
