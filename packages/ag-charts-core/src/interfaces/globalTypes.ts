@@ -50,3 +50,5 @@ export type IsUnion<T> = [T] extends [infer U]
     : never;
 
 export type IsAny<T> = 0 extends 1 & T ? true : false;
+
+export type AreExact<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

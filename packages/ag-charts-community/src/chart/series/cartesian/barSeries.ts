@@ -87,6 +87,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
 }
 
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
+    readonly itemId: string;
     readonly xValue: string | number;
     readonly yValue: string | number;
     readonly cumulativeValue: number;

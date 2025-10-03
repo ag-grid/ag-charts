@@ -242,6 +242,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, label } = this.pickedLegendItem;
                     const { chartService: chart } = this.ctx;
+                    if (typeof itemId !== 'string') {
+                        Logger.error(`unexpected itemId type: [${typeof itemId}] (expected [string])`);
+                        return;
+                    }
 
                     const series: UnknownSeries | undefined = chart.series.find((s) => s.id === seriesId);
                     const callers: Caller[] = [series?.properties, chart];

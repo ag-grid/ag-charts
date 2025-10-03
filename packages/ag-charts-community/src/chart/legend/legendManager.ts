@@ -1,11 +1,19 @@
-import { Logger, isArray } from 'ag-charts-core';
-import type { AgInitialStateLegendOptions } from 'ag-charts-types';
+import { type AreExact, Logger, isArray } from 'ag-charts-core';
+import type { AgInitialStateLegendOptions as DefectAgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import type { EventsHub } from '../../core/eventsHub';
 import type { CategoryLegendDatum } from './legendDatum';
 
+// FIXME: AG-16068 locally patch API AgInitialStateLegendOptions, but force compilation error if&when
+// AgInitialStateLegendOptions is publicly patched.
+type AgInitialStateLegendOptions =
+    AreExact<DefectAgInitialStateLegendOptions['itemId'], string | undefined> extends false
+        ? never
+        : Omit<DefectAgInitialStateLegendOptions, 'itemId'> & { itemId?: string | number };
+
 type LegendDataMap = Map<string, CategoryLegendDatum[]>;
+
 type LegendDataMemento = AgInitialStateLegendOptions[];
 
 export class LegendManager implements MementoOriginator<LegendDataMemento> {
@@ -154,7 +162,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
         }
     }
 
-    public getItemEnabled({ seriesId, itemId }: { seriesId?: string; itemId?: any } = {}) {
+    public getItemEnabled({ seriesId, itemId }: { seriesId?: string; itemId?: string | number } = {}) {
         return this.getDatum({ seriesId, itemId })?.enabled ?? true;
     }
 }
