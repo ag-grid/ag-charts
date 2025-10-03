@@ -123,8 +123,8 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
 export function markerEnabled(
     dataCount: number,
     scale: Scale<unknown, number, unknown>,
-    marker: Pick<SeriesMarker<unknown>, 'enabled' | 'size'>,
-    markerStyle: { enabled?: boolean; size: number } = marker
+    marker: { enabled: boolean },
+    markerStyle: { enabled?: boolean } = marker
 ) {
     const enabled = markerStyle.enabled ?? marker.enabled;
     if (!enabled) return false;
