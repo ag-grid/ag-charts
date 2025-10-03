@@ -2,7 +2,6 @@ import {
     type AgRangeAreaSeriesItemStylerParams,
     type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
-    type AgRangeAreaSeriesLineStyle,
     type AgRangeAreaSeriesOptions,
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
@@ -608,16 +607,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const { processedData, axes, properties } = this;
-        const { marker, styler } = properties;
-        const markerStyle = styler ? this.getStyle(false).marker : undefined;
-        const markersEnabled = markerEnabled(
-            processedData!.input.count,
-            axes[ChartAxisDirection.X]!.scale,
-            marker,
-            markerStyle
-        );
 
-        if (marker.isDirty()) {
+        type LowHighRules = { [K in 'low' | 'high']: { marker: { enabled: boolean } } };
+        const { low, high }: LowHighRules = properties.styler ? this.getStyle(false).item : properties.item;
+
+        const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, {
+            enabled: low.marker.enabled || high.marker.enabled,
+        });
+
+        if (properties.item.low.marker.isDirty() || properties.item.high.marker.isDirty()) {
             datumSelection.clear();
             datumSelection.cleanup();
         }
@@ -637,7 +635,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection.each((_, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const stylerStyle = this.getStyle(isHighlight, highlightState);
-            const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = stylerStyle;
+            const { fill, fillOpacity, item } = stylerStyle;
+            const { stroke, strokeWidth, strokeOpacity } = item[datum.itemId];
 
             const params = this.makeItemStylerParams(datum.itemId);
             datum.style = this.getMarkerStyle(
@@ -645,7 +644,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 datum,
                 params,
                 { isHighlight, highlightState },
-                stylerStyle.marker,
+                stylerStyle.item[datum.itemId].marker,
                 {
                     fill,
                     fillOpacity,
@@ -849,7 +848,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             { datumIndex, datum },
             params,
             { isHighlight: false },
-            stylerStyle.marker
+            stylerStyle.item[itemId].marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
@@ -878,7 +877,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle(false);
+        const { fill, item } = this.getStyle(false);
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item.low;
 
         const markerStyle = {
             shape: marker.shape,
