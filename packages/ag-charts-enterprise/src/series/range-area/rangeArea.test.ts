@@ -30,6 +30,10 @@ describe('RangeAreaSeries', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
+    function lowAndHigh<T>(p: T): { low: T; high: T } {
+        return { low: p, high: p };
+    }
+
     afterEach(() => {
         if (chart) {
             chart.destroy();
@@ -130,12 +134,14 @@ describe('RangeAreaSeries', () => {
                     enabled: true,
                     formatter: ({ value }) => `${value}°C`,
                 },
-                strokeWidth: 2,
                 fill: '#E7E8E9',
-                stroke: '#2A5783',
-                marker: {
-                    enabled: true,
-                },
+                item: lowAndHigh({
+                    strokeWidth: 2,
+                    stroke: '#2A5783',
+                    marker: {
+                        enabled: true,
+                    },
+                }),
             },
         ],
     };
@@ -806,27 +812,32 @@ describe('RangeAreaSeries', () => {
             { month: 'February', gain_low: 1500, gain_high: 1650, loss_low: 950, loss_high: 1450 },
             { month: 'March', gain_low: 1700, gain_high: 1920, loss_low: 1600, loss_high: 1815 },
         ];
+
         beforeEach(() => {
             styler = newFreezableMock<D, C, M>(
                 (params: AgRangeAreaSeriesStylerParams<D, C>): AgRangeAreaSeriesStyle | undefined => {
                     if (params.yLowKey === 'gain_low')
                         return {
                             fill: 'cyan',
-                            lineDash: [4, 4],
-                            lineDashOffset: 5,
-                            stroke: 'blue',
-                            strokeWidth: 2.5,
-                            marker: {},
+                            item: lowAndHigh({
+                                lineDash: [4, 4],
+                                lineDashOffset: 5,
+                                stroke: 'blue',
+                                strokeWidth: 2.5,
+                                marker: {},
+                            }),
                         };
                     else if (params.yLowKey === 'loss_low')
                         return {
                             fill: 'magenta',
                             fillOpacity: 0.5,
-                            marker: {
-                                fill: 'indigo',
-                                strokeWidth: 2.5,
-                                size: 20,
-                            },
+                            item: lowAndHigh({
+                                marker: {
+                                    fill: 'indigo',
+                                    strokeWidth: 2.5,
+                                    size: 20,
+                                },
+                            }),
                         };
                     return {};
                 }
@@ -860,10 +871,12 @@ describe('RangeAreaSeries', () => {
                                 yLowKey: 'loss_low',
                                 yHighKey: 'loss_high',
                                 styler: styler.frozen,
-                                marker: {
-                                    fill: 'lime', // ignored
-                                    fillOpacity: 0.5, // not ignored
-                                },
+                                item: lowAndHigh({
+                                    marker: {
+                                        fill: 'lime', // ignored
+                                        fillOpacity: 0.5, // not ignored
+                                    },
+                                }),
                             },
                         ],
                     })
@@ -908,10 +921,12 @@ describe('RangeAreaSeries', () => {
                                 yLowKey: 'gain_low',
                                 yHighKey: 'gain_high',
                                 fill: 'lime', // ignored
-                                marker: {
-                                    size: 15,
-                                    itemStyler,
-                                },
+                                item: lowAndHigh({
+                                    marker: {
+                                        size: 15,
+                                        itemStyler,
+                                    },
+                                }),
                                 styler: styler.frozen,
                             },
                             {
@@ -922,13 +937,15 @@ describe('RangeAreaSeries', () => {
                                 yLowKey: 'loss_low',
                                 yHighKey: 'loss_high',
                                 fill: 'olive', // ignored
-                                stroke: 'navy', // not ignored
-                                strokeWidth: 7, // not ignored
-                                marker: {
-                                    fill: 'lime', // ignored
-                                    fillOpacity: 0.5, // not ignored
-                                    itemStyler,
-                                },
+                                item: lowAndHigh({
+                                    stroke: 'navy', // not ignored
+                                    strokeWidth: 7, // not ignored
+                                    marker: {
+                                        fill: 'lime', // ignored
+                                        fillOpacity: 0.5, // not ignored
+                                        itemStyler,
+                                    },
+                                }),
                                 styler: styler.frozen,
                             },
                         ],
