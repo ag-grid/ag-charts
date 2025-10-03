@@ -2,13 +2,14 @@ import {
     type AgRangeAreaSeriesItemStylerParams,
     type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
+    type AgRangeAreaSeriesLineStyle,
     type AgRangeAreaSeriesOptions,
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
+import type { DeepRequired, Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
@@ -58,6 +59,20 @@ const {
 } = _ModuleSupport;
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
+
+type ResolvedLineStyleMixin = {
+    marker?: {
+        enabled?: boolean;
+    };
+};
+type ResolvedStyleMixin = {
+    item?: {
+        low?: ResolvedLineStyleMixin;
+        high?: ResolvedLineStyleMixin;
+    };
+};
+type PartialStylerResult = AgRangeAreaSeriesStyle & ResolvedStyleMixin & { opacity?: number };
+type StylerResult = DeepRequired<PartialStylerResult, 'fill'>;
 
 class RangeAreaSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -706,13 +721,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    private getStyle(
-        highlighted: boolean,
-        highlightState?: _ModuleSupport.HighlightState
-    ): Required<AgRangeAreaSeriesStyle> & { marker: { enabled: boolean; size: number }; opacity: number } {
-        const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, styler } =
-            this.properties;
-        let stylerResult: AgRangeAreaSeriesStyle & { marker?: { enabled?: boolean } } = {};
+    private getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): StylerResult {
+        const { fill, fillOpacity, item: { low, high }, styler } = this.properties;
+
+        let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
             stylerResult =
@@ -722,28 +734,56 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     { pick: false }
                 ) ?? {};
         }
+
+        const stylerLow = stylerResult.item?.low;
+        const stylerHigh = stylerResult.item?.high;
+        const stylerLowMarker = stylerLow?.marker;
+        const stylerHighMarker = stylerHigh?.marker;
         return {
             fill: stylerResult.fill ?? fill,
             fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
-            lineDash: stylerResult.lineDash ?? lineDash,
-            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
             opacity: 1,
-            stroke: stylerResult.stroke ?? stroke,
-            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
-            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
-            marker: {
-                enabled: stylerResult.marker?.enabled ?? marker.enabled,
-                fill: stylerResult.marker?.fill ?? marker.fill,
-                fillOpacity: stylerResult.marker?.fillOpacity ?? marker.fillOpacity,
-                shape: stylerResult.marker?.shape ?? marker.shape,
-                size: stylerResult.marker?.size ?? marker.size,
-                lineDash: stylerResult.marker?.lineDash ?? marker.lineDash,
-                lineDashOffset: stylerResult.marker?.lineDashOffset ?? marker.lineDashOffset,
-                stroke: stylerResult.marker?.stroke ?? marker.stroke,
-                strokeOpacity: stylerResult.marker?.strokeOpacity ?? marker.strokeOpacity,
-                strokeWidth: stylerResult.marker?.strokeWidth ?? marker.strokeWidth,
-            } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
-        } satisfies RequireOptional<AgRangeAreaSeriesStyle> & { marker: { enabled: boolean }; opacity: number };
+            item: {
+                low: {
+                    marker: {
+                        enabled: stylerLowMarker?.enabled ?? low.marker.enabled,
+                        fill: stylerLowMarker?.fill ?? low.marker.fill ?? fill,
+                        fillOpacity: stylerLowMarker?.fillOpacity ?? low.marker.fillOpacity,
+                        shape: stylerLowMarker?.shape ?? low.marker.shape,
+                        size: stylerLowMarker?.size ?? low.marker.size,
+                        lineDash: stylerLowMarker?.lineDash ?? low.marker.lineDash,
+                        lineDashOffset: stylerLowMarker?.lineDashOffset ?? low.marker.lineDashOffset,
+                        stroke: stylerLowMarker?.stroke ?? low.marker.stroke ?? low.stroke,
+                        strokeOpacity: stylerLowMarker?.strokeOpacity ?? low.marker.strokeOpacity,
+                        strokeWidth: stylerLowMarker?.strokeWidth ?? low.marker.strokeWidth,
+                    },
+                    lineDash: stylerLow?.lineDash ?? low.lineDash,
+                    lineDashOffset: stylerLow?.lineDashOffset ?? low.lineDashOffset,
+                    stroke: stylerLow?.stroke ?? low.stroke,
+                    strokeOpacity: stylerLow?.strokeOpacity ?? low.strokeOpacity,
+                    strokeWidth: stylerLow?.strokeWidth ?? low.strokeWidth,
+                },
+                high: {
+                    marker: {
+                        enabled: stylerHighMarker?.enabled ?? high.marker.enabled,
+                        fill: stylerHighMarker?.fill ?? high.marker.fill ?? fill,
+                        fillOpacity: stylerHighMarker?.fillOpacity ?? high.marker.fillOpacity,
+                        shape: stylerHighMarker?.shape ?? high.marker.shape,
+                        size: stylerHighMarker?.size ?? high.marker.size,
+                        lineDash: stylerHighMarker?.lineDash ?? high.marker.lineDash,
+                        lineDashOffset: stylerHighMarker?.lineDashOffset ?? high.marker.lineDashOffset,
+                        stroke: stylerHighMarker?.stroke ?? high.marker.stroke ?? high.stroke,
+                        strokeOpacity: stylerHighMarker?.strokeOpacity ?? high.marker.strokeOpacity,
+                        strokeWidth: stylerHighMarker?.strokeWidth ?? high.marker.strokeWidth,
+                    },
+                    lineDash: stylerHigh?.lineDash ?? high.lineDash,
+                    lineDashOffset: stylerHigh?.lineDashOffset ?? high.lineDashOffset,
+                    stroke: stylerHigh?.stroke ?? high.stroke,
+                    strokeOpacity: stylerHigh?.strokeOpacity ?? high.strokeOpacity,
+                    strokeWidth: stylerHigh?.strokeWidth ?? high.strokeWidth,
+                },
+            },
+        };
     }
 
     private makeStylerParams(
