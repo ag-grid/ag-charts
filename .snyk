@@ -2,49 +2,51 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-    SNYK-JS-CROSSSPAWN-8303230:
-        - '*':
-              reason: >-
-                  Only used for building packages, so ReDos attack would only affect developer machines and CI
-              expires: 2025-01-01T12:00:00.000Z
-              created: 2025-10-04T12:19:00.000Z
-    SNYK-JS-VITE-9653016:
-        - '*':
-              reason: >-
-                  Vitest is only used for development and we do not expose
-                  the dev server to the network
-              expires: 2025-01-01T12:00:00.000Z
-              created: 2025-10-04T12:19:00.000Z
-    SNYK-JS-VITEST-8688125:
-        - '*':
-              reason: >-
-                  Vitest is only used for development and we do not expose
-                  the dev server to the network
-              expires: 2025-01-01T12:00:00.000Z
-              created: 2025-10-04T12:19:00.000Z
-    SNYK-JS-ESLINTPLUGINKIT-8340627:
-        - '*':
-              reason: >-
-                  Only used for testing packages, so ReDos attack would only affect developer machines and CI
-              expires: 2025-01-01T12:00:00.000Z
-              created: 2025-10-04T12:19:00.000Z
-    SNYK-JS-ESLINTPLUGINKIT-10847878:
-        - '*':
-              reason: >-
-                  Only used for testing packages, so ReDos attack would only affect developer machines and CI
-              expires: 2025-01-01T12:00:00.000Z
-              created: 2025-10-04T12:19:00.000Z
-    SNYK-JS-WS-7266574:
-        - '*':
-              reason: >-
-                  Only used for building, so DoS attack would only affect developer machines and CI
-              expires: 2025-01-01T12:00:00.000Z
-              created: 2025-10-04T12:19:00.000Z
-    SNYK-JS-FORMDATA-10841150:
-        - '*':
-              reason: >-
-                  Only used for building and getting changelog/pipeline data
-              expires: 2025-01-01T12:00:00.000Z
-              created: 2025-10-04T12:19:00.000Z
-
+  SNYK-JS-CROSSSPAWN-8303230:
+    - '*':
+        reason: >-
+          Only used for building packages, so ReDos attack would only affect
+          developer machines and CI
+        expires: 2025-11-03T11:37:02.958Z
+        created: 2025-10-04T11:37:02.959Z
+  SNYK-JS-VITE-9653016:
+    - '*':
+        reason: >-
+          Vitest is only used for development and we do not expose the dev
+          server to the network
+        expires: 2025-11-03T11:37:04.706Z
+        created: 2025-10-04T11:37:04.710Z
+  SNYK-JS-VITEST-8688125:
+    - '*':
+        reason: >-
+          Vitest is only used for development and we do not expose the dev
+          server to the network
+        expires: 2025-11-03T11:37:06.626Z
+        created: 2025-10-04T11:37:06.629Z
+  SNYK-JS-ESLINTPLUGINKIT-8340627:
+    - '*':
+        reason: >-
+          Only used for testing packages, so ReDos attack would only affect
+          developer machines and CI expires 2025-01-01T120000.000Z
+        expires: 2025-11-03T11:37:08.755Z
+        created: 2025-10-04T11:37:08.758Z
+  SNYK-JS-ESLINTPLUGINKIT-10847878:
+    - '*':
+        reason: >-
+          Only used for testing packages, so ReDos attack would only affect
+          developer machines and CI
+        expires: 2025-11-03T11:37:15.808Z
+        created: 2025-10-04T11:37:15.813Z
+  SNYK-JS-WS-7266574:
+    - '*':
+        reason: >-
+          Only used for building, so DoS attack would only affect developer
+          machines and CI
+        expires: 2025-11-03T11:37:17.591Z
+        created: 2025-10-04T11:37:17.595Z
+  SNYK-JS-FORMDATA-10841150:
+    - '*':
+        reason: Only used for building and getting changelog/pipeline data
+        expires: 2025-11-03T11:37:19.408Z
+        created: 2025-10-04T11:37:19.413Z
 patch: {}
