@@ -11,11 +11,9 @@ ignore:
         created: 2025-10-04T11:37:02.959Z
   SNYK-JS-VITE-9653016:
     - '*':
-        reason: >-
-          Vitest is only used for development and we do not expose the dev
-          server to the network
-        expires: 2025-11-03T11:37:04.706Z
-        created: 2025-10-04T11:37:04.710Z
+        reason: 'Used for development of angular application only, not production'
+        expires: 2025-11-03T11:51:12.093Z
+        created: 2025-10-04T11:51:12.099Z
   SNYK-JS-VITEST-8688125:
     - '*':
         reason: >-
@@ -39,14 +37,51 @@ ignore:
         created: 2025-10-04T11:37:15.813Z
   SNYK-JS-WS-7266574:
     - '*':
-        reason: >-
-          Only used for building, so DoS attack would only affect developer
-          machines and CI
-        expires: 2025-11-03T11:37:17.591Z
-        created: 2025-10-04T11:37:17.595Z
+        reason: 'Used in karma test runner, not production'
+        expires: 2025-11-03T11:51:22.792Z
+        created: 2025-10-04T11:51:22.798Z
   SNYK-JS-FORMDATA-10841150:
     - '*':
         reason: Only used for building and getting changelog/pipeline data
         expires: 2025-11-03T11:37:19.408Z
         created: 2025-10-04T11:37:19.413Z
+  SNYK-JS-VITE-9512410:
+    - '*':
+        reason: 'Used for development of angular application only, not production'
+        expires: 2025-11-03T11:51:08.659Z
+        created: 2025-10-04T11:51:08.664Z
+  SNYK-JS-BODYPARSER-7926860:
+    - '*':
+        reason: 'Used for development of angular application only, not production'
+        expires: 2025-11-03T11:50:53.989Z
+        created: 2025-10-04T11:50:53.994Z
+  SNYK-JS-BRACES-6838727:
+    - '*':
+        reason: >-
+          braces is only used in development/testing - it's not used in the
+          final production build
+        expires: 2025-11-03T11:50:57.530Z
+        created: 2025-10-04T11:50:57.534Z
+  SNYK-JS-HTTPPROXYMIDDLEWARE-8229906:
+    - '*':
+        reason: middleware not used in production build
+        expires: 2025-11-03T11:51:01.142Z
+        created: 2025-10-04T11:51:01.146Z
+  SNYK-JS-UNDICI-8641354:
+    - '*':
+        reason: >-
+          We do not use form-data directly and where it is used is only for
+          testing or examples
+        expires: 2025-11-03T11:51:04.852Z
+        created: 2025-10-04T11:51:04.856Z
+  SNYK-JS-WEBPACKDEVMIDDLEWARE-6476555:
+    - '*':
+        reason: 'Used for development of angular application only, not production'
+        expires: 2025-11-03T11:51:15.734Z
+        created: 2025-10-04T11:51:15.738Z
+  SNYK-JS-WEBPACKDEVSERVER-10300775:
+    - '*':
+        reason: 'Used for development of angular application only, not production'
+        expires: 2025-11-03T11:51:19.285Z
+        created: 2025-10-04T11:51:19.292Z
 patch: {}
