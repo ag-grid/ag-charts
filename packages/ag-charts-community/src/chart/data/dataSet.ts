@@ -209,7 +209,9 @@ export class DataSet<T = unknown> {
             const removeRefs = normaliseRemoveReferences(transaction.remove);
             if (removeRefs.length > 0) {
                 const indicesToRemove = findIndicesInOriginalArray(this.data, removeRefs);
-                indicesToRemove.forEach((idx) => removedIndices.add(idx));
+                for (const idx of indicesToRemove) {
+                    removedIndices.add(idx);
+                }
             }
 
             if (Array.isArray(transaction.prepend)) {

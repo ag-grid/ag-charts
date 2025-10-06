@@ -645,7 +645,47 @@ export class DataModel<
 
         const start = performance.now();
 
-        // Collect change descriptions from all DataSets before committing
+        // Collect and validate changes
+        const scopeChanges = this.collectScopeChanges(processedData);
+        if (scopeChanges.size === 0) {
+            return processedData;
+        }
+
+        // Commit all pending transactions (mutates data arrays)
+        this.commitPendingTransactions(processedData);
+
+        // Initialize processValue for processing new insertions
+        const { processValue } = this.initDataDomainProcessor();
+
+        // Pre-process all insertions
+        const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
+
+        // Transform all arrays using cached insertion results
+        this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
+        this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
+        this.transformInvalidityArrays(processedData, scopeChanges, insertionCaches);
+
+        // Recompute domains from transformed arrays
+        this.recomputeDomains(processedData);
+
+        // Generate diff metadata for animations/incremental rendering
+        if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
+            this.generateDiffMetadata(processedData, scopeChanges);
+        }
+
+        // Update metadata
+        this.updateProcessedDataMetadata(processedData);
+
+        const end = performance.now();
+        processedData.time = end - start;
+
+        return processedData;
+    }
+
+    /**
+     * Collects change descriptions from all DataSets before committing.
+     */
+    private collectScopeChanges(processedData: ProcessedData<D>): Map<ScopeId, DataChangeDescription> {
         const scopeChanges = new Map<ScopeId, DataChangeDescription>();
         for (const [scopeId, dataSet] of processedData.dataSources) {
             const changeDesc = dataSet.getChangeDescription();
@@ -653,22 +693,31 @@ export class DataModel<
                 scopeChanges.set(scopeId, changeDesc);
             }
         }
+        return scopeChanges;
+    }
 
-        // If no changes anywhere, return as-is
-        if (scopeChanges.size === 0) {
-            return processedData;
-        }
-
-        // Commit all pending transactions (mutates data arrays)
+    /**
+     * Commits all pending transactions to the data arrays.
+     */
+    private commitPendingTransactions(processedData: ProcessedData<D>): void {
         for (const dataSet of processedData.dataSources.values()) {
             dataSet.commitPendingTransactions();
         }
+    }
 
-        // Initialize processValue for processing new insertions
-        const { processValue } = this.initDataDomainProcessor();
-
-        // Pre-process all insertions once per scope to avoid redundant computation
-        // Note: We process insertions with adjusted indices to account for removals
+    /**
+     * Pre-processes all insertions once per scope to avoid redundant computation.
+     */
+    private processAllInsertions(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        processValue: (
+            def: InternalDatumPropertyDefinition<K>,
+            datum: any,
+            idx: number,
+            scopes: string | string[]
+        ) => ProcessedValue
+    ): Map<ScopeId, InsertionCache> {
         const insertionCaches = new Map<ScopeId, InsertionCache>();
         for (const [scope, changeDesc] of scopeChanges) {
             const dataSet = processedData.dataSources.get(scope);
@@ -677,8 +726,17 @@ export class DataModel<
             const cache = this.processInsertionsOnce(scope, changeDesc, dataSet, processValue);
             insertionCaches.set(scope, cache);
         }
+        return insertionCaches;
+    }
 
-        // Transform keys arrays using cached insertion results
+    /**
+     * Transforms keys arrays using cached insertion results.
+     */
+    private transformKeysArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
         for (const [keyDefIndex, keyDef] of this.keys.entries()) {
             const keysMap = processedData.keys[keyDefIndex];
 
@@ -701,8 +759,16 @@ export class DataModel<
                 });
             }
         }
+    }
 
-        // Transform columns arrays using cached insertion results
+    /**
+     * Transforms columns arrays using cached insertion results.
+     */
+    private transformColumnsArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
         for (const [valueDefIndex, valueDef] of this.values.entries()) {
             const column = processedData.columns[valueDefIndex];
             const columnScope = first(valueDef.scopes);
@@ -721,8 +787,17 @@ export class DataModel<
                 return valueDef.invalidValue;
             });
         }
+    }
 
-        // Transform invalidKeys arrays using cached insertion results
+    /**
+     * Transforms invalidity arrays using cached insertion results.
+     */
+    private transformInvalidityArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        // Transform invalidKeys arrays
         if (processedData.invalidKeys) {
             for (const [scope, changeDesc] of scopeChanges) {
                 const invalidKeys = processedData.invalidKeys.get(scope);
@@ -737,7 +812,7 @@ export class DataModel<
             }
         }
 
-        // Transform invalidData arrays using cached insertion results
+        // Transform invalidData arrays
         if (processedData.invalidData) {
             for (const [scope, changeDesc] of scopeChanges) {
                 const invalidData = processedData.invalidData.get(scope);
@@ -754,9 +829,13 @@ export class DataModel<
                 });
             }
         }
+    }
 
-        // Recompute domains from transformed arrays
-        // **** NOTE: We will look to optimise this in the near future. ****
+    /**
+     * Recomputes domains from transformed arrays.
+     * NOTE: We will look to optimise this in the near future.
+     */
+    private recomputeDomains(processedData: ProcessedData<D>): void {
         const keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
         const valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
 
@@ -826,90 +905,93 @@ export class DataModel<
             }
             return result;
         });
+    }
 
-        // Generate diff metadata for animations/incremental rendering
-        // ONLY generate diffs if they're already being tracked (i.e., processedData.reduced.diff exists)
-        // This is an opt-in feature - if nobody initialized diff tracking, we skip this expensive operation
-        if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
-            // Helper to get key string for a datum at a given index
-            const getKeyString = (scope: ScopeId, datumIndex: number): string | undefined => {
-                const keys: any[] = [];
-                for (const keysMap of processedData.keys) {
-                    const scopeKeys = keysMap.get(scope);
-                    if (!scopeKeys) return undefined;
-                    keys.push(scopeKeys[datumIndex]);
-                }
-                return keys.length > 0 ? toKeyString(keys) : undefined;
+    /**
+     * Generates diff metadata for animations and incremental rendering.
+     * This is an opt-in feature - only runs if diff tracking is already initialized.
+     */
+    private generateDiffMetadata(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        // Helper to get key string for a datum at a given index
+        const getKeyString = (scope: ScopeId, datumIndex: number): string | undefined => {
+            const keys: any[] = [];
+            for (const keysMap of processedData.keys) {
+                const scopeKeys = keysMap.get(scope);
+                if (!scopeKeys) return undefined;
+                keys.push(scopeKeys[datumIndex]);
+            }
+            return keys.length > 0 ? toKeyString(keys) : undefined;
+        };
+
+        // Process each scope's changes
+        for (const [scope, changeDesc] of scopeChanges) {
+            const diff: ProcessedOutputDiff = {
+                changed: true,
+                added: new Set<string>(),
+                removed: new Set<string>(),
+                updated: new Set<string>(),
+                moved: new Set<string>(),
             };
 
-            // Process each scope's changes
-            for (const [scope, changeDesc] of scopeChanges) {
-                const diff: ProcessedOutputDiff = {
-                    changed: true,
-                    added: new Set<string>(),
-                    removed: new Set<string>(),
-                    updated: new Set<string>(),
-                    moved: new Set<string>(),
-                };
-
-                // Get insertions and add to 'added' set
-                // Insertions are inferred from splice operations with insertCount > 0
-                for (const op of changeDesc.indexMap.spliceOps) {
-                    if (op.insertCount > 0) {
-                        for (let i = 0; i < op.insertCount; i++) {
-                            const datumIndex = op.index + i;
-                            const keyStr = getKeyString(scope, datumIndex);
-                            if (keyStr) {
-                                diff.added.add(keyStr);
-                            }
+            // Get insertions and add to 'added' set
+            for (const op of changeDesc.indexMap.spliceOps) {
+                if (op.insertCount > 0) {
+                    for (let i = 0; i < op.insertCount; i++) {
+                        const datumIndex = op.index + i;
+                        const keyStr = getKeyString(scope, datumIndex);
+                        if (keyStr) {
+                            diff.added.add(keyStr);
                         }
                     }
                 }
-
-                // Optimize moved items detection based on transaction type
-                const { isAppendOnly, isPrependOnly, hasNoRemovals, originalLength, totalPrependCount } =
-                    changeDesc.indexMap;
-
-                if (isAppendOnly) {
-                    // Append-only: nothing moved, leave diff.moved as empty set
-                } else if (isPrependOnly && originalLength > 0) {
-                    // Prepend-only: all preserved items moved, bulk-add them
-                    for (
-                        let destIndex = totalPrependCount;
-                        destIndex < totalPrependCount + originalLength;
-                        destIndex++
-                    ) {
-                        const keyStr = getKeyString(scope, destIndex);
-                        if (keyStr) {
-                            diff.moved.add(keyStr);
-                        }
-                    }
-                } else if (hasNoRemovals && totalPrependCount > 0) {
-                    // No removals but has prepends: all preserved items shifted by prepend count
-                    for (let sourceIndex = 0; sourceIndex < originalLength; sourceIndex++) {
-                        const destIndex = sourceIndex + totalPrependCount;
-                        const keyStr = getKeyString(scope, destIndex);
-                        if (keyStr) {
-                            diff.moved.add(keyStr);
-                        }
-                    }
-                } else {
-                    // General case with removals: need full iteration
-                    changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
-                        if (sourceIndex !== destIndex) {
-                            const keyStr = getKeyString(scope, destIndex);
-                            if (keyStr) {
-                                diff.moved.add(keyStr);
-                            }
-                        }
-                    });
-                }
-
-                processedData.reduced.diff[scope] = diff;
             }
-        }
 
-        // Update metadata
+            // Optimize moved items detection based on transaction type
+            const { isAppendOnly, isPrependOnly, hasNoRemovals, originalLength, totalPrependCount } =
+                changeDesc.indexMap;
+
+            if (isAppendOnly) {
+                // Append-only: nothing moved
+            } else if (isPrependOnly && originalLength > 0) {
+                // Prepend-only: all preserved items moved
+                for (let destIndex = totalPrependCount; destIndex < totalPrependCount + originalLength; destIndex++) {
+                    const keyStr = getKeyString(scope, destIndex);
+                    if (keyStr) {
+                        diff.moved.add(keyStr);
+                    }
+                }
+            } else if (hasNoRemovals && totalPrependCount > 0) {
+                // No removals but has prepends: all preserved items shifted
+                for (let sourceIndex = 0; sourceIndex < originalLength; sourceIndex++) {
+                    const destIndex = sourceIndex + totalPrependCount;
+                    const keyStr = getKeyString(scope, destIndex);
+                    if (keyStr) {
+                        diff.moved.add(keyStr);
+                    }
+                }
+            } else {
+                // General case with removals: need full iteration
+                changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
+                    if (sourceIndex !== destIndex) {
+                        const keyStr = getKeyString(scope, destIndex);
+                        if (keyStr) {
+                            diff.moved.add(keyStr);
+                        }
+                    }
+                });
+            }
+
+            processedData.reduced!.diff![scope] = diff;
+        }
+    }
+
+    /**
+     * Updates metadata after array transformations.
+     */
+    private updateProcessedDataMetadata(processedData: ProcessedData<D>): void {
         // Find maximum data length across all scopes
         let maxDataLength = 0;
         for (const dataSet of processedData.dataSources.values()) {
@@ -941,11 +1023,6 @@ export class DataModel<
         processedData[DOMAIN_RANGES].clear();
         processedData[KEY_SORT_ORDERS].clear();
         processedData[COLUMN_SORT_ORDERS].clear();
-
-        const end = performance.now();
-        processedData.time = end - start;
-
-        return processedData;
     }
 
     /**
@@ -970,51 +1047,51 @@ export class DataModel<
 
         // Extract insertions from splice operations
         for (const op of changeDesc.indexMap.spliceOps) {
-            if (op.insertCount > 0) {
-                for (let i = 0; i < op.insertCount; i++) {
-                    const destIndex = op.index + i;
-                    if (destIndex < 0 || destIndex >= finalLength) {
-                        continue; // Skip invalid indices
-                    }
+            if (op.insertCount <= 0) continue;
 
-                    const datum = dataSet.data[destIndex];
-
-                    const keys = new Map<number, { value: any; valid: boolean }>();
-                    const values = new Map<number, { value: any; valid: boolean }>();
-                    let hasInvalidKey = false;
-                    let hasInvalidValue = false;
-
-                    if (datum == null || typeof datum !== 'object') {
-                        hasInvalidKey = true;
-                        hasInvalidValue = true;
-                    } else {
-                        // Process all keys for this scope
-                        for (const [keyDefIndex, keyDef] of this.keys.entries()) {
-                            if (!keyDef.scopes?.includes(scope)) continue;
-
-                            const result = processValue(keyDef, datum, destIndex, scope);
-                            keys.set(keyDefIndex, { value: result.value, valid: result.valid });
-
-                            if (!result.valid) {
-                                hasInvalidKey = true;
-                            }
-                        }
-
-                        // Process all values for this scope
-                        for (const [valueDefIndex, valueDef] of this.values.entries()) {
-                            if (!valueDef.scopes?.includes(scope)) continue;
-
-                            const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
-                            values.set(valueDefIndex, { value: result.value, valid: result.valid });
-
-                            if (!result.valid) {
-                                hasInvalidValue = true;
-                            }
-                        }
-                    }
-
-                    cache.set(destIndex, { keys, values, hasInvalidKey, hasInvalidValue });
+            for (let i = 0; i < op.insertCount; i++) {
+                const destIndex = op.index + i;
+                if (destIndex < 0 || destIndex >= finalLength) {
+                    continue; // Skip invalid indices
                 }
+
+                const datum = dataSet.data[destIndex];
+
+                const keys = new Map<number, { value: any; valid: boolean }>();
+                const values = new Map<number, { value: any; valid: boolean }>();
+                let hasInvalidKey = false;
+                let hasInvalidValue = false;
+
+                if (datum == null || typeof datum !== 'object') {
+                    hasInvalidKey = true;
+                    hasInvalidValue = true;
+                } else {
+                    // Process all keys for this scope
+                    for (const [keyDefIndex, keyDef] of this.keys.entries()) {
+                        if (!keyDef.scopes?.includes(scope)) continue;
+
+                        const result = processValue(keyDef, datum, destIndex, scope);
+                        keys.set(keyDefIndex, { value: result.value, valid: result.valid });
+
+                        if (!result.valid) {
+                            hasInvalidKey = true;
+                        }
+                    }
+
+                    // Process all values for this scope
+                    for (const [valueDefIndex, valueDef] of this.values.entries()) {
+                        if (!valueDef.scopes?.includes(scope)) continue;
+
+                        const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
+                        values.set(valueDefIndex, { value: result.value, valid: result.valid });
+
+                        if (!result.valid) {
+                            hasInvalidValue = true;
+                        }
+                    }
+                }
+
+                cache.set(destIndex, { keys, values, hasInvalidKey, hasInvalidValue });
             }
         }
 
