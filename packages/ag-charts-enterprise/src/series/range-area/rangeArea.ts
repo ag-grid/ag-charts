@@ -498,7 +498,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         animationEnabled: boolean;
     }) {
         const { visible } = opts;
-        const [fill, stroke] = opts.paths;
+        const [fillPath, strokePath] = opts.paths;
 
         const segments = this.contextNodeData?.segments;
 
@@ -507,23 +507,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const highlightStyle = this.getHighlightStyle();
 
         const {
-            strokeWidth,
-            stroke: strokeColor,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
+            item,
             fill: seriesFill,
             fillOpacity,
             opacity,
         } = mergeDefaults(highlightStyle, this.getStyle(false, highlightState));
+        // FIXME: separate high / low stroke styling
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = item[DEFAULT_ITEM];
 
-        stroke.setProperties({
+        strokePath.setProperties({
             segments,
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            stroke: strokeColor,
+            stroke,
             strokeWidth,
             strokeOpacity,
             lineDash,
@@ -532,14 +530,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible,
         });
 
-        stroke.datum = segments;
+        strokePath.datum = segments;
 
         const fillBBox = this.getShapeFillBBox();
 
-        applyShapeFillBBox(fill, seriesFill, fillBBox);
+        applyShapeFillBBox(fillPath, seriesFill, fillBBox);
 
         applyShapeStyle(
-            fill,
+            fillPath,
             {
                 stroke: undefined,
                 fill: seriesFill,
@@ -554,7 +552,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         );
 
         const fillSegments = this.contextNodeData?.intersectionSegments ?? segments;
-        fill.setProperties({
+        fillPath.setProperties({
             segments: fillSegments,
             pointerEvents: PointerEvents.None,
             lineJoin: 'round',
@@ -563,10 +561,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible,
         });
 
-        fill.datum = fillSegments;
+        fillPath.datum = fillSegments;
 
-        updateClipPath(this, stroke);
-        updateClipPath(this, fill);
+        updateClipPath(this, strokePath);
+        updateClipPath(this, fillPath);
     }
 
     protected override updatePaths(opts: { contextData: RangeAreaContext; paths: _ModuleSupport.Path[] }) {
