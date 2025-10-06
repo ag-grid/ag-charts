@@ -828,55 +828,85 @@ export class DataModel<
         });
 
         // Generate diff metadata for animations/incremental rendering
-        processedData.reduced ??= {};
-        processedData.reduced.diff ??= {};
-
-        // Helper to get key string for a datum at a given index
-        const getKeyString = (scope: ScopeId, datumIndex: number): string | undefined => {
-            const keys: any[] = [];
-            for (const keysMap of processedData.keys) {
-                const scopeKeys = keysMap.get(scope);
-                if (!scopeKeys) return undefined;
-                keys.push(scopeKeys[datumIndex]);
-            }
-            return keys.length > 0 ? toKeyString(keys) : undefined;
-        };
-
-        // Process each scope's changes
-        for (const [scope, changeDesc] of scopeChanges) {
-            const diff: ProcessedOutputDiff = {
-                changed: true,
-                added: new Set<string>(),
-                removed: new Set<string>(),
-                updated: new Set<string>(),
-                moved: new Set<string>(),
+        // ONLY generate diffs if they're already being tracked (i.e., processedData.reduced.diff exists)
+        // This is an opt-in feature - if nobody initialized diff tracking, we skip this expensive operation
+        if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
+            // Helper to get key string for a datum at a given index
+            const getKeyString = (scope: ScopeId, datumIndex: number): string | undefined => {
+                const keys: any[] = [];
+                for (const keysMap of processedData.keys) {
+                    const scopeKeys = keysMap.get(scope);
+                    if (!scopeKeys) return undefined;
+                    keys.push(scopeKeys[datumIndex]);
+                }
+                return keys.length > 0 ? toKeyString(keys) : undefined;
             };
 
-            // Get insertions and add to 'added' set
-            // Insertions are inferred from splice operations with insertCount > 0
-            for (const op of changeDesc.indexMap.spliceOps) {
-                if (op.insertCount > 0) {
-                    for (let i = 0; i < op.insertCount; i++) {
-                        const datumIndex = op.index + i;
-                        const keyStr = getKeyString(scope, datumIndex);
-                        if (keyStr) {
-                            diff.added.add(keyStr);
+            // Process each scope's changes
+            for (const [scope, changeDesc] of scopeChanges) {
+                const diff: ProcessedOutputDiff = {
+                    changed: true,
+                    added: new Set<string>(),
+                    removed: new Set<string>(),
+                    updated: new Set<string>(),
+                    moved: new Set<string>(),
+                };
+
+                // Get insertions and add to 'added' set
+                // Insertions are inferred from splice operations with insertCount > 0
+                for (const op of changeDesc.indexMap.spliceOps) {
+                    if (op.insertCount > 0) {
+                        for (let i = 0; i < op.insertCount; i++) {
+                            const datumIndex = op.index + i;
+                            const keyStr = getKeyString(scope, datumIndex);
+                            if (keyStr) {
+                                diff.added.add(keyStr);
+                            }
                         }
                     }
                 }
-            }
 
-            // Check for moved items (preserved indices with different positions)
-            changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
-                if (sourceIndex !== destIndex) {
-                    const keyStr = getKeyString(scope, destIndex);
-                    if (keyStr) {
-                        diff.moved.add(keyStr);
+                // Optimize moved items detection based on transaction type
+                const { isAppendOnly, isPrependOnly, hasNoRemovals, originalLength, totalPrependCount } =
+                    changeDesc.indexMap;
+
+                if (isAppendOnly) {
+                    // Append-only: nothing moved, leave diff.moved as empty set
+                } else if (isPrependOnly && originalLength > 0) {
+                    // Prepend-only: all preserved items moved, bulk-add them
+                    for (
+                        let destIndex = totalPrependCount;
+                        destIndex < totalPrependCount + originalLength;
+                        destIndex++
+                    ) {
+                        const keyStr = getKeyString(scope, destIndex);
+                        if (keyStr) {
+                            diff.moved.add(keyStr);
+                        }
                     }
+                } else if (hasNoRemovals && totalPrependCount > 0) {
+                    // No removals but has prepends: all preserved items shifted by prepend count
+                    for (let sourceIndex = 0; sourceIndex < originalLength; sourceIndex++) {
+                        const destIndex = sourceIndex + totalPrependCount;
+                        const keyStr = getKeyString(scope, destIndex);
+                        if (keyStr) {
+                            diff.moved.add(keyStr);
+                        }
+                    }
+                } else {
+                    // General case with removals: need full iteration
+                    changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
+                        if (sourceIndex !== destIndex) {
+                            const keyStr = getKeyString(scope, destIndex);
+                            if (keyStr) {
+                                diff.moved.add(keyStr);
+                            }
+                        }
+                    });
                 }
-            });
 
-            processedData.reduced.diff[scope] = diff;
+                processedData.reduced.diff[scope] = diff;
+            }
         }
 
         // Update metadata

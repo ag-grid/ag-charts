@@ -1505,6 +1505,9 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources);
 
+                // Initialize diff tracking (opt-in to diff generation during reprocessing)
+                processedData!.reduced = { diff: {} };
+
                 // Add transaction
                 dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
 
@@ -1541,6 +1544,9 @@ describe('DataModel', () => {
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
+
+                // Initialize diff tracking (opt-in to diff generation during reprocessing)
+                processedData!.reduced = { diff: {} };
 
                 // Prepend transaction
                 dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
@@ -1651,6 +1657,100 @@ describe('DataModel', () => {
                     [10, 20],
                     [100, 200],
                 ]);
+            });
+        });
+
+        describe('diff tracking opt-in', () => {
+            it('should NOT generate diffs when diff tracking is not initialized', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // DO NOT initialize diff tracking - it should remain undefined
+                expect(processedData!.reduced?.diff).toBeUndefined();
+
+                // Add transaction
+                dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify data was updated correctly
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify diff was NOT generated (still undefined)
+                expect(reprocessed.reduced?.diff).toBeUndefined();
+            });
+
+            it('should generate diffs when diff tracking IS initialized', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Opt-in to diff tracking
+                processedData!.reduced = { diff: {} };
+
+                // Add transaction
+                dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify data was updated correctly
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify diff WAS generated
+                expect(reprocessed.reduced?.diff).toBeDefined();
+                expect(reprocessed.reduced?.diff?.test).toBeDefined();
+                expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.added.has('3')).toBe(true);
+            });
+
+            it('should skip diff generation when no changes occur', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Opt-in to diff tracking
+                processedData!.reduced = { diff: {} };
+
+                // No transaction added
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should return same reference (no changes)
+                expect(reprocessed).toBe(processedData);
+
+                // Diff structure exists but is empty (no scopes changed)
+                expect(reprocessed.reduced?.diff).toBeDefined();
+                expect(Object.keys(reprocessed.reduced!.diff!)).toEqual([]);
             });
         });
 

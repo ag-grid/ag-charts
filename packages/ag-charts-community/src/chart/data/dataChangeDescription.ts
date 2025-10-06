@@ -39,6 +39,15 @@ export interface IndexTransformationMap {
 
     /** Total number of appended items */
     totalAppendCount: number;
+
+    /** True if this is an append-only transaction (no prepends, no removals) */
+    isAppendOnly: boolean;
+
+    /** True if this is a prepend-only transaction (no appends, no removals) */
+    isPrependOnly: boolean;
+
+    /** True if no items were removed (but may have prepends/appends) */
+    hasNoRemovals: boolean;
 }
 
 /**

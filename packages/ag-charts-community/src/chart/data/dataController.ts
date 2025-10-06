@@ -143,6 +143,7 @@ export class DataController {
                 dataSet.getChangeDescription() != null &&
                 dataModel.isReprocessingSupported(processedData)
             ) {
+                this.debug('DataController.execute() - reprocessing data', processedData, dataSet);
                 dataModel.reprocessData(processedData);
                 resolveResult(dataModel, processedData);
                 continue;

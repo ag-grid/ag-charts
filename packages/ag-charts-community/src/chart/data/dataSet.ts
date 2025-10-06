@@ -270,6 +270,11 @@ export class DataSet<T = unknown> {
 
         const finalLength = originalLength + totalPrependCount + totalAppendCount - removedIndices.size;
 
+        // Calculate optimization flags
+        const hasNoRemovals = removedIndices.size === 0;
+        const isAppendOnly = hasNoRemovals && totalPrependCount === 0;
+        const isPrependOnly = hasNoRemovals && totalAppendCount === 0;
+
         return {
             originalLength,
             finalLength,
@@ -277,6 +282,9 @@ export class DataSet<T = unknown> {
             removedIndices,
             totalPrependCount,
             totalAppendCount,
+            isAppendOnly,
+            isPrependOnly,
+            hasNoRemovals,
         };
     }
 }
