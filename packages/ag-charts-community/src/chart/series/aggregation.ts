@@ -167,12 +167,39 @@ export function createAggregationIndices(
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
 
-    for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
+    // Cache for current bucket to reduce array access overhead
+    let lastAggIndex = -1;
+    let cachedXMinIndex = -1;
+    let cachedXMinValue = NaN;
+    let cachedXMaxIndex = -1;
+    let cachedXMaxValue = NaN;
+    let cachedYMinIndex = -1;
+    let cachedYMinValue = NaN;
+    let cachedYMaxIndex = -1;
+    let cachedYMaxValue = NaN;
+
+    const flushCache = (aggIndex: number) => {
+        // NOTE: Access order makes a performance difference here - do not change.
+        indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = cachedXMinIndex;
+        indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = cachedXMaxIndex;
+        indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = cachedYMinIndex;
+        indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = cachedYMaxIndex;
+        valueData[aggIndex + AGGREGATION_INDEX_X_MIN] = cachedXMinValue;
+        valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = cachedXMaxValue;
+        valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = cachedYMinValue;
+        valueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = cachedYMaxValue;
+    };
+
+    const xValuesLength = xValues.length;
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
         const xValue = xValues[datumIndex];
         if (xValue == null) continue;
 
+        // Extract numeric values once per iteration
         const yMaxValue = yMaxValues[datumIndex];
+        const yMinValue = yMinValues[datumIndex];
         const yMax: number = yMaxValue != null ? yMaxValue.valueOf() : NaN;
+        const yMin: number = yMinValue != null ? yMinValue.valueOf() : NaN;
 
         if (positive != null && yMax >= 0 !== positive) continue;
 
@@ -181,27 +208,61 @@ export function createAggregationIndices(
             : aggregationXRatioForDatumIndex(datumIndex, domainCount);
         const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
-        const yMinValue = yMinValues[datumIndex];
-        const yMin: number = yMinValue != null ? yMinValue.valueOf() : NaN;
+        // Load cache when switching buckets
+        if (aggIndex !== lastAggIndex) {
+            if (lastAggIndex !== -1) {
+                flushCache(lastAggIndex);
+            }
+            lastAggIndex = aggIndex;
+            // NOTE: Access order makes a performance difference here - do not change.
+            cachedXMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
+            cachedXMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
+            cachedYMinIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
+            cachedYMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
+            cachedXMinValue = valueData[aggIndex + AGGREGATION_INDEX_X_MIN];
+            cachedXMaxValue = valueData[aggIndex + AGGREGATION_INDEX_X_MAX];
+            cachedYMinValue = valueData[aggIndex + AGGREGATION_INDEX_Y_MIN];
+            cachedYMaxValue = valueData[aggIndex + AGGREGATION_INDEX_Y_MAX];
+        }
 
-        const unset = indexData[aggIndex + AGGREGATION_INDEX_X_MIN] === -1;
+        // Fast path: bucket is unset (first value in bucket)
+        if (cachedXMinIndex === -1) {
+            cachedXMinIndex = datumIndex;
+            cachedXMinValue = xRatio;
+            cachedXMaxIndex = datumIndex;
+            cachedXMaxValue = xRatio;
+            if (!Number.isNaN(yMin)) {
+                cachedYMinIndex = datumIndex;
+                cachedYMinValue = yMin;
+            }
+            if (!Number.isNaN(yMax)) {
+                cachedYMaxIndex = datumIndex;
+                cachedYMaxValue = yMax;
+            }
+        } else {
+            // Slow path: bucket has values, need comparisons
+            if (xRatio < cachedXMinValue) {
+                cachedXMinIndex = datumIndex;
+                cachedXMinValue = xRatio;
+            }
+            if (xRatio > cachedXMaxValue) {
+                cachedXMaxIndex = datumIndex;
+                cachedXMaxValue = xRatio;
+            }
+            if (!Number.isNaN(yMin) && yMin < cachedYMinValue) {
+                cachedYMinIndex = datumIndex;
+                cachedYMinValue = yMin;
+            }
+            if (!Number.isNaN(yMax) && yMax > cachedYMaxValue) {
+                cachedYMaxIndex = datumIndex;
+                cachedYMaxValue = yMax;
+            }
+        }
+    }
 
-        if (unset || xRatio < valueData[aggIndex + AGGREGATION_INDEX_X_MIN]) {
-            indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = datumIndex;
-            valueData[aggIndex + AGGREGATION_INDEX_X_MIN] = xRatio;
-        }
-        if (unset || xRatio > valueData[aggIndex + AGGREGATION_INDEX_X_MAX]) {
-            indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = datumIndex;
-            valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = xRatio;
-        }
-        if (!Number.isNaN(yMin) && (unset || yMin < valueData[aggIndex + AGGREGATION_INDEX_Y_MIN])) {
-            indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = datumIndex;
-            valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = yMin;
-        }
-        if (!Number.isNaN(yMax) && (unset || yMax > valueData[aggIndex + AGGREGATION_INDEX_Y_MAX])) {
-            indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = datumIndex;
-            valueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = yMax;
-        }
+    // Flush final bucket
+    if (lastAggIndex !== -1) {
+        flushCache(lastAggIndex);
     }
 
     return { indexData, valueData };
