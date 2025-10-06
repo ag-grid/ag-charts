@@ -49,7 +49,9 @@ export function aggregateLineData(
     scale: ScaleType,
     xValues: any[],
     yValues: any[],
-    domain: any[]
+    domain: any[],
+    xNeedsValueOf = true,
+    yNeedsValueOf = true
 ): LineSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
@@ -57,7 +59,11 @@ export function aggregateLineData(
 
     let maxRange = aggregationRangeFittingPoints(xValues, d0, d1);
 
-    const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
+    const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange, {
+        xNeedsValueOf,
+        yMaxNeedsValueOf: yNeedsValueOf,
+        yMinNeedsValueOf: yNeedsValueOf,
+    });
 
     let indices: number[] = [];
     for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {

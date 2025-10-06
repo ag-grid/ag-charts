@@ -61,6 +61,7 @@ interface CommonMetadata<D> {
     keys: Map<ScopeId, unknown[]>[];
     columns: any[][];
     columnScopes: Set<ScopeId>[];
+    columnValueTypes?: boolean[]; // true if column needs valueOf() (contains Dates/objects), false for primitives
     domain: {
         keys: any[][];
         values: any[][];
@@ -473,6 +474,15 @@ export class DataModel<
             throw new Error(`AG Charts - didn't find column for [${searchId}, ${scope.id}]`);
         }
         return column;
+    }
+
+    resolveColumnNeedsValueOf(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>
+    ): boolean {
+        const index = this.resolveProcessedDataIndexById(scope, searchId);
+        return processedData.columnValueTypes?.[index] ?? true;
     }
 
     /**
@@ -1356,7 +1366,7 @@ export class DataModel<
             processValue
         );
 
-        const { columns, columnScopes, partialValidDataCount, maxDataLength } = this.extractValues(
+        const { columns, columnScopes, columnValueTypes, partialValidDataCount, maxDataLength } = this.extractValues(
             invalidData,
             valueDefs,
             sources,
@@ -1383,6 +1393,7 @@ export class DataModel<
             keys: [...allKeyMappings.values()],
             columns,
             columnScopes,
+            columnValueTypes,
             invalidKeys,
             invalidKeyCount,
             invalidData,
@@ -1513,6 +1524,7 @@ export class DataModel<
 
         const columns: unknown[][] = [];
         const allColumnScopes: Set<ScopeId>[] = [];
+        const columnValueTypes: boolean[] = [];
         let maxDataLength = 0;
         for (const def of valueDefs) {
             const { invalidValue } = def;
@@ -1526,6 +1538,7 @@ export class DataModel<
             const columnSource = sources.get(columnScope)?.data ?? [];
             const column = new Array<unknown>();
             const invalidKeys = scopeInvalidKeys.get(columnScope);
+            let needsValueOf = false;
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
                 if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') continue;
 
@@ -1547,15 +1560,21 @@ export class DataModel<
                     value = invalidValue;
                 }
 
+                // Detect if this column contains Date objects or other objects needing valueOf()
+                if (!needsValueOf && value != null && typeof value === 'object') {
+                    needsValueOf = true;
+                }
+
                 column[datumIndex] = value;
             }
 
             columns.push(column);
             allColumnScopes.push(columnScopes);
+            columnValueTypes.push(needsValueOf);
             maxDataLength = Math.max(maxDataLength, column.length);
         }
 
-        return { columns, columnScopes: allColumnScopes, partialValidDataCount, maxDataLength };
+        return { columns, columnScopes: allColumnScopes, columnValueTypes, partialValidDataCount, maxDataLength };
     }
 
     private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {

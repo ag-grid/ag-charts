@@ -324,7 +324,14 @@ export class LineSeries extends CartesianSeries<
         const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
         const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
 
-        return memoizedAggregateLineData(scale.type, xValues, yValues, domain);
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
+            this,
+            this.yCumulativeKey(processedData),
+            processedData
+        );
+
+        return memoizedAggregateLineData(scale.type, xValues, yValues, domain, xNeedsValueOf, yNeedsValueOf);
     }
 
     override createNodeData() {

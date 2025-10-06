@@ -157,7 +157,17 @@ export function createAggregationIndices(
     d0: number,
     d1: number,
     maxRange: number,
-    { positive }: { positive?: boolean } = {}
+    {
+        positive,
+        xNeedsValueOf = true,
+        yMaxNeedsValueOf = true,
+        yMinNeedsValueOf = true,
+    }: {
+        positive?: boolean;
+        xNeedsValueOf?: boolean;
+        yMaxNeedsValueOf?: boolean;
+        yMinNeedsValueOf?: boolean;
+    } = {}
 ): {
     indexData: Int32Array;
     valueData: Float64Array;
@@ -195,16 +205,18 @@ export function createAggregationIndices(
         const xValue = xValues[datumIndex];
         if (xValue == null) continue;
 
-        // Extract numeric values once per iteration
+        // Extract numeric values once per iteration (conditionally call valueOf based on metadata)
         const yMaxValue = yMaxValues[datumIndex];
         const yMinValue = yMinValues[datumIndex];
-        const yMax: number = yMaxValue != null ? yMaxValue.valueOf() : NaN;
-        const yMin: number = yMinValue != null ? yMinValue.valueOf() : NaN;
+        const yMax: number = yMaxNeedsValueOf ? (yMaxValue != null ? yMaxValue.valueOf() : NaN) : yMaxValue ?? NaN;
+        const yMin: number = yMinNeedsValueOf ? (yMinValue != null ? yMinValue.valueOf() : NaN) : yMinValue ?? NaN;
 
         if (positive != null && yMax >= 0 !== positive) continue;
 
         const xRatio = continuous
-            ? aggregationXRatioForXValue(xValue, d0, d1)
+            ? xNeedsValueOf
+                ? aggregationXRatioForXValue(xValue, d0, d1)
+                : (xValue - d0) / (d1 - d0)
             : aggregationXRatioForDatumIndex(datumIndex, domainCount);
         const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
