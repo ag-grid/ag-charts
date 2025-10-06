@@ -27,6 +27,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
 }
 
 const {
+    BaseProperties,
     CartesianSeriesProperties,
     InterpolationProperties,
     SeriesMarker,
@@ -36,6 +37,9 @@ const {
     Label,
     Deprecated,
 } = _ModuleSupport;
+
+type RangeAreaSeriesItemOptions = NonNullable<AgRangeAreaSeriesOptions['item']>;
+type RangeAreaSeriesLineOptions = NonNullable<RangeAreaSeriesItemOptions[AgRangeAreaSeriesItemType]>;
 
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {
     @Property
@@ -56,7 +60,7 @@ class RangeAreaInvertedStyle {
     fillOpacity: number = 1;
 }
 
-class RangeAreaLineStyle {
+class RangeAreaLineStyle extends BaseProperties<RangeAreaSeriesLineOptions> {
     @Property
     stroke: string = '#99CCFF';
 
@@ -76,7 +80,7 @@ class RangeAreaLineStyle {
     readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys>();
 }
 
-class RangeAreaItemProperties {
+class RangeAreaItemProperties extends BaseProperties<RangeAreaSeriesItemOptions> {
     @Property
     low = new RangeAreaLineStyle();
 
@@ -86,7 +90,7 @@ class RangeAreaItemProperties {
 
 const DeprecatedMessage = (alt: string) => `Use item.low.${alt} and item.high.${alt} instead`;
 
-class DeprecatedRangeAreaMarker implements AgSeriesMarkerOptions<unknown, unknown, unknown> {
+class DeprecatedRangeAreaMarker extends BaseProperties<AgSeriesMarkerOptions<unknown, unknown, unknown>> {
     @Deprecated(DeprecatedMessage('marker.enabled'))
     enabled?: boolean;
 
