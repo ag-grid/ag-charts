@@ -105,6 +105,36 @@ In this configuration:
 -   The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
 -   The `label.formatter` function uses the `itemId` from the params object to distinguish whether the label is a `low` or `high` value.
 
+### Range Area Inverted Styling
+
+Range Area series support a special type of segmentation styling called **inverted styling** for handling inverted segments.
+
+Inverted segments are automatically detected when the range area series encounters data points where the `yHighKey` value is less than the `yLowKey` value.
+
+This feature allows visual differentiation for ranges that represent negative differences or inverted states.
+
+{% chartExampleRunner title="Range Area Inverted Style" name="range-area-inverted-style" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'range-area',
+        xKey: 'quarter',
+        yLowKey: 'projected',
+        yHighKey: 'actual',
+        invertedStyle: {
+            fill: 'red',
+        },
+    },
+];
+```
+
+In this configuration:
+
+-   **Normal segments** where `high > low` use the series `fill` color.
+-   **Inverted segments** where `high < low` use the `invertedStyle.fill` color (red).
+-   The `invertedStyle` object supports `fill` and `fillOpacity`.
+
 ## API Reference
 
 {% tabs %}

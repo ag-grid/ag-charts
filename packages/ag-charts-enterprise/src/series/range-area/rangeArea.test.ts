@@ -1014,8 +1014,8 @@ describe('RangeAreaSeries', () => {
         });
     });
 
-    describe('invertedSegments with negativeStyle', () => {
-        it('should render range-area series with negativeStyle for segments that start inverted', async () => {
+    describe('invertedSegments with invertedStyle', () => {
+        it('should render range-area series with invertedStyle for segments that start inverted', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 'Jan', high: 10, low: 20 }, // starts inverted (high < low)
@@ -1030,7 +1030,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -1043,7 +1043,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle for segments that start normal', async () => {
+        it('should render range-area series with invertedStyle for segments that start normal', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 'Jan', high: 20, low: 10 }, // starts normal (high > low)
@@ -1058,7 +1058,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -1071,7 +1071,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle and gradient fills', async () => {
+        it('should render range-area series with invertedStyle and gradient fills', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 5, low: 15 }, // starts inverted
@@ -1091,7 +1091,7 @@ describe('RangeAreaSeries', () => {
                             type: 'gradient',
                             colorStops: [{ color: '#4A90E2' }, { color: '#E3F2FD' }],
                         },
-                        negativeStyle: {
+                        invertedStyle: {
                             enabled: true,
                             fill: {
                                 type: 'gradient',
@@ -1108,7 +1108,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle and smooth interpolation', async () => {
+        it('should render range-area series with invertedStyle and smooth interpolation', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 10, low: 30 }, // starts inverted
@@ -1128,7 +1128,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -1144,7 +1144,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle and step interpolation', async () => {
+        it('should render range-area series with invertedStyle and step interpolation', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 10, low: 30 }, // starts inverted
@@ -1164,7 +1164,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -1180,7 +1180,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle with time and smooth interpolation', async () => {
+        it('should render range-area series with invertedStyle with time and smooth interpolation', async () => {
             const continuousData = [
                 { date: new Date(2023, 0, 1), high: 8, low: 18 }, // starts inverted
                 { date: new Date(2023, 0, 15), high: 12, low: 22 },
@@ -1200,7 +1200,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'date',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -1220,7 +1220,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle inherited from series styles', async () => {
+        it('should render range-area series with invertedStyle inherited from series styles', async () => {
             const options: AgChartOptions = {
                 data: [
                     { category: 'A', high: 12, low: 22 }, // starts inverted
@@ -1235,7 +1235,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'category',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fillOpacity: 0.1,
                         },
                     },
@@ -1247,7 +1247,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle that never inverts', async () => {
+        it('should render range-area series with invertedStyle that never inverts', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 25, low: 15 },
@@ -1262,7 +1262,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                         },
                     },
@@ -1274,7 +1274,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle that is always inverted', async () => {
+        it('should render range-area series with invertedStyle that is always inverted', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 15, low: 25 },
@@ -1289,7 +1289,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                         },
                     },

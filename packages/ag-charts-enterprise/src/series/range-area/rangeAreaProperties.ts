@@ -42,7 +42,7 @@ class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> 
     spacing: PixelSize = 0;
 }
 
-class RangeAreaNegativeStyle {
+class RangeAreaInvertedStyle {
     @Property
     enabled: boolean = false;
 
@@ -103,7 +103,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     styler?: Styler<unknown, undefined>;
 
     @Property
-    readonly negativeStyle = new RangeAreaNegativeStyle();
+    readonly invertedStyle = new RangeAreaInvertedStyle();
 
     @Property
     readonly shadow = new DropShadow().set({ enabled: false });

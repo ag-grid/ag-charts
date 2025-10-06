@@ -4,43 +4,40 @@ import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'GBP/EUR',
-    },
-    subtitle: {
-        text: 'Historical Daily Exchange Rate (Sep 2024 - Sep 2025)',
-    },
+    title: { text: 'Balance of Trade' },
+    subtitle: { text: 'Trade fluctuations from 1945 to 2025' },
     data: getData(),
     series: [
         {
             type: 'range-area',
-            xKey: 'date',
+            xKey: 'year',
             xName: 'Date',
-            yLowKey: 'baseline',
-            yHighKey: 'close',
-            yLowName: 'Baseline',
-            yHighName: 'Close Price',
+            yLowKey: 'exports',
+            yHighKey: 'imports',
+            yLowName: 'Target',
+            yHighName: 'Actual',
             fill: 'green',
-            fillOpacity: 0.5,
-            strokeWidth: 0,
-            negativeStyle: {
+            strokeWidth: 2,
+            fillOpacity: 0.4,
+            invertedStyle: {
                 fill: 'red',
             },
+            stroke: 'grey',
         },
     ],
     axes: [
         {
             type: 'number',
             position: 'right',
-            crosshair: {
-                enabled: true,
-            },
             interval: {
-                step: 0.01,
+                step: 10,
+            },
+            title: {
+                text: '£ millions',
             },
         },
         {
-            type: 'unit-time',
+            type: 'category',
             position: 'bottom',
             gridLine: {
                 enabled: true,

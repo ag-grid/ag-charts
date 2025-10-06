@@ -15,7 +15,7 @@ const options: AgCartesianChartOptions<DataType> = {
             yHighKey: 'actual',
             yLowName: 'Projected',
             yHighName: 'Actual',
-            negativeStyle: {
+            invertedStyle: {
                 fill: 'red',
             },
             interpolation: {

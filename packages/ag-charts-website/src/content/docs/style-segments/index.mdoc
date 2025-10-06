@@ -89,46 +89,12 @@ Each segment in the `segments` array is defined by bounds and provides style ove
     -   These are the same styling keys available on the series, such as `stroke` and `fill`.
     -   Unspecified properties fall back to the main series options or defaults.
 
-## Range Area Negative Styling
-
-Range Area series support a special type of segmentation styling called **negative styling** for handling inverted segments.
-
-Inverted segments are automatically detected when the range area series encounters data points where the `yHighKey` value is less than the `yLowKey` value.
-
-This feature allows visual differentiation for ranges that represent negative differences or inverted states.
-
-{% chartExampleRunner title="Range Area Negative Style" name="range-area-negative-style" type="generated" /%}
-
-```js
-series: [
-    {
-        type: 'range-area',
-        xKey: 'quarter',
-        yLowKey: 'projected',
-        yHighKey: 'actual',
-        negativeStyle: {
-            fill: 'red',
-        },
-    },
-];
-```
-
-In this configuration:
-
--   **Normal segments** where `high > low` use the series `fill` color.
--   **Inverted segments** where `high < low` use the `negativeStyle.fill` color (red).
--   The `negativeStyle` object supports `fill` and `fillOpacity`.
-
 ## API Reference
 
 {% tabs %}
 
 {% tabItem id="AgAreaSegmentOptions" label="Segment Options" %}
 {% apiReference id="AgSeriesShapeSegmentOptions" /%}
-{% /tabItem %}
-
-{% tabItem id="AgRangeAreaSeriesNegativeStyle" label="Range Area Negative Style" %}
-{% apiReference id="AgRangeAreaSeriesNegativeStyle" /%}
 {% /tabItem %}
 
 {% /tabs %}
