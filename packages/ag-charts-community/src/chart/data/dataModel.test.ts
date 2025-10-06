@@ -1866,4 +1866,411 @@ describe('DataModel', () => {
             });
         });
     });
+
+    describe('banded domain optimization', () => {
+        describe('append operations with banding', () => {
+            it('should correctly update domain when appending to large dataset', () => {
+                // Create a data model with banding enabled for datasets > 100 items
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 100, // Lower threshold for testing
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Create large initial dataset
+                const initialData = Array.from({ length: 200 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initial domain should be correct
+                expect(processedData!.domain.keys).toEqual([[0, 199]]);
+                expect(processedData!.domain.values).toEqual([[0, 1990]]);
+
+                // Append more data
+                const appendData = [
+                    { x: 200, y: 2000 },
+                    { x: 201, y: 2010 },
+                    { x: 202, y: 2020 },
+                ];
+                dataSet.addTransaction({ append: appendData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should extend to include new values
+                expect(reprocessed.domain.keys).toEqual([[0, 202]]);
+                expect(reprocessed.domain.values).toEqual([[0, 2020]]);
+
+                // Verify actual data
+                expect(reprocessed.keys[0].get('test')?.length).toBe(203);
+                expect(reprocessed.columns[0].length).toBe(203);
+            });
+        });
+
+        describe('prepend operations with banding', () => {
+            it('should correctly update domain when prepending to large dataset', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 100,
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Create large initial dataset starting from 10
+                const initialData = Array.from({ length: 150 }, (_, i) => ({
+                    x: i + 10,
+                    y: (i + 10) * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initial domain
+                expect(processedData!.domain.keys).toEqual([[10, 159]]);
+                expect(processedData!.domain.values).toEqual([[100, 1590]]);
+
+                // Prepend data with lower values
+                const prependData = [
+                    { x: 7, y: 70 },
+                    { x: 8, y: 80 },
+                    { x: 9, y: 90 },
+                ];
+                dataSet.addTransaction({ prepend: prependData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should extend to include new minimum values
+                expect(reprocessed.domain.keys).toEqual([[7, 159]]);
+                expect(reprocessed.domain.values).toEqual([[70, 1590]]);
+
+                // Verify data integrity
+                expect(reprocessed.keys[0].get('test')?.[0]).toBe(7);
+                expect(reprocessed.keys[0].get('test')?.[1]).toBe(8);
+                expect(reprocessed.keys[0].get('test')?.[2]).toBe(9);
+                expect(reprocessed.keys[0].get('test')?.[3]).toBe(10);
+            });
+        });
+
+        describe('mixed operations with banding', () => {
+            it('should correctly update domain with mixed insert/remove operations', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 50,
+                        targetBandCount: 4,
+                        enableBanding: true,
+                    },
+                });
+
+                // Create dataset with gaps
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    x: i * 2, // 0, 2, 4, 6, ...
+                    y: i * 20,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initial domain
+                expect(processedData!.domain.keys).toEqual([[0, 198]]);
+                expect(processedData!.domain.values).toEqual([[0, 1980]]);
+
+                // Mixed operations: remove some middle values, add at both ends
+                dataSet.addTransaction({
+                    remove: [initialData[25], initialData[50], initialData[75]], // Remove 3 from middle
+                    prepend: [{ x: -2, y: -20 }],
+                    append: [
+                        { x: 200, y: 2000 },
+                        { x: 202, y: 2020 },
+                    ],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should reflect new min/max
+                expect(reprocessed.domain.keys).toEqual([[-2, 202]]);
+                expect(reprocessed.domain.values).toEqual([[-20, 2020]]);
+
+                // Verify count is correct (100 - 3 + 1 + 2 = 100)
+                expect(reprocessed.input.count).toBe(100);
+            });
+        });
+
+        describe('boundary value removal with banding', () => {
+            it('should correctly recalculate domain when removing boundary values', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 50,
+                        targetBandCount: 3,
+                        enableBanding: true,
+                    },
+                });
+
+                // Dataset with clear boundaries
+                const initialData = Array.from({ length: 60 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initial domain
+                expect(processedData!.domain.keys).toEqual([[0, 59]]);
+                expect(processedData!.domain.values).toEqual([[0, 590]]);
+
+                // Remove the minimum and maximum values
+                dataSet.addTransaction({
+                    remove: [
+                        initialData[0], // x: 0, y: 0 (minimum)
+                        initialData[59], // x: 59, y: 590 (maximum)
+                    ],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should update to new boundaries
+                expect(reprocessed.domain.keys).toEqual([[1, 58]]);
+                expect(reprocessed.domain.values).toEqual([[10, 580]]);
+            });
+
+            it('should handle removing all values from a band', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 20,
+                        targetBandCount: 4, // Should create ~5 items per band for 20 items
+                        enableBanding: true,
+                    },
+                });
+
+                // Small dataset that will be banded
+                const initialData = Array.from({ length: 20 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove entire first "band" worth of data (first 5 items)
+                const toRemove = initialData.slice(0, 5);
+                dataSet.addTransaction({ remove: toRemove });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should start from the remaining minimum
+                expect(reprocessed.domain.keys).toEqual([[5, 19]]);
+                expect(reprocessed.domain.values).toEqual([[50, 190]]);
+                expect(reprocessed.input.count).toBe(15);
+            });
+        });
+
+        describe('band rebalancing scenarios', () => {
+            it('should rebalance bands when data size changes significantly', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 5, // Lower for testing
+                        targetBandCount: 3,
+                        enableBanding: true,
+                    },
+                });
+
+                // Start with dataset just above banding threshold
+                const initialData = Array.from({ length: 10 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Verify initial domain with banding enabled
+                expect(processedData!.domain.keys).toEqual([[0, 9]]);
+                expect(processedData!.domain.values).toEqual([[0, 90]]);
+
+                // Add significant amount of data (double the size)
+                const appendData = Array.from({ length: 10 }, (_, i) => ({
+                    x: i + 10,
+                    y: (i + 10) * 10,
+                }));
+                dataSet.addTransaction({ append: appendData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should include all data
+                expect(reprocessed.domain.keys).toEqual([[0, 19]]);
+                expect(reprocessed.domain.values).toEqual([[0, 190]]);
+                expect(reprocessed.input.count).toBe(20);
+
+                // Remove half the data - items with x=0 to x=4
+                const toRemove = initialData.slice(0, 5);
+                dataSet.addTransaction({ remove: toRemove });
+
+                const reprocessed2 = dataModel.reprocessData(reprocessed);
+
+                // Should still calculate correct domain with less data
+                // Remaining data: x=5 to x=19
+                expect(reprocessed2.domain.keys).toEqual([[5, 19]]);
+                expect(reprocessed2.domain.values).toEqual([[50, 190]]);
+                expect(reprocessed2.input.count).toBe(15);
+
+                // Remove more to drop below banding threshold
+                // Remove x=5 to x=9 and x=10 to x=16
+                // This should leave only x=17, x=18, x=19
+                const toRemoveMore = [...initialData.slice(5), ...appendData.slice(0, 7)];
+                dataSet.addTransaction({ remove: toRemoveMore });
+
+                const reprocessed3 = dataModel.reprocessData(reprocessed2);
+
+                // Check actual data in dataSet
+                const actualData = dataSet.data;
+                const actualXValues = actualData.map((d) => d.x).sort((a, b) => a - b);
+                const actualYValues = actualData.map((d) => d.y).sort((a, b) => a - b);
+
+                // Domain should match the actual remaining data
+                const expectedMinX = Math.min(...actualXValues);
+                const expectedMaxX = Math.max(...actualXValues);
+                const expectedMinY = Math.min(...actualYValues);
+                const expectedMaxY = Math.max(...actualYValues);
+
+                expect(reprocessed3.domain.keys).toEqual([[expectedMinX, expectedMaxX]]);
+                expect(reprocessed3.domain.values).toEqual([[expectedMinY, expectedMaxY]]);
+                expect(reprocessed3.input.count).toBe(actualData.length);
+            });
+
+            it('should handle transition from non-banded to banded mode', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 100,
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Start below banding threshold
+                const initialData = Array.from({ length: 50 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Should not use banding initially
+                expect(processedData!.domain.keys).toEqual([[0, 49]]);
+                expect(processedData!.domain.values).toEqual([[0, 490]]);
+
+                // Add enough data to trigger banding
+                const appendData = Array.from({ length: 60 }, (_, i) => ({
+                    x: i + 50,
+                    y: (i + 50) * 10,
+                }));
+                dataSet.addTransaction({ append: appendData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should now use banding and still calculate correct domain
+                expect(reprocessed.domain.keys).toEqual([[0, 109]]);
+                expect(reprocessed.domain.values).toEqual([[0, 1090]]);
+                expect(reprocessed.input.count).toBe(110);
+            });
+        });
+
+        describe('discrete domains with banding disabled', () => {
+            it('should not use banding for category domains', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('category'), value('value')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 10, // Low threshold
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Large dataset with categories
+                const categories = ['A', 'B', 'C', 'D', 'E'];
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    category: categories[i % 5],
+                    value: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Should handle discrete domains correctly
+                expect(processedData!.domain.keys).toEqual([['A', 'B', 'C', 'D', 'E']]);
+
+                // Add new category
+                dataSet.addTransaction({ append: [{ category: 'F', value: 1000 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should include new category
+                expect(reprocessed.domain.keys).toEqual([['A', 'B', 'C', 'D', 'E', 'F']]);
+            });
+        });
+
+        describe('performance characteristics with banding', () => {
+            it('should efficiently handle append-heavy workloads', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('timestamp'), value('value')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 100,
+                        targetBandCount: 10,
+                        enableBanding: true,
+                    },
+                });
+
+                // Simulate time-series data
+                const initialData = Array.from({ length: 1000 }, (_, i) => ({
+                    timestamp: i * 1000, // Millisecond timestamps
+                    value: Math.sin(i / 100) * 100,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Simulate multiple rapid append operations (like real-time data)
+                for (let batch = 0; batch < 10; batch++) {
+                    const batchData = Array.from({ length: 10 }, (_, i) => ({
+                        timestamp: (1000 + batch * 10 + i) * 1000,
+                        value: Math.sin((1000 + batch * 10 + i) / 100) * 100,
+                    }));
+                    dataSet.addTransaction({ append: batchData });
+                }
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should handle 100 new data points efficiently
+                expect(reprocessed.input.count).toBe(1100);
+                expect(reprocessed.domain.keys[0][0]).toBe(0); // Min timestamp
+                expect(reprocessed.domain.keys[0][1]).toBe(1099000); // Max timestamp
+
+                // Value domain should reflect the sine wave range
+                expect(reprocessed.domain.values[0][0]).toBeCloseTo(-100, 0);
+                expect(reprocessed.domain.values[0][1]).toBeCloseTo(100, 0);
+            });
+        });
+    });
 });

@@ -2,7 +2,13 @@ import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
-import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
+import {
+    BandedDomain,
+    type BandedDomainConfig,
+    ContinuousDomain,
+    DiscreteDomain,
+    type IDataDomain,
+} from './dataDomain';
 import type { DataChangeDescription, DataSet } from './dataSet';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
@@ -30,6 +36,7 @@ export interface UngroupedDataItem<I, D, V> {
 const KEY_SORT_ORDERS = Symbol('key-sort-orders');
 const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
 const DOMAIN_RANGES = Symbol('domain-ranges');
+const DOMAIN_BANDS = Symbol('domain-bands');
 
 type ScopeId = string;
 
@@ -80,6 +87,7 @@ interface CommonMetadata<D> {
     [DOMAIN_RANGES]: Map<string, RangeLookup>;
     [KEY_SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
     [COLUMN_SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
+    [DOMAIN_BANDS]: Map<InternalDatumPropertyDefinition<any>, BandedDomain>;
 }
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
@@ -132,6 +140,7 @@ export type DataModelOptions<K, Grouped extends boolean | undefined, IsScoped ex
     groupByKeys?: Grouped;
     groupByData?: Grouped;
     groupByFn?: GroupByFn;
+    domainBandingConfig?: BandedDomainConfig;
 };
 
 export type PropertyDefinition<K, IsScoped = false> =
@@ -660,6 +669,9 @@ export class DataModel<
         // Pre-process all insertions
         const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
 
+        // Track band updates for optimization
+        this.updateBandsForChanges(processedData, scopeChanges);
+
         // Transform all arrays using cached insertion results
         this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
         this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
@@ -680,6 +692,68 @@ export class DataModel<
         processedData.time = end - start;
 
         return processedData;
+    }
+
+    /**
+     * Updates banded domains based on pending changes.
+     * This optimizes domain recalculation by only marking affected bands as dirty.
+     */
+    private updateBandsForChanges(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        const bandedDomains = processedData[DOMAIN_BANDS];
+        if (bandedDomains.size === 0) return;
+
+        for (const [, changeDesc] of scopeChanges) {
+            const { indexMap } = changeDesc;
+            const { spliceOps, isAppendOnly, isPrependOnly } = indexMap;
+
+            // Process each splice operation
+            for (const op of spliceOps) {
+                if (op.insertCount > 0) {
+                    // Handle insertions - update band indices
+                    for (const domain of bandedDomains.values()) {
+                        if (domain instanceof BandedDomain) {
+                            domain.handleInsertion(op.index, op.insertCount);
+                        }
+                    }
+                }
+
+                if (op.deleteCount > 0) {
+                    // Handle removals - check for boundary values
+                    // Note: For now we don't have the removed values here,
+                    // so we'll mark affected bands as dirty
+                    for (const domain of bandedDomains.values()) {
+                        if (domain instanceof BandedDomain) {
+                            // Simple approach: mark affected bands as dirty
+                            domain.handleRemoval(op.index, op.deleteCount);
+                        }
+                    }
+                }
+            }
+
+            // Optimize for common patterns
+            if (isAppendOnly) {
+                // For append-only, we only need to extend the last band
+                for (const domain of bandedDomains.values()) {
+                    if (domain instanceof BandedDomain) {
+                        const stats = domain.getStats();
+                        if (stats.bandCount > 0) {
+                            // Mark only the last band as dirty
+                            domain.markBandsDirty(indexMap.originalLength, indexMap.finalLength);
+                        }
+                    }
+                }
+            } else if (isPrependOnly) {
+                // For prepend-only, mark first band as dirty
+                for (const domain of bandedDomains.values()) {
+                    if (domain instanceof BandedDomain) {
+                        domain.markBandsDirty(0, indexMap.totalPrependCount);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -833,25 +907,59 @@ export class DataModel<
 
     /**
      * Recomputes domains from transformed arrays.
-     * NOTE: We will look to optimise this in the near future.
+     * Uses BandedDomain optimization for continuous domains to avoid full rescans.
      */
     private recomputeDomains(processedData: ProcessedData<D>): void {
+        const startTime = this.debug.check() ? performance.now() : 0;
+        const bandedDomains = processedData[DOMAIN_BANDS];
+        const bandingConfig = this.opts.domainBandingConfig;
+        let bandStats: { totalBands: number; dirtyBands: number; totalData: number } | undefined;
+
         const keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
         const valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
 
-        // Initialize domain objects
+        // Initialize or reuse domain objects
         for (const keyDef of this.keys) {
+            // Check if we have an existing banded domain for this def
+            let domain = bandedDomains.get(keyDef);
+
             if (keyDef.valueType === 'category') {
+                // Don't use banding for discrete domains
                 keyDomains.set(keyDef, new DiscreteDomain());
             } else {
-                keyDomains.set(keyDef, new ContinuousDomain());
+                // Use banded domain for continuous values if configured
+                if (!domain && bandingConfig?.enableBanding !== false) {
+                    domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
+                    bandedDomains.set(keyDef, domain);
+                }
+
+                if (domain) {
+                    keyDomains.set(keyDef, domain);
+                } else {
+                    keyDomains.set(keyDef, new ContinuousDomain());
+                }
             }
         }
+
         for (const valueDef of this.values) {
+            // Check if we have an existing banded domain for this def
+            let domain = bandedDomains.get(valueDef);
+
             if (valueDef.valueType === 'category') {
+                // Don't use banding for discrete domains
                 valueDomains.set(valueDef, new DiscreteDomain());
             } else {
-                valueDomains.set(valueDef, new ContinuousDomain());
+                // Use banded domain for continuous values if configured
+                if (!domain && bandingConfig?.enableBanding !== false) {
+                    domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
+                    bandedDomains.set(valueDef, domain);
+                }
+
+                if (domain) {
+                    valueDomains.set(valueDef, domain);
+                } else {
+                    valueDomains.set(valueDef, new ContinuousDomain());
+                }
             }
         }
 
@@ -860,14 +968,31 @@ export class DataModel<
             const keysMap = processedData.keys[keyDefIndex];
             const domain = keyDomains.get(keyDef)!;
 
-            for (const scope of keyDef.scopes ?? []) {
-                const keys = keysMap.get(scope);
-                if (!keys) continue;
+            // If using banded domain, handle it specially
+            if (domain instanceof BandedDomain) {
+                // Initialize bands if needed
+                const maxKeyLength = Math.max(...Array.from(keysMap.values()).map((keys) => keys.length));
+                domain.initializeBands(maxKeyLength);
 
-                const invalidData = processedData.invalidData?.get(scope);
-                for (let i = 0; i < keys.length; i++) {
-                    if (invalidData?.[i] === true) continue;
-                    domain.extend(keys[i]);
+                // Scan dirty bands for each scope
+                for (const scope of keyDef.scopes ?? []) {
+                    const keys = keysMap.get(scope);
+                    if (!keys) continue;
+
+                    const invalidData = processedData.invalidData?.get(scope);
+                    domain.extendBandsFromData(keys, invalidData);
+                }
+            } else {
+                // Standard domain extension (discrete or non-banded continuous)
+                for (const scope of keyDef.scopes ?? []) {
+                    const keys = keysMap.get(scope);
+                    if (!keys) continue;
+
+                    const invalidData = processedData.invalidData?.get(scope);
+                    for (let i = 0; i < keys.length; i++) {
+                        if (invalidData?.[i] === true) continue;
+                        domain.extend(keys[i]);
+                    }
                 }
             }
         }
@@ -879,9 +1004,34 @@ export class DataModel<
             const columnScope = first(valueDef.scopes);
             const invalidData = processedData.invalidData?.get(columnScope);
 
-            for (let i = 0; i < column.length; i++) {
-                if (invalidData?.[i] === true) continue;
-                domain.extend(column[i]);
+            // If using banded domain, handle it specially
+            if (domain instanceof BandedDomain) {
+                domain.initializeBands(column.length);
+                domain.extendBandsFromData(column, invalidData);
+            } else {
+                // Standard domain extension
+                for (let i = 0; i < column.length; i++) {
+                    if (invalidData?.[i] === true) continue;
+                    domain.extend(column[i]);
+                }
+            }
+        }
+
+        // Collect band statistics if in debug mode
+        if (this.debug.check() && bandedDomains.size > 0) {
+            bandStats = {
+                totalBands: 0,
+                dirtyBands: 0,
+                totalData: 0,
+            };
+
+            for (const domain of bandedDomains.values()) {
+                if (domain instanceof BandedDomain) {
+                    const stats = domain.getStats();
+                    bandStats.totalBands += stats.bandCount;
+                    bandStats.dirtyBands += stats.dirtyBandCount;
+                    bandStats.totalData = Math.max(bandStats.totalData, stats.dataSize);
+                }
             }
         }
 
@@ -905,6 +1055,24 @@ export class DataModel<
             }
             return result;
         });
+
+        // Log performance metrics
+        if (this.debug.check() && startTime > 0) {
+            const endTime = performance.now();
+            const duration = endTime - startTime;
+
+            if (bandStats && bandStats.totalBands > 0) {
+                const scanRatio = bandStats.dirtyBands / bandStats.totalBands;
+                const dataScanned = Math.round(scanRatio * bandStats.totalData);
+                this.debug(
+                    `recomputeDomains with banding: ${duration.toFixed(2)}ms, ` +
+                        `bands: ${bandStats.dirtyBands}/${bandStats.totalBands} dirty, ` +
+                        `data scanned: ~${dataScanned}/${bandStats.totalData} (${(scanRatio * 100).toFixed(1)}%)`
+                );
+            } else {
+                this.debug(`recomputeDomains: ${duration.toFixed(2)}ms (no banding)`);
+            }
+        }
     }
 
     /**
@@ -1023,6 +1191,7 @@ export class DataModel<
         processedData[DOMAIN_RANGES].clear();
         processedData[KEY_SORT_ORDERS].clear();
         processedData[COLUMN_SORT_ORDERS].clear();
+        // Note: We intentionally don't clear DOMAIN_BANDS here as they maintain state across updates
     }
 
     /**
@@ -1231,6 +1400,7 @@ export class DataModel<
             [DOMAIN_RANGES]: new Map(),
             [KEY_SORT_ORDERS]: new Map(),
             [COLUMN_SORT_ORDERS]: new Map(),
+            [DOMAIN_BANDS]: new Map(),
         } satisfies UngroupedData<D>;
     }
 
@@ -1471,6 +1641,7 @@ export class DataModel<
                 groups: resultGroups,
             },
             groups: resultData,
+            [DOMAIN_BANDS]: data[DOMAIN_BANDS],
         };
     }
 
