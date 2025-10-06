@@ -1487,4 +1487,283 @@ describe('DataModel', () => {
             expect(getPathComponents(`[test]`)).toBe(undefined);
         });
     });
+
+    describe('reprocessData', () => {
+        describe('append operations', () => {
+            it('should handle append-only transaction', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                // Initial data
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Add transaction
+                dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify keys were updated
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+
+                // Verify columns were updated
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
+                // Verify diff metadata
+                expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.added.has('3')).toBe(true);
+            });
+        });
+
+        describe('prepend operations', () => {
+            it('should handle prepend-only transaction', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Prepend transaction
+                dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify keys were shifted and new key added
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+
+                // Verify columns
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify diff shows moved items
+                expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.moved.size).toBe(2); // Original items moved
+            });
+        });
+
+        describe('remove operations', () => {
+            it('should handle remove transaction', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove middle item
+                dataSet.addTransaction({ remove: [initialData[1]] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify item was removed
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 3]);
+                expect(reprocessed.columns).toEqual([[10, 30]]);
+
+                // Verify domains updated
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
+                // Verify input count
+                expect(reprocessed.input.count).toBe(2);
+            });
+        });
+
+        describe('mixed operations', () => {
+            it('should handle mixed append and remove', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove first, add new
+                dataSet.addTransaction({
+                    remove: [initialData[0]],
+                    append: [{ x: 4, y: 40 }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // After remove+append, we expect: [{x:2},{x:3},{x:4}]
+                expect(dataSet.data).toEqual([
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                    { x: 4, y: 40 },
+                ]);
+                expect(reprocessed.keys[0].get('test')).toEqual([2, 3, 4]);
+                expect(reprocessed.columns).toEqual([[20, 30, 40]]);
+                expect(reprocessed.input.count).toBe(3);
+            });
+
+            it('should handle multiple value columns', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y1'), value('y2')],
+                });
+
+                const initialData = [{ x: 1, y1: 10, y2: 100 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: 200 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                expect(reprocessed.columns).toEqual([
+                    [10, 20],
+                    [100, 200],
+                ]);
+                expect(reprocessed.domain.values).toEqual([
+                    [10, 20],
+                    [100, 200],
+                ]);
+            });
+        });
+
+        describe('edge cases', () => {
+            it('should handle no pending transactions', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should return same reference
+                expect(reprocessed).toBe(processedData);
+            });
+
+            it('should handle category keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('category'), value('value')],
+                });
+
+                const initialData = [
+                    { category: 'A', value: 10 },
+                    { category: 'B', value: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                dataSet.addTransaction({ append: [{ category: 'C', value: 30 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                expect(reprocessed.keys[0].get('test')).toEqual(['A', 'B', 'C']);
+                expect(reprocessed.domain.keys).toEqual([['A', 'B', 'C']]);
+            });
+
+            it('should track invalid data in insertions', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        rangeKey('x'),
+                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                    ],
+                });
+
+                // Start with data that includes invalid item to ensure invalidData is initialized
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 'bad' as any },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources)!;
+
+                // Verify initial invalid tracking
+                expect(processedData.invalidData?.has('test')).toBe(true);
+
+                // Append with another invalid value
+                dataSet.addTransaction({
+                    append: [{ x: 3, y: 'invalid' as any }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData);
+
+                // The new invalid value should be tracked
+                const invalidDataArray = reprocessed.invalidData?.get('test');
+                expect(invalidDataArray).toBeDefined();
+                expect(invalidDataArray![1]).toBe(true); // Second item (from initial)
+                expect(invalidDataArray![2]).toBe(true); // Third item (appended)
+                expect(reprocessed.partialValidDataCount).toBeGreaterThan(0);
+            });
+        });
+
+        describe('isReprocessingSupported', () => {
+            it('should support ungrouped data without aggregates', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const sources = basicDataSet([{ x: 1, y: 10 }]);
+                const processedData = dataModel.processData(sources);
+
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+            });
+
+            it('should not support grouped data', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                const sources = basicDataSet([{ x: 1, y: 10 }]);
+                const processedData = dataModel.processData(sources);
+
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+            });
+
+            it('should not support data with aggregates', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y', 'group1'), sum('group1')],
+                });
+
+                const sources = basicDataSet([{ x: 1, y: 10 }]);
+                const processedData = dataModel.processData(sources);
+
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+            });
+        });
+    });
 });

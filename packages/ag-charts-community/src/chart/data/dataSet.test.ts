@@ -19,15 +19,23 @@ describe('DataSet', () => {
             // Check index map
             expect(desc.indexMap.originalLength).toBe(3);
             expect(desc.indexMap.finalLength).toBe(5);
-            expect(desc.indexMap.segments).toHaveLength(1);
-            expect(desc.indexMap.segments[0]).toEqual({
-                type: 'preserved',
-                sourceStartIndex: 0,
-                count: 3,
-                destStartIndex: 0,
+            expect(desc.indexMap.spliceOps).toHaveLength(1);
+            expect(desc.indexMap.spliceOps[0]).toEqual({
+                index: 3,
+                deleteCount: 0,
+                insertCount: 2,
             });
-            expect(desc.indexMap.insertions).toHaveLength(1);
-            expect(desc.indexMap.insertions[0]).toEqual({ destIndex: 3, count: 2 });
+            // Check that prepend/append counts are tracked
+            expect(desc.indexMap.totalPrependCount).toBe(0);
+            expect(desc.indexMap.totalAppendCount).toBe(2);
+            // Verify preserved indices through the iterator
+            const preserved: Array<[number, number]> = [];
+            desc.forEachPreservedIndex((src, dest) => preserved.push([src, dest]));
+            expect(preserved).toEqual([
+                [0, 0],
+                [1, 1],
+                [2, 2],
+            ]);
 
             // Check removed indices
             expect(desc.getRemovedIndices()).toEqual([]);
@@ -43,15 +51,23 @@ describe('DataSet', () => {
             // Check index map
             expect(desc.indexMap.originalLength).toBe(3);
             expect(desc.indexMap.finalLength).toBe(4);
-            expect(desc.indexMap.segments).toHaveLength(1);
-            expect(desc.indexMap.segments[0]).toEqual({
-                type: 'preserved',
-                sourceStartIndex: 0,
-                count: 3,
-                destStartIndex: 1, // Shifted right by 1
+            expect(desc.indexMap.spliceOps).toHaveLength(1);
+            expect(desc.indexMap.spliceOps[0]).toEqual({
+                index: 0,
+                deleteCount: 0,
+                insertCount: 1,
             });
-            expect(desc.indexMap.insertions).toHaveLength(1);
-            expect(desc.indexMap.insertions[0]).toEqual({ destIndex: 0, count: 1 });
+            // Check that prepend/append counts are tracked
+            expect(desc.indexMap.totalPrependCount).toBe(1);
+            expect(desc.indexMap.totalAppendCount).toBe(0);
+            // Verify preserved indices through the iterator (shifted by prepend)
+            const preserved: Array<[number, number]> = [];
+            desc.forEachPreservedIndex((src, dest) => preserved.push([src, dest]));
+            expect(preserved).toEqual([
+                [0, 1],
+                [1, 2],
+                [2, 3],
+            ]);
 
             // Check removed indices
             expect(desc.getRemovedIndices()).toEqual([]);
@@ -70,24 +86,24 @@ describe('DataSet', () => {
             // Check index map
             expect(desc.indexMap.originalLength).toBe(3);
             expect(desc.indexMap.finalLength).toBe(2);
-            expect(desc.indexMap.segments).toHaveLength(3);
-            expect(desc.indexMap.segments[0]).toEqual({
-                type: 'preserved',
-                sourceStartIndex: 0,
-                count: 1,
-                destStartIndex: 0,
+            expect(desc.indexMap.spliceOps).toHaveLength(1);
+            expect(desc.indexMap.spliceOps[0]).toEqual({
+                index: 1,
+                deleteCount: 1,
+                insertCount: 0,
             });
-            expect(desc.indexMap.segments[1]).toEqual({
-                type: 'removed',
-                sourceStartIndex: 1,
-                count: 1,
-            });
-            expect(desc.indexMap.segments[2]).toEqual({
-                type: 'preserved',
-                sourceStartIndex: 2,
-                count: 1,
-                destStartIndex: 1,
-            });
+            // Check that prepend/append counts are tracked
+            expect(desc.indexMap.totalPrependCount).toBe(0);
+            expect(desc.indexMap.totalAppendCount).toBe(0);
+            // Verify preserved indices through the iterator
+            const preserved: Array<[number, number]> = [];
+            desc.forEachPreservedIndex((src, dest) => preserved.push([src, dest]));
+            expect(preserved).toEqual([
+                [0, 0],
+                [2, 1],
+            ]);
+            // Check removed indices
+            expect(desc.indexMap.removedIndices.has(1)).toBe(true);
 
             // Check removed indices
             expect(desc.getRemovedIndices()).toEqual([1]);
@@ -198,7 +214,12 @@ describe('DataSet', () => {
             dataSet.commitPendingTransactions();
 
             const descAfter = dataSet.getChangeDescription();
-            expect(descAfter).toBeUndefined();
+            expect(descAfter).toBeDefined(); // Cleared after next update.
+
+            dataSet.addTransaction({ append: [5] });
+            const descAfter2 = dataSet.getChangeDescription();
+            expect(descAfter2).toBeDefined();
+            expect(descAfter).not.toBe(descAfter2);
         });
 
         test('should invalidate cache automatically when adding transactions', () => {
@@ -252,25 +273,15 @@ describe('DataSet', () => {
             dataSet.addTransaction({ remove: [item1, item2] });
 
             const desc = dataSet.getChangeDescription()!;
-            const preserved: any[] = [];
+            const preserved: Array<[number, number]> = [];
 
-            desc.forEachPreservedSegment((seg) => {
-                preserved.push(seg);
+            desc.forEachPreservedIndex((sourceIdx, destIdx) => {
+                preserved.push([sourceIdx, destIdx]);
             });
 
             expect(preserved).toHaveLength(2);
-            expect(preserved[0]).toEqual({
-                type: 'preserved',
-                sourceStartIndex: 0,
-                count: 1,
-                destStartIndex: 0,
-            });
-            expect(preserved[1]).toEqual({
-                type: 'preserved',
-                sourceStartIndex: 3,
-                count: 1,
-                destStartIndex: 1,
-            });
+            expect(preserved[0]).toEqual([0, 0]); // item0 preserved at same index
+            expect(preserved[1]).toEqual([3, 1]); // item3 moved to index 1
         });
     });
 });

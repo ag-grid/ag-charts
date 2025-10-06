@@ -3,7 +3,7 @@ import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
-import type { DataSet } from './dataSet';
+import type { DataChangeDescription, DataSet } from './dataSet';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
 
@@ -34,6 +34,15 @@ const DOMAIN_RANGES = Symbol('domain-ranges');
 type ScopeId = string;
 
 type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
+
+type InsertionCacheValue = {
+    keys: Map<number, { value: any; valid: boolean }>;
+    values: Map<number, { value: any; valid: boolean }>;
+    hasInvalidKey: boolean;
+    hasInvalidValue: boolean;
+};
+
+type InsertionCache = Map<number, InsertionCacheValue>;
 
 interface CommonMetadata<D> {
     input: { count: number };
@@ -622,11 +631,364 @@ export class DataModel<
     }
 
     public isReprocessingSupported(processedData: ProcessedData<D>): boolean {
-        return processedData.type === 'ungrouped';
+        if (processedData.type !== 'ungrouped') return false;
+        if (this.aggregates.length > 0) return false;
+        if (this.reducers.length > 0) return false;
+        if (this.processors.length > 0) return false;
+        return this.propertyProcessors.length <= 0;
     }
 
-    public reprocessData(_sources: Map<string, DataSet<unknown>>, _processedData: ProcessedData<D>): ProcessedData<D> {
-        throw new Error('reprocessing data is not supported');
+    public reprocessData(processedData: ProcessedData<D>): ProcessedData<D> {
+        if (!this.isReprocessingSupported(processedData)) {
+            throw new Error('reprocessing data is not supported');
+        }
+
+        const start = performance.now();
+
+        // Collect change descriptions from all DataSets before committing
+        const scopeChanges = new Map<ScopeId, DataChangeDescription>();
+        for (const [scopeId, dataSet] of processedData.dataSources) {
+            const changeDesc = dataSet.getChangeDescription();
+            if (changeDesc) {
+                scopeChanges.set(scopeId, changeDesc);
+            }
+        }
+
+        // If no changes anywhere, return as-is
+        if (scopeChanges.size === 0) {
+            return processedData;
+        }
+
+        // Commit all pending transactions (mutates data arrays)
+        for (const dataSet of processedData.dataSources.values()) {
+            dataSet.commitPendingTransactions();
+        }
+
+        // Initialize processValue for processing new insertions
+        const { processValue } = this.initDataDomainProcessor();
+
+        // Pre-process all insertions once per scope to avoid redundant computation
+        // Note: We process insertions with adjusted indices to account for removals
+        const insertionCaches = new Map<ScopeId, InsertionCache>();
+        for (const [scope, changeDesc] of scopeChanges) {
+            const dataSet = processedData.dataSources.get(scope);
+            if (!dataSet) continue;
+
+            const cache = this.processInsertionsOnce(scope, changeDesc, dataSet, processValue);
+            insertionCaches.set(scope, cache);
+        }
+
+        // Transform keys arrays using cached insertion results
+        for (const [keyDefIndex, keyDef] of this.keys.entries()) {
+            const keysMap = processedData.keys[keyDefIndex];
+
+            for (const scope of keyDef.scopes ?? []) {
+                const changeDesc = scopeChanges.get(scope);
+                if (!changeDesc) continue;
+
+                const keys = keysMap.get(scope);
+                if (!keys) continue;
+
+                const insertionCache = insertionCaches.get(scope);
+
+                changeDesc.applyToArray(keys, (destIndex) => {
+                    const cached = insertionCache?.get(destIndex);
+                    if (cached) {
+                        const keyResult = cached.keys.get(keyDefIndex);
+                        return keyResult?.valid ? keyResult.value : keyDef.invalidValue;
+                    }
+                    return keyDef.invalidValue;
+                });
+            }
+        }
+
+        // Transform columns arrays using cached insertion results
+        for (const [valueDefIndex, valueDef] of this.values.entries()) {
+            const column = processedData.columns[valueDefIndex];
+            const columnScope = first(valueDef.scopes);
+            const changeDesc = scopeChanges.get(columnScope);
+
+            if (!changeDesc) continue;
+
+            const insertionCache = insertionCaches.get(columnScope);
+
+            changeDesc.applyToArray(column, (destIndex) => {
+                const cached = insertionCache?.get(destIndex);
+                if (cached) {
+                    const valueResult = cached.values.get(valueDefIndex);
+                    return valueResult?.valid ? valueResult.value : valueDef.invalidValue;
+                }
+                return valueDef.invalidValue;
+            });
+        }
+
+        // Transform invalidKeys arrays using cached insertion results
+        if (processedData.invalidKeys) {
+            for (const [scope, changeDesc] of scopeChanges) {
+                const invalidKeys = processedData.invalidKeys.get(scope);
+                if (!invalidKeys) continue;
+
+                const insertionCache = insertionCaches.get(scope);
+
+                changeDesc.applyToArray(invalidKeys, (destIndex) => {
+                    const cached = insertionCache?.get(destIndex);
+                    return cached?.hasInvalidKey ?? false;
+                });
+            }
+        }
+
+        // Transform invalidData arrays using cached insertion results
+        if (processedData.invalidData) {
+            for (const [scope, changeDesc] of scopeChanges) {
+                const invalidData = processedData.invalidData.get(scope);
+                if (!invalidData) continue;
+
+                const insertionCache = insertionCaches.get(scope);
+
+                changeDesc.applyToArray(invalidData, (destIndex) => {
+                    const cached = insertionCache?.get(destIndex);
+                    if (!cached) return false;
+
+                    // A datum is considered invalid if it has invalid keys OR invalid values
+                    return cached.hasInvalidKey || cached.hasInvalidValue;
+                });
+            }
+        }
+
+        // Recompute domains from transformed arrays
+        // **** NOTE: We will look to optimise this in the near future. ****
+        const keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
+        const valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
+
+        // Initialize domain objects
+        for (const keyDef of this.keys) {
+            if (keyDef.valueType === 'category') {
+                keyDomains.set(keyDef, new DiscreteDomain());
+            } else {
+                keyDomains.set(keyDef, new ContinuousDomain());
+            }
+        }
+        for (const valueDef of this.values) {
+            if (valueDef.valueType === 'category') {
+                valueDomains.set(valueDef, new DiscreteDomain());
+            } else {
+                valueDomains.set(valueDef, new ContinuousDomain());
+            }
+        }
+
+        // Extend key domains from keys arrays
+        for (const [keyDefIndex, keyDef] of this.keys.entries()) {
+            const keysMap = processedData.keys[keyDefIndex];
+            const domain = keyDomains.get(keyDef)!;
+
+            for (const scope of keyDef.scopes ?? []) {
+                const keys = keysMap.get(scope);
+                if (!keys) continue;
+
+                const invalidData = processedData.invalidData?.get(scope);
+                for (let i = 0; i < keys.length; i++) {
+                    if (invalidData?.[i] === true) continue;
+                    domain.extend(keys[i]);
+                }
+            }
+        }
+
+        // Extend value domains from columns arrays
+        for (const [valueDefIndex, valueDef] of this.values.entries()) {
+            const column = processedData.columns[valueDefIndex];
+            const domain = valueDomains.get(valueDef)!;
+            const columnScope = first(valueDef.scopes);
+            const invalidData = processedData.invalidData?.get(columnScope);
+
+            for (let i = 0; i < column.length; i++) {
+                if (invalidData?.[i] === true) continue;
+                domain.extend(column[i]);
+            }
+        }
+
+        // Update processedData domains
+        processedData.domain.keys = this.keys.map((keyDef) => {
+            const domain = keyDomains.get(keyDef)!;
+            const result = domain.getDomain();
+            // Ignore starting values
+            if (ContinuousDomain.is(domain) && result[0] > result[1]) {
+                return [];
+            }
+            return result;
+        });
+
+        processedData.domain.values = this.values.map((valueDef) => {
+            const domain = valueDomains.get(valueDef)!;
+            const result = domain.getDomain();
+            // Ignore starting values
+            if (ContinuousDomain.is(domain) && result[0] > result[1]) {
+                return [];
+            }
+            return result;
+        });
+
+        // Generate diff metadata for animations/incremental rendering
+        processedData.reduced ??= {};
+        processedData.reduced.diff ??= {};
+
+        // Helper to get key string for a datum at a given index
+        const getKeyString = (scope: ScopeId, datumIndex: number): string | undefined => {
+            const keys: any[] = [];
+            for (const keysMap of processedData.keys) {
+                const scopeKeys = keysMap.get(scope);
+                if (!scopeKeys) return undefined;
+                keys.push(scopeKeys[datumIndex]);
+            }
+            return keys.length > 0 ? toKeyString(keys) : undefined;
+        };
+
+        // Process each scope's changes
+        for (const [scope, changeDesc] of scopeChanges) {
+            const diff: ProcessedOutputDiff = {
+                changed: true,
+                added: new Set<string>(),
+                removed: new Set<string>(),
+                updated: new Set<string>(),
+                moved: new Set<string>(),
+            };
+
+            // Get insertions and add to 'added' set
+            // Insertions are inferred from splice operations with insertCount > 0
+            for (const op of changeDesc.indexMap.spliceOps) {
+                if (op.insertCount > 0) {
+                    for (let i = 0; i < op.insertCount; i++) {
+                        const datumIndex = op.index + i;
+                        const keyStr = getKeyString(scope, datumIndex);
+                        if (keyStr) {
+                            diff.added.add(keyStr);
+                        }
+                    }
+                }
+            }
+
+            // Check for moved items (preserved indices with different positions)
+            changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
+                if (sourceIndex !== destIndex) {
+                    const keyStr = getKeyString(scope, destIndex);
+                    if (keyStr) {
+                        diff.moved.add(keyStr);
+                    }
+                }
+            });
+
+            processedData.reduced.diff[scope] = diff;
+        }
+
+        // Update metadata
+        // Find maximum data length across all scopes
+        let maxDataLength = 0;
+        for (const dataSet of processedData.dataSources.values()) {
+            maxDataLength = Math.max(maxDataLength, dataSet.data.length);
+        }
+        processedData.input.count = maxDataLength;
+
+        // Recompute partialValidDataCount (datums with valid keys but invalid values)
+        let partialValidDataCount = 0;
+        for (const [scope, invalidData] of processedData.invalidData ?? new Map()) {
+            const invalidKeys = processedData.invalidKeys?.get(scope);
+            for (let i = 0; i < invalidData.length; i++) {
+                if (invalidData[i] && !invalidKeys?.[i]) {
+                    partialValidDataCount += 1;
+                }
+            }
+        }
+        processedData.partialValidDataCount = partialValidDataCount;
+
+        // Recompute invalidKeyCount
+        if (processedData.invalidKeyCount) {
+            for (const [scope, invalidKeys] of processedData.invalidKeys ?? new Map()) {
+                const count = invalidKeys.filter((invalid: boolean) => invalid).length;
+                processedData.invalidKeyCount.set(scope, count);
+            }
+        }
+
+        // Clear cached data that depends on array positions
+        processedData[DOMAIN_RANGES].clear();
+        processedData[KEY_SORT_ORDERS].clear();
+        processedData[COLUMN_SORT_ORDERS].clear();
+
+        const end = performance.now();
+        processedData.time = end - start;
+
+        return processedData;
+    }
+
+    /**
+     * Processes all insertions for a given scope once, caching the results.
+     * Returns a map from ADJUSTED destIndex to processed values for all keys and values.
+     * The adjusted destIndex accounts for out-of-bounds insertions that need to be shifted.
+     */
+    private processInsertionsOnce(
+        scope: ScopeId,
+        changeDesc: DataChangeDescription,
+        dataSet: DataSet<unknown>,
+        processValue: (
+            def: InternalDatumPropertyDefinition<K>,
+            datum: any,
+            idx: number,
+            scopes: string | string[]
+        ) => ProcessedValue
+    ): InsertionCache {
+        const cache = new Map<number, InsertionCacheValue>();
+
+        const { finalLength } = changeDesc.indexMap;
+
+        // Extract insertions from splice operations
+        for (const op of changeDesc.indexMap.spliceOps) {
+            if (op.insertCount > 0) {
+                for (let i = 0; i < op.insertCount; i++) {
+                    const destIndex = op.index + i;
+                    if (destIndex < 0 || destIndex >= finalLength) {
+                        continue; // Skip invalid indices
+                    }
+
+                    const datum = dataSet.data[destIndex];
+
+                    const keys = new Map<number, { value: any; valid: boolean }>();
+                    const values = new Map<number, { value: any; valid: boolean }>();
+                    let hasInvalidKey = false;
+                    let hasInvalidValue = false;
+
+                    if (datum == null || typeof datum !== 'object') {
+                        hasInvalidKey = true;
+                        hasInvalidValue = true;
+                    } else {
+                        // Process all keys for this scope
+                        for (const [keyDefIndex, keyDef] of this.keys.entries()) {
+                            if (!keyDef.scopes?.includes(scope)) continue;
+
+                            const result = processValue(keyDef, datum, destIndex, scope);
+                            keys.set(keyDefIndex, { value: result.value, valid: result.valid });
+
+                            if (!result.valid) {
+                                hasInvalidKey = true;
+                            }
+                        }
+
+                        // Process all values for this scope
+                        for (const [valueDefIndex, valueDef] of this.values.entries()) {
+                            if (!valueDef.scopes?.includes(scope)) continue;
+
+                            const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
+                            values.set(valueDefIndex, { value: result.value, valid: result.valid });
+
+                            if (!result.valid) {
+                                hasInvalidValue = true;
+                            }
+                        }
+                    }
+
+                    cache.set(destIndex, { keys, values, hasInvalidKey, hasInvalidValue });
+                }
+            }
+        }
+
+        return cache;
     }
 
     private warnDataMissingProperties(sources: Map<string, DataSet<unknown>>) {

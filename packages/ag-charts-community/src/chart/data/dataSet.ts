@@ -1,6 +1,7 @@
 import type { AgDataTransaction } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
+import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
 import {
     applyRemoveByReference,
     findIndicesInOriginalArray,
@@ -8,62 +9,12 @@ import {
     normaliseRemoveReferences,
 } from './transactionUtils';
 
+// Re-export types for backward compatibility
+export { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
+
 type DataTransaction<T> = AgDataTransaction<T>;
 
 const debug = Debug.create(true, 'data-set');
-
-/**
- * Describes what happens to a contiguous range of original indices.
- */
-export type IndexSegment =
-    | { type: 'preserved'; sourceStartIndex: number; count: number; destStartIndex: number }
-    | { type: 'removed'; sourceStartIndex: number; count: number };
-
-/**
- * Describes new items inserted into the final array (not from original array).
- */
-export interface Insertion {
-    /** Where in the final array this insertion occurs */
-    destIndex: number;
-    /** How many new items are inserted */
-    count: number;
-}
-
-/**
- * Tracks transformations from original array indices to final array indices.
- * Enables efficient mapping and iteration over preserved/removed segments.
- */
-export interface IndexTransformationMap {
-    /** Original array length before any transactions */
-    originalLength: number;
-
-    /** Final array length after all transactions */
-    finalLength: number;
-
-    /**
-     * Segments describing the fate of original indices.
-     * Sorted by sourceStartIndex. Non-overlapping.
-     */
-    segments: IndexSegment[];
-
-    /** New items to insert (not from original array), sorted by destIndex */
-    insertions: Insertion[];
-}
-
-/**
- * Abstract description of changes to be applied to source data.
- * Provides precise index mapping for optimized incremental updates.
- */
-export interface DataChangeDescription {
-    /** Map from original to final indices */
-    indexMap: IndexTransformationMap;
-
-    /** Get all indices that were removed from the original array */
-    getRemovedIndices(): number[];
-
-    /** Iterate over all preserved segments */
-    forEachPreservedSegment(callback: (segment: Extract<IndexSegment, { type: 'preserved' }>) => void): void;
-}
 
 /**
  * Encapsulates chart data with support for transactional updates.
@@ -198,7 +149,6 @@ export class DataSet<T = unknown> {
         }
 
         this.pendingTransactions.length = 0;
-        this.cachedChangeDescription = undefined;
 
         if (debug.check()) {
             debug('DataSet.commitPendingTransactions() - final length', { afterLength: this.data.length });
@@ -228,30 +178,8 @@ export class DataSet<T = unknown> {
         // Build the index transformation map
         const indexMap = this.buildIndexMap();
 
-        // Create the change description with helper methods
-        const changeDescription: DataChangeDescription = {
-            indexMap,
-
-            getRemovedIndices(): number[] {
-                const removed: number[] = [];
-                for (const segment of indexMap.segments) {
-                    if (segment.type === 'removed') {
-                        for (let i = 0; i < segment.count; i++) {
-                            removed.push(segment.sourceStartIndex + i);
-                        }
-                    }
-                }
-                return removed;
-            },
-
-            forEachPreservedSegment(callback: (segment: Extract<IndexSegment, { type: 'preserved' }>) => void): void {
-                for (const segment of indexMap.segments) {
-                    if (segment.type === 'preserved') {
-                        callback(segment);
-                    }
-                }
-            },
-        };
+        // Create the change description instance
+        const changeDescription = new DataChangeDescription(indexMap);
 
         this.cachedChangeDescription = changeDescription;
         return changeDescription;
@@ -262,181 +190,93 @@ export class DataSet<T = unknown> {
      */
     private buildIndexMap(): IndexTransformationMap {
         const originalLength = this.data.length;
-        let segments: IndexSegment[] = [
-            { type: 'preserved', sourceStartIndex: 0, count: originalLength, destStartIndex: 0 },
-        ];
-        const insertions: Insertion[] = [];
-        let currentLength = originalLength;
+        const removedIndices = new Set<number>();
+        const spliceOps: SpliceOperation[] = [];
 
+        let totalPrependCount = 0;
+        let totalAppendCount = 0;
+
+        // First pass: identify all removals and calculate prepend/append totals
         for (const transaction of this.pendingTransactions) {
-            // 1. Apply prepends: Insert at beginning, shift everything right
-            if (Array.isArray(transaction.prepend) && transaction.prepend.length > 0) {
-                const count = transaction.prepend.length;
-                insertions.push({ destIndex: 0, count });
-                this.shiftSegmentsRight(segments, 0, count);
-                currentLength += count;
-            }
-
-            // 2. Apply appends: Insert at current end
-            if (Array.isArray(transaction.append) && transaction.append.length > 0) {
-                const count = transaction.append.length;
-                insertions.push({ destIndex: currentLength, count });
-                currentLength += count;
-            }
-
-            // 3. Apply removes: Find indices, split segments, mark removed
             const removeRefs = normaliseRemoveReferences(transaction.remove);
             if (removeRefs.length > 0) {
                 const canonical = mapToCanonicalReferences(this.data, removeRefs);
                 const indicesToRemove = findIndicesInOriginalArray(this.data, canonical);
+                indicesToRemove.forEach((idx) => removedIndices.add(idx));
+            }
 
-                segments = this.applyRemovals(segments, indicesToRemove);
-                currentLength -= indicesToRemove.length;
+            if (Array.isArray(transaction.prepend)) {
+                totalPrependCount += transaction.prepend.length;
+            }
+            if (Array.isArray(transaction.append)) {
+                totalAppendCount += transaction.append.length;
             }
         }
+
+        // Build splice operations
+        // We'll create consolidated operations for efficiency
+
+        // 1. If we have prepends, create a splice operation at index 0
+        if (totalPrependCount > 0) {
+            spliceOps.push({
+                index: 0,
+                deleteCount: 0,
+                insertCount: totalPrependCount,
+            });
+        }
+
+        // 2. Process removals - group consecutive removals into single splice operations
+        const sortedRemovals = Array.from(removedIndices).sort((a, b) => a - b);
+        if (sortedRemovals.length > 0) {
+            let currentStart = sortedRemovals[0];
+            let currentCount = 1;
+
+            for (let i = 1; i < sortedRemovals.length; i++) {
+                if (sortedRemovals[i] === sortedRemovals[i - 1] + 1) {
+                    // Consecutive removal
+                    currentCount++;
+                } else {
+                    // Gap found, create splice operation for previous group
+                    // Adjust index for prepends
+                    spliceOps.push({
+                        index: currentStart + totalPrependCount,
+                        deleteCount: currentCount,
+                        insertCount: 0,
+                    });
+                    currentStart = sortedRemovals[i];
+                    currentCount = 1;
+                }
+            }
+            // Don't forget the last group
+            spliceOps.push({
+                index: currentStart + totalPrependCount,
+                deleteCount: currentCount,
+                insertCount: 0,
+            });
+        }
+
+        // 3. If we have appends, create a splice operation at the end
+        if (totalAppendCount > 0) {
+            const appendIndex = originalLength + totalPrependCount - removedIndices.size;
+            spliceOps.push({
+                index: appendIndex,
+                deleteCount: 0,
+                insertCount: totalAppendCount,
+            });
+        }
+
+        // Sort splice operations by index (descending) for back-to-front application
+        spliceOps.sort((a, b) => b.index - a.index);
+
+        const finalLength = originalLength + totalPrependCount + totalAppendCount - removedIndices.size;
 
         return {
             originalLength,
-            finalLength: currentLength,
-            segments: this.mergeAdjacentSegments(segments),
-            insertions: this.sortInsertions(insertions),
+            finalLength,
+            spliceOps,
+            removedIndices,
+            totalPrependCount,
+            totalAppendCount,
         };
-    }
-
-    /**
-     * Shifts all segment destination indices right by a given amount starting from a position.
-     */
-    private shiftSegmentsRight(segments: IndexSegment[], fromDestIndex: number, shiftAmount: number): void {
-        for (const segment of segments) {
-            if (segment.type === 'preserved' && segment.destStartIndex >= fromDestIndex) {
-                segment.destStartIndex += shiftAmount;
-            }
-        }
-    }
-
-    /**
-     * Applies removals to segments by splitting and marking removed ranges.
-     */
-    private applyRemovals(segments: IndexSegment[], indicesToRemove: number[]): IndexSegment[] {
-        if (indicesToRemove.length === 0) {
-            return segments;
-        }
-
-        const newSegments: IndexSegment[] = [];
-        let removeIndex = 0;
-        let destOffset = 0; // Track cumulative shift left due to removals
-
-        for (const segment of segments) {
-            if (segment.type === 'removed') {
-                newSegments.push(segment);
-                continue;
-            }
-
-            // For preserved segments, check if any removals fall within
-            const sourceEnd = segment.sourceStartIndex + segment.count;
-            const relevantRemovals: number[] = [];
-
-            while (removeIndex < indicesToRemove.length && indicesToRemove[removeIndex] < sourceEnd) {
-                const idx = indicesToRemove[removeIndex];
-                if (idx >= segment.sourceStartIndex) {
-                    relevantRemovals.push(idx);
-                }
-                removeIndex++;
-            }
-
-            if (relevantRemovals.length === 0) {
-                // No removals in this segment, just adjust destination
-                newSegments.push({
-                    type: 'preserved',
-                    sourceStartIndex: segment.sourceStartIndex,
-                    count: segment.count,
-                    destStartIndex: segment.destStartIndex - destOffset,
-                });
-            } else {
-                // Split segment around removals
-                let currentSource = segment.sourceStartIndex;
-                let currentDest = segment.destStartIndex - destOffset;
-
-                for (const removalIdx of relevantRemovals) {
-                    // Add preserved segment before removal (if any)
-                    if (currentSource < removalIdx) {
-                        newSegments.push({
-                            type: 'preserved',
-                            sourceStartIndex: currentSource,
-                            count: removalIdx - currentSource,
-                            destStartIndex: currentDest,
-                        });
-                        currentDest += removalIdx - currentSource;
-                    }
-
-                    // Add removed segment
-                    newSegments.push({
-                        type: 'removed',
-                        sourceStartIndex: removalIdx,
-                        count: 1,
-                    });
-
-                    destOffset += 1;
-                    currentSource = removalIdx + 1;
-                }
-
-                // Add any remaining preserved portion after last removal
-                if (currentSource < sourceEnd) {
-                    newSegments.push({
-                        type: 'preserved',
-                        sourceStartIndex: currentSource,
-                        count: sourceEnd - currentSource,
-                        destStartIndex: currentDest,
-                    });
-                }
-            }
-        }
-
-        return newSegments;
-    }
-
-    /**
-     * Merges adjacent preserved segments with contiguous source and dest ranges.
-     */
-    private mergeAdjacentSegments(segments: IndexSegment[]): IndexSegment[] {
-        if (segments.length <= 1) {
-            return segments;
-        }
-
-        const merged: IndexSegment[] = [];
-        let current = segments[0];
-
-        for (let i = 1; i < segments.length; i++) {
-            const next = segments[i];
-
-            // Can only merge two preserved segments
-            if (
-                current.type === 'preserved' &&
-                next.type === 'preserved' &&
-                current.sourceStartIndex + current.count === next.sourceStartIndex &&
-                current.destStartIndex + current.count === next.destStartIndex
-            ) {
-                // Merge into current
-                current = {
-                    type: 'preserved',
-                    sourceStartIndex: current.sourceStartIndex,
-                    count: current.count + next.count,
-                    destStartIndex: current.destStartIndex,
-                };
-            } else {
-                merged.push(current);
-                current = next;
-            }
-        }
-
-        merged.push(current);
-        return merged;
-    }
-
-    /**
-     * Sorts insertions by destination index.
-     */
-    private sortInsertions(insertions: Insertion[]): Insertion[] {
-        return insertions.sort((a, b) => a.destIndex - b.destIndex);
     }
 }

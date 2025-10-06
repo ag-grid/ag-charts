@@ -143,8 +143,7 @@ export class DataController {
                 dataSet.getChangeDescription() != null &&
                 dataModel.isReprocessingSupported(processedData)
             ) {
-                const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
-                dataModel.reprocessData(sources, processedData);
+                dataModel.reprocessData(processedData);
                 resolveResult(dataModel, processedData);
                 continue;
             }
