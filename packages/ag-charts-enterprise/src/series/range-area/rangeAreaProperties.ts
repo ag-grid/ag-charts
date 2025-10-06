@@ -37,10 +37,6 @@ const {
     Deprecated,
 } = _ModuleSupport;
 
-function DeprecatedMessage(alt: string): string {
-    return `Use item.low.${alt} and item.high.${alt} instead`;
-}
-
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {
     @Property
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
@@ -88,50 +84,41 @@ class RangeAreaItemProperties {
     high = new RangeAreaLineStyle();
 }
 
+const DeprecatedMessage = (alt: string) => `Use item.low.${alt} and item.high.${alt} instead`;
+
 class DeprecatedRangeAreaMarker implements AgSeriesMarkerOptions<unknown, unknown, unknown> {
     @Deprecated(DeprecatedMessage('marker.enabled'))
-    @Property
-    enabled: boolean = false;
+    enabled?: boolean;
 
     @Deprecated(DeprecatedMessage('marker.shape'))
-    @Property
-    shape: AgMarkerShape = 'circle';
+    shape?: AgMarkerShape;
 
     @Deprecated(DeprecatedMessage('marker.size'))
-    @Property
-    size: number = 8;
+    size?: number;
 
     @Deprecated(DeprecatedMessage('marker.fill'))
-    @Property
-    fill: InternalAgColorType = 'black';
+    fill?: InternalAgColorType;
 
     @Deprecated(DeprecatedMessage('marker.fillOpacity'))
-    @Property
-    fillOpacity: number = 1;
+    fillOpacity?: number;
 
     @Deprecated(DeprecatedMessage('marker.stroke'))
-    @Property
-    stroke: string = 'black';
+    stroke?: string;
 
     @Deprecated(DeprecatedMessage('marker.strokeWidth'))
-    @Property
-    strokeWidth: number = 2;
+    strokeWidth?: number;
 
     @Deprecated(DeprecatedMessage('marker.strokeOpacity'))
-    @Property
-    strokeOpacity: number = 1;
+    strokeOpacity?: number;
 
     @Deprecated(DeprecatedMessage('marker.lineDash'))
-    @Property
-    lineDash: number[] = [];
+    lineDash?: number[];
 
     @Deprecated(DeprecatedMessage('marker.lineDashOffset'))
-    @Property
-    lineDashOffset: number = 0;
+    lineDashOffset?: number;
 
     @Deprecated(DeprecatedMessage('marker.itemStyler'))
-    @Property
-    itemStyler: AgSeriesMarkerOptions<unknown, unknown, unknown>['itemStyler'] = undefined;
+    itemStyler?: AgSeriesMarkerOptions<unknown, unknown, unknown>['itemStyler'];
 }
 
 export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSeriesOptions> {
@@ -163,24 +150,19 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     fillOpacity: number = 1;
 
     @Deprecated(DeprecatedMessage('stroke'))
-    @Property
-    stroke: string = '#99CCFF';
+    stroke?: string;
 
     @Deprecated(DeprecatedMessage('strokeWidth'))
-    @Property
-    strokeWidth: number = 1;
+    strokeWidth?: number;
 
     @Deprecated(DeprecatedMessage('strokeOpacity'))
-    @Property
-    strokeOpacity: number = 1;
+    strokeOpacity?: number;
 
     @Deprecated(DeprecatedMessage('lineDash'))
-    @Property
-    lineDash: number[] = [0];
+    lineDash?: number[];
 
     @Deprecated(DeprecatedMessage('lineDashOffset'))
-    @Property
-    lineDashOffset: number = 0;
+    lineDashOffset?: number;
 
     @Property
     interpolation: _ModuleSupport.InterpolationProperties = new InterpolationProperties();
@@ -197,7 +179,6 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @Property
     readonly shadow = new DropShadow().set({ enabled: false });
 
-    @Deprecated(DeprecatedMessage('marker'))
     @Property
     readonly marker = new DeprecatedRangeAreaMarker();
 
