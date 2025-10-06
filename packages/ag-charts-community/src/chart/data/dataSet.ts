@@ -2,7 +2,7 @@ import type { AgDataTransaction } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
-import { findIndicesInOriginalArray, mapToCanonicalReferences, normaliseRemoveReferences } from './transactionUtils';
+import { findIndicesInOriginalArray, normaliseRemoveReferences } from './transactionUtils';
 
 // Re-export types for backward compatibility
 export { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
@@ -208,8 +208,7 @@ export class DataSet<T = unknown> {
         for (const transaction of this.pendingTransactions) {
             const removeRefs = normaliseRemoveReferences(transaction.remove);
             if (removeRefs.length > 0) {
-                const canonical = mapToCanonicalReferences(this.data, removeRefs);
-                const indicesToRemove = findIndicesInOriginalArray(this.data, canonical);
+                const indicesToRemove = findIndicesInOriginalArray(this.data, removeRefs);
                 indicesToRemove.forEach((idx) => removedIndices.add(idx));
             }
 
