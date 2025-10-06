@@ -39,6 +39,8 @@ export interface AgBaseCartesianAxisOptions<
     keys?: string[];
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
+    /** Value on the first perpendicular axis' domain where this axis should intersect. */
+    crossAt?: AgCartesianAxisCrossAt;
     /** Add cross-lines or regions corresponding to data values. */
     crossLines?: AgCartesianCrossLineOptions[];
     /** Sets the axis thickness regardless of its content. */
@@ -54,6 +56,11 @@ export interface AgBaseCartesianAxisOptions<
     title?: AgAxisCaptionOptions;
     /** Configuration for the axis crosshair. */
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
+}
+
+export interface AgCartesianAxisCrossAt {
+    value: number | Date | string;
+    sticky?: boolean;
 }
 
 export interface AgTimeAxisParentLevel<TContext = ContextDefault> {
