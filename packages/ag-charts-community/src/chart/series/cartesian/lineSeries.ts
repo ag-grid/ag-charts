@@ -478,7 +478,7 @@ export class LineSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
-            styles: getMarkerStyles(this, marker),
+            styles: getMarkerStyles(this, this.properties, marker),
             segments,
         };
     }

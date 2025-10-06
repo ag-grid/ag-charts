@@ -274,7 +274,7 @@ export abstract class RadarSeries<
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
-            styles: getMarkerStyles(this, marker),
+            styles: getMarkerStyles(this, this.properties, marker),
         };
     }
 

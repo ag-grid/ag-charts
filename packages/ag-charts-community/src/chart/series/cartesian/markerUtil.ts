@@ -140,9 +140,6 @@ type DefaultOverrideStyle = AgSeriesMarkerStyle & { size: number };
 
 interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
     properties: {
-        stroke?: string;
-        strokeWidth: number;
-        strokeOpacity: number;
         styler?: SeriesStyler<TStylerParams, TStylerResult>;
     };
     getMarkerStyle<TParams>(
@@ -155,15 +152,22 @@ interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
     ): AgSeriesMarkerStyle & { size: number };
 }
 
+type LineProperties = {
+    stroke?: string;
+    strokeWidth: number;
+    strokeOpacity: number;
+};
+
 export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>(
     series: MarkerSeriesStylerProps<TStylerParams, TStylerResult>,
+    line: LineProperties,
     marker: SeriesMarker<TItemStylerParams>,
     inheritedStyle?: AgSeriesMarkerStyle
 ) {
     inheritedStyle ??= {
-        stroke: series.properties.stroke,
-        strokeOpacity: series.properties.strokeOpacity,
-        strokeWidth: series.properties.strokeWidth,
+        stroke: line.stroke,
+        strokeOpacity: line.strokeOpacity,
+        strokeWidth: line.strokeWidth,
     };
 
     return highlightStates.reduce(

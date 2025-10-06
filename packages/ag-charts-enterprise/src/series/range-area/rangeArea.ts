@@ -407,7 +407,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: getMarkerStyles(this, marker, {
+            styles: getMarkerStyles(this, this.properties.item[DEFAULT_ITEM], marker, {
                 fill,
                 fillOpacity,
                 stroke,
