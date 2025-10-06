@@ -115,7 +115,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            pathsPerSeries: ['fill', 'stroke'],
+            pathsPerSeries: ['fill', 'lowStroke', 'highStroke'],
             pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
             propertyKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
@@ -498,7 +498,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         animationEnabled: boolean;
     }) {
         const { visible } = opts;
-        const [fillPath, strokePath] = opts.paths;
+        const [fillPath, lowStrokePath, highStrokePath] = opts.paths;
 
         const segments = this.contextNodeData?.segments;
 
@@ -506,50 +506,44 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const highlightState = this.getHighlightState(highlightDatum, false);
         const highlightStyle = this.getHighlightStyle();
 
-        const {
-            item,
-            fill: seriesFill,
-            fillOpacity,
-            opacity,
-        } = mergeDefaults(highlightStyle, this.getStyle(false, highlightState));
-        // FIXME: separate high / low stroke styling
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = item[DEFAULT_ITEM];
+        const { item, fill, fillOpacity, opacity } = mergeDefaults(
+            highlightStyle,
+            this.getStyle(false, highlightState)
+        );
 
-        strokePath.setProperties({
+        lowStrokePath.setProperties({
+            datum: segments,
             segments,
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
+            stroke: item.low.stroke,
+            strokeWidth: item.low.strokeWidth,
+            strokeOpacity: item.low.strokeOpacity,
+            lineDash: item.low.lineDash,
+            lineDashOffset: item.low.lineDashOffset,
+            opacity,
+            visible,
+        });
+        highStrokePath.setProperties({
+            segments,
+            fill: undefined,
+            lineCap: 'round',
+            lineJoin: 'round',
+            pointerEvents: PointerEvents.None,
+            stroke: item.high.stroke,
+            strokeWidth: item.high.strokeWidth,
+            strokeOpacity: item.high.strokeOpacity,
+            lineDash: item.high.lineDash,
+            lineDashOffset: item.high.lineDashOffset,
             opacity,
             visible,
         });
 
-        strokePath.datum = segments;
-
         const fillBBox = this.getShapeFillBBox();
-
-        applyShapeFillBBox(fillPath, seriesFill, fillBBox);
-
-        applyShapeStyle(
-            fillPath,
-            {
-                stroke: undefined,
-                fill: seriesFill,
-                fillOpacity,
-                lineDash,
-                lineDashOffset,
-                strokeOpacity,
-                strokeWidth,
-                opacity,
-            },
-            fillBBox
-        );
+        applyShapeFillBBox(fillPath, fill, fillBBox);
+        applyShapeStyle(fillPath, { stroke: undefined, fill, fillOpacity, opacity }, fillBBox);
 
         const fillSegments = this.contextNodeData?.intersectionSegments ?? segments;
         fillPath.setProperties({
@@ -563,8 +557,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         fillPath.datum = fillSegments;
 
-        updateClipPath(this, strokePath);
         updateClipPath(this, fillPath);
+        updateClipPath(this, lowStrokePath);
+        updateClipPath(this, highStrokePath);
     }
 
     protected override updatePaths(opts: { contextData: RangeAreaContext; paths: _ModuleSupport.Path[] }) {
@@ -595,11 +590,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private updateStrokePath(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
-        const [, stroke] = paths;
-        stroke.path.clear();
-        plotLinePathStroke(stroke, contextData.highStrokeData.spans);
-        plotLinePathStroke(stroke, contextData.lowStrokeData.spans);
-        stroke.markDirty('RangeArea');
+        const [, lowStroke, highStroke] = paths;
+        lowStroke.path.clear();
+        highStroke.path.clear();
+        plotLinePathStroke(lowStroke, contextData.lowStrokeData.spans);
+        plotLinePathStroke(highStroke, contextData.highStrokeData.spans);
+        lowStroke.markDirty('RangeArea');
+        highStroke.markDirty('RangeArea');
     }
 
     protected override updateDatumSelection(opts: {
