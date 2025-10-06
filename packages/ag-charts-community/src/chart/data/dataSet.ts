@@ -2,12 +2,7 @@ import type { AgDataTransaction } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
-import {
-    applyRemoveByReference,
-    findIndicesInOriginalArray,
-    mapToCanonicalReferences,
-    normaliseRemoveReferences,
-} from './transactionUtils';
+import { findIndicesInOriginalArray, mapToCanonicalReferences, normaliseRemoveReferences } from './transactionUtils';
 
 // Re-export types for backward compatibility
 export { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
@@ -114,39 +109,52 @@ export class DataSet<T = unknown> {
      * Commits all pending transactions by applying them to the underlying data array in-place.
      * This mutates the data array and clears the pending transactions queue.
      *
-     * Transactions are applied in order: remove, then prepend, then append.
+     * Uses the optimized applyToArray() method for efficient bulk transformations.
      */
     commitPendingTransactions(): void {
         if (!this.hasPendingTransactions()) {
             return;
         }
 
-        const beforeLength = this.data.length;
-        if (debug.check()) {
-            debug('DataSet.commitPendingTransactions() - starting', { beforeLength });
+        const changeDesc = this.getChangeDescription();
+        if (!changeDesc) {
+            return;
         }
+
+        const { finalLength, totalPrependCount, totalAppendCount } = changeDesc.indexMap;
+
+        if (debug.check()) {
+            debug('DataSet.commitPendingTransactions() - starting', {
+                beforeLength: this.data.length,
+                finalLength,
+            });
+        }
+
+        // Collect all prepend and append items from all transactions
+        let prependItems: T[] = [];
+        let appendItems: T[] = [];
 
         for (const transaction of this.pendingTransactions) {
-            const { prepend, append } = transaction;
-            if (Array.isArray(prepend) && prepend.length) {
-                this.data.unshift(...prepend);
+            if (Array.isArray(transaction.prepend) && transaction.prepend.length > 0) {
+                prependItems = prependItems.concat(transaction.prepend);
             }
-            if (Array.isArray(append) && append.length) {
-                this.data.push(...append);
-            }
-
-            const removeRefs = normaliseRemoveReferences(transaction.remove);
-            if (removeRefs.length > 0) {
-                const canonical = mapToCanonicalReferences(this.data, removeRefs);
-                if (debug.check()) {
-                    debug('DataSet.commitPendingTransactions() - removing rows', {
-                        requested: removeRefs.length,
-                        canonical: canonical.length,
-                    });
-                }
-                applyRemoveByReference(this.data, canonical);
+            if (Array.isArray(transaction.append) && transaction.append.length > 0) {
+                appendItems = appendItems.concat(transaction.append);
             }
         }
+
+        // Apply all transactions using the efficient applyToArray method
+        changeDesc.applyToArray(this.data, (destIndex) => {
+            // Determine which source array this insertion comes from based on index position
+            if (destIndex < totalPrependCount) {
+                // This is a prepended item
+                return prependItems[destIndex];
+            } else {
+                // This is an appended item
+                const appendOffset = destIndex - (finalLength - totalAppendCount);
+                return appendItems[appendOffset];
+            }
+        });
 
         this.pendingTransactions.length = 0;
 
