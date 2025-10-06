@@ -538,7 +538,7 @@ export class BubbleSeries extends CartesianSeries<
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
-            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, marker),
+            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, this.properties, marker),
         };
     }
 
