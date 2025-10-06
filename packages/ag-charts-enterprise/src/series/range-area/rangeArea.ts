@@ -59,6 +59,8 @@ const {
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
 
+const DEFAULT_ITEM = 'low';
+
 type ResolvedLineStyleMixin = {
     marker?: {
         enabled?: boolean;
@@ -246,7 +248,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             yLowKey,
             yHighKey,
             connectMissingData,
-            marker,
             interpolation,
             fill,
             fillOpacity,
@@ -254,6 +255,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeWidth,
             strokeOpacity,
         } = this.properties;
+        const marker = this.properties.item[DEFAULT_ITEM].marker;
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -486,7 +488,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override isPathOrSelectionDirty(): boolean {
-        return this.properties.marker.isDirty();
+        const { low, high } = this.properties.item;
+        return low.marker.isDirty() || high.marker.isDirty();
     }
 
     protected override updatePathNodes(opts: {
@@ -629,14 +632,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { marker } = this.properties;
-
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const stylerStyle = this.getStyle(isHighlight, highlightState);
             const { fill, fillOpacity, item } = stylerStyle;
             const { stroke, strokeWidth, strokeOpacity } = item[datum.itemId];
+            const { marker } = this.properties.item[datum.itemId];
 
             const params = this.makeItemStylerParams(datum.itemId);
             datum.style = this.getMarkerStyle(
@@ -678,7 +680,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
 
         if (!isHighlight) {
-            this.properties.marker.markClean();
+            this.properties.item.low.marker.markClean();
+            this.properties.item.high.marker.markClean();
         }
     }
 
@@ -844,7 +847,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const stylerStyle = this.getStyle(false);
         const params = this.makeItemStylerParams(itemId);
         const format = this.getMarkerStyle(
-            this.properties.marker,
+            this.properties.item[itemId].marker,
             { datumIndex, datum },
             params,
             { isHighlight: false },
@@ -878,7 +881,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { fill, item } = this.getStyle(false);
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item.low;
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item[DEFAULT_ITEM];
 
         const markerStyle = {
             shape: marker.shape,
@@ -1055,7 +1058,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const params = this.makeItemStylerParams(datum.itemId);
 
         return this.getMarkerStyle(
-            this.properties.marker,
+            this.properties.item[datum.itemId].marker,
             datum,
             params,
             { isHighlight: true },
