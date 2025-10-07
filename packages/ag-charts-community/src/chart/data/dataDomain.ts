@@ -87,9 +87,19 @@ export interface BandedDomainConfig {
     enableBanding?: boolean;
 }
 
+// Banding configuration defaults
+/* Minimum data size to enable banding optimization (below this, overhead > benefit) */
+const DEFAULT_MIN_DATA_SIZE_FOR_BANDING = 1000;
+/* Target number of bands to balance granularity vs memory usage */
+const DEFAULT_TARGET_BAND_COUNT = 10;
+
 /**
  * A domain implementation that divides data into bands for efficient incremental updates.
  * Each band maintains its own sub-domain, allowing targeted updates without full rescans.
+ *
+ * Banding trades memory for performance. Each band maintains its own sub-domain,
+ * so memory usage scales with targetBandCount × number of properties.
+ * For datasets < minDataSizeForBanding, banding is disabled to avoid overhead.
  */
 export class BandedDomain<T = any> implements IDataDomain<T> {
     private bands: DomainBand<T>[] = [];
@@ -108,8 +118,8 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         this.domainFactory = domainFactory;
         this.isDiscrete = isDiscrete;
         this.config = {
-            minDataSizeForBanding: config.minDataSizeForBanding ?? 1000,
-            targetBandCount: config.targetBandCount ?? 10,
+            minDataSizeForBanding: config.minDataSizeForBanding ?? DEFAULT_MIN_DATA_SIZE_FOR_BANDING,
+            targetBandCount: config.targetBandCount ?? DEFAULT_TARGET_BAND_COUNT,
             maxBandSize: config.maxBandSize,
             enableBanding: config.enableBanding ?? true,
         };
@@ -219,7 +229,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
                     if (value === currentDomain[0] || value === currentDomain[1]) {
                         // Boundary value removed - need full rescan
                         this.markAllBandsDirty();
-                        return true;
+                        return true; // Early exit on first boundary match
                     }
                 }
             }

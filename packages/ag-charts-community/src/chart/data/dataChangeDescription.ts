@@ -57,9 +57,16 @@ export interface IndexTransformationMap {
 export class DataChangeDescription {
     /** Map from original to final indices */
     public readonly indexMap: IndexTransformationMap;
+    private readonly prependValues: unknown[];
+    private readonly appendValues: unknown[];
 
-    constructor(indexMap: IndexTransformationMap) {
+    constructor(
+        indexMap: IndexTransformationMap,
+        insertions: { prependValues: unknown[]; appendValues: unknown[] }
+    ) {
         this.indexMap = indexMap;
+        this.prependValues = insertions.prependValues;
+        this.appendValues = insertions.appendValues;
     }
 
     /** Get all indices that were removed from the original array */
@@ -93,6 +100,14 @@ export class DataChangeDescription {
         }
     }
 
+    getPrependedValues<T = unknown>(): T[] {
+        return this.prependValues as T[];
+    }
+
+    getAppendedValues<T = unknown>(): T[] {
+        return this.appendValues as T[];
+    }
+
     /**
      * Applies the transformation to an array in-place using native Array operations.
      * This is a zero-copy operation that mutates the array directly.
@@ -108,13 +123,9 @@ export class DataChangeDescription {
             return;
         }
 
-        // Apply splice operations from back to front
-        // This ensures indices remain valid as we modify the array
-        // Since all operations are append/prepend/remove, the splice operations
-        // handle all index shifting automatically - no temporary array needed!
-        for (let i = spliceOps.length - 1; i >= 0; i--) {
-            const op = spliceOps[i];
-
+        // Apply splice operations in the order they appear. Operations are generated to
+        // mirror the transaction sequencing (prepends, removals, then appends).
+        for (const op of spliceOps) {
             if (op.insertCount > 0 && op.deleteCount > 0) {
                 // Replace operation (remove and insert in one go)
                 const insertElements = new Array<T>(op.insertCount);

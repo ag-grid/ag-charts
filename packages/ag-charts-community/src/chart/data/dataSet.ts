@@ -2,7 +2,6 @@ import type { AgDataTransaction } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
-import { findIndicesInOriginalArray, normaliseRemoveReferences } from './transactionUtils';
 
 // Re-export types for backward compatibility
 export { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
@@ -84,9 +83,9 @@ export class DataSet<T = unknown> {
         let netLength = this.data.length;
 
         for (const transaction of this.pendingTransactions) {
-            const removeRefs = normaliseRemoveReferences(transaction.remove);
-            netLength -= removeRefs.length;
-
+            if (Array.isArray(transaction.remove)) {
+                netLength -= transaction.remove.length;
+            }
             if (Array.isArray(transaction.prepend)) {
                 netLength += transaction.prepend.length;
             }
@@ -130,33 +129,23 @@ export class DataSet<T = unknown> {
             });
         }
 
-        // Collect all prepend and append items from all transactions
-        let prependItems: T[] = [];
-        let appendItems: T[] = [];
+        const prependValues = changeDesc.getPrependedValues<T>();
+        const appendValues = changeDesc.getAppendedValues<T>();
 
-        for (const transaction of this.pendingTransactions) {
-            if (Array.isArray(transaction.prepend) && transaction.prepend.length > 0) {
-                prependItems = prependItems.concat(transaction.prepend);
-            }
-            if (Array.isArray(transaction.append) && transaction.append.length > 0) {
-                appendItems = appendItems.concat(transaction.append);
-            }
-        }
-
-        // Apply all transactions using the efficient applyToArray method
         changeDesc.applyToArray(this.data, (destIndex) => {
-            // Determine which source array this insertion comes from based on index position
             if (destIndex < totalPrependCount) {
-                // This is a prepended item
-                return prependItems[destIndex];
-            } else {
-                // This is an appended item
-                const appendOffset = destIndex - (finalLength - totalAppendCount);
-                return appendItems[appendOffset];
+                return prependValues[destIndex];
             }
+            const appendStartIndex = finalLength - totalAppendCount;
+            if (totalAppendCount > 0 && destIndex >= appendStartIndex) {
+                return appendValues[destIndex - appendStartIndex];
+            }
+            throw new Error(`Unexpected insertion at index ${destIndex}`);
         });
 
         this.pendingTransactions.length = 0;
+        // Keep the cached change description so consumers can see what changes were applied
+        // It will be invalidated when new transactions are added
 
         if (debug.check()) {
             debug('DataSet.commitPendingTransactions() - final length', { afterLength: this.data.length });
@@ -174,7 +163,7 @@ export class DataSet<T = unknown> {
      * @returns Change description with precise index mapping, or undefined if no pending transactions.
      */
     getChangeDescription(): DataChangeDescription | undefined {
-        // Return cached result if available
+        // Return cached result if available (may be from previously committed transactions)
         if (this.cachedChangeDescription != null) {
             return this.cachedChangeDescription;
         }
@@ -184,10 +173,13 @@ export class DataSet<T = unknown> {
         }
 
         // Build the index transformation map
-        const indexMap = this.buildIndexMap();
+        const { indexMap, prependValues, appendValues } = this.buildIndexMap();
 
         // Create the change description instance
-        const changeDescription = new DataChangeDescription(indexMap);
+        const changeDescription = new DataChangeDescription(indexMap, {
+            prependValues,
+            appendValues,
+        });
 
         this.cachedChangeDescription = changeDescription;
         return changeDescription;
@@ -196,36 +188,87 @@ export class DataSet<T = unknown> {
     /**
      * Builds the index transformation map by sequentially applying all pending transactions.
      */
-    private buildIndexMap(): IndexTransformationMap {
+    private buildIndexMap(): {
+        indexMap: IndexTransformationMap;
+        prependValues: T[];
+        appendValues: T[];
+    } {
         const originalLength = this.data.length;
-        const removedIndices = new Set<number>();
-        const spliceOps: SpliceOperation[] = [];
 
-        let totalPrependCount = 0;
-        let totalAppendCount = 0;
+        type Entry = {
+            kind: 'original' | 'prepend' | 'append';
+            value: T;
+            originalIndex?: number;
+        };
 
-        // First pass: identify all removals and calculate prepend/append totals
+        const entries: Entry[] = this.data.map((value, index) => ({
+            kind: 'original',
+            value,
+            originalIndex: index,
+        }));
+
+        const removedOriginalIndices = new Set<number>();
+
         for (const transaction of this.pendingTransactions) {
-            const removeRefs = normaliseRemoveReferences(transaction.remove);
-            if (removeRefs.length > 0) {
-                const indicesToRemove = findIndicesInOriginalArray(this.data, removeRefs);
-                for (const idx of indicesToRemove) {
-                    removedIndices.add(idx);
-                }
+            const { prepend, append, remove } = transaction;
+
+            if (Array.isArray(prepend) && prepend.length > 0) {
+                const prependEntries = prepend.map(
+                    (value): Entry => ({
+                        kind: 'prepend',
+                        value,
+                    })
+                );
+                entries.unshift(...prependEntries);
             }
 
-            if (Array.isArray(transaction.prepend)) {
-                totalPrependCount += transaction.prepend.length;
+            if (Array.isArray(append) && append.length > 0) {
+                const appendEntries = append.map(
+                    (value): Entry => ({
+                        kind: 'append',
+                        value,
+                    })
+                );
+                entries.push(...appendEntries);
             }
-            if (Array.isArray(transaction.append)) {
-                totalAppendCount += transaction.append.length;
+
+            if (Array.isArray(remove) && remove.length > 0) {
+                const removeSet = new Set(remove);
+                let writeIndex = 0;
+                for (const element of entries) {
+                    const entry = element;
+                    if (removeSet.has(entry.value)) {
+                        if (entry.kind === 'original' && entry.originalIndex != null) {
+                            removedOriginalIndices.add(entry.originalIndex);
+                        }
+                        continue;
+                    }
+
+                    entries[writeIndex++] = entry;
+                }
+                entries.length = writeIndex;
             }
         }
 
-        // Build splice operations
-        // We'll create consolidated operations for efficiency
+        const survivingPrepends: T[] = [];
+        const survivingAppends: T[] = [];
+        let survivingOriginalCount = 0;
 
-        // 1. If we have prepends, create a splice operation at index 0
+        for (const entry of entries) {
+            if (entry.kind === 'prepend') {
+                survivingPrepends.push(entry.value);
+            } else if (entry.kind === 'append') {
+                survivingAppends.push(entry.value);
+            } else if (entry.kind === 'original') {
+                survivingOriginalCount++;
+            }
+        }
+
+        const totalPrependCount = survivingPrepends.length;
+        const totalAppendCount = survivingAppends.length;
+        const finalLength = entries.length;
+
+        const spliceOps: SpliceOperation[] = [];
         if (totalPrependCount > 0) {
             spliceOps.push({
                 index: 0,
@@ -234,66 +277,43 @@ export class DataSet<T = unknown> {
             });
         }
 
-        // 2. Process removals - group consecutive removals into single splice operations
-        const sortedRemovals = Array.from(removedIndices).sort((a, b) => a - b);
-        if (sortedRemovals.length > 0) {
-            let currentStart = sortedRemovals[0];
-            let currentCount = 1;
-
-            for (let i = 1; i < sortedRemovals.length; i++) {
-                if (sortedRemovals[i] === sortedRemovals[i - 1] + 1) {
-                    // Consecutive removal
-                    currentCount++;
-                } else {
-                    // Gap found, create splice operation for previous group
-                    // Adjust index for prepends
-                    spliceOps.push({
-                        index: currentStart + totalPrependCount,
-                        deleteCount: currentCount,
-                        insertCount: 0,
-                    });
-                    currentStart = sortedRemovals[i];
-                    currentCount = 1;
-                }
+        if (removedOriginalIndices.size > 0) {
+            const sortedRemovals = Array.from(removedOriginalIndices).sort((a, b) => b - a);
+            for (const originalIndex of sortedRemovals) {
+                spliceOps.push({
+                    index: originalIndex + totalPrependCount,
+                    deleteCount: 1,
+                    insertCount: 0,
+                });
             }
-            // Don't forget the last group
-            spliceOps.push({
-                index: currentStart + totalPrependCount,
-                deleteCount: currentCount,
-                insertCount: 0,
-            });
         }
 
-        // 3. If we have appends, create a splice operation at the end
         if (totalAppendCount > 0) {
-            const appendIndex = originalLength + totalPrependCount - removedIndices.size;
             spliceOps.push({
-                index: appendIndex,
+                index: totalPrependCount + survivingOriginalCount,
                 deleteCount: 0,
                 insertCount: totalAppendCount,
             });
         }
 
-        // Sort splice operations by index (descending) for back-to-front application
-        spliceOps.sort((a, b) => b.index - a.index);
-
-        const finalLength = originalLength + totalPrependCount + totalAppendCount - removedIndices.size;
-
-        // Calculate optimization flags
-        const hasNoRemovals = removedIndices.size === 0;
-        const isAppendOnly = hasNoRemovals && totalPrependCount === 0;
-        const isPrependOnly = hasNoRemovals && totalAppendCount === 0;
-
-        return {
+        const removedCount = removedOriginalIndices.size;
+        const hasNoRemovals = removedCount === 0;
+        const indexMap: IndexTransformationMap = {
             originalLength,
             finalLength,
             spliceOps,
-            removedIndices,
+            removedIndices: removedOriginalIndices,
             totalPrependCount,
             totalAppendCount,
-            isAppendOnly,
-            isPrependOnly,
+            isAppendOnly: hasNoRemovals && totalPrependCount === 0 && totalAppendCount > 0,
+            isPrependOnly: hasNoRemovals && totalAppendCount === 0 && totalPrependCount > 0,
             hasNoRemovals,
+        };
+
+        return {
+            indexMap,
+            prependValues: survivingPrepends,
+            appendValues: survivingAppends,
         };
     }
 }
