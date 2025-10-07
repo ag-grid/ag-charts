@@ -32,7 +32,7 @@ export function getData(hours: number) {
     const random = seedRandom();
     const period = 60 * 60 * 1000;
     const startDate = new Date(2024, 0, 1, -hours);
-    return Array.from({ length: hours }, (_, i) => {
+    return Array.from({ length: hours }, () => {
         // Note time is reversed
         const close = currentPrice;
         const open = close + (random() * 2 - 1) * maxDailyPriceChange;
