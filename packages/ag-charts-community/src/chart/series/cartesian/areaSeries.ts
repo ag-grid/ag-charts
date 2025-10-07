@@ -467,10 +467,8 @@ export class AreaSeries extends CartesianSeries<
 
                 phantomSpans.push({
                     span,
-                    xValue0,
-                    xValue1,
-                    yValue0: 0,
-                    yValue1: 0,
+                    index0: startDatumIndex,
+                    index1: endDatumIndex,
                 });
             }
         }
@@ -510,10 +508,8 @@ export class AreaSeries extends CartesianSeries<
             };
             const spanDatum: LinePathSpan = {
                 span,
-                xValue0,
-                xValue1,
-                yValue0,
-                yValue1,
+                index0: startDatumIndex,
+                index1: endDatumIndex,
             };
 
             fillSpans.push(spanDatum);
@@ -874,8 +870,19 @@ export class AreaSeries extends CartesianSeries<
 
         const context: AreaSeriesNodeDataContext = {
             itemId: yKey,
-            fillData: { itemId: yKey, spans: this.fillSpans, phantomSpans: this.phantomSpans },
-            strokeData: { itemId: yKey, spans: this.strokeSpans },
+            fillData: {
+                itemId: yKey,
+                spans: this.fillSpans,
+                phantomSpans: this.phantomSpans,
+                xValues,
+                yValues: yRawValues,
+            },
+            strokeData: {
+                itemId: yKey,
+                spans: this.strokeSpans,
+                xValues,
+                yValues: yRawValues,
+            },
             labelData,
             nodeData: markerData,
             scales: this.calculateScaling(),

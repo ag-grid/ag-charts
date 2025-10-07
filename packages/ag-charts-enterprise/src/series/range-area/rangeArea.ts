@@ -386,9 +386,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             itemId: `${yLowKey}-${yHighKey}`,
             labelData,
             nodeData: markerData,
-            fillData: { itemId: 'high', spans: highSpans, phantomSpans: lowSpans },
-            highStrokeData: { itemId: 'high', spans: highSpans },
-            lowStrokeData: { itemId: 'low', spans: lowSpans },
+            fillData: { itemId: 'high', spans: highSpans, phantomSpans: lowSpans, xValues, yValues: yHighValues },
+            highStrokeData: { itemId: 'high', spans: highSpans, xValues, yValues: yHighValues },
+            lowStrokeData: { itemId: 'low', spans: lowSpans, xValues, yValues: yHighValues },
             scales: this.calculateScaling(),
             visible: this.visible,
             styles: getMarkerStyles(this, marker, {

@@ -23,11 +23,15 @@ import { isScaleValid } from './scaling';
 export type AreaFillPathDatum = {
     readonly spans: LinePathSpan[];
     readonly phantomSpans: LinePathSpan[];
+    readonly xValues: any[];
+    readonly yValues: any[];
     readonly itemId: string;
 };
 
 export type AreaStrokePathDatum = {
     readonly spans: LinePathSpan[];
+    readonly xValues: any[];
+    readonly yValues: any[];
     readonly itemId: string;
 };
 
@@ -140,14 +144,34 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
     }
 
     const fillSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.fillData.spans },
-        { scales: oldData.scales, data: oldData.fillData.spans },
+        {
+            scales: newData.scales,
+            data: newData.fillData.spans,
+            xValues: newData.fillData.xValues,
+            yValues: newData.fillData.yValues,
+        },
+        {
+            scales: oldData.scales,
+            data: oldData.fillData.spans,
+            xValues: oldData.fillData.xValues,
+            yValues: newData.fillData.yValues,
+        },
         CollapseMode.Zero
     );
     if (fillSpans == null) return;
     const fillPhantomSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.fillData.phantomSpans },
-        { scales: oldData.scales, data: oldData.fillData.phantomSpans },
+        {
+            scales: newData.scales,
+            data: newData.fillData.phantomSpans,
+            xValues: newData.fillData.xValues,
+            yValues: newData.fillData.yValues,
+        },
+        {
+            scales: oldData.scales,
+            data: oldData.fillData.phantomSpans,
+            xValues: newData.fillData.xValues,
+            yValues: newData.fillData.yValues,
+        },
         CollapseMode.Zero
     );
     if (fillPhantomSpans == null) return;
@@ -156,11 +180,15 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
             scales: newData.scales,
             data: newData.strokeData.spans,
             zeroData: newData.fillData.phantomSpans,
+            xValues: newData.strokeData.xValues,
+            yValues: newData.strokeData.yValues,
         },
         {
             scales: oldData.scales,
             data: oldData.strokeData.spans,
             zeroData: oldData.fillData.phantomSpans,
+            xValues: oldData.strokeData.xValues,
+            yValues: newData.strokeData.yValues,
         },
         CollapseMode.Zero
     );

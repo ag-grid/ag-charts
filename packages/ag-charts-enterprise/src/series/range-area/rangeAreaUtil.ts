@@ -32,11 +32,15 @@ export interface RangeAreaLabelDatum extends Readonly<Point> {
 interface RangeAreaFillPathDatum {
     readonly spans: _ModuleSupport.LinePathSpan[];
     readonly phantomSpans: _ModuleSupport.LinePathSpan[];
+    readonly xValues: any[];
+    readonly yValues: any[];
     readonly itemId: AgRangeAreaSeriesItemType;
 }
 
 interface RangeAreaStrokePathDatum {
     readonly spans: _ModuleSupport.LinePathSpan[];
+    readonly xValues: any[];
+    readonly yValues: any[];
     readonly itemId: AgRangeAreaSeriesItemType;
 }
 
@@ -91,26 +95,26 @@ export function prepareRangeAreaPathAnimation(
     }
 
     const fillSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.fillData.spans },
-        { scales: oldData.scales, data: oldData.fillData.spans },
+        { scales: newData.scales, data: newData.fillData.spans, xValues: [], yValues: [] },
+        { scales: oldData.scales, data: oldData.fillData.spans, xValues: [], yValues: [] },
         CollapseMode.Split
     );
     if (fillSpans == null) return;
     const fillPhantomSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.fillData.phantomSpans },
-        { scales: oldData.scales, data: oldData.fillData.phantomSpans },
+        { scales: newData.scales, data: newData.fillData.phantomSpans, xValues: [], yValues: [] },
+        { scales: oldData.scales, data: oldData.fillData.phantomSpans, xValues: [], yValues: [] },
         CollapseMode.Split
     );
     if (fillPhantomSpans == null) return;
     const highStrokeSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.highStrokeData.spans },
-        { scales: oldData.scales, data: oldData.highStrokeData.spans },
+        { scales: newData.scales, data: newData.highStrokeData.spans, xValues: [], yValues: [] },
+        { scales: oldData.scales, data: oldData.highStrokeData.spans, xValues: [], yValues: [] },
         CollapseMode.Split
     );
     if (highStrokeSpans == null) return;
     const lowStrokeSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.lowStrokeData.spans },
-        { scales: oldData.scales, data: oldData.lowStrokeData.spans },
+        { scales: newData.scales, data: newData.lowStrokeData.spans, xValues: [], yValues: [] },
+        { scales: oldData.scales, data: oldData.lowStrokeData.spans, xValues: [], yValues: [] },
         CollapseMode.Split
     );
     if (lowStrokeSpans == null) return;

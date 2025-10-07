@@ -456,7 +456,7 @@ export class LineSeries extends CartesianSeries<
         const strokeSpans = spanPoints.flatMap((p): LinePathSpan[] => {
             return Array.isArray(p) ? interpolatePoints(p, interpolation) : [];
         });
-        const strokeData = { itemId: yKey, spans: strokeSpans };
+        const strokeData = { itemId: yKey, spans: strokeSpans, xValues, yValues: yRawValues };
 
         const crossFiltering =
             selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;

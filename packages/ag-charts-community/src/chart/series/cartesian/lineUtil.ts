@@ -16,14 +16,14 @@ import { areScalingEqual, isScaleValid } from './scaling';
 
 export type LinePathSpan = {
     span: Span;
-    xValue0: any;
-    yValue0: any;
-    xValue1: any;
-    yValue1: any;
+    index0: number;
+    index1: number;
 };
 
 export type LineStrokePathDatum = {
     readonly spans: LinePathSpan[];
+    readonly xValues: any[];
+    readonly yValues: any[];
     readonly itemId: string;
 };
 
@@ -75,10 +75,8 @@ export function interpolatePoints(
     }
     return spans.map((span, i) => ({
         span,
-        xValue0: points[i].xDatum,
-        yValue0: points[i].yDatum,
-        xValue1: points[i + 1].xDatum,
-        yValue1: points[i + 1].yDatum,
+        index0: i,
+        index1: i + 1,
     }));
 }
 
@@ -202,8 +200,18 @@ export function prepareLinePathAnimation(
     }
 
     const strokeSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.strokeData.spans },
-        { scales: oldData.scales, data: oldData.strokeData.spans },
+        {
+            scales: newData.scales,
+            data: newData.strokeData.spans,
+            xValues: newData.strokeData.xValues,
+            yValues: newData.strokeData.yValues,
+        },
+        {
+            scales: oldData.scales,
+            data: oldData.strokeData.spans,
+            xValues: oldData.strokeData.xValues,
+            yValues: newData.strokeData.yValues,
+        },
         CollapseMode.Split
     );
     if (strokeSpans == null) return;
