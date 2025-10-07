@@ -2,6 +2,46 @@ import { describe, expect, test } from '@jest/globals';
 
 import { DataSet } from './dataSet';
 
+type DataTransaction<T> = Parameters<DataSet<T>['addTransaction']>[0];
+
+interface CommitStep<T> {
+    transactions: DataTransaction<T>[];
+    expected: T[];
+}
+
+function runCommitScenario<T>({ initial, steps }: { initial: T[]; steps: CommitStep<T>[] }) {
+    const dataSet = new DataSet<T>([...initial]);
+
+    for (const step of steps) {
+        for (const transaction of step.transactions) {
+            dataSet.addTransaction(transaction);
+        }
+
+        dataSet.commitPendingTransactions();
+        expect(dataSet.data).toEqual(step.expected);
+    }
+}
+
+function expectCommitResult<T>({
+    initial,
+    transactions,
+    expected,
+}: {
+    initial: T[];
+    transactions: DataTransaction<T> | DataTransaction<T>[];
+    expected: T[];
+}) {
+    runCommitScenario({
+        initial,
+        steps: [
+            {
+                transactions: Array.isArray(transactions) ? transactions : [transactions],
+                expected,
+            },
+        ],
+    });
+}
+
 describe('DataSet', () => {
     describe('getChangeDescription', () => {
         test('should return undefined when there are no pending transactions', () => {
@@ -288,190 +328,179 @@ describe('DataSet', () => {
     describe('commitPendingTransactions', () => {
         describe('multiple disjoint removals', () => {
             test('should correctly remove multiple non-consecutive items', () => {
-                const dataSet = new DataSet(['a', 'b', 'c', 'd', 'e']);
-                dataSet.addTransaction({ remove: ['b', 'd'] }); // Indices 1 and 3
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual(['a', 'c', 'e']); // Will FAIL with current bug
+                expectCommitResult({
+                    initial: ['a', 'b', 'c', 'd', 'e'],
+                    transactions: { remove: ['b', 'd'] },
+                    expected: ['a', 'c', 'e'],
+                }); // Will FAIL with current bug
             });
 
             test('should handle removing alternating elements', () => {
-                const dataSet = new DataSet([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-                dataSet.addTransaction({ remove: [1, 3, 5, 7, 9] });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual([0, 2, 4, 6, 8]); // Will FAIL
+                expectCommitResult({
+                    initial: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    transactions: { remove: [1, 3, 5, 7, 9] },
+                    expected: [0, 2, 4, 6, 8],
+                }); // Will FAIL
             });
 
             test('should handle removing first and last with middle elements', () => {
-                const dataSet = new DataSet(['first', 'a', 'b', 'c', 'last']);
-                dataSet.addTransaction({ remove: ['first', 'b', 'last'] }); // Indices 0, 2, 4
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual(['a', 'c']); // Will FAIL
+                expectCommitResult({
+                    initial: ['first', 'a', 'b', 'c', 'last'],
+                    transactions: { remove: ['first', 'b', 'last'] },
+                    expected: ['a', 'c'],
+                }); // Will FAIL
             });
 
             test('should handle massive disjoint removals', () => {
-                const data = Array.from({ length: 100 }, (_, i) => i);
-                const toRemove = data.filter((x) => x % 3 === 0); // Remove every 3rd element
+                const initial = Array.from({ length: 100 }, (_, i) => i);
+                const toRemove = initial.filter((x) => x % 3 === 0);
 
-                const dataSet = new DataSet(data);
-                dataSet.addTransaction({ remove: toRemove });
-
-                dataSet.commitPendingTransactions();
-                const expected = data.filter((x) => x % 3 !== 0);
-                expect(dataSet.data).toEqual(expected);
+                expectCommitResult({
+                    initial,
+                    transactions: { remove: toRemove },
+                    expected: initial.filter((x) => x % 3 !== 0),
+                });
             });
         });
 
         describe('multiple prepend transactions', () => {
             test('should maintain LIFO order for sequential prepends', () => {
-                const dataSet = new DataSet<string | number>([42]);
-                dataSet.addTransaction({ prepend: ['a'] });
-                dataSet.addTransaction({ prepend: ['b'] });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual(['b', 'a', 42]); // Will FAIL - gets ['a', 'b', 42]
+                expectCommitResult<string | number>({
+                    initial: [42],
+                    transactions: [{ prepend: ['a'] }, { prepend: ['b'] }],
+                    expected: ['b', 'a', 42],
+                }); // Will FAIL - gets ['a', 'b', 42]
             });
 
             test('should handle multiple prepends with multiple values each', () => {
-                const dataSet = new DataSet(['original']);
-                dataSet.addTransaction({ prepend: ['a1', 'a2'] });
-                dataSet.addTransaction({ prepend: ['b1', 'b2'] });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual(['b1', 'b2', 'a1', 'a2', 'original']); // Will FAIL
+                expectCommitResult({
+                    initial: ['original'],
+                    transactions: [{ prepend: ['a1', 'a2'] }, { prepend: ['b1', 'b2'] }],
+                    expected: ['b1', 'b2', 'a1', 'a2', 'original'],
+                }); // Will FAIL
             });
 
             test('should handle three consecutive prepend transactions', () => {
-                const dataSet = new DataSet<string>([]);
-                dataSet.addTransaction({ prepend: ['first'] });
-                dataSet.addTransaction({ prepend: ['second'] });
-                dataSet.addTransaction({ prepend: ['third'] });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual(['third', 'second', 'first']); // Will FAIL
+                expectCommitResult<string>({
+                    initial: [] as string[],
+                    transactions: [{ prepend: ['first'] }, { prepend: ['second'] }, { prepend: ['third'] }],
+                    expected: ['third', 'second', 'first'],
+                }); // Will FAIL
             });
         });
 
         describe('combined operations in single transaction', () => {
             test('prepend + remove in same transaction', () => {
-                const dataSet = new DataSet([1, 2, 3, 4, 5]);
-                dataSet.addTransaction({
-                    prepend: [0],
-                    remove: [2, 4], // Removes values 2 and 4 from original array
+                expectCommitResult({
+                    initial: [1, 2, 3, 4, 5],
+                    transactions: {
+                        prepend: [0],
+                        remove: [2, 4],
+                    },
+                    expected: [0, 1, 3, 5],
                 });
-
-                dataSet.commitPendingTransactions();
-                // Prepend 0 and remove values 2 and 4: [0, 1, 3, 5]
-                expect(dataSet.data).toEqual([0, 1, 3, 5]);
             });
 
             test('append + remove in same transaction', () => {
-                const dataSet = new DataSet([1, 2, 3, 4, 5]);
-                dataSet.addTransaction({
-                    append: [6, 7],
-                    remove: [1, 3],
+                expectCommitResult({
+                    initial: [1, 2, 3, 4, 5],
+                    transactions: {
+                        append: [6, 7],
+                        remove: [1, 3],
+                    },
+                    expected: [2, 4, 5, 6, 7],
                 });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual([2, 4, 5, 6, 7]);
             });
 
             test('prepend + append + remove in same transaction', () => {
-                const dataSet = new DataSet(['b', 'c', 'd']);
-                dataSet.addTransaction({
-                    prepend: ['a'],
-                    append: ['e'],
-                    remove: ['c'],
+                expectCommitResult({
+                    initial: ['b', 'c', 'd'],
+                    transactions: {
+                        prepend: ['a'],
+                        append: ['e'],
+                        remove: ['c'],
+                    },
+                    expected: ['a', 'b', 'd', 'e'],
                 });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual(['a', 'b', 'd', 'e']);
             });
 
             test('remove then prepend in separate transactions', () => {
-                const dataSet = new DataSet([1, 2, 3, 4, 5]);
-                dataSet.addTransaction({ remove: [2, 4] });
-                dataSet.addTransaction({ prepend: [0] });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual([0, 1, 3, 5]);
+                expectCommitResult({
+                    initial: [1, 2, 3, 4, 5],
+                    transactions: [{ remove: [2, 4] }, { prepend: [0] }],
+                    expected: [0, 1, 3, 5],
+                });
             });
 
             test('prepend then remove in separate transactions', () => {
-                const dataSet = new DataSet([1, 2, 3]);
-                dataSet.addTransaction({ prepend: [0] });
-                dataSet.addTransaction({ remove: [2] }); // Removes original index 1 (value 2)
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual([0, 1, 3]);
+                expectCommitResult({
+                    initial: [1, 2, 3],
+                    transactions: [{ prepend: [0] }, { remove: [2] }],
+                    expected: [0, 1, 3],
+                });
             });
 
             test('multiple appends then multiple removes', () => {
-                const dataSet = new DataSet([1, 2, 3]);
-                dataSet.addTransaction({ append: [4] });
-                dataSet.addTransaction({ append: [5, 6] });
-                dataSet.addTransaction({ remove: [2, 4, 5] });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual([1, 3, 6]);
+                expectCommitResult({
+                    initial: [1, 2, 3],
+                    transactions: [{ append: [4] }, { append: [5, 6] }, { remove: [2, 4, 5] }],
+                    expected: [1, 3, 6],
+                });
             });
 
             test('complex multi-transaction sequence', () => {
-                const dataSet = new DataSet(['a', 'b', 'c']);
-                dataSet.addTransaction({ prepend: ['x'] });
-                dataSet.addTransaction({ append: ['d'] });
-                dataSet.addTransaction({ remove: ['b'] });
-                dataSet.addTransaction({ prepend: ['y'] });
-                dataSet.addTransaction({ append: ['e'] });
-
-                dataSet.commitPendingTransactions();
-                expect(dataSet.data).toEqual(['y', 'x', 'a', 'c', 'd', 'e']);
+                expectCommitResult({
+                    initial: ['a', 'b', 'c'],
+                    transactions: [
+                        { prepend: ['x'] },
+                        { append: ['d'] },
+                        { remove: ['b'] },
+                        { prepend: ['y'] },
+                        { append: ['e'] },
+                    ],
+                    expected: ['y', 'x', 'a', 'c', 'd', 'e'],
+                });
             });
         });
 
         test('remove all elements then append', () => {
-            const dataSet = new DataSet([1, 2, 3]);
-            dataSet.addTransaction({ remove: [1, 2, 3] });
-            dataSet.addTransaction({ append: [4, 5] });
-
-            dataSet.commitPendingTransactions();
-            expect(dataSet.data).toEqual([4, 5]);
+            expectCommitResult({
+                initial: [1, 2, 3],
+                transactions: [{ remove: [1, 2, 3] }, { append: [4, 5] }],
+                expected: [4, 5],
+            });
         });
 
         test('empty initial array with operations', () => {
-            const dataSet = new DataSet<number>([]);
-            dataSet.addTransaction({ prepend: [1] });
-            dataSet.addTransaction({ append: [2] });
-            dataSet.addTransaction({ prepend: [0] });
-
-            dataSet.commitPendingTransactions();
-            expect(dataSet.data).toEqual([0, 1, 2]);
+            expectCommitResult<number>({
+                initial: [],
+                transactions: [{ prepend: [1] }, { append: [2] }, { prepend: [0] }],
+                expected: [0, 1, 2],
+            });
         });
 
         test('remove non-existent items should be ignored', () => {
-            const dataSet = new DataSet([1, 2, 3]);
-            dataSet.addTransaction({ remove: [4, 5] }); // Non-existent
-
-            dataSet.commitPendingTransactions();
-            expect(dataSet.data).toEqual([1, 2, 3]);
+            expectCommitResult({
+                initial: [1, 2, 3],
+                transactions: { remove: [4, 5] },
+                expected: [1, 2, 3],
+            });
         });
 
         test('multiple operations on same data', () => {
-            const dataSet = new DataSet(['a', 'b', 'c']);
-
-            // First round of operations
-            dataSet.addTransaction({ prepend: ['x'] });
-            dataSet.addTransaction({ append: ['d'] });
-            dataSet.commitPendingTransactions();
-            expect(dataSet.data).toEqual(['x', 'a', 'b', 'c', 'd']);
-
-            // Second round of operations
-            dataSet.addTransaction({ remove: ['b'] });
-            dataSet.addTransaction({ prepend: ['y'] });
-            dataSet.commitPendingTransactions();
-            expect(dataSet.data).toEqual(['y', 'x', 'a', 'c', 'd']);
+            runCommitScenario({
+                initial: ['a', 'b', 'c'],
+                steps: [
+                    {
+                        transactions: [{ prepend: ['x'] }, { append: ['d'] }],
+                        expected: ['x', 'a', 'b', 'c', 'd'],
+                    },
+                    {
+                        transactions: [{ remove: ['b'] }, { prepend: ['y'] }],
+                        expected: ['y', 'x', 'a', 'c', 'd'],
+                    },
+                ],
+            });
         });
     });
 });

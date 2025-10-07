@@ -60,10 +60,7 @@ export class DataChangeDescription {
     private readonly prependValues: unknown[];
     private readonly appendValues: unknown[];
 
-    constructor(
-        indexMap: IndexTransformationMap,
-        insertions: { prependValues: unknown[]; appendValues: unknown[] }
-    ) {
+    constructor(indexMap: IndexTransformationMap, insertions: { prependValues: unknown[]; appendValues: unknown[] }) {
         this.indexMap = indexMap;
         this.prependValues = insertions.prependValues;
         this.appendValues = insertions.appendValues;
