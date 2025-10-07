@@ -685,38 +685,25 @@ export class DataModel<
 
         const start = performance.now();
 
-        // Collect and validate changes
         const scopeChanges = this.collectScopeChanges(processedData, dataSets);
         if (scopeChanges.size === 0) {
             return processedData;
         }
 
-        // Commit all pending transactions (mutates data arrays)
         this.commitPendingTransactions(processedData);
-
-        // Initialize processValue for processing new insertions
         const { processValue } = this.initDataDomainProcessor();
-
-        // Pre-process all insertions
         const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
 
-        // Track band updates for optimization
         this.updateBandsForChanges(processedData, scopeChanges);
-
-        // Transform all arrays using cached insertion results
         this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
         this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
         this.transformInvalidityArrays(processedData, scopeChanges, insertionCaches);
-
-        // Recompute domains from transformed arrays
         this.recomputeDomains(processedData);
 
-        // Generate diff metadata for animations/incremental rendering
         if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
             this.generateDiffMetadata(processedData, scopeChanges);
         }
 
-        // Update metadata
         this.updateProcessedDataMetadata(processedData);
 
         const end = performance.now();
@@ -740,10 +727,8 @@ export class DataModel<
             const { indexMap } = changeDesc;
             const { spliceOps } = indexMap;
 
-            // Process each splice operation
             for (const op of spliceOps) {
                 if (op.insertCount > 0) {
-                    // Handle insertions - update band indices
                     for (const domain of bandedDomains.values()) {
                         if (domain instanceof BandedDomain) {
                             domain.handleInsertion(op.index, op.insertCount);
@@ -752,32 +737,24 @@ export class DataModel<
                 }
 
                 if (op.deleteCount > 0) {
-                    // Handle removals - check for boundary values
-                    // Note: For now we don't have the removed values here,
-                    // so we'll mark affected bands as dirty
                     for (const domain of bandedDomains.values()) {
                         if (domain instanceof BandedDomain) {
-                            // Simple approach: mark affected bands as dirty
                             domain.handleRemoval(op.index, op.deleteCount);
                         }
                     }
                 }
             }
 
-            // Optimize for common patterns
             if (isAppendOnly(indexMap)) {
-                // For append-only, we only need to extend the last band
                 for (const domain of bandedDomains.values()) {
                     if (domain instanceof BandedDomain) {
                         const stats = domain.getStats();
                         if (stats.bandCount > 0) {
-                            // Mark only the last band as dirty
                             domain.markBandsDirty(indexMap.originalLength, indexMap.finalLength);
                         }
                     }
                 }
             } else if (isPrependOnly(indexMap)) {
-                // For prepend-only, mark first band as dirty
                 for (const domain of bandedDomains.values()) {
                     if (domain instanceof BandedDomain) {
                         domain.markBandsDirty(0, indexMap.totalPrependCount);
@@ -905,7 +882,6 @@ export class DataModel<
         scopeChanges: Map<ScopeId, DataChangeDescription>,
         insertionCaches: Map<ScopeId, InsertionCache>
     ): void {
-        // Transform invalidKeys arrays
         if (processedData.invalidKeys) {
             for (const [scope, changeDesc] of scopeChanges) {
                 const invalidKeys = processedData.invalidKeys.get(scope);
@@ -920,7 +896,6 @@ export class DataModel<
             }
         }
 
-        // Transform invalidData arrays
         if (processedData.invalidData) {
             for (const [scope, changeDesc] of scopeChanges) {
                 const invalidData = processedData.invalidData.get(scope);
@@ -932,7 +907,6 @@ export class DataModel<
                     const cached = insertionCache?.get(destIndex);
                     if (!cached) return false;
 
-                    // A datum is considered invalid if it has invalid keys OR invalid values
                     return cached.hasInvalidKey || cached.hasInvalidValue;
                 });
             }
@@ -952,16 +926,12 @@ export class DataModel<
         const keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
         const valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
 
-        // Initialize or reuse domain objects
         for (const keyDef of this.keys) {
-            // Check if we have an existing banded domain for this def
             let domain = bandedDomains.get(keyDef);
 
             if (keyDef.valueType === 'category') {
-                // Don't use banding for discrete domains
                 keyDomains.set(keyDef, new DiscreteDomain());
             } else {
-                // Use banded domain for continuous values if configured
                 if (!domain && bandingConfig?.enableBanding !== false) {
                     domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
                     bandedDomains.set(keyDef, domain);
@@ -976,14 +946,11 @@ export class DataModel<
         }
 
         for (const valueDef of this.values) {
-            // Check if we have an existing banded domain for this def
             let domain = bandedDomains.get(valueDef);
 
             if (valueDef.valueType === 'category') {
-                // Don't use banding for discrete domains
                 valueDomains.set(valueDef, new DiscreteDomain());
             } else {
-                // Use banded domain for continuous values if configured
                 if (!domain && bandingConfig?.enableBanding !== false) {
                     domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
                     bandedDomains.set(valueDef, domain);
@@ -1051,7 +1018,6 @@ export class DataModel<
             }
         }
 
-        // Collect band statistics if in debug mode
         if (this.debug.check() && bandedDomains.size > 0) {
             bandStats = {
                 totalBands: 0,
@@ -1069,7 +1035,6 @@ export class DataModel<
             }
         }
 
-        // Update processedData domains
         processedData.domain.keys = this.keys.map((keyDef) => {
             const domain = keyDomains.get(keyDef)!;
             const result = domain.getDomain();
@@ -1090,7 +1055,6 @@ export class DataModel<
             return result;
         });
 
-        // Log performance metrics
         if (this.debug.check() && startTime > 0) {
             const endTime = performance.now();
             const duration = endTime - startTime;
@@ -1151,36 +1115,26 @@ export class DataModel<
                 }
             }
 
-            // Optimize moved items detection based on transaction type
             const { originalLength, totalPrependCount } = changeDesc.indexMap;
 
             if (isAppendOnly(changeDesc.indexMap)) {
-                // Append-only: nothing moved
+                // Nothing moved
             } else if (isPrependOnly(changeDesc.indexMap) && originalLength > 0) {
-                // Prepend-only: all preserved items moved
                 for (let destIndex = totalPrependCount; destIndex < totalPrependCount + originalLength; destIndex++) {
                     const keyStr = getKeyString(scope, destIndex);
-                    if (keyStr) {
-                        diff.moved.add(keyStr);
-                    }
+                    if (keyStr) diff.moved.add(keyStr);
                 }
             } else if (hasNoRemovals(changeDesc.indexMap) && totalPrependCount > 0) {
-                // No removals but has prepends: all preserved items shifted
                 for (let sourceIndex = 0; sourceIndex < originalLength; sourceIndex++) {
                     const destIndex = sourceIndex + totalPrependCount;
                     const keyStr = getKeyString(scope, destIndex);
-                    if (keyStr) {
-                        diff.moved.add(keyStr);
-                    }
+                    if (keyStr) diff.moved.add(keyStr);
                 }
             } else {
-                // General case with removals: need full iteration
                 changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
                     if (sourceIndex !== destIndex) {
                         const keyStr = getKeyString(scope, destIndex);
-                        if (keyStr) {
-                            diff.moved.add(keyStr);
-                        }
+                        if (keyStr) diff.moved.add(keyStr);
                     }
                 });
             }
@@ -1193,7 +1147,6 @@ export class DataModel<
      * Updates metadata after array transformations.
      */
     private updateProcessedDataMetadata(processedData: ProcessedData<D>): void {
-        // Find maximum data length across all scopes
         let maxDataLength = 0;
         for (const dataSet of processedData.dataSources.values()) {
             maxDataLength = Math.max(maxDataLength, dataSet.data.length);

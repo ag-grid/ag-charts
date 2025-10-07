@@ -35,9 +35,6 @@ export class DataSet<T = unknown> {
         return new DataSet<U>(data);
     }
 
-    /**
-     * Gets the net size of the data (after pending transactions).
-     */
     netSize(): number {
         if (!this.hasPendingTransactions()) {
             return this.data.length;
@@ -47,49 +44,31 @@ export class DataSet<T = unknown> {
         return changeDesc ? changeDesc.indexMap.finalLength : this.data.length;
     }
 
-    /**
-     * Adds a transaction to the pending queue.
-     * The transaction will not be applied until commitPendingTransactions() is called.
-     * @param transaction The transaction to add to the queue
-     */
+    /** Queues a transaction (applied on commit). */
     addTransaction(transaction: DataSetTransaction<T>): void {
         this.pendingTransactions.push(transaction);
-        this.cachedChangeDescription = undefined; // Invalidate cache
+        this.cachedChangeDescription = undefined;
     }
 
-    /**
-     * Checks if there are pending transactions to process.
-     * @returns true if there are pending transactions
-     */
     hasPendingTransactions(): boolean {
         return this.pendingTransactions.length > 0;
     }
 
-    /**
-     * Gets the number of pending transactions.
-     * @returns The number of transactions waiting to be committed
-     */
     getPendingTransactionCount(): number {
         return this.pendingTransactions.length;
     }
 
-    /**
-     * Commits all pending transactions by efficiently applying them to the data array.
-     * Optimized to minimize array operations and avoid full data scans.
-     * @returns true if any transactions were applied
-     */
+    /** Applies all pending transactions to the data array. */
     commitPendingTransactions(): boolean {
         if (!this.hasPendingTransactions()) {
             return false;
         }
 
-        // Get the optimized change description to understand what operations to perform
         const changeDescription = this.getChangeDescription();
         if (!changeDescription) {
             return false;
         }
 
-        // Apply the change description to the data array
         const allInsertions = [
             ...changeDescription.getPrependedValues<T>(),
             ...changeDescription.getAppendedValues<T>(),
@@ -98,14 +77,10 @@ export class DataSet<T = unknown> {
         changeDescription.applyToArray(this.data, () => allInsertions[insertionIndex++]);
 
         this.pendingTransactions = [];
-        this.cachedChangeDescription = undefined; // Clear cache after commit
+        this.cachedChangeDescription = undefined;
         return true;
     }
 
-    /**
-     * Discards all pending transactions without applying them.
-     * @returns The number of transactions that were discarded
-     */
     clearPendingTransactions(): number {
         const count = this.pendingTransactions.length;
         this.pendingTransactions = [];
@@ -113,27 +88,16 @@ export class DataSet<T = unknown> {
         return count;
     }
 
-    /**
-     * Gets the transactions that are currently pending.
-     * @returns A copy of the pending transactions array
-     */
     getPendingTransactions(): DataSetTransaction<T>[] {
         return [...this.pendingTransactions];
     }
 
-    /**
-     * Custom JSON serialization to avoid bloating snapshots.
-     * Serializes as a plain array instead of exposing internal structure.
-     */
+    /** Custom JSON serialization (avoids snapshot bloat). */
     toJSON(): T[] {
         return this.data;
     }
 
-    /**
-     * Builds a DataChangeDescription that represents all pending transactions.
-     * This does not modify the data array.
-     * @returns A DataChangeDescription or undefined if no transactions are pending
-     */
+    /** Builds a DataChangeDescription from pending transactions (does not modify data). */
     getChangeDescription(): DataChangeDescription | undefined {
         if (!this.hasPendingTransactions()) {
             return undefined;
@@ -167,7 +131,6 @@ export class DataSet<T = unknown> {
                 if (toRemove.has(group[i])) {
                     toRemove.delete(group[i]);
                     group.splice(i, 1);
-                    // Don't increment i, stay at same position after removal
                 } else {
                     i++;
                 }
@@ -190,26 +153,22 @@ export class DataSet<T = unknown> {
     } {
         const originalLength = this.data.length;
 
-        // Track the conceptual structure: [prepends] [original elements] [appends]
-        const prependsList: T[][] = []; // Each transaction's prepends (in reverse order for LIFO)
-        const appendsList: T[][] = []; // Each transaction's appends
+        const prependsList: T[][] = [];
+        const appendsList: T[][] = [];
         const removedOriginalIndices = new Set<number>();
 
-        // Process each transaction sequentially to maintain correct semantics
         for (const transaction of this.pendingTransactions) {
             const { prepend, append, remove } = transaction;
 
-            // Add prepends (they go to the front)
             if (Array.isArray(prepend) && prepend.length > 0) {
-                prependsList.unshift([...prepend]);
+                prependsList.unshift([...prepend]); // LIFO order
             }
 
-            // Add appends (they go to the back)
             if (Array.isArray(append) && append.length > 0) {
                 appendsList.push([...append]);
             }
 
-            // Process removals - must check in order: prepends, originals, appends
+            // Removals check prepends, originals, then appends
             if (Array.isArray(remove) && remove.length > 0) {
                 const toRemove = new Set(remove);
 
@@ -270,17 +229,14 @@ export class DataSet<T = unknown> {
                 const prevIndex = sortedRemovals[i - 1];
 
                 if (prevIndex - currentIndex === 1) {
-                    // Consecutive (descending), continue the group
                     currentGroupCount++;
                 } else {
-                    // Non-consecutive, finalize current group
                     spliceOps.push({
                         index: currentGroupStart - currentGroupCount + 1 + totalPrependCount,
                         deleteCount: currentGroupCount,
                         insertCount: 0,
                     });
 
-                    // Start new group
                     currentGroupStart = currentIndex;
                     currentGroupCount = 1;
                 }
