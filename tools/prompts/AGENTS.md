@@ -157,6 +157,33 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 -   Make sure to run `nx format` on any changes to ensure consistent formatting before commit.
 -   Prefer running `nx format` in the root of the repo to format changes, as there are config nuances that aren't taken into account when directly running tooling in more specific places.
 
+### Code Quality Guidelines
+
+#### Avoid Code Bloat
+
+-   **No redundant computed values**: Store only base data, compute derived properties via functions/getters
+-   **No dead code**: Remove unused methods, parameters, or properties
+-   **Extract duplication**: If the same logic appears twice, extract it to a helper function
+-   **Simplify conditionals**: Consolidate repeated if/else branches, use early returns
+-   **Serialize cleanly**: Add `toJSON()` methods to classes to avoid exposing internal structure in snapshots
+
+#### Test Philosophy
+
+-   **Test behavior, not implementation**: Focus on what the code does, not how it does it
+-   **Use parameterized tests**: Consolidate similar test cases with `test.each()`
+-   **Avoid brittle assertions**: Don't assert exact array indices or internal state unless necessary
+-   **Keep tests focused**: One behavior per test, clear test names
+-   **Simplify test helpers**: Prefer simple operation counters over complex tracking mechanisms
+
+#### Comment Guidelines
+
+-   **Explain WHY, not WHAT**: Code should be self-documenting; comments explain reasoning
+-   **Keep OPTIMIZATION comments**: These explain performance trade-offs and design decisions
+-   **Concise JSDoc**: Simple getters/setters don't need JSDoc; complex methods do
+-   **Remove obvious comments**: Don't restate what the code clearly shows
+-   **Trust good naming**: Well-named variables and methods reduce need for comments
+-   **Examples in JSDoc**: Complex methods benefit from usage examples in documentation
+
 ## Code Review Guidelines
 
 -   When reviewing a PR, don't comment on lines not changed in the PR itself; we have tech-debt but can't fix it all at once.
