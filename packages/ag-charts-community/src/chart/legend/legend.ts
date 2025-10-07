@@ -377,6 +377,14 @@ export class Legend extends BaseProperties {
         this.group.visible = this.enabled && this.visible && this.data.length > 0;
     }
 
+    private isInteractive(): boolean {
+        const {
+            toggleSeries,
+            listeners: { legendItemClick, legendItemDoubleClick },
+        } = this;
+        return toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
+    }
+
     attachLegend(scene: Scene) {
         scene.appendChild(this.group);
     }
@@ -813,7 +821,7 @@ export class Legend extends BaseProperties {
     }
 
     private updatePageNumber(pageNumber: number) {
-        const { itemSelection, group, pagination, pages, toggleSeries: interactive } = this;
+        const { itemSelection, group, pagination, pages } = this;
 
         // Track an item on the page in re-pagination cases (e.g. resize).
         const { startIndex, endIndex } = pages[pageNumber];
@@ -832,7 +840,7 @@ export class Legend extends BaseProperties {
         this.pagination.updateMarkers();
 
         this.updatePositions(pageNumber);
-        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive });
+        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive: this.isInteractive() });
 
         this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
@@ -1305,17 +1313,9 @@ export class Legend extends BaseProperties {
         return oldPages;
     }
     private positionLegendDOM(oldPages: Page[] | undefined) {
-        const {
-            ctx,
-            itemSelection,
-            pagination,
-            pages: newPages,
-            toggleSeries,
-            group,
-            listeners: { legendItemClick, legendItemDoubleClick },
-        } = this;
+        const { ctx, itemSelection, pagination, pages: newPages, group } = this;
         const visible = this.visible && this.enabled;
-        const interactive = toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
+        const interactive = this.isInteractive();
         this.domProxy.update({
             visible,
             interactive,
