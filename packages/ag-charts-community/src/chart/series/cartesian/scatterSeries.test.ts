@@ -692,6 +692,58 @@ describe('ScatterSeries', () => {
         });
     });
 
+    describe('showInLegend', () => {
+        it('should hide scatter series from legend when showInLegend is false', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                title: { text: 'Only female series should be shown in legend' },
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        title: 'Male',
+                        showInLegend: false,
+                    },
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        title: 'Female',
+                    },
+                ],
+                legend: {},
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should show scatter series in legend when showInLegend is true (default)', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                title: { text: 'Only male series should be shown in legend' },
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        title: 'Male',
+                        showInLegend: true,
+                    },
+                ],
+                legend: {},
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     describe('predict axes', () => {
         it('number', async () => {
             const options: AgChartOptions = {

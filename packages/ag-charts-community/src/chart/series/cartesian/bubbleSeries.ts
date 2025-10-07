@@ -911,7 +911,7 @@ export class BubbleSeries extends CartesianSeries<
             visible,
         } = this;
 
-        const { yKey: itemId, yName, title } = this.properties;
+        const { yKey: itemId, yName, title, showInLegend } = this.properties;
 
         return [
             {
@@ -924,6 +924,7 @@ export class BubbleSeries extends CartesianSeries<
                     text: title ?? yName ?? itemId,
                 },
                 symbol: this.legendItemSymbol(),
+                hideInLegend: !showInLegend,
             },
         ];
     }

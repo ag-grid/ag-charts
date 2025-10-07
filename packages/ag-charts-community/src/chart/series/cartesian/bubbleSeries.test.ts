@@ -839,4 +839,50 @@ describe('BubbleSeries', () => {
             await compare();
         });
     });
+
+    describe('showInLegend', () => {
+        it('should hide bubble series from legend when showInLegend is false', async () => {
+            const options: AgChartOptions = {
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+                title: { text: 'Only female series should be shown in legend' },
+                series: [
+                    {
+                        ...(examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE.series![0] as any),
+                        title: 'Male',
+                        showInLegend: false,
+                    },
+                    {
+                        ...(examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE.series![0] as any),
+                        title: 'Female',
+                    },
+                ],
+                legend: {},
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should show bubble series in legend when showInLegend is true (default)', async () => {
+            const options: AgChartOptions = {
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+                title: { text: 'Only male series should be shown in legend' },
+                series: [
+                    {
+                        ...(examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE.series![0] as any),
+                        title: 'Male',
+                        showInLegend: true,
+                    },
+                ],
+                legend: {},
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });
