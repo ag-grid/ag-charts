@@ -4,13 +4,11 @@ import {
     AgCartesianChartOptions,
     type AgChartOptions,
     AgCharts,
-    AgRangeAreaSeriesItemStylerParams,
     AgRangeAreaSeriesItemType,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
     AgRangeAreaSeriesStyle,
     AgRangeAreaSeriesStylerParams,
-    AgSeriesMarkerOptions,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
 } from 'ag-charts-community';
