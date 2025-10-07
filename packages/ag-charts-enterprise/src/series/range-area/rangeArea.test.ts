@@ -4,7 +4,6 @@ import {
     AgCartesianChartOptions,
     type AgChartOptions,
     AgCharts,
-    AgRangeAreaSeriesItemType,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
     AgRangeAreaSeriesStyle,
@@ -23,6 +22,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { NonNullablePath } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -1297,9 +1297,8 @@ describe('RangeAreaSeries', () => {
     describe('AG-15773 itemStyler itemId', () => {
         it('should render high and low markers differently', async () => {
             type D = { month: string; low: number; high: number };
-            const itemStyler: NonNullable<
-                NonNullable<NonNullable<AgRangeAreaSeriesOptions<D>['item']>[AgRangeAreaSeriesItemType]>['marker']
-            >['itemStyler'] = (params) => {
+            type F = NonNullablePath<AgRangeAreaSeriesOptions<D>, 'item', 'low' | 'high', 'marker', 'itemStyler'>;
+            const itemStyler: F = (params) => {
                 switch (params.itemId) {
                     case 'high':
                         return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
