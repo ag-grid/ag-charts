@@ -4,9 +4,13 @@ import {
     AgCartesianChartOptions,
     type AgChartOptions,
     AgCharts,
+    AgRangeAreaSeriesItemStylerParams,
+    AgRangeAreaSeriesItemType,
     AgRangeAreaSeriesLabelPlacement,
+    AgRangeAreaSeriesOptions,
     AgRangeAreaSeriesStyle,
     AgRangeAreaSeriesStylerParams,
+    AgSeriesMarkerOptions,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
 } from 'ag-charts-community';
@@ -388,21 +392,27 @@ describe('RangeAreaSeries', () => {
                     xKey: 'x',
                     yHighKey: 'fHi',
                     yLowKey: 'fLo',
-                    marker: { shape: 'cross', enabled: false }, // should draw a circle
+                    item: lowAndHigh({
+                        marker: { shape: 'cross', enabled: false }, // should draw a circle
+                    }),
                 },
                 {
                     type: 'range-area',
                     xKey: 'x',
                     yHighKey: 'gHi',
                     yLowKey: 'gLo',
-                    marker: { shape: 'triangle', enabled: true },
+                    item: lowAndHigh({
+                        marker: { shape: 'triangle', enabled: true },
+                    }),
                 },
                 {
                     type: 'range-area',
                     xKey: 'x',
                     yHighKey: 'kHi',
                     yLowKey: 'kLo',
-                    marker: { shape: 'circle', enabled: true },
+                    item: lowAndHigh({
+                        marker: { shape: 'circle', enabled: true },
+                    }),
                 },
             ],
         };
@@ -1288,7 +1298,20 @@ describe('RangeAreaSeries', () => {
 
     describe('AG-15773 itemStyler itemId', () => {
         it('should render high and low markers differently', async () => {
-            const options: AgChartOptions = {
+            type D = { month: string; low: number; high: number };
+            const itemStyler: NonNullable<
+                NonNullable<NonNullable<AgRangeAreaSeriesOptions<D>['item']>[AgRangeAreaSeriesItemType]>['marker']
+            >['itemStyler'] = (params) => {
+                switch (params.itemId) {
+                    case 'high':
+                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
+                    case 'low':
+                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
+                    default:
+                        return {};
+                }
+            };
+            const options: AgChartOptions<D> = {
                 data: [
                     { month: 'January', low: 1200, high: 1500 },
                     { month: 'February', low: 1500, high: 1650 },
@@ -1310,19 +1333,12 @@ describe('RangeAreaSeries', () => {
                         xKey: 'month',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        marker: {
-                            size: 25,
-                            itemStyler: (params) => {
-                                switch (params.itemId) {
-                                    case 'high':
-                                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
-                                    case 'low':
-                                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
-                                    default:
-                                        return {};
-                                }
+                        item: lowAndHigh({
+                            marker: {
+                                size: 25,
+                                itemStyler,
                             },
-                        },
+                        }),
                     },
                 ],
             };
