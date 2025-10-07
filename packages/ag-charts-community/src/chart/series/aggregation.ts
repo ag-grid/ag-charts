@@ -186,10 +186,16 @@ export function createAggregationIndices(
     indexData: Int32Array;
     valueData: Float64Array;
 } {
+    // NOTE: This function has been aggressively optimized for performance over readability, please
+    // take care not to undo optimizations when making changes here.
     const indexData = new Int32Array(maxRange * AGGREGATION_SPAN).fill(-1);
     const valueData = new Float64Array(maxRange * AGGREGATION_SPAN).fill(NaN);
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
+
+    // Pre-compute domain range for continuous case
+    const domainRange = continuous ? d1 - d0 : 0;
+    const invDomainCount = 1 / domainCount;
 
     // Cache for current bucket to reduce array access overhead
     let lastAggIndex = -1;
@@ -204,35 +210,69 @@ export function createAggregationIndices(
 
     const flushCache = (aggIndex: number) => {
         // NOTE: Access order makes a performance difference here - do not change.
-        indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = cachedXMinIndex;
-        indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = cachedXMaxIndex;
-        indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = cachedYMinIndex;
-        indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = cachedYMaxIndex;
-        valueData[aggIndex + AGGREGATION_INDEX_X_MIN] = cachedXMinValue;
-        valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = cachedXMaxValue;
-        valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = cachedYMinValue;
-        valueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = cachedYMaxValue;
+        // Group writes to the same array together for better cache locality
+        const baseIdx = aggIndex;
+        indexData[baseIdx + AGGREGATION_INDEX_X_MIN] = cachedXMinIndex;
+        indexData[baseIdx + AGGREGATION_INDEX_X_MAX] = cachedXMaxIndex;
+        indexData[baseIdx + AGGREGATION_INDEX_Y_MIN] = cachedYMinIndex;
+        indexData[baseIdx + AGGREGATION_INDEX_Y_MAX] = cachedYMaxIndex;
+        valueData[baseIdx + AGGREGATION_INDEX_X_MIN] = cachedXMinValue;
+        valueData[baseIdx + AGGREGATION_INDEX_X_MAX] = cachedXMaxValue;
+        valueData[baseIdx + AGGREGATION_INDEX_Y_MIN] = cachedYMinValue;
+        valueData[baseIdx + AGGREGATION_INDEX_Y_MAX] = cachedYMaxValue;
+    };
+
+    const readCache = (aggIndex: number) => {
+        // NOTE: Access order makes a performance difference here - do not change.
+        // Group reads from the same array together for better cache locality
+        const baseIdx = aggIndex;
+        cachedXMinIndex = indexData[baseIdx + AGGREGATION_INDEX_X_MIN];
+        cachedXMaxIndex = indexData[baseIdx + AGGREGATION_INDEX_X_MAX];
+        cachedYMinIndex = indexData[baseIdx + AGGREGATION_INDEX_Y_MIN];
+        cachedYMaxIndex = indexData[baseIdx + AGGREGATION_INDEX_Y_MAX];
+        cachedXMinValue = valueData[baseIdx + AGGREGATION_INDEX_X_MIN];
+        cachedXMaxValue = valueData[baseIdx + AGGREGATION_INDEX_X_MAX];
+        cachedYMinValue = valueData[baseIdx + AGGREGATION_INDEX_Y_MIN];
+        cachedYMaxValue = valueData[baseIdx + AGGREGATION_INDEX_Y_MAX];
     };
 
     const xValuesLength = xValues.length;
+    const yArraysSame = yMaxValues === yMinValues;
     for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
         const xValue = xValues[datumIndex];
         if (xValue == null) continue;
 
-        // Extract numeric values once per iteration (conditionally call valueOf based on metadata)
+        // Extract numeric values once per iteration
         const yMaxValue = yMaxValues[datumIndex];
-        const yMinValue = yMinValues[datumIndex];
-        const yMax: number = yNeedsValueOf ? (yMaxValue != null ? yMaxValue.valueOf() : NaN) : yMaxValue ?? NaN;
-        const yMin: number = yNeedsValueOf ? (yMinValue != null ? yMinValue.valueOf() : NaN) : yMinValue ?? NaN;
+        const yMinValue = yArraysSame ? yMaxValue : yMinValues[datumIndex];
 
+        // Optimize value extraction based on yNeedsValueOf flag
+        let yMax: number;
+        let yMin: number;
+        if (yNeedsValueOf) {
+            yMax = yMaxValue != null ? yMaxValue.valueOf() : NaN;
+            yMin = yMinValue != null ? yMinValue.valueOf() : NaN;
+        } else {
+            yMax = yMaxValue ?? NaN;
+            yMin = yMinValue ?? NaN;
+        }
+
+        // Early continue for positive check
         if (positive != null && yMax >= 0 !== positive) continue;
 
-        const xRatio = continuous
-            ? xNeedsValueOf
-                ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)
-                : (xValue - d0) / (d1 - d0)
-            : aggregationXRatioForDatumIndex(datumIndex, domainCount);
-        const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
+        // Optimize xRatio calculation with pre-computed values
+        let xRatio: number;
+        if (continuous) {
+            if (xNeedsValueOf) {
+                xRatio = (xValue.valueOf() - d0) / domainRange;
+            } else {
+                xRatio = (xValue - d0) / domainRange;
+            }
+        } else {
+            xRatio = datumIndex * invDomainCount;
+        }
+
+        const aggIndex = (Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN) | 0;
 
         // Load cache when switching buckets
         if (aggIndex !== lastAggIndex) {
@@ -240,16 +280,12 @@ export function createAggregationIndices(
                 flushCache(lastAggIndex);
             }
             lastAggIndex = aggIndex;
-            // NOTE: Access order makes a performance difference here - do not change.
-            cachedXMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
-            cachedXMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
-            cachedYMinIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
-            cachedYMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
-            cachedXMinValue = valueData[aggIndex + AGGREGATION_INDEX_X_MIN];
-            cachedXMaxValue = valueData[aggIndex + AGGREGATION_INDEX_X_MAX];
-            cachedYMinValue = valueData[aggIndex + AGGREGATION_INDEX_Y_MIN];
-            cachedYMaxValue = valueData[aggIndex + AGGREGATION_INDEX_Y_MAX];
+            readCache(aggIndex);
         }
+
+        // Pre-compute NaN checks
+        const yMinValid = !Number.isNaN(yMin);
+        const yMaxValid = !Number.isNaN(yMax);
 
         // Fast path: bucket is unset (first value in bucket)
         if (cachedXMinIndex === -1) {
@@ -257,11 +293,11 @@ export function createAggregationIndices(
             cachedXMinValue = xRatio;
             cachedXMaxIndex = datumIndex;
             cachedXMaxValue = xRatio;
-            if (!Number.isNaN(yMin)) {
+            if (yMinValid) {
                 cachedYMinIndex = datumIndex;
                 cachedYMinValue = yMin;
             }
-            if (!Number.isNaN(yMax)) {
+            if (yMaxValid) {
                 cachedYMaxIndex = datumIndex;
                 cachedYMaxValue = yMax;
             }
@@ -275,11 +311,11 @@ export function createAggregationIndices(
                 cachedXMaxIndex = datumIndex;
                 cachedXMaxValue = xRatio;
             }
-            if (!Number.isNaN(yMin) && yMin < cachedYMinValue) {
+            if (yMinValid && yMin < cachedYMinValue) {
                 cachedYMinIndex = datumIndex;
                 cachedYMinValue = yMin;
             }
-            if (!Number.isNaN(yMax) && yMax > cachedYMaxValue) {
+            if (yMaxValid && yMax > cachedYMaxValue) {
                 cachedYMaxIndex = datumIndex;
                 cachedYMaxValue = yMax;
             }
