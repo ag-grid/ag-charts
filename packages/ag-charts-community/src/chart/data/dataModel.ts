@@ -2,6 +2,7 @@ import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
+import { hasNoRemovals, isAppendOnly, isPrependOnly } from './dataChangeDescription';
 import {
     BandedDomain,
     type BandedDomainConfig,
@@ -737,7 +738,7 @@ export class DataModel<
 
         for (const [, changeDesc] of scopeChanges) {
             const { indexMap } = changeDesc;
-            const { spliceOps, isAppendOnly, isPrependOnly } = indexMap;
+            const { spliceOps } = indexMap;
 
             // Process each splice operation
             for (const op of spliceOps) {
@@ -764,7 +765,7 @@ export class DataModel<
             }
 
             // Optimize for common patterns
-            if (isAppendOnly) {
+            if (isAppendOnly(indexMap)) {
                 // For append-only, we only need to extend the last band
                 for (const domain of bandedDomains.values()) {
                     if (domain instanceof BandedDomain) {
@@ -775,7 +776,7 @@ export class DataModel<
                         }
                     }
                 }
-            } else if (isPrependOnly) {
+            } else if (isPrependOnly(indexMap)) {
                 // For prepend-only, mark first band as dirty
                 for (const domain of bandedDomains.values()) {
                     if (domain instanceof BandedDomain) {
@@ -1151,12 +1152,11 @@ export class DataModel<
             }
 
             // Optimize moved items detection based on transaction type
-            const { isAppendOnly, isPrependOnly, hasNoRemovals, originalLength, totalPrependCount } =
-                changeDesc.indexMap;
+            const { originalLength, totalPrependCount } = changeDesc.indexMap;
 
-            if (isAppendOnly) {
+            if (isAppendOnly(changeDesc.indexMap)) {
                 // Append-only: nothing moved
-            } else if (isPrependOnly && originalLength > 0) {
+            } else if (isPrependOnly(changeDesc.indexMap) && originalLength > 0) {
                 // Prepend-only: all preserved items moved
                 for (let destIndex = totalPrependCount; destIndex < totalPrependCount + originalLength; destIndex++) {
                     const keyStr = getKeyString(scope, destIndex);
@@ -1164,7 +1164,7 @@ export class DataModel<
                         diff.moved.add(keyStr);
                     }
                 }
-            } else if (hasNoRemovals && totalPrependCount > 0) {
+            } else if (hasNoRemovals(changeDesc.indexMap) && totalPrependCount > 0) {
                 // No removals but has prepends: all preserved items shifted
                 for (let sourceIndex = 0; sourceIndex < originalLength; sourceIndex++) {
                     const destIndex = sourceIndex + totalPrependCount;

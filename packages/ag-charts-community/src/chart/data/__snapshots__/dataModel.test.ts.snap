@@ -30,10 +30,7 @@ exports[`DataModel empty data set processing should generated the expected resul
     [],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [],
-      "pendingTransactions": [],
-    },
+    "test" => [],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -175,71 +172,68 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "curb-weight": 2548,
-        },
-        {
-          "curb-weight": 2548,
-        },
-        {
-          "curb-weight": 2823,
-        },
-        {
-          "curb-weight": 2337,
-        },
-        {
-          "curb-weight": 2824,
-        },
-        {
-          "curb-weight": 2507,
-        },
-        {
-          "curb-weight": 2844,
-        },
-        {
-          "curb-weight": 2954,
-        },
-        {
-          "curb-weight": 3086,
-        },
-        {
-          "curb-weight": 3053,
-        },
-        {
-          "curb-weight": 2395,
-        },
-        {
-          "curb-weight": 2395,
-        },
-        {
-          "curb-weight": 2710,
-        },
-        {
-          "curb-weight": 2765,
-        },
-        {
-          "curb-weight": 3055,
-        },
-        {
-          "curb-weight": 3230,
-        },
-        {
-          "curb-weight": 3380,
-        },
-        {
-          "curb-weight": 3505,
-        },
-        {
-          "curb-weight": 1488,
-        },
-        {
-          "curb-weight": 1874,
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "curb-weight": 2548,
+      },
+      {
+        "curb-weight": 2548,
+      },
+      {
+        "curb-weight": 2823,
+      },
+      {
+        "curb-weight": 2337,
+      },
+      {
+        "curb-weight": 2824,
+      },
+      {
+        "curb-weight": 2507,
+      },
+      {
+        "curb-weight": 2844,
+      },
+      {
+        "curb-weight": 2954,
+      },
+      {
+        "curb-weight": 3086,
+      },
+      {
+        "curb-weight": 3053,
+      },
+      {
+        "curb-weight": 2395,
+      },
+      {
+        "curb-weight": 2395,
+      },
+      {
+        "curb-weight": 2710,
+      },
+      {
+        "curb-weight": 2765,
+      },
+      {
+        "curb-weight": 3055,
+      },
+      {
+        "curb-weight": 3230,
+      },
+      {
+        "curb-weight": 3380,
+      },
+      {
+        "curb-weight": 3505,
+      },
+      {
+        "curb-weight": 1488,
+      },
+      {
+        "curb-weight": 1874,
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -481,91 +475,88 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "engine-size": 130,
-          "highway-mpg": 27,
-        },
-        {
-          "engine-size": 130,
-          "highway-mpg": 27,
-        },
-        {
-          "engine-size": 152,
-          "highway-mpg": 26,
-        },
-        {
-          "engine-size": 109,
-          "highway-mpg": 30,
-        },
-        {
-          "engine-size": 136,
-          "highway-mpg": 22,
-        },
-        {
-          "engine-size": 136,
-          "highway-mpg": 25,
-        },
-        {
-          "engine-size": 136,
-          "highway-mpg": 25,
-        },
-        {
-          "engine-size": 136,
-          "highway-mpg": 25,
-        },
-        {
-          "engine-size": 131,
-          "highway-mpg": 20,
-        },
-        {
-          "engine-size": 131,
-          "highway-mpg": 22,
-        },
-        {
-          "engine-size": 108,
-          "highway-mpg": 29,
-        },
-        {
-          "engine-size": 108,
-          "highway-mpg": 29,
-        },
-        {
-          "engine-size": 164,
-          "highway-mpg": 28,
-        },
-        {
-          "engine-size": 164,
-          "highway-mpg": 28,
-        },
-        {
-          "engine-size": 164,
-          "highway-mpg": 25,
-        },
-        {
-          "engine-size": 209,
-          "highway-mpg": 22,
-        },
-        {
-          "engine-size": 209,
-          "highway-mpg": 22,
-        },
-        {
-          "engine-size": 209,
-          "highway-mpg": 20,
-        },
-        {
-          "engine-size": 61,
-          "highway-mpg": 53,
-        },
-        {
-          "engine-size": 90,
-          "highway-mpg": 43,
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "engine-size": 130,
+        "highway-mpg": 27,
+      },
+      {
+        "engine-size": 130,
+        "highway-mpg": 27,
+      },
+      {
+        "engine-size": 152,
+        "highway-mpg": 26,
+      },
+      {
+        "engine-size": 109,
+        "highway-mpg": 30,
+      },
+      {
+        "engine-size": 136,
+        "highway-mpg": 22,
+      },
+      {
+        "engine-size": 136,
+        "highway-mpg": 25,
+      },
+      {
+        "engine-size": 136,
+        "highway-mpg": 25,
+      },
+      {
+        "engine-size": 136,
+        "highway-mpg": 25,
+      },
+      {
+        "engine-size": 131,
+        "highway-mpg": 20,
+      },
+      {
+        "engine-size": 131,
+        "highway-mpg": 22,
+      },
+      {
+        "engine-size": 108,
+        "highway-mpg": 29,
+      },
+      {
+        "engine-size": 108,
+        "highway-mpg": 29,
+      },
+      {
+        "engine-size": 164,
+        "highway-mpg": 28,
+      },
+      {
+        "engine-size": 164,
+        "highway-mpg": 28,
+      },
+      {
+        "engine-size": 164,
+        "highway-mpg": 25,
+      },
+      {
+        "engine-size": 209,
+        "highway-mpg": 22,
+      },
+      {
+        "engine-size": 209,
+        "highway-mpg": 22,
+      },
+      {
+        "engine-size": 209,
+        "highway-mpg": 20,
+      },
+      {
+        "engine-size": 61,
+        "highway-mpg": 53,
+      },
+      {
+        "engine-size": 90,
+        "highway-mpg": 43,
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -806,71 +797,68 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "engine-size": 130,
-        },
-        {
-          "engine-size": 130,
-        },
-        {
-          "engine-size": 152,
-        },
-        {
-          "engine-size": 109,
-        },
-        {
-          "engine-size": 136,
-        },
-        {
-          "engine-size": 136,
-        },
-        {
-          "engine-size": 136,
-        },
-        {
-          "engine-size": 136,
-        },
-        {
-          "engine-size": 131,
-        },
-        {
-          "engine-size": 131,
-        },
-        {
-          "engine-size": 108,
-        },
-        {
-          "engine-size": 108,
-        },
-        {
-          "engine-size": 164,
-        },
-        {
-          "engine-size": 164,
-        },
-        {
-          "engine-size": 164,
-        },
-        {
-          "engine-size": 209,
-        },
-        {
-          "engine-size": 209,
-        },
-        {
-          "engine-size": 209,
-        },
-        {
-          "engine-size": 61,
-        },
-        {
-          "engine-size": 90,
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "engine-size": 130,
+      },
+      {
+        "engine-size": 130,
+      },
+      {
+        "engine-size": 152,
+      },
+      {
+        "engine-size": 109,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 131,
+      },
+      {
+        "engine-size": 131,
+      },
+      {
+        "engine-size": 108,
+      },
+      {
+        "engine-size": 108,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 61,
+      },
+      {
+        "engine-size": 90,
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -1110,46 +1098,43 @@ exports[`DataModel grouped processing - grouped example should generated the exp
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "regular": 3.2,
-          "total": 2.9,
-          "type": "Whole economy",
-        },
-        {
-          "regular": 4.2,
-          "total": 3.7,
-          "type": "Finance and business services",
-        },
-        {
-          "regular": 3.4,
-          "total": 3.3,
-          "type": "Public sector",
-        },
-        {
-          "regular": 3.6,
-          "total": 3.2,
-          "type": "Construction",
-        },
-        {
-          "regular": 3.2,
-          "total": 2.7,
-          "type": "Private sector",
-        },
-        {
-          "regular": 2.9,
-          "total": 2.7,
-          "type": "Manufacturing",
-        },
-        {
-          "regular": 1.5,
-          "total": 1.1,
-          "type": "Wholesaling, retailing, hotels and restaurants",
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "regular": 3.2,
+        "total": 2.9,
+        "type": "Whole economy",
+      },
+      {
+        "regular": 4.2,
+        "total": 3.7,
+        "type": "Finance and business services",
+      },
+      {
+        "regular": 3.4,
+        "total": 3.3,
+        "type": "Public sector",
+      },
+      {
+        "regular": 3.6,
+        "total": 3.2,
+        "type": "Construction",
+      },
+      {
+        "regular": 3.2,
+        "total": 2.7,
+        "type": "Private sector",
+      },
+      {
+        "regular": 2.9,
+        "total": 2.7,
+        "type": "Manufacturing",
+      },
+      {
+        "regular": 1.5,
+        "total": 1.1,
+        "type": "Wholesaling, retailing, hotels and restaurants",
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -1552,131 +1537,128 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "bioenergyWaste": 1.6,
-          "coal": 0.8,
-          "imported": 0.2,
-          "month": "Jan",
-          "naturalGas": 9.4,
-          "nuclear": 1.2,
-          "petroleum": 5.6,
-          "windSolarHydro": 0.7,
-        },
-        {
-          "bioenergyWaste": 1.6,
-          "coal": 1.1,
-          "imported": 0.1,
-          "month": "Feb",
-          "naturalGas": 8.8,
-          "nuclear": 1.2,
-          "petroleum": 5.6,
-          "windSolarHydro": 0.5,
-        },
-        {
-          "bioenergyWaste": 1.6,
-          "coal": 1.4,
-          "imported": 0.1,
-          "month": "Mar",
-          "naturalGas": 9,
-          "nuclear": 1.2,
-          "petroleum": 5.4,
-          "windSolarHydro": 0.6,
-        },
-        {
-          "bioenergyWaste": 1.3,
-          "coal": 0.6,
-          "imported": 0.1,
-          "month": "Apr",
-          "naturalGas": 6.3,
-          "nuclear": 1.2,
-          "petroleum": 5.9,
-          "windSolarHydro": 0.5,
-        },
-        {
-          "bioenergyWaste": 1.3,
-          "coal": 0.5,
-          "imported": 0.2,
-          "month": "May",
-          "naturalGas": 4.5,
-          "nuclear": 1.2,
-          "petroleum": 5.6,
-          "windSolarHydro": 0.5,
-        },
-        {
-          "bioenergyWaste": 1.3,
-          "coal": 0.5,
-          "imported": 0.1,
-          "month": "Jun",
-          "naturalGas": 3.8,
-          "nuclear": 1.2,
-          "petroleum": 5.8,
-          "windSolarHydro": 0.4,
-        },
-        {
-          "bioenergyWaste": 1.3,
-          "coal": 0.4,
-          "imported": 0.2,
-          "month": "Jul",
-          "naturalGas": 3.9,
-          "nuclear": 1.2,
-          "petroleum": 5.6,
-          "windSolarHydro": 0.4,
-        },
-        {
-          "bioenergyWaste": 1.3,
-          "coal": 0.4,
-          "imported": 0.1,
-          "month": "Aug",
-          "naturalGas": 3.7,
-          "nuclear": 1.3,
-          "petroleum": 5.9,
-          "windSolarHydro": 0.4,
-        },
-        {
-          "bioenergyWaste": 1.3,
-          "coal": 0.7,
-          "imported": 0.1,
-          "month": "Sep",
-          "naturalGas": 4.1,
-          "nuclear": 1.2,
-          "petroleum": 5.8,
-          "windSolarHydro": 0.6,
-        },
-        {
-          "bioenergyWaste": 1.6,
-          "coal": 0.6,
-          "imported": 0.1,
-          "month": "Oct",
-          "naturalGas": 5.9,
-          "nuclear": 1,
-          "petroleum": 5.5,
-          "windSolarHydro": 0.6,
-        },
-        {
-          "bioenergyWaste": 1.6,
-          "coal": 0.9,
-          "imported": 0.1,
-          "month": "Nov",
-          "naturalGas": 7.3,
-          "nuclear": 1,
-          "petroleum": 5.9,
-          "windSolarHydro": 0.7,
-        },
-        {
-          "bioenergyWaste": 1.6,
-          "coal": 0.7,
-          "imported": 0.1,
-          "month": "Dec",
-          "naturalGas": 8.2,
-          "nuclear": 1.1,
-          "petroleum": 5.8,
-          "windSolarHydro": 0.6,
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 0.8,
+        "imported": 0.2,
+        "month": "Jan",
+        "naturalGas": 9.4,
+        "nuclear": 1.2,
+        "petroleum": 5.6,
+        "windSolarHydro": 0.7,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 1.1,
+        "imported": 0.1,
+        "month": "Feb",
+        "naturalGas": 8.8,
+        "nuclear": 1.2,
+        "petroleum": 5.6,
+        "windSolarHydro": 0.5,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 1.4,
+        "imported": 0.1,
+        "month": "Mar",
+        "naturalGas": 9,
+        "nuclear": 1.2,
+        "petroleum": 5.4,
+        "windSolarHydro": 0.6,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.6,
+        "imported": 0.1,
+        "month": "Apr",
+        "naturalGas": 6.3,
+        "nuclear": 1.2,
+        "petroleum": 5.9,
+        "windSolarHydro": 0.5,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.5,
+        "imported": 0.2,
+        "month": "May",
+        "naturalGas": 4.5,
+        "nuclear": 1.2,
+        "petroleum": 5.6,
+        "windSolarHydro": 0.5,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.5,
+        "imported": 0.1,
+        "month": "Jun",
+        "naturalGas": 3.8,
+        "nuclear": 1.2,
+        "petroleum": 5.8,
+        "windSolarHydro": 0.4,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.4,
+        "imported": 0.2,
+        "month": "Jul",
+        "naturalGas": 3.9,
+        "nuclear": 1.2,
+        "petroleum": 5.6,
+        "windSolarHydro": 0.4,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.4,
+        "imported": 0.1,
+        "month": "Aug",
+        "naturalGas": 3.7,
+        "nuclear": 1.3,
+        "petroleum": 5.9,
+        "windSolarHydro": 0.4,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.7,
+        "imported": 0.1,
+        "month": "Sep",
+        "naturalGas": 4.1,
+        "nuclear": 1.2,
+        "petroleum": 5.8,
+        "windSolarHydro": 0.6,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 0.6,
+        "imported": 0.1,
+        "month": "Oct",
+        "naturalGas": 5.9,
+        "nuclear": 1,
+        "petroleum": 5.5,
+        "windSolarHydro": 0.6,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 0.9,
+        "imported": 0.1,
+        "month": "Nov",
+        "naturalGas": 7.3,
+        "nuclear": 1,
+        "petroleum": 5.9,
+        "windSolarHydro": 0.7,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 0.7,
+        "imported": 0.1,
+        "month": "Dec",
+        "naturalGas": 8.2,
+        "nuclear": 1.1,
+        "petroleum": 5.8,
+        "windSolarHydro": 0.6,
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -2384,56 +2366,53 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "asian": 7317,
-          "black": 3742,
-          "chinese": 284,
-          "mixed": 4052,
-          "other": 1338,
-          "type": "Nursery",
-          "white": 24801,
-        },
-        {
-          "asian": 527391,
-          "black": 258774,
-          "chinese": 22844,
-          "mixed": 298866,
-          "other": 95064,
-          "type": "Primary",
-          "white": 3475379,
-        },
-        {
-          "asian": 377168,
-          "black": 198080,
-          "chinese": 13317,
-          "mixed": 182721,
-          "other": 62662,
-          "type": "Secondary",
-          "white": 2436365,
-        },
-        {
-          "asian": 12328,
-          "black": 8546,
-          "chinese": 404,
-          "mixed": 7426,
-          "other": 2109,
-          "type": "Special",
-          "white": 91696,
-        },
-        {
-          "asian": 605,
-          "black": 1104,
-          "chinese": 4,
-          "mixed": 1448,
-          "other": 229,
-          "type": "Referral units",
-          "white": 12347,
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "asian": 7317,
+        "black": 3742,
+        "chinese": 284,
+        "mixed": 4052,
+        "other": 1338,
+        "type": "Nursery",
+        "white": 24801,
+      },
+      {
+        "asian": 527391,
+        "black": 258774,
+        "chinese": 22844,
+        "mixed": 298866,
+        "other": 95064,
+        "type": "Primary",
+        "white": 3475379,
+      },
+      {
+        "asian": 377168,
+        "black": 198080,
+        "chinese": 13317,
+        "mixed": 182721,
+        "other": 62662,
+        "type": "Secondary",
+        "white": 2436365,
+      },
+      {
+        "asian": 12328,
+        "black": 8546,
+        "chinese": 404,
+        "mixed": 7426,
+        "other": 2109,
+        "type": "Special",
+        "white": 91696,
+      },
+      {
+        "asian": 605,
+        "black": 1104,
+        "chinese": 4,
+        "mixed": 1448,
+        "other": 229,
+        "type": "Referral units",
+        "white": 12347,
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -2858,67 +2837,64 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "housingAssociation": 388,
-          "localAuthority": 274,
-          "ownerOccupied": 4567,
-          "privateRented": 773,
-          "type": "Semi-detached house",
-        },
-        {
-          "housingAssociation": 422,
-          "localAuthority": 231,
-          "ownerOccupied": 2842,
-          "privateRented": 938,
-          "type": "Medium/large terraced house",
-        },
-        {
-          "housingAssociation": 19,
-          "localAuthority": 4,
-          "ownerOccupied": 3655,
-          "privateRented": 294,
-          "type": "Detached house",
-        },
-        {
-          "housingAssociation": 919,
-          "localAuthority": 621,
-          "ownerOccupied": 905,
-          "privateRented": 1139,
-          "type": "Purpose-built flat low rise",
-        },
-        {
-          "housingAssociation": 295,
-          "localAuthority": 168,
-          "ownerOccupied": 1013,
-          "privateRented": 822,
-          "type": "Small terraced house",
-        },
-        {
-          "housingAssociation": 228,
-          "localAuthority": 180,
-          "ownerOccupied": 1486,
-          "privateRented": 214,
-          "type": "Bungalow",
-        },
-        {
-          "housingAssociation": 100,
-          "localAuthority": 37,
-          "ownerOccupied": 252,
-          "privateRented": 539,
-          "type": "Converted flat",
-        },
-        {
-          "housingAssociation": 68,
-          "localAuthority": 109,
-          "ownerOccupied": 97,
-          "privateRented": 134,
-          "type": "Purpose-built flat high rise",
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "housingAssociation": 388,
+        "localAuthority": 274,
+        "ownerOccupied": 4567,
+        "privateRented": 773,
+        "type": "Semi-detached house",
+      },
+      {
+        "housingAssociation": 422,
+        "localAuthority": 231,
+        "ownerOccupied": 2842,
+        "privateRented": 938,
+        "type": "Medium/large terraced house",
+      },
+      {
+        "housingAssociation": 19,
+        "localAuthority": 4,
+        "ownerOccupied": 3655,
+        "privateRented": 294,
+        "type": "Detached house",
+      },
+      {
+        "housingAssociation": 919,
+        "localAuthority": 621,
+        "ownerOccupied": 905,
+        "privateRented": 1139,
+        "type": "Purpose-built flat low rise",
+      },
+      {
+        "housingAssociation": 295,
+        "localAuthority": 168,
+        "ownerOccupied": 1013,
+        "privateRented": 822,
+        "type": "Small terraced house",
+      },
+      {
+        "housingAssociation": 228,
+        "localAuthority": 180,
+        "ownerOccupied": 1486,
+        "privateRented": 214,
+        "type": "Bungalow",
+      },
+      {
+        "housingAssociation": 100,
+        "localAuthority": 37,
+        "ownerOccupied": 252,
+        "privateRented": 539,
+        "type": "Converted flat",
+      },
+      {
+        "housingAssociation": 68,
+        "localAuthority": 109,
+        "ownerOccupied": 97,
+        "privateRented": 134,
+        "type": "Purpose-built flat high rise",
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -3378,67 +3354,64 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "housingAssociation": 388,
-          "localAuthority": 274,
-          "ownerOccupied": 4567,
-          "privateRented": 773,
-          "type": "Semi-detached house",
-        },
-        {
-          "housingAssociation": 422,
-          "localAuthority": 231,
-          "ownerOccupied": 2842,
-          "privateRented": 938,
-          "type": "Medium/large terraced house",
-        },
-        {
-          "housingAssociation": 19,
-          "localAuthority": 4,
-          "ownerOccupied": 3655,
-          "privateRented": 294,
-          "type": "Detached house",
-        },
-        {
-          "housingAssociation": 919,
-          "localAuthority": 621,
-          "ownerOccupied": 905,
-          "privateRented": 1139,
-          "type": "Purpose-built flat low rise",
-        },
-        {
-          "housingAssociation": 295,
-          "localAuthority": 168,
-          "ownerOccupied": 1013,
-          "privateRented": 822,
-          "type": "Small terraced house",
-        },
-        {
-          "housingAssociation": 228,
-          "localAuthority": 180,
-          "ownerOccupied": 1486,
-          "privateRented": 214,
-          "type": "Bungalow",
-        },
-        {
-          "housingAssociation": 100,
-          "localAuthority": 37,
-          "ownerOccupied": 252,
-          "privateRented": 539,
-          "type": "Converted flat",
-        },
-        {
-          "housingAssociation": 68,
-          "localAuthority": 109,
-          "ownerOccupied": 97,
-          "privateRented": 134,
-          "type": "Purpose-built flat high rise",
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "housingAssociation": 388,
+        "localAuthority": 274,
+        "ownerOccupied": 4567,
+        "privateRented": 773,
+        "type": "Semi-detached house",
+      },
+      {
+        "housingAssociation": 422,
+        "localAuthority": 231,
+        "ownerOccupied": 2842,
+        "privateRented": 938,
+        "type": "Medium/large terraced house",
+      },
+      {
+        "housingAssociation": 19,
+        "localAuthority": 4,
+        "ownerOccupied": 3655,
+        "privateRented": 294,
+        "type": "Detached house",
+      },
+      {
+        "housingAssociation": 919,
+        "localAuthority": 621,
+        "ownerOccupied": 905,
+        "privateRented": 1139,
+        "type": "Purpose-built flat low rise",
+      },
+      {
+        "housingAssociation": 295,
+        "localAuthority": 168,
+        "ownerOccupied": 1013,
+        "privateRented": 822,
+        "type": "Small terraced house",
+      },
+      {
+        "housingAssociation": 228,
+        "localAuthority": 180,
+        "ownerOccupied": 1486,
+        "privateRented": 214,
+        "type": "Bungalow",
+      },
+      {
+        "housingAssociation": 100,
+        "localAuthority": 37,
+        "ownerOccupied": 252,
+        "privateRented": 539,
+        "type": "Converted flat",
+      },
+      {
+        "housingAssociation": 68,
+        "localAuthority": 109,
+        "ownerOccupied": 97,
+        "privateRented": 134,
+        "type": "Purpose-built flat high rise",
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -3898,67 +3871,64 @@ exports[`DataModel grouped processing - stacked with accumulation example should
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "housingAssociation": 388,
-          "localAuthority": 274,
-          "ownerOccupied": 4567,
-          "privateRented": 773,
-          "type": "Semi-detached house",
-        },
-        {
-          "housingAssociation": 422,
-          "localAuthority": 231,
-          "ownerOccupied": 2842,
-          "privateRented": 938,
-          "type": "Medium/large terraced house",
-        },
-        {
-          "housingAssociation": 19,
-          "localAuthority": 4,
-          "ownerOccupied": 3655,
-          "privateRented": 294,
-          "type": "Detached house",
-        },
-        {
-          "housingAssociation": 919,
-          "localAuthority": 621,
-          "ownerOccupied": 905,
-          "privateRented": 1139,
-          "type": "Purpose-built flat low rise",
-        },
-        {
-          "housingAssociation": 295,
-          "localAuthority": 168,
-          "ownerOccupied": 1013,
-          "privateRented": 822,
-          "type": "Small terraced house",
-        },
-        {
-          "housingAssociation": 228,
-          "localAuthority": 180,
-          "ownerOccupied": 1486,
-          "privateRented": 214,
-          "type": "Bungalow",
-        },
-        {
-          "housingAssociation": 100,
-          "localAuthority": 37,
-          "ownerOccupied": 252,
-          "privateRented": 539,
-          "type": "Converted flat",
-        },
-        {
-          "housingAssociation": 68,
-          "localAuthority": 109,
-          "ownerOccupied": 97,
-          "privateRented": 134,
-          "type": "Purpose-built flat high rise",
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "housingAssociation": 388,
+        "localAuthority": 274,
+        "ownerOccupied": 4567,
+        "privateRented": 773,
+        "type": "Semi-detached house",
+      },
+      {
+        "housingAssociation": 422,
+        "localAuthority": 231,
+        "ownerOccupied": 2842,
+        "privateRented": 938,
+        "type": "Medium/large terraced house",
+      },
+      {
+        "housingAssociation": 19,
+        "localAuthority": 4,
+        "ownerOccupied": 3655,
+        "privateRented": 294,
+        "type": "Detached house",
+      },
+      {
+        "housingAssociation": 919,
+        "localAuthority": 621,
+        "ownerOccupied": 905,
+        "privateRented": 1139,
+        "type": "Purpose-built flat low rise",
+      },
+      {
+        "housingAssociation": 295,
+        "localAuthority": 168,
+        "ownerOccupied": 1013,
+        "privateRented": 822,
+        "type": "Small terraced house",
+      },
+      {
+        "housingAssociation": 228,
+        "localAuthority": 180,
+        "ownerOccupied": 1486,
+        "privateRented": 214,
+        "type": "Bungalow",
+      },
+      {
+        "housingAssociation": 100,
+        "localAuthority": 37,
+        "ownerOccupied": 252,
+        "privateRented": 539,
+        "type": "Converted flat",
+      },
+      {
+        "housingAssociation": 68,
+        "localAuthority": 109,
+        "ownerOccupied": 97,
+        "privateRented": 134,
+        "type": "Purpose-built flat high rise",
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -4388,290 +4358,278 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "chrome": "illegal value",
-          "firefox": 26.85,
-          "safari": 2.79,
-          "year": "2009",
-        },
-        {
-          "firefox": 31.15,
-          "ie": 54.39,
-          "safari": 4.22,
-          "year": "2010",
-        },
-        {
-          "chrome": 15.01,
-          "ie": 44.03,
-          "safari": 5.94,
-          "year": "2011",
-        },
-        {
-          "chrome": 25.99,
-          "firefox": 22.69,
-          "ie": "illegal value",
-          "year": "2012",
-        },
-        {
-          "chrome": 31.71,
-          "firefox": undefined,
-          "safari": undefined,
-          "year": "2013",
-        },
-        {
-          "firefox": 14.77,
-          "ie": 17.75,
-          "safari": 12.63,
-          "year": "2014",
-        },
-        {
-          "chrome": 42.27,
-          "ie": -13.3,
-          "safari": "illegal value",
-          "year": "2015",
-        },
-        {
-          "chrome": 47.79,
-          "firefox": 8.97,
-          "ie": -8.94,
-          "year": "2016",
-        },
-        {
-          "chrome": 51.76,
-          "firefox": 6.75,
-          "safari": 14.54,
-          "year": "2017",
-        },
-        {
-          "firefox": "illegal value",
-          "ie": 3.2,
-          "safari": 14.44,
-          "year": "2018",
-        },
-        {
-          "chrome": 61.72,
-          "ie": 2.7,
-          "safari": 15.23,
-          "year": "2019",
-        },
-      ],
-      "pendingTransactions": [],
-    },
-    "series-a" => DataSet {
-      "data": [
-        {
-          "chrome": "illegal value",
-          "firefox": 26.85,
-          "safari": 2.79,
-          "year": "2009",
-        },
-        {
-          "firefox": 31.15,
-          "ie": 54.39,
-          "safari": 4.22,
-          "year": "2010",
-        },
-        {
-          "chrome": 15.01,
-          "ie": 44.03,
-          "safari": 5.94,
-          "year": "2011",
-        },
-        {
-          "chrome": 25.99,
-          "firefox": 22.69,
-          "ie": "illegal value",
-          "year": "2012",
-        },
-        {
-          "chrome": 31.71,
-          "firefox": undefined,
-          "safari": undefined,
-          "year": "2013",
-        },
-        {
-          "firefox": 14.77,
-          "ie": 17.75,
-          "safari": 12.63,
-          "year": "2014",
-        },
-        {
-          "chrome": 42.27,
-          "ie": -13.3,
-          "safari": "illegal value",
-          "year": "2015",
-        },
-        {
-          "chrome": 47.79,
-          "firefox": 8.97,
-          "ie": -8.94,
-          "year": "2016",
-        },
-        {
-          "chrome": 51.76,
-          "firefox": 6.75,
-          "safari": 14.54,
-          "year": "2017",
-        },
-        {
-          "firefox": "illegal value",
-          "ie": 3.2,
-          "safari": 14.44,
-          "year": "2018",
-        },
-        {
-          "chrome": 61.72,
-          "ie": 2.7,
-          "safari": 15.23,
-          "year": "2019",
-        },
-      ],
-      "pendingTransactions": [],
-    },
-    "series-b" => DataSet {
-      "data": [
-        {
-          "chrome": "illegal value",
-          "firefox": 26.85,
-          "safari": 2.79,
-          "year": "2009",
-        },
-        {
-          "firefox": 31.15,
-          "ie": 54.39,
-          "safari": 4.22,
-          "year": "2010",
-        },
-        {
-          "chrome": 15.01,
-          "ie": 44.03,
-          "safari": 5.94,
-          "year": "2011",
-        },
-        {
-          "chrome": 25.99,
-          "firefox": 22.69,
-          "ie": "illegal value",
-          "year": "2012",
-        },
-        {
-          "chrome": 31.71,
-          "firefox": undefined,
-          "safari": undefined,
-          "year": "2013",
-        },
-        {
-          "firefox": 14.77,
-          "ie": 17.75,
-          "safari": 12.63,
-          "year": "2014",
-        },
-        {
-          "chrome": 42.27,
-          "ie": -13.3,
-          "safari": "illegal value",
-          "year": "2015",
-        },
-        {
-          "chrome": 47.79,
-          "firefox": 8.97,
-          "ie": -8.94,
-          "year": "2016",
-        },
-        {
-          "chrome": 51.76,
-          "firefox": 6.75,
-          "safari": 14.54,
-          "year": "2017",
-        },
-        {
-          "firefox": "illegal value",
-          "ie": 3.2,
-          "safari": 14.44,
-          "year": "2018",
-        },
-        {
-          "chrome": 61.72,
-          "ie": 2.7,
-          "safari": 15.23,
-          "year": "2019",
-        },
-      ],
-      "pendingTransactions": [],
-    },
-    "series-c" => DataSet {
-      "data": [
-        {
-          "chrome": "illegal value",
-          "firefox": 26.85,
-          "safari": 2.79,
-          "year": "2009",
-        },
-        {
-          "firefox": 31.15,
-          "ie": 54.39,
-          "safari": 4.22,
-          "year": "2010",
-        },
-        {
-          "chrome": 15.01,
-          "ie": 44.03,
-          "safari": 5.94,
-          "year": "2011",
-        },
-        {
-          "chrome": 25.99,
-          "firefox": 22.69,
-          "ie": "illegal value",
-          "year": "2012",
-        },
-        {
-          "chrome": 31.71,
-          "firefox": undefined,
-          "safari": undefined,
-          "year": "2013",
-        },
-        {
-          "firefox": 14.77,
-          "ie": 17.75,
-          "safari": 12.63,
-          "year": "2014",
-        },
-        {
-          "chrome": 42.27,
-          "ie": -13.3,
-          "safari": "illegal value",
-          "year": "2015",
-        },
-        {
-          "chrome": 47.79,
-          "firefox": 8.97,
-          "ie": -8.94,
-          "year": "2016",
-        },
-        {
-          "chrome": 51.76,
-          "firefox": 6.75,
-          "safari": 14.54,
-          "year": "2017",
-        },
-        {
-          "firefox": "illegal value",
-          "ie": 3.2,
-          "safari": 14.44,
-          "year": "2018",
-        },
-        {
-          "chrome": 61.72,
-          "ie": 2.7,
-          "safari": 15.23,
-          "year": "2019",
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
+    "series-a" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
+    "series-b" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
+    "series-c" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": false,
@@ -4955,77 +4913,74 @@ exports[`DataModel missing and invalid data processing should generated the expe
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "chrome": "illegal value",
-          "firefox": 26.85,
-          "safari": 2.79,
-          "year": "2009",
-        },
-        {
-          "firefox": 31.15,
-          "ie": 54.39,
-          "safari": 4.22,
-          "year": "2010",
-        },
-        {
-          "chrome": 15.01,
-          "ie": 44.03,
-          "safari": 5.94,
-          "year": "2011",
-        },
-        {
-          "chrome": 25.99,
-          "firefox": 22.69,
-          "ie": "illegal value",
-          "year": "2012",
-        },
-        {
-          "chrome": 31.71,
-          "firefox": undefined,
-          "safari": undefined,
-          "year": "2013",
-        },
-        {
-          "firefox": 14.77,
-          "ie": 17.75,
-          "safari": 12.63,
-          "year": "2014",
-        },
-        {
-          "chrome": 42.27,
-          "ie": -13.3,
-          "safari": "illegal value",
-          "year": "2015",
-        },
-        {
-          "chrome": 47.79,
-          "firefox": 8.97,
-          "ie": -8.94,
-          "year": "2016",
-        },
-        {
-          "chrome": 51.76,
-          "firefox": 6.75,
-          "safari": 14.54,
-          "year": "2017",
-        },
-        {
-          "firefox": "illegal value",
-          "ie": 3.2,
-          "safari": 14.44,
-          "year": "2018",
-        },
-        {
-          "chrome": 61.72,
-          "ie": 2.7,
-          "safari": 15.23,
-          "year": "2019",
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -5225,36 +5180,33 @@ exports[`DataModel repeated property processing should generated the expected re
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "browser": "Chrome",
-          "share": 0.6869,
-          "year": 2020,
-        },
-        {
-          "browser": "Edge",
-          "share": 0.0463,
-          "year": 2020,
-        },
-        {
-          "browser": "Safari",
-          "share": 0.087,
-          "year": 2020,
-        },
-        {
-          "browser": "Firefox",
-          "share": 0.0955,
-          "year": 2020,
-        },
-        {
-          "browser": "Other",
-          "share": 0.0843,
-          "year": 2020,
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "browser": "Chrome",
+        "share": 0.6869,
+        "year": 2020,
+      },
+      {
+        "browser": "Edge",
+        "share": 0.0463,
+        "year": 2020,
+      },
+      {
+        "browser": "Safari",
+        "share": 0.087,
+        "year": 2020,
+      },
+      {
+        "browser": "Firefox",
+        "share": 0.0955,
+        "year": 2020,
+      },
+      {
+        "browser": "Other",
+        "share": 0.0843,
+        "year": 2020,
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -5374,43 +5326,40 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "population": 4159000,
-          "religion": "Christian",
-        },
-        {
-          "population": 97000,
-          "religion": "Buddhist",
-        },
-        {
-          "population": 456000,
-          "religion": "Hindu",
-        },
-        {
-          "population": 168000,
-          "religion": "Jewish",
-        },
-        {
-          "population": 1215000,
-          "religion": "Muslim",
-        },
-        {
-          "population": 123000,
-          "religion": "Sikh",
-        },
-        {
-          "population": 174000,
-          "religion": "Other",
-        },
-        {
-          "population": 2274000,
-          "religion": "None",
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "population": 4159000,
+        "religion": "Christian",
+      },
+      {
+        "population": 97000,
+        "religion": "Buddhist",
+      },
+      {
+        "population": 456000,
+        "religion": "Hindu",
+      },
+      {
+        "population": 168000,
+        "religion": "Jewish",
+      },
+      {
+        "population": 1215000,
+        "religion": "Muslim",
+      },
+      {
+        "population": 123000,
+        "religion": "Sikh",
+      },
+      {
+        "population": 174000,
+        "religion": "Other",
+      },
+      {
+        "population": 2274000,
+        "religion": "None",
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -5624,271 +5573,268 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
     ],
   ],
   "dataSources": Map {
-    "test" => DataSet {
-      "data": [
-        {
-          "date": 2019-01-07T00:00:00.000Z,
-          "diesel": 130.33,
-          "petrol": 120.27,
-        },
-        {
-          "date": 2019-01-14T00:00:00.000Z,
-          "diesel": 129.47,
-          "petrol": 119.53,
-        },
-        {
-          "date": 2019-01-21T00:00:00.000Z,
-          "diesel": 128.92,
-          "petrol": 119.12,
-        },
-        {
-          "date": 2019-01-28T00:00:00.000Z,
-          "diesel": 129.1,
-          "petrol": 119.29,
-        },
-        {
-          "date": 2019-02-04T00:00:00.000Z,
-          "diesel": 129.13,
-          "petrol": 119.13,
-        },
-        {
-          "date": 2019-02-11T00:00:00.000Z,
-          "diesel": 129.17,
-          "petrol": 118.97,
-        },
-        {
-          "date": 2019-02-18T00:00:00.000Z,
-          "diesel": 129.23,
-          "petrol": 119.05,
-        },
-        {
-          "date": 2019-02-25T00:00:00.000Z,
-          "diesel": 129.66,
-          "petrol": 119.22,
-        },
-        {
-          "date": 2019-03-04T00:00:00.000Z,
-          "diesel": 130.25,
-          "petrol": 119.72,
-        },
-        {
-          "date": 2019-03-11T00:00:00.000Z,
-          "diesel": 130.59,
-          "petrol": 120.1,
-        },
-        {
-          "date": 2019-03-18T00:00:00.000Z,
-          "diesel": 130.85,
-          "petrol": 120.48,
-        },
-        {
-          "date": 2019-03-25T00:00:00.000Z,
-          "diesel": 131.15,
-          "petrol": 120.83,
-        },
-        {
-          "date": 2019-03-31T23:00:00.000Z,
-          "diesel": 131.48,
-          "petrol": 121.7,
-        },
-        {
-          "date": 2019-04-07T23:00:00.000Z,
-          "diesel": 132.08,
-          "petrol": 122.75,
-        },
-        {
-          "date": 2019-04-14T23:00:00.000Z,
-          "diesel": 132.96,
-          "petrol": 124.06,
-        },
-        {
-          "date": 2019-04-21T23:00:00.000Z,
-          "diesel": 133.99,
-          "petrol": 125.43,
-        },
-        {
-          "date": 2019-04-28T23:00:00.000Z,
-          "diesel": 134.6,
-          "petrol": 126.36,
-        },
-        {
-          "date": 2019-05-05T23:00:00.000Z,
-          "diesel": 135.41,
-          "petrol": 127.5,
-        },
-        {
-          "date": 2019-05-12T23:00:00.000Z,
-          "diesel": 135.36,
-          "petrol": 127.97,
-        },
-        {
-          "date": 2019-05-19T23:00:00.000Z,
-          "diesel": 135.82,
-          "petrol": 128.51,
-        },
-        {
-          "date": 2019-05-26T23:00:00.000Z,
-          "diesel": 136.45,
-          "petrol": 129.14,
-        },
-        {
-          "date": 2019-06-02T23:00:00.000Z,
-          "diesel": 136.39,
-          "petrol": 129.41,
-        },
-        {
-          "date": 2019-06-09T23:00:00.000Z,
-          "diesel": 135.4,
-          "petrol": 128.89,
-        },
-        {
-          "date": 2019-06-16T23:00:00.000Z,
-          "diesel": 133.76,
-          "petrol": 127.66,
-        },
-        {
-          "date": 2019-06-23T23:00:00.000Z,
-          "diesel": 131.81,
-          "petrol": 126.66,
-        },
-        {
-          "date": 2019-06-30T23:00:00.000Z,
-          "diesel": 131.55,
-          "petrol": 126.49,
-        },
-        {
-          "date": 2019-07-07T23:00:00.000Z,
-          "diesel": 131.68,
-          "petrol": 126.86,
-        },
-        {
-          "date": 2019-07-14T23:00:00.000Z,
-          "diesel": 131.86,
-          "petrol": 127.13,
-        },
-        {
-          "date": 2019-07-21T23:00:00.000Z,
-          "diesel": 132.21,
-          "petrol": 127.81,
-        },
-        {
-          "date": 2019-07-28T23:00:00.000Z,
-          "diesel": 132.6,
-          "petrol": 128.03,
-        },
-        {
-          "date": 2019-08-04T23:00:00.000Z,
-          "diesel": 132.61,
-          "petrol": 128.37,
-        },
-        {
-          "date": 2019-08-11T23:00:00.000Z,
-          "diesel": 132.59,
-          "petrol": 128.36,
-        },
-        {
-          "date": 2019-08-18T23:00:00.000Z,
-          "diesel": 132.6,
-          "petrol": 128.17,
-        },
-        {
-          "date": 2019-08-25T23:00:00.000Z,
-          "diesel": 132.51,
-          "petrol": 128.22,
-        },
-        {
-          "date": 2019-09-01T23:00:00.000Z,
-          "diesel": 132.29,
-          "petrol": 127.86,
-        },
-        {
-          "date": 2019-09-08T23:00:00.000Z,
-          "diesel": 131.89,
-          "petrol": 127.79,
-        },
-        {
-          "date": 2019-09-15T23:00:00.000Z,
-          "diesel": 131.35,
-          "petrol": 126.92,
-        },
-        {
-          "date": 2019-09-22T23:00:00.000Z,
-          "diesel": 131.52,
-          "petrol": 126.78,
-        },
-        {
-          "date": 2019-09-29T23:00:00.000Z,
-          "diesel": 131.83,
-          "petrol": 126.92,
-        },
-        {
-          "date": 2019-10-06T23:00:00.000Z,
-          "diesel": 131.82,
-          "petrol": 126.87,
-        },
-        {
-          "date": 2019-10-13T23:00:00.000Z,
-          "diesel": 131.89,
-          "petrol": 126.91,
-        },
-        {
-          "date": 2019-10-20T23:00:00.000Z,
-          "diesel": 131.28,
-          "petrol": 126.4,
-        },
-        {
-          "date": 2019-10-28T00:00:00.000Z,
-          "diesel": 130.6,
-          "petrol": 125.77,
-        },
-        {
-          "date": 2019-11-04T00:00:00.000Z,
-          "diesel": 130.38,
-          "petrol": 125.56,
-        },
-        {
-          "date": 2019-11-11T00:00:00.000Z,
-          "diesel": 130.42,
-          "petrol": 125.59,
-        },
-        {
-          "date": 2019-11-18T00:00:00.000Z,
-          "diesel": 130.35,
-          "petrol": 125.58,
-        },
-        {
-          "date": 2019-11-25T00:00:00.000Z,
-          "diesel": 130.08,
-          "petrol": 125.32,
-        },
-        {
-          "date": 2019-12-02T00:00:00.000Z,
-          "diesel": 129.79,
-          "petrol": 124.81,
-        },
-        {
-          "date": 2019-12-09T00:00:00.000Z,
-          "diesel": 129.79,
-          "petrol": 124.75,
-        },
-        {
-          "date": 2019-12-16T00:00:00.000Z,
-          "diesel": 129.56,
-          "petrol": 124.33,
-        },
-        {
-          "date": 2019-12-23T00:00:00.000Z,
-          "diesel": 129.81,
-          "petrol": 124.16,
-        },
-        {
-          "date": 2019-12-30T00:00:00.000Z,
-          "diesel": 130.54,
-          "petrol": 124.96,
-        },
-      ],
-      "pendingTransactions": [],
-    },
+    "test" => [
+      {
+        "date": 2019-01-07T00:00:00.000Z,
+        "diesel": 130.33,
+        "petrol": 120.27,
+      },
+      {
+        "date": 2019-01-14T00:00:00.000Z,
+        "diesel": 129.47,
+        "petrol": 119.53,
+      },
+      {
+        "date": 2019-01-21T00:00:00.000Z,
+        "diesel": 128.92,
+        "petrol": 119.12,
+      },
+      {
+        "date": 2019-01-28T00:00:00.000Z,
+        "diesel": 129.1,
+        "petrol": 119.29,
+      },
+      {
+        "date": 2019-02-04T00:00:00.000Z,
+        "diesel": 129.13,
+        "petrol": 119.13,
+      },
+      {
+        "date": 2019-02-11T00:00:00.000Z,
+        "diesel": 129.17,
+        "petrol": 118.97,
+      },
+      {
+        "date": 2019-02-18T00:00:00.000Z,
+        "diesel": 129.23,
+        "petrol": 119.05,
+      },
+      {
+        "date": 2019-02-25T00:00:00.000Z,
+        "diesel": 129.66,
+        "petrol": 119.22,
+      },
+      {
+        "date": 2019-03-04T00:00:00.000Z,
+        "diesel": 130.25,
+        "petrol": 119.72,
+      },
+      {
+        "date": 2019-03-11T00:00:00.000Z,
+        "diesel": 130.59,
+        "petrol": 120.1,
+      },
+      {
+        "date": 2019-03-18T00:00:00.000Z,
+        "diesel": 130.85,
+        "petrol": 120.48,
+      },
+      {
+        "date": 2019-03-25T00:00:00.000Z,
+        "diesel": 131.15,
+        "petrol": 120.83,
+      },
+      {
+        "date": 2019-03-31T23:00:00.000Z,
+        "diesel": 131.48,
+        "petrol": 121.7,
+      },
+      {
+        "date": 2019-04-07T23:00:00.000Z,
+        "diesel": 132.08,
+        "petrol": 122.75,
+      },
+      {
+        "date": 2019-04-14T23:00:00.000Z,
+        "diesel": 132.96,
+        "petrol": 124.06,
+      },
+      {
+        "date": 2019-04-21T23:00:00.000Z,
+        "diesel": 133.99,
+        "petrol": 125.43,
+      },
+      {
+        "date": 2019-04-28T23:00:00.000Z,
+        "diesel": 134.6,
+        "petrol": 126.36,
+      },
+      {
+        "date": 2019-05-05T23:00:00.000Z,
+        "diesel": 135.41,
+        "petrol": 127.5,
+      },
+      {
+        "date": 2019-05-12T23:00:00.000Z,
+        "diesel": 135.36,
+        "petrol": 127.97,
+      },
+      {
+        "date": 2019-05-19T23:00:00.000Z,
+        "diesel": 135.82,
+        "petrol": 128.51,
+      },
+      {
+        "date": 2019-05-26T23:00:00.000Z,
+        "diesel": 136.45,
+        "petrol": 129.14,
+      },
+      {
+        "date": 2019-06-02T23:00:00.000Z,
+        "diesel": 136.39,
+        "petrol": 129.41,
+      },
+      {
+        "date": 2019-06-09T23:00:00.000Z,
+        "diesel": 135.4,
+        "petrol": 128.89,
+      },
+      {
+        "date": 2019-06-16T23:00:00.000Z,
+        "diesel": 133.76,
+        "petrol": 127.66,
+      },
+      {
+        "date": 2019-06-23T23:00:00.000Z,
+        "diesel": 131.81,
+        "petrol": 126.66,
+      },
+      {
+        "date": 2019-06-30T23:00:00.000Z,
+        "diesel": 131.55,
+        "petrol": 126.49,
+      },
+      {
+        "date": 2019-07-07T23:00:00.000Z,
+        "diesel": 131.68,
+        "petrol": 126.86,
+      },
+      {
+        "date": 2019-07-14T23:00:00.000Z,
+        "diesel": 131.86,
+        "petrol": 127.13,
+      },
+      {
+        "date": 2019-07-21T23:00:00.000Z,
+        "diesel": 132.21,
+        "petrol": 127.81,
+      },
+      {
+        "date": 2019-07-28T23:00:00.000Z,
+        "diesel": 132.6,
+        "petrol": 128.03,
+      },
+      {
+        "date": 2019-08-04T23:00:00.000Z,
+        "diesel": 132.61,
+        "petrol": 128.37,
+      },
+      {
+        "date": 2019-08-11T23:00:00.000Z,
+        "diesel": 132.59,
+        "petrol": 128.36,
+      },
+      {
+        "date": 2019-08-18T23:00:00.000Z,
+        "diesel": 132.6,
+        "petrol": 128.17,
+      },
+      {
+        "date": 2019-08-25T23:00:00.000Z,
+        "diesel": 132.51,
+        "petrol": 128.22,
+      },
+      {
+        "date": 2019-09-01T23:00:00.000Z,
+        "diesel": 132.29,
+        "petrol": 127.86,
+      },
+      {
+        "date": 2019-09-08T23:00:00.000Z,
+        "diesel": 131.89,
+        "petrol": 127.79,
+      },
+      {
+        "date": 2019-09-15T23:00:00.000Z,
+        "diesel": 131.35,
+        "petrol": 126.92,
+      },
+      {
+        "date": 2019-09-22T23:00:00.000Z,
+        "diesel": 131.52,
+        "petrol": 126.78,
+      },
+      {
+        "date": 2019-09-29T23:00:00.000Z,
+        "diesel": 131.83,
+        "petrol": 126.92,
+      },
+      {
+        "date": 2019-10-06T23:00:00.000Z,
+        "diesel": 131.82,
+        "petrol": 126.87,
+      },
+      {
+        "date": 2019-10-13T23:00:00.000Z,
+        "diesel": 131.89,
+        "petrol": 126.91,
+      },
+      {
+        "date": 2019-10-20T23:00:00.000Z,
+        "diesel": 131.28,
+        "petrol": 126.4,
+      },
+      {
+        "date": 2019-10-28T00:00:00.000Z,
+        "diesel": 130.6,
+        "petrol": 125.77,
+      },
+      {
+        "date": 2019-11-04T00:00:00.000Z,
+        "diesel": 130.38,
+        "petrol": 125.56,
+      },
+      {
+        "date": 2019-11-11T00:00:00.000Z,
+        "diesel": 130.42,
+        "petrol": 125.59,
+      },
+      {
+        "date": 2019-11-18T00:00:00.000Z,
+        "diesel": 130.35,
+        "petrol": 125.58,
+      },
+      {
+        "date": 2019-11-25T00:00:00.000Z,
+        "diesel": 130.08,
+        "petrol": 125.32,
+      },
+      {
+        "date": 2019-12-02T00:00:00.000Z,
+        "diesel": 129.79,
+        "petrol": 124.81,
+      },
+      {
+        "date": 2019-12-09T00:00:00.000Z,
+        "diesel": 129.79,
+        "petrol": 124.75,
+      },
+      {
+        "date": 2019-12-16T00:00:00.000Z,
+        "diesel": 129.56,
+        "petrol": 124.33,
+      },
+      {
+        "date": 2019-12-23T00:00:00.000Z,
+        "diesel": 129.81,
+        "petrol": 124.16,
+      },
+      {
+        "date": 2019-12-30T00:00:00.000Z,
+        "diesel": 130.54,
+        "petrol": 124.96,
+      },
+    ],
   },
   "defs": {
     "allScopesHaveSameDefs": true,

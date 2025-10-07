@@ -89,8 +89,13 @@ export class DataSet<T = unknown> {
             return false;
         }
 
-        // Use DataChangeDescription's efficient applyToArrayWithStoredValues method
-        changeDescription.applyToArrayWithStoredValues(this.data);
+        // Apply the change description to the data array
+        const allInsertions = [
+            ...changeDescription.getPrependedValues<T>(),
+            ...changeDescription.getAppendedValues<T>(),
+        ];
+        let insertionIndex = 0;
+        changeDescription.applyToArray(this.data, () => allInsertions[insertionIndex++]);
 
         this.pendingTransactions = [];
         this.cachedChangeDescription = undefined; // Clear cache after commit
@@ -117,28 +122,11 @@ export class DataSet<T = unknown> {
     }
 
     /**
-     * Applies a DataChangeDescription to an array in a memory-efficient manner.
-     * @param source The source array to transform
-     * @param destination The destination array to populate (can be the same as source)
-     * @param changeDescription The change description to apply
+     * Custom JSON serialization to avoid bloating snapshots.
+     * Serializes as a plain array instead of exposing internal structure.
      */
-    static applyChangesToArray<U>(source: U[], destination: U[], changeDescription: DataChangeDescription): void {
-        const { indexMap } = changeDescription;
-
-        // Early exit if no changes
-        if (indexMap.originalLength === indexMap.finalLength && indexMap.spliceOps.length === 0) {
-            if (source !== destination) {
-                destination.length = 0;
-                destination.push(...source);
-            }
-            return;
-        }
-
-        // Apply transformations
-        changeDescription.applyToArray(destination, (destIndex) => {
-            // This shouldn't be called for pure removals
-            throw new Error(`Unexpected insertion at index ${destIndex}`);
-        });
+    toJSON(): T[] {
+        return this.data;
     }
 
     /**
@@ -164,6 +152,28 @@ export class DataSet<T = unknown> {
 
         this.cachedChangeDescription = changeDescription;
         return changeDescription;
+    }
+
+    /**
+     * Helper method to remove items from a list of groups.
+     * Mutates the groups in-place and removes found items from toRemove set.
+     * @param groups List of groups to search and remove from
+     * @param toRemove Set of items to remove (modified in-place)
+     */
+    private removeFromGroups(groups: T[][], toRemove: Set<T>): void {
+        for (const group of groups) {
+            let i = 0;
+            while (i < group.length && toRemove.size > 0) {
+                if (toRemove.has(group[i])) {
+                    toRemove.delete(group[i]);
+                    group.splice(i, 1);
+                    // Don't increment i, stay at same position after removal
+                } else {
+                    i++;
+                }
+            }
+            if (toRemove.size === 0) break;
+        }
     }
 
     /**
@@ -205,38 +215,12 @@ export class DataSet<T = unknown> {
 
                 // OPTIMIZATION 3: Remove from prepends first (FIFO - front to back)
                 // These are typically much smaller sets than original data
-                for (const prependGroup of prependsList) {
-                    let i = 0;
-                    while (i < prependGroup.length) {
-                        if (toRemove.has(prependGroup[i])) {
-                            toRemove.delete(prependGroup[i]);
-                            prependGroup.splice(i, 1);
-                            // Don't increment i, stay at same position after removal
-                            if (toRemove.size === 0) break;
-                        } else {
-                            i++;
-                        }
-                    }
-                    if (toRemove.size === 0) break;
-                }
+                this.removeFromGroups(prependsList, toRemove);
 
                 // OPTIMIZATION 3: Remove from appends next (FIFO - front to back)
                 // Also typically much smaller than original data
                 if (toRemove.size > 0) {
-                    for (const appendGroup of appendsList) {
-                        let i = 0;
-                        while (i < appendGroup.length) {
-                            if (toRemove.has(appendGroup[i])) {
-                                toRemove.delete(appendGroup[i]);
-                                appendGroup.splice(i, 1);
-                                // Don't increment i, stay at same position after removal
-                                if (toRemove.size === 0) break;
-                            } else {
-                                i++;
-                            }
-                        }
-                        if (toRemove.size === 0) break;
-                    }
+                    this.removeFromGroups(appendsList, toRemove);
                 }
 
                 // OPTIMIZATIONS 1 & 2: Only scan original data for remaining values
@@ -318,8 +302,6 @@ export class DataSet<T = unknown> {
             });
         }
 
-        const removedCount = removedOriginalIndices.size;
-        const hasNoRemovals = removedCount === 0;
         const indexMap: IndexTransformationMap = {
             originalLength,
             finalLength,
@@ -327,9 +309,6 @@ export class DataSet<T = unknown> {
             removedIndices: removedOriginalIndices,
             totalPrependCount,
             totalAppendCount,
-            isAppendOnly: hasNoRemovals && totalPrependCount === 0 && totalAppendCount > 0,
-            isPrependOnly: hasNoRemovals && totalAppendCount === 0 && totalPrependCount > 0,
-            hasNoRemovals,
         };
 
         return {

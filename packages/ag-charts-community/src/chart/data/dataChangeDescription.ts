@@ -39,15 +39,22 @@ export interface IndexTransformationMap {
 
     /** Total number of appended items */
     totalAppendCount: number;
+}
 
-    /** True if this is an append-only transaction (no prepends, no removals) */
-    isAppendOnly: boolean;
+/**
+ * Helper functions to compute derived properties from IndexTransformationMap.
+ * These avoid storing redundant computed values.
+ */
+export function isAppendOnly(indexMap: IndexTransformationMap): boolean {
+    return indexMap.removedIndices.size === 0 && indexMap.totalPrependCount === 0 && indexMap.totalAppendCount > 0;
+}
 
-    /** True if this is a prepend-only transaction (no appends, no removals) */
-    isPrependOnly: boolean;
+export function isPrependOnly(indexMap: IndexTransformationMap): boolean {
+    return indexMap.removedIndices.size === 0 && indexMap.totalAppendCount === 0 && indexMap.totalPrependCount > 0;
+}
 
-    /** True if no items were removed (but may have prepends/appends) */
-    hasNoRemovals: boolean;
+export function hasNoRemovals(indexMap: IndexTransformationMap): boolean {
+    return indexMap.removedIndices.size === 0;
 }
 
 /**
@@ -106,24 +113,6 @@ export class DataChangeDescription {
     }
 
     /**
-     * Apply this change description to transform an array in-place using stored values.
-     * This is a zero-copy operation that mutates the array directly.
-     * Uses the prepend and append values stored in this DataChangeDescription.
-     *
-     * @param array - The array to transform in-place
-     */
-    applyToArrayWithStoredValues<T>(array: T[]): void {
-        // Combine all values we need to insert (prepends first, then appends)
-        const allInsertions = [...this.prependValues, ...this.appendValues] as T[];
-        let insertionIndex = 0;
-
-        this.applyToArray(array, () => {
-            // Return the next value to insert from our combined list
-            return allInsertions[insertionIndex++];
-        });
-    }
-
-    /**
      * Applies the transformation to an array in-place using native Array operations.
      * This is a zero-copy operation that mutates the array directly.
      *
@@ -141,24 +130,14 @@ export class DataChangeDescription {
         // Apply splice operations in the order they appear. Operations are generated to
         // mirror the transaction sequencing (prepends, removals, then appends).
         for (const op of spliceOps) {
-            if (op.insertCount > 0 && op.deleteCount > 0) {
-                // Replace operation (remove and insert in one go)
-                const insertElements = new Array<T>(op.insertCount);
-                for (let j = 0; j < op.insertCount; j++) {
-                    insertElements[j] = processInsertion(op.index + j);
-                }
-                array.splice(op.index, op.deleteCount, ...insertElements);
-            } else if (op.insertCount > 0) {
-                // Pure insertion (prepend or append)
-                const insertElements = new Array<T>(op.insertCount);
-                for (let j = 0; j < op.insertCount; j++) {
-                    insertElements[j] = processInsertion(op.index + j);
-                }
-                array.splice(op.index, 0, ...insertElements);
-            } else if (op.deleteCount > 0) {
-                // Pure removal
-                array.splice(op.index, op.deleteCount);
-            }
+            // Generate insertion elements if needed
+            const insertElements =
+                op.insertCount > 0
+                    ? Array.from({ length: op.insertCount }, (_, j) => processInsertion(op.index + j))
+                    : [];
+
+            // Apply the splice operation (handles insert, delete, or both)
+            array.splice(op.index, op.deleteCount, ...insertElements);
         }
 
         // Ensure final length is correct (should already be from splice operations)

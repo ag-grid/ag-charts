@@ -83,9 +83,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 // Should have exactly 1 splice operation
@@ -107,9 +104,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 expect(indexMap.spliceOps).toHaveLength(1);
@@ -130,9 +124,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 expect(indexMap.spliceOps).toHaveLength(1);
@@ -154,9 +145,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 // Should have 1 delete operation (prepend is handled separately)
@@ -181,9 +169,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 // Should have 2 splice operations
@@ -213,9 +198,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 // Should have 3 splice operations
@@ -251,9 +233,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: true,
                 };
 
                 expect(indexMap.spliceOps).toHaveLength(0);
@@ -269,9 +248,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 expect(indexMap.spliceOps).toHaveLength(1);
@@ -295,9 +271,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 expect(indexMap.spliceOps).toHaveLength(1);
@@ -320,9 +293,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 0,
                     totalAppendCount: 0,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 const desc = new DataChangeDescription(indexMap, {
@@ -356,9 +326,6 @@ describe('DataChangeDescription', () => {
                     removedIndices,
                     totalPrependCount: 2,
                     totalAppendCount: 1,
-                    isAppendOnly: false,
-                    isPrependOnly: false,
-                    hasNoRemovals: false,
                 };
 
                 const desc = new DataChangeDescription(indexMap, {
