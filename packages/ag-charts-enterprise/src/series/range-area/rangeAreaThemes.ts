@@ -5,9 +5,11 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
-const RANGE_AREA_ITEM: WithThemeParams<
-    ({} & ({} & ({} & AgChartThemeOverrides['range-area'])['series'])['item'])[AgRangeAreaSeriesItemType]
-> = {
+type RangeAreaItemOptions = NonNullable<
+    NonNullable<NonNullable<AgChartThemeOverrides['range-area']>['series']>['item']
+>;
+
+const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[AgRangeAreaSeriesItemType]> = {
     stroke: { $palette: 'stroke' },
     strokeWidth: 1,
     marker: {
