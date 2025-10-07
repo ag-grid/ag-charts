@@ -559,10 +559,15 @@ export class DataModel<
         return rangeLookup.rangeBetween(i0, i1);
     }
 
-    private getSortOrder(values: any[], index: number, sortOrders: Map<number, { sortOrder: SortOrder }>): SortOrder {
+    private getSortOrder(
+        values: any[],
+        index: number,
+        sortOrders: Map<number, { sortOrder: SortOrder }>,
+        needsValueOf: boolean
+    ): SortOrder {
         let sortOrder = sortOrders.get(index);
         if (sortOrder == null) {
-            sortOrder = { sortOrder: valuesSortOrder(values) };
+            sortOrder = { sortOrder: valuesSortOrder(values, needsValueOf) };
             sortOrders.set(index, sortOrder);
         }
         return sortOrder.sortOrder;
@@ -571,12 +576,20 @@ export class DataModel<
     getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
         const keys = processedData.keys[columnIndex]?.get(scope.id);
-        return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS]) : undefined;
+        // Key columns typically contain dates/objects, so default to true for needsValueOf
+        return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS], true) : undefined;
     }
 
     getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
-        return this.getSortOrder(processedData.columns[columnIndex], columnIndex, processedData[COLUMN_SORT_ORDERS]);
+        // Use columnValueTypes metadata to determine if valueOf() is needed
+        const needsValueOf = processedData.columnValueTypes?.[columnIndex] ?? true;
+        return this.getSortOrder(
+            processedData.columns[columnIndex],
+            columnIndex,
+            processedData[COLUMN_SORT_ORDERS],
+            needsValueOf
+        );
     }
 
     private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
