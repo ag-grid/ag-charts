@@ -103,12 +103,7 @@ const DEFAULT_TARGET_BAND_COUNT = 10;
  */
 export class BandedDomain<T = any> implements IDataDomain<T> {
     private bands: DomainBand<T>[] = [];
-    private readonly config: {
-        minDataSizeForBanding: number;
-        targetBandCount: number;
-        maxBandSize: number | undefined;
-        enableBanding: boolean;
-    };
+    private readonly config: Required<BandedDomainConfig>;
     private readonly domainFactory: () => IDataDomain<T>;
     private dataSize: number = 0;
     private fullDomainCache: T[] | null = null;

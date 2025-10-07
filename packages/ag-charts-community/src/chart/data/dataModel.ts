@@ -41,10 +41,19 @@ const DOMAIN_BANDS = Symbol('domain-bands');
 type ScopeId = string;
 
 type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
+type SortOrderEntry = { sortOrder: SortOrder };
+type ProcessedValueEntry = { value: any; valid: boolean };
+
+interface GroupDatumIteratorOutput {
+    group: DataGroup;
+    groupIndex: number;
+    columnIndex: number;
+    datumIndex: number;
+}
 
 type InsertionCacheValue = {
-    keys: Map<number, { value: any; valid: boolean }>;
-    values: Map<number, { value: any; valid: boolean }>;
+    keys: Map<number, ProcessedValueEntry>;
+    values: Map<number, ProcessedValueEntry>;
     hasInvalidKey: boolean;
     hasInvalidValue: boolean;
 };
@@ -86,8 +95,8 @@ interface CommonMetadata<D> {
     partialValidDataCount: number;
     time: number;
     [DOMAIN_RANGES]: Map<string, RangeLookup>;
-    [KEY_SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
-    [COLUMN_SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
+    [KEY_SORT_ORDERS]: Map<number, SortOrderEntry>;
+    [COLUMN_SORT_ORDERS]: Map<number, SortOrderEntry>;
     [DOMAIN_BANDS]: Map<InternalDatumPropertyDefinition<any>, BandedDomain>;
 }
 
@@ -510,12 +519,7 @@ export class DataModel<
      */
     *forEachGroupDatum(scope: ScopeProvider, processedData: GroupedData<any>) {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
-        const output: {
-            group: DataGroup;
-            groupIndex: number;
-            columnIndex: number;
-            datumIndex: number;
-        } = {
+        const output: GroupDatumIteratorOutput = {
             groupIndex: 0,
             columnIndex,
         } as any;
@@ -562,7 +566,7 @@ export class DataModel<
     private getSortOrder(
         values: any[],
         index: number,
-        sortOrders: Map<number, { sortOrder: SortOrder }>,
+        sortOrders: Map<number, SortOrderEntry>,
         needsValueOf: boolean
     ): SortOrder {
         let sortOrder = sortOrders.get(index);
@@ -1249,8 +1253,8 @@ export class DataModel<
 
                 const datum = dataSet.data[destIndex];
 
-                const keys = new Map<number, { value: any; valid: boolean }>();
-                const values = new Map<number, { value: any; valid: boolean }>();
+                const keys = new Map<number, ProcessedValueEntry>();
+                const values = new Map<number, ProcessedValueEntry>();
                 let hasInvalidKey = false;
                 let hasInvalidValue = false;
 
