@@ -1,15 +1,9 @@
-import {
-    type AgChartThemeOverrides,
-    type AgRangeAreaSeriesItemType,
-    type WithThemeParams,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgChartThemeOverrides, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { type NonNullablePath } from 'ag-charts-core';
 
-type RangeAreaItemOptions = NonNullable<
-    NonNullable<NonNullable<AgChartThemeOverrides['range-area']>['series']>['item']
->;
+type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
-const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[AgRangeAreaSeriesItemType]> = {
+const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemOptions]> = {
     stroke: { $palette: 'stroke' },
     strokeWidth: 1,
     marker: {
