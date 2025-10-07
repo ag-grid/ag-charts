@@ -11,6 +11,7 @@ import {
     type PropertyDefinition,
     type UngroupedData,
 } from './dataModel';
+import { DataSet } from './dataSet';
 
 interface RequestedProcessing<
     D extends object,
@@ -19,7 +20,7 @@ interface RequestedProcessing<
 > {
     id: string;
     opts: DataModelOptions<K, any, false>;
-    data: D[];
+    dataSet: DataSet<D>;
     resolve: (result: Result<D, K, G>) => void;
     reject: (reason?: any) => void;
 }
@@ -31,7 +32,7 @@ interface MergedRequests<
 > {
     ids: string[];
     opts: DataModelOptions<K, any, true>;
-    data: D[];
+    dataSet: DataSet<D>;
     resolves: ((result: Result<D, K, G>) => void)[];
     rejects: ((reason?: any) => void)[];
 }
@@ -58,13 +59,13 @@ export class DataController {
         D extends object,
         K extends keyof D & string = keyof D & string,
         G extends boolean | undefined = undefined,
-    >(id: string, data: D[], opts: DataModelOptions<K, any, false>) {
+    >(id: string, dataSet: DataSet<D>, opts: DataModelOptions<K, any, false>) {
         if (this.status !== 'setup') {
             throw new Error(`AG Charts - data request after data setup phase.`);
         }
 
         return new Promise<Result<D, K, G>>((resolve, reject) => {
-            this.requested.push({ id, opts, data, resolve, reject });
+            this.requested.push({ id, opts, dataSet, resolve, reject });
         });
     }
 
@@ -74,6 +75,17 @@ export class DataController {
         }
 
         this.status = 'executed';
+
+        // Commit pending transactions before processing
+        const dataSets = new Set<DataSet<any>>();
+        for (const request of this.requested) {
+            if (request.dataSet.hasPendingTransactions()) {
+                dataSets.add(request.dataSet);
+            }
+        }
+        for (const dataSet of dataSets) {
+            dataSet.commitPendingTransactions();
+        }
 
         this.debug('DataController.execute() - requested', this.requested);
         const valid = this.validateRequests(this.requested);
@@ -87,15 +99,15 @@ export class DataController {
 
         const nextCachedData: CachedData = [];
 
-        for (const { data, ids, opts, resolves, rejects } of merged) {
-            const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, data, ids, opts));
+        for (const { dataSet, ids, opts, resolves, rejects } of merged) {
+            const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, dataSet, ids, opts));
 
             let dataModel: DataModel<any, string>;
             let processedData: UngroupedData<any> | undefined;
             if (reusableCache == null) {
                 try {
                     dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
-                    const sources = new Map(valid.map((v) => [v.id, v.data]));
+                    const sources = new Map(valid.map((v) => [v.id, v.dataSet.data]));
                     processedData = dataModel.processData(sources);
                 } catch (error) {
                     rejects.forEach((cb) => cb(error));
@@ -105,7 +117,7 @@ export class DataController {
                 ({ dataModel, processedData } = reusableCache);
             }
 
-            nextCachedData.push({ opts, data, ids, dataModel, processedData });
+            nextCachedData.push({ opts, dataSet, dataLength: dataSet.data.length, ids, dataModel, processedData });
 
             if (this.debug.check()) {
                 getWindow<any[]>('processedData').push(processedData);
@@ -132,7 +144,7 @@ export class DataController {
         for (const [index, request] of requested.entries()) {
             if (
                 index > 0 &&
-                request.data.length !== requested[0].data.length &&
+                request.dataSet.data.length !== requested[0].dataSet.data.length &&
                 request.opts.groupByData === false &&
                 request.opts.groupByKeys === false
             ) {
@@ -163,7 +175,7 @@ export class DataController {
         return grouped.map(DataController.mergeRequests);
     }
 
-    private static groupMatch({ data, opts }: RequestedProcessing<any, any, any>) {
+    private static groupMatch({ dataSet, opts }: RequestedProcessing<any, any, any>) {
         function keys(props: PropertyDefinition<any>[]) {
             return props
                 .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
@@ -175,7 +187,7 @@ export class DataController {
         const propsKeys = keys(props);
 
         return ([group]: RequestedProcessing<any, any, any>[]) =>
-            (groupByData === false || group.data === data) &&
+            (groupByData === false || group.dataSet === dataSet) &&
             (group.opts.groupByKeys ?? false) === groupByKeys &&
             group.opts.groupByFn === groupByFn &&
             keys(group.opts.props) === propsKeys;
@@ -190,7 +202,7 @@ export class DataController {
             ids: [],
             rejects: [],
             resolves: [],
-            data: requests[0].data,
+            dataSet: requests[0].dataSet,
             opts: { ...requests[0].opts, props: [] },
         };
 
@@ -200,7 +212,7 @@ export class DataController {
         for (const request of requests) {
             const {
                 id,
-                data,
+                dataSet,
                 resolve,
                 reject,
                 opts: { props, ...opts },
@@ -209,21 +221,21 @@ export class DataController {
             result.ids.push(id);
             result.rejects.push(reject);
             result.resolves.push(resolve);
-            result.data ??= data;
+            result.dataSet ??= dataSet;
             result.opts ??= { ...opts, props: [] };
 
             for (const prop of props) {
-                const clone = { ...prop, scopes: [id], data };
+                const clone = { ...prop, scopes: [id], data: dataSet.data };
                 DataController.createIdsMap(id, clone);
 
                 let dataId: number;
                 if (DataController.crossScopeMergableTypes.has(clone.type)) {
                     dataId = -1;
-                } else if (dataIds.has(data)) {
-                    dataId = dataIds.get(data)!;
+                } else if (dataIds.has(dataSet.data)) {
+                    dataId = dataIds.get(dataSet.data)!;
                 } else {
                     dataId = nextDataId++;
-                    dataIds.set(data, dataId);
+                    dataIds.set(dataSet.data, dataId);
                 }
 
                 const matchKey = `${clone.type}-${dataId}-${clone.groupId}`;

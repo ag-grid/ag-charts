@@ -11,17 +11,19 @@ An OHLC Series shows open and close data with horizontal tick lines, and high an
 
 To create an OHLC Series, use the `ohlc` series type.
 
-```js
-series: [
-    {
-        type: 'ohlc',
-        xKey: 'date',
-        lowKey: 'low',
-        openKey: 'open',
-        closeKey: 'close',
-        highKey: 'high',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'ohlc',
+            xKey: 'date',
+            lowKey: 'low',
+            openKey: 'open',
+            closeKey: 'close',
+            highKey: 'high',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -42,23 +44,25 @@ Data items with a closing value higher than the opening value are considered as 
 
 The properties `item.up` and `item.down` control the display of rising and falling series items.
 
-```js
-series: [
-    {
-        type: 'ohlc',
-        // ...
-        item: {
-            up: {
-                stroke: '#45ba45',
-                strokeWidth: 2,
-            },
-            down: {
-                stroke: '#ba4545',
-                strokeWidth: 2,
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'ohlc',
+            // ...
+            item: {
+                up: {
+                    stroke: '#45ba45',
+                    strokeWidth: 2,
+                },
+                down: {
+                    stroke: '#ba4545',
+                    strokeWidth: 2,
+                },
             },
         },
-    },
-];
+    ],
+}
 ```
 
 ## API Reference

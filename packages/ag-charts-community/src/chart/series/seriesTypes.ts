@@ -15,6 +15,7 @@ interface ChartAxisLike {
 }
 
 export type DatumIndexType = number | object | undefined;
+export type ItemIdType = number | string | never;
 
 export type SeriesNodeEventTypes =
     | 'nodeContextMenuAction'
@@ -88,7 +89,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
  */
 export interface SeriesNodeDatum<I extends DatumIndexType> {
     readonly series: ISeries<I, any, any>;
-    readonly itemId?: any;
+    readonly itemId?: ItemIdType;
     readonly datum: unknown;
     readonly datumIndex: I;
     readonly point?: Readonly<Point> & SizedPoint;

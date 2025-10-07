@@ -102,30 +102,32 @@ Drawings and Annotations can be saved, restored and programmatically initialised
 
 To customise the look of Drawings and Annotations, use [Theme Override Options](/themes-api/#reference-AgChartTheme-overrides-common-annotations).
 
-```ts
-theme: {
-    overrides: {
-        common: {
-            annotations: {
-                line: {
-                    stroke: 'lime',
-                    strokeWidth: 3,
-                    lineDash: [3, 4],
-                },
-                'parallel-channel': {
-                    stroke: 'red',
-                    strokeWidth: 4,
-                    background: {
-                        fill: 'red',
+```ts format="snippet"
+{
+    theme: {
+        overrides: {
+            common: {
+                annotations: {
+                    line: {
+                        stroke: 'lime',
+                        strokeWidth: 3,
+                        lineDash: [3, 4],
                     },
-                    middle: {
-                        strokeOpacity: 0,
+                    'parallel-channel': {
+                        stroke: 'red',
+                        strokeWidth: 4,
+                        background: {
+                            fill: 'red',
+                        },
+                        middle: {
+                            strokeOpacity: 0,
+                        },
                     },
-                },
-                comment: {
-                    fill: 'orange',
-                    color: 'blue',
-                    strokeWidth: 4,
+                    comment: {
+                        fill: 'orange',
+                        color: 'blue',
+                        strokeWidth: 4,
+                    },
                 },
             },
         },

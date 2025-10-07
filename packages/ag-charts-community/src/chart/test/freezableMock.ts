@@ -21,6 +21,7 @@ import type {
     AgRadarAreaSeriesOptions,
     AgRadarLineSeriesOptions,
     AgRadialColumnSeriesThemeableOptions,
+    AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
     AgScatterSeriesThemeableOptions,
 } from 'ag-charts-types';
@@ -82,6 +83,7 @@ export type MockNightingaleItemStyler<TDatum, TContext> = NonNullable<
 export type MockRadarLineStyler<TDatum, TContext> = NonNullable<AgRadarLineSeriesOptions<TDatum, TContext>['styler']>;
 export type MockRadarAreaStyler<TDatum, TContext> = NonNullable<AgRadarAreaSeriesOptions<TDatum, TContext>['styler']>;
 export type MockRangeBarStyler<TDatum, TContext> = NonNullable<AgRangeBarSeriesOptions<TDatum, TContext>['styler']>;
+export type MockRangeAreaStyler<TDatum, TContext> = NonNullable<AgRangeAreaSeriesOptions<TDatum, TContext>['styler']>;
 export type MockAxisLabelFormatter<_TDatum, TContext> = NonNullable<
     NonNullable<AgCartesianAxisOptions<TContext>['label']>['formatter']
 >;
@@ -150,6 +152,7 @@ export type MockAPICallback<TDatum, TContext> =
     | MockRadarLineStyler<TDatum, TContext>
     | MockRadarAreaStyler<TDatum, TContext>
     | MockRangeBarStyler<TDatum, TContext>
+    | MockRangeAreaStyler<TDatum, TContext>
     | MockAxisLabelFormatter<TDatum, TContext>
     | MockSeriesLabelFormatter<TDatum, TContext>
     | MockTooltipRenderer<TDatum, TContext>

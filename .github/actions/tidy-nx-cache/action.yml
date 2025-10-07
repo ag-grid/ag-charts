@@ -1,4 +1,10 @@
-name: setup-nx
+name: tidy-nx-cache
+
+inputs:
+    branch_type:
+        description: 'Type of branch (pr, latest, release)'
+        required: false
+        default: 'pr'
 
 runs:
     using: 'node20'

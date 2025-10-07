@@ -36,6 +36,7 @@ const {
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
+    readonly itemId: string;
     midPoint: Readonly<Point>;
     readonly width: number;
     readonly height: number;
@@ -47,7 +48,7 @@ interface HeatmapLabelDatum extends Point {
     datumIndex: number;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     datum: any;
-    itemId?: string;
+    itemId: string;
     text: TextOrSegments;
     fontSize: number;
     lineHeight: number;
@@ -123,7 +124,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
-        if (!xAxis || !yAxis || !this.data?.length) {
+        if (!xAxis || !yAxis || !this.data?.data.length) {
             return;
         }
 

@@ -43,6 +43,7 @@ type PyramidNodeLabelDatum = Readonly<Point> & {
 };
 
 interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
+    readonly itemId: string;
     readonly index: number;
     readonly xValue: string;
     readonly yValue: number;

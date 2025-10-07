@@ -12,26 +12,28 @@ on the opposite side of the chart.
 An extra axis configuration is needed to associate a secondary axis with the appropriate series, where the `keys` axis property
 links the series to the axis.
 
-```js
-axes: [
-    // x-axis
-    {
-        type: 'category',
-        position: 'bottom',
-    },
-    // primary y-axis
-    {
-        type: 'number',
-        position: 'left',
-        keys: ['male', 'female'],
-    },
-    // secondary y-axis
-    {
-        type: 'number',
-        position: 'right',
-        keys: ['exportedTonnes'],
-    },
-];
+```js format="snippet"
+{
+    axes: [
+        // x-axis
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        // primary y-axis
+        {
+            type: 'number',
+            position: 'left',
+            keys: ['male', 'female'],
+        },
+        // secondary y-axis
+        {
+            type: 'number',
+            position: 'right',
+            keys: ['exportedTonnes'],
+        },
+    ],
+}
 ```
 
 In this configuration:

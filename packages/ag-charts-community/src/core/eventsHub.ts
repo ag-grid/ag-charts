@@ -18,7 +18,7 @@ export interface EventsHubMap {
     'axis:change': null;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
-    'data:load': { data: object };
+    'data:load': { data: unknown[] };
     'data:error': null;
     'data:update': unknown[];
     'data:source-change': null;
@@ -77,7 +77,7 @@ export interface LegendItemClickEvent {
     readonly legendType: ChartLegendType;
     readonly enabled: boolean;
     readonly series: any;
-    readonly itemId: any;
+    readonly itemId: number | string | undefined;
     readonly legendItemName?: string;
 }
 
@@ -85,7 +85,7 @@ export interface LegendItemDoubleClickEvent {
     readonly legendType: ChartLegendType;
     readonly enabled: boolean;
     readonly series: any;
-    readonly itemId: any;
+    readonly itemId: number | string | undefined;
     readonly legendItemName?: string;
     readonly numVisibleItems: number;
 }

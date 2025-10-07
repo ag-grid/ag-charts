@@ -54,6 +54,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
+import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
@@ -310,8 +311,8 @@ export abstract class Series<
 
     protected readonly moduleMap: SeriesModuleMap = new ModuleMap();
 
-    protected _data?: any[];
-    protected _chartData?: any[];
+    protected _data?: DataSet<any>;
+    protected _chartData?: DataSet<any>;
 
     private readonly datumCallbackCache = new Map<any, any>();
 
@@ -339,7 +340,9 @@ export abstract class Series<
     }
 
     get hasData() {
-        return this.data != null && this.data.length > 0;
+        const dataSet = this.data;
+        if (dataSet == null) return false;
+        return dataSet.netSize() > 0;
     }
 
     get tooltipEnabled() {
@@ -351,12 +354,12 @@ export abstract class Series<
         this._pickNodeCache.clear();
     }
 
-    setOptionsData(input: unknown[]) {
+    setOptionsData(input: DataSet | undefined) {
         this._data = input;
         this.onDataChange();
     }
 
-    setChartData(input: unknown[]) {
+    setChartData(input: DataSet | undefined) {
         this._chartData = input;
         if (this.data === input) {
             this.onDataChange();

@@ -417,6 +417,63 @@ describe('BarSeries', () => {
             // Visual snapshot to ensure no spurious bars are rendered
             await compare();
         });
+
+        it('should handle missing properties in stacked bar charts without rendering spurious bars', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                        mac: 16,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 20,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                        mac: 20,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 30,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                        mac: 20,
+                        ipad: 18,
+                        wearables: 14,
+                        // services: null, // Missing property - should not render a bar
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                        mac: 24,
+                        ipad: 14,
+                        // wearables: null, // Missing property - should not render a bar
+                        services: 36,
+                    },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', yName: 'Mac', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', yName: 'iPad', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services', stacked: true },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Visual snapshot to ensure no spurious bars are rendered
+            await compare();
+        });
     });
 
     describe('initial animation', () => {

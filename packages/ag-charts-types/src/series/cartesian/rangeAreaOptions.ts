@@ -1,3 +1,4 @@
+import type { ContextCallbackParams, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -16,13 +17,30 @@ import type {
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
+export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        AgRangeAreaSeriesOptionsKeys<TDatum>,
+        Required<AgRangeAreaSeriesStyle> {}
+
+export interface AgRangeAreaSeriesStyle extends StrokeOptions, FillOptions, LineDashOptions {
+    marker?: AgSeriesMarkerStyle;
+}
+
+export type AgRangeAreaSeriesItemType = 'high' | 'low';
+
 export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
-    /** Hovered marker */
-    itemId: 'up' | 'down';
+    /** The Id to distinguish the type of datum. This can be `up` or `down`. */
+    itemId: AgRangeAreaSeriesItemType;
+}
+
+export interface AgRangeAreaSeriesItemStylerParams<TDatum> extends AgRangeAreaSeriesOptionsKeys<TDatum> {
+    /** The Id to distinguish the type of datum. This can be `up` or `down`. */
+    itemId: AgRangeAreaSeriesItemType;
 }
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -44,7 +62,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series.  */
-    marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys<TDatum>, TContext>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesItemStylerParams<TDatum>, TContext>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** @deprecated Configuration for the range series items when they are hovered over. */
@@ -57,15 +75,17 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgRangeAreaSeriesStylerParams<TDatum, TContext>, AgRangeAreaSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
     /** Style options for the area when the yHigh value is lower than the yLow value, when the area is inverted. */
-    negativeStyle?: AgRangeAreaSeriesNegativeStyle;
+    invertedStyle?: AgRangeAreaSeriesInvertedStyle;
 }
 
-export type AgRangeAreaSeriesNegativeStyle = FillOptions & {
+export type AgRangeAreaSeriesInvertedStyle = FillOptions & {
     enabled?: boolean;
 };
 

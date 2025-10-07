@@ -74,6 +74,11 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     @Property
     position!: AgCartesianAxisPosition;
 
+    @Property
+    crossAt?: { value: D; sticky?: boolean };
+
+    readonly crossAxisTranslation: { x: number; y: number } = { x: 0, y: 0 };
+
     minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
 
     protected animationManager: AnimationManager;
@@ -404,9 +409,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         super.update();
 
-        this.tickLineGroup.visible = this.tick.enabled || (this.primaryTick?.enabled ?? false);
-        this.tickLabelGroup.visible = this.label.enabled || (this.primaryTick?.enabled ?? false);
-
         const { tickLayout } = this;
         this.updateTitle(this.scale.domain, tickLayout?.spacing ?? 0);
 
@@ -437,8 +439,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getAxisTransform() {
         return {
-            translationX: Math.floor(this.translation.x),
-            translationY: Math.floor(this.translation.y),
+            translationX: Math.floor(this.translation.x + this.crossAxisTranslation.x),
+            translationY: Math.floor(this.translation.y + this.crossAxisTranslation.y),
         };
     }
 
@@ -450,6 +452,13 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.tickLabelGroup.datum = axisTransform;
         this.lineNodeGroup.datum = axisTransform;
         this.headingLabelGroup.datum = axisTransform;
+    }
+
+    setAxisVisible(visible: boolean) {
+        this.tickLineGroup.visible = visible && (this.tick.enabled || (this.primaryTick?.enabled ?? false));
+        this.tickLabelGroup.visible = visible && (this.label.enabled || (this.primaryTick?.enabled ?? false));
+        this.lineNodeGroup.visible = visible;
+        this.headingLabelGroup.visible = visible;
     }
 
     private getAxisLineCoordinates() {

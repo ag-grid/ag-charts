@@ -28,16 +28,36 @@ The `fill` attribute is set at the series level.
 
 Solid fills use a CSS colour string. Gradient and Pattern fills require an object with type `gradient` or `pattern`.
 
-```js
-series: [{ fill: { type: 'gradient' } }];
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            fill: {
+                type: 'gradient',
+            },
+        },
+    ],
+}
 ```
 
 ### Markers
 
 [Series Markers](./markers) support the same fill options. The `fill` attribute is contained in the `marker` property of the `series` options.
 
-```js
-series: [{ marker: { fill: { type: 'gradient' } } }];
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            marker: {
+                fill: {
+                    type: 'gradient',
+                },
+            },
+        },
+    ],
+}
 ```
 
 ## Gradients
@@ -51,20 +71,22 @@ The array should contain a minimum of two objects, with each object providing op
 -   `color`: Any valid CSS colour value.
 -   `stop`: A ratio between `0` and `1` indicating the position within the gradient where the colour changes.
 
-```js
-series: [
-    {
-        fill: {
-            type: 'gradient',
-            colorStops: [
-                { color: '#70C1FF', stop: 0.1 },
-                { color: '#FFD86F', stop: 0.3 },
-                { color: '#FF9A60', stop: 0.5 },
-                { color: '#D16BA5' }, //will continue to the end
-            ],
+```js format="snippet"
+{
+    series: [
+        {
+            fill: {
+                type: 'gradient',
+                colorStops: [
+                    { color: '#70C1FF', stop: 0.1 },
+                    { color: '#FFD86F', stop: 0.3 },
+                    { color: '#FF9A60', stop: 0.5 },
+                    { color: '#D16BA5' }, //will continue to the end
+                ],
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 In this configuration:
@@ -83,15 +105,17 @@ See the [Gradient API reference](#reference-AgGradientColor) for all the availab
 
 Any of the [stock patterns](#reference-AgPatternColor-pattern) can be provided in the `fill.pattern` property.
 
-```js
-series: [
-    {
-        fill: {
-            type: 'pattern',
-            pattern: 'stars',
+```js format="snippet"
+{
+    series: [
+        {
+            fill: {
+                type: 'pattern',
+                pattern: 'stars',
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 Stock patterns include:
@@ -112,15 +136,17 @@ SVG Path Data can be used to create custom patterns. The path can be a line or a
 -   To remove the stroke, set `strokeWidth` to `0`
 -   To remove the fill, set `fill` to `none`.
 
-```js
-series: [
-    {
-        fill: {
-            type: 'pattern',
-            path: 'M0,6 Q4,1 8,6 T16,6', // svg path data string
+```js format="snippet"
+{
+    series: [
+        {
+            fill: {
+                type: 'pattern',
+                path: 'M0,6 Q4,1 8,6 T16,6', // svg path data string
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 -   In the snippet above, the string in the `fill.path` property is an SVG path.
@@ -140,15 +166,17 @@ To be valid, the path string must follow the SVG path grammar outlined in the [P
 
 Any image url or data:url can be provided in the `fill.url` property to fill shapes with an image.
 
-```js
-series: [
-    {
-        fill: {
-            type: 'image',
-            url: 'url',
+```js format="snippet"
+{
+    series: [
+        {
+            fill: {
+                type: 'image',
+                url: 'url',
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 Additional configuration options include `fit`, `width`, `height` and `repeat`.
@@ -170,16 +198,18 @@ The `backgroundFill` and `backgroundFillOpacity` properties provide a fallback i
 
 Images can be tiled by using the `repeat` property.
 
-```js
-series: [
-    {
-        fill: {
-            type: 'image',
-            url: 'url',
-            repeat: 'repeat-x',
+```js format="snippet"
+{
+    series: [
+        {
+            fill: {
+                type: 'image',
+                url: 'url',
+                repeat: 'repeat-x',
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 {% chartExampleRunner title="Image Fill Tiling" name="image-fill-tiling" type="generated" /%}

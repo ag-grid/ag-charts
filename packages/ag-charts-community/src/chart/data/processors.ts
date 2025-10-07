@@ -660,6 +660,7 @@ export function diff(
 }
 
 type KeyType = string | number | boolean | undefined;
+// FIXME: ReturnType should be `string | number | boolean`
 export function createDatumId(...keys: KeyType[]): any {
     if (keys.length === 1) {
         const key = transformIntegratedCategoryValue(keys[0]);

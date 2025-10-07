@@ -5,11 +5,17 @@ import {
     type AgChartOptions,
     AgCharts,
     AgRangeAreaSeriesLabelPlacement,
+    AgRangeAreaSeriesStyle,
+    AgRangeAreaSeriesStylerParams,
+    AgSeriesMarkerStyle,
+    AgSeriesMarkerStylerParams,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MockRangeAreaStyler,
     expectWarningsCalls,
     extractImageData,
+    newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
@@ -790,8 +796,226 @@ describe('RangeAreaSeries', () => {
         });
     });
 
-    describe('invertedSegments with negativeStyle', () => {
-        it('should render range-area series with negativeStyle for segments that start inverted', async () => {
+    describe('AG-15782 styler', () => {
+        type D = { month: string; gain_low: number; gain_high: number; loss_low: number; loss_high: number };
+        type C = unknown;
+        type M = MockRangeAreaStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        const data = [
+            { month: 'January', gain_low: 1200, gain_high: 1500, loss_low: 800, loss_high: 1100 },
+            { month: 'February', gain_low: 1500, gain_high: 1650, loss_low: 950, loss_high: 1450 },
+            { month: 'March', gain_low: 1700, gain_high: 1920, loss_low: 1600, loss_high: 1815 },
+        ];
+        beforeEach(() => {
+            styler = newFreezableMock<D, C, M>(
+                (params: AgRangeAreaSeriesStylerParams<D, C>): AgRangeAreaSeriesStyle | undefined => {
+                    if (params.yLowKey === 'gain_low')
+                        return {
+                            fill: 'cyan',
+                            lineDash: [4, 4],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 2.5,
+                            marker: {},
+                        };
+                    else if (params.yLowKey === 'loss_low')
+                        return {
+                            fill: 'magenta',
+                            fillOpacity: 0.5,
+                            marker: {
+                                fill: 'indigo',
+                                strokeWidth: 2.5,
+                                size: 20,
+                            },
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'gain context' };
+                c2 = { name: 'loss context' };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-area',
+                                context: c1,
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                fill: 'cyan',
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'range-area',
+                                context: c2,
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: styler.frozen,
+                                marker: {
+                                    fill: 'lime', // ignored
+                                    fillOpacity: 0.5, // not ignored
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
+                });
+                test('params', () => {
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgSeriesMarkerStylerParams<D, C>): AgSeriesMarkerStyle => {
+                    if (params.datum.month === 'February') {
+                        if (params.seriesId === 'gain-series') {
+                            return { fill: 'gold' };
+                        } else {
+                            return { fill: 'grey' };
+                        }
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<AgCartesianChartOptions<D, C>>({
+                        data,
+                        series: [
+                            {
+                                type: 'range-area',
+                                id: 'gain-series',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                fill: 'lime', // ignored
+                                marker: {
+                                    size: 15,
+                                    itemStyler,
+                                },
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'range-area',
+                                id: 'loss-series',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                fill: 'olive', // ignored
+                                stroke: 'navy', // not ignored
+                                strokeWidth: 7, // not ignored
+                                marker: {
+                                    fill: 'lime', // ignored
+                                    fillOpacity: 0.5, // not ignored
+                                    itemStyler,
+                                },
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-area',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'range-area',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('stroke-strokeWidth-defaults', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-area',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                styler: () => {
+                                    // check that default `strokeWidth: 2` is resolved.
+                                    return { stroke: 'lime' };
+                                },
+                            },
+                            {
+                                type: 'range-area',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: () => {
+                                    // check that theme-default `stroke` is resolved.
+                                    return { strokeWidth: 4 };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+    });
+
+    describe('invertedSegments with invertedStyle', () => {
+        it('should render range-area series with invertedStyle for segments that start inverted', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 'Jan', high: 10, low: 20 }, // starts inverted (high < low)
@@ -806,7 +1030,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -819,7 +1043,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle for segments that start normal', async () => {
+        it('should render range-area series with invertedStyle for segments that start normal', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 'Jan', high: 20, low: 10 }, // starts normal (high > low)
@@ -834,7 +1058,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -847,7 +1071,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle and gradient fills', async () => {
+        it('should render range-area series with invertedStyle and gradient fills', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 5, low: 15 }, // starts inverted
@@ -867,7 +1091,7 @@ describe('RangeAreaSeries', () => {
                             type: 'gradient',
                             colorStops: [{ color: '#4A90E2' }, { color: '#E3F2FD' }],
                         },
-                        negativeStyle: {
+                        invertedStyle: {
                             enabled: true,
                             fill: {
                                 type: 'gradient',
@@ -884,7 +1108,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle and smooth interpolation', async () => {
+        it('should render range-area series with invertedStyle and smooth interpolation', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 10, low: 30 }, // starts inverted
@@ -904,7 +1128,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -920,7 +1144,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle and step interpolation', async () => {
+        it('should render range-area series with invertedStyle and step interpolation', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 10, low: 30 }, // starts inverted
@@ -940,7 +1164,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -956,7 +1180,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle with time and smooth interpolation', async () => {
+        it('should render range-area series with invertedStyle with time and smooth interpolation', async () => {
             const continuousData = [
                 { date: new Date(2023, 0, 1), high: 8, low: 18 }, // starts inverted
                 { date: new Date(2023, 0, 15), high: 12, low: 22 },
@@ -976,7 +1200,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'date',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                             fillOpacity: 0.8,
                         },
@@ -996,7 +1220,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle inherited from series styles', async () => {
+        it('should render range-area series with invertedStyle inherited from series styles', async () => {
             const options: AgChartOptions = {
                 data: [
                     { category: 'A', high: 12, low: 22 }, // starts inverted
@@ -1011,7 +1235,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'category',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fillOpacity: 0.1,
                         },
                     },
@@ -1023,7 +1247,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle that never inverts', async () => {
+        it('should render range-area series with invertedStyle that never inverts', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 25, low: 15 },
@@ -1038,7 +1262,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                         },
                     },
@@ -1050,7 +1274,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        it('should render range-area series with negativeStyle that is always inverted', async () => {
+        it('should render range-area series with invertedStyle that is always inverted', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 0, high: 15, low: 25 },
@@ -1065,7 +1289,7 @@ describe('RangeAreaSeries', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        negativeStyle: {
+                        invertedStyle: {
                             fill: 'rgb(255, 87, 87)',
                         },
                     },
@@ -1078,6 +1302,51 @@ describe('RangeAreaSeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('AG-15773 itemStyler itemId', () => {
+        it('should render high and low markers differently', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { month: 'January', low: 1200, high: 1500 },
+                    { month: 'February', low: 1500, high: 1650 },
+                    { month: 'March', low: 1700, high: 1920 },
+                    { month: 'April', low: 1800, high: 2100 },
+                    { month: 'May', low: 2000, high: 2300 },
+                    { month: 'June', low: 2450, high: 2100 },
+                    { month: 'July', low: 2600, high: 2300 },
+                    { month: 'August', low: 2200, high: 2550 },
+                    { month: 'September', low: 2000, high: 2400 },
+                    { month: 'October', low: 1900, high: 2250 },
+                    { month: 'November', low: 1750, high: 2100 },
+                    { month: 'December', low: 1600, high: 1950 },
+                ],
+                legend: { item: { line: { length: 50 } } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'month',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        marker: {
+                            size: 25,
+                            itemStyler: (params) => {
+                                switch (params.itemId) {
+                                    case 'high':
+                                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
+                                    case 'low':
+                                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
+                                    default:
+                                        return {};
+                                }
+                            },
+                        },
+                    },
+                ],
+            };
+            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
             await compare();
         });
     });

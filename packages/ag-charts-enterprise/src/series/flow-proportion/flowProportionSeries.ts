@@ -24,6 +24,7 @@ export interface FlowProportionLinkDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
+    readonly itemId: undefined;
     index: number;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
@@ -36,6 +37,7 @@ export interface FlowProportionNodeDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
+    readonly itemId: undefined;
     index: number;
     linksBefore: TLinkDatum[];
     linksAfter: TLinkDatum[];
@@ -175,15 +177,19 @@ export abstract class FlowProportionSeries<
         const nodesDataController = new DataController('standalone', dataController.suppressFieldDotNotation);
         const nodesDataModelPromise =
             nodes != null
-                ? nodesDataController.request<any, any, true>(this.id, nodes, {
-                      props: [
-                          keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
-                          ...(labelKey != null
-                              ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                              : []),
-                      ],
-                      groupByKeys: true,
-                  })
+                ? nodesDataController.request<any, any, true>(
+                      this.id,
+                      _ModuleSupport.DataSet.wrap(nodes) ?? _ModuleSupport.DataSet.empty(),
+                      {
+                          props: [
+                              keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
+                              ...(labelKey != null
+                                  ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
+                                  : []),
+                          ],
+                          groupByKeys: true,
+                      }
+                  )
                 : null;
 
         const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {

@@ -84,7 +84,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
             legendItemName,
         } = this.properties;
 
-        if (!data?.length || !xKey || legendType !== 'category') {
+        if (!data?.data.length || !xKey || legendType !== 'category') {
             return [];
         }
 

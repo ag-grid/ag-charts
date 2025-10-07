@@ -135,8 +135,11 @@ runs:
               restore-keys: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
               # fail-on-cache-miss: true
 
-        - name: Tidy Nx Cache (Post Job)
+        - name: Tidy Nx Cache
           uses: ./.github/actions/tidy-nx-cache
+          if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false'
+          with:
+              branch_type: ${{ steps.nx_config.outputs.type }}
 
         - name: MacOS Setup
           if: inputs.os == 'macos'

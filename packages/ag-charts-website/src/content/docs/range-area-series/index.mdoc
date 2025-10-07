@@ -11,15 +11,17 @@ A Range Area Series represents data ranges using a shaded area between high and 
 
 The Range Area Series is created using the `range-area` series type.
 
-```js
-series: [
-    {
-        type: 'range-area',
-        xKey: 'date',
-        yLowKey: 'flatsAndMaisonettes',
-        yHighKey: 'detachedHouses',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'range-area',
+            xKey: 'date',
+            yLowKey: 'flatsAndMaisonettes',
+            yHighKey: 'detachedHouses',
+        },
+    ],
+}
 ```
 
 The `yLowKey` and `yHighKey` are used to retrieve the range of values for the Y axis.
@@ -30,29 +32,31 @@ Multiple Range Area Series can be combined into a single chart.
 
 {% chartExampleRunner title="Multiple Range Area Series" name="multiple-range-areas" type="generated" /%}
 
-```js
-series: [
-    {
-        type: 'range-area',
-        xKey: 'date',
-        yLowKey: 'flatsAndMaisonettes',
-        yHighKey: 'terracedHouses',
-        xName: 'Date',
-        yName: 'Flats & Terraced',
-        yLowName: 'Flats & Maisonettes',
-        yHighName: 'Terraced',
-    },
-    {
-        type: 'range-area',
-        xKey: 'date',
-        yLowKey: 'semiDetachedHouses',
-        yHighKey: 'detachedHouses',
-        xName: 'Date',
-        yName: 'Semi-detached & Detached',
-        yLowName: 'Semi-detached',
-        yHighName: 'Detached',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'range-area',
+            xKey: 'date',
+            yLowKey: 'flatsAndMaisonettes',
+            yHighKey: 'terracedHouses',
+            xName: 'Date',
+            yName: 'Flats & Terraced',
+            yLowName: 'Flats & Maisonettes',
+            yHighName: 'Terraced',
+        },
+        {
+            type: 'range-area',
+            xKey: 'date',
+            yLowKey: 'semiDetachedHouses',
+            yHighKey: 'detachedHouses',
+            xName: 'Date',
+            yName: 'Semi-detached & Detached',
+            yLowName: 'Semi-detached',
+            yHighName: 'Detached',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -76,21 +80,23 @@ Series markers and labels can be enabled using the `marker` and `label` options.
 
 {% chartExampleRunner title="Range Area Labels" name="range-area-labels" type="generated" /%}
 
-```js
-series: [
-    {
-        // ...
-        marker: {
-            size: 7,
-        },
-        label: {
-            padding: 17,
-            formatter: ({ itemId, value }) => {
-                return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            marker: {
+                size: 7,
+            },
+            label: {
+                padding: 17,
+                formatter: ({ itemId, value }) => {
+                    return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
+                },
             },
         },
-    },
-];
+    ],
+}
 ```
 
 In this configuration:
@@ -98,6 +104,36 @@ In this configuration:
 -   Markers have been enabled using the `marker` options object.
 -   The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
 -   The `label.formatter` function uses the `itemId` from the params object to distinguish whether the label is a `low` or `high` value.
+
+### Range Area Inverted Styling
+
+Range Area series support a special type of segmentation styling called **inverted styling** for handling inverted segments.
+
+Inverted segments are automatically detected when the range area series encounters data points where the `yHighKey` value is less than the `yLowKey` value.
+
+This feature allows visual differentiation for ranges that represent negative differences or inverted states.
+
+{% chartExampleRunner title="Range Area Inverted Style" name="range-area-inverted-style" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'range-area',
+        xKey: 'quarter',
+        yLowKey: 'projected',
+        yHighKey: 'actual',
+        invertedStyle: {
+            fill: 'red',
+        },
+    },
+];
+```
+
+In this configuration:
+
+-   **Normal segments** where `high > low` use the series `fill` color.
+-   **Inverted segments** where `high < low` use the `invertedStyle.fill` color (red).
+-   The `invertedStyle` object supports `fill` and `fillOpacity`.
 
 ## API Reference
 

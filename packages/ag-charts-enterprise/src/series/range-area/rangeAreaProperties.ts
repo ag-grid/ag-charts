@@ -1,4 +1,5 @@
 import type {
+    AgRangeAreaSeriesItemType,
     AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
@@ -12,6 +13,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
 export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
+    readonly itemId: AgRangeAreaSeriesItemType;
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
@@ -40,7 +42,7 @@ class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> 
     spacing: PixelSize = 0;
 }
 
-class RangeAreaNegativeStyle {
+class RangeAreaInvertedStyle {
     @Property
     enabled: boolean = false;
 
@@ -101,7 +103,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     styler?: Styler<unknown, undefined>;
 
     @Property
-    readonly negativeStyle = new RangeAreaNegativeStyle();
+    readonly invertedStyle = new RangeAreaInvertedStyle();
 
     @Property
     readonly shadow = new DropShadow().set({ enabled: false });

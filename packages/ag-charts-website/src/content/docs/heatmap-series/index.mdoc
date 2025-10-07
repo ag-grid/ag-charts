@@ -12,15 +12,17 @@ A Heatmap Series displays data in a matrix format, using colours to denote the m
 
 To create a Heatmap Series, use the `heatmap` series type.
 
-```js
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'heatmap',
+            xKey: 'month',
+            yKey: 'year',
+            colorKey: 'temperature',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -37,16 +39,18 @@ In this configuration:
 
 Series items colours can be customised via the `colorRange` configuration array.
 
-```js
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-        colorRange: ['#43a2ca', '#a8ddb5', '#f0f9e8'],
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'heatmap',
+            xKey: 'month',
+            yKey: 'year',
+            colorKey: 'temperature',
+            colorRange: ['#43a2ca', '#a8ddb5', '#f0f9e8'],
+        },
+    ],
+}
 ```
 
 The `colorRange` array must contain 2 or more values.
@@ -57,7 +61,7 @@ The `colorRange` array must contain 2 or more values.
 
 If `label.enabled` is set to `true`, the labels will show the numeric value from `colorKey`.
 
-```js
+```js format="snippet"
 colorKey: 'temperature',
 label: {
     enabled: true,
@@ -76,7 +80,7 @@ The Gradient Legend aids in matching the colour coding of the heatmap series to 
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
-```js
+```js format="snippet"
 series: [
     {
         type: 'heatmap',
@@ -96,9 +100,11 @@ gradientLegend: {
 
 By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
 
-```js
-gradientLegend: {
-    position: 'right',
+```js format="snippet"
+{
+    gradientLegend: {
+        position: 'right',
+    },
 }
 ```
 
@@ -108,11 +114,13 @@ When the position is `left` or `right`, the Gradient Legend displays the values 
 
 {% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
 
-```js
-gradientLegend: {
-    gradient: {
-        thickness: 50,
-        preferredLength: 400,
+```js format="snippet"
+{
+    gradientLegend: {
+        gradient: {
+            thickness: 50,
+            preferredLength: 400,
+        },
     },
 }
 ```
@@ -128,17 +136,19 @@ In the above configuration:
 
 It is possible to customise the font, colour and padding of the labels by using the `scale` options.
 
-```js
-gradientLegend: {
-    scale: {
-        label: {
-            fontSize: 20,
-            fontStyle: 'italic',
-            fontWeight: 'bold',
-            fontFamily: 'serif',
-            color: 'red',
+```js format="snippet"
+{
+    gradientLegend: {
+        scale: {
+            label: {
+                fontSize: 20,
+                fontStyle: 'italic',
+                fontWeight: 'bold',
+                fontFamily: 'serif',
+                color: 'red',
+            },
+            padding: 20,
         },
-        padding: 20,
     },
 }
 ```

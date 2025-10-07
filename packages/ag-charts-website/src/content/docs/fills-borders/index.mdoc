@@ -15,11 +15,13 @@ In the above example:
 
 ## Fills
 
-```js
-label: {
-    color: '#333', //font colour
-    fill: '#badaff', // fill colour
-    fillOpacity: 0.8,
+```js format="snippet"
+{
+    label: {
+        color: '#333', //font colour
+        fill: '#badaff', // fill colour
+        fillOpacity: 0.8,
+    },
 }
 ```
 
@@ -27,11 +29,13 @@ See [Series Fills](./fills) for details of the available fills types, including 
 
 ## Borders
 
-```js
-border: {
-    enabled: true,
-    stroke: '#2c79d5',
-    strokeWidth: 1,
+```js format="snippet"
+{
+    border: {
+        enabled: true,
+        stroke: '#2c79d5',
+        strokeWidth: 1,
+    },
 }
 ```
 
@@ -39,16 +43,18 @@ border: {
 
 Padding can be defined as a single number to be applied to all sides of the element, or as an object with values for `top`, `right`, `bottom` and `left`.
 
-```js
-padding: 4; //padding of 4px on all sides
+```js format="snippet"
+padding: 4, //padding of 4px on all sides
 ```
 
-```js
-padding: {
-    top: 4,
-    right: 6,
-    bottom: 2,
-    left: 6,
+```js format="snippet"
+{
+    padding: {
+        top: 4,
+        right: 6,
+        bottom: 2,
+        left: 6,
+    },
 }
 ```
 
@@ -56,7 +62,7 @@ padding: {
 
 Individual axis and series labels can be customised using a [Styler](./stylers/#item-stylers) callback.
 
-```js
+```js format="snippet"
 itemStyler: (params) => {
     if (params.datum.name.startsWith('D')) {
         return {
@@ -68,7 +74,7 @@ itemStyler: (params) => {
             },
         };
     }
-};
+}
 ```
 
 ## API Reference

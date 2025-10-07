@@ -31,7 +31,7 @@ export interface BaseChartLegendDatum {
 export interface CategoryLegendDatum extends BaseChartLegendDatum {
     legendType: 'category';
     id: string; // component ID
-    itemId: any; // sub-component ID
+    itemId: string | number; // sub-component ID
     datum?: any; // series datum
     symbol: LegendSymbolOptions;
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */

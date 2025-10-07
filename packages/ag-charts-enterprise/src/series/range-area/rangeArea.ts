@@ -1,6 +1,10 @@
 import {
+    type AgRangeAreaSeriesItemStylerParams,
+    type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
     type AgRangeAreaSeriesOptions,
+    type AgRangeAreaSeriesStyle,
+    type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -49,6 +53,8 @@ const {
     markerEnabled,
     getMarkerStyles,
     calculateSegments,
+    toHighlightString,
+    HighlightState,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
@@ -358,7 +364,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         );
 
         let intersectionSegments: _ModuleSupport.Segment[] | undefined = undefined;
-        if (this.properties.negativeStyle.enabled) {
+        if (this.properties.invertedStyle.enabled) {
             const startsInverted = yHighValues[0] < yLowValues[0];
             const intersectionXValues = findRangeAreaIntersections(
                 highSpans,
@@ -372,7 +378,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 this.chart.seriesRect,
                 this.ctx.scene,
                 startsInverted,
-                this.properties.negativeStyle
+                this.properties.invertedStyle
             );
         }
 
@@ -413,7 +419,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         value: any;
         yLowValue: any;
         yHighValue: any;
-        itemId: string;
+        itemId: AgRangeAreaSeriesItemType;
         inverted: boolean;
         datum: any;
         series: RangeAreaSeries;
@@ -468,6 +474,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const segments = this.contextNodeData?.segments;
 
+        const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightState(highlightDatum, false);
+        const highlightStyle = this.getHighlightStyle();
+
         const {
             strokeWidth,
             stroke: strokeColor,
@@ -477,7 +487,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fill: seriesFill,
             fillOpacity,
             opacity,
-        } = mergeDefaults(this.getHighlightStyle(), this.properties);
+        } = mergeDefaults(highlightStyle, this.getStyle(false, highlightState));
 
         stroke.setProperties({
             segments,
@@ -572,8 +582,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const { processedData, axes, properties } = this;
-        const { marker } = properties;
-        const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
+        const { marker, styler } = properties;
+        const markerStyle = styler ? this.getStyle(false).marker : undefined;
+        const markersEnabled = markerEnabled(
+            processedData!.input.count,
+            axes[ChartAxisDirection.X]!.scale,
+            marker,
+            markerStyle
+        );
 
         if (marker.isDirty()) {
             datumSelection.clear();
@@ -589,17 +605,29 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
-            this.properties;
+        const { marker } = this.properties;
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, datum) => {
-            datum.style = this.getMarkerStyle(marker, datum, { xKey, yHighKey, yLowKey }, { isHighlight }, undefined, {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const stylerStyle = this.getStyle(isHighlight, highlightState);
+            const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
+            const params = this.makeItemStylerParams(datum.itemId);
+            datum.style = this.getMarkerStyle(
+                marker,
+                datum,
+                params,
+                { isHighlight, highlightState },
+                stylerStyle.marker,
+                {
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                }
+            );
         });
     }
 
@@ -667,15 +695,107 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: _ModuleSupport.HighlightState): never {
-        throw new Error('not implemented');
+    private getStyle(
+        highlighted: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ): Required<AgRangeAreaSeriesStyle> & { marker: { enabled: boolean; size: number }; opacity: number } {
+        const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, styler } =
+            this.properties;
+        let stylerResult: AgRangeAreaSeriesStyle & { marker?: { enabled?: boolean } } = {};
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
+        }
+        return {
+            fill: stylerResult.fill ?? fill,
+            fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            opacity: 1,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+            marker: {
+                enabled: stylerResult.marker?.enabled ?? marker.enabled,
+                fill: stylerResult.marker?.fill ?? marker.fill,
+                fillOpacity: stylerResult.marker?.fillOpacity ?? marker.fillOpacity,
+                shape: stylerResult.marker?.shape ?? marker.shape,
+                size: stylerResult.marker?.size ?? marker.size,
+                lineDash: stylerResult.marker?.lineDash ?? marker.lineDash,
+                lineDashOffset: stylerResult.marker?.lineDashOffset ?? marker.lineDashOffset,
+                stroke: stylerResult.marker?.stroke ?? marker.stroke,
+                strokeOpacity: stylerResult.marker?.strokeOpacity ?? marker.strokeOpacity,
+                strokeWidth: stylerResult.marker?.strokeWidth ?? marker.strokeWidth,
+            } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
+        } satisfies RequireOptional<AgRangeAreaSeriesStyle> & { marker: { enabled: boolean }; opacity: number };
+    }
+
+    private makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): AgRangeAreaSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const {
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            marker,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yHighKey,
+            yLowKey,
+        } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
+        type ParamsRules = AgRangeAreaSeriesStylerParams<unknown, unknown> & MarkerRules;
+        type ResultRules = _ModuleSupport.CallbackParamRules<ParamsRules>;
+        return {
+            marker: {
+                fill: marker.fill,
+                fillOpacity: marker.fillOpacity,
+                size: marker.size,
+                shape: marker.shape,
+                stroke: marker.stroke,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            },
+            fill,
+            fillOpacity,
+            highlightState,
+            highlighted,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yLowKey,
+            yHighKey,
+        } satisfies ResultRules;
+    }
+
+    private makeItemStylerParams(itemId: AgRangeAreaSeriesItemType): AgRangeAreaSeriesItemStylerParams<unknown> {
+        const { xKey, yLowKey, yHighKey } = this.properties;
+        return { xKey, yLowKey, yHighKey, itemId };
     }
 
     override getTooltipContent(
         datumIndex: number,
         removeThisDatum: RangeAreaMarkerDatum | undefined
     ): _ModuleSupport.TooltipContent | undefined {
-        const itemId = removeThisDatum?.itemId ?? 'high';
+        const itemId: AgRangeAreaSeriesItemType = removeThisDatum?.itemId ?? 'high';
 
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = properties;
@@ -691,10 +811,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (xValue == null) return;
 
+        const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(itemId);
         const format = this.getMarkerStyle(
             this.properties.marker,
             { datumIndex, datum },
-            { xKey, yLowKey, yHighKey }
+            params,
+            { isHighlight: false },
+            stylerStyle.marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
@@ -723,7 +847,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
+        const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle(false);
 
         const markerStyle = {
             shape: marker.shape,
@@ -896,8 +1020,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
-        const { xKey, yLowKey, yHighKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, datum, { xKey, yLowKey, yHighKey }, { isHighlight: true });
+        const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(datum.itemId);
+
+        return this.getMarkerStyle(
+            this.properties.marker,
+            datum,
+            params,
+            { isHighlight: true },
+            undefined,
+            stylerStyle
+        );
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
@@ -914,6 +1047,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

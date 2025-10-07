@@ -428,10 +428,11 @@ async function build() {
             await writeStatusFile(STATUS.IDLE);
         }
     } catch (e) {
-        error(`Build failed for: ${targetMsg}: ${e}`);
+        const errorMsg = e instanceof Error ? e.message : String(e ?? 'Unknown error');
+        error(`Build failed for: ${targetMsg}: ${errorMsg}`);
 
         // Update build history with failure
-        updateBuildHistory(target, config, projects, 'failed', buildStartTime, performance.now(), e.toString());
+        updateBuildHistory(target, config, projects, 'failed', buildStartTime, performance.now(), errorMsg);
 
         // Update status if queue is empty
         if (buildBuffer.length === 0) {

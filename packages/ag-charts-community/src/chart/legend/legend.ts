@@ -220,7 +220,7 @@ export class Legend extends BaseProperties {
     /** Item index to track on re-pagination, so current page updates appropriately. */
     private paginationTrackingIndex: number = 0;
 
-    private readonly truncatedItems: Set<string> = new Set();
+    private readonly truncatedItems: Set<string | number> = new Set();
 
     private _data: CategoryLegendDatum[] = [];
     set data(value: CategoryLegendDatum[]) {
@@ -606,7 +606,7 @@ export class Legend extends BaseProperties {
         maxItemWidth: number,
         paddedMarkerWidth: number,
         measurer: ITextMeasurer,
-        id: string
+        id: string | number
     ): string {
         let addEllipsis = false;
         if (text.length > maxCharLength) {

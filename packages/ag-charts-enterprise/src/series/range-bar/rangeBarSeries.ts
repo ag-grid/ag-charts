@@ -67,7 +67,7 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
-    itemId: string;
+    itemId: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 }
 

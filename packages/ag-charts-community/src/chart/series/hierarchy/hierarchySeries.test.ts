@@ -2,6 +2,7 @@ import { EventEmitter } from 'ag-charts-core';
 
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
+import { DataSet } from '../../data/dataSet';
 import type { SeriesTooltip } from '../seriesTooltip';
 import { HierarchyNode, HierarchySeries } from './hierarchySeries';
 import { HierarchySeriesProperties } from './hierarchySeriesProperties';
@@ -64,17 +65,19 @@ describe('HierarchySeries', () => {
             eventsHub: new EventEmitter(),
         } as any);
         series.properties.sizeKey = 'size';
-        series.setChartData([
-            { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
-            {
-                size: 5,
-                children: [
-                    { size: 1 },
-                    { size: 2, children: [{ size: 4 }, { size: 5 }, { size: 6 }] },
-                    { size: 3, children: [{ size: 7 }] },
-                ],
-            },
-        ]);
+        series.setChartData(
+            DataSet.wrap([
+                { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
+                {
+                    size: 5,
+                    children: [
+                        { size: 1 },
+                        { size: 2, children: [{ size: 4 }, { size: 5 }, { size: 6 }] },
+                        { size: 3, children: [{ size: 7 }] },
+                    ],
+                },
+            ])
+        );
         series.processData();
 
         series.rootNode!.walk((node: any) => {
@@ -91,7 +94,7 @@ describe('HierarchySeries', () => {
         const series = new ExampleHierarchySeries({
             eventsHub: new EventEmitter(),
         } as any);
-        series.setChartData([]);
+        series.setChartData(DataSet.wrap([]));
         series.processData();
 
         // @ts-expect-error - Remove circular dependencies because if this test fails, Jest won't be able to print any errors
@@ -115,20 +118,22 @@ describe('HierarchySeries', () => {
         const series = new ExampleHierarchySeries({
             eventsHub: new EventEmitter(),
         } as any);
-        series.setChartData([
-            {
-                order: 1,
-                children: [{ order: 2 }, { order: 3 }, { order: 4 }],
-            },
-            {
-                order: 5,
-                children: [
-                    { order: 6 },
-                    { order: 7, children: [{ order: 8 }, { order: 9 }, { order: 10 }] },
-                    { order: 11, children: [{ order: 12 }] },
-                ],
-            },
-        ]);
+        series.setChartData(
+            DataSet.wrap([
+                {
+                    order: 1,
+                    children: [{ order: 2 }, { order: 3 }, { order: 4 }],
+                },
+                {
+                    order: 5,
+                    children: [
+                        { order: 6 },
+                        { order: 7, children: [{ order: 8 }, { order: 9 }, { order: 10 }] },
+                        { order: 11, children: [{ order: 12 }] },
+                    ],
+                },
+            ])
+        );
         series.processData();
 
         let index = 0;
