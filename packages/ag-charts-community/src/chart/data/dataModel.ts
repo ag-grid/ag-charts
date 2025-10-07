@@ -713,6 +713,20 @@ export class DataModel<
     }
 
     /**
+     * Applies an operation to all banded domains in a collection.
+     */
+    private applyOperationToBandedDomains(
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        operation: (domain: BandedDomain) => void
+    ): void {
+        for (const domain of bandedDomains.values()) {
+            if (domain instanceof BandedDomain) {
+                operation(domain);
+            }
+        }
+    }
+
+    /**
      * Updates banded domains based on pending changes.
      * This optimizes domain recalculation by only marking affected bands as dirty.
      */
@@ -729,37 +743,29 @@ export class DataModel<
 
             for (const op of spliceOps) {
                 if (op.insertCount > 0) {
-                    for (const domain of bandedDomains.values()) {
-                        if (domain instanceof BandedDomain) {
-                            domain.handleInsertion(op.index, op.insertCount);
-                        }
-                    }
+                    this.applyOperationToBandedDomains(bandedDomains, (domain) =>
+                        domain.handleInsertion(op.index, op.insertCount)
+                    );
                 }
 
                 if (op.deleteCount > 0) {
-                    for (const domain of bandedDomains.values()) {
-                        if (domain instanceof BandedDomain) {
-                            domain.handleRemoval(op.index, op.deleteCount);
-                        }
-                    }
+                    this.applyOperationToBandedDomains(bandedDomains, (domain) =>
+                        domain.handleRemoval(op.index, op.deleteCount)
+                    );
                 }
             }
 
             if (isAppendOnly(indexMap)) {
-                for (const domain of bandedDomains.values()) {
-                    if (domain instanceof BandedDomain) {
-                        const stats = domain.getStats();
-                        if (stats.bandCount > 0) {
-                            domain.markBandsDirty(indexMap.originalLength, indexMap.finalLength);
-                        }
+                this.applyOperationToBandedDomains(bandedDomains, (domain) => {
+                    const stats = domain.getStats();
+                    if (stats.bandCount > 0) {
+                        domain.markBandsDirty(indexMap.originalLength, indexMap.finalLength);
                     }
-                }
+                });
             } else if (isPrependOnly(indexMap)) {
-                for (const domain of bandedDomains.values()) {
-                    if (domain instanceof BandedDomain) {
-                        domain.markBandsDirty(0, indexMap.totalPrependCount);
-                    }
-                }
+                this.applyOperationToBandedDomains(bandedDomains, (domain) =>
+                    domain.markBandsDirty(0, indexMap.totalPrependCount)
+                );
             }
         }
     }
@@ -815,6 +821,40 @@ export class DataModel<
     }
 
     /**
+     * Generic utility to transform arrays using cached insertion results.
+     * This reduces duplication across transformKeysArrays, transformColumnsArrays, and transformInvalidityArrays.
+     */
+    private transformArraysWithCache<T>(
+        definitions: InternalDatumPropertyDefinition<K>[],
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>,
+        getArray: (defIndex: number, scope: ScopeId) => T[] | undefined,
+        getScopes: (def: InternalDatumPropertyDefinition<K>) => string[],
+        extractValue: (
+            cached: InsertionCacheValue | undefined,
+            def: InternalDatumPropertyDefinition<K>,
+            defIndex: number
+        ) => T
+    ): void {
+        for (const [defIndex, def] of definitions.entries()) {
+            for (const scope of getScopes(def)) {
+                const changeDesc = scopeChanges.get(scope);
+                if (!changeDesc) continue;
+
+                const array = getArray(defIndex, scope);
+                if (!array) continue;
+
+                const insertionCache = insertionCaches.get(scope);
+
+                changeDesc.applyToArray(array, (destIndex) => {
+                    const cached = insertionCache?.get(destIndex);
+                    return extractValue(cached, def, defIndex);
+                });
+            }
+        }
+    }
+
+    /**
      * Transforms keys arrays using cached insertion results.
      */
     private transformKeysArrays(
@@ -822,28 +862,20 @@ export class DataModel<
         scopeChanges: Map<ScopeId, DataChangeDescription>,
         insertionCaches: Map<ScopeId, InsertionCache>
     ): void {
-        for (const [keyDefIndex, keyDef] of this.keys.entries()) {
-            const keysMap = processedData.keys[keyDefIndex];
-
-            for (const scope of keyDef.scopes ?? []) {
-                const changeDesc = scopeChanges.get(scope);
-                if (!changeDesc) continue;
-
-                const keys = keysMap.get(scope);
-                if (!keys) continue;
-
-                const insertionCache = insertionCaches.get(scope);
-
-                changeDesc.applyToArray(keys, (destIndex) => {
-                    const cached = insertionCache?.get(destIndex);
-                    if (cached) {
-                        const keyResult = cached.keys.get(keyDefIndex);
-                        return keyResult?.valid ? keyResult.value : keyDef.invalidValue;
-                    }
-                    return keyDef.invalidValue;
-                });
+        this.transformArraysWithCache(
+            this.keys,
+            scopeChanges,
+            insertionCaches,
+            (defIndex, scope) => processedData.keys[defIndex]?.get(scope),
+            (def) => def.scopes ?? [],
+            (cached, def, defIndex) => {
+                if (cached) {
+                    const keyResult = cached.keys.get(defIndex);
+                    return keyResult?.valid ? keyResult.value : def.invalidValue;
+                }
+                return def.invalidValue;
             }
-        }
+        );
     }
 
     /**
@@ -854,22 +886,40 @@ export class DataModel<
         scopeChanges: Map<ScopeId, DataChangeDescription>,
         insertionCaches: Map<ScopeId, InsertionCache>
     ): void {
-        for (const [valueDefIndex, valueDef] of this.values.entries()) {
-            const column = processedData.columns[valueDefIndex];
-            const columnScope = first(valueDef.scopes);
-            const changeDesc = scopeChanges.get(columnScope);
-
-            if (!changeDesc) continue;
-
-            const insertionCache = insertionCaches.get(columnScope);
-
-            changeDesc.applyToArray(column, (destIndex) => {
-                const cached = insertionCache?.get(destIndex);
+        this.transformArraysWithCache(
+            this.values,
+            scopeChanges,
+            insertionCaches,
+            (defIndex) => processedData.columns[defIndex],
+            (def) => [first(def.scopes)],
+            (cached, def, defIndex) => {
                 if (cached) {
-                    const valueResult = cached.values.get(valueDefIndex);
-                    return valueResult?.valid ? valueResult.value : valueDef.invalidValue;
+                    const valueResult = cached.values.get(defIndex);
+                    return valueResult?.valid ? valueResult.value : def.invalidValue;
                 }
-                return valueDef.invalidValue;
+                return def.invalidValue;
+            }
+        );
+    }
+
+    /**
+     * Helper to transform a scope-based invalidity map.
+     */
+    private transformInvalidityMap(
+        invalidityMap: Map<ScopeId, boolean[]>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>,
+        extractValue: (cached: InsertionCacheValue | undefined) => boolean
+    ): void {
+        for (const [scope, changeDesc] of scopeChanges) {
+            const array = invalidityMap.get(scope);
+            if (!array) continue;
+
+            const insertionCache = insertionCaches.get(scope);
+
+            changeDesc.applyToArray(array, (destIndex) => {
+                const cached = insertionCache?.get(destIndex);
+                return extractValue(cached);
             });
         }
     }
@@ -883,32 +933,54 @@ export class DataModel<
         insertionCaches: Map<ScopeId, InsertionCache>
     ): void {
         if (processedData.invalidKeys) {
-            for (const [scope, changeDesc] of scopeChanges) {
-                const invalidKeys = processedData.invalidKeys.get(scope);
-                if (!invalidKeys) continue;
-
-                const insertionCache = insertionCaches.get(scope);
-
-                changeDesc.applyToArray(invalidKeys, (destIndex) => {
-                    const cached = insertionCache?.get(destIndex);
-                    return cached?.hasInvalidKey ?? false;
-                });
-            }
+            this.transformInvalidityMap(
+                processedData.invalidKeys,
+                scopeChanges,
+                insertionCaches,
+                (cached) => cached?.hasInvalidKey ?? false
+            );
         }
 
         if (processedData.invalidData) {
-            for (const [scope, changeDesc] of scopeChanges) {
-                const invalidData = processedData.invalidData.get(scope);
-                if (!invalidData) continue;
+            this.transformInvalidityMap(processedData.invalidData, scopeChanges, insertionCaches, (cached) =>
+                cached ? cached.hasInvalidKey || cached.hasInvalidValue : false
+            );
+        }
+    }
 
-                const insertionCache = insertionCaches.get(scope);
+    /**
+     * Creates or retrieves the appropriate domain for a definition.
+     * Handles both discrete and continuous domains, with optional banding optimization.
+     */
+    private setupDomainForDefinition(
+        def: InternalDatumPropertyDefinition<K>,
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        bandingConfig: BandedDomainConfig | undefined
+    ): IDataDomain {
+        if (def.valueType === 'category') {
+            return new DiscreteDomain();
+        }
 
-                changeDesc.applyToArray(invalidData, (destIndex) => {
-                    const cached = insertionCache?.get(destIndex);
-                    if (!cached) return false;
+        let domain = bandedDomains.get(def);
+        if (!domain && bandingConfig?.enableBanding !== false) {
+            domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
+            bandedDomains.set(def, domain);
+        }
 
-                    return cached.hasInvalidKey || cached.hasInvalidValue;
-                });
+        return domain ?? new ContinuousDomain();
+    }
+
+    /**
+     * Extends a domain from data array, using banded optimization if available.
+     */
+    private extendDomainFromData(domain: IDataDomain, data: any[], invalidData?: boolean[]): void {
+        if (domain instanceof BandedDomain) {
+            domain.initializeBands(data.length);
+            domain.extendBandsFromData(data, invalidData);
+        } else {
+            for (let i = 0; i < data.length; i++) {
+                if (invalidData?.[i] === true) continue;
+                domain.extend(data[i]);
             }
         }
     }
@@ -927,41 +999,11 @@ export class DataModel<
         const valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
 
         for (const keyDef of this.keys) {
-            let domain = bandedDomains.get(keyDef);
-
-            if (keyDef.valueType === 'category') {
-                keyDomains.set(keyDef, new DiscreteDomain());
-            } else {
-                if (!domain && bandingConfig?.enableBanding !== false) {
-                    domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
-                    bandedDomains.set(keyDef, domain);
-                }
-
-                if (domain) {
-                    keyDomains.set(keyDef, domain);
-                } else {
-                    keyDomains.set(keyDef, new ContinuousDomain());
-                }
-            }
+            keyDomains.set(keyDef, this.setupDomainForDefinition(keyDef, bandedDomains, bandingConfig));
         }
 
         for (const valueDef of this.values) {
-            let domain = bandedDomains.get(valueDef);
-
-            if (valueDef.valueType === 'category') {
-                valueDomains.set(valueDef, new DiscreteDomain());
-            } else {
-                if (!domain && bandingConfig?.enableBanding !== false) {
-                    domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
-                    bandedDomains.set(valueDef, domain);
-                }
-
-                if (domain) {
-                    valueDomains.set(valueDef, domain);
-                } else {
-                    valueDomains.set(valueDef, new ContinuousDomain());
-                }
-            }
+            valueDomains.set(valueDef, this.setupDomainForDefinition(valueDef, bandedDomains, bandingConfig));
         }
 
         // Extend key domains from keys arrays
@@ -969,32 +1011,19 @@ export class DataModel<
             const keysMap = processedData.keys[keyDefIndex];
             const domain = keyDomains.get(keyDef)!;
 
-            // If using banded domain, handle it specially
+            // For banded domains, initialize once with max length across all scopes
             if (domain instanceof BandedDomain) {
-                // Initialize bands if needed
                 const maxKeyLength = Math.max(...Array.from(keysMap.values()).map((keys) => keys.length));
                 domain.initializeBands(maxKeyLength);
+            }
 
-                // Scan dirty bands for each scope
-                for (const scope of keyDef.scopes ?? []) {
-                    const keys = keysMap.get(scope);
-                    if (!keys) continue;
+            // Extend domain from each scope
+            for (const scope of keyDef.scopes ?? []) {
+                const keys = keysMap.get(scope);
+                if (!keys) continue;
 
-                    const invalidData = processedData.invalidData?.get(scope);
-                    domain.extendBandsFromData(keys, invalidData);
-                }
-            } else {
-                // Standard domain extension (discrete or non-banded continuous)
-                for (const scope of keyDef.scopes ?? []) {
-                    const keys = keysMap.get(scope);
-                    if (!keys) continue;
-
-                    const invalidData = processedData.invalidData?.get(scope);
-                    for (let i = 0; i < keys.length; i++) {
-                        if (invalidData?.[i] === true) continue;
-                        domain.extend(keys[i]);
-                    }
-                }
+                const invalidData = processedData.invalidData?.get(scope);
+                this.extendDomainFromData(domain, keys, invalidData);
             }
         }
 
@@ -1005,17 +1034,7 @@ export class DataModel<
             const columnScope = first(valueDef.scopes);
             const invalidData = processedData.invalidData?.get(columnScope);
 
-            // If using banded domain, handle it specially
-            if (domain instanceof BandedDomain) {
-                domain.initializeBands(column.length);
-                domain.extendBandsFromData(column, invalidData);
-            } else {
-                // Standard domain extension
-                for (let i = 0; i < column.length; i++) {
-                    if (invalidData?.[i] === true) continue;
-                    domain.extend(column[i]);
-                }
-            }
+            this.extendDomainFromData(domain, column, invalidData);
         }
 
         if (this.debug.check() && bandedDomains.size > 0) {
