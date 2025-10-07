@@ -1725,7 +1725,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(DataSet.wrap(data));
+            target.setOptionsData(data != null ? DataSet.wrap(data) : undefined);
         }
 
         if (listeners) {

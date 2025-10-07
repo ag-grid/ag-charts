@@ -206,12 +206,15 @@ export class DataSet<T = unknown> {
                 // OPTIMIZATION 3: Remove from prepends first (FIFO - front to back)
                 // These are typically much smaller sets than original data
                 for (const prependGroup of prependsList) {
-                    for (let i = 0; i < prependGroup.length; i++) {
+                    let i = 0;
+                    while (i < prependGroup.length) {
                         if (toRemove.has(prependGroup[i])) {
                             toRemove.delete(prependGroup[i]);
                             prependGroup.splice(i, 1);
-                            i--; // Adjust index after removal
+                            // Don't increment i, stay at same position after removal
                             if (toRemove.size === 0) break;
+                        } else {
+                            i++;
                         }
                     }
                     if (toRemove.size === 0) break;
@@ -221,12 +224,15 @@ export class DataSet<T = unknown> {
                 // Also typically much smaller than original data
                 if (toRemove.size > 0) {
                     for (const appendGroup of appendsList) {
-                        for (let i = 0; i < appendGroup.length; i++) {
+                        let i = 0;
+                        while (i < appendGroup.length) {
                             if (toRemove.has(appendGroup[i])) {
                                 toRemove.delete(appendGroup[i]);
                                 appendGroup.splice(i, 1);
-                                i--; // Adjust index after removal
+                                // Don't increment i, stay at same position after removal
                                 if (toRemove.size === 0) break;
+                            } else {
+                                i++;
                             }
                         }
                         if (toRemove.size === 0) break;
