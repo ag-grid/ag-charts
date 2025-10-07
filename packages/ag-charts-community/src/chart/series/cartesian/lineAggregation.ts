@@ -27,14 +27,16 @@ function aggregationContainsIndex(
     d1: number,
     indexData: Int32Array,
     maxRange: number,
-    datumIndex: number
+    datumIndex: number,
+    xNeedsValueOf: boolean,
+    xValuesLength: number
 ) {
     const xValue = xValues[datumIndex];
     if (xValue == null) return false;
 
     const xRatio = Number.isFinite(d0)
-        ? aggregationXRatioForXValue(xValue, d0, d1)
-        : aggregationXRatioForDatumIndex(datumIndex, xValues.length);
+        ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)
+        : aggregationXRatioForDatumIndex(datumIndex, xValuesLength);
     const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
     return (
@@ -50,24 +52,24 @@ export function aggregateLineData(
     xValues: any[],
     yValues: any[],
     domain: any[],
-    xNeedsValueOf = true,
-    yNeedsValueOf = true
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ): LineSeriesDataAggregationFilter[] | undefined {
-    if (xValues.length < AGGREGATION_THRESHOLD) return;
+    const xValuesLength = xValues.length;
+    if (xValuesLength < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1);
+    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { xNeedsValueOf });
 
     const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange, {
         xNeedsValueOf,
-        yMaxNeedsValueOf: yNeedsValueOf,
-        yMinNeedsValueOf: yNeedsValueOf,
+        yNeedsValueOf,
     });
 
     let indices: number[] = [];
-    for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
-        if (aggregationContainsIndex(xValues, d0, d1, indexData, maxRange, datumIndex)) {
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        if (aggregationContainsIndex(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)) {
             indices.push(datumIndex);
         }
     }
@@ -76,7 +78,9 @@ export function aggregateLineData(
 
     while (indices.length > MAX_POINTS && maxRange > 64) {
         ({ maxRange } = compactAggregationIndices(indexData, valueData, maxRange, { inPlace: true }));
-        indices = indices.filter(aggregationContainsIndex.bind(null, xValues, d0, d1, indexData, maxRange));
+        indices = indices.filter((datumIndex) =>
+            aggregationContainsIndex(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)
+        );
 
         filters.push({ maxRange, indices });
     }

@@ -18,7 +18,8 @@ function estimateSmallestPixelIntervalIter(
     startDatumIndex: number,
     endDatumIndex: number,
     currentSmallestInterval: number,
-    depth: number
+    depth: number,
+    xNeedsValueOf: boolean
 ): number {
     // Statistical-based. Can be inaccurate in extreme cases, but avoids iterating entire array
     let indexAdjustments = 0;
@@ -44,8 +45,8 @@ function estimateSmallestPixelIntervalIter(
     }
 
     const ratio = Number.isFinite(d0)
-        ? aggregationXRatioForXValue(xValues[endDatumIndex], d0, d1) -
-          aggregationXRatioForXValue(xValues[startDatumIndex], d0, d1)
+        ? aggregationXRatioForXValue(xValues[endDatumIndex], d0, d1, xNeedsValueOf) -
+          aggregationXRatioForXValue(xValues[startDatumIndex], d0, d1, xNeedsValueOf)
         : aggregationXRatioForDatumIndex(endDatumIndex, xValues.length) -
           aggregationXRatioForDatumIndex(startDatumIndex, xValues.length);
 
@@ -74,7 +75,8 @@ function estimateSmallestPixelIntervalIter(
         startDatumIndex,
         midIndex,
         currentSmallestInterval,
-        depth + 1
+        depth + 1,
+        xNeedsValueOf
     );
     const trailingInterval = estimateSmallestPixelIntervalIter(
         xValues,
@@ -83,27 +85,38 @@ function estimateSmallestPixelIntervalIter(
         midIndex + 1,
         endDatumIndex,
         currentSmallestInterval,
-        depth + 1
+        depth + 1,
+        xNeedsValueOf
     );
     return Math.min(leadingInterval, trailingInterval, currentSmallestInterval);
 }
 
-function estimateSmallestPixelInterval(xValues: any[], d0: number, d1: number) {
-    return estimateSmallestPixelIntervalIter(xValues, d0, d1, 0, xValues.length - 1, 1 / (xValues.length - 1), 0);
+function estimateSmallestPixelInterval(xValues: any[], d0: number, d1: number, xNeedsValueOf: boolean) {
+    return estimateSmallestPixelIntervalIter(
+        xValues,
+        d0,
+        d1,
+        0,
+        xValues.length - 1,
+        1 / (xValues.length - 1),
+        0,
+        xNeedsValueOf
+    );
 }
 
 export function aggregationRangeFittingPoints(
     xValues: any[],
     d0: number,
     d1: number,
-    opts?: { smallestKeyInterval?: number }
+    opts?: { smallestKeyInterval?: number; xNeedsValueOf?: boolean }
 ) {
     if (Number.isFinite(d0)) {
         const smallestKeyInterval = opts?.smallestKeyInterval;
+        const xNeedsValueOf = opts?.xNeedsValueOf ?? true;
         const smallestPixelInterval =
             smallestKeyInterval != null
                 ? smallestKeyInterval / (d1 - d0)
-                : estimateSmallestPixelInterval(xValues, d0, d1);
+                : estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf);
         return nextPowerOf2(Math.trunc(1 / smallestPixelInterval)) >> 3;
     } else {
         let power = Math.ceil(Math.log2(xValues.length)) - 1;
@@ -142,8 +155,11 @@ export function aggregationXRatioForDatumIndex(datumIndex: any, domainCount: num
     return datumIndex / domainCount;
 }
 
-export function aggregationXRatioForXValue(xValue: any, d0: number, d1: number) {
-    return (xValue.valueOf() - d0) / (d1 - d0);
+export function aggregationXRatioForXValue(xValue: any, d0: number, d1: number, xNeedsValueOf: boolean) {
+    if (xNeedsValueOf) {
+        return (xValue.valueOf() - d0) / (d1 - d0);
+    }
+    return (xValue - d0) / (d1 - d0);
 }
 
 export function aggregationIndexForXRatio(xRatio: number, maxRange: number) {
@@ -160,13 +176,11 @@ export function createAggregationIndices(
     {
         positive,
         xNeedsValueOf = true,
-        yMaxNeedsValueOf = true,
-        yMinNeedsValueOf = true,
+        yNeedsValueOf = true,
     }: {
         positive?: boolean;
         xNeedsValueOf?: boolean;
-        yMaxNeedsValueOf?: boolean;
-        yMinNeedsValueOf?: boolean;
+        yNeedsValueOf?: boolean;
     } = {}
 ): {
     indexData: Int32Array;
@@ -208,14 +222,14 @@ export function createAggregationIndices(
         // Extract numeric values once per iteration (conditionally call valueOf based on metadata)
         const yMaxValue = yMaxValues[datumIndex];
         const yMinValue = yMinValues[datumIndex];
-        const yMax: number = yMaxNeedsValueOf ? (yMaxValue != null ? yMaxValue.valueOf() : NaN) : yMaxValue ?? NaN;
-        const yMin: number = yMinNeedsValueOf ? (yMinValue != null ? yMinValue.valueOf() : NaN) : yMinValue ?? NaN;
+        const yMax: number = yNeedsValueOf ? (yMaxValue != null ? yMaxValue.valueOf() : NaN) : yMaxValue ?? NaN;
+        const yMin: number = yNeedsValueOf ? (yMinValue != null ? yMinValue.valueOf() : NaN) : yMinValue ?? NaN;
 
         if (positive != null && yMax >= 0 !== positive) continue;
 
         const xRatio = continuous
             ? xNeedsValueOf
-                ? aggregationXRatioForXValue(xValue, d0, d1)
+                ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)
                 : (xValue - d0) / (d1 - d0)
             : aggregationXRatioForDatumIndex(datumIndex, domainCount);
         const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);

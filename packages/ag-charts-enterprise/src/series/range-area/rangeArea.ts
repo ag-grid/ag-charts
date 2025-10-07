@@ -165,7 +165,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return memoizedAggregateRangeAreaData(xAxis.scale.type, xValues, yHighValues, yLowValues, domain);
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `yHighValue`, processedData);
+
+        return memoizedAggregateRangeAreaData(
+            xAxis.scale.type,
+            xValues,
+            yHighValues,
+            yLowValues,
+            domain,
+            xNeedsValueOf,
+            yNeedsValueOf
+        );
     }
 
     override xCoordinateRange(xValue: any): [number, number] {

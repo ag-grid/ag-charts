@@ -296,6 +296,8 @@ export class BubbleSeries extends CartesianSeries<
         const xDomain = dataModel.getDomain(this, `xValue`, 'value', processedData);
         const yDomain = dataModel.getDomain(this, `yValue`, 'value', processedData);
         const sizeDomain = sizeKey ? sizeScale.domain : [0, 0];
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `yValue`, processedData);
 
         // Not used in mini chart - no memoization needed
         return aggregateBubbleData(
@@ -306,7 +308,9 @@ export class BubbleSeries extends CartesianSeries<
             sizeValues,
             xDomain,
             yDomain,
-            sizeDomain
+            sizeDomain,
+            xNeedsValueOf,
+            yNeedsValueOf
         );
     }
 
