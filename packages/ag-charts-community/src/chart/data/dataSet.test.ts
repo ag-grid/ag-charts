@@ -254,12 +254,12 @@ describe('DataSet', () => {
             dataSet.commitPendingTransactions();
 
             const descAfter = dataSet.getChangeDescription();
-            expect(descAfter).toBeDefined(); // Cleared after next update.
+            expect(descAfter).toBeUndefined(); // No pending transactions after commit
 
             dataSet.addTransaction({ append: [5] });
             const descAfter2 = dataSet.getChangeDescription();
             expect(descAfter2).toBeDefined();
-            expect(descAfter).not.toBe(descAfter2);
+            expect(descBefore).not.toBe(descAfter2);
         });
 
         test('should invalidate cache automatically when adding transactions', () => {
@@ -501,6 +501,621 @@ describe('DataSet', () => {
                     },
                 ],
             });
+        });
+    });
+
+    /**
+     * Performance tests to verify the scalability optimizations in buildIndexMap.
+     * These tests ensure we're performing the minimum number of array operations.
+     */
+    describe('buildIndexMap performance - Array Operation Scale', () => {
+        /**
+         * Helper to create a spy that tracks data access patterns
+         */
+        function createDataSetWithTracking<T>(initialData: T[]) {
+            const accessedIndices = new Set<number>();
+            let maxAccessedIndex = -1;
+
+            // Create a proxy around the data array to track accesses
+            const dataProxy = new Proxy(initialData, {
+                get(target, prop) {
+                    if (typeof prop === 'string' && !isNaN(Number(prop))) {
+                        const index = Number(prop);
+                        accessedIndices.add(index);
+                        maxAccessedIndex = Math.max(maxAccessedIndex, index);
+                    }
+                    return target[prop as any];
+                },
+            });
+
+            const dataSet = new DataSet(dataProxy);
+
+            return {
+                dataSet,
+                getAccessStats: () => ({
+                    accessedIndices: Array.from(accessedIndices).sort((a, b) => a - b),
+                    accessCount: accessedIndices.size,
+                    maxAccessedIndex,
+                }),
+                resetAccessStats: () => {
+                    accessedIndices.clear();
+                    maxAccessedIndex = -1;
+                },
+            };
+        }
+
+        describe('removing appended items', () => {
+            test('should NOT scan original data when removing recently appended items (primitive values)', () => {
+                // Create large dataset with PRIMITIVE values for proper Set matching
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                // Append some items
+                const appendedItems = [dataSize, dataSize + 1, dataSize + 2];
+                dataSet.addTransaction({ append: appendedItems });
+
+                // Reset stats before the operation we want to measure
+                resetAccessStats();
+
+                // Remove one of the appended items
+                dataSet.addTransaction({ remove: [dataSize + 1] });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should NOT have accessed any of the original data
+                expect(stats.accessCount).toBe(0);
+                expect(stats.maxAccessedIndex).toBe(-1);
+            });
+
+            test('should scan data when removing objects (limitation: object identity)', () => {
+                // Objects require scanning because Set uses reference equality
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => ({ id: i }));
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                // Append some items (different object instances)
+                const appendedItems = [{ id: dataSize }, { id: dataSize + 1 }, { id: dataSize + 2 }];
+                dataSet.addTransaction({ append: appendedItems });
+
+                resetAccessStats();
+
+                // Try to remove with a new object instance - won't match appended items
+                dataSet.addTransaction({ remove: [{ id: dataSize + 1 }] });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Will scan original data looking for the object (and won't find it)
+                expect(stats.accessCount).toBe(dataSize);
+            });
+
+            test('should handle removing all appended items without scanning original data', () => {
+                const dataSize = 5000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                const appendedItems = [100001, 100002, 100003, 100004, 100005];
+                dataSet.addTransaction({ append: appendedItems });
+
+                resetAccessStats();
+
+                // Remove all appended items
+                dataSet.addTransaction({ remove: appendedItems });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should not have scanned the original 5000 items
+                expect(stats.accessCount).toBe(0);
+            });
+        });
+
+        describe('removing prepended items', () => {
+            test('should NOT scan original data when removing recently prepended items (primitive values)', () => {
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                // Prepend some items with primitive values
+                const prependedItems = [-3, -2, -1];
+                dataSet.addTransaction({ prepend: prependedItems });
+
+                resetAccessStats();
+
+                // Remove one of the prepended items
+                dataSet.addTransaction({ remove: [-2] });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should NOT have accessed any of the original data
+                expect(stats.accessCount).toBe(0);
+            });
+
+            test('should work with same object references', () => {
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => ({ id: i }));
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                // Prepend some items - keep references
+                const obj1 = { id: -3 };
+                const obj2 = { id: -2 };
+                const obj3 = { id: -1 };
+                const prependedItems = [obj1, obj2, obj3];
+                dataSet.addTransaction({ prepend: prependedItems });
+
+                resetAccessStats();
+
+                // Remove using the SAME object reference
+                dataSet.addTransaction({ remove: [obj2] });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should NOT have accessed any of the original data
+                expect(stats.accessCount).toBe(0);
+            });
+        });
+
+        describe('early stopping optimization', () => {
+            test('should stop scanning after finding items at the beginning', () => {
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => ({ id: i, value: i }));
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                resetAccessStats();
+
+                // Remove first 5 items
+                const itemsToRemove = data.slice(0, 5);
+                dataSet.addTransaction({ remove: itemsToRemove });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should have only accessed the first 5 items, not all 10000
+                expect(stats.accessCount).toBe(5);
+                expect(stats.maxAccessedIndex).toBe(4);
+                expect(stats.accessedIndices).toEqual([0, 1, 2, 3, 4]);
+            });
+
+            test('should stop scanning once all items are found', () => {
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                resetAccessStats();
+
+                // Remove items 10, 20, 30
+                dataSet.addTransaction({ remove: [10, 20, 30] });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should stop after finding item 30 (at index 30), not scan to 10000
+                expect(stats.maxAccessedIndex).toBeLessThanOrEqual(30);
+                expect(stats.accessCount).toBeLessThanOrEqual(31); // May need to scan up to index 30
+            });
+        });
+
+        describe('no removal optimization', () => {
+            test('should NOT scan data when only appending', () => {
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                resetAccessStats();
+
+                // Only append, no removals
+                dataSet.addTransaction({ append: [10001, 10002, 10003] });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should not have accessed any data
+                expect(stats.accessCount).toBe(0);
+            });
+
+            test('should NOT scan data when only prepending', () => {
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                resetAccessStats();
+
+                // Only prepend, no removals
+                dataSet.addTransaction({ prepend: [-3, -2, -1] });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should not have accessed any data
+                expect(stats.accessCount).toBe(0);
+            });
+
+            test('should NOT scan data for mixed append/prepend without removals', () => {
+                const dataSize = 10000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                resetAccessStats();
+
+                // Mixed operations but no removals
+                dataSet.addTransaction({
+                    prepend: [-3, -2, -1],
+                    append: [10001, 10002, 10003],
+                });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should not have accessed any data
+                expect(stats.accessCount).toBe(0);
+            });
+        });
+
+        describe('complex scenarios', () => {
+            test('should optimize multiple transactions with mixed operations (using same references)', () => {
+                const dataSize = 5000;
+                const data = Array.from({ length: dataSize }, (_, i) => ({ id: i }));
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                // Keep references to objects we'll remove later
+                const prepend1 = { id: -1 };
+                const prepend2 = { id: -2 };
+                const append1 = { id: 5000 };
+                const append2 = { id: 5001 };
+
+                // First transaction: add some items
+                dataSet.addTransaction({
+                    prepend: [prepend1, prepend2],
+                    append: [append1, append2],
+                });
+
+                resetAccessStats();
+
+                // Second transaction: remove using SAME object references
+                dataSet.addTransaction({
+                    remove: [prepend1, append2],
+                });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should not have scanned original data (removed from prepends/appends only)
+                expect(stats.accessCount).toBe(0);
+            });
+
+            test('should handle removal of non-existent items efficiently', () => {
+                const dataSize = 5000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                resetAccessStats();
+
+                // Try to remove items that don't exist
+                dataSet.addTransaction({ remove: [99999, 88888, 77777] });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should scan the entire array once (since items don't exist)
+                // but should NOT create a full Map or do multiple passes
+                expect(stats.accessCount).toBe(dataSize);
+            });
+
+            test('should efficiently handle removing items from different sections', () => {
+                const dataSize = 1000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                // Add items to prepends and appends
+                dataSet.addTransaction({
+                    prepend: [-1, -2, -3],
+                    append: [1000, 1001, 1002],
+                });
+
+                resetAccessStats();
+
+                // Remove from all three sections
+                dataSet.addTransaction({
+                    remove: [-2, 50, 1001], // prepend, original, append
+                });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should only scan up to index 50 in original data (not all 1000)
+                expect(stats.maxAccessedIndex).toBeLessThanOrEqual(50);
+                expect(stats.accessCount).toBeLessThanOrEqual(51);
+            });
+        });
+
+        describe('scale verification with large datasets', () => {
+            test('should handle 100k items with minimal operations when removing appended items', () => {
+                const dataSize = 100000;
+                const data = Array.from({ length: dataSize }, (_, i) => i);
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                // Append items
+                const appended = Array.from({ length: 100 }, (_, i) => dataSize + i);
+                dataSet.addTransaction({ append: appended });
+
+                resetAccessStats();
+
+                // Remove half of appended items
+                const toRemove = appended.slice(0, 50);
+                dataSet.addTransaction({ remove: toRemove });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should NOT have touched the 100k original items
+                expect(stats.accessCount).toBe(0);
+                expect(stats.maxAccessedIndex).toBe(-1);
+            });
+
+            test('should handle 100k items with early stopping for beginning removals', () => {
+                const dataSize = 100000;
+                const data = Array.from({ length: dataSize }, (_, i) => ({ id: i }));
+                const { dataSet, getAccessStats, resetAccessStats } = createDataSetWithTracking(data);
+
+                resetAccessStats();
+
+                // Remove first 10 items from 100k dataset
+                const toRemove = data.slice(0, 10);
+                dataSet.addTransaction({ remove: toRemove });
+                dataSet.getChangeDescription();
+
+                const stats = getAccessStats();
+
+                // Should only access first 10 items, not all 100k
+                expect(stats.accessCount).toBe(10);
+                expect(stats.maxAccessedIndex).toBe(9);
+            });
+        });
+    });
+
+    describe('commitPendingTransactions performance - No full data scans', () => {
+        /**
+         * Helper to track array operations during commit
+         */
+        function createCommitTrackingDataSet<T>(initialData: T[]) {
+            const writeOperations: Array<{ type: string; index: number; count?: number }> = [];
+            let fullScanDetected = false;
+
+            // Track array mutations
+            const dataProxy = new Proxy(initialData, {
+                get(target, prop) {
+                    // Track methods that indicate full array scans
+                    if (prop === 'unshift') {
+                        return function (...items: T[]) {
+                            writeOperations.push({ type: 'unshift', index: 0, count: items.length });
+                            return Array.prototype.unshift.apply(target, items);
+                        };
+                    }
+                    if (prop === 'push') {
+                        return function (...items: T[]) {
+                            writeOperations.push({ type: 'push', index: target.length, count: items.length });
+                            return Array.prototype.push.apply(target, items);
+                        };
+                    }
+                    if (prop === 'splice') {
+                        return function (start: number, deleteCount?: number, ...items: T[]) {
+                            writeOperations.push({
+                                type: 'splice',
+                                index: start,
+                                count: deleteCount,
+                            });
+                            return Array.prototype.splice.apply(target, [start, deleteCount!, ...items] as any);
+                        };
+                    }
+
+                    // Detect iteration over all elements (would indicate full scan)
+                    if (prop === Symbol.iterator || prop === 'forEach' || prop === 'map' || prop === 'filter') {
+                        fullScanDetected = true;
+                    }
+
+                    // For indexed access, just return the value directly
+                    // We'll track writes in the set trap
+
+                    return target[prop as any];
+                },
+                set(target, prop, value) {
+                    if (typeof prop === 'string' && !isNaN(Number(prop))) {
+                        const index = Number(prop);
+                        writeOperations.push({ type: 'write', index });
+                    }
+                    target[prop as any] = value;
+                    return true;
+                },
+            });
+
+            const dataSet = new DataSet(dataProxy);
+
+            return {
+                dataSet,
+                getOperationStats: () => ({
+                    operations: [...writeOperations],
+                    operationCount: writeOperations.length,
+                    fullScanDetected,
+                }),
+                resetStats: () => {
+                    writeOperations.length = 0;
+                    fullScanDetected = false;
+                },
+            };
+        }
+
+        test('should not do full array scan when only appending', () => {
+            const dataSize = 10000;
+            const data = Array.from({ length: dataSize }, (_, i) => i);
+            const { dataSet, getOperationStats, resetStats } = createCommitTrackingDataSet(data);
+
+            dataSet.addTransaction({ append: [10000, 10001, 10002] });
+
+            resetStats();
+            dataSet.commitPendingTransactions();
+            const stats = getOperationStats();
+
+            // Should only have a single splice operation (equivalent to push), no full scan
+            expect(stats.fullScanDetected).toBe(false);
+            expect(stats.operations).toHaveLength(1);
+            expect(stats.operations[0]).toEqual({
+                type: 'splice',
+                index: dataSize,
+                count: 0, // deleteCount is 0 for pure append
+            });
+        });
+
+        test('should not do full array scan when only prepending', () => {
+            const dataSize = 10000;
+            const data = Array.from({ length: dataSize }, (_, i) => i);
+            const { dataSet, getOperationStats, resetStats } = createCommitTrackingDataSet(data);
+
+            dataSet.addTransaction({ prepend: [-3, -2, -1] });
+
+            resetStats();
+            dataSet.commitPendingTransactions();
+            const stats = getOperationStats();
+
+            // Should only have a single splice operation (equivalent to unshift), no full scan
+            expect(stats.fullScanDetected).toBe(false);
+            expect(stats.operations).toHaveLength(1);
+            expect(stats.operations[0]).toEqual({
+                type: 'splice',
+                index: 0,
+                count: 0, // deleteCount is 0 for pure prepend
+            });
+        });
+
+        test('should use splice for removals instead of rewriting entire array', () => {
+            const dataSize = 1000;
+            const data = Array.from({ length: dataSize }, (_, i) => i);
+            const { dataSet, getOperationStats, resetStats } = createCommitTrackingDataSet(data);
+
+            // Remove items 10-14 (consecutive)
+            dataSet.addTransaction({ remove: [10, 11, 12, 13, 14] });
+
+            resetStats();
+            dataSet.commitPendingTransactions();
+            const stats = getOperationStats();
+
+            // Should use a single splice operation for consecutive removals
+            expect(stats.fullScanDetected).toBe(false);
+            expect(stats.operations).toHaveLength(1);
+            expect(stats.operations[0].type).toBe('splice');
+            expect(stats.operations[0].count).toBe(5); // Removing 5 consecutive items
+        });
+
+        test('should use multiple splices for non-consecutive removals', () => {
+            const dataSize = 1000;
+            const data = Array.from({ length: dataSize }, (_, i) => i);
+            const { dataSet, getOperationStats, resetStats } = createCommitTrackingDataSet(data);
+
+            // Remove non-consecutive items
+            dataSet.addTransaction({ remove: [10, 20, 30] });
+
+            resetStats();
+            dataSet.commitPendingTransactions();
+            const stats = getOperationStats();
+
+            // Should use separate splice operations, no full scan
+            expect(stats.fullScanDetected).toBe(false);
+            // Should have 3 splice operations (one for each removal)
+            expect(stats.operations.filter((op) => op.type === 'splice')).toHaveLength(3);
+        });
+
+        test('should efficiently handle mixed operations', () => {
+            const dataSize = 1000;
+            const data = Array.from({ length: dataSize }, (_, i) => i);
+            const { dataSet, getOperationStats, resetStats } = createCommitTrackingDataSet(data);
+
+            dataSet.addTransaction({
+                prepend: [-1, -2],
+                append: [1000, 1001],
+                remove: [50, 51, 52], // consecutive removals
+            });
+
+            resetStats();
+            dataSet.commitPendingTransactions();
+            const stats = getOperationStats();
+
+            // Should not do full scan
+            expect(stats.fullScanDetected).toBe(false);
+
+            // Should have 3 splice operations: one for prepend, one for removal, one for append
+            // applyToArray uses splice for all operations
+            const spliceOps = stats.operations.filter((op) => op.type === 'splice');
+
+            expect(spliceOps).toHaveLength(3);
+            // First splice: prepend at index 0
+            expect(spliceOps[0].index).toBe(0);
+            expect(spliceOps[0].count).toBe(0); // no deletions for prepend
+            // Second splice: remove at index 52 (50 original + 2 prepended)
+            expect(spliceOps[1].index).toBe(52);
+            expect(spliceOps[1].count).toBe(3); // removing 3 items
+            // Third splice: append at end
+            expect(spliceOps[2].index).toBe(999); // after removals
+        });
+
+        test('should handle large consecutive removals efficiently', () => {
+            const dataSize = 100000;
+            const data = Array.from({ length: dataSize }, (_, i) => i);
+            const { dataSet, getOperationStats, resetStats } = createCommitTrackingDataSet(data);
+
+            // Remove 1000 consecutive items from the middle
+            const toRemove = Array.from({ length: 1000 }, (_, i) => 50000 + i);
+            dataSet.addTransaction({ remove: toRemove });
+
+            resetStats();
+            dataSet.commitPendingTransactions();
+            const stats = getOperationStats();
+
+            // Should use a single splice for 1000 consecutive removals
+            expect(stats.fullScanDetected).toBe(false);
+            expect(stats.operations).toHaveLength(1);
+            expect(stats.operations[0]).toEqual({
+                type: 'splice',
+                index: 50000,
+                count: 1000,
+            });
+        });
+
+        test('should avoid array rewrites even with complex removal patterns', () => {
+            const dataSize = 1000;
+            const data = Array.from({ length: dataSize }, (_, i) => i);
+            const { dataSet, getOperationStats, resetStats } = createCommitTrackingDataSet(data);
+
+            // Multiple groups of consecutive removals
+            dataSet.addTransaction({
+                remove: [
+                    10,
+                    11,
+                    12, // Group 1
+                    100,
+                    101,
+                    102, // Group 2
+                    500,
+                    501, // Group 3
+                ],
+            });
+
+            resetStats();
+            dataSet.commitPendingTransactions();
+            const stats = getOperationStats();
+
+            // Should not do full scan
+            expect(stats.fullScanDetected).toBe(false);
+
+            // Should use splice operations only
+            const spliceOps = stats.operations.filter((op) => op.type === 'splice');
+            expect(spliceOps).toHaveLength(3); // One splice per group
+
+            // Verify no individual element writes occurred
+            const writeOps = stats.operations.filter((op) => op.type === 'write');
+            expect(writeOps).toHaveLength(0);
         });
     });
 });

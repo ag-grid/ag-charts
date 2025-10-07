@@ -106,6 +106,24 @@ export class DataChangeDescription {
     }
 
     /**
+     * Apply this change description to transform an array in-place using stored values.
+     * This is a zero-copy operation that mutates the array directly.
+     * Uses the prepend and append values stored in this DataChangeDescription.
+     *
+     * @param array - The array to transform in-place
+     */
+    applyToArrayWithStoredValues<T>(array: T[]): void {
+        // Combine all values we need to insert (prepends first, then appends)
+        const allInsertions = [...this.prependValues, ...this.appendValues] as T[];
+        let insertionIndex = 0;
+
+        this.applyToArray(array, () => {
+            // Return the next value to insert from our combined list
+            return allInsertions[insertionIndex++];
+        });
+    }
+
+    /**
      * Applies the transformation to an array in-place using native Array operations.
      * This is a zero-copy operation that mutates the array directly.
      *

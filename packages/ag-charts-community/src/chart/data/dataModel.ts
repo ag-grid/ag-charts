@@ -674,7 +674,10 @@ export class DataModel<
         return this.propertyProcessors.length <= 0;
     }
 
-    public reprocessData(processedData: ProcessedData<D>): ProcessedData<D> {
+    public reprocessData(
+        processedData: ProcessedData<D>,
+        dataSets?: Map<DataSet<any>, DataChangeDescription | undefined>
+    ): ProcessedData<D> {
         if (!this.isReprocessingSupported(processedData)) {
             throw new Error('reprocessing data is not supported');
         }
@@ -682,7 +685,7 @@ export class DataModel<
         const start = performance.now();
 
         // Collect and validate changes
-        const scopeChanges = this.collectScopeChanges(processedData);
+        const scopeChanges = this.collectScopeChanges(processedData, dataSets);
         if (scopeChanges.size === 0) {
             return processedData;
         }
@@ -786,10 +789,13 @@ export class DataModel<
     /**
      * Collects change descriptions from all DataSets before committing.
      */
-    private collectScopeChanges(processedData: ProcessedData<D>): Map<ScopeId, DataChangeDescription> {
+    private collectScopeChanges(
+        processedData: ProcessedData<D>,
+        dataSets?: Map<DataSet<any>, DataChangeDescription | undefined>
+    ): Map<ScopeId, DataChangeDescription> {
         const scopeChanges = new Map<ScopeId, DataChangeDescription>();
         for (const [scopeId, dataSet] of processedData.dataSources) {
-            const changeDesc = dataSet.getChangeDescription();
+            const changeDesc = dataSets?.get(dataSet) ?? dataSet.getChangeDescription();
             if (changeDesc) {
                 scopeChanges.set(scopeId, changeDesc);
             }

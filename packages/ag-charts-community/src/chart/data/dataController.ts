@@ -11,7 +11,7 @@ import {
     type PropertyDefinition,
     type UngroupedData,
 } from './dataModel';
-import { DataSet } from './dataSet';
+import { DataChangeDescription, DataSet } from './dataSet';
 
 interface RequestedProcessing<
     D extends object,
@@ -77,16 +77,12 @@ export class DataController {
         this.status = 'executed';
 
         // Commit pending transactions before processing
-        const dataSets = new Set<DataSet<any>>();
+        const dataSets = new Map<DataSet<any>, DataChangeDescription | undefined>();
         for (const request of this.requested) {
             if (request.dataSet.hasPendingTransactions()) {
-                dataSets.add(request.dataSet);
+                dataSets.set(request.dataSet, request.dataSet.getChangeDescription());
             }
-        }
-        for (const dataSet of dataSets) {
-            // Force caching of change description prior to committing pending transactions.
-            dataSet.getChangeDescription();
-            dataSet.commitPendingTransactions();
+            request.dataSet.commitPendingTransactions();
         }
 
         this.debug('DataController.execute() - requested', this.requested);
@@ -138,13 +134,10 @@ export class DataController {
             }
 
             const { dataModel, processedData } = reusableCache;
-            if (
-                processedData &&
-                dataSet.getChangeDescription() != null &&
-                dataModel.isReprocessingSupported(processedData)
-            ) {
+            const changeDescription = dataSets.get(dataSet);
+            if (processedData && changeDescription && dataModel.isReprocessingSupported(processedData)) {
                 this.debug('DataController.execute() - reprocessing data', processedData, dataSet);
-                dataModel.reprocessData(processedData);
+                dataModel.reprocessData(processedData, dataSets);
                 resolveResult(dataModel, processedData);
                 continue;
             }

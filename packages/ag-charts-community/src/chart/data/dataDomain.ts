@@ -115,7 +115,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         this.config = {
             minDataSizeForBanding: config.minDataSizeForBanding ?? DEFAULT_MIN_DATA_SIZE_FOR_BANDING,
             targetBandCount: config.targetBandCount ?? DEFAULT_TARGET_BAND_COUNT,
-            maxBandSize: config.maxBandSize,
+            maxBandSize: config.maxBandSize ?? Infinity,
             enableBanding: config.enableBanding ?? true,
         };
     }
@@ -141,11 +141,11 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         }
 
         // Calculate optimal band size
-        const bandCount = Math.min(this.config.targetBandCount, Math.ceil(dataSize / 100));
-        const bandSize = Math.ceil(dataSize / bandCount);
+        const targetBandCount = this.getTargetBandCount(this.dataSize);
+        const bandSize = Math.ceil(dataSize / targetBandCount);
 
         this.bands = [];
-        for (let i = 0; i < bandCount; i++) {
+        for (let i = 0; i < targetBandCount; i++) {
             const startIndex = i * bandSize;
             const endIndex = Math.min((i + 1) * bandSize, dataSize);
 
@@ -282,7 +282,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         }
 
         // Check if any band is too large
-        if (this.config.maxBandSize) {
+        if (this.config.maxBandSize < Infinity) {
             const maxSize = Math.max(...this.bands.map((b) => b.endIndex - b.startIndex));
             if (maxSize > this.config.maxBandSize) {
                 this.initializeBands(this.dataSize);
@@ -291,10 +291,14 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         }
 
         // Check if band count is significantly off target
-        const targetBandCount = Math.min(this.config.targetBandCount, Math.ceil(this.dataSize / 100));
+        const targetBandCount = this.getTargetBandCount(this.dataSize);
         if (Math.abs(this.bands.length - targetBandCount) > targetBandCount * 0.5) {
             this.initializeBands(this.dataSize);
         }
+    }
+
+    private getTargetBandCount(dataSize: number): number {
+        return Math.min(this.config.targetBandCount, Math.ceil(dataSize / 100));
     }
 
     /**
@@ -302,14 +306,16 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
      * This is called after dirty bands have been rescanned.
      */
     extendBandsFromData(data: T[], invalidData?: boolean[]): void {
+        const dataLength = data.length;
         for (const band of this.bands) {
             if (!band.isDirty) continue;
 
             // Reset the band's domain
             band.subDomain = this.domainFactory();
+            const { startIndex, endIndex } = band;
 
             // Scan the band's range
-            for (let i = band.startIndex; i < band.endIndex && i < data.length; i++) {
+            for (let i = startIndex; i < endIndex && i < dataLength; i++) {
                 if (invalidData?.[i]) continue;
                 band.subDomain.extend(data[i]);
             }

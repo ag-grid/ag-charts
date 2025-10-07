@@ -1,181 +1,162 @@
-import type { AgDataTransaction } from 'ag-charts-types';
-
-import { Debug } from '../../util/debug';
 import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
 
-// Re-export types for backward compatibility
-export { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
-
-type DataTransaction<T> = AgDataTransaction<T>;
-
-const debug = Debug.create(true, 'data-set');
+export { DataChangeDescription } from './dataChangeDescription';
 
 /**
- * Encapsulates chart data with support for transactional updates.
- *
- * DataSet wraps a raw data array and manages pending transactions (append, prepend, remove operations)
- * that can be committed incrementally for high-performance data updates.
- *
- * @example
- * ```typescript
- * // Create a DataSet from raw data
- * const dataSet = new DataSet([{ x: 1, y: 2 }, { x: 2, y: 4 }]);
- *
- * // Apply transactions
- * dataSet.addTransaction({ append: [{ x: 3, y: 6 }] });
- * dataSet.commitPendingTransactions();
- * ```
+ * Encapsulates a single transaction to be applied to a DataSet.
+ */
+export interface DataSetTransaction<T> {
+    prepend?: T[];
+    append?: T[];
+    remove?: T[];
+}
+
+/**
+ * Manages transactional updates to an array of data with optimized batch processing.
+ * Transactions are queued and can be applied in batch for efficient data transformations.
  */
 export class DataSet<T = unknown> {
-    public readonly data: T[];
-    private readonly pendingTransactions: DataTransaction<T>[];
+    private pendingTransactions: DataSetTransaction<T>[] = [];
+    private cachedChangeDescription: DataChangeDescription | undefined;
 
-    private cachedChangeDescription?: DataChangeDescription;
-
-    constructor(data: T[], pendingTransactions: DataTransaction<T>[] = []) {
-        this.data = data;
-        this.pendingTransactions = pendingTransactions;
-    }
+    constructor(public data: T[]) {}
 
     /**
-     * Adds a new transaction to the pending queue.
-     * Automatically invalidates the change description cache.
+     * Creates an empty DataSet.
      */
-    addTransaction(transaction: DataTransaction<T>): void {
-        this.pendingTransactions.push(transaction);
-        this.cachedChangeDescription = undefined;
+    static empty<U = unknown>(): DataSet<U> {
+        return new DataSet<U>([]);
     }
 
     /**
-     * Wraps raw data array in a DataSet, or returns undefined if data is null/undefined.
+     * Wraps existing data in a DataSet.
      */
-    static wrap<T>(data?: T[]): DataSet<T> | undefined {
-        if (data == null) return undefined;
-        return new DataSet<T>(data);
+    static wrap<U = unknown>(data: U[]): DataSet<U> {
+        return new DataSet<U>(data);
     }
 
     /**
-     * Creates an empty DataSet with no data.
-     */
-    static empty<T = unknown>(): DataSet<T> {
-        return new DataSet<T>([]);
-    }
-
-    /**
-     * Type guard to check if a value is a DataSet instance.
-     */
-    static isDataSet(value: unknown): value is DataSet<any> {
-        return value instanceof DataSet;
-    }
-
-    /**
-     * Returns the net size of the data after applying all pending transactions.
-     * This calculates the final data length without mutating the underlying array.
-     *
-     * Note: This assumes transactions don't have duplicate updates in a single transaction
-     * (e.g. removing or adding the same item multiple times).
+     * Gets the net size of the data (after pending transactions).
      */
     netSize(): number {
         if (!this.hasPendingTransactions()) {
             return this.data.length;
         }
 
-        let netLength = this.data.length;
-
-        for (const transaction of this.pendingTransactions) {
-            if (Array.isArray(transaction.remove)) {
-                netLength -= transaction.remove.length;
-            }
-            if (Array.isArray(transaction.prepend)) {
-                netLength += transaction.prepend.length;
-            }
-            if (Array.isArray(transaction.append)) {
-                netLength += transaction.append.length;
-            }
-        }
-
-        return Math.max(0, netLength);
+        const changeDesc = this.getChangeDescription();
+        return changeDesc ? changeDesc.indexMap.finalLength : this.data.length;
     }
 
     /**
-     * Checks if there are any pending transactions waiting to be committed.
+     * Adds a transaction to the pending queue.
+     * The transaction will not be applied until commitPendingTransactions() is called.
+     * @param transaction The transaction to add to the queue
+     */
+    addTransaction(transaction: DataSetTransaction<T>): void {
+        this.pendingTransactions.push(transaction);
+        this.cachedChangeDescription = undefined; // Invalidate cache
+    }
+
+    /**
+     * Checks if there are pending transactions to process.
+     * @returns true if there are pending transactions
      */
     hasPendingTransactions(): boolean {
         return this.pendingTransactions.length > 0;
     }
 
     /**
-     * Commits all pending transactions by applying them to the underlying data array in-place.
-     * This mutates the data array and clears the pending transactions queue.
-     *
-     * Uses the optimized applyToArray() method for efficient bulk transformations.
+     * Gets the number of pending transactions.
+     * @returns The number of transactions waiting to be committed
      */
-    commitPendingTransactions(): void {
-        if (!this.hasPendingTransactions()) {
-            return;
-        }
-
-        const changeDesc = this.getChangeDescription();
-        if (!changeDesc) {
-            return;
-        }
-
-        const { finalLength, totalPrependCount, totalAppendCount } = changeDesc.indexMap;
-
-        if (debug.check()) {
-            debug('DataSet.commitPendingTransactions() - starting', {
-                beforeLength: this.data.length,
-                finalLength,
-            });
-        }
-
-        const prependValues = changeDesc.getPrependedValues<T>();
-        const appendValues = changeDesc.getAppendedValues<T>();
-
-        changeDesc.applyToArray(this.data, (destIndex) => {
-            if (destIndex < totalPrependCount) {
-                return prependValues[destIndex];
-            }
-            const appendStartIndex = finalLength - totalAppendCount;
-            if (totalAppendCount > 0 && destIndex >= appendStartIndex) {
-                return appendValues[destIndex - appendStartIndex];
-            }
-            throw new Error(`Unexpected insertion at index ${destIndex}`);
-        });
-
-        this.pendingTransactions.length = 0;
-        // Keep the cached change description so consumers can see what changes were applied
-        // It will be invalidated when new transactions are added
-
-        if (debug.check()) {
-            debug('DataSet.commitPendingTransactions() - final length', { afterLength: this.data.length });
-        }
-    }
-
-    merge(data: T[]): DataSet<T> {
-        return this.data === data ? this : new DataSet<T>(data);
+    getPendingTransactionCount(): number {
+        return this.pendingTransactions.length;
     }
 
     /**
-     * Returns an abstract description of the changes represented by pending transactions.
-     * The result is cached until pendingTransactions is modified.
-     *
-     * @returns Change description with precise index mapping, or undefined if no pending transactions.
+     * Commits all pending transactions by efficiently applying them to the data array.
+     * Optimized to minimize array operations and avoid full data scans.
+     * @returns true if any transactions were applied
      */
-    getChangeDescription(): DataChangeDescription | undefined {
-        // Return cached result if available (may be from previously committed transactions)
-        if (this.cachedChangeDescription != null) {
-            return this.cachedChangeDescription;
+    commitPendingTransactions(): boolean {
+        if (!this.hasPendingTransactions()) {
+            return false;
         }
 
+        // Get the optimized change description to understand what operations to perform
+        const changeDescription = this.getChangeDescription();
+        if (!changeDescription) {
+            return false;
+        }
+
+        // Use DataChangeDescription's efficient applyToArrayWithStoredValues method
+        changeDescription.applyToArrayWithStoredValues(this.data);
+
+        this.pendingTransactions = [];
+        this.cachedChangeDescription = undefined; // Clear cache after commit
+        return true;
+    }
+
+    /**
+     * Discards all pending transactions without applying them.
+     * @returns The number of transactions that were discarded
+     */
+    clearPendingTransactions(): number {
+        const count = this.pendingTransactions.length;
+        this.pendingTransactions = [];
+        this.cachedChangeDescription = undefined;
+        return count;
+    }
+
+    /**
+     * Gets the transactions that are currently pending.
+     * @returns A copy of the pending transactions array
+     */
+    getPendingTransactions(): DataSetTransaction<T>[] {
+        return [...this.pendingTransactions];
+    }
+
+    /**
+     * Applies a DataChangeDescription to an array in a memory-efficient manner.
+     * @param source The source array to transform
+     * @param destination The destination array to populate (can be the same as source)
+     * @param changeDescription The change description to apply
+     */
+    static applyChangesToArray<U>(source: U[], destination: U[], changeDescription: DataChangeDescription): void {
+        const { indexMap } = changeDescription;
+
+        // Early exit if no changes
+        if (indexMap.originalLength === indexMap.finalLength && indexMap.spliceOps.length === 0) {
+            if (source !== destination) {
+                destination.length = 0;
+                destination.push(...source);
+            }
+            return;
+        }
+
+        // Apply transformations
+        changeDescription.applyToArray(destination, (destIndex) => {
+            // This shouldn't be called for pure removals
+            throw new Error(`Unexpected insertion at index ${destIndex}`);
+        });
+    }
+
+    /**
+     * Builds a DataChangeDescription that represents all pending transactions.
+     * This does not modify the data array.
+     * @returns A DataChangeDescription or undefined if no transactions are pending
+     */
+    getChangeDescription(): DataChangeDescription | undefined {
         if (!this.hasPendingTransactions()) {
             return undefined;
         }
 
-        // Build the index transformation map
-        const { indexMap, prependValues, appendValues } = this.buildIndexMap();
+        // Return cached version if available
+        if (this.cachedChangeDescription) {
+            return this.cachedChangeDescription;
+        }
 
-        // Create the change description instance
+        const { indexMap, prependValues, appendValues } = this.buildIndexMap();
         const changeDescription = new DataChangeDescription(indexMap, {
             prependValues,
             appendValues,
@@ -187,6 +168,10 @@ export class DataSet<T = unknown> {
 
     /**
      * Builds the index transformation map by sequentially applying all pending transactions.
+     * Optimized to:
+     * - Track operation boundaries instead of individual items
+     * - Only scan for values that are actually being removed
+     * - Stop scanning early when all removed values are found
      */
     private buildIndexMap(): {
         indexMap: IndexTransformationMap;
@@ -195,78 +180,84 @@ export class DataSet<T = unknown> {
     } {
         const originalLength = this.data.length;
 
-        type Entry = {
-            kind: 'original' | 'prepend' | 'append';
-            value: T;
-            originalIndex?: number;
-        };
-
-        const entries: Entry[] = this.data.map((value, index) => ({
-            kind: 'original',
-            value,
-            originalIndex: index,
-        }));
-
+        // Track the conceptual structure: [prepends] [original elements] [appends]
+        const prependsList: T[][] = []; // Each transaction's prepends (in reverse order for LIFO)
+        const appendsList: T[][] = []; // Each transaction's appends
         const removedOriginalIndices = new Set<number>();
 
+        // Process each transaction sequentially to maintain correct semantics
         for (const transaction of this.pendingTransactions) {
             const { prepend, append, remove } = transaction;
 
+            // Add prepends (they go to the front)
             if (Array.isArray(prepend) && prepend.length > 0) {
-                const prependEntries = prepend.map(
-                    (value): Entry => ({
-                        kind: 'prepend',
-                        value,
-                    })
-                );
-                entries.unshift(...prependEntries);
+                prependsList.unshift([...prepend]);
             }
 
+            // Add appends (they go to the back)
             if (Array.isArray(append) && append.length > 0) {
-                const appendEntries = append.map(
-                    (value): Entry => ({
-                        kind: 'append',
-                        value,
-                    })
-                );
-                entries.push(...appendEntries);
+                appendsList.push([...append]);
             }
 
+            // Process removals - must check in order: prepends, originals, appends
             if (Array.isArray(remove) && remove.length > 0) {
-                const removeSet = new Set(remove);
-                let writeIndex = 0;
-                for (const element of entries) {
-                    const entry = element;
-                    if (removeSet.has(entry.value)) {
-                        if (entry.kind === 'original' && entry.originalIndex != null) {
-                            removedOriginalIndices.add(entry.originalIndex);
+                const toRemove = new Set(remove);
+
+                // OPTIMIZATION 3: Remove from prepends first (FIFO - front to back)
+                // These are typically much smaller sets than original data
+                for (const prependGroup of prependsList) {
+                    for (let i = 0; i < prependGroup.length; i++) {
+                        if (toRemove.has(prependGroup[i])) {
+                            toRemove.delete(prependGroup[i]);
+                            prependGroup.splice(i, 1);
+                            i--; // Adjust index after removal
+                            if (toRemove.size === 0) break;
                         }
-                        continue;
                     }
-
-                    entries[writeIndex++] = entry;
+                    if (toRemove.size === 0) break;
                 }
-                entries.length = writeIndex;
+
+                // OPTIMIZATION 3: Remove from appends next (FIFO - front to back)
+                // Also typically much smaller than original data
+                if (toRemove.size > 0) {
+                    for (const appendGroup of appendsList) {
+                        for (let i = 0; i < appendGroup.length; i++) {
+                            if (toRemove.has(appendGroup[i])) {
+                                toRemove.delete(appendGroup[i]);
+                                appendGroup.splice(i, 1);
+                                i--; // Adjust index after removal
+                                if (toRemove.size === 0) break;
+                            }
+                        }
+                        if (toRemove.size === 0) break;
+                    }
+                }
+
+                // OPTIMIZATIONS 1 & 2: Only scan original data for remaining values
+                // Build index map lazily and only for values we're actually looking for
+                if (toRemove.size > 0) {
+                    // Only scan the data for values that still need to be removed
+                    for (let i = 0; i < this.data.length && toRemove.size > 0; i++) {
+                        const value = this.data[i];
+                        if (toRemove.has(value)) {
+                            removedOriginalIndices.add(i);
+                            toRemove.delete(value);
+                            // OPTIMIZATION 2: Stop early if we've found all values
+                            // (assumes each value appears only once, which is common)
+                        }
+                    }
+                }
             }
         }
 
-        const survivingPrepends: T[] = [];
-        const survivingAppends: T[] = [];
-        let survivingOriginalCount = 0;
-
-        for (const entry of entries) {
-            if (entry.kind === 'prepend') {
-                survivingPrepends.push(entry.value);
-            } else if (entry.kind === 'append') {
-                survivingAppends.push(entry.value);
-            } else if (entry.kind === 'original') {
-                survivingOriginalCount++;
-            }
-        }
+        // Flatten the prepends and appends lists
+        const survivingPrepends = prependsList.flat();
+        const survivingAppends = appendsList.flat();
 
         const totalPrependCount = survivingPrepends.length;
         const totalAppendCount = survivingAppends.length;
-        const finalLength = entries.length;
+        const survivingOriginalCount = originalLength - removedOriginalIndices.size;
+        const finalLength = totalPrependCount + survivingOriginalCount + totalAppendCount;
 
         const spliceOps: SpliceOperation[] = [];
         if (totalPrependCount > 0) {
@@ -279,13 +270,38 @@ export class DataSet<T = unknown> {
 
         if (removedOriginalIndices.size > 0) {
             const sortedRemovals = Array.from(removedOriginalIndices).sort((a, b) => b - a);
-            for (const originalIndex of sortedRemovals) {
-                spliceOps.push({
-                    index: originalIndex + totalPrependCount,
-                    deleteCount: 1,
-                    insertCount: 0,
-                });
+
+            // Group consecutive indices and create optimized splice operations
+            let currentGroupStart = sortedRemovals[0];
+            let currentGroupCount = 1;
+
+            for (let i = 1; i < sortedRemovals.length; i++) {
+                const currentIndex = sortedRemovals[i];
+                const prevIndex = sortedRemovals[i - 1];
+
+                if (prevIndex - currentIndex === 1) {
+                    // Consecutive (descending), continue the group
+                    currentGroupCount++;
+                } else {
+                    // Non-consecutive, finalize current group
+                    spliceOps.push({
+                        index: currentGroupStart - currentGroupCount + 1 + totalPrependCount,
+                        deleteCount: currentGroupCount,
+                        insertCount: 0,
+                    });
+
+                    // Start new group
+                    currentGroupStart = currentIndex;
+                    currentGroupCount = 1;
+                }
             }
+
+            // Add the last group
+            spliceOps.push({
+                index: currentGroupStart - currentGroupCount + 1 + totalPrependCount,
+                deleteCount: currentGroupCount,
+                insertCount: 0,
+            });
         }
 
         if (totalAppendCount > 0) {
