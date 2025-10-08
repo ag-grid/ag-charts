@@ -3,6 +3,7 @@ import {
     AsyncAwaitQueue,
     Logger,
     type ModuleInstance,
+    type Scale,
     arraysEqual,
     isDate,
     isDefined,
@@ -11,7 +12,6 @@ import {
 } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
-import type { Zoom } from '../zoom/zoom';
 import { definedZoomState } from '../zoom/zoomUtils';
 
 const {
@@ -55,7 +55,7 @@ function syncedDirections(axes: 'x' | 'y' | 'xy' = 'x') {
     }
 }
 
-function domainChanged(scale: _ModuleSupport.Scale<unknown, unknown>, a: unknown[], b: unknown[]) {
+function domainChanged(scale: Scale<unknown, unknown>, a: unknown[], b: unknown[]) {
     if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
         return !arraysEqual(
             a.map((x) => x?.valueOf()),
@@ -126,8 +126,9 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private onZoom() {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-            if (!chart.modulesManager.getModule<ChartSync>('sync')?.zoom) continue;
-            const zoomModule = chart.modulesManager.getModule<Zoom>('zoom');
+            const syncModule: any = chart.modulesManager.getModule('sync');
+            if (!syncModule?.zoom) continue;
+            const zoomModule: any = chart.modulesManager.getModule('zoom');
             if (!zoomModule) continue;
 
             const zoom = this.prepareZoomUpdate();
@@ -169,7 +170,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
         if (!event.currentHighlight?.datum) {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-                if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
+                const syncModule: any = chart.modulesManager.getModule('sync');
+                if (!syncModule?.nodeInteraction) continue;
 
                 chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`);
                 chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`);
@@ -204,7 +206,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         });
 
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-            if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
+            const syncModule: any = chart.modulesManager.getModule('sync');
+            if (!syncModule?.nodeInteraction) continue;
 
             let dispatched = false;
             for (const axis of chart.axes) {
@@ -376,7 +379,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
         for (const member of groupState.members) {
             const { axes, modulesManager } = member;
-            const memberSyncDirections = syncedDirections(modulesManager.getModule<ChartSync>('sync')?.axes);
+            const syncModule: any = modulesManager.getModule('sync');
+            const memberSyncDirections = syncedDirections(syncModule?.axes);
 
             const keyMatchedAxes = axes
                 .filter((a) => memberSyncDirections.includes(a.direction))

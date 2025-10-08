@@ -1,5 +1,20 @@
 import { type AgGradientLegendOptions, _ModuleSupport } from 'ag-charts-community';
-import type { PluginModuleDefinition } from 'ag-charts-core';
+import {
+    type PluginModuleDefinition,
+    and,
+    array,
+    boolean,
+    borderOptionsDef,
+    callback,
+    colorUnion,
+    fontOptionsDef,
+    greaterThan,
+    lessThan,
+    number,
+    padding,
+    positiveNumber,
+    ratio,
+} from 'ag-charts-core';
 
 import { GradientLegend } from './gradientLegend';
 
@@ -9,6 +24,36 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
     enterprise: true,
     // removable: 'standalone-only',
 
+    options: {
+        enabled: boolean,
+        position: _ModuleSupport.legendPositionValidator,
+        spacing: positiveNumber,
+        reverseOrder: boolean,
+        border: borderOptionsDef,
+        cornerRadius: number,
+        padding: padding,
+        fill: colorUnion,
+        fillOpacity: ratio,
+        gradient: {
+            preferredLength: positiveNumber,
+            thickness: positiveNumber,
+        },
+        scale: {
+            label: {
+                ...fontOptionsDef,
+                minSpacing: positiveNumber,
+                format: _ModuleSupport.numberFormatValidator,
+                formatter: callback,
+            },
+            padding: positiveNumber,
+            interval: {
+                step: number,
+                values: array,
+                minSpacing: and(positiveNumber, lessThan('maxSpacing')),
+                maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
+            },
+        },
+    },
     themeTemplate: {
         enabled: false,
         position: 'bottom',

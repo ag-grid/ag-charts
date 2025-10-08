@@ -6,6 +6,7 @@ import {
     type PickNodeDatumResult,
     type Point,
     type PropertyDefinitionOpts,
+    type Scale,
     type ScaleType,
     type SeriesPluginModuleInstance,
     isDefined,
@@ -44,7 +45,6 @@ function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBo
 
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
-type AnyScale = _ModuleSupport.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
 type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
 
@@ -94,7 +94,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private getUnstackPropertyDefinition(opts: PropertyDefinitionOpts) {
-        const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
+        const props: _ModuleSupport.DataPropertyDefinition<unknown>[] = [];
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { xScaleType, yScaleType } = opts;
 
@@ -114,7 +114,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private getStackPropertyDefinition(opts: PropertyDefinitionOpts) {
-        const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
+        const props: _ModuleSupport.DataPropertyDefinition<unknown>[] = [];
         const { cartesianSeries } = this;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { xScaleType, yScaleType } = opts;
@@ -288,7 +288,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         };
     }
 
-    private convert(scale: AnyScale, value: any) {
+    private convert(scale: Scale<any, any, any>, value: any) {
         const offset = (scale.bandwidth ?? 0) / 2;
         return scale.convert(value) + offset;
     }

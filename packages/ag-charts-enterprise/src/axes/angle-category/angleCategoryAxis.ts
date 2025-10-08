@@ -1,5 +1,5 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
 
 import { loopSymmetrically } from '../../utils/polar';
 import { AngleAxisInterval } from '../angle-number/angleAxisInterval';

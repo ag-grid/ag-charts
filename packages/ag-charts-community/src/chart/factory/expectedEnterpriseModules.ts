@@ -99,35 +99,3 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
     { type: 'context', contextKey: 'sharedToolbar', chartTypes: ['cartesian'] },
 ];
-
-type UnknownPackage = { packageType: string } | EnterpriseModuleStub;
-function isEnterpriseModule(module: UnknownPackage): module is EnterpriseModuleStub {
-    return module.packageType === 'enterprise';
-}
-
-export function verifyIfModuleExpected(module: UnknownPackage) {
-    if (!isEnterpriseModule(module)) {
-        throw new Error('AG Charts - internal configuration error, only enterprise modules need verification.');
-    }
-
-    const stub = EXPECTED_ENTERPRISE_MODULES.find((s) => {
-        return (
-            s.type === module.type &&
-            ('optionsKey' in s && 'optionsKey' in module ? s.optionsKey === module.optionsKey : true) &&
-            ('contextKey' in s && 'contextKey' in module ? s.contextKey === module.contextKey : true) &&
-            s.identifier === module.identifier &&
-            module.chartTypes.every((t) => s.chartTypes.includes(t))
-        );
-    });
-
-    if (stub) {
-        stub.useCount ??= 0;
-        stub.useCount++;
-    }
-
-    return stub != null;
-}
-
-export function getUnusedExpectedModules() {
-    return EXPECTED_ENTERPRISE_MODULES.filter(({ useCount }) => useCount == null || useCount === 0);
-}

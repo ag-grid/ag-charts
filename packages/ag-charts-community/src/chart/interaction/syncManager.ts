@@ -1,6 +1,7 @@
 import type { EventEmitter } from 'ag-charts-core';
 
 import type { EventsHubMap } from '../../core/eventsHub';
+import type { ModuleMap } from '../../module/moduleMap';
 import type { BBox } from '../../scene/bbox';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
@@ -31,7 +32,7 @@ export type SyncChartLike = {
     axes: SyncAxisLike[];
     series: ISeries<any, any, any>[];
     syncStatus: SyncStatus;
-    modulesManager: { getModule<R>(module: string): R | undefined };
+    modulesManager: ModuleMap;
     seriesAreaBoundingBox: BBox;
     tooltip: { enabled: boolean };
     ctx: {

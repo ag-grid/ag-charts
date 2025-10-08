@@ -1,7 +1,10 @@
+import { unique } from 'ag-charts-core';
+
 import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
 import { CartesianChartModule } from './chart/cartesianChartModule';
 import { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
 import { PolarChartModule } from './chart/polarChartModule';
+import { SeriesAreaModule } from './chart/series-area/seriesAreaModule';
 import { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';
 import { BubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
@@ -38,6 +41,7 @@ export {
     PolarChartModule,
     DonutSeriesModule,
     PieSeriesModule,
+    SeriesAreaModule,
 };
 
 export const AllCartesianCommunityModules = [
@@ -54,11 +58,12 @@ export const AllCartesianCommunityModules = [
     HistogramSeriesModule,
     LineSeriesModule,
     ScatterSeriesModule,
+    SeriesAreaModule,
 ];
 
-export const AllPolarCommunityModules = [PolarChartModule, DonutSeriesModule, PieSeriesModule];
+export const AllPolarCommunityModules = [PolarChartModule, DonutSeriesModule, PieSeriesModule, SeriesAreaModule];
 
-export const AllCommunityModules = [
+export const AllCommunityModules = unique([
     ...AllCartesianCommunityModules,
     ...AllPolarCommunityModules,
 
@@ -70,4 +75,4 @@ export const AllCommunityModules = [
     PriceVolumePresetModule,
     GaugePresetModule,
     SparklinePresetModule,
-];
+]);

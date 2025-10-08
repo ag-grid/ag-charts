@@ -1,6 +1,6 @@
 import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { type Scale, isNumberEqual } from 'ag-charts-core';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
@@ -34,7 +34,7 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
 }
 
 export abstract class RadiusAxis<
-    S extends _ModuleSupport.Scale<D, number, _ModuleSupport.TickInterval<S>> = _ModuleSupport.Scale<any, number, any>,
+    S extends Scale<D, number, _ModuleSupport.TickInterval<S>> = Scale<any, number, any>,
     D = any,
 > extends _ModuleSupport.PolarAxis<S, D> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;

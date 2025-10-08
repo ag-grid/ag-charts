@@ -755,7 +755,7 @@ export abstract class CartesianSeries<
             }
 
             return {
-                datum: closestDatum,
+                datum: closestDatum!,
                 distance: Math.sqrt(closestDistanceSquared),
             };
         }

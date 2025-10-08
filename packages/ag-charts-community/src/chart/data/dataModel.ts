@@ -92,7 +92,7 @@ export type ProcessedOutputDiff = {
 
 export interface ProcessedDataDef {
     index: number;
-    def: PropertyDefinition<any>;
+    def: DataPropertyDefinition<any>;
 }
 
 export type ProcessedData<D> = UngroupedData<D> | GroupedData<D>;
@@ -118,13 +118,13 @@ export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | un
 type GroupingFn<K> = (keys: unknown[]) => K[];
 export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
 export type DataModelOptions<K, Grouped extends boolean | undefined, IsScoped extends boolean = true> = {
-    props: PropertyDefinition<K, IsScoped>[];
+    props: DataPropertyDefinition<K, IsScoped>[];
     groupByKeys?: Grouped;
     groupByData?: Grouped;
     groupByFn?: GroupByFn;
 };
 
-export type PropertyDefinition<K, IsScoped = false> =
+export type DataPropertyDefinition<K, IsScoped = false> =
     | (DatumPropertyDefinition<K> & (IsScoped extends true ? Scoped : unknown))
     | AggregatePropertyDefinition<any, any, any>
     | (PropertyValueProcessorDefinition<any> & (IsScoped extends true ? Scoped : unknown))
@@ -314,7 +314,7 @@ export class DataModel<
     Grouped extends boolean | undefined = undefined,
 > {
     private readonly debug = Debug.create(true, 'data-model');
-    private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition<false>>> =
+    private readonly scopeCache: Map<string, Map<string, DataPropertyDefinition<any> & InternalDefinition<false>>> =
         new Map();
 
     private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
@@ -505,7 +505,7 @@ export class DataModel<
     getDomain(
         scope: ScopeProvider,
         searchId: string,
-        type: PropertyDefinition<any>['type'],
+        type: DataPropertyDefinition<any>['type'],
         processedData: ProcessedData<K>
     ): any[] | [number, number] | [] {
         const domains = this.getDomainsByType(type ?? 'value', processedData);
@@ -550,7 +550,7 @@ export class DataModel<
         return this.getSortOrder(processedData.columns[columnIndex], columnIndex, processedData[COLUMN_SORT_ORDERS]);
     }
 
-    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
+    private getDomainsByType(type: DataPropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
         switch (type) {
             case 'key':
                 return processedData.domain.keys;

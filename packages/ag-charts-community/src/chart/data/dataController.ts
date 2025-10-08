@@ -6,9 +6,9 @@ import { type CachedData, canReuseCachedData } from './caching';
 import {
     DataModel,
     type DataModelOptions,
+    type DataPropertyDefinition,
     type DatumPropertyDefinition,
     type ProcessedData,
-    type PropertyDefinition,
     type UngroupedData,
 } from './dataModel';
 import { DataSet } from './dataSet';
@@ -176,7 +176,7 @@ export class DataController {
     }
 
     private static groupMatch({ dataSet, opts }: RequestedProcessing<any, any, any>) {
-        function keys(props: PropertyDefinition<any>[]) {
+        function keys(props: DataPropertyDefinition<any>[]) {
             return props
                 .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
                 .map((p) => p.property)
@@ -206,7 +206,7 @@ export class DataController {
             opts: { ...requests[0].opts, props: [] },
         };
 
-        const optsByTypeAndDataId = new Map<string, PropertyDefinition<any>[]>();
+        const optsByTypeAndDataId = new Map<string, DataPropertyDefinition<any>[]>();
         const dataIds = new Map<unknown, number>();
         let nextDataId = 0;
         for (const request of requests) {

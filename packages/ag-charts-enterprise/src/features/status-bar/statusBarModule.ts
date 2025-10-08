@@ -9,6 +9,7 @@ export const StatusBarModule: PluginModuleDefinition<never> = {
     chartType: 'cartesian',
     enterprise: true,
 
+    options: {},
     themeTemplate: {
         statusBar: {
             enabled: false,

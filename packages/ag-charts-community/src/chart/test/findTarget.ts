@@ -199,7 +199,7 @@ export function findChartTarget(chart: Chart, clientX: number, clientY: number):
     const widgets = new Caster(chart).accessProperty('ctx').accessProperty('widgets').cast(CAST_INFO.WidgetSet).value;
     initBoundingClientRect(widgets);
 
-    const getModule = (s: string) => chart.modulesManager.getModule<unknown>(s);
+    const getModule = (s: string) => chart.modulesManager.getModule(s);
     return (
         findLegendTarget(getModule('legend'), clientX, clientY) ??
         findNavigatorTarget(getModule('navigator'), clientX, clientY) ??

@@ -16,6 +16,7 @@ export { AgCharts, VERSION };
 // Undocumented APIs used by Enterprise Modules.
 export * as _ModuleSupport from './module-support';
 export * as _Widget from './widget/exports';
+export * from './main-modules';
 export { registerInbuiltModules as setupCommunityModules };
 
 // Undocumented APIs used by Integrated Charts.

@@ -1,9 +1,10 @@
+import type { PluginModuleInstance } from 'ag-charts-core';
 import type { AgChartLegendListeners, TextOrSegments } from 'ag-charts-types';
 
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
 
-export interface ChartLegend {
+export interface ChartLegend extends PluginModuleInstance {
     attachLegend(scene: Scene): void;
     destroy(): void;
     data: any;

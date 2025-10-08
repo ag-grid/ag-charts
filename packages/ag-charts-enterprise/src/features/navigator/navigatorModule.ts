@@ -11,6 +11,7 @@ export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions> = {
     enterprise: true,
     // removable: false, // Toggling this module causes zoom state flakiness.
 
+    options: undefined as any,
     themeTemplate: NAVIGATOR_THEME,
 
     create: (ctx) => new Navigator(ctx),

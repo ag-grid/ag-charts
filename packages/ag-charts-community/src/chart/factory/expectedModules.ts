@@ -41,6 +41,7 @@ const ExpectedModules: ModulePlaceholder[] = [
     { type: 'series', name: 'funnel', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'ohlc', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'heatmap', chartType: 'cartesian', enterprise: true },
+    { type: 'series', name: 'histogram', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'range-area', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'range-bar', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'waterfall', chartType: 'cartesian', enterprise: true },
@@ -88,6 +89,8 @@ const ExpectedModules: ModulePlaceholder[] = [
     { type: 'series:plugin', name: 'errorBar', chartType: 'cartesian', enterprise: true },
 
     // { type: 'context', contextKey: 'sharedToolbar', chartTypes: ['cartesian'] },
+    { type: 'preset', name: 'gauge-preset', chartType: 'standalone', enterprise: true },
+    { type: 'preset', name: 'price-volume', chartType: 'cartesian', enterprise: true },
 ];
 
 export function getSeriesExpectedChartType(seriesName: string): string | undefined {

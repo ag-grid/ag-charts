@@ -1,4 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import type { Scale } from 'ag-charts-core';
 
 import { AnnotationType } from './annotationTypes';
 
@@ -14,12 +15,12 @@ export enum AnnotationOptions {
     Settings = 'settings',
 }
 
-function channelMenuItemVisible(scale: _ModuleSupport.Scale<any, any>) {
+function channelMenuItemVisible(scale: Scale<any, any>) {
     return !(scale instanceof _ModuleSupport.LogScale) && !(scale instanceof _ModuleSupport.BandScale);
 }
 
 export const LINE_ANNOTATION_ITEMS: (_ModuleSupport.MenuItem<AnnotationType> & {
-    visible?: (axisScale: _ModuleSupport.Scale<any, any>) => boolean;
+    visible?: (axisScale: Scale<any, any>) => boolean;
 })[] = [
     {
         label: 'toolbarAnnotationsTrendLine',

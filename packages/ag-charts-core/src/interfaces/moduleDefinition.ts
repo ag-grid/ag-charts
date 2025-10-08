@@ -36,7 +36,12 @@ export interface ModuleInstance {
 
 export interface SeriesModuleInstance extends ModuleInstance {}
 
-export type PickNodeDatumResult = { datum: SeriesNodeDatum<DatumIndexType>; distanceSquared: number } | undefined;
+export interface PluginModuleInstance extends ModuleInstance {
+    processData?(dataController: any): Promise<void> | void;
+}
+
+export type PickNodeDatumResult = { datum: NonNullable<any>; distanceSquared: number } | undefined;
+// export type PickNodeDatumResult = { datum: SeriesNodeDatum<DatumIndexType>; distanceSquared: number } | undefined;
 
 export interface PropertyDefinitionOpts {
     isContinuousX: boolean;
@@ -48,10 +53,13 @@ export interface PropertyDefinitionOpts {
 export interface SeriesPluginModuleInstance extends ModuleInstance {
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
-    pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined;
+    pickNodeMainAxisFirst(point: Point, majorDirection: any): PickNodeDatumResult | undefined;
+    // pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined;
 
-    getPropertyDefinitions(opts: PropertyDefinitionOpts): PropertyDefinition<unknown>[];
-    getDomain(direction: ChartAxisDirection): any[];
+    getPropertyDefinitions(opts: PropertyDefinitionOpts): any[];
+    // getPropertyDefinitions(opts: PropertyDefinitionOpts): DataPropertyDefinition<unknown>[];
+    getDomain(direction: any): any[];
+    // getDomain(direction: ChartAxisDirection): any[];
     getTooltipParams(): object;
 }
 
@@ -80,6 +88,8 @@ export interface ModuleDefinition<
 }
 
 export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Chart, TOptions> {
+    options: OptionsDefs<TOptions>;
+
     detect(options: object): boolean;
 }
 
@@ -118,6 +128,8 @@ export interface SeriesModuleDefinition<TOptions>
 
 export interface PluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Plugin, TOptions> {
     readonly chartType?: string;
+
+    options: OptionsDefs<TOptions>;
 
     patchContext?(this: void, ctx: any): void;
 }

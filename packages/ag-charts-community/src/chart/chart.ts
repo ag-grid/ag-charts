@@ -1321,14 +1321,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
         }
         if (deltaOptions.locale?.localeText) {
-            const localeModule = this.modulesManager.getModule('locale') as any;
+            const localeModule: any = this.modulesManager.getModule('locale');
             localeModule.localeText = deltaOptions.locale?.localeText;
         }
 
         this.chartOptions = newChartOptions;
 
-        const navigatorModule = this.modulesManager.getModule('navigator') as any;
-        const zoomModule = this.modulesManager.getModule('zoom') as any;
+        const navigatorModule: any = this.modulesManager.getModule('navigator');
+        const zoomModule: any = this.modulesManager.getModule('zoom');
 
         if (!navigatorModule?.enabled && !zoomModule?.enabled) {
             // reset zoom to initial state
@@ -1552,6 +1552,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
             modulesChanged = true;
         }
+
+        console.log(
+            Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin)),
+            Array.from(this.modulesManager.modules())
+        );
 
         return modulesChanged;
     }

@@ -7,5 +7,7 @@ export const ForegroundModule: PluginModuleDefinition<never> = {
     name: 'foreground',
     enterprise: true,
 
+    options: {},
+
     create: (ctx) => new Foreground(ctx),
 };
