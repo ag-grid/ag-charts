@@ -71,7 +71,7 @@ interface CommonMetadata<D> {
     keys: Map<ScopeId, unknown[]>[];
     columns: any[][];
     columnScopes: Set<ScopeId>[];
-    columnValueTypes?: boolean[]; // true if column needs valueOf() (contains Dates/objects), false for primitives
+    columnNeedValueOf?: boolean[]; // true if column needs valueOf() (contains Dates/objects), false for primitives
     domain: {
         keys: any[][];
         values: any[][];
@@ -492,7 +492,7 @@ export class DataModel<
         processedData: UngroupedData<any> | GroupedData<any>
     ): boolean {
         const index = this.resolveProcessedDataIndexById(scope, searchId);
-        return processedData.columnValueTypes?.[index] ?? true;
+        return processedData.columnNeedValueOf?.[index] ?? true;
     }
 
     /**
@@ -587,8 +587,8 @@ export class DataModel<
 
     getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
-        // Use columnValueTypes metadata to determine if valueOf() is needed
-        const needsValueOf = processedData.columnValueTypes?.[columnIndex] ?? true;
+        // Use columnNeedValueOf metadata to determine if valueOf() is needed
+        const needsValueOf = processedData.columnNeedValueOf?.[columnIndex] ?? true;
         return this.getSortOrder(
             processedData.columns[columnIndex],
             columnIndex,
@@ -1361,7 +1361,7 @@ export class DataModel<
             processValue
         );
 
-        const { columns, columnScopes, columnValueTypes, partialValidDataCount, maxDataLength } = this.extractValues(
+        const { columns, columnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength } = this.extractValues(
             invalidData,
             valueDefs,
             sources,
@@ -1388,7 +1388,7 @@ export class DataModel<
             keys: [...allKeyMappings.values()],
             columns,
             columnScopes,
-            columnValueTypes,
+            columnNeedValueOf,
             invalidKeys,
             invalidKeyCount,
             invalidData,
@@ -1519,7 +1519,7 @@ export class DataModel<
 
         const columns: unknown[][] = [];
         const allColumnScopes: Set<ScopeId>[] = [];
-        const columnValueTypes: boolean[] = [];
+        const columnNeedValueOf: boolean[] = [];
         let maxDataLength = 0;
         for (const def of valueDefs) {
             const { invalidValue } = def;
@@ -1565,11 +1565,11 @@ export class DataModel<
 
             columns.push(column);
             allColumnScopes.push(columnScopes);
-            columnValueTypes.push(needsValueOf);
+            columnNeedValueOf.push(needsValueOf);
             maxDataLength = Math.max(maxDataLength, column.length);
         }
 
-        return { columns, columnScopes: allColumnScopes, columnValueTypes, partialValidDataCount, maxDataLength };
+        return { columns, columnScopes: allColumnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength };
     }
 
     private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {

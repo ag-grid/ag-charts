@@ -3,6 +3,12 @@
 exports[`DataModel empty data set processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -16,12 +22,6 @@ exports[`DataModel empty data set processing should generated the expected resul
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
-    false,
   ],
   "columns": [
     [],
@@ -139,13 +139,13 @@ exports[`DataModel empty data set processing should generated the expected resul
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with area bucket calculation 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
   ],
   "columns": [
     [
@@ -442,13 +442,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with average bucket calculation 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
   ],
   "columns": [
     [
@@ -764,13 +764,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with hard-coded buckets 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
   ],
   "columns": [
     [
@@ -1065,6 +1065,10 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 exports[`DataModel grouped processing - grouped example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -1072,10 +1076,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
   ],
   "columns": [
     [
@@ -1422,6 +1422,14 @@ exports[`DataModel grouped processing - grouped example should generated the exp
 exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked area example 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -1441,14 +1449,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
   ],
   "columns": [
     [
@@ -2293,6 +2293,14 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
 exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked columns example 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -2312,14 +2320,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
   ],
   "columns": [
     [
@@ -2774,6 +2774,12 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
 exports[`DataModel grouped processing - stacked example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -2787,12 +2793,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
-    false,
   ],
   "columns": [
     [
@@ -3291,6 +3291,12 @@ exports[`DataModel grouped processing - stacked example should generated the exp
 exports[`DataModel grouped processing - stacked with accumulation and normalised example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -3304,12 +3310,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
-    false,
   ],
   "columns": [
     [
@@ -3808,6 +3808,12 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
 exports[`DataModel grouped processing - stacked with accumulation example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -3821,12 +3827,6 @@ exports[`DataModel grouped processing - stacked with accumulation example should
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
-    false,
   ],
   "columns": [
     [
@@ -4283,6 +4283,12 @@ exports[`DataModel grouped processing - stacked with accumulation example should
 exports[`DataModel missing and invalid data processing - multiple scopes should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -4296,12 +4302,6 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
     Set {
       "series-c",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
-    false,
   ],
   "columns": [
     [
@@ -4838,6 +4838,12 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
 exports[`DataModel missing and invalid data processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -4851,12 +4857,6 @@ exports[`DataModel missing and invalid data processing should generated the expe
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
-    false,
   ],
   "columns": [
     [
@@ -5151,6 +5151,10 @@ exports[`DataModel missing and invalid data processing should generated the expe
 exports[`DataModel repeated property processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5158,10 +5162,6 @@ exports[`DataModel repeated property processing should generated the expected re
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
   ],
   "columns": [
     [
@@ -5277,6 +5277,11 @@ exports[`DataModel repeated property processing should generated the expected re
 exports[`DataModel ungrouped processing - accumulated and normalised properties should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5287,11 +5292,6 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
-    false,
   ],
   "columns": [
     [
@@ -5450,6 +5450,10 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
 exports[`DataModel ungrouped processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5457,10 +5461,6 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
     Set {
       "test",
     },
-  ],
-  "columnValueTypes": [
-    false,
-    false,
   ],
   "columns": [
     [

@@ -1559,6 +1559,10 @@ describe('DataModel', () => {
                 // Verify columns
                 expect(reprocessed.columns).toEqual([[10, 20, 30]]);
 
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
                 // Verify diff shows moved items
                 expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
                 expect(reprocessed.reduced?.diff?.test.moved.size).toBe(2); // Original items moved
@@ -1631,6 +1635,11 @@ describe('DataModel', () => {
                 ]);
                 expect(reprocessed.keys[0].get('test')).toEqual([2, 3, 4]);
                 expect(reprocessed.columns).toEqual([[20, 30, 40]]);
+
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[2, 4]]);
+                expect(reprocessed.domain.values).toEqual([[20, 40]]);
+
                 expect(reprocessed.input.count).toBe(3);
             });
 
@@ -1688,6 +1697,10 @@ describe('DataModel', () => {
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
                 expect(reprocessed.columns).toEqual([[10, 20, 30]]);
 
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
                 // Verify diff was NOT generated (still undefined)
                 expect(reprocessed.reduced?.diff).toBeUndefined();
             });
@@ -1718,6 +1731,10 @@ describe('DataModel', () => {
                 // Verify data was updated correctly
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
                 expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
 
                 // Verify diff WAS generated
                 expect(reprocessed.reduced?.diff).toBeDefined();
@@ -1827,6 +1844,10 @@ describe('DataModel', () => {
                 expect(invalidDataArray![1]).toBe(true); // Second item (from initial)
                 expect(invalidDataArray![2]).toBe(true); // Third item (appended)
                 expect(reprocessed.partialValidDataCount).toBeGreaterThan(0);
+
+                // Verify domains (only valid data: x=1 with y=10)
+                expect(reprocessed.domain.keys).toEqual([[1, 1]]);
+                expect(reprocessed.domain.values).toEqual([[10, 10]]);
             });
         });
 
