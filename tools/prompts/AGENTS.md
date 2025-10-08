@@ -139,6 +139,14 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 -   `nx benchmark ag-charts-enterprise -- -t "initial load"` does the same for enterprise.
 -   Filtering is by test name pattern (xargs prevents targeting individual files).
 
+#### Creating New Benchmarks
+
+1. Create benchmark test file in `packages/ag-charts-{community,enterprise}/benchmarks/${name}.test.ts` using `setupBenchmark()` and `benchmark()` utilities.
+2. Create or copy the example to `packages/ag-charts-website/src/content/docs/benchmarks/_examples/${exampleName}/`.
+3. Add `/* @ag-options-extract */` and `/* @ag-options-end */` comments around the options object in the example's `main.ts`.
+4. Add example dependency to `benchmark.dependsOn` array in the package's `project.json`: `ag-charts-website-benchmarks_${exampleName}_main.ts:generate-example`.
+5. Run `nx benchmark ag-charts-{community,enterprise} -- -t "test pattern"` to verify.
+
 ## Technical Requirements
 
 -   **Node.js**: ^20.19.4
