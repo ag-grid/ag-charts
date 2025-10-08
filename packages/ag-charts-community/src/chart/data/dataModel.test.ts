@@ -2294,4 +2294,95 @@ describe('DataModel', () => {
             });
         });
     });
+
+    describe('columnNeedValueOf optimization', () => {
+        it('should correctly identify columns with primitive values', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count'), value('amount')],
+            });
+
+            const data = [
+                { id: 'A', count: 10, amount: 100.5 },
+                { id: 'B', count: 20, amount: 200.3 },
+                { id: 'C', count: 30, amount: 300.7 },
+            ];
+
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            // columnNeedValueOf only tracks value columns (count, amount), not keys
+            // Both value columns contain primitives (numbers), so should be false
+            expect(processedData!.columnNeedValueOf).toEqual([false, false]);
+        });
+
+        it('should correctly identify value columns with Date objects', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('timestamp'), value('dateValue'), value('primitiveValue')],
+            });
+
+            const data = [
+                { timestamp: new Date(2024, 0, 1), dateValue: new Date(2024, 0, 1), primitiveValue: 10 },
+                { timestamp: new Date(2024, 0, 2), dateValue: new Date(2024, 0, 2), primitiveValue: 20 },
+                { timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 },
+            ];
+
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            // columnNeedValueOf only tracks value columns (not the timestamp key)
+            // First value column (dateValue) contains Date objects - needs valueOf
+            // Second value column (primitiveValue) contains primitives - doesn't need valueOf
+            expect(processedData!.columnNeedValueOf).toEqual([true, false]);
+        });
+
+        it('should correctly identify columns with mixed object types', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('key'), value('primitiveValue'), value('objectValue')],
+            });
+
+            const data = [
+                { key: 'A', primitiveValue: 10, objectValue: new Date(2024, 0, 1) },
+                { key: 'B', primitiveValue: 20, objectValue: new Date(2024, 0, 2) },
+            ];
+
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            // columnNeedValueOf only tracks value columns (not the key)
+            // First value column: primitives (false)
+            // Second value column: objects/dates (true)
+            expect(processedData!.columnNeedValueOf).toEqual([false, true]);
+        });
+
+        it('should handle incremental updates without losing columnNeedValueOf metadata', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('timestamp'), value('dateValue'), value('primitiveValue')],
+            });
+
+            const initialData = [
+                { timestamp: new Date(2024, 0, 1), dateValue: new Date(2024, 0, 1), primitiveValue: 10 },
+                { timestamp: new Date(2024, 0, 2), dateValue: new Date(2024, 0, 2), primitiveValue: 20 },
+            ];
+
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            // columnNeedValueOf should track value columns (dateValue: true, primitiveValue: false)
+            expect(processedData!.columnNeedValueOf).toEqual([true, false]);
+
+            // Add more data
+            dataSet.addTransaction({
+                append: [{ timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 }],
+            });
+
+            const reprocessed = dataModel.reprocessData(processedData!);
+
+            // Should maintain columnNeedValueOf metadata
+            expect(reprocessed.columnNeedValueOf).toEqual([true, false]);
+        });
+    });
 });
