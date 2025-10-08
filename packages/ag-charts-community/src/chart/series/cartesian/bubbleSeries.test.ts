@@ -839,4 +839,50 @@ describe('BubbleSeries', () => {
             await compare();
         });
     });
+
+    describe('showInLegend', () => {
+        const commonOptions = {
+            series: [
+                {
+                    type: 'bubble',
+                    data: [{ x: 10, y: 20, size: 15 }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    sizeKey: 'size',
+                    title: 'Male',
+                },
+                {
+                    type: 'bubble',
+                    data: [{ x: 20, y: 20, size: 10 }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    sizeKey: 'size',
+                    title: 'Female',
+                },
+            ],
+            legend: {},
+        } satisfies AgCartesianChartOptions;
+
+        it('should hide bubble series from legend when showInLegend is false', async () => {
+            const options = prepareTestOptions({
+                ...commonOptions,
+                title: { text: 'Two series, only female series should be shown in legend' },
+                series: [commonOptions.series[0], { ...commonOptions.series[1], showInLegend: false }],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should show bubble series in legend when showInLegend is true (default)', async () => {
+            const options = prepareTestOptions({
+                ...commonOptions,
+                title: { text: 'One series, only male series should be shown in legend' },
+                series: [{ ...commonOptions.series[0], showInLegend: true }],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });
