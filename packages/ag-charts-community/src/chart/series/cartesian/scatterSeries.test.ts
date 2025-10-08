@@ -693,51 +693,43 @@ describe('ScatterSeries', () => {
     });
 
     describe('showInLegend', () => {
-        it('should hide scatter series from legend when showInLegend is false', async () => {
-            const options: AgChartOptions = {
-                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
-                title: { text: 'Only female series should be shown in legend' },
-                series: [
-                    {
-                        type: 'scatter',
-                        xKey: 'weight',
-                        yKey: 'height',
-                        title: 'Male',
-                        showInLegend: false,
-                    },
-                    {
-                        type: 'scatter',
-                        xKey: 'weight',
-                        yKey: 'height',
-                        title: 'Female',
-                    },
-                ],
-                legend: {},
-            };
+        const commonOptions = {
+            series: [
+                {
+                    type: 'scatter',
+                    data: [{ x: 10, y: 20 }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    title: 'Male',
+                },
+                {
+                    type: 'scatter',
+                    data: [{ x: 20, y: 20 }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    title: 'Female',
+                },
+            ],
+            legend: {},
+        } satisfies AgCartesianChartOptions;
 
-            prepareTestOptions(options);
+        it('should hide scatter series from legend when showInLegend is false', async () => {
+            const options = prepareTestOptions({
+                ...commonOptions,
+                title: { text: 'Two series, only female series should be shown in legend' },
+                series: [commonOptions.series[0], { ...commonOptions.series[1], showInLegend: false }],
+            });
 
             chart = AgCharts.create(options);
             await compare();
         });
 
         it('should show scatter series in legend when showInLegend is true (default)', async () => {
-            const options: AgChartOptions = {
-                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
-                title: { text: 'Only male series should be shown in legend' },
-                series: [
-                    {
-                        type: 'scatter',
-                        xKey: 'weight',
-                        yKey: 'height',
-                        title: 'Male',
-                        showInLegend: true,
-                    },
-                ],
-                legend: {},
-            };
-
-            prepareTestOptions(options);
+            const options = prepareTestOptions({
+                ...commonOptions,
+                title: { text: 'One series, only male series should be shown in legend' },
+                series: [{ ...commonOptions.series[0], showInLegend: true }],
+            });
 
             chart = AgCharts.create(options);
             await compare();
