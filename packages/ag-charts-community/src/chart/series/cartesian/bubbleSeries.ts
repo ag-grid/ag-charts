@@ -592,7 +592,7 @@ export class BubbleSeries extends CartesianSeries<
                     {
                         isHighlight,
                         highlightState,
-                        resolveItemStylerMarkerPath: false,
+                        resolveMarkerSubPath: [],
                     },
                     stylerStyle
                 );
@@ -862,7 +862,7 @@ export class BubbleSeries extends CartesianSeries<
             marker,
             { datum, datumIndex },
             { xKey, yKey, sizeKey, labelKey, highlighted: true },
-            { resolveItemStylerMarkerPath: false }
+            { resolveMarkerSubPath: [] }
         );
 
         return this.formatTooltipWithContext(
@@ -899,7 +899,7 @@ export class BubbleSeries extends CartesianSeries<
             {
                 isHighlight: false,
                 checkForHighlight: false,
-                resolveItemStylerMarkerPath: false,
+                resolveMarkerSubPath: [],
             },
             style satisfies RequireOptional<AgSeriesMarkerStyle>
         );
@@ -982,12 +982,7 @@ export class BubbleSeries extends CartesianSeries<
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        return this.getMarkerStyle(
-            marker,
-            datum,
-            { xKey, yKey, sizeKey, labelKey },
-            { resolveItemStylerMarkerPath: false }
-        );
+        return this.getMarkerStyle(marker, datum, { xKey, yKey, sizeKey, labelKey }, { resolveMarkerSubPath: [] });
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

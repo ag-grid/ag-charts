@@ -146,7 +146,7 @@ interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
         marker: SeriesMarker<TParams>,
         nodeDatum: object,
         params?: TParams,
-        opts?: { highlightState?: HighlightState; resolveStylerMarkerPath?: 'marker' | 'marker-only' },
+        opts?: { highlightState?: HighlightState },
         defaultOverrideStyle?: DefaultOverrideStyle,
         inheritedStyle?: AgSeriesMarkerStyle
     ): AgSeriesMarkerStyle & { size: number };

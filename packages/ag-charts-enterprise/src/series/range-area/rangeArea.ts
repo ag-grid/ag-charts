@@ -640,7 +640,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 marker,
                 datum,
                 params,
-                { isHighlight, highlightState },
+                { isHighlight, highlightState, resolveMarkerSubPath: ['item', datum.itemId, 'marker'] },
                 stylerStyle.item[datum.itemId].marker,
                 {
                     fill,
@@ -845,7 +845,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             this.properties.item[itemId].marker,
             { datumIndex, datum },
             params,
-            { isHighlight: false },
+            { isHighlight: false, resolveMarkerSubPath: ['item', itemId, 'marker'] },
             stylerStyle.item[itemId].marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
@@ -1056,7 +1056,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             this.properties.item[datum.itemId].marker,
             datum,
             params,
-            { isHighlight: true },
+            { isHighlight: true, resolveMarkerSubPath: ['item', datum.itemId, 'marker'] },
             undefined,
             stylerStyle
         );
@@ -1078,7 +1078,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override hasItemStylers(): boolean {
         return (
             this.properties.styler != null ||
-            this.properties.marker.itemStyler != null ||
+            this.properties.item.low.marker.itemStyler != null ||
+            this.properties.item.high.marker.itemStyler != null ||
             this.properties.label.itemStyler != null
         );
     }

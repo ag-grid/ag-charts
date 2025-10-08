@@ -780,7 +780,6 @@ export class LineSeries extends CartesianSeries<
             {
                 isHighlight: false,
                 checkForHighlight: false,
-                resolveStylerMarkerPath: 'marker',
             },
             {
                 size: marker.size,
