@@ -1,7 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { DataModelSeriesConstructorOpts } from '../../../../ag-charts-community/src/chart/series/dataModelSeries';
-
 interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {}
 
 interface TopologySeriesNodeDataContext<
@@ -18,7 +16,7 @@ export abstract class TopologySeries<
     TLabel extends object,
     TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
 > extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
-    constructor(options: DataModelSeriesConstructorOpts<TProps>) {
+    constructor(options: _ModuleSupport.DataModelSeriesConstructorOpts<TProps>) {
         super(options);
 
         this.cleanup.register(

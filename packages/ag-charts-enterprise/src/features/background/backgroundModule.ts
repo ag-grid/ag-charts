@@ -1,4 +1,4 @@
-import type { AgChartBackground, _ModuleSupport } from 'ag-charts-community';
+import type { AgChartBackground } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     boolean,

@@ -16,6 +16,7 @@ export * from './chart/chartOptionsDefs';
 export * from './chart/themes/annotationOptionsDef';
 export * from './chart/themes/enterpriseThemeableOptionsDef';
 export * from './chart/series/cartesian/util';
+export * from './chart/series-area/seriesArea';
 export * from './chart/cartesianUtil';
 
 export * from './util/angle';

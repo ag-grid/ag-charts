@@ -10,7 +10,6 @@ import {
     type SeriesModuleDefinition,
     type SeriesPluginModuleDefinition,
 } from '../interfaces/moduleDefinition';
-import { Logger } from './';
 
 interface ModuleState {
     def: ModuleDefinition;
@@ -46,18 +45,8 @@ export function register(
         return;
     }
 
-    // Module already registered with the same version - work out appropriate error handling.
-    if (existingVersion === version) {
-        // Probably due to duplicate module loading - users should be aware of this because it's not a good idea.
-        Logger.warn(
-            [
-                `AG Charts - Module '${def.name}' already registered,',
-                'ignoring (version: ${existingVersion}).`,
-                `Check your code for duplicate loading of charts NPM modules.`,
-            ].join(' ')
-        );
-        return;
-    }
+    // Module already registered with the same version - ignore.
+    if (existingVersion === version) return;
 
     // Module already registered with a different version - this is a problem with the users NPM dependencies.
     throw new Error(

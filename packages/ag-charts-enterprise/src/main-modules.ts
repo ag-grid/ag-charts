@@ -1,3 +1,5 @@
+import { type ModuleDefinition } from 'ag-charts-core';
+
 import { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
 import { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
 import { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
@@ -5,6 +7,7 @@ import { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryA
 import { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
 import { StandaloneChartModule } from './charts/standaloneChartModule';
 import { TopologyChartModule } from './charts/topologyChartModule';
+import { BackgroundModule } from './features/background/backgroundModule';
 import { AnnotationsModule, InitialStateModule, NavigatorModule } from './features/sync/pluginModules';
 import { BoxPlotSeriesModule } from './series/box-plot';
 import { CandlestickSeriesModule } from './series/candlestick';
@@ -71,7 +74,7 @@ export {
     MapShapeBackgroundSeriesModule,
 };
 
-export const AllCartesianEnterpriseModules = [
+export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     OrdinalTimeAxisModule,
     BoxPlotSeriesModule,
     CandlestickSeriesModule,
@@ -82,9 +85,10 @@ export const AllCartesianEnterpriseModules = [
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
     WaterfallSeriesModule,
+    BackgroundModule,
 ];
 
-export const AllPolarEnterpriseModules = [
+export const AllPolarEnterpriseModules: ModuleDefinition[] = [
     AngleNumberAxisModule,
     AngleCategoryAxisModule,
     RadiusNumberAxisModule,
@@ -94,9 +98,10 @@ export const AllPolarEnterpriseModules = [
     RadarLineSeriesModule,
     RadialBarSeriesModule,
     RadialColumnSeriesModule,
+    BackgroundModule,
 ];
 
-export const AllStandaloneEnterpriseModules = [
+export const AllStandaloneEnterpriseModules: ModuleDefinition[] = [
     StandaloneChartModule,
     PyramidSeriesModule,
     LinearGaugeSeriesModule,
@@ -105,18 +110,20 @@ export const AllStandaloneEnterpriseModules = [
     TreemapSeriesModule,
     ChordSeriesModule,
     SankeySeriesModule,
+    BackgroundModule,
 ];
 
-export const AllTopologyEnterpriseModules = [
+export const AllTopologyEnterpriseModules: ModuleDefinition[] = [
     TopologyChartModule,
     MapLineSeriesModule,
     MapLineBackgroundSeriesModule,
     MapMarkerSeriesModule,
     MapShapeSeriesModule,
     MapShapeBackgroundSeriesModule,
+    BackgroundModule,
 ];
 
-export const AllEnterpriseModules = [
+export const AllEnterpriseModules: ModuleDefinition[] = [
     ...AllCartesianEnterpriseModules,
     ...AllPolarEnterpriseModules,
     ...AllStandaloneEnterpriseModules,

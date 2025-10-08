@@ -131,7 +131,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             baseChartOptions = currentUserOptions;
             this.specialOverrides = baseChartOptions.specialOverrides;
 
-            if (deltaOptions === undefined) {
+            if (deltaOptions == null) {
                 // No diff case - null means diff was a no-op.
                 deltaOptions = jsonDiff(
                     baseChartOptions.userOptions as T,
