@@ -165,7 +165,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return memoizedAggregateRangeAreaData(xAxis.scale.type, xValues, yHighValues, yLowValues, domain);
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `yHighValue`, processedData);
+
+        return memoizedAggregateRangeAreaData(
+            xAxis.scale.type,
+            xValues,
+            yHighValues,
+            yLowValues,
+            domain,
+            xNeedsValueOf,
+            yNeedsValueOf
+        );
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
@@ -229,7 +240,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeWidth,
             strokeOpacity,
         } = this.properties;
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
@@ -804,7 +815,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];

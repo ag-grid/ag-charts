@@ -8,7 +8,7 @@ type Datum = {
 };
 
 const INITIAL_POINTS = 100_000;
-const BATCH_SIZE = 100;
+let BATCH_SIZE = 100;
 const UPDATE_INTERVAL_MS = 200;
 const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
@@ -226,8 +226,26 @@ function setUpdateMethod(method: string) {
     resetCpuIndicator();
 }
 
+function updateButtonLabels() {
+    const addBtn = document.getElementById('addBtn');
+    const removeBtn = document.getElementById('removeBtn');
+
+    if (addBtn) {
+        addBtn.textContent = `Add ${BATCH_SIZE.toLocaleString()}`;
+    }
+    if (removeBtn) {
+        removeBtn.textContent = `Remove ${BATCH_SIZE.toLocaleString()}`;
+    }
+}
+
+function setBatchSize(size: number) {
+    BATCH_SIZE = size;
+    updateButtonLabels();
+}
+
 resetCpuIndicator();
 updateDataCountDisplay();
+updateButtonLabels();
 
 methodSelect = document.getElementById('methodSelect') as HTMLSelectElement | null;
 if (methodSelect) {
@@ -239,6 +257,9 @@ if (methodSelect) {
 };
 (window as any).updateMethod = (method: string) => {
     setUpdateMethod(method);
+};
+(window as any).updateBatchSize = (size: string) => {
+    setBatchSize(parseInt(size, 10));
 };
 (window as any).addBatch = () => {
     void addPoints(BATCH_SIZE);

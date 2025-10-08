@@ -29,13 +29,14 @@ function aggregationIndexType(
     d1: number,
     indexData: Int32Array,
     maxRange: number,
-    datumIndex: number
+    datumIndex: number,
+    xNeedsValueOf: boolean
 ): number {
     const xValue = xValues[datumIndex];
     if (xValue == null) return -1;
 
     const xRatio = Number.isFinite(d0)
-        ? aggregationXRatioForXValue(xValue, d0, d1)
+        ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)
         : aggregationXRatioForDatumIndex(datumIndex, xValues.length);
     const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
@@ -55,21 +56,26 @@ export function aggregateAreaData(
     scale: ScaleType,
     xValues: any[],
     yValues: any[],
-    domain: any[]
+    domain: any[],
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ): AreaSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1);
+    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { xNeedsValueOf });
 
-    const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
+    const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange, {
+        xNeedsValueOf,
+        yNeedsValueOf,
+    });
 
     let metaIndices: number[] = [];
     let indices: number[] = [];
     let currentGroup = -1;
     for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
-        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex);
+        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
         if (group === -1) continue;
 
         const newGroupIndex = indices.push(datumIndex) - 1;
@@ -91,7 +97,7 @@ export function aggregateAreaData(
         indices = [];
         currentGroup = -1;
         for (const datumIndex of previousIndices) {
-            const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex);
+            const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
             if (group === -1) continue;
 
             const newGroupIndex = indices.push(datumIndex) - 1;

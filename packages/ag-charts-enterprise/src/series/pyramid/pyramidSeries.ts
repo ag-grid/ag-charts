@@ -223,7 +223,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         let maxLabelHeight = 0;
         let yTotal = 0;
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         rawData.forEach((datum, datumIndex) => {
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
@@ -633,7 +633,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (!dataModel || !processedData) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
@@ -738,7 +738,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         rawData.forEach((_datum, datumIndex) => {
             const stageValue = stageValues[datumIndex];
 

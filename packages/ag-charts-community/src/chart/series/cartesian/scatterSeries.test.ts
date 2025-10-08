@@ -692,6 +692,50 @@ describe('ScatterSeries', () => {
         });
     });
 
+    describe('showInLegend', () => {
+        const commonOptions = {
+            series: [
+                {
+                    type: 'scatter',
+                    data: [{ x: 10, y: 20 }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    title: 'Male',
+                },
+                {
+                    type: 'scatter',
+                    data: [{ x: 20, y: 20 }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    title: 'Female',
+                },
+            ],
+            legend: {},
+        } satisfies AgCartesianChartOptions;
+
+        it('should hide scatter series from legend when showInLegend is false', async () => {
+            const options = prepareTestOptions({
+                ...commonOptions,
+                title: { text: 'Two series, only female series should be shown in legend' },
+                series: [commonOptions.series[0], { ...commonOptions.series[1], showInLegend: false }],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should show scatter series in legend when showInLegend is true (default)', async () => {
+            const options = prepareTestOptions({
+                ...commonOptions,
+                title: { text: 'One series, only male series should be shown in legend' },
+                series: [{ ...commonOptions.series[0], showInLegend: true }],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     describe('predict axes', () => {
         it('number', async () => {
             const options: AgChartOptions = {

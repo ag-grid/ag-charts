@@ -23,6 +23,7 @@ import type {
     Scoped,
 } from './dataModel';
 import { DataModel, getPathComponents } from './dataModel';
+import { DataSet } from './dataSet';
 import {
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
@@ -108,7 +109,8 @@ const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number
 });
 
 function basicDataSet<T>(data: T[], scopes = ['test']) {
-    return new Map([...scopes.map((s) => [s, data] as const)]);
+    const dataSet = new DataSet(data);
+    return new Map([...scopes.map((s) => [s, dataSet] as const)]);
 }
 
 function expectedKeys(expected: unknown[]) {
@@ -1236,11 +1238,12 @@ describe('DataModel', () => {
 
     describe('missing and invalid data processing - multiple scopes', () => {
         it('should generated the expected results', () => {
+            const rawData = mutilatedBrowserData();
             const data = new Map()
-                .set('test', mutilatedBrowserData())
-                .set('series-a', mutilatedBrowserData())
-                .set('series-b', mutilatedBrowserData())
-                .set('series-c', mutilatedBrowserData());
+                .set('test', new DataSet(rawData))
+                .set('series-a', new DataSet(rawData))
+                .set('series-b', new DataSet(rawData))
+                .set('series-c', new DataSet(rawData));
             const DEFAULTS = {
                 missingValue: null,
                 validation: isFiniteNumber,
@@ -1306,7 +1309,7 @@ describe('DataModel', () => {
                 { kp: 'Q3', vp1: 6, vp2: 9, vp3: 'illegal value' },
                 { kp: 'Q4', vp1: 6, vp2: 9, vp3: 4 },
             ];
-            const data = new Map([...['test', 'scope-1', 'scope-2'].map((s) => [s, rawData] as const)]);
+            const data = new Map([...['test', 'scope-1', 'scope-2'].map((s) => [s, new DataSet(rawData)] as const)]);
 
             it('should record per result data validation status per scope', () => {
                 const result = dataModel.processData(data)!;
@@ -1447,7 +1450,7 @@ describe('DataModel', () => {
                 firefox: d.firefox ? d.firefox * 2 : d.firefox,
             }));
 
-            const allData = basicDataSet(data2).set('test1', data1).set('test2', data2);
+            const allData = basicDataSet(data2).set('test1', new DataSet(data1)).set('test2', new DataSet(data2));
             const processedData = dataModel.processData(allData);
 
             expect(processedData!.columns).toEqual([
@@ -1482,6 +1485,904 @@ describe('DataModel', () => {
         it('rejects invalid paths', () => {
             expect(getPathComponents(`["test"]other`)).toBe(undefined);
             expect(getPathComponents(`[test]`)).toBe(undefined);
+        });
+    });
+
+    describe('reprocessData', () => {
+        describe('append operations', () => {
+            it('should handle append-only transaction', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                // Initial data
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initialize diff tracking (opt-in to diff generation during reprocessing)
+                processedData!.reduced = { diff: {} };
+
+                // Add transaction
+                dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify keys were updated
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+
+                // Verify columns were updated
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
+                // Verify diff metadata
+                expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.added.has('3')).toBe(true);
+            });
+        });
+
+        describe('prepend operations', () => {
+            it('should handle prepend-only transaction', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initialize diff tracking (opt-in to diff generation during reprocessing)
+                processedData!.reduced = { diff: {} };
+
+                // Prepend transaction
+                dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify keys were shifted and new key added
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+
+                // Verify columns
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
+                // Verify diff shows moved items
+                expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.moved.size).toBe(2); // Original items moved
+            });
+        });
+
+        describe('remove operations', () => {
+            it('should handle remove transaction', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove middle item
+                dataSet.addTransaction({ remove: [initialData[1]] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify item was removed
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 3]);
+                expect(reprocessed.columns).toEqual([[10, 30]]);
+
+                // Verify domains updated
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
+                // Verify input count
+                expect(reprocessed.input.count).toBe(2);
+            });
+        });
+
+        describe('mixed operations', () => {
+            it('should handle mixed append and remove', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove first, add new
+                dataSet.addTransaction({
+                    remove: [initialData[0]],
+                    append: [{ x: 4, y: 40 }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // After remove+append, we expect: [{x:2},{x:3},{x:4}]
+                expect(dataSet.data).toEqual([
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                    { x: 4, y: 40 },
+                ]);
+                expect(reprocessed.keys[0].get('test')).toEqual([2, 3, 4]);
+                expect(reprocessed.columns).toEqual([[20, 30, 40]]);
+
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[2, 4]]);
+                expect(reprocessed.domain.values).toEqual([[20, 40]]);
+
+                expect(reprocessed.input.count).toBe(3);
+            });
+
+            it('should handle multiple value columns', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y1'), value('y2')],
+                });
+
+                const initialData = [{ x: 1, y1: 10, y2: 100 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: 200 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                expect(reprocessed.columns).toEqual([
+                    [10, 20],
+                    [100, 200],
+                ]);
+                expect(reprocessed.domain.values).toEqual([
+                    [10, 20],
+                    [100, 200],
+                ]);
+            });
+        });
+
+        describe('diff tracking opt-in', () => {
+            it('should NOT generate diffs when diff tracking is not initialized', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // DO NOT initialize diff tracking - it should remain undefined
+                expect(processedData!.reduced?.diff).toBeUndefined();
+
+                // Add transaction
+                dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify data was updated correctly
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
+                // Verify diff was NOT generated (still undefined)
+                expect(reprocessed.reduced?.diff).toBeUndefined();
+            });
+
+            it('should generate diffs when diff tracking IS initialized', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Opt-in to diff tracking
+                processedData!.reduced = { diff: {} };
+
+                // Add transaction
+                dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify data was updated correctly
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify domains
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+
+                // Verify diff WAS generated
+                expect(reprocessed.reduced?.diff).toBeDefined();
+                expect(reprocessed.reduced?.diff?.test).toBeDefined();
+                expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.added.has('3')).toBe(true);
+            });
+
+            it('should skip diff generation when no changes occur', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Opt-in to diff tracking
+                processedData!.reduced = { diff: {} };
+
+                // No transaction added
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should return same reference (no changes)
+                expect(reprocessed).toBe(processedData);
+
+                // Diff structure exists but is empty (no scopes changed)
+                expect(reprocessed.reduced?.diff).toBeDefined();
+                expect(Object.keys(reprocessed.reduced!.diff!)).toEqual([]);
+            });
+        });
+
+        describe('edge cases', () => {
+            it('should handle no pending transactions', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should return same reference
+                expect(reprocessed).toBe(processedData);
+            });
+
+            it('should handle category keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('category'), value('value')],
+                });
+
+                const initialData = [
+                    { category: 'A', value: 10 },
+                    { category: 'B', value: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                dataSet.addTransaction({ append: [{ category: 'C', value: 30 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                expect(reprocessed.keys[0].get('test')).toEqual(['A', 'B', 'C']);
+                expect(reprocessed.domain.keys).toEqual([['A', 'B', 'C']]);
+            });
+
+            it('should track invalid data in insertions', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        rangeKey('x'),
+                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                    ],
+                });
+
+                // Start with data that includes invalid item to ensure invalidData is initialized
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 'bad' as any },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources)!;
+
+                // Verify initial invalid tracking
+                expect(processedData.invalidData?.has('test')).toBe(true);
+
+                // Append with another invalid value
+                dataSet.addTransaction({
+                    append: [{ x: 3, y: 'invalid' as any }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData);
+
+                // The new invalid value should be tracked
+                const invalidDataArray = reprocessed.invalidData?.get('test');
+                expect(invalidDataArray).toBeDefined();
+                expect(invalidDataArray![1]).toBe(true); // Second item (from initial)
+                expect(invalidDataArray![2]).toBe(true); // Third item (appended)
+                expect(reprocessed.partialValidDataCount).toBeGreaterThan(0);
+
+                // Verify domains (only valid data: x=1 with y=10)
+                expect(reprocessed.domain.keys).toEqual([[1, 1]]);
+                expect(reprocessed.domain.values).toEqual([[10, 10]]);
+            });
+        });
+
+        describe('isReprocessingSupported', () => {
+            it('should support ungrouped data without aggregates', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const sources = basicDataSet([{ x: 1, y: 10 }]);
+                const processedData = dataModel.processData(sources);
+
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+            });
+
+            it('should not support grouped data', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                const sources = basicDataSet([{ x: 1, y: 10 }]);
+                const processedData = dataModel.processData(sources);
+
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+            });
+
+            it('should not support data with aggregates', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y', 'group1'), sum('group1')],
+                });
+
+                const sources = basicDataSet([{ x: 1, y: 10 }]);
+                const processedData = dataModel.processData(sources);
+
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+            });
+        });
+    });
+
+    describe('banded domain optimization', () => {
+        describe('append operations with banding', () => {
+            it('should correctly update domain when appending to large dataset', () => {
+                // Create a data model with banding enabled for datasets > 100 items
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 100, // Lower threshold for testing
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Create large initial dataset
+                const initialData = Array.from({ length: 200 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initial domain should be correct
+                expect(processedData!.domain.keys).toEqual([[0, 199]]);
+                expect(processedData!.domain.values).toEqual([[0, 1990]]);
+
+                // Append more data
+                const appendData = [
+                    { x: 200, y: 2000 },
+                    { x: 201, y: 2010 },
+                    { x: 202, y: 2020 },
+                ];
+                dataSet.addTransaction({ append: appendData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should extend to include new values
+                expect(reprocessed.domain.keys).toEqual([[0, 202]]);
+                expect(reprocessed.domain.values).toEqual([[0, 2020]]);
+
+                // Verify actual data
+                expect(reprocessed.keys[0].get('test')?.length).toBe(203);
+                expect(reprocessed.columns[0].length).toBe(203);
+            });
+        });
+
+        describe('prepend operations with banding', () => {
+            it('should correctly update domain when prepending to large dataset', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 100,
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Create large initial dataset starting from 10
+                const initialData = Array.from({ length: 150 }, (_, i) => ({
+                    x: i + 10,
+                    y: (i + 10) * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initial domain
+                expect(processedData!.domain.keys).toEqual([[10, 159]]);
+                expect(processedData!.domain.values).toEqual([[100, 1590]]);
+
+                // Prepend data with lower values
+                const prependData = [
+                    { x: 7, y: 70 },
+                    { x: 8, y: 80 },
+                    { x: 9, y: 90 },
+                ];
+                dataSet.addTransaction({ prepend: prependData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should extend to include new minimum values
+                expect(reprocessed.domain.keys).toEqual([[7, 159]]);
+                expect(reprocessed.domain.values).toEqual([[70, 1590]]);
+
+                // Verify data integrity
+                expect(reprocessed.keys[0].get('test')?.[0]).toBe(7);
+                expect(reprocessed.keys[0].get('test')?.[1]).toBe(8);
+                expect(reprocessed.keys[0].get('test')?.[2]).toBe(9);
+                expect(reprocessed.keys[0].get('test')?.[3]).toBe(10);
+            });
+        });
+
+        describe('mixed operations with banding', () => {
+            it('should correctly update domain with mixed insert/remove operations', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 50,
+                        targetBandCount: 4,
+                        enableBanding: true,
+                    },
+                });
+
+                // Create dataset with gaps
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    x: i * 2, // 0, 2, 4, 6, ...
+                    y: i * 20,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initial domain
+                expect(processedData!.domain.keys).toEqual([[0, 198]]);
+                expect(processedData!.domain.values).toEqual([[0, 1980]]);
+
+                // Mixed operations: remove some middle values, add at both ends
+                dataSet.addTransaction({
+                    remove: [initialData[25], initialData[50], initialData[75]], // Remove 3 from middle
+                    prepend: [{ x: -2, y: -20 }],
+                    append: [
+                        { x: 200, y: 2000 },
+                        { x: 202, y: 2020 },
+                    ],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should reflect new min/max
+                expect(reprocessed.domain.keys).toEqual([[-2, 202]]);
+                expect(reprocessed.domain.values).toEqual([[-20, 2020]]);
+
+                // Verify count is correct (100 - 3 + 1 + 2 = 100)
+                expect(reprocessed.input.count).toBe(100);
+            });
+        });
+
+        describe('boundary value removal with banding', () => {
+            it('should correctly recalculate domain when removing boundary values', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 50,
+                        targetBandCount: 3,
+                        enableBanding: true,
+                    },
+                });
+
+                // Dataset with clear boundaries
+                const initialData = Array.from({ length: 60 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Initial domain
+                expect(processedData!.domain.keys).toEqual([[0, 59]]);
+                expect(processedData!.domain.values).toEqual([[0, 590]]);
+
+                // Remove the minimum and maximum values
+                dataSet.addTransaction({
+                    remove: [
+                        initialData[0], // x: 0, y: 0 (minimum)
+                        initialData[59], // x: 59, y: 590 (maximum)
+                    ],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should update to new boundaries
+                expect(reprocessed.domain.keys).toEqual([[1, 58]]);
+                expect(reprocessed.domain.values).toEqual([[10, 580]]);
+            });
+
+            it('should handle removing all values from a band', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 20,
+                        targetBandCount: 4, // Should create ~5 items per band for 20 items
+                        enableBanding: true,
+                    },
+                });
+
+                // Small dataset that will be banded
+                const initialData = Array.from({ length: 20 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove entire first "band" worth of data (first 5 items)
+                const toRemove = initialData.slice(0, 5);
+                dataSet.addTransaction({ remove: toRemove });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should start from the remaining minimum
+                expect(reprocessed.domain.keys).toEqual([[5, 19]]);
+                expect(reprocessed.domain.values).toEqual([[50, 190]]);
+                expect(reprocessed.input.count).toBe(15);
+            });
+        });
+
+        describe('band rebalancing scenarios', () => {
+            it('should rebalance bands when data size changes significantly', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 5, // Lower for testing
+                        targetBandCount: 3,
+                        enableBanding: true,
+                    },
+                });
+
+                // Start with dataset just above banding threshold
+                const initialData = Array.from({ length: 10 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Verify initial domain with banding enabled
+                expect(processedData!.domain.keys).toEqual([[0, 9]]);
+                expect(processedData!.domain.values).toEqual([[0, 90]]);
+
+                // Add significant amount of data (double the size)
+                const appendData = Array.from({ length: 10 }, (_, i) => ({
+                    x: i + 10,
+                    y: (i + 10) * 10,
+                }));
+                dataSet.addTransaction({ append: appendData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Domain should include all data
+                expect(reprocessed.domain.keys).toEqual([[0, 19]]);
+                expect(reprocessed.domain.values).toEqual([[0, 190]]);
+                expect(reprocessed.input.count).toBe(20);
+
+                // Remove half the data - items with x=0 to x=4
+                const toRemove = initialData.slice(0, 5);
+                dataSet.addTransaction({ remove: toRemove });
+
+                const reprocessed2 = dataModel.reprocessData(reprocessed);
+
+                // Should still calculate correct domain with less data
+                // Remaining data: x=5 to x=19
+                expect(reprocessed2.domain.keys).toEqual([[5, 19]]);
+                expect(reprocessed2.domain.values).toEqual([[50, 190]]);
+                expect(reprocessed2.input.count).toBe(15);
+
+                // Remove more to drop below banding threshold
+                // Remove x=5 to x=9 and x=10 to x=16
+                // This should leave only x=17, x=18, x=19
+                const toRemoveMore = [...initialData.slice(5), ...appendData.slice(0, 7)];
+                dataSet.addTransaction({ remove: toRemoveMore });
+
+                const reprocessed3 = dataModel.reprocessData(reprocessed2);
+
+                // Check actual data in dataSet
+                const actualData = dataSet.data;
+                const actualXValues = actualData.map((d) => d.x).sort((a, b) => a - b);
+                const actualYValues = actualData.map((d) => d.y).sort((a, b) => a - b);
+
+                // Domain should match the actual remaining data
+                const expectedMinX = Math.min(...actualXValues);
+                const expectedMaxX = Math.max(...actualXValues);
+                const expectedMinY = Math.min(...actualYValues);
+                const expectedMaxY = Math.max(...actualYValues);
+
+                expect(reprocessed3.domain.keys).toEqual([[expectedMinX, expectedMaxX]]);
+                expect(reprocessed3.domain.values).toEqual([[expectedMinY, expectedMaxY]]);
+                expect(reprocessed3.input.count).toBe(actualData.length);
+            });
+
+            it('should handle transition from non-banded to banded mode', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 100,
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Start below banding threshold
+                const initialData = Array.from({ length: 50 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Should not use banding initially
+                expect(processedData!.domain.keys).toEqual([[0, 49]]);
+                expect(processedData!.domain.values).toEqual([[0, 490]]);
+
+                // Add enough data to trigger banding
+                const appendData = Array.from({ length: 60 }, (_, i) => ({
+                    x: i + 50,
+                    y: (i + 50) * 10,
+                }));
+                dataSet.addTransaction({ append: appendData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should now use banding and still calculate correct domain
+                expect(reprocessed.domain.keys).toEqual([[0, 109]]);
+                expect(reprocessed.domain.values).toEqual([[0, 1090]]);
+                expect(reprocessed.input.count).toBe(110);
+            });
+        });
+
+        describe('discrete domains with banding disabled', () => {
+            it('should not use banding for category domains', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('category'), value('value')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 10, // Low threshold
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Large dataset with categories
+                const categories = ['A', 'B', 'C', 'D', 'E'];
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    category: categories[i % 5],
+                    value: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Should handle discrete domains correctly
+                expect(processedData!.domain.keys).toEqual([['A', 'B', 'C', 'D', 'E']]);
+
+                // Add new category
+                dataSet.addTransaction({ append: [{ category: 'F', value: 1000 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should include new category
+                expect(reprocessed.domain.keys).toEqual([['A', 'B', 'C', 'D', 'E', 'F']]);
+            });
+        });
+
+        describe('performance characteristics with banding', () => {
+            it('should efficiently handle append-heavy workloads', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('timestamp'), value('value')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 100,
+                        targetBandCount: 10,
+                        enableBanding: true,
+                    },
+                });
+
+                // Simulate time-series data
+                const initialData = Array.from({ length: 1000 }, (_, i) => ({
+                    timestamp: i * 1000, // Millisecond timestamps
+                    value: Math.sin(i / 100) * 100,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Simulate multiple rapid append operations (like real-time data)
+                for (let batch = 0; batch < 10; batch++) {
+                    const batchData = Array.from({ length: 10 }, (_, i) => ({
+                        timestamp: (1000 + batch * 10 + i) * 1000,
+                        value: Math.sin((1000 + batch * 10 + i) / 100) * 100,
+                    }));
+                    dataSet.addTransaction({ append: batchData });
+                }
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Should handle 100 new data points efficiently
+                expect(reprocessed.input.count).toBe(1100);
+                expect(reprocessed.domain.keys[0][0]).toBe(0); // Min timestamp
+                expect(reprocessed.domain.keys[0][1]).toBe(1099000); // Max timestamp
+
+                // Value domain should reflect the sine wave range
+                expect(reprocessed.domain.values[0][0]).toBeCloseTo(-100, 0);
+                expect(reprocessed.domain.values[0][1]).toBeCloseTo(100, 0);
+            });
+        });
+    });
+
+    describe('columnNeedValueOf optimization', () => {
+        it('should correctly identify columns with primitive values', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count'), value('amount')],
+            });
+
+            const data = [
+                { id: 'A', count: 10, amount: 100.5 },
+                { id: 'B', count: 20, amount: 200.3 },
+                { id: 'C', count: 30, amount: 300.7 },
+            ];
+
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            // columnNeedValueOf only tracks value columns (count, amount), not keys
+            // Both value columns contain primitives (numbers), so should be false
+            expect(processedData!.columnNeedValueOf).toEqual([false, false]);
+        });
+
+        it('should correctly identify value columns with Date objects', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('timestamp'), value('dateValue'), value('primitiveValue')],
+            });
+
+            const data = [
+                { timestamp: new Date(2024, 0, 1), dateValue: new Date(2024, 0, 1), primitiveValue: 10 },
+                { timestamp: new Date(2024, 0, 2), dateValue: new Date(2024, 0, 2), primitiveValue: 20 },
+                { timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 },
+            ];
+
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            // columnNeedValueOf only tracks value columns (not the timestamp key)
+            // First value column (dateValue) contains Date objects - needs valueOf
+            // Second value column (primitiveValue) contains primitives - doesn't need valueOf
+            expect(processedData!.columnNeedValueOf).toEqual([true, false]);
+        });
+
+        it('should correctly identify columns with mixed object types', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('key'), value('primitiveValue'), value('objectValue')],
+            });
+
+            const data = [
+                { key: 'A', primitiveValue: 10, objectValue: new Date(2024, 0, 1) },
+                { key: 'B', primitiveValue: 20, objectValue: new Date(2024, 0, 2) },
+            ];
+
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            // columnNeedValueOf only tracks value columns (not the key)
+            // First value column: primitives (false)
+            // Second value column: objects/dates (true)
+            expect(processedData!.columnNeedValueOf).toEqual([false, true]);
+        });
+
+        it('should handle incremental updates without losing columnNeedValueOf metadata', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('timestamp'), value('dateValue'), value('primitiveValue')],
+            });
+
+            const initialData = [
+                { timestamp: new Date(2024, 0, 1), dateValue: new Date(2024, 0, 1), primitiveValue: 10 },
+                { timestamp: new Date(2024, 0, 2), dateValue: new Date(2024, 0, 2), primitiveValue: 20 },
+            ];
+
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            // columnNeedValueOf should track value columns (dateValue: true, primitiveValue: false)
+            expect(processedData!.columnNeedValueOf).toEqual([true, false]);
+
+            // Add more data
+            dataSet.addTransaction({
+                append: [{ timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 }],
+            });
+
+            const reprocessed = dataModel.reprocessData(processedData!);
+
+            // Should maintain columnNeedValueOf metadata
+            expect(reprocessed.columnNeedValueOf).toEqual([true, false]);
         });
     });
 });

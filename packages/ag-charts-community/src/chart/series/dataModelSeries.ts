@@ -44,7 +44,7 @@ export abstract class DataModelSeries<
     }
 
     dataCount() {
-        return this.processedData?.dataSources?.get(this.id)?.length ?? 0;
+        return this.processedData?.dataSources?.get(this.id)?.data?.length ?? 0;
     }
 
     getHasData(axisKey: string): boolean {

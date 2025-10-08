@@ -15,6 +15,8 @@ export interface BubbleAggregation {
     yd0: number;
     yd1: number;
     filters: BubbleAggregationFilter[];
+    xNeedsValueOf: boolean;
+    yNeedsValueOf: boolean;
 }
 
 export interface BubbleAggregationFilter {
@@ -52,7 +54,9 @@ function getPrimaryDatumIndex(
     x0: number,
     y0: number,
     x1: number,
-    y1: number
+    y1: number,
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ): number {
     let currentIndex = 0;
     let currentDistanceSquared = Infinity;
@@ -62,8 +66,8 @@ function getPrimaryDatumIndex(
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
         if (xValue == null || yValue == null) continue;
-        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1);
-        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1);
+        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1, xNeedsValueOf);
+        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1, yNeedsValueOf);
 
         const distanceSquared = (xRatio - midX) ** 2 + (yRatio - midY) ** 2;
         if (distanceSquared < currentDistanceSquared) {
@@ -85,15 +89,17 @@ function countVisibleItems(
     x0: number,
     y0: number,
     x1: number,
-    y1: number
+    y1: number,
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ) {
     let count = 0;
     for (const datumIndex of indices) {
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
         if (xValue == null || yValue == null) continue;
-        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1);
-        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1);
+        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1, xNeedsValueOf);
+        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1, yNeedsValueOf);
 
         if (xRatio >= x0 && xRatio <= x1 && yRatio >= y0 && yRatio <= y1) {
             count += 1;
@@ -114,7 +120,9 @@ function quadChildren(
     x0: number,
     y0: number,
     x1: number,
-    y1: number
+    y1: number,
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ): BubbleAggregationNode[] {
     const childBuckets: ChildBucket[] = [
         { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
@@ -129,8 +137,8 @@ function quadChildren(
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
         if (xValue == null || yValue == null) continue;
-        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1);
-        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1);
+        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1, xNeedsValueOf);
+        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1, yNeedsValueOf);
 
         const childIndex = (xRatio > midX ? 1 : 0) + (yRatio > midY ? 2 : 0);
         const childBucket = childBuckets[childIndex];
@@ -146,7 +154,21 @@ function quadChildren(
         const { indices: childIndices, x0: cx0, x1: cx1, y0: cy0, y1: cy1 } = childBucket;
         if (childIndices.length === 0) continue;
 
-        const child = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, childIndices, cx0, cy0, cx1, cy1);
+        const child = aggregateQuad(
+            xValues,
+            yValues,
+            xd0,
+            yd0,
+            xd1,
+            yd1,
+            childIndices,
+            cx0,
+            cy0,
+            cx1,
+            cy1,
+            xNeedsValueOf,
+            yNeedsValueOf
+        );
         children.push(child);
     }
 
@@ -164,7 +186,9 @@ function aggregateQuad(
     x0: number,
     y0: number,
     x1: number,
-    y1: number
+    y1: number,
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ): BubbleAggregationNode {
     const terminate =
         (indices.length < FILTER_DATUM_THRESHOLD &&
@@ -172,7 +196,9 @@ function aggregateQuad(
             y1 - y0 < FILTER_RANGE_THRESHOLD) ||
         (x0 === x1 && y0 === y1);
 
-    let children = terminate ? null : quadChildren(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
+    let children = terminate
+        ? null
+        : quadChildren(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1, xNeedsValueOf, yNeedsValueOf);
 
     if (children?.length === 1) {
         // Flatten the tree if there's only one child
@@ -182,7 +208,21 @@ function aggregateQuad(
     }
 
     const scale = Math.hypot(x1 - x0, y1 - y0);
-    const primaryDatumIndex = getPrimaryDatumIndex(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
+    const primaryDatumIndex = getPrimaryDatumIndex(
+        xValues,
+        yValues,
+        xd0,
+        yd0,
+        xd1,
+        yd1,
+        indices,
+        x0,
+        y0,
+        x1,
+        y1,
+        xNeedsValueOf,
+        yNeedsValueOf
+    );
     return { scale, x0, y0, x1, y1, indices, primaryDatumIndex, children };
 }
 
@@ -194,7 +234,9 @@ export function aggregateBubbleData(
     sizeValues: any[] | undefined,
     xDomain: any[],
     yDomain: any[],
-    sizeDomain: number[]
+    sizeDomain: number[],
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ): BubbleAggregation | undefined {
     const [xd0, xd1] = aggregationDomain(xScale, xDomain);
     const [yd0, yd1] = aggregationDomain(yScale, yDomain);
@@ -214,7 +256,21 @@ export function aggregateBubbleData(
 
         for (let i = 0; i < sizeIndices.length; i += 1) {
             const indices = sizeIndices[i];
-            const node = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, indices, 0, 0, 1, 1);
+            const node = aggregateQuad(
+                xValues,
+                yValues,
+                xd0,
+                yd0,
+                xd1,
+                yd1,
+                indices,
+                0,
+                0,
+                1,
+                1,
+                xNeedsValueOf,
+                yNeedsValueOf
+            );
 
             if (node != null) {
                 const sizeRatio = i / SIZE_QUANTIZATION;
@@ -223,14 +279,30 @@ export function aggregateBubbleData(
         }
     } else {
         const indices = xValues.map((_, i) => i);
-        const node = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, indices, 0, 0, 1, 1);
+        const node = aggregateQuad(
+            xValues,
+            yValues,
+            xd0,
+            yd0,
+            xd1,
+            yd1,
+            indices,
+            0,
+            0,
+            1,
+            1,
+            xNeedsValueOf,
+            yNeedsValueOf
+        );
 
         if (node != null) {
             filters.push({ sizeRatio: 0, node });
         }
     }
 
-    return filters.length > 0 ? { xValues, yValues, xd0, xd1, yd0, yd1, filters } : undefined;
+    return filters.length > 0
+        ? { xValues, yValues, xd0, xd1, yd0, yd1, filters, xNeedsValueOf, yNeedsValueOf }
+        : undefined;
 }
 
 export interface BubbleAggregationOptions {
@@ -265,7 +337,7 @@ function computeBubbleAggregationCountIndices(
         minSize,
         maxSize,
     } = options;
-    const { xValues, yValues, xd0, xd1, yd0, yd1 } = dataAggregation;
+    const { xValues, yValues, xd0, xd1, yd0, yd1, xNeedsValueOf, yNeedsValueOf } = dataAggregation;
     const baseScalingFactor = 1 / Math.min(xRange / (xvr1 - xvr0), yRange / (yvr1 - yvr0));
 
     for (const { sizeRatio, node } of dataAggregation.filters) {
@@ -301,7 +373,21 @@ function computeBubbleAggregationCountIndices(
                     const fullyVisible = item.x0 >= xvr0 && item.x1 <= xvr1 && item.y0 >= yvr0 && item.y1 <= yvr1;
                     const itemCount = fullyVisible
                         ? indices.length
-                        : countVisibleItems(xValues, yValues, xd0, yd0, xd1, yd1, indices, xvr0, yvr0, xvr1, yvr1);
+                        : countVisibleItems(
+                              xValues,
+                              yValues,
+                              xd0,
+                              yd0,
+                              xd1,
+                              yd1,
+                              indices,
+                              xvr0,
+                              yvr0,
+                              xvr1,
+                              yvr1,
+                              xNeedsValueOf,
+                              yNeedsValueOf
+                          );
                     counter.count += itemCount;
                 }
                 singleDatumIndices?.push(...indices);

@@ -3,6 +3,12 @@
 exports[`DataModel empty data set processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -126,12 +132,16 @@ exports[`DataModel empty data set processing should generated the expected resul
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with area bucket calculation 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -425,12 +435,16 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with average bucket calculation 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -743,12 +757,16 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with hard-coded buckets 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -1040,12 +1058,17 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - grouped example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -1392,12 +1415,21 @@ exports[`DataModel grouped processing - grouped example should generated the exp
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked area example 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -2254,12 +2286,21 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked columns example 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -2726,12 +2767,19 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -3236,12 +3284,19 @@ exports[`DataModel grouped processing - stacked example should generated the exp
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked with accumulation and normalised example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -3746,12 +3801,19 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked with accumulation example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -4214,12 +4276,19 @@ exports[`DataModel grouped processing - stacked with accumulation example should
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel missing and invalid data processing - multiple scopes should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -4762,12 +4831,19 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel missing and invalid data processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5068,12 +5144,17 @@ exports[`DataModel missing and invalid data processing should generated the expe
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel repeated property processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5189,12 +5270,18 @@ exports[`DataModel repeated property processing should generated the expected re
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel ungrouped processing - accumulated and normalised properties should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5356,12 +5443,17 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;
 
 exports[`DataModel ungrouped processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5878,5 +5970,6 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
 }
 `;

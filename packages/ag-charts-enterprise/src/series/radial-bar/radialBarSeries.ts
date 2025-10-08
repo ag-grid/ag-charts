@@ -307,7 +307,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (!this.visible) return context;
 
         const { dataSources } = processedData;
-        const rawData = dataSources.get(this.id) ?? [];
+        const rawData = dataSources.get(this.id)?.data ?? [];
         for (const { datumIndex, group } of dataModel.forEachGroupDatum(this, processedData)) {
             const datum = rawData[datumIndex];
             const radiusDatum = radiusValues[datumIndex];
@@ -508,7 +508,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis || !nodeDatum) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
         const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData)[datumIndex];
 

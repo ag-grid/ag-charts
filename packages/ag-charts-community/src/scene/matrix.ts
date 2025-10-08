@@ -108,7 +108,7 @@ export class Matrix {
      * @param other
      */
     multiply(other: Matrix | DOMMatrix): Matrix {
-        const elements = new Array(6);
+        const elements = [NaN, NaN, NaN, NaN, NaN, NaN];
 
         if (other instanceof Matrix) {
             this.AxB(this.elements, other.elements, elements);

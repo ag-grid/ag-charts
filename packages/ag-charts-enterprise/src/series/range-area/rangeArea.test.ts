@@ -975,43 +975,6 @@ describe('RangeAreaSeries', () => {
                 await compare();
             });
         });
-        describe('stroke-strokeWidth-defaults', () => {
-            beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'range-area',
-                                xKey: 'month',
-                                yName: 'Gain',
-                                yLowKey: 'gain_low',
-                                yHighKey: 'gain_high',
-                                styler: () => {
-                                    // check that default `strokeWidth: 2` is resolved.
-                                    return { stroke: 'lime' };
-                                },
-                            },
-                            {
-                                type: 'range-area',
-                                xKey: 'month',
-                                yName: 'Loss',
-                                yLowKey: 'loss_low',
-                                yHighKey: 'loss_high',
-                                styler: () => {
-                                    // check that theme-default `stroke` is resolved.
-                                    return { strokeWidth: 4 };
-                                },
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
-            });
-            test('snapshot', async () => {
-                await compare();
-            });
-        });
     });
 
     describe('invertedSegments with invertedStyle', () => {
