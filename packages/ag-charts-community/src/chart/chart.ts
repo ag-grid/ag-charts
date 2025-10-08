@@ -645,6 +645,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private readonly _performUpdateSplits: Record<string, number> = {};
+    private _previousSplit: number = 0;
+
+    private updateSplits(splitName: string) {
+        const splits = this._performUpdateSplits;
+        splits[splitName] ??= 0;
+        splits[splitName] += performance.now() - this._previousSplit;
+        this._previousSplit = performance.now();
+    }
+
     private async performUpdate(count: number) {
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
@@ -672,13 +681,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.ctx.scene.updateDebugFlags();
 
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
-        let previousSplit = performance.now();
-        splits.start ??= previousSplit;
-        const updateSplits = (splitName: string) => {
-            splits[splitName] ??= 0;
-            splits[splitName] += performance.now() - previousSplit;
-            previousSplit = performance.now();
-        };
+        this._previousSplit = performance.now();
+        splits.start ??= this._previousSplit;
 
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
@@ -692,7 +696,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (this.checkUpdateShortcut(ChartUpdateType.UPDATE_DATA)) break;
 
                 await this.updateData();
-                updateSplits('⬇️');
+                this.updateSplits('⬇️');
             // fallthrough
 
             case ChartUpdateType.PROCESS_DATA:
@@ -700,14 +704,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 await this.processData();
                 this.seriesAreaManager.dataChanged();
-                updateSplits('🏭');
+                this.updateSplits('📊');
             // fallthrough
 
             case ChartUpdateType.PROCESS_DOMAIN:
                 if (this.checkUpdateShortcut(ChartUpdateType.PROCESS_DOMAIN)) break;
 
                 await this.processDomains();
-                updateSplits('⛰️');
+                this.updateSplits('⛰️');
             // fallthrough
 
             case ChartUpdateType.PERFORM_LAYOUT:
@@ -715,7 +719,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
                 await this.processLayout();
-                updateSplits('⌖');
+                this.updateSplits('⌖');
             // fallthrough
 
             case ChartUpdateType.SERIES_UPDATE: {
@@ -728,7 +732,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 this.updateAriaLabels();
                 this.seriesLayerManager.updateLayerCompositing();
 
-                updateSplits('🤔');
+                this.updateSplits('🤔');
             }
             // fallthrough
 
@@ -738,7 +742,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 // Allow any additional pre-rendering processing to happen.
                 ctx.updateService.dispatchPreSceneRender();
 
-                updateSplits('↖');
+                this.updateSplits('↖');
             // fallthrough
 
             case ChartUpdateType.SCENE_RENDER:
@@ -1053,6 +1057,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const seriesPromises = this.series.map((s) => s.processData(dataController));
         const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
         this._cachedData = dataController.execute(this._cachedData);
+        this.updateSplits('🏭');
         await Promise.all([...seriesPromises, ...modulePromises]);
 
         this.updateLegends();
