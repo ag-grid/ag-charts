@@ -1,7 +1,14 @@
 import { Locator } from '@playwright/test';
 
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrls, waitForAllChartUpdates } from './util';
+import {
+    SELECTORS,
+    gotoExample,
+    setupIntrinsicAssertions,
+    toExamplePageUrls,
+    waitForAllChartUpdates,
+    waitForChartUpdate,
+} from './util';
 
 type RenewablesScreenshotsFilename =
     | 'renewables-nothing-highlighted.png'
@@ -154,6 +161,57 @@ test.describe('legend', () => {
                 await paginationPreviousButton.click();
                 await waitForAllChartUpdates(page);
                 await expectInteractivePageState('legend-interactivity-page1-return.png', 1);
+            });
+        });
+    }
+
+    for (const { framework, url } of toExamplePageUrls('legend-test', 'legend-pagination-resize')) {
+        test.describe(`for ${framework}`, () => {
+            test('AG-16038 Legend Pagination goes to wrong page after resize hides and shows legend', async ({
+                page,
+            }) => {
+                await gotoExample(page, url);
+                const chartWrapper = page.locator('.ag-charts-wrapper');
+                const canvasCenter = page.locator(SELECTORS.canvasCenter);
+
+                // Set initial size that should show legend with pagination
+                await page.setViewportSize({ width: 400, height: 250 });
+                await waitForChartUpdate(chartWrapper);
+
+                // Initial state with legend showing page 1
+                await expect(canvasCenter).toHaveScreenshot('ag-16038-initial-page-1.png');
+
+                // Locate the pagination buttons
+                const previousButton = page.locator('.ag-charts-proxy-legend-pagination button').first();
+                const nextButton = page.locator('.ag-charts-proxy-legend-pagination button').last();
+
+                // Verify pagination is working - advance to page 2
+                await nextButton.click();
+                await waitForChartUpdate(chartWrapper);
+                await expect(canvasCenter).toHaveScreenshot('ag-16038-legend-page-2-after-click.png');
+
+                // Verify pagination is working - go back to page 1
+                await previousButton.click();
+                await waitForChartUpdate(chartWrapper);
+                await expect(canvasCenter).toHaveScreenshot('ag-16038-legend-back-to-page-1-after-click.png');
+
+                // Resize to very small width to hide legend
+                await page.setViewportSize({ width: 230, height: 250 });
+                await waitForChartUpdate(chartWrapper);
+                await expect(canvasCenter).toHaveScreenshot('ag-16038-small-size-hidden-legend.png');
+
+                // Resize back to normal width - legend should reappear
+                await page.setViewportSize({ width: 400, height: 250 });
+                await waitForChartUpdate(chartWrapper);
+                await expect(canvasCenter).toHaveScreenshot('ag-16038-legend-should-reset-to-page-1.png');
+
+                // Verify pagination is working - advance to page 2
+                const next = page.locator('.ag-charts-proxy-legend-pagination button').last();
+                await next.click();
+                await waitForChartUpdate(chartWrapper);
+                await expect(canvasCenter).toHaveScreenshot(
+                    'ag-16038-legend-page-2-after-resize-hide-unhide-click.png'
+                );
             });
         });
     }
