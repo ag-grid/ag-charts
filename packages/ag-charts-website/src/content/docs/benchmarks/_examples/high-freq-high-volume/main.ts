@@ -1,4 +1,5 @@
-import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+/* @ag-options-extract */
+import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 
 (window as any).agChartsDebug = ['scene:stats'];
 
@@ -38,7 +39,6 @@ let nextIndex = data.length;
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
-    animation: { enabled: false },
     axes: [
         {
             type: 'time',
@@ -67,6 +67,7 @@ const options: AgChartOptions = {
     ],
     legend: { enabled: false },
 };
+/* @ag-options-end */
 
 const chart = AgCharts.create(options);
 
