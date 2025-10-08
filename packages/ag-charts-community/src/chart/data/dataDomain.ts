@@ -298,7 +298,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
     }
 
     private getTargetBandCount(dataSize: number): number {
-        return Math.min(this.config.targetBandCount, Math.ceil(dataSize / 100));
+        return Math.max(this.config.targetBandCount, Math.ceil(dataSize / 1000));
     }
 
     /**

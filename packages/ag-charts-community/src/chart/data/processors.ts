@@ -226,13 +226,14 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
         return Math.max(-normaliseTo, result);
     };
 
-    return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
-        const extent = normaliseFindExtent(columns, valueIndexes, dataGroup);
+    return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup, groupIndex: number) => {
+        const extent = normaliseFindExtent(columns, valueIndexes, dataGroup, groupIndex);
         for (const valueIdx of valueIndexes) {
             const datumIndices = dataGroup.datumIndices[valueIdx];
             if (datumIndices == null) continue;
 
-            for (const datumIndex of datumIndices) {
+            for (const relativeDatumIndex of datumIndices) {
+                const datumIndex = groupIndex + relativeDatumIndex;
                 const column = columns[valueIdx];
                 const value: null | number = column[datumIndex];
                 if (value == null) {
@@ -245,14 +246,15 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
     };
 }
 
-function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup: DataGroup) {
+function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup: DataGroup, groupIndex: number) {
     const valuesExtent = [0, 0];
     for (const valueIdx of valueIndexes) {
         const column = columns[valueIdx];
         const datumIndices = dataGroup.datumIndices[valueIdx];
         if (datumIndices == null) continue;
 
-        for (const datumIndex of datumIndices) {
+        for (const relativeDatumIndex of datumIndices) {
+            const datumIndex = groupIndex + relativeDatumIndex;
             const value: null | number | (null | number)[] = column[datumIndex];
             if (value == null) continue;
             // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
@@ -411,7 +413,7 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
 }
 
 function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailing'; separateNegative?: boolean }) {
-    return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
+    return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup, groupIndex: number) => {
         // Datum scope.
         const acc = [0, 0];
         for (const valueIdx of valueIndexes) {
@@ -423,7 +425,8 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
 
             const column = columns[valueIdx];
             let didAccumulate = false;
-            for (const datumIndex of datumIndices) {
+            for (const relativeDatumIndex of datumIndices) {
+                const datumIndex = groupIndex + relativeDatumIndex;
                 const currentVal = column[datumIndex];
                 if (!isFiniteNumber(currentVal)) continue;
 
@@ -453,7 +456,7 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
         let firstRow = true;
         return () => {
             // Group scope.
-            return (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
+            return (columns: any[][], valueIndexes: number[], dataGroup: DataGroup, groupIndex: number) => {
                 // Datum scope.
                 let acc = 0;
                 for (const valueIdx of valueIndexes) {
@@ -461,7 +464,8 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
                     const datumIndices = dataGroup.datumIndices[valueIdx];
                     if (datumIndices == null) continue;
 
-                    for (const datumIndex of datumIndices) {
+                    for (const relativeDatumIndex of datumIndices) {
+                        const datumIndex = groupIndex + relativeDatumIndex;
                         const currentVal = column[datumIndex];
                         const lastValue = firstRow && sum === 'current' ? 0 : lastValues[valueIdx];
                         lastValues[valueIdx] = currentVal;

@@ -340,12 +340,12 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
+          7,
           8,
-          9,
+          13,
           14,
           15,
           16,
-          17,
         ],
       ],
       "keys": [
@@ -365,8 +365,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          18,
-          19,
+          16,
+          17,
         ],
       ],
       "keys": [
@@ -378,6 +378,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       },
     },
   ],
+  "groupsUnique": false,
   "input": {
     "count": 20,
   },
@@ -666,13 +667,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          2,
+          1,
+          11,
           12,
           13,
           14,
           15,
           16,
-          17,
         ],
       ],
       "keys": [
@@ -691,8 +692,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          18,
-          19,
+          16,
+          17,
         ],
       ],
       "keys": [
@@ -703,6 +704,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       },
     },
   ],
+  "groupsUnique": false,
   "input": {
     "count": 20,
   },
@@ -967,13 +969,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          2,
+          1,
+          11,
           12,
           13,
           14,
           15,
           16,
-          17,
         ],
       ],
       "keys": [
@@ -992,8 +994,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          18,
-          19,
+          16,
+          17,
         ],
       ],
       "keys": [
@@ -1004,6 +1006,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       },
     },
   ],
+  "groupsUnique": false,
   "input": {
     "count": 20,
   },
@@ -1263,10 +1266,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -1285,10 +1288,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -1307,10 +1310,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -1329,10 +1332,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -1351,10 +1354,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -1373,10 +1376,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -1387,6 +1390,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 7,
   },
@@ -1887,22 +1891,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -1921,22 +1925,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -1955,22 +1959,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -1989,22 +1993,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -2023,22 +2027,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -2057,22 +2061,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -2091,22 +2095,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
       ],
       "keys": [
@@ -2125,22 +2129,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
       ],
       "keys": [
@@ -2159,22 +2163,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
       ],
       "keys": [
@@ -2193,22 +2197,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
       ],
       "keys": [
@@ -2227,22 +2231,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
       ],
       "keys": [
@@ -2253,6 +2257,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 12,
   },
@@ -2613,22 +2618,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -2647,22 +2652,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -2681,22 +2686,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -2715,22 +2720,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -2741,6 +2746,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 5,
   },
@@ -3067,16 +3073,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -3095,16 +3101,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -3123,16 +3129,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -3151,16 +3157,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -3179,16 +3185,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -3207,16 +3213,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -3235,16 +3241,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
       ],
       "keys": [
@@ -3255,6 +3261,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 8,
   },
@@ -3584,16 +3591,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -3612,16 +3619,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -3640,16 +3647,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -3668,16 +3675,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -3696,16 +3703,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -3724,16 +3731,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -3752,16 +3759,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
       ],
       "keys": [
@@ -3772,6 +3779,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 8,
   },
@@ -4089,16 +4097,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -4112,16 +4120,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -4135,16 +4143,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -4158,16 +4166,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -4181,16 +4189,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -4204,16 +4212,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -4227,16 +4235,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
       ],
       "keys": [
@@ -4247,6 +4255,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 8,
   },

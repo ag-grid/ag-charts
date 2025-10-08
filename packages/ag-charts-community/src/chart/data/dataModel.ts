@@ -109,6 +109,7 @@ export interface UngroupedData<D> extends CommonMetadata<D> {
 export interface GroupedData<D> extends CommonMetadata<D> {
     type: 'grouped';
     groups: DataGroup[];
+    groupsUnique: boolean;
 }
 
 export type ProcessedOutputDiff = {
@@ -224,7 +225,8 @@ export type AggregatePropertyDefinition<D, K extends keyof D & string, R = [numb
 type GroupValueAdjustFn<D, K extends keyof D & string> = (
     columns: D[K][][],
     indexes: number[],
-    dataGroup: DataGroup
+    dataGroup: DataGroup,
+    groupIndex: number
 ) => void;
 
 export type GroupValueProcessorDefinition<D, K extends keyof D & string> = PropertyIdentifiers &
@@ -502,18 +504,31 @@ export class DataModel<
     }
 
     /**
+     * Converts a relative datum index to an absolute column index.
+     *
+     * @param groupIndex index of the group in ProcessedData.groups
+     * @param relativeDatumIndex relative index stored in group.datumIndices
+     * @returns absolute index for accessing columns
+     */
+    private resolveAbsoluteIndex(groupIndex: number, relativeDatumIndex: number): number {
+        return groupIndex + relativeDatumIndex;
+    }
+
+    /**
      * Provides a convenience iterator to iterate over all of the extract datum values in a
      * specific DataGroup.
      *
      * @param scope to which datums should belong
      * @param group containing the datums
      * @param processedData containing the group
+     * @param groupIndex index of the group in processedData.groups
      */
-    *forEachDatum(scope: ScopeProvider, processedData: GroupedData<any>, group: DataGroup) {
+    *forEachDatum(scope: ScopeProvider, processedData: GroupedData<any>, group: DataGroup, groupIndex: number) {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
 
-        for (const datumIndex of group.datumIndices[columnIndex] ?? []) {
-            yield processedData.columns[columnIndex][datumIndex];
+        for (const relativeDatumIndex of group.datumIndices[columnIndex] ?? []) {
+            const absoluteDatumIndex = this.resolveAbsoluteIndex(groupIndex, relativeDatumIndex);
+            yield processedData.columns[columnIndex][absoluteDatumIndex];
         }
     }
 
@@ -534,8 +549,8 @@ export class DataModel<
         const empty: number[] = [];
         for (const group of processedData.groups) {
             output.group = group;
-            for (const datumIndex of group.datumIndices[columnIndex] ?? empty) {
-                output.datumIndex = datumIndex;
+            for (const relativeDatumIndex of group.datumIndices[columnIndex] ?? empty) {
+                output.datumIndex = this.resolveAbsoluteIndex(output.groupIndex, relativeDatumIndex);
                 yield output;
             }
             output.groupIndex++;
@@ -1579,7 +1594,12 @@ export class DataModel<
     }
 
     private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {
-        type Group = { keys: unknown[]; datumIndices: number[][]; aggregation: any[]; validScopes: Set<string> };
+        type Group = {
+            keys: unknown[];
+            datumIndices: number[][];
+            aggregation: any[];
+            validScopes: Set<string>;
+        };
 
         const { keys: dataKeys, columns: allColumns, columnScopes, invalidKeys, invalidData } = data;
 
@@ -1588,7 +1608,9 @@ export class DataModel<
         const resultData = [];
 
         const processedColumnIndexes = new Set<number>();
-        const groups = allScopes.size !== 1 || groupingFn != null ? new Map<string, Group>() : undefined;
+        const groups = allScopes.size !== 1 || groupingFn != null ? new Map<string, [number, Group]>() : undefined;
+        let groupsUnique = true;
+        let groupIndex = 0;
 
         for (const scope of allScopes) {
             // Determine columns we can process in batch.
@@ -1621,34 +1643,41 @@ export class DataModel<
                 const group = groupingFn?.(keys) ?? keys;
                 const groupStr = groups == null ? undefined : toKeyString(group);
 
-                let outputGroup: Group | undefined = groups?.get(groupStr!);
+                let outputGroup: [number, Group] | undefined = groups?.get(groupStr!);
+                let currentGroup: Group;
+                let currentGroupIndex: number;
                 if (outputGroup == null) {
-                    outputGroup = {
+                    currentGroup = {
                         keys: group,
                         datumIndices: [],
                         aggregation: [],
                         validScopes: allScopes,
                     };
+                    currentGroupIndex = groupIndex++;
+                    outputGroup = [currentGroupIndex, currentGroup];
 
                     groups?.set(groupStr!, outputGroup);
 
-                    resultGroups.push(outputGroup.keys);
-                    resultData.push(outputGroup);
+                    resultGroups.push(currentGroup.keys);
+                    resultData.push(currentGroup);
+                } else {
+                    [currentGroupIndex, currentGroup] = outputGroup;
+                    groupsUnique = false;
                 }
 
                 if (scopeInvalidData?.[datumIndex] === true) {
-                    if (outputGroup.validScopes === allScopes) {
+                    if (currentGroup.validScopes === allScopes) {
                         // Lazy Set initialization.
-                        outputGroup.validScopes = new Set(allScopes.values());
+                        currentGroup.validScopes = new Set(allScopes.values());
                     }
                     for (const invalidScope of siblingScopes) {
-                        outputGroup.validScopes.delete(invalidScope);
+                        currentGroup.validScopes.delete(invalidScope);
                     }
                 }
 
                 for (const columnIdx of scopeColumnIndexes) {
-                    outputGroup.datumIndices[columnIdx] ??= [];
-                    outputGroup.datumIndices[columnIdx].push(datumIndex);
+                    currentGroup.datumIndices[columnIdx] ??= [];
+                    currentGroup.datumIndices[columnIdx].push(datumIndex - currentGroupIndex);
                 }
             }
         }
@@ -1661,6 +1690,7 @@ export class DataModel<
                 groups: resultGroups,
             },
             groups: resultData,
+            groupsUnique,
             [DOMAIN_BANDS]: data[DOMAIN_BANDS],
         };
     }
@@ -1708,7 +1738,8 @@ export class DataModel<
         for (const [index, def] of this.aggregates.entries()) {
             const indices = this.valueGroupIdxLookup(def);
 
-            for (const group of processedData.groups) {
+            for (let groupIndex = 0; groupIndex < processedData.groups.length; groupIndex++) {
+                const group = processedData.groups[groupIndex];
                 group.aggregation ??= [];
 
                 const groupKeys = group.keys;
@@ -1718,9 +1749,11 @@ export class DataModel<
                     ...indices.map((columnIndex) => group.datumIndices[columnIndex]?.length ?? 0)
                 );
                 for (let datumIndex = 0; datumIndex < maxDatumIndex; datumIndex++) {
-                    const valuesToAgg = indices.map(
-                        (columnIndex) => columns[columnIndex][group.datumIndices[columnIndex]?.[datumIndex]] as D[K]
-                    );
+                    const valuesToAgg = indices.map((columnIndex) => {
+                        const relativeDatumIndex = group.datumIndices[columnIndex]?.[datumIndex];
+                        const absoluteDatumIndex = this.resolveAbsoluteIndex(groupIndex, relativeDatumIndex ?? 0);
+                        return columns[columnIndex][absoluteDatumIndex] as D[K];
+                    });
                     const valuesAgg = def.aggregateFunction(valuesToAgg, groupKeys);
                     if (valuesAgg) {
                         groupAggValues =
@@ -1745,8 +1778,9 @@ export class DataModel<
             const valueIndexes = this.valueGroupIdxLookup(processor);
             const adjustFn = processor.adjust()();
 
-            for (const dataGroup of processedData.groups) {
-                adjustFn(columns, valueIndexes, dataGroup);
+            for (let groupIndex = 0; groupIndex < processedData.groups.length; groupIndex++) {
+                const dataGroup = processedData.groups[groupIndex];
+                adjustFn(columns, valueIndexes, dataGroup, groupIndex);
             }
 
             for (const valueIndex of valueIndexes) {

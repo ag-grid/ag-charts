@@ -118,17 +118,24 @@ function expectedKeys(expected: unknown[]) {
 }
 
 function resolveGroupColumn(result: GroupedData<unknown>, groupIdx: number, columnIdx: number) {
-    return result.groups[groupIdx].datumIndices[columnIdx].map((index) => result.columns[columnIdx][index]);
+    return result.groups[groupIdx].datumIndices[columnIdx].map(
+        (relativeIndex) => result.columns[columnIdx][groupIdx + relativeIndex]
+    );
 }
 
 function extractGroupValues(data: GroupedData<unknown>, groupIndex?: number) {
     let groups = data.groups;
+    let startGroupIdx = 0;
     if (groupIndex != null) {
         groups = groups.slice(groupIndex, groupIndex + 1);
+        startGroupIdx = groupIndex;
     }
-    const result = groups.map((g) =>
-        g.datumIndices[0].map((_, di) => g.datumIndices.map((d, ci) => data.columns[ci][d[di]]))
-    );
+    const result = groups.map((g, gidx) => {
+        const actualGroupIdx = startGroupIdx + gidx;
+        return g.datumIndices[0].map((_, di) =>
+            g.datumIndices.map((d, ci) => data.columns[ci][actualGroupIdx + d[di]])
+        );
+    });
     if (groupIndex != null) {
         return result[0];
     }
@@ -417,9 +424,9 @@ describe('DataModel', () => {
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(4);
                 expect(result.groups[0].datumIndices).toEqual([[0], [0]]);
-                expect(result.groups[1].datumIndices).toEqual([[1], [1]]);
-                expect(result.groups[2].datumIndices).toEqual([[2], [2]]);
-                expect(result.groups[3].datumIndices).toEqual([[3], [3]]);
+                expect(result.groups[1].datumIndices).toEqual([[0], [0]]);
+                expect(result.groups[2].datumIndices).toEqual([[0], [0]]);
+                expect(result.groups[3].datumIndices).toEqual([[0], [0]]);
                 expect(resolveGroupColumn(result, 0, 0)).toEqual([5]);
                 expect(resolveGroupColumn(result, 1, 0)).toEqual([1]);
                 expect(resolveGroupColumn(result, 2, 0)).toEqual([6]);
@@ -800,9 +807,9 @@ describe('DataModel', () => {
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(4);
                 expect(result.groups[0].datumIndices).toEqual([[0], [0], [0], [0]]);
-                expect(result.groups[1].datumIndices).toEqual([[1], [1], [1], [1]]);
-                expect(result.groups[2].datumIndices).toEqual([[2], [2], [2], [2]]);
-                expect(result.groups[3].datumIndices).toEqual([[3], [3], [3], [3]]);
+                expect(result.groups[1].datumIndices).toEqual([[0], [0], [0], [0]]);
+                expect(result.groups[2].datumIndices).toEqual([[0], [0], [0], [0]]);
+                expect(result.groups[3].datumIndices).toEqual([[0], [0], [0], [0]]);
             });
 
             it('should calculate the domains', () => {
