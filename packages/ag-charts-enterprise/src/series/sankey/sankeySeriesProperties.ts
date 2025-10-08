@@ -40,6 +40,7 @@ export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum
     y1: number;
     y2: number;
     height: number;
+    elbows: { x: number; y: number }[];
 }
 
 export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;

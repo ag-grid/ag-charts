@@ -6,6 +6,7 @@ import type {
     AgPolarChartOptions,
     AgSankeySeriesLinkItemStylerParams,
     AgSankeySeriesNodeItemStylerParams,
+    AgStandaloneChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
@@ -44,6 +45,121 @@ describe('SankeySeries', () => {
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
+
+    describe('layout', () => {
+        const layoutScenarios = {
+            ghosts: [
+                { from: 'Les Saintes', to: 'Total', size: 3 },
+                { from: 'Tynemouth', to: 'Total', size: 3 },
+                { from: 'Ellerton Lake', to: 'Total', size: 1 },
+                { from: 'Tenerife', to: 'Total', size: 1 },
+                { from: 'Hyers Islands', to: 'Total', size: 1 },
+                { from: 'Banyuls-sur-Mer', to: 'Total', size: 1 },
+                { from: 'Orpheus Island Resort', to: 'Australia 1999', size: 6 },
+                { from: 'Lizard Island', to: 'Australia 1999', size: 1 },
+                { from: 'Northern Ribbon Reefs', to: 'Australia 1999', size: 2 },
+                { from: 'Australia 1999', to: 'Total', size: 9 },
+                { from: 'Sharm El Sheikh', to: 'Red Sea Advanced PADI', size: 13 },
+                { from: 'Red Sea Advanced PADI', to: 'Total', size: 13 },
+                { from: 'Mahe', to: 'Seychelles', size: 8 },
+                { from: 'Praslin', to: 'Seychelles', size: 4 },
+                { from: 'Seychelles', to: 'Total', size: 12 },
+                { from: 'Bonaire', to: 'Total', size: 19 },
+                { from: 'Faafu Atoll', to: 'Maldives', size: 11 },
+                { from: 'Maldives', to: 'Total', size: 11 },
+                { from: 'Palau', to: 'Total', size: 19 },
+                { from: 'El Quseir', to: 'Roots Red Sea', size: 19 },
+                { from: 'Safaga', to: 'Roots Red Sea', size: 2 },
+                { from: 'Roots Red Sea', to: 'Total', size: 21 },
+            ],
+            crossoverAvoidance: [
+                { from: 'Netherlands', to: 'European Union', size: 798744 },
+                { from: 'Germany', to: 'European Union', size: 1468990 },
+                { from: 'European Union', to: 'France', size: 745931 },
+                { from: 'European Union', to: 'United States', size: 660541 },
+                { from: 'Canada', to: 'United States', size: 594546 },
+                { from: 'Belgium', to: 'European Union', size: 628796 },
+                { from: 'China', to: 'Hong Kong', size: 400571 },
+                { from: 'China', to: 'United States', size: 526454 },
+                { from: 'European Union', to: 'United Kingdom', size: 520318 },
+                { from: 'China', to: 'European Union', size: 560536 },
+                { from: 'Italy', to: 'European Union', size: 539556 },
+                { from: 'Mexico', to: 'United States', size: 492715 },
+                { from: 'Russia', to: 'European Union', size: 385778 },
+                { from: 'Spain', to: 'European Union', size: 365191 },
+                { from: 'China', to: 'Japan', size: 312062 },
+                { from: 'European Union', to: 'Switzerland', size: 328609 },
+                { from: 'South Korea', to: 'China', size: 229073 },
+                { from: 'European Union', to: 'Austria', size: 244913 },
+                { from: 'Japan', to: 'United States', size: 206091 },
+                { from: 'European Union', to: 'Sweden', size: 204849 },
+                { from: 'Germany', to: 'United States', size: 184287 },
+            ],
+            complex: [
+                { from: 'Footwear', to: 'North America', size: 2245 },
+                { from: 'Footwear', to: 'Europe, Middle East & Africa', size: 1419 },
+                { from: 'Footwear', to: 'Greater China', size: 1022 },
+                { from: 'Footwear', to: 'Asia Pacific & Latin America', size: 879 },
+                { from: 'Apparel', to: 'North America', size: 1405 },
+                { from: 'Apparel', to: 'Europe, Middle East & Africa', size: 794 },
+                { from: 'Apparel', to: 'Asia Pacific & Latin America', size: 360 },
+                { from: 'Apparel', to: 'Greater China', size: 490 },
+                { from: 'Equipment', to: 'North America', size: 132 },
+                { from: 'Equipment', to: 'Europe, Middle East & Africa', size: 100 },
+                { from: 'Equipment', to: 'Greater China', size: 32 },
+                { from: 'Equipment', to: 'Asia Pacific & Latin America', size: 59 },
+                { from: 'North America', to: 'NIKE Brand', size: 3782 },
+                { from: 'Europe, Middle East & Africa', to: 'NIKE Brand', size: 2313 },
+                { from: 'Greater China', to: 'NIKE Brand', size: 1544 },
+                { from: 'Asia Pacific & Latin America', to: 'NIKE Brand', size: 1298 },
+                { from: 'Global Brand Divisions', to: 'NIKE Brand', size: 9 },
+                { from: 'NIKE Brand', to: 'Revenues', size: 8946 },
+                { from: 'Converse', to: 'Revenues', size: 425 },
+                { from: 'Corporate', to: 'Revenues', size: 3 },
+                { from: 'Revenues', to: 'Cost of sales', size: 5269 },
+                { from: 'Revenues', to: 'Gross profit', size: 4105 },
+                { from: 'Gross profit', to: 'Selling and administrative expense', size: 3142 },
+                { from: 'Gross profit', to: 'Interest expense', size: 14 },
+                { from: 'Gross profit', to: 'Income before taxes', size: 949 },
+                { from: 'Other income', to: 'Income before taxes', size: 48 },
+                { from: 'Selling and administrative expense', to: 'Demand creation expense', size: 910 },
+                { from: 'Selling and administrative expense', to: 'Operating overhead expense', size: 2232 },
+                { from: 'Income before taxes', to: 'Tax expense', size: 150 },
+                { from: 'Income before taxes', to: 'Net income', size: 847 },
+            ],
+        };
+
+        const layoutOptions = {
+            left: { node: { alignment: 'left' as const } },
+            right: { node: { alignment: 'right' as const } },
+            center: { node: { alignment: 'center' as const } },
+            justify: { node: { alignment: 'justify' as const } },
+        };
+
+        describe.each(Object.entries(layoutScenarios))('%s', (_scenario, data) => {
+            it.each(Object.entries(layoutOptions))('%s', async (_layout, defaultOptions) => {
+                const options: AgStandaloneChartOptions = {
+                    data,
+                    series: [
+                        {
+                            ...defaultOptions,
+                            type: 'sankey',
+                            fromKey: 'from',
+                            toKey: 'to',
+                            sizeKey: 'size',
+                            label: { enabled: false },
+                            link: { strokeWidth: 1 },
+                        },
+                    ],
+                };
+
+                prepareEnterpriseTestOptions(options);
+
+                chart = deproxy(AgCharts.create(options));
+                await compare();
+            });
+        });
+    });
 
     describe('Series Highlighting', () => {
         const SIMPLIFIED_EXAMPLE = {

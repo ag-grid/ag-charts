@@ -91,8 +91,7 @@ function lengthSquared(a: Vec2) {
  * Get the distance between two vectors.
  */
 function distance(a: Vec2, b: Vec2) {
-    const d = sub(a, b);
-    return Math.sqrt(d.x * d.x + d.y * d.y);
+    return length(sub(a, b));
 }
 
 /**
@@ -100,8 +99,7 @@ function distance(a: Vec2, b: Vec2) {
  * comparisons where the precise distance does not matter.
  */
 function distanceSquared(a: Vec2, b: Vec2) {
-    const d = sub(a, b);
-    return d.x * d.x + d.y * d.y;
+    return lengthSquared(sub(a, b));
 }
 
 /**
