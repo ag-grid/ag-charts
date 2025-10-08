@@ -165,25 +165,30 @@ export class LegendDOMProxy {
             const newNeedsButtons = newPages.length > 1;
             if (oldNeedsButtons !== newNeedsButtons) {
                 if (newNeedsButtons) {
-                    this.prevButton = ctx.proxyInteractionService.createProxyElement({
-                        type: 'button',
-                        textContent: { id: 'ariaLabelLegendPagePrevious' },
-                        tabIndex: 0,
-                        parent: this.paginationGroup,
-                    });
-                    this.prevButton.addListener('click', (ev) => this.onPageButton(params, ev, 'previous'));
-                    this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
-                    this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+                    // Only create buttons if they don't exist to prevent duplicate event listeners
+                    if (!this.prevButton) {
+                        this.prevButton = ctx.proxyInteractionService.createProxyElement({
+                            type: 'button',
+                            textContent: { id: 'ariaLabelLegendPagePrevious' },
+                            tabIndex: 0,
+                            parent: this.paginationGroup,
+                        });
+                        this.prevButton.addListener('click', (ev) => this.onPageButton(params, ev, 'previous'));
+                        this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
+                        this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+                    }
 
-                    this.nextButton ??= ctx.proxyInteractionService.createProxyElement({
-                        type: 'button',
-                        textContent: { id: 'ariaLabelLegendPageNext' },
-                        tabIndex: 0,
-                        parent: this.paginationGroup,
-                    });
-                    this.nextButton.addListener('click', (ev) => this.onPageButton(params, ev, 'next'));
-                    this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
-                    this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+                    if (!this.nextButton) {
+                        this.nextButton = ctx.proxyInteractionService.createProxyElement({
+                            type: 'button',
+                            textContent: { id: 'ariaLabelLegendPageNext' },
+                            tabIndex: 0,
+                            parent: this.paginationGroup,
+                        });
+                        this.nextButton.addListener('click', (ev) => this.onPageButton(params, ev, 'next'));
+                        this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
+                        this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+                    }
                 } else {
                     this.nextButton?.destroy();
                     this.prevButton?.destroy();
