@@ -262,7 +262,7 @@ export abstract class OhlcSeriesBase<
 
         const nodeData: OhlcNodeDatum[] = [];
         const { xKey, highKey, lowKey } = this.properties;
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         const openValues = dataModel.resolveColumnById(this, 'openValue', processedData);
         const closeValues = dataModel.resolveColumnById(this, 'closeValue', processedData);
@@ -513,7 +513,7 @@ export abstract class OhlcSeriesBase<
         const { id: seriesId, properties, processedData } = this;
         const { xKey, openKey, closeKey, highKey, lowKey } = properties;
 
-        const datum = processedData!.dataSources.get(seriesId)?.[datumIndex];
+        const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
@@ -560,7 +560,7 @@ export abstract class OhlcSeriesBase<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const openValue = dataModel.resolveColumnById(this, `openValue`, processedData)[datumIndex];
         const highValue = dataModel.resolveColumnById(this, `highValue`, processedData)[datumIndex];

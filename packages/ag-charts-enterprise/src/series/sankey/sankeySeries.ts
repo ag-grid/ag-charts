@@ -629,8 +629,8 @@ export class SankeySeries extends FlowProportionSeries<
                 : seriesDatum.label;
         const datum =
             datumIndex.type === FlowProportionDatumType.Link
-                ? linksProcessedData?.dataSources.get(this.id)?.[datumIndex.index]
-                : nodesProcessedData?.dataSources.get(this.id)?.[datumIndex.index];
+                ? linksProcessedData?.dataSources.get(this.id)?.data[datumIndex.index]
+                : nodesProcessedData?.dataSources.get(this.id)?.data[datumIndex.index];
         const size = seriesDatum.size;
 
         let format: Required<NodeStyle>;

@@ -2,7 +2,15 @@ import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
-import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
+import { hasNoRemovals, isAppendOnly, isPrependOnly } from './dataChangeDescription';
+import {
+    BandedDomain,
+    type BandedDomainConfig,
+    ContinuousDomain,
+    DiscreteDomain,
+    type IDataDomain,
+} from './dataDomain';
+import type { DataChangeDescription, DataSet } from './dataSet';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
 
@@ -29,21 +37,41 @@ export interface UngroupedDataItem<I, D, V> {
 const KEY_SORT_ORDERS = Symbol('key-sort-orders');
 const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
 const DOMAIN_RANGES = Symbol('domain-ranges');
+const DOMAIN_BANDS = Symbol('domain-bands');
 
 type ScopeId = string;
 
 type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
+type SortOrderEntry = { sortOrder: SortOrder };
+type ProcessedValueEntry = { value: any; valid: boolean };
+
+interface GroupDatumIteratorOutput {
+    group: DataGroup;
+    groupIndex: number;
+    columnIndex: number;
+    datumIndex: number;
+}
+
+type InsertionCacheValue = {
+    keys: Map<number, ProcessedValueEntry>;
+    values: Map<number, ProcessedValueEntry>;
+    hasInvalidKey: boolean;
+    hasInvalidValue: boolean;
+};
+
+type InsertionCache = Map<number, InsertionCacheValue>;
 
 interface CommonMetadata<D> {
     input: { count: number };
     scopes: Set<ScopeId>;
-    dataSources: Map<ScopeId, unknown[]>;
+    dataSources: Map<ScopeId, DataSet<unknown>>;
     invalidKeys: Map<ScopeId, boolean[]> | undefined;
     invalidKeyCount: Map<ScopeId, number> | undefined;
     invalidData: Map<ScopeId, boolean[]> | undefined;
     keys: Map<ScopeId, unknown[]>[];
     columns: any[][];
     columnScopes: Set<ScopeId>[];
+    columnNeedValueOf?: boolean[]; // true if column needs valueOf() (contains Dates/objects), false for primitives
     domain: {
         keys: any[][];
         values: any[][];
@@ -68,8 +96,9 @@ interface CommonMetadata<D> {
     partialValidDataCount: number;
     time: number;
     [DOMAIN_RANGES]: Map<string, RangeLookup>;
-    [KEY_SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
-    [COLUMN_SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
+    [KEY_SORT_ORDERS]: Map<number, SortOrderEntry>;
+    [COLUMN_SORT_ORDERS]: Map<number, SortOrderEntry>;
+    [DOMAIN_BANDS]: Map<InternalDatumPropertyDefinition<any>, BandedDomain>;
 }
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
@@ -122,6 +151,7 @@ export type DataModelOptions<K, Grouped extends boolean | undefined, IsScoped ex
     groupByKeys?: Grouped;
     groupByData?: Grouped;
     groupByFn?: GroupByFn;
+    domainBandingConfig?: BandedDomainConfig;
 };
 
 export type PropertyDefinition<K, IsScoped = false> =
@@ -456,6 +486,15 @@ export class DataModel<
         return column;
     }
 
+    resolveColumnNeedsValueOf(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>
+    ): boolean {
+        const index = this.resolveProcessedDataIndexById(scope, searchId);
+        return processedData.columnNeedValueOf?.[index] ?? true;
+    }
+
     /**
      * Provides a convenience iterator to iterate over all of the extract datum values in a
      * specific DataGroup.
@@ -481,12 +520,7 @@ export class DataModel<
      */
     *forEachGroupDatum(scope: ScopeProvider, processedData: GroupedData<any>) {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
-        const output: {
-            group: DataGroup;
-            groupIndex: number;
-            columnIndex: number;
-            datumIndex: number;
-        } = {
+        const output: GroupDatumIteratorOutput = {
             groupIndex: 0,
             columnIndex,
         } as any;
@@ -530,10 +564,15 @@ export class DataModel<
         return rangeLookup.rangeBetween(i0, i1);
     }
 
-    private getSortOrder(values: any[], index: number, sortOrders: Map<number, { sortOrder: SortOrder }>): SortOrder {
+    private getSortOrder(
+        values: any[],
+        index: number,
+        sortOrders: Map<number, SortOrderEntry>,
+        needsValueOf: boolean
+    ): SortOrder {
         let sortOrder = sortOrders.get(index);
         if (sortOrder == null) {
-            sortOrder = { sortOrder: valuesSortOrder(values) };
+            sortOrder = { sortOrder: valuesSortOrder(values, needsValueOf) };
             sortOrders.set(index, sortOrder);
         }
         return sortOrder.sortOrder;
@@ -542,12 +581,20 @@ export class DataModel<
     getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
         const keys = processedData.keys[columnIndex]?.get(scope.id);
-        return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS]) : undefined;
+        // Key columns typically contain dates/objects, so default to true for needsValueOf
+        return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS], true) : undefined;
     }
 
     getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
-        return this.getSortOrder(processedData.columns[columnIndex], columnIndex, processedData[COLUMN_SORT_ORDERS]);
+        // Use columnNeedValueOf metadata to determine if valueOf() is needed
+        const needsValueOf = processedData.columnNeedValueOf?.[columnIndex] ?? true;
+        return this.getSortOrder(
+            processedData.columns[columnIndex],
+            columnIndex,
+            processedData[COLUMN_SORT_ORDERS],
+            needsValueOf
+        );
     }
 
     private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
@@ -566,7 +613,7 @@ export class DataModel<
     }
 
     processData(
-        sources: Map<string, unknown[]>
+        sources: Map<string, DataSet<unknown>>
     ): (Grouped extends true ? GroupedData<D> : UngroupedData<D>) | undefined {
         const {
             opts: { groupByKeys, groupByFn },
@@ -620,12 +667,617 @@ export class DataModel<
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
 
-    private warnDataMissingProperties(sources: Map<string, unknown[]>) {
+    public isReprocessingSupported(processedData: ProcessedData<D>): boolean {
+        if (processedData.type !== 'ungrouped') return false;
+        if (this.aggregates.length > 0) return false;
+        if (this.reducers.length > 0) return false;
+        if (this.processors.length > 0) return false;
+        return this.propertyProcessors.length <= 0;
+    }
+
+    public reprocessData(
+        processedData: ProcessedData<D>,
+        dataSets?: Map<DataSet<any>, DataChangeDescription | undefined>
+    ): ProcessedData<D> {
+        if (!this.isReprocessingSupported(processedData)) {
+            throw new Error('reprocessing data is not supported');
+        }
+
+        const start = performance.now();
+
+        const scopeChanges = this.collectScopeChanges(processedData, dataSets);
+        if (scopeChanges.size === 0) {
+            return processedData;
+        }
+
+        this.commitPendingTransactions(processedData);
+        const { processValue } = this.initDataDomainProcessor();
+        const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
+
+        this.updateBandsForChanges(processedData, scopeChanges);
+        this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
+        this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
+        this.transformInvalidityArrays(processedData, scopeChanges, insertionCaches);
+        this.recomputeDomains(processedData);
+
+        if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
+            this.generateDiffMetadata(processedData, scopeChanges);
+        }
+
+        this.updateProcessedDataMetadata(processedData);
+
+        const end = performance.now();
+        processedData.time = end - start;
+
+        return processedData;
+    }
+
+    /**
+     * Applies an operation to all banded domains in a collection.
+     */
+    private applyOperationToBandedDomains(
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        operation: (domain: BandedDomain) => void
+    ): void {
+        for (const domain of bandedDomains.values()) {
+            if (domain instanceof BandedDomain) {
+                operation(domain);
+            }
+        }
+    }
+
+    /**
+     * Updates banded domains based on pending changes.
+     * This optimizes domain recalculation by only marking affected bands as dirty.
+     */
+    private updateBandsForChanges(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        const bandedDomains = processedData[DOMAIN_BANDS];
+        if (bandedDomains.size === 0) return;
+
+        for (const [, changeDesc] of scopeChanges) {
+            const { indexMap } = changeDesc;
+            const { spliceOps } = indexMap;
+
+            for (const op of spliceOps) {
+                if (op.insertCount > 0) {
+                    this.applyOperationToBandedDomains(bandedDomains, (domain) =>
+                        domain.handleInsertion(op.index, op.insertCount)
+                    );
+                }
+
+                if (op.deleteCount > 0) {
+                    this.applyOperationToBandedDomains(bandedDomains, (domain) =>
+                        domain.handleRemoval(op.index, op.deleteCount)
+                    );
+                }
+            }
+
+            if (isAppendOnly(indexMap)) {
+                this.applyOperationToBandedDomains(bandedDomains, (domain) => {
+                    const stats = domain.getStats();
+                    if (stats.bandCount > 0) {
+                        domain.markBandsDirty(indexMap.originalLength, indexMap.finalLength);
+                    }
+                });
+            } else if (isPrependOnly(indexMap)) {
+                this.applyOperationToBandedDomains(bandedDomains, (domain) =>
+                    domain.markBandsDirty(0, indexMap.totalPrependCount)
+                );
+            }
+        }
+    }
+
+    /**
+     * Collects change descriptions from all DataSets before committing.
+     */
+    private collectScopeChanges(
+        processedData: ProcessedData<D>,
+        dataSets?: Map<DataSet<any>, DataChangeDescription | undefined>
+    ): Map<ScopeId, DataChangeDescription> {
+        const scopeChanges = new Map<ScopeId, DataChangeDescription>();
+        for (const [scopeId, dataSet] of processedData.dataSources) {
+            const changeDesc = dataSets?.get(dataSet) ?? dataSet.getChangeDescription();
+            if (changeDesc) {
+                scopeChanges.set(scopeId, changeDesc);
+            }
+        }
+        return scopeChanges;
+    }
+
+    /**
+     * Commits all pending transactions to the data arrays.
+     */
+    private commitPendingTransactions(processedData: ProcessedData<D>): void {
+        for (const dataSet of processedData.dataSources.values()) {
+            dataSet.commitPendingTransactions();
+        }
+    }
+
+    /**
+     * Pre-processes all insertions once per scope to avoid redundant computation.
+     */
+    private processAllInsertions(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        processValue: (
+            def: InternalDatumPropertyDefinition<K>,
+            datum: any,
+            idx: number,
+            scopes: string | string[]
+        ) => ProcessedValue
+    ): Map<ScopeId, InsertionCache> {
+        const insertionCaches = new Map<ScopeId, InsertionCache>();
+        for (const [scope, changeDesc] of scopeChanges) {
+            const dataSet = processedData.dataSources.get(scope);
+            if (!dataSet) continue;
+
+            const cache = this.processInsertionsOnce(scope, changeDesc, dataSet, processValue);
+            insertionCaches.set(scope, cache);
+        }
+        return insertionCaches;
+    }
+
+    /**
+     * Generic utility to transform arrays using cached insertion results.
+     * This reduces duplication across transformKeysArrays, transformColumnsArrays, and transformInvalidityArrays.
+     */
+    private transformArraysWithCache<T>(
+        definitions: InternalDatumPropertyDefinition<K>[],
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>,
+        getArray: (defIndex: number, scope: ScopeId) => T[] | undefined,
+        getScopes: (def: InternalDatumPropertyDefinition<K>) => string[],
+        extractValue: (
+            cached: InsertionCacheValue | undefined,
+            def: InternalDatumPropertyDefinition<K>,
+            defIndex: number
+        ) => T
+    ): void {
+        for (const [defIndex, def] of definitions.entries()) {
+            for (const scope of getScopes(def)) {
+                const changeDesc = scopeChanges.get(scope);
+                if (!changeDesc) continue;
+
+                const array = getArray(defIndex, scope);
+                if (!array) continue;
+
+                const insertionCache = insertionCaches.get(scope);
+
+                changeDesc.applyToArray(array, (destIndex) => {
+                    const cached = insertionCache?.get(destIndex);
+                    return extractValue(cached, def, defIndex);
+                });
+            }
+        }
+    }
+
+    /**
+     * Transforms keys arrays using cached insertion results.
+     */
+    private transformKeysArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        this.transformArraysWithCache(
+            this.keys,
+            scopeChanges,
+            insertionCaches,
+            (defIndex, scope) => processedData.keys[defIndex]?.get(scope),
+            (def) => def.scopes ?? [],
+            (cached, def, defIndex) => {
+                if (cached) {
+                    const keyResult = cached.keys.get(defIndex);
+                    return keyResult?.valid ? keyResult.value : def.invalidValue;
+                }
+                return def.invalidValue;
+            }
+        );
+    }
+
+    /**
+     * Transforms columns arrays using cached insertion results.
+     */
+    private transformColumnsArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        this.transformArraysWithCache(
+            this.values,
+            scopeChanges,
+            insertionCaches,
+            (defIndex) => processedData.columns[defIndex],
+            (def) => [first(def.scopes)],
+            (cached, def, defIndex) => {
+                if (cached) {
+                    const valueResult = cached.values.get(defIndex);
+                    return valueResult?.valid ? valueResult.value : def.invalidValue;
+                }
+                return def.invalidValue;
+            }
+        );
+    }
+
+    /**
+     * Helper to transform a scope-based invalidity map.
+     */
+    private transformInvalidityMap(
+        invalidityMap: Map<ScopeId, boolean[]>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>,
+        extractValue: (cached: InsertionCacheValue | undefined) => boolean
+    ): void {
+        for (const [scope, changeDesc] of scopeChanges) {
+            const array = invalidityMap.get(scope);
+            if (!array) continue;
+
+            const insertionCache = insertionCaches.get(scope);
+
+            changeDesc.applyToArray(array, (destIndex) => {
+                const cached = insertionCache?.get(destIndex);
+                return extractValue(cached);
+            });
+        }
+    }
+
+    /**
+     * Transforms invalidity arrays using cached insertion results.
+     */
+    private transformInvalidityArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        if (processedData.invalidKeys) {
+            this.transformInvalidityMap(
+                processedData.invalidKeys,
+                scopeChanges,
+                insertionCaches,
+                (cached) => cached?.hasInvalidKey ?? false
+            );
+        }
+
+        if (processedData.invalidData) {
+            this.transformInvalidityMap(processedData.invalidData, scopeChanges, insertionCaches, (cached) =>
+                cached ? cached.hasInvalidKey || cached.hasInvalidValue : false
+            );
+        }
+    }
+
+    /**
+     * Creates or retrieves the appropriate domain for a definition.
+     * Handles both discrete and continuous domains, with optional banding optimization.
+     */
+    private setupDomainForDefinition(
+        def: InternalDatumPropertyDefinition<K>,
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        bandingConfig: BandedDomainConfig | undefined
+    ): IDataDomain {
+        if (def.valueType === 'category') {
+            return new DiscreteDomain();
+        }
+
+        let domain = bandedDomains.get(def);
+        if (!domain && bandingConfig?.enableBanding !== false) {
+            domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
+            bandedDomains.set(def, domain);
+        }
+
+        return domain ?? new ContinuousDomain();
+    }
+
+    /**
+     * Extends a domain from data array, using banded optimization if available.
+     */
+    private extendDomainFromData(domain: IDataDomain, data: any[], invalidData?: boolean[]): void {
+        if (domain instanceof BandedDomain) {
+            domain.initializeBands(data.length);
+            domain.extendBandsFromData(data, invalidData);
+        } else {
+            for (let i = 0; i < data.length; i++) {
+                if (invalidData?.[i] === true) continue;
+                domain.extend(data[i]);
+            }
+        }
+    }
+
+    /**
+     * Recomputes domains from transformed arrays.
+     * Uses BandedDomain optimization for continuous domains to avoid full rescans.
+     */
+    private recomputeDomains(processedData: ProcessedData<D>): void {
+        const startTime = this.debug.check() ? performance.now() : 0;
+        const bandedDomains = processedData[DOMAIN_BANDS];
+        const bandingConfig = this.opts.domainBandingConfig;
+        let bandStats: { totalBands: number; dirtyBands: number; totalData: number } | undefined;
+
+        const keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
+        const valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
+
+        for (const keyDef of this.keys) {
+            keyDomains.set(keyDef, this.setupDomainForDefinition(keyDef, bandedDomains, bandingConfig));
+        }
+
+        for (const valueDef of this.values) {
+            valueDomains.set(valueDef, this.setupDomainForDefinition(valueDef, bandedDomains, bandingConfig));
+        }
+
+        // Extend key domains from keys arrays
+        for (const [keyDefIndex, keyDef] of this.keys.entries()) {
+            const keysMap = processedData.keys[keyDefIndex];
+            const domain = keyDomains.get(keyDef)!;
+
+            // For banded domains, initialize once with max length across all scopes
+            if (domain instanceof BandedDomain) {
+                const maxKeyLength = Math.max(...Array.from(keysMap.values()).map((keys) => keys.length));
+                domain.initializeBands(maxKeyLength);
+            }
+
+            // Extend domain from each scope
+            for (const scope of keyDef.scopes ?? []) {
+                const keys = keysMap.get(scope);
+                if (!keys) continue;
+
+                const invalidData = processedData.invalidData?.get(scope);
+                this.extendDomainFromData(domain, keys, invalidData);
+            }
+        }
+
+        // Extend value domains from columns arrays
+        for (const [valueDefIndex, valueDef] of this.values.entries()) {
+            const column = processedData.columns[valueDefIndex];
+            const domain = valueDomains.get(valueDef)!;
+            const columnScope = first(valueDef.scopes);
+            const invalidData = processedData.invalidData?.get(columnScope);
+
+            this.extendDomainFromData(domain, column, invalidData);
+        }
+
+        if (this.debug.check() && bandedDomains.size > 0) {
+            bandStats = {
+                totalBands: 0,
+                dirtyBands: 0,
+                totalData: 0,
+            };
+
+            for (const domain of bandedDomains.values()) {
+                if (domain instanceof BandedDomain) {
+                    const stats = domain.getStats();
+                    bandStats.totalBands += stats.bandCount;
+                    bandStats.dirtyBands += stats.dirtyBandCount;
+                    bandStats.totalData = Math.max(bandStats.totalData, stats.dataSize);
+                }
+            }
+        }
+
+        processedData.domain.keys = this.keys.map((keyDef) => {
+            const domain = keyDomains.get(keyDef)!;
+            const result = domain.getDomain();
+            // Ignore starting values
+            if (ContinuousDomain.is(domain) && result[0] > result[1]) {
+                return [];
+            }
+            return result;
+        });
+
+        processedData.domain.values = this.values.map((valueDef) => {
+            const domain = valueDomains.get(valueDef)!;
+            const result = domain.getDomain();
+            // Ignore starting values
+            if (ContinuousDomain.is(domain) && result[0] > result[1]) {
+                return [];
+            }
+            return result;
+        });
+
+        if (this.debug.check() && startTime > 0) {
+            const endTime = performance.now();
+            const duration = endTime - startTime;
+
+            if (bandStats && bandStats.totalBands > 0) {
+                const scanRatio = bandStats.dirtyBands / bandStats.totalBands;
+                const dataScanned = Math.round(scanRatio * bandStats.totalData);
+                this.debug(
+                    `recomputeDomains with banding: ${duration.toFixed(2)}ms, ` +
+                        `bands: ${bandStats.dirtyBands}/${bandStats.totalBands} dirty, ` +
+                        `data scanned: ~${dataScanned}/${bandStats.totalData} (${(scanRatio * 100).toFixed(1)}%)`
+                );
+            } else {
+                this.debug(`recomputeDomains: ${duration.toFixed(2)}ms (no banding)`);
+            }
+        }
+    }
+
+    /**
+     * Generates diff metadata for animations and incremental rendering.
+     * This is an opt-in feature - only runs if diff tracking is already initialized.
+     */
+    private generateDiffMetadata(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        // Helper to get key string for a datum at a given index
+        const getKeyString = (scope: ScopeId, datumIndex: number): string | undefined => {
+            const keys: any[] = [];
+            for (const keysMap of processedData.keys) {
+                const scopeKeys = keysMap.get(scope);
+                if (!scopeKeys) return undefined;
+                keys.push(scopeKeys[datumIndex]);
+            }
+            return keys.length > 0 ? toKeyString(keys) : undefined;
+        };
+
+        // Process each scope's changes
+        for (const [scope, changeDesc] of scopeChanges) {
+            const diff: ProcessedOutputDiff = {
+                changed: true,
+                added: new Set<string>(),
+                removed: new Set<string>(),
+                updated: new Set<string>(),
+                moved: new Set<string>(),
+            };
+
+            // Get insertions and add to 'added' set
+            for (const op of changeDesc.indexMap.spliceOps) {
+                if (op.insertCount > 0) {
+                    for (let i = 0; i < op.insertCount; i++) {
+                        const datumIndex = op.index + i;
+                        const keyStr = getKeyString(scope, datumIndex);
+                        if (keyStr) {
+                            diff.added.add(keyStr);
+                        }
+                    }
+                }
+            }
+
+            const { originalLength, totalPrependCount } = changeDesc.indexMap;
+
+            if (isAppendOnly(changeDesc.indexMap)) {
+                // Nothing moved
+            } else if (isPrependOnly(changeDesc.indexMap) && originalLength > 0) {
+                for (let destIndex = totalPrependCount; destIndex < totalPrependCount + originalLength; destIndex++) {
+                    const keyStr = getKeyString(scope, destIndex);
+                    if (keyStr) diff.moved.add(keyStr);
+                }
+            } else if (hasNoRemovals(changeDesc.indexMap) && totalPrependCount > 0) {
+                for (let sourceIndex = 0; sourceIndex < originalLength; sourceIndex++) {
+                    const destIndex = sourceIndex + totalPrependCount;
+                    const keyStr = getKeyString(scope, destIndex);
+                    if (keyStr) diff.moved.add(keyStr);
+                }
+            } else {
+                changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
+                    if (sourceIndex !== destIndex) {
+                        const keyStr = getKeyString(scope, destIndex);
+                        if (keyStr) diff.moved.add(keyStr);
+                    }
+                });
+            }
+
+            processedData.reduced!.diff![scope] = diff;
+        }
+    }
+
+    /**
+     * Updates metadata after array transformations.
+     */
+    private updateProcessedDataMetadata(processedData: ProcessedData<D>): void {
+        let maxDataLength = 0;
+        for (const dataSet of processedData.dataSources.values()) {
+            maxDataLength = Math.max(maxDataLength, dataSet.data.length);
+        }
+        processedData.input.count = maxDataLength;
+
+        // Recompute partialValidDataCount (datums with valid keys but invalid values)
+        let partialValidDataCount = 0;
+        for (const [scope, invalidData] of processedData.invalidData ?? new Map()) {
+            const invalidKeys = processedData.invalidKeys?.get(scope);
+            for (let i = 0; i < invalidData.length; i++) {
+                if (invalidData[i] && !invalidKeys?.[i]) {
+                    partialValidDataCount += 1;
+                }
+            }
+        }
+        processedData.partialValidDataCount = partialValidDataCount;
+
+        // Recompute invalidKeyCount
+        if (processedData.invalidKeyCount) {
+            for (const [scope, invalidKeys] of processedData.invalidKeys ?? new Map()) {
+                const count = invalidKeys.filter((invalid: boolean) => invalid).length;
+                processedData.invalidKeyCount.set(scope, count);
+            }
+        }
+
+        // Clear cached data that depends on array positions
+        processedData[DOMAIN_RANGES].clear();
+        processedData[KEY_SORT_ORDERS].clear();
+        processedData[COLUMN_SORT_ORDERS].clear();
+        // Note: We intentionally don't clear DOMAIN_BANDS here as they maintain state across updates
+    }
+
+    /**
+     * Processes all insertions for a given scope once, caching the results.
+     * Returns a map from ADJUSTED destIndex to processed values for all keys and values.
+     * The adjusted destIndex accounts for out-of-bounds insertions that need to be shifted.
+     */
+    private processInsertionsOnce(
+        scope: ScopeId,
+        changeDesc: DataChangeDescription,
+        dataSet: DataSet<unknown>,
+        processValue: (
+            def: InternalDatumPropertyDefinition<K>,
+            datum: any,
+            idx: number,
+            scopes: string | string[]
+        ) => ProcessedValue
+    ): InsertionCache {
+        const cache = new Map<number, InsertionCacheValue>();
+
+        const { finalLength } = changeDesc.indexMap;
+
+        // Extract insertions from splice operations
+        for (const op of changeDesc.indexMap.spliceOps) {
+            if (op.insertCount <= 0) continue;
+
+            for (let i = 0; i < op.insertCount; i++) {
+                const destIndex = op.index + i;
+                if (destIndex < 0 || destIndex >= finalLength) {
+                    continue; // Skip invalid indices
+                }
+
+                const datum = dataSet.data[destIndex];
+
+                const keys = new Map<number, ProcessedValueEntry>();
+                const values = new Map<number, ProcessedValueEntry>();
+                let hasInvalidKey = false;
+                let hasInvalidValue = false;
+
+                if (datum == null || typeof datum !== 'object') {
+                    hasInvalidKey = true;
+                    hasInvalidValue = true;
+                } else {
+                    // Process all keys for this scope
+                    for (const [keyDefIndex, keyDef] of this.keys.entries()) {
+                        if (!keyDef.scopes?.includes(scope)) continue;
+
+                        const result = processValue(keyDef, datum, destIndex, scope);
+                        keys.set(keyDefIndex, { value: result.value, valid: result.valid });
+
+                        if (!result.valid) {
+                            hasInvalidKey = true;
+                        }
+                    }
+
+                    // Process all values for this scope
+                    for (const [valueDefIndex, valueDef] of this.values.entries()) {
+                        if (!valueDef.scopes?.includes(scope)) continue;
+
+                        const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
+                        values.set(valueDefIndex, { value: result.value, valid: result.valid });
+
+                        if (!result.valid) {
+                            hasInvalidValue = true;
+                        }
+                    }
+                }
+
+                cache.set(destIndex, { keys, values, hasInvalidKey, hasInvalidValue });
+            }
+        }
+
+        return cache;
+    }
+
+    private warnDataMissingProperties(sources: Map<string, DataSet<unknown>>) {
         if (sources.size === 0) return;
 
         for (const def of iterate(this.keys, this.values)) {
             for (const [scope, missCount] of def.missing) {
-                if (missCount < (sources.get(scope)?.length ?? Infinity)) continue;
+                if (missCount < (sources.get(scope)?.data.length ?? Infinity)) continue;
                 const scopeHint = scope == null ? '' : ` for ${scope}`;
                 Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
             }
@@ -698,7 +1350,7 @@ export class DataModel<
         return result;
     }
 
-    private extractData(sources: Map<string, unknown[]>): UngroupedData<D> {
+    private extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
         const { dataDomain, processValue, allScopesHaveSameDefs } = this.initDataDomainProcessor();
 
         const { keys: keyDefs, values: valueDefs } = this;
@@ -709,7 +1361,7 @@ export class DataModel<
             processValue
         );
 
-        const { columns, columnScopes, partialValidDataCount, maxDataLength } = this.extractValues(
+        const { columns, columnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength } = this.extractValues(
             invalidData,
             valueDefs,
             sources,
@@ -736,6 +1388,7 @@ export class DataModel<
             keys: [...allKeyMappings.values()],
             columns,
             columnScopes,
+            columnNeedValueOf,
             invalidKeys,
             invalidKeyCount,
             invalidData,
@@ -753,12 +1406,13 @@ export class DataModel<
             [DOMAIN_RANGES]: new Map(),
             [KEY_SORT_ORDERS]: new Map(),
             [COLUMN_SORT_ORDERS]: new Map(),
+            [DOMAIN_BANDS]: new Map(),
         } satisfies UngroupedData<D>;
     }
 
     private extractKeys(
         keyDefs: InternalDatumPropertyDefinition<K>[],
-        sources: Map<string, unknown[]>,
+        sources: Map<string, DataSet<unknown>>,
         processValue: (
             def: InternalDatumPropertyDefinition<K>,
             datum: any,
@@ -792,7 +1446,7 @@ export class DataModel<
             allKeys.set(keyDef, keyDefKeys);
 
             for (const scope of keyScopes ?? []) {
-                const data = sources.get(scope) ?? [];
+                const data = sources.get(scope)?.data ?? [];
                 if (scopeDataProcessed.has(data)) {
                     cloneScope(data, scope);
                     continue;
@@ -852,7 +1506,7 @@ export class DataModel<
     private extractValues(
         invalidData: Map<ScopeId, boolean[]>,
         valueDefs: InternalDatumPropertyDefinition<K>[],
-        sources: Map<string, unknown[]>,
+        sources: Map<string, DataSet<unknown>>,
         scopeInvalidKeys: Map<ScopeId, boolean[]>,
         processValue: (
             def: InternalDatumPropertyDefinition<K>,
@@ -865,6 +1519,7 @@ export class DataModel<
 
         const columns: unknown[][] = [];
         const allColumnScopes: Set<ScopeId>[] = [];
+        const columnNeedValueOf: boolean[] = [];
         let maxDataLength = 0;
         for (const def of valueDefs) {
             const { invalidValue } = def;
@@ -875,9 +1530,10 @@ export class DataModel<
             }
             const columnScopes = new Set(def.scopes);
             const columnScope = first(def.scopes);
-            const columnSource = sources.get(columnScope) as unknown[];
+            const columnSource = sources.get(columnScope)?.data ?? [];
             const column = new Array<unknown>();
             const invalidKeys = scopeInvalidKeys.get(columnScope);
+            let needsValueOf = false;
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
                 if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') continue;
 
@@ -899,15 +1555,21 @@ export class DataModel<
                     value = invalidValue;
                 }
 
+                // Detect if this column contains Date objects or other objects needing valueOf()
+                if (!needsValueOf && value != null && typeof value === 'object') {
+                    needsValueOf = true;
+                }
+
                 column[datumIndex] = value;
             }
 
             columns.push(column);
             allColumnScopes.push(columnScopes);
+            columnNeedValueOf.push(needsValueOf);
             maxDataLength = Math.max(maxDataLength, column.length);
         }
 
-        return { columns, columnScopes: allColumnScopes, partialValidDataCount, maxDataLength };
+        return { columns, columnScopes: allColumnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength };
     }
 
     private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {
@@ -993,6 +1655,7 @@ export class DataModel<
                 groups: resultGroups,
             },
             groups: resultData,
+            [DOMAIN_BANDS]: data[DOMAIN_BANDS],
         };
     }
 
@@ -1004,7 +1667,7 @@ export class DataModel<
 
         const onlyScope = first(dataSources.keys());
         const keys = processedData.keys.map((k) => k.get(onlyScope));
-        const rawData = dataSources.get(onlyScope);
+        const rawData = dataSources.get(onlyScope)?.data ?? [];
         processedData.aggregation = rawData?.map((_, datumIndex) => {
             const aggregation: [number, number][] = [];
 
@@ -1121,7 +1784,7 @@ export class DataModel<
                 const onlyScope = isScoped(def) ? def.scopes[0] : first(dataSources.keys());
                 const keyColumns = keys.map((k) => k.get(onlyScope)).filter((k) => k != null);
                 const keysParam = keyColumns.map((): unknown => undefined!);
-                const rawData = dataSources.get(onlyScope)!;
+                const rawData = dataSources.get(onlyScope)?.data ?? [];
                 for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
                     for (let keyIdx = 0; keyIdx < keysParam.length; keyIdx++) {
                         keysParam[keyIdx] = keyColumns[keyIdx]?.[datumIndex];

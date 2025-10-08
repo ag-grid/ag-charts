@@ -365,7 +365,7 @@ export class MapShapeSeries
         const nodeData: MapShapeNodeDatum[] = [];
         const labelData: MapShapeNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         rawData.forEach((datum, datumIndex) => {
             const idValue = idValues[datumIndex];
             const colorValue: number | undefined = colorValues?.[datumIndex];
@@ -721,7 +721,7 @@ export class MapShapeSeries
         const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = properties;
         if (!dataModel || !processedData) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
         const colorValue =
             colorKey != null

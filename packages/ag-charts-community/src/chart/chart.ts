@@ -1730,7 +1730,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(DataSet.wrap(data));
+            target.setOptionsData(data != null ? DataSet.wrap(data) : undefined);
         }
 
         if (listeners) {
@@ -1792,9 +1792,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     async applyTransaction(transaction: AgDataTransaction) {
         // Note: Validation happens at the public API layer (AgChartInstanceProxy)
+
         await this.updateMutex.acquire(() => {
-            this.data.pendingTransactions.push(transaction);
-            this.update(ChartUpdateType.UPDATE_DATA, { apiUpdate: true, skipAnimations: true });
+            this.data.addTransaction(transaction);
+            this.update(ChartUpdateType.UPDATE_DATA, {
+                apiUpdate: true,
+                skipAnimations: true,
+            });
         });
+        await this.waitForUpdate();
     }
 }

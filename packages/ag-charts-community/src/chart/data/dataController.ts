@@ -11,7 +11,7 @@ import {
     type PropertyDefinition,
     type UngroupedData,
 } from './dataModel';
-import { DataSet } from './dataSet';
+import { DataChangeDescription, DataSet } from './dataSet';
 
 interface RequestedProcessing<
     D extends object,
@@ -77,14 +77,12 @@ export class DataController {
         this.status = 'executed';
 
         // Commit pending transactions before processing
-        const dataSets = new Set<DataSet<any>>();
+        const dataSets = new Map<DataSet<any>, DataChangeDescription | undefined>();
         for (const request of this.requested) {
             if (request.dataSet.hasPendingTransactions()) {
-                dataSets.add(request.dataSet);
+                dataSets.set(request.dataSet, request.dataSet.getChangeDescription());
             }
-        }
-        for (const dataSet of dataSets) {
-            dataSet.commitPendingTransactions();
+            request.dataSet.commitPendingTransactions();
         }
 
         this.debug('DataController.execute() - requested', this.requested);
@@ -102,37 +100,49 @@ export class DataController {
         for (const { dataSet, ids, opts, resolves, rejects } of merged) {
             const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, dataSet, ids, opts));
 
-            let dataModel: DataModel<any, string>;
-            let processedData: UngroupedData<any> | undefined;
-            if (reusableCache == null) {
-                try {
-                    dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
-                    const sources = new Map(valid.map((v) => [v.id, v.dataSet.data]));
-                    processedData = dataModel.processData(sources);
-                } catch (error) {
-                    rejects.forEach((cb) => cb(error));
-                    continue;
+            const resolveResult = (dataModel: DataModel<any>, processedData?: UngroupedData<any>) => {
+                if (this.debug.check()) {
+                    getWindow<any[]>('processedData').push(processedData);
                 }
-            } else {
-                ({ dataModel, processedData } = reusableCache);
-            }
 
-            nextCachedData.push({ opts, dataSet, dataLength: dataSet.data.length, ids, dataModel, processedData });
+                if (processedData == null) {
+                    rejects.forEach((cb) => cb(new Error(`AG Charts - no processed data generated`)));
+                    return;
+                }
 
-            if (this.debug.check()) {
-                getWindow<any[]>('processedData').push(processedData);
-            }
-
-            if (processedData) {
+                nextCachedData.push({ opts, dataSet, dataLength: dataSet.data.length, ids, dataModel, processedData });
                 for (const resolve of resolves) {
                     resolve({ dataModel, processedData });
                 }
-            } else {
-                const rejectError = new Error(`AG Charts - no processed data generated`);
-                for (const reject of rejects) {
-                    reject(rejectError);
+            };
+
+            const fullReprocess = () => {
+                try {
+                    const dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
+                    const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
+                    const processedData = dataModel.processData(sources);
+                    resolveResult(dataModel, processedData);
+                    return dataModel;
+                } catch (error) {
+                    rejects.forEach((cb) => cb(error));
                 }
+            };
+
+            if (reusableCache == null) {
+                fullReprocess();
+                continue;
             }
+
+            const { dataModel, processedData } = reusableCache;
+            const changeDescription = dataSets.get(dataSet);
+            if (processedData && changeDescription && dataModel.isReprocessingSupported(processedData)) {
+                this.debug('DataController.execute() - reprocessing data', processedData, dataSet);
+                dataModel.reprocessData(processedData, dataSets);
+                resolveResult(dataModel, processedData);
+                continue;
+            }
+
+            fullReprocess();
         }
 
         return nextCachedData;

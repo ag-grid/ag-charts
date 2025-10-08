@@ -275,7 +275,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
         if (!visible) return context;
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
@@ -637,7 +637,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId, properties, processedData } = this;
         const { xKey, yHighKey, yLowKey } = properties;
 
-        const datum = processedData!.dataSources.get(seriesId)?.[datumIndex];
+        const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -735,7 +735,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
