@@ -139,6 +139,14 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 -   `nx benchmark ag-charts-enterprise -- -t "initial load"` does the same for enterprise.
 -   Filtering is by test name pattern (xargs prevents targeting individual files).
 
+#### Creating New Benchmarks
+
+1. Create benchmark test file in `packages/ag-charts-{community,enterprise}/benchmarks/${name}.test.ts` using `setupBenchmark()` and `benchmark()` utilities.
+2. Create or copy the example to `packages/ag-charts-website/src/content/docs/benchmarks/_examples/${exampleName}/`.
+3. Add `/* @ag-options-extract */` and `/* @ag-options-end */` comments around the options object in the example's `main.ts`.
+4. Add example dependency to `benchmark.dependsOn` array in the package's `project.json`: `ag-charts-website-benchmarks_${exampleName}_main.ts:generate-example`.
+5. Run `nx benchmark ag-charts-{community,enterprise} -- -t "test pattern"` to verify.
+
 ## Technical Requirements
 
 -   **Node.js**: ^20.19.4
@@ -156,6 +164,33 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 
 -   Make sure to run `nx format` on any changes to ensure consistent formatting before commit.
 -   Prefer running `nx format` in the root of the repo to format changes, as there are config nuances that aren't taken into account when directly running tooling in more specific places.
+
+### Code Quality Guidelines
+
+#### Avoid Code Bloat
+
+-   **No redundant computed values**: Store only base data, compute derived properties via functions/getters
+-   **No dead code**: Remove unused methods, parameters, or properties
+-   **Extract duplication**: If the same logic appears twice, extract it to a helper function
+-   **Simplify conditionals**: Consolidate repeated if/else branches, use early returns
+-   **Serialize cleanly**: Add `toJSON()` methods to classes to avoid exposing internal structure in snapshots
+
+#### Test Philosophy
+
+-   **Test behavior, not implementation**: Focus on what the code does, not how it does it
+-   **Use parameterized tests**: Consolidate similar test cases with `test.each()`
+-   **Avoid brittle assertions**: Don't assert exact array indices or internal state unless necessary
+-   **Keep tests focused**: One behavior per test, clear test names
+-   **Simplify test helpers**: Prefer simple operation counters over complex tracking mechanisms
+
+#### Comment Guidelines
+
+-   **Explain WHY, not WHAT**: Code should be self-documenting; comments explain reasoning
+-   **Keep OPTIMIZATION comments**: These explain performance trade-offs and design decisions
+-   **Concise JSDoc**: Simple getters/setters don't need JSDoc; complex methods do
+-   **Remove obvious comments**: Don't restate what the code clearly shows
+-   **Trust good naming**: Well-named variables and methods reduce need for comments
+-   **Examples in JSDoc**: Complex methods benefit from usage examples in documentation
 
 ## Code Review Guidelines
 
