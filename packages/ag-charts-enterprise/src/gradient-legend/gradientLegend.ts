@@ -134,7 +134,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         scene.appendChild(this.legendGroup);
     }
 
-    private onStartLayout(ctx: _ModuleSupport.LayoutContext) {
+    private onStartLayout(layoutBox: _ModuleSupport.BBox) {
         const [data] = this.data;
 
         if (!this.enabled || !data?.enabled || data.legendType !== 'gradient') {
@@ -144,14 +144,14 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
 
         const { colorRange } = this.normalizeColorArrays(data);
 
-        const gradientRectBBox = this.updateGradientRect(ctx.layoutBox, colorRange);
+        const gradientRectBBox = this.updateGradientRect(layoutBox, colorRange);
         const axisBBox = this.updateAxis(data, gradientRectBBox) ?? new BBox(0, 0, 0, 0);
 
         const legendBBox = BBox.merge([gradientRectBBox, axisBBox]);
         const { strokeWidth, padding } = this.getContainerStyles();
         legendBBox.grow(padding).grow(strokeWidth);
 
-        const { left, top } = this.getMeasurements(ctx.layoutBox, legendBBox);
+        const { left, top } = this.getMeasurements(layoutBox, legendBBox);
 
         this.updateContainer(legendBBox);
         this.updateArrow();

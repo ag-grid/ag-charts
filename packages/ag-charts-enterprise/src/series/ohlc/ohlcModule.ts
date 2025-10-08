@@ -53,16 +53,6 @@ const themeTemplate: ExtensibleTheme<'ohlc'> = {
     },
 };
 
-export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'ohlc',
-    themeTemplate,
-};
-
 export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     type: 'series',
     name: 'ohlc',

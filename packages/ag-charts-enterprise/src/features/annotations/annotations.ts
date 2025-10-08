@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
     _Widget,
 } from 'ag-charts-community';
-import { isValidDate } from 'ag-charts-core';
+import { AbstractModuleInstance, isValidDate } from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -55,7 +55,7 @@ type AnnotationAxis = {
     button?: AxisButton;
 };
 
-export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Annotations extends AbstractModuleInstance {
     @Property
     public enabled: boolean = true;
 
@@ -119,6 +119,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.clear();
             this.xAxis?.button?.destroy();
             this.yAxis?.button?.destroy();
+            this.textInput.destroy();
         });
     }
 

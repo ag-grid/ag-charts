@@ -6,16 +6,6 @@ import { ConeFunnelSeries } from './coneFunnelSeries';
 import { coneFunnelSeriesOptionsDef } from './coneFunnelSeriesOptionsDef';
 import { CONE_FUNNEL_SERIES_THEME } from './coneFunnelThemes';
 
-export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'cone-funnel',
-    themeTemplate: CONE_FUNNEL_SERIES_THEME,
-};
-
 export const ConeFunnelSeriesModule: SeriesModuleDefinition<AgConeFunnelSeriesOptions> = {
     type: 'series',
     name: 'cone-funnel',

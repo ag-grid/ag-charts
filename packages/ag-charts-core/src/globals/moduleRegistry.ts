@@ -10,6 +10,7 @@ import {
     type SeriesModuleDefinition,
     type SeriesPluginModuleDefinition,
 } from '../interfaces/moduleDefinition';
+import { Logger } from './';
 
 interface ModuleState {
     def: ModuleDefinition;
@@ -48,14 +49,13 @@ export function register(
     // Module already registered with the same version - work out appropriate error handling.
     if (existingVersion === version) {
         // Probably due to duplicate module loading - users should be aware of this because it's not a good idea.
-        // TODO add back warning after old mouse registry has been retired
-        // Logger.warn(
-        //     [
-        //         `AG Charts - Module '${def.name}' already registered,',
-        //         'ignoring (version: ${existingVersion}).`,
-        //         `Check your code for duplicate loading of charts NPM modules.`,
-        //     ].join(' ')
-        // );
+        Logger.warn(
+            [
+                `AG Charts - Module '${def.name}' already registered,',
+                'ignoring (version: ${existingVersion}).`,
+                `Check your code for duplicate loading of charts NPM modules.`,
+            ].join(' ')
+        );
         return;
     }
 

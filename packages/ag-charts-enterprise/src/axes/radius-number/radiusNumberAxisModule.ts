@@ -1,12 +1,15 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { type AgRadiusNumberAxisOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AxisModuleDefinition } from 'ag-charts-core';
 
 import { RadiusNumberAxis } from './radiusNumberAxis';
 
-export const RadiusNumberAxisModule: _ModuleSupport.AxisModule = {
+export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOptions> = {
     type: 'axis',
-    optionsKey: 'axes[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-    identifier: 'radius-number',
-    moduleFactory: (ctx) => new RadiusNumberAxis(ctx),
+    name: 'radius-number',
+    chartType: 'polar',
+    enterprise: true,
+
+    options: _ModuleSupport.radiusNumberAxisOptionsDefs,
+
+    create: (ctx) => new RadiusNumberAxis(ctx),
 };

@@ -7,16 +7,6 @@ import { RADIAL_BAR_SERIES_THEME } from './radialBarThemes';
 
 const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
-export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-
-    identifier: 'radial-bar',
-    themeTemplate: RADIAL_BAR_SERIES_THEME,
-};
-
 export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOptions> = {
     type: 'series',
     name: 'radial-bar',

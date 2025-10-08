@@ -8,6 +8,7 @@ import {
     Logger,
     type Point,
     type RequireOptional,
+    type SeriesPluginModuleInstance,
     createId,
     isEmptyObject,
 } from 'ag-charts-core';
@@ -34,7 +35,6 @@ import type {
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionInstance, SeriesOptionModule } from '../../module/optionsModuleTypes';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -166,8 +166,6 @@ export type SeriesNodeStyleContext<TStyle> = {
     [HighlightState.OtherSeries]: TStyle;
     [HighlightState.OtherItem]: TStyle;
 };
-
-export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
 
 export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
     [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
@@ -309,7 +307,7 @@ export abstract class Series<
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
 
-    protected readonly moduleMap: SeriesModuleMap = new ModuleMap();
+    protected readonly moduleMap = new ModuleMap<SeriesPluginModuleInstance>();
 
     protected _data?: DataSet<any>;
     protected _chartData?: DataSet<any>;
@@ -476,10 +474,6 @@ export abstract class Series<
         return super.hasEventListener(type);
     }
 
-    addChartEventListeners(): void {
-        return;
-    }
-
     updatedDomains() {
         // For override by subclasses.
     }
@@ -557,7 +551,7 @@ export abstract class Series<
         const seriesDomain: any[] = this.getSeriesDomain(direction);
         const moduleDomains: any[] = this.moduleMap.mapModules((module) => module.getDomain(direction)).flat();
         // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
-        return moduleDomains.length !== 0 ? seriesDomain.concat(moduleDomains) : seriesDomain;
+        return moduleDomains.length === 0 ? seriesDomain : seriesDomain.concat(moduleDomains);
     }
 
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[] {
@@ -935,7 +929,7 @@ export abstract class Series<
         return this.visible;
     }
 
-    getModuleMap(): SeriesModuleMap {
+    getModuleMap() {
         return this.moduleMap;
     }
 

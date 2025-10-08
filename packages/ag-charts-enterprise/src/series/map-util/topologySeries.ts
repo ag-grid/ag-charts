@@ -1,5 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import type { DataModelSeriesConstructorOpts } from '../../../../ag-charts-community/src/chart/series/dataModelSeries';
+
 interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {}
 
 interface TopologySeriesNodeDataContext<
@@ -16,8 +18,11 @@ export abstract class TopologySeries<
     TLabel extends object,
     TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
 > extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
-    override addChartEventListeners(): void {
+    constructor(options: DataModelSeriesConstructorOpts<TProps>) {
+        super(options);
+
         this.cleanup.register(
+            this.ctx.eventsHub.on('data:update', () => {}),
             this.ctx.eventsHub.on('legend:item-click', (event) => {
                 this.onLegendItemClick(event);
             }),

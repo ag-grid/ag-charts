@@ -5,16 +5,6 @@ import { BoxPlotSeries } from './boxPlotSeries';
 import { boxPlotSeriesOptionsDef } from './boxPlotSeriesOptionsDef';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
-export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'box-plot',
-    themeTemplate: BOX_PLOT_SERIES_THEME,
-};
-
 export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions> = {
     type: 'series',
     name: 'box-plot',

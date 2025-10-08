@@ -1,8 +1,8 @@
 import type { AgTimeInterval } from 'ag-charts-types';
 
-type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'category' | 'mercator' | 'color';
+export type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'category' | 'mercator' | 'color';
 
-interface ScaleTickParams<I> {
+export interface ScaleTickParams<I> {
     nice: boolean;
     interval: I | undefined;
     tickCount: number | undefined;
@@ -10,12 +10,12 @@ interface ScaleTickParams<I> {
     maxTickCount: number;
 }
 
-interface NormalizedDomain<D> {
+export interface NormalizedDomain<D> {
     domain: D[];
     animatable: boolean;
 }
 
-interface ScaleTickResult<D> {
+export interface ScaleTickResult<D> {
     // Ticks within visible range
     ticks: D[];
     // Fractional count of all ticks (including outside visible range)
@@ -29,7 +29,7 @@ interface ScaleTickResult<D> {
     timeInterval?: AgTimeInterval;
 }
 
-enum ScaleAlignment {
+export enum ScaleAlignment {
     Leading,
     Trailing,
     Interpolate,

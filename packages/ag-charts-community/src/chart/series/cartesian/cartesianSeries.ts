@@ -1,3 +1,4 @@
+import type { Scale } from 'ag-charts-core';
 import { type Point, findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
 import type { AgDrawingMode, AgSeriesSegmentation } from 'ag-charts-types';
 
@@ -7,7 +8,6 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
-import type { Scale } from '../../../scale/scale';
 import { UnitTimeScale } from '../../../scale/unitTimeScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
@@ -295,6 +295,11 @@ export abstract class CartesianSeries<
             },
             () => this.checkProcessedDataAnimatable()
         );
+
+        this.cleanup.register(
+            this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
+            this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
+        );
     }
 
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
@@ -342,13 +347,6 @@ export abstract class CartesianSeries<
         } else if (phase === 'disabled') {
             this.animationState.transition('disable');
         }
-    }
-
-    override addChartEventListeners(): void {
-        this.cleanup.register(
-            this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
-            this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
-        );
     }
 
     override destroy() {
@@ -749,7 +747,7 @@ export abstract class CartesianSeries<
 
             for (const mod of this.moduleMap.modules()) {
                 const modPick = mod.pickNodeMainAxisFirst(point, majorDirection);
-                if (modPick !== undefined && modPick.distanceSquared < closestDistanceSquared) {
+                if (modPick != null && modPick.distanceSquared < closestDistanceSquared) {
                     closestDatum = modPick.datum;
                     closestDistanceSquared = modPick.distanceSquared;
                     break;

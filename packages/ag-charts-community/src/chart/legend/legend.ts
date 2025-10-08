@@ -33,7 +33,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
-import type { LayoutContext } from '../../module/baseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -1190,16 +1189,18 @@ export class Legend extends BaseProperties {
         this.domProxy.onLocaleChanged(this.ctx.localeManager, this.itemSelection, this);
     }
 
-    private positionLegend(ctx: LayoutContext) {
-        const oldPages = this.positionLegendScene(ctx);
+    private positionLegend(layoutBox: BBox) {
+        const oldPages = this.positionLegendScene(layoutBox);
         this.positionLegendDOM(oldPages);
     }
-    private positionLegendScene(ctx: LayoutContext) {
+    private positionLegendScene(layoutBox: BBox) {
         if (!this.enabled || !this.data.length) return;
 
         const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
         // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
-        const layoutBox = floating ? new BBox(0, 0, ctx.width, ctx.height) : ctx.layoutBox;
+        if (floating && (layoutBox.x !== 0 || layoutBox.y !== 0)) {
+            layoutBox = new BBox(0, 0, layoutBox.width, layoutBox.height);
+        }
         const { x, y, width, height } = layoutBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
 

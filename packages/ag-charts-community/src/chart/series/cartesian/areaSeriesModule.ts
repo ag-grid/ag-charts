@@ -1,7 +1,6 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
-import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
@@ -80,17 +79,7 @@ const themeTemplate: ExtensibleTheme<'area'> = {
     },
 };
 
-export const AreaSeriesModule: SeriesModule<'area'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'community',
-    chartTypes: ['cartesian'],
-
-    identifier: 'area',
-    themeTemplate,
-};
-
-export const NewAreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
+export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
     type: 'series',
     name: 'area',
     chartType: 'cartesian',

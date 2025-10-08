@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { attachListener, setAttributes } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, setAttributes } from 'ag-charts-core';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -18,7 +18,8 @@ interface Layout {
     width?: number;
 }
 
-export class TextInput extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class TextInput {
+    private readonly cleanup = new CleanupRegistry();
     private readonly element: HTMLElement;
     private layout: Layout = {
         getTextInputCoords: () => ({ x: 0, y: 0 }),
@@ -28,9 +29,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     };
     private visible = false;
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
-        super();
-
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
         this.element.classList.add('ag-charts-text-input');
 
@@ -177,5 +176,9 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     public getBBox() {
         const { left, top, width, height } = this.element.getBoundingClientRect();
         return new _ModuleSupport.BBox(left, top, width, height);
+    }
+
+    public destroy() {
+        this.cleanup.flush();
     }
 }

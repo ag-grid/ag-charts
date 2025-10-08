@@ -4,6 +4,7 @@ export * from './globals';
 // Interfaces
 export * from './interfaces/globalTypes';
 export * from './interfaces/moduleDefinition';
+export * from './interfaces/scaleTypes';
 
 // Classes
 export * from './classes/eventEmitter';

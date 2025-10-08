@@ -1,5 +1,14 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
-import { AsyncAwaitQueue, Logger, arraysEqual, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
+import {
+    AsyncAwaitQueue,
+    Logger,
+    type ModuleInstance,
+    arraysEqual,
+    isDate,
+    isDefined,
+    isFiniteNumber,
+    unique,
+} from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import type { Zoom } from '../zoom/zoom';
@@ -57,7 +66,7 @@ function domainChanged(scale: _ModuleSupport.Scale<unknown, unknown>, a: unknown
     }
 }
 
-export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
+export class ChartSync extends BaseProperties implements ModuleInstance, AgChartSyncOptions {
     static readonly className = 'Sync';
 
     @Property

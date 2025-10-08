@@ -1,6 +1,12 @@
 import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type WrapOptions, countFractionDigits, isNumberEqual, wrapTextOrSegments } from 'ag-charts-core';
+import {
+    type ScaleTickParams,
+    type WrapOptions,
+    countFractionDigits,
+    isNumberEqual,
+    wrapTextOrSegments,
+} from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
@@ -108,7 +114,7 @@ export abstract class AngleAxis<
     } {
         const { nice, scale } = this;
 
-        const ticksParams: _ModuleSupport.ScaleTickParams<any> = {
+        const ticksParams: ScaleTickParams<any> = {
             nice,
             interval: undefined,
             tickCount: undefined,

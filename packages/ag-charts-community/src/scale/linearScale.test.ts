@@ -1,6 +1,7 @@
+import { ScaleTickParams } from 'ag-charts-core';
+
 import { tickFormat } from '../util/ticks';
 import { LinearScale } from './linearScale';
-import { ScaleTickParams } from './scale';
 
 describe('LinearScale', () => {
     test('domain', () => {

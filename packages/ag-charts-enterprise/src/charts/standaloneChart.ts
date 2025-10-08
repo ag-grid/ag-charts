@@ -1,5 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import type { SeriesArea } from '../../../ag-charts-community/src/chart/series-area/seriesArea';
+
 const { Chart } = _ModuleSupport;
 
 export class StandaloneChart extends Chart {
@@ -10,11 +12,10 @@ export class StandaloneChart extends Chart {
         return 'standalone' as const;
     }
 
-    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
+    protected performLayout(layoutBox: _ModuleSupport.BBox) {
         const { seriesRoot, annotationRoot } = this;
-        const { layoutBox } = ctx;
-
-        const seriesRect = layoutBox.clone().shrink(this.modulesManager.getModule<any>('seriesArea').getPadding());
+        const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
+        const seriesRect = layoutBox.clone().shrink(seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -26,7 +27,7 @@ export class StandaloneChart extends Chart {
 
         seriesRoot.visible = this.series[0].visible;
 
-        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(layoutBox, {
             series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
         });
     }

@@ -5,19 +5,7 @@ import { RADAR_AREA_SERIES_THEME } from '../radar/radarThemes';
 import { RadarAreaSeries } from './radarAreaSeries';
 import { radarAreaSeriesOptionsDef } from './radarAreaSeriesOptionsDef';
 
-const {
-    ThemeConstants: { POLAR_AXIS_TYPE },
-} = _ModuleSupport;
-
-export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-
-    identifier: 'radar-area',
-    themeTemplate: RADAR_AREA_SERIES_THEME,
-};
+const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
 export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOptions> = {
     type: 'series',

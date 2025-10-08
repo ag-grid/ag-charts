@@ -1,7 +1,6 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
-import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import {
@@ -66,17 +65,7 @@ const themeTemplate: ExtensibleTheme<'line'> = {
     },
 };
 
-export const LineSeriesModule: SeriesModule<'line'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'community',
-    chartTypes: ['cartesian'],
-
-    identifier: 'line',
-    themeTemplate,
-};
-
-export const NewLineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
+export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
     type: 'series',
     name: 'line',
     chartType: 'cartesian',

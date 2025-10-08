@@ -1,6 +1,15 @@
 import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
-import { Logger, type Point, isDefined } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    Logger,
+    type PickNodeDatumResult,
+    type Point,
+    type PropertyDefinitionOpts,
+    type ScaleType,
+    type SeriesPluginModuleInstance,
+    isDefined,
+} from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
@@ -37,11 +46,9 @@ type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _ModuleSupport.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
-type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
 type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
-type PropertyDefinitionOpts = Parameters<_ModuleSupport.SeriesOptionInstance['getPropertyDefinitions']>[0];
 
-export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.SeriesOptionInstance {
+export class ErrorBars extends AbstractModuleInstance implements SeriesPluginModuleInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
     private readonly selection: _ModuleSupport.Selection<ErrorBarNode>;
@@ -119,12 +126,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             separateNegative: true,
             ...(cartesianSeries.visible ? {} : { forceValue: 0 }),
         };
-        const makeErrorProperty = (
-            key: string,
-            id: string,
-            type: 'lower' | 'upper',
-            scaleType?: _ModuleSupport.ScaleType
-        ) => {
+        const makeErrorProperty = (key: string, id: string, type: 'lower' | 'upper', scaleType?: ScaleType) => {
             return groupAccumulativeValueProperty(
                 key,
                 'normal',
@@ -137,12 +139,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
                 scaleType
             );
         };
-        const pushErrorProperties = (
-            lowerKey: string,
-            upperKey: string,
-            id: string,
-            scaleType?: _ModuleSupport.ScaleType
-        ) => {
+        const pushErrorProperties = (lowerKey: string, upperKey: string, id: string, scaleType?: ScaleType) => {
             props.push(
                 ...makeErrorProperty(lowerKey, id, 'lower', scaleType),
                 ...makeErrorProperty(upperKey, id, 'upper', scaleType)

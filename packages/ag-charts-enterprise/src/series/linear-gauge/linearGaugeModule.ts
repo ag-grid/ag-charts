@@ -78,16 +78,6 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
     },
 };
 
-export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
-
-    identifier: 'linear-gauge',
-    themeTemplate,
-};
-
 export const LinearGaugeSeriesModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
     type: 'series',
     name: 'linear-gauge',

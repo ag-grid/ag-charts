@@ -1,8 +1,7 @@
+import type { Scale } from 'ag-charts-core';
 import { iterate } from 'ag-charts-core';
 
-import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
-import type { Scale } from '../scale/scale';
 import { BBox } from '../scene/bbox';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
@@ -28,12 +27,9 @@ export class PolarChart extends Chart {
         return 'polar' as const;
     }
 
-    protected async performLayout(ctx: LayoutContext) {
-        const { layoutBox } = ctx;
-
-        const seriesRect = layoutBox
-            .clone()
-            .shrink(this.modulesManager.getModule<SeriesArea>('seriesArea')!.getPadding());
+    protected async performLayout(layoutBox: BBox) {
+        const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
+        const seriesRect = layoutBox.clone().shrink(seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -43,7 +39,7 @@ export class PolarChart extends Chart {
         await this.computeCircle(seriesRect);
         this.axes.forEach((axis) => axis.update());
 
-        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(layoutBox, {
             series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
         });
     }

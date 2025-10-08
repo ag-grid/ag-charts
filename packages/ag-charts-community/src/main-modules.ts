@@ -1,16 +1,15 @@
-// Entry point to implement and test our tree-shaking abilities
 import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
 import { CartesianChartModule } from './chart/cartesianChartModule';
 import { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
 import { PolarChartModule } from './chart/polarChartModule';
-import { NewAreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
-import { NewBarSeriesModule } from './chart/series/cartesian/barSeriesModule';
-import { NewBubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
-import { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';
-import { NewLineSeriesModule } from './chart/series/cartesian/lineSeriesModule';
-import { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
-import { NewDonutSeriesModule } from './chart/series/polar/donutSeriesModule';
-import { NewPieSeriesModule } from './chart/series/polar/pieSeriesModule';
+import { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
+import { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';
+import { BubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
+import { HistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';
+import { LineSeriesModule } from './chart/series/cartesian/lineSeriesModule';
+import { ScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
+import { DonutSeriesModule } from './chart/series/polar/donutSeriesModule';
+import { PieSeriesModule } from './chart/series/polar/pieSeriesModule';
 import {
     CategoryAxisModule,
     GroupedCategoryAxisModule,
@@ -30,15 +29,15 @@ export {
     UnitTimeAxisModule,
     CategoryAxisModule,
     GroupedCategoryAxisModule,
-    NewAreaSeriesModule,
-    NewBarSeriesModule,
-    NewBubbleSeriesModule,
-    NewHistogramSeriesModule,
-    NewLineSeriesModule,
-    NewScatterSeriesModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    HistogramSeriesModule,
+    LineSeriesModule,
+    ScatterSeriesModule,
     PolarChartModule,
-    NewDonutSeriesModule,
-    NewPieSeriesModule,
+    DonutSeriesModule,
+    PieSeriesModule,
 };
 
 export const AllCartesianCommunityModules = [
@@ -49,15 +48,15 @@ export const AllCartesianCommunityModules = [
     CategoryAxisModule,
     GroupedCategoryAxisModule,
     UnitTimeAxisModule,
-    NewAreaSeriesModule,
-    NewBarSeriesModule,
-    NewBubbleSeriesModule,
-    NewHistogramSeriesModule,
-    NewLineSeriesModule,
-    NewScatterSeriesModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    HistogramSeriesModule,
+    LineSeriesModule,
+    ScatterSeriesModule,
 ];
 
-export const AllPolarCommunityModules = [PolarChartModule, NewDonutSeriesModule, NewPieSeriesModule];
+export const AllPolarCommunityModules = [PolarChartModule, DonutSeriesModule, PieSeriesModule];
 
 export const AllCommunityModules = [
     ...AllCartesianCommunityModules,

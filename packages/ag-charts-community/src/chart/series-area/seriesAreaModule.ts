@@ -1,10 +1,18 @@
-import type { Module } from '../../module/module';
+import { type PluginModuleDefinition, boolean, borderOptionsDef, number, padding } from 'ag-charts-core';
+import type { AgSeriesAreaOptions } from 'ag-charts-types';
+
 import { SeriesArea } from './seriesArea';
 
-export const SeriesAreaModule: Module = {
-    type: 'root',
-    optionsKey: 'seriesArea',
-    packageType: 'community',
-    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
-    moduleFactory: (ctx) => new SeriesArea(ctx),
+export const SeriesAreaModule: PluginModuleDefinition<AgSeriesAreaOptions> = {
+    type: 'plugin',
+    name: 'seriesArea',
+
+    options: {
+        border: borderOptionsDef,
+        clip: boolean,
+        cornerRadius: number,
+        padding: padding,
+    },
+
+    create: (ctx) => new SeriesArea(ctx),
 };

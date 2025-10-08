@@ -1,3 +1,4 @@
+import type { NormalizedDomain, ScaleAlignment, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
 import { Logger, findMaxIndex, findMinIndex, isPlainObject } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -11,7 +12,6 @@ import {
 } from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import type { NormalizedDomain, ScaleAlignment, ScaleTickParams, ScaleTickResult } from './scale';
 import { visibleTickSliceIndices } from './scaleUtil';
 
 const MAX_BANDS = 50e6; // Max array length is ~4bn

@@ -1,3 +1,4 @@
+import type { ScaleTickParams } from 'ag-charts-core';
 import {
     type WrapOptions,
     getMaxInnerRectSize,
@@ -12,7 +13,6 @@ import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
-import type { ScaleTickParams } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';

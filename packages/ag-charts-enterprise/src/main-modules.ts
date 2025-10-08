@@ -1,10 +1,8 @@
-import {
-    AngleCategoryAxisModule,
-    AngleNumberAxisModule,
-    OrdinalTimeAxisModule,
-    RadiusCategoryAxisModule,
-    RadiusNumberAxisModule,
-} from './axes/axisModules';
+import { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
+import { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
+import { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
+import { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryAxisModule';
+import { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
 import { StandaloneChartModule } from './charts/standaloneChartModule';
 import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnnotationsModule, InitialStateModule, NavigatorModule } from './features/sync/pluginModules';

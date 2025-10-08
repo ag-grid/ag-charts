@@ -5,16 +5,6 @@ import { PyramidSeries } from './pyramidSeries';
 import { pyramidSeriesOptionsDef } from './pyramidSeriesOptionsDef';
 import { PYRAMID_SERIES_THEME } from './pyramidThemes';
 
-export const PyramidModule: _ModuleSupport.SeriesModule<'pyramid'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
-
-    identifier: 'pyramid',
-    themeTemplate: PYRAMID_SERIES_THEME,
-};
-
 export const PyramidSeriesModule: SeriesModuleDefinition<AgPyramidSeriesOptions> = {
     type: 'series',
     name: 'pyramid',

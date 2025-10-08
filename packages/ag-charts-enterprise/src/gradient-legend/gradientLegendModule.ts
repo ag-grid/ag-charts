@@ -1,15 +1,13 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientLegendOptions, _ModuleSupport } from 'ag-charts-community';
+import type { PluginModuleDefinition } from 'ag-charts-core';
 
 import { GradientLegend } from './gradientLegend';
 
-export const GradientLegendModule: _ModuleSupport.LegendModule = {
-    type: 'legend',
-    optionsKey: 'gradientLegend',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
-
-    identifier: 'gradient',
-    moduleFactory: (ctx) => new GradientLegend(ctx),
+export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOptions> = {
+    type: 'plugin',
+    name: 'gradientLegend',
+    enterprise: true,
+    // removable: 'standalone-only',
 
     themeTemplate: {
         enabled: false,
@@ -44,5 +42,5 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
         },
     },
 
-    removable: 'standalone-only',
+    create: (ctx) => new GradientLegend(ctx),
 };

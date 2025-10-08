@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgColorType, createId } from 'ag-charts-core';
+import { AbstractModuleInstance, type InternalAgColorType, createId } from 'ag-charts-core';
 
 const {
     Range,
@@ -15,7 +15,7 @@ const {
     InteractionState,
 } = _ModuleSupport;
 
-export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class BandHighlight extends AbstractModuleInstance {
     readonly id = createId(this);
 
     @Property
@@ -205,10 +205,10 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
 
         this.activeAxisHighlight = axisBandDatum;
 
-        if (!this.activeAxisHighlight) {
-            this.hideBand();
-        } else {
+        if (this.activeAxisHighlight) {
             this.showBand();
+        } else {
+            this.hideBand();
         }
 
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);

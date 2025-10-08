@@ -1,4 +1,4 @@
-import { CleanupRegistry, EventEmitter, type StrictHTMLElement } from 'ag-charts-core';
+import { CleanupRegistry, EventEmitter, ModuleRegistry, ModuleType, type StrictHTMLElement } from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
@@ -7,9 +7,6 @@ import type { EventsHubMap } from '../core/eventsHub';
 import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
-import type { ModuleInstance } from '../module/baseModule';
-import type { ContextModule } from '../module/coreModules';
-import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
@@ -73,8 +70,6 @@ export class ChartContext implements ModuleContext {
     updateService: UpdateService;
     widgets: WidgetSet;
     zoomManager: ZoomManager;
-
-    private readonly contextModules: ModuleInstance[] = [];
 
     constructor(
         chart: ChartService & { annotationRoot: Group; tooltip: Tooltip },
@@ -142,12 +137,10 @@ export class ChartContext implements ModuleContext {
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
         this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
 
-        for (const module of moduleRegistry.byType<ContextModule>('context')) {
-            if (!module.chartTypes.includes(chartType)) continue;
-
-            const moduleInstance = module.moduleFactory(this);
-            this.contextModules.push(moduleInstance);
-            (this as any)[module.contextKey] = moduleInstance;
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+            if (!module.chartType || module.chartType === chartType) {
+                module.patchContext?.(this);
+            }
         }
     }
 
@@ -162,7 +155,6 @@ export class ChartContext implements ModuleContext {
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
         this.widgets.destroy();
-        this.contextModules.forEach((m) => m.destroy());
         this.cleanup.flush();
     }
 }

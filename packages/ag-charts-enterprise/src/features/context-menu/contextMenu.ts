@@ -1,6 +1,6 @@
 import type { AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { Logger, clamp, createElement, toPlainText } from 'ag-charts-core';
+import { AbstractModuleInstance, Logger, clamp, createElement, toPlainText } from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
@@ -20,7 +20,7 @@ type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
 
-export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class ContextMenu extends AbstractModuleInstance {
     @Property
     enabled = true;
 

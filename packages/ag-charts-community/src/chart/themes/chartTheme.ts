@@ -17,10 +17,7 @@ import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import { Color } from '../../util/color';
 import { deepClone, jsonWalk } from '../../util/json';
 import { deepFreeze, mergeDefaults } from '../../util/object';
-import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
-import { legendRegistry } from '../factory/legendRegistry';
-import { seriesRegistry } from '../factory/seriesRegistry';
 import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
@@ -674,23 +671,24 @@ export class ChartTheme {
             const result: Record<string, { series?: object; axes?: object }> = {};
             const chartTypeDefaults = {
                 axes: {},
-                ...legendRegistry.getThemeTemplates(),
+                // TODO validate chart defaults contain plugins
+                // ...legendRegistry.getThemeTemplates(),
                 ...this.getChartDefaults(),
                 ...chartDefaults.get(chartType),
             };
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
-                    seriesRegistry.getThemeTemplate(seriesType),
+                    getSeriesThemeTemplate(seriesType),
                     result[seriesType] ?? chartTypeDefaults
                 );
 
                 const { axes } = result[seriesType] as { axes: Record<string, object> };
 
-                for (const axisType of axisRegistry.keys()) {
-                    axes[axisType] = mergeDefaults(
-                        axes[axisType],
-                        axisRegistry.getThemeTemplate(axisType),
-                        (ChartTheme.axisDefault as any)[axisType]
+                for (const axisModule of ModuleRegistry.listModulesByType(ModuleType.Axis)) {
+                    axes[axisModule.name] = mergeDefaults(
+                        axes[axisModule.name],
+                        getAxisThemeTemplate(axisModule.name),
+                        (ChartTheme.axisDefault as any)[axisModule.name]
                     );
                 }
 
@@ -803,4 +801,24 @@ export class ChartTheme {
 
         return params;
     }
+}
+
+function getAxisThemeTemplate(axisType: string) {
+    let themeTemplate = ModuleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+        if (module.axisTypes?.includes(axisType) ?? true) {
+            themeTemplate = mergeDefaults(module.themeTemplate, themeTemplate);
+        }
+    }
+    return themeTemplate;
+}
+
+function getSeriesThemeTemplate(seriesType: string) {
+    let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+        if (module.seriesTypes?.includes(seriesType) ?? true) {
+            themeTemplate = mergeDefaults(module.themeTemplate, themeTemplate);
+        }
+    }
+    return themeTemplate;
 }

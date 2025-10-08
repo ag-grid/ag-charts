@@ -1,7 +1,6 @@
 import type { EventListener } from 'ag-charts-core';
 
 import type { AxisLayout, EventsHub } from '../../core/eventsHub';
-import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import { BBox } from '../../scene/bbox';
 
 export interface LayoutState {
@@ -20,11 +19,11 @@ export enum LayoutElement {
 }
 
 export class LayoutManager {
-    private readonly elements = new Map<LayoutElement, Set<EventListener<LayoutContext>>>();
+    private readonly elements = new Map<LayoutElement, Set<EventListener<BBox>>>();
 
     constructor(private readonly eventsHub: EventsHub) {}
 
-    registerElement(element: LayoutElement, listener: EventListener<LayoutContext>) {
+    registerElement(element: LayoutElement, listener: EventListener<BBox>) {
         if (this.elements.has(element)) {
             this.elements.get(element)!.add(listener);
         } else {
@@ -33,8 +32,8 @@ export class LayoutManager {
         return () => this.elements.get(element)?.delete(listener);
     }
 
-    createContext(width: number, height: number): LayoutContext {
-        const context = new LayoutContext(width, height);
+    createContext(width: number, height: number): BBox {
+        const context = new BBox(0, 0, width, height);
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
             this.elements.get(element)?.forEach((listener) => listener(context));
@@ -42,24 +41,13 @@ export class LayoutManager {
         return context;
     }
 
-    emitLayoutComplete(context: LayoutContext, options: LayoutState) {
-        const { width, height } = context;
+    emitLayoutComplete(layoutBox: BBox, options: LayoutState) {
+        const { width, height } = layoutBox;
         this.eventsHub.emit('layout:complete', {
             axes: options.axes ?? [],
             chart: { width, height },
             clipSeries: options.clipSeries ?? false,
             series: options.series,
         });
-    }
-}
-
-class LayoutContext implements ILayoutContext {
-    readonly layoutBox: BBox;
-
-    constructor(
-        public readonly width: number,
-        public readonly height: number
-    ) {
-        this.layoutBox = new BBox(0, 0, width, height);
     }
 }

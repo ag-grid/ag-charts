@@ -7,16 +7,6 @@ import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
 
 const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
 
-export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'candlestick',
-    themeTemplate: CANDLESTICK_SERIES_THEME,
-};
-
 export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeriesOptions> = {
     type: 'series',
     name: 'candlestick',

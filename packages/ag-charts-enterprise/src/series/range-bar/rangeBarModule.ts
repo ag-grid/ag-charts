@@ -5,16 +5,6 @@ import { RangeBarSeries } from './rangeBarSeries';
 import { rangeBarSeriesOptionsDef } from './rangeBarSeriesOptionsDef';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
-export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'range-bar',
-    themeTemplate: RANGE_BAR_SERIES_THEME,
-};
-
 export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOptions> = {
     type: 'series',
     name: 'range-bar',

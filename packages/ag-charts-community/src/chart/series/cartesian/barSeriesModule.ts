@@ -1,7 +1,6 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
-import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {
@@ -82,17 +81,7 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
     },
 };
 
-export const BarSeriesModule: SeriesModule<'bar'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'community',
-    chartTypes: ['cartesian'],
-
-    identifier: 'bar',
-    themeTemplate,
-};
-
-export const NewBarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
+export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     type: 'series',
     name: 'bar',
     chartType: 'cartesian',

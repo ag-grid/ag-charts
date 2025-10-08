@@ -5,19 +5,7 @@ import { NightingaleSeries } from './nightingaleSeries';
 import { nightingaleSeriesOptionsDef } from './nightingaleSeriesOptionsDef';
 import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
 
-const {
-    ThemeConstants: { POLAR_AXIS_TYPE },
-} = _ModuleSupport;
-
-export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-
-    identifier: 'nightingale',
-    themeTemplate: NIGHTINGALE_SERIES_THEME,
-};
+const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
 export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeriesOptions> = {
     type: 'series',

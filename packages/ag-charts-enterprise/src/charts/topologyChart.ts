@@ -48,9 +48,8 @@ export class TopologyChart extends Chart {
         });
     }
 
-    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
+    protected performLayout(layoutBox: _ModuleSupport.BBox) {
         const { seriesRoot, annotationRoot } = this;
-        const { layoutBox } = ctx;
 
         const seriesAreaModule: any = this.modulesManager.getModule('seriesArea');
         const seriesRect = layoutBox.clone().shrink(seriesAreaModule.getPadding());
@@ -58,7 +57,7 @@ export class TopologyChart extends Chart {
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
 
-        const mapSeries = this.series.filter<_ModuleSupport.ITopology>(isTopologySeries);
+        const mapSeries = this.series as _ModuleSupport.ITopology[];
         const combinedBbox = mapSeries.reduce<_ModuleSupport.LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
@@ -114,7 +113,7 @@ export class TopologyChart extends Chart {
             group.setClipRect(seriesRect.clone());
         }
 
-        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(layoutBox, {
             series: { visible: seriesVisible, rect: seriesRect, paddedRect: layoutBox },
         });
     }

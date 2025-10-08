@@ -1,7 +1,6 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgBubbleSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
-import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import {
@@ -50,17 +49,7 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
     },
 };
 
-export const BubbleSeriesModule: SeriesModule<'bubble'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'community',
-    chartTypes: ['cartesian'],
-
-    identifier: 'bubble',
-    themeTemplate,
-};
-
-export const NewBubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {
+export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {
     type: 'series',
     name: 'bubble',
     chartType: 'cartesian',

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ScaleType } from 'ag-charts-core';
 
 const { aggregationDomain, aggregationRangeFittingPoints, compactAggregationIndices, createAggregationIndices } =
     _ModuleSupport;
@@ -11,7 +12,7 @@ export interface RangeBarSeriesDataAggregationFilter {
 }
 
 export function aggregateRangeBarData(
-    scale: _ModuleSupport.ScaleType,
+    scale: ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],

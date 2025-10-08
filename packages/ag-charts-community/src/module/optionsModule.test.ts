@@ -1,6 +1,6 @@
 import { describe } from '@jest/globals';
 
-import { Logger } from 'ag-charts-core';
+import { Logger, ModuleRegistry } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -12,10 +12,10 @@ import type {
 } from 'ag-charts-types';
 
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { setupModules } from '../chart/factory/setupModules';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
+import { VERSION } from '../version';
 import { ChartOptions } from './optionsModule';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
@@ -1626,14 +1626,16 @@ describe('ChartOptions', () => {
             };
 
             for (const [seriesType, { stackable, groupable, stackedByDefault }] of Object.entries(seriesTypes)) {
-                seriesRegistry.register(
-                    seriesType as SeriesType,
+                ModuleRegistry.register(
                     {
-                        chartTypes: ['cartesian'],
+                        type: 'series',
+                        name: seriesType,
+                        chartType: 'cartesian',
                         stackable,
                         groupable,
                         stackedByDefault,
-                    } as any
+                    } as any,
+                    VERSION
                 );
             }
 

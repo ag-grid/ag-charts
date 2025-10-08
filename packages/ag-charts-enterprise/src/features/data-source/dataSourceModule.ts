@@ -1,14 +1,16 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgDataSourceOptions } from 'ag-charts-community';
+import { type PluginModuleDefinition, callback } from 'ag-charts-core';
 
 import { DataSource } from './dataSource';
 
-export const DataSourceModule: _ModuleSupport.Module = {
-    type: 'root',
-    optionsKey: 'dataSource',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
-    moduleFactory: (ctx) => new DataSource(ctx),
-    themeTemplate: {
-        dataSource: { enabled: false },
+export const DataSourceModule: PluginModuleDefinition<AgDataSourceOptions> = {
+    type: 'plugin',
+    name: 'dataSource',
+    enterprise: true,
+
+    options: {
+        getData: callback,
     },
+
+    create: (ctx) => new DataSource(ctx),
 };

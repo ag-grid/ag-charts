@@ -5,19 +5,7 @@ import { RangeAreaSeries } from './rangeArea';
 import { rangeAreaSeriesOptionsDef } from './rangeAreaSeriesOptionsDef';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
-const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
-} = _ModuleSupport;
-
-export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'range-area',
-    themeTemplate: RANGE_AREA_SERIES_THEME,
-};
+const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
 
 export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOptions> = {
     type: 'series',

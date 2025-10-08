@@ -1,6 +1,6 @@
+import { AbstractModuleInstance } from 'ag-charts-core';
+
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
-import type { ModuleInstance } from '../../module/baseModule';
-import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
@@ -9,7 +9,7 @@ import { Property } from '../../util/properties';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { ZIndexMap } from '../zIndexMap';
 
-export class Background<TImage = never> extends BaseModuleInstance implements ModuleInstance {
+export class Background<TImage = never> extends AbstractModuleInstance {
     protected readonly node;
     protected readonly rectNode = new Rect();
     protected readonly textNode = new Text();

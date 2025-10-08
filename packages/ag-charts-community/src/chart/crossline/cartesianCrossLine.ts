@@ -1,4 +1,4 @@
-import { createId } from 'ag-charts-core';
+import { type Scale, createId } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
@@ -8,7 +8,6 @@ import type {
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import { type Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';

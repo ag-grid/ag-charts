@@ -2,7 +2,6 @@ import { cachedTextMeasurer, isArray, measureTextSegments } from 'ag-charts-core
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
-import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
 import { Property } from '../util/properties';
 import { Caption } from './caption';
@@ -17,21 +16,21 @@ export class ChartCaptions {
     @Property
     readonly footnote = new Caption();
 
-    positionCaptions(ctx: LayoutContext) {
+    positionCaptions(layoutBox: BBox) {
         const { title, subtitle, footnote } = this;
-        const maxHeight = ctx.layoutBox.height / 10; // Limit to 10% of layout initial height
+        const maxHeight = layoutBox.height / 10; // Limit to 10% of layout initial height
 
         if (title.enabled) {
-            this.positionCaption('top', title, ctx.layoutBox, maxHeight);
-            this.shrinkLayoutByCaption('top', title, ctx.layoutBox);
+            this.positionCaption('top', title, layoutBox, maxHeight);
+            this.shrinkLayoutByCaption('top', title, layoutBox);
         }
         if (subtitle.enabled) {
-            this.positionCaption('top', subtitle, ctx.layoutBox, maxHeight);
-            this.shrinkLayoutByCaption('top', subtitle, ctx.layoutBox);
+            this.positionCaption('top', subtitle, layoutBox, maxHeight);
+            this.shrinkLayoutByCaption('top', subtitle, layoutBox);
         }
         if (footnote.enabled) {
-            this.positionCaption('bottom', footnote, ctx.layoutBox, maxHeight);
-            this.shrinkLayoutByCaption('bottom', footnote, ctx.layoutBox);
+            this.positionCaption('bottom', footnote, layoutBox, maxHeight);
+            this.shrinkLayoutByCaption('bottom', footnote, layoutBox);
         }
     }
 

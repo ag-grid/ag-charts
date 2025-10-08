@@ -1,6 +1,9 @@
 import {
     type BoxBounds,
     type ITextMeasurer,
+    type Scale,
+    ScaleAlignment,
+    type ScaleTickParams,
     type WrapOptions,
     boxCollides,
     buildDateFormatter,
@@ -19,7 +22,6 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegm
 import { BandScale } from '../../scale/bandScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { type Scale, ScaleAlignment, type ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { normalizeAngle360FromDegrees } from '../../util/angle';

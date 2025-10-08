@@ -1,7 +1,6 @@
-import { Logger, type Size, entries, groupBy } from 'ag-charts-core';
+import { Logger, type ModuleInstance, type Size, entries, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
-import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
@@ -114,16 +113,16 @@ export class CartesianChart extends Chart {
 
     private lastLayoutWidth = NaN;
     private lastLayoutHeight = NaN;
-    protected performLayout(ctx: LayoutContext) {
+    protected performLayout(layoutBox: BBox) {
         const { seriesRoot, annotationRoot } = this;
-        const { clipSeries, seriesRect, visible } = this.updateAxes(ctx.layoutBox);
+        const { clipSeries, seriesRect, visible } = this.updateAxes(layoutBox);
 
         this.seriesRoot.visible = visible;
         this.seriesRect = seriesRect;
-        this.animationRect = ctx.layoutBox;
+        this.animationRect = layoutBox;
 
         const { x, y } = seriesRect;
-        if (ctx.width !== this.lastLayoutWidth || ctx.height !== this.lastLayoutHeight) {
+        if (layoutBox.width !== this.lastLayoutWidth || layoutBox.height !== this.lastLayoutHeight) {
             // For initial rendering, don't animate.
             for (const group of [seriesRoot, annotationRoot]) {
                 group.translationX = Math.floor(x);
@@ -143,10 +142,10 @@ export class CartesianChart extends Chart {
             );
         }
 
-        this.lastLayoutWidth = ctx.width;
-        this.lastLayoutHeight = ctx.height;
+        this.lastLayoutWidth = layoutBox.width;
+        this.lastLayoutHeight = layoutBox.height;
 
-        const seriesArea = this.modulesManager.getModule<SeriesArea>('seriesArea')!;
+        const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
         const seriesPaddedRect = seriesRect.clone().grow(seriesArea.getPadding());
 
         const clipRect = seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
@@ -167,7 +166,7 @@ export class CartesianChart extends Chart {
             this.setRootClipRects(clipRect);
         }
 
-        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(layoutBox, {
             axes: this.axes.map((axis) => axis.getLayoutState()),
             series: {
                 visible,
@@ -230,7 +229,8 @@ export class CartesianChart extends Chart {
         let clipSeries = false;
 
         for (const dir of directions) {
-            const padding = this.modulesManager.getModule<SeriesArea>('seriesArea')!.getPadding()[dir];
+            const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
+            const padding = seriesArea.getPadding()[dir];
             const axis = this.axes.findLast((a) => a.position === dir);
 
             if (axis) {
@@ -393,8 +393,8 @@ export class CartesianChart extends Chart {
         seriesRect: BBox,
         visible: boolean
     ): void {
-        const hasCrosshair = axis.getModuleMap().getModule<{ enabled?: boolean }>('crosshair')?.enabled === true;
-        if (hasCrosshair) return;
+        const crosshairModule = axis.getModuleMap().getModule('crosshair') as { enabled: boolean };
+        if (crosshairModule?.enabled) return;
 
         const currentWidth = axisWidths.get(axis.id) ?? 0;
         const adjustedWidth = visible
@@ -469,13 +469,13 @@ export class CartesianChart extends Chart {
     }
 
     private async getSyncedDomain(axis: CartesianAxis) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+        const syncModule = this.modulesManager.getModule('sync') as SyncModule;
         if (!syncModule?.enabled) return;
         return await syncModule.getSyncedDomain(axis);
     }
 
     private syncAxisChanges(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+        const syncModule = this.modulesManager.getModule('sync') as SyncModule;
         if (!syncModule?.enabled) return;
 
         const removed = new Set(oldValue ?? []);

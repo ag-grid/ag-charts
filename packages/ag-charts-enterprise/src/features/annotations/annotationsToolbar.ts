@@ -125,10 +125,10 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.clearActiveButton();
     }
 
-    private onLayoutStart(event: _ModuleSupport.LayoutContext) {
+    private onLayoutStart(layoutBox: _ModuleSupport.BBox) {
         if (!this.enabled) return;
         this.toolbar.updateButtons(this.buttons);
-        this.toolbar.layout(event.layoutBox, this.padding);
+        this.toolbar.layout(layoutBox, this.padding);
     }
 
     public refreshButtonsEnabled(enabled: boolean) {

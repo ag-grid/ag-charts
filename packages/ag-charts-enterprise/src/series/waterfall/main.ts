@@ -1,1 +1,0 @@
-export { WaterfallModule } from './waterfallModule';

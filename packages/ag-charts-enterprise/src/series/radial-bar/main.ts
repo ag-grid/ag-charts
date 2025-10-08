@@ -1,1 +1,0 @@
-export { RadialBarModule } from './radialBarModule';

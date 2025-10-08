@@ -70,16 +70,6 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
     },
 };
 
-export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
-
-    identifier: 'sunburst',
-    themeTemplate,
-};
-
 export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOptions> = {
     type: 'series',
     name: 'sunburst',

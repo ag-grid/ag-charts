@@ -1,4 +1,4 @@
-import { ScaleAlignment } from '../scale/scale';
+import { ScaleAlignment } from 'ag-charts-core';
 
 export function rangeAlignment(start: unknown, end: unknown): [ScaleAlignment | undefined, ScaleAlignment | undefined] {
     const startValue = start?.valueOf();

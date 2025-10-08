@@ -3,6 +3,8 @@ import {
     Logger,
     type OptionsDefs,
     type RequireOptional,
+    type Scale,
+    ScaleAlignment,
     attachDescription,
     defined,
     isFiniteNumber,
@@ -14,7 +16,6 @@ import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag
 import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import { type Scale, ScaleAlignment } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import { deepClone } from '../../util/json';

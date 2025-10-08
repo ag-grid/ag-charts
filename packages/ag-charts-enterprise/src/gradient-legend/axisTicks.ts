@@ -1,5 +1,6 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import {
+    type ScaleTickParams,
     cachedTextMeasurer,
     countFractionDigits,
     createId,
@@ -215,7 +216,7 @@ export class AxisTicks {
         return tickData;
     }
 
-    private getTicksData(tickParams: _ModuleSupport.ScaleTickParams<any>) {
+    private getTicksData(tickParams: ScaleTickParams<any>) {
         const ticks: TickDatum[] = [];
         const domain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
         const rawTicks = this.scale.ticks(tickParams, domain)?.ticks ?? [];

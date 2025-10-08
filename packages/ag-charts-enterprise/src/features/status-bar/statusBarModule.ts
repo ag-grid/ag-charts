@@ -1,14 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { PluginModuleDefinition } from 'ag-charts-core';
 
 import { StatusBar } from './statusBar';
 
-export const StatusBarModule: _ModuleSupport.RootModule = {
-    type: 'root',
-    identifier: 'status-bar',
-    optionsKey: 'statusBar',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-    moduleFactory: (ctx) => new StatusBar(ctx),
+export const StatusBarModule: PluginModuleDefinition<never> = {
+    type: 'plugin',
+    name: 'statusBar',
+    chartType: 'cartesian',
+    enterprise: true,
+
     themeTemplate: {
         statusBar: {
             enabled: false,
@@ -49,4 +49,6 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             },
         },
     },
+
+    create: (ctx) => new StatusBar(ctx),
 };

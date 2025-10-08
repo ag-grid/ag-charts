@@ -1,7 +1,6 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
-import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import {
@@ -54,17 +53,7 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
     },
 };
 
-export const ScatterSeriesModule: SeriesModule<'scatter'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'community',
-    chartTypes: ['cartesian'],
-
-    identifier: 'scatter',
-    themeTemplate,
-};
-
-export const NewScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
+export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
     type: 'series',
     name: 'scatter',
     chartType: 'cartesian',

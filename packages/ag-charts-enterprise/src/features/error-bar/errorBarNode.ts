@@ -1,5 +1,6 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { PickNodeDatumResult } from 'ag-charts-core';
 import type { HighlightState } from 'ag-charts-types';
 
 const { nearestSquared, nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
@@ -235,7 +236,7 @@ export class ErrorBarNode extends _ModuleSupport.Group {
 }
 
 export class ErrorBarGroup extends _ModuleSupport.Group {
-    nearestSquared(x: number, y: number): _ModuleSupport.PickNodeDatumResult {
+    nearestSquared(x: number, y: number): PickNodeDatumResult {
         const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, {
             children: this.children() as Iterable<ErrorBarNode>,
         });

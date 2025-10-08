@@ -1,7 +1,5 @@
-import { createElement } from 'ag-charts-core';
+import { AbstractModuleInstance, createElement } from 'ag-charts-core';
 
-import type { ModuleInstance } from '../../module/baseModule';
-import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { getLastFocus } from '../../util/keynavUtil';
 import type { Vec2 } from '../../util/vector';
@@ -26,10 +24,7 @@ export interface PopoverOptions {
 /**
  * A non-modal element that overlays the chart.
  */
-export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
-    extends BaseModuleInstance
-    implements ModuleInstance
-{
+export abstract class Popover<Options extends PopoverOptions = PopoverOptions> extends AbstractModuleInstance {
     protected readonly hideFns: Array<() => void> = [];
 
     private readonly moduleId: string;

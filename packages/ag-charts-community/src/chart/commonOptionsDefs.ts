@@ -96,7 +96,7 @@ const legendPositionOptionsDef: OptionsDefs<AgChartLegendPositionOptions> = {
     yOffset: number,
 };
 
-const legendPositionValidator: Validator = attachDescription(
+export const legendPositionValidator: Validator = attachDescription(
     (value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
         let result: ValidatorResult | boolean;
         if (typeof value === 'string') {
@@ -122,7 +122,7 @@ const legendPositionValidator: Validator = attachDescription(
     },
     `a legend position object or placement string`
 );
-const shapeValidator = or(
+export const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
     callback
 );
@@ -222,7 +222,7 @@ const contextMenuItemValidator = attachDescription(
     `a context menu item object or string alias: [${contextMenuItemLiterals.join(', ')}]`
 );
 
-const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', false);
+export const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', false);
 
 export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     label: string,

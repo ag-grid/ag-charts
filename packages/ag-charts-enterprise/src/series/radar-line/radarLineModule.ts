@@ -7,16 +7,6 @@ import { radarLineSeriesOptionsDef } from './radarLineSeriesOptionsDef';
 
 const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
-export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-
-    identifier: 'radar-line',
-    themeTemplate: RADAR_LINE_SERIES_THEME,
-};
-
 export const RadarLineSeriesModule: SeriesModuleDefinition<AgRadarLineSeriesOptions> = {
     type: 'series',
     name: 'radar-line',
