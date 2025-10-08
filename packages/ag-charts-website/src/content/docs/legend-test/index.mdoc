@@ -10,4 +10,47 @@ Pagination customisation
 
 {% chartExampleRunner title="Legend Pagination" name="legend-pagination" type="generated" /%}
 
+## Legend Interactivity with Pagination
+
+Steps to test:
+
+1.  Hover a legend item.
+    Expected: Pointer cursor is shown.
+
+2.  Click on a legend item.
+    Expected: An alert should appear. No series are toggled.
+
+3.  Dismiss alert.
+
+4.  Go to page 2/2 on the legend paginator.
+
+5.  Hover a legend item.
+    Expected: Pointer cursor is shown.
+
+6.  Click on a legend item.
+    Expected: An alert appears.
+
+7.  Go back to page 1/2 on the legend paginator.
+
+8.  Hover a legend item.
+    Expected: Pointer cursor is shown.
+
+9.  Click on a legend item.
+    Expected: An alert appears.
+
 {% chartExampleRunner title="Legend Interactivity" name="legend-interactivity" type="generated" /%}
+
+## Legend Interactivity Pagination & Page Resize to Hide/Show Legend
+
+Steps to test:
+
+1. Shrink the window width until only one legend item is visible.
+
+2. Shrink the window width until no legend items are visible.
+
+3. Increase the window width until one legend item is visible.
+
+4. Click the pagination 'next' button.
+   Expected: Legend goes to page 2.
+
+{% chartExampleRunner title="Legend Interactivity" name="legend-pagination-resize" type="generated" /%}
