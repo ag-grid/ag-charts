@@ -759,8 +759,9 @@ export class DataModel<
             // Only support groupsUnique=true (each datum has unique keys)
             if (!processedData.groupsUnique) return false;
 
-            // Only support single scope (single data source)
-            if (processedData.scopes.size !== 1) return false;
+            // Only support single data source (but multiple scopes can share same DataSet)
+            const uniqueDataSets = new Set(processedData.dataSources.values());
+            if (uniqueDataSets.size !== 1) return false;
 
             // Require no existing invalid keys to maintain groups.length === columns.length
             const scope = first(processedData.scopes);
@@ -868,19 +869,9 @@ export class DataModel<
                     );
                 }
             }
-
-            if (isAppendOnly(indexMap)) {
-                this.applyOperationToBandedDomains(bandedDomains, (domain) => {
-                    const stats = domain.getStats();
-                    if (stats.bandCount > 0) {
-                        domain.markBandsDirty(indexMap.originalLength, indexMap.finalLength);
-                    }
-                });
-            } else if (isPrependOnly(indexMap)) {
-                this.applyOperationToBandedDomains(bandedDomains, (domain) =>
-                    domain.markBandsDirty(0, indexMap.totalPrependCount)
-                );
-            }
+            // Note: No need for special append-only or prepend-only handling here.
+            // handleInsertion() now properly marks the last band dirty when appending,
+            // and handleRemoval() marks the first band dirty when removing from start.
         }
     }
 
@@ -1173,10 +1164,12 @@ export class DataModel<
 
     /**
      * Extends a domain from data array, using banded optimization if available.
+     * Note: For BandedDomain, bands should already be initialized before calling this method.
      */
     private extendDomainFromData(domain: IDataDomain, data: any[], invalidData?: boolean[]): void {
         if (domain instanceof BandedDomain) {
-            domain.initializeBands(data.length);
+            // Bands should already be initialized by recomputeDomains()
+            // This preserves the selective dirty marking from updateBandsForChanges()
             domain.extendBandsFromData(data, invalidData);
         } else {
             for (let i = 0; i < data.length; i++) {
@@ -1207,16 +1200,60 @@ export class DataModel<
             valueDomains.set(valueDef, this.setupDomainForDefinition(valueDef, bandedDomains, bandingConfig));
         }
 
-        // Extend key domains from keys arrays
+        // Initialize bands for key domains first (this determines band structure)
+        // Only initialize if bands don't exist yet or if data size has changed significantly
+        // During reprocessing, bands are already adjusted by updateBandsForChanges()
         for (const [keyDefIndex, keyDef] of this.keys.entries()) {
             const keysMap = processedData.keys[keyDefIndex];
             const domain = keyDomains.get(keyDef)!;
 
-            // For banded domains, initialize once with max length across all scopes
             if (domain instanceof BandedDomain) {
                 const maxKeyLength = Math.max(...Array.from(keysMap.values()).map((keys) => keys.length));
-                domain.initializeBands(maxKeyLength);
+                const stats = domain.getStats();
+                // Initialize if no bands exist, data size changed, or bands were normalized/filtered
+                if (stats.bandCount === 0 || stats.dataSize !== maxKeyLength || stats.needsReinitialization) {
+                    domain.initializeBands(maxKeyLength);
+                }
             }
+        }
+
+        // Initialize bands for value domains
+        for (const [valueDefIndex, valueDef] of this.values.entries()) {
+            const column = processedData.columns[valueDefIndex];
+            const domain = valueDomains.get(valueDef)!;
+
+            if (domain instanceof BandedDomain) {
+                const stats = domain.getStats();
+                // Initialize if no bands exist, data size changed, or bands were normalized/filtered
+                if (stats.bandCount === 0 || stats.dataSize !== column.length || stats.needsReinitialization) {
+                    domain.initializeBands(column.length);
+                }
+            }
+        }
+
+        // Collect pre-scan band statistics for debugging (after initialization, before extending domains)
+        // This shows how many bands WILL BE scanned, not how many are currently dirty
+        if (this.debug.check() && bandedDomains.size > 0) {
+            bandStats = {
+                totalBands: 0,
+                dirtyBands: 0,
+                totalData: 0,
+            };
+
+            for (const domain of bandedDomains.values()) {
+                if (domain instanceof BandedDomain) {
+                    const stats = domain.getStats();
+                    bandStats.totalBands += stats.bandCount;
+                    bandStats.dirtyBands += stats.dirtyBandCount;
+                    bandStats.totalData = Math.max(bandStats.totalData, stats.dataSize);
+                }
+            }
+        }
+
+        // Extend key domains from keys arrays
+        for (const [keyDefIndex, keyDef] of this.keys.entries()) {
+            const keysMap = processedData.keys[keyDefIndex];
+            const domain = keyDomains.get(keyDef)!;
 
             // Extend domain from each scope
             for (const scope of keyDef.scopes ?? []) {
@@ -1236,23 +1273,6 @@ export class DataModel<
             const invalidData = processedData.invalidData?.get(columnScope);
 
             this.extendDomainFromData(domain, column, invalidData);
-        }
-
-        if (this.debug.check() && bandedDomains.size > 0) {
-            bandStats = {
-                totalBands: 0,
-                dirtyBands: 0,
-                totalData: 0,
-            };
-
-            for (const domain of bandedDomains.values()) {
-                if (domain instanceof BandedDomain) {
-                    const stats = domain.getStats();
-                    bandStats.totalBands += stats.bandCount;
-                    bandStats.dirtyBands += stats.dirtyBandCount;
-                    bandStats.totalData = Math.max(bandStats.totalData, stats.dataSize);
-                }
-            }
         }
 
         processedData.domain.keys = this.keys.map((keyDef) => {
@@ -2358,8 +2378,9 @@ export class DataModel<
                 if (!processedData.groupsUnique) {
                     reasons.push('groupsUnique=false');
                 }
-                if (processedData.scopes.size !== 1) {
-                    reasons.push('multiple scopes');
+                const uniqueDataSets = new Set(processedData.dataSources.values());
+                if (uniqueDataSets.size !== 1) {
+                    reasons.push('multiple data sources');
                 }
                 const scope = first(processedData.scopes);
                 const invalidKeys = processedData.invalidKeys?.get(scope);
