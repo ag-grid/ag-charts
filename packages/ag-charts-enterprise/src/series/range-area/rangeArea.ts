@@ -8,7 +8,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AreExact, DeepRequired, Point, RequireOptional } from 'ag-charts-core';
+import type { AreExact, DeepRequired, InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
@@ -585,14 +585,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 high.marker.shape = deprecatedShape;
             }
             if (deprecatedFill != null) {
-                if (typeof deprecatedFill === 'string') {
-                    low.marker.fill = deprecatedFill;
-                    high.marker.fill = deprecatedFill;
-                } else {
-                    // TODO: gradient/pattern/image
+                let resolvedFill: InternalAgColorType | undefined = deprecatedFill;
+                if (typeof deprecatedFill === 'object') {
+                    resolvedFill = this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`, 'item', 'low', 'marker'],
+                        { fill: deprecatedFill },
+                    )?.fill as typeof resolvedFill;
                 }
-                low.marker.fill = deprecatedFill;
-                high.marker.fill = deprecatedFill;
+                if (resolvedFill != null) {
+                    low.marker.fill = resolvedFill;
+                    high.marker.fill = resolvedFill;
+                }
             }
             if (deprecatedFillOpacity != null) {
                 low.marker.fillOpacity = deprecatedFillOpacity;
