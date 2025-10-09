@@ -20,7 +20,7 @@ export interface ScopeProvider {
 
 export interface DataGroup {
     keys: any[];
-    datumIndices: number[][];
+    datumIndices: readonly (readonly number[])[];
     aggregation: any[][];
     validScopes: Set<ScopeId>;
 }
@@ -38,6 +38,10 @@ const KEY_SORT_ORDERS = Symbol('key-sort-orders');
 const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
 const DOMAIN_RANGES = Symbol('domain-ranges');
 const DOMAIN_BANDS = Symbol('domain-bands');
+
+// Shared frozen array for datumIndices optimization
+// This is reused across DataGroups to reduce memory allocations
+const ZERO_DATUM_INDICES: readonly number[] = Object.freeze([0]);
 
 type ScopeId = string;
 
@@ -60,6 +64,9 @@ type InsertionCacheValue = {
 };
 
 type InsertionCache = Map<number, InsertionCacheValue>;
+
+type ColumnBatch = [ScopeId, number[], unknown[][], Set<ScopeId>, boolean[] | undefined, boolean[] | undefined];
+type MergedColumnBatch = [ScopeId[], number[], unknown[][], Set<ScopeId>, boolean[] | undefined, boolean[] | undefined];
 
 interface CommonMetadata<D> {
     input: { count: number };
@@ -689,7 +696,21 @@ export class DataModel<
     }
 
     public isReprocessingSupported(processedData: ProcessedData<D>): boolean {
-        if (processedData.type !== 'ungrouped') return false;
+        // Support ungrouped data, or grouped data with strict constraints
+        if (processedData.type === 'grouped') {
+            // Only support groupsUnique=true (each datum has unique keys)
+            if (!processedData.groupsUnique) return false;
+
+            // Only support single scope (single data source)
+            if (processedData.scopes.size !== 1) return false;
+
+            // Require no existing invalid keys to maintain groups.length === columns.length
+            const scope = first(processedData.scopes);
+            const invalidKeys = processedData.invalidKeys?.get(scope);
+            if (invalidKeys?.some((invalid) => invalid)) return false;
+        }
+
+        // Don't support these features yet (existing constraints)
         if (this.aggregates.length > 0) return false;
         if (this.reducers.length > 0) return false;
         if (this.processors.length > 0) return false;
@@ -711,6 +732,9 @@ export class DataModel<
             return processedData;
         }
 
+        // Cache removed keys BEFORE committing transactions (while data is still accessible)
+        const removedKeys = this.cacheRemovedKeys(processedData, scopeChanges);
+
         this.commitPendingTransactions(processedData);
         const { processValue } = this.initDataDomainProcessor();
         const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
@@ -719,10 +743,16 @@ export class DataModel<
         this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
         this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
         this.transformInvalidityArrays(processedData, scopeChanges, insertionCaches);
+
+        // Transform groups array for grouped data (when groupsUnique=true)
+        if (processedData.type === 'grouped') {
+            this.transformGroupsArray(processedData, scopeChanges, insertionCaches);
+        }
+
         this.recomputeDomains(processedData);
 
         if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
-            this.generateDiffMetadata(processedData, scopeChanges);
+            this.generateDiffMetadata(processedData, scopeChanges, removedKeys);
         }
 
         this.updateProcessedDataMetadata(processedData);
@@ -970,6 +1000,93 @@ export class DataModel<
     }
 
     /**
+     * Transforms the groups array for grouped data during reprocessing.
+     * Only called when groupsUnique=true and no invalid keys exist.
+     *
+     * This maintains the invariant: groups[i] corresponds to datum at columns[i].
+     */
+    private transformGroupsArray(
+        processedData: GroupedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        // With our constraints, there should be exactly one data-set
+        const scope = first(processedData.scopes);
+        const changeDesc = scopeChanges.get(scope);
+        if (!changeDesc) return;
+
+        const insertionCache = insertionCaches.get(scope);
+
+        // Validate: no new invalid keys in insertions (maintains our invariant)
+        for (const [, cached] of insertionCache ?? []) {
+            if (cached.hasInvalidKey) {
+                throw new Error(
+                    'AG Charts - reprocessing grouped data with invalid keys not supported. ' +
+                        'This typically indicates a data quality issue that requires full reprocessing.'
+                );
+            }
+        }
+
+        // Apply the same transformation to groups array as we did to columns/keys
+        // For each insertion, create a new DataGroup; for deletions, groups are removed
+        changeDesc.applyToArray(processedData.groups, (destIndex) => {
+            return this.createDataGroupForInsertion(destIndex, processedData, scope, insertionCache);
+        });
+    }
+
+    /**
+     * Creates a new DataGroup for an inserted datum during reprocessing.
+     *
+     * When groupsUnique=true and no invalid keys exist, each datum has:
+     * - A unique set of keys
+     * - datumIndices[columnIdx] = [0] (relative offset is always 0)
+     * - All scopes are valid initially (unless invalid value detected)
+     */
+    private createDataGroupForInsertion(
+        datumIndex: number,
+        processedData: GroupedData<D>,
+        scope: ScopeId,
+        insertionCache: InsertionCache | undefined
+    ): DataGroup {
+        // 1. Extract keys from the keys arrays at datumIndex
+        const keys: any[] = [];
+        for (const keysMap of processedData.keys) {
+            const scopeKeys = keysMap.get(scope);
+            if (scopeKeys) {
+                keys.push(scopeKeys[datumIndex]);
+            }
+        }
+
+        // 2. Re-use shared datumIndices array when groupsUnique=true with no invalid keys
+        const firstGroup = processedData.groups[0];
+        const allZeroDatumIndices = () =>
+            Object.freeze(createArray(processedData.columnScopes.length, ZERO_DATUM_INDICES));
+        const datumIndices = firstGroup?.datumIndices ?? allZeroDatumIndices();
+
+        // 3. Determine validScopes
+        // With our constraints (no invalid keys), check only for invalid values
+        const cached = insertionCache?.get(datumIndex);
+        const hasInvalidValue = cached?.hasInvalidValue ?? false;
+
+        let validScopes: Set<ScopeId>;
+        if (hasInvalidValue) {
+            // Create new Set excluding the invalid scope
+            validScopes = new Set(processedData.scopes);
+            validScopes.delete(scope);
+        } else {
+            // Reuse existing Set (all scopes valid)
+            validScopes = processedData.scopes;
+        }
+
+        return {
+            keys,
+            datumIndices,
+            aggregation: [], // Empty - we don't support aggregates in reprocessing yet
+            validScopes,
+        };
+    }
+
+    /**
      * Creates or retrieves the appropriate domain for a definition.
      * Handles both discrete and continuous domains, with optional banding optimization.
      */
@@ -1095,6 +1212,11 @@ export class DataModel<
             return result;
         });
 
+        // Rebuild domain.groups for grouped data
+        if (processedData.type === 'grouped') {
+            processedData.domain.groups = processedData.groups.map((group) => group.keys);
+        }
+
         if (this.debug.check() && startTime > 0) {
             const endTime = performance.now();
             const duration = endTime - startTime;
@@ -1114,14 +1236,55 @@ export class DataModel<
     }
 
     /**
+     * Cache the keys of removed items before committing transactions.
+     * This must be called BEFORE commitPendingTransactions() because we need access to the original data.
+     */
+    private cacheRemovedKeys(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): Map<ScopeId, Set<string>> {
+        const removedKeysByScope = new Map<ScopeId, Set<string>>();
+
+        for (const [scope, changeDesc] of scopeChanges) {
+            const removedIndices = changeDesc.getRemovedIndices();
+            if (removedIndices.length === 0) continue;
+
+            const removedKeysSet = new Set<string>();
+            const dataSet = processedData.dataSources.get(scope);
+            if (dataSet) {
+                // Access the ORIGINAL data (before commit)
+                const originalData = dataSet.data;
+                for (const originalIndex of removedIndices) {
+                    const datum = originalData[originalIndex];
+                    if (datum != null && typeof datum === 'object') {
+                        const keys: any[] = [];
+                        for (const keyDef of this.keys) {
+                            if (!keyDef.scopes?.includes(scope)) continue;
+                            const key = (datum as any)[keyDef.property];
+                            keys.push(key);
+                        }
+                        if (keys.length > 0) {
+                            removedKeysSet.add(toKeyString(keys));
+                        }
+                    }
+                }
+            }
+            removedKeysByScope.set(scope, removedKeysSet);
+        }
+
+        return removedKeysByScope;
+    }
+
+    /**
      * Generates diff metadata for animations and incremental rendering.
      * This is an opt-in feature - only runs if diff tracking is already initialized.
      */
     private generateDiffMetadata(
         processedData: ProcessedData<D>,
-        scopeChanges: Map<ScopeId, DataChangeDescription>
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        removedKeys: Map<ScopeId, Set<string>>
     ): void {
-        // Helper to get key string for a datum at a given index
+        // Helper to get key string for a datum at a given index (in post-transformed arrays)
         const getKeyString = (scope: ScopeId, datumIndex: number): string | undefined => {
             const keys: any[] = [];
             for (const keysMap of processedData.keys) {
@@ -1137,7 +1300,7 @@ export class DataModel<
             const diff: ProcessedOutputDiff = {
                 changed: true,
                 added: new Set<string>(),
-                removed: new Set<string>(),
+                removed: removedKeys.get(scope) ?? new Set<string>(),
                 updated: new Set<string>(),
                 moved: new Set<string>(),
             };
@@ -1607,45 +1770,47 @@ export class DataModel<
         const resultGroups = [];
         const resultData = [];
 
-        const processedColumnIndexes = new Set<number>();
         const groups = allScopes.size !== 1 || groupingFn != null ? new Map<string, [number, Group]>() : undefined;
         let groupsUnique = true;
         let groupIndex = 0;
 
-        for (const scope of allScopes) {
-            // Determine columns we can process in batch.
-            const scopeColumnIndexes = allColumns
-                .map((_, idx) => idx)
-                .filter((idx) => !processedColumnIndexes.has(idx) && columnScopes[idx].has(scope));
-            if (scopeColumnIndexes.length === 0) continue;
-            for (const idx of scopeColumnIndexes) {
-                processedColumnIndexes.add(idx);
-            }
-            const siblingScopes = new Set<ScopeId>();
-            for (const columnIdx of scopeColumnIndexes) {
-                for (const columnScope of columnScopes[columnIdx]) {
-                    siblingScopes.add(columnScope);
-                }
-            }
+        // Determine columns we can process in batch.
+        const columnBatches = this.groupBatches(
+            allScopes,
+            allColumns,
+            columnScopes,
+            dataKeys,
+            invalidData,
+            invalidKeys
+        );
 
-            const scopeKeys = dataKeys.map((k) => k.get(scope)).filter((k): k is unknown[] => k != null);
+        const singleBatch = columnBatches.length === 1;
+        const allZeroDatumIndices = Object.freeze(createArray(columnBatches[0][1].length, ZERO_DATUM_INDICES));
+
+        for (const [
+            scopes,
+            scopeColumnIndexes,
+            scopeKeys,
+            siblingScopes,
+            scopeInvalidData,
+            scopeInvalidKeys,
+        ] of columnBatches) {
             const firstColumn = allColumns[first(scopeColumnIndexes)];
-            const scopeInvalidData = invalidData?.get(scope);
-            const scopeInvalidKeys = invalidKeys?.get(scope);
             for (let datumIndex = 0; datumIndex < firstColumn.length; datumIndex++) {
                 if (scopeInvalidKeys?.[datumIndex] === true) continue;
 
                 const keys = scopeKeys.map((k) => k[datumIndex]);
                 if (keys == null || keys.length === 0) {
-                    throw new Error('AG Charts - no keys found for scope: ' + scope);
+                    throw new Error('AG Charts - no keys found for scope(s): ' + scopes.join(', '));
                 }
 
                 const group = groupingFn?.(keys) ?? keys;
                 const groupStr = groups == null ? undefined : toKeyString(group);
 
                 let outputGroup: [number, Group] | undefined = groups?.get(groupStr!);
-                let currentGroup: Group;
+                let currentGroup: Group | undefined;
                 let currentGroupIndex: number;
+                let isNewGroup = false;
                 if (outputGroup == null) {
                     currentGroup = {
                         keys: group,
@@ -1655,6 +1820,7 @@ export class DataModel<
                     };
                     currentGroupIndex = groupIndex++;
                     outputGroup = [currentGroupIndex, currentGroup];
+                    isNewGroup = true;
 
                     groups?.set(groupStr!, outputGroup);
 
@@ -1675,9 +1841,20 @@ export class DataModel<
                     }
                 }
 
-                for (const columnIdx of scopeColumnIndexes) {
-                    currentGroup.datumIndices[columnIdx] ??= [];
-                    currentGroup.datumIndices[columnIdx].push(datumIndex - currentGroupIndex);
+                if (isNewGroup && datumIndex === currentGroupIndex && singleBatch) {
+                    // Optimised case when all datumIndices are [0] for all groups.
+                    currentGroup.datumIndices = allZeroDatumIndices as number[][];
+                } else {
+                    // If reusing a group that has the frozen optimization array, we need mutable arrays
+                    if (!isNewGroup && currentGroup.datumIndices === allZeroDatumIndices) {
+                        // Convert frozen shared array to mutable copy
+                        currentGroup.datumIndices = allZeroDatumIndices.map((arr) => [...arr]);
+                    }
+
+                    for (const columnIdx of scopeColumnIndexes) {
+                        currentGroup.datumIndices[columnIdx] ??= [];
+                        currentGroup.datumIndices[columnIdx].push(datumIndex - currentGroupIndex);
+                    }
                 }
             }
         }
@@ -1693,6 +1870,117 @@ export class DataModel<
             groupsUnique,
             [DOMAIN_BANDS]: data[DOMAIN_BANDS],
         };
+    }
+
+    private groupBatches(
+        allScopes: Set<string>,
+        allColumns: any[][],
+        columnScopes: Set<string>[],
+        dataKeys: Map<string, unknown[]>[],
+        invalidData: Map<string, boolean[]> | undefined,
+        invalidKeys: Map<string, boolean[]> | undefined
+    ) {
+        const columnBatches: ColumnBatch[] = [];
+        const processedColumnIndexes = new Set<number>();
+        for (const scope of allScopes) {
+            const scopeColumnIndexes = allColumns
+                .map((_, idx) => idx)
+                .filter((idx) => !processedColumnIndexes.has(idx) && columnScopes[idx].has(scope));
+            if (scopeColumnIndexes.length === 0) continue;
+            for (const idx of scopeColumnIndexes) {
+                processedColumnIndexes.add(idx);
+            }
+
+            const siblingScopes = new Set<ScopeId>();
+            for (const columnIdx of scopeColumnIndexes) {
+                for (const columnScope of columnScopes[columnIdx]) {
+                    siblingScopes.add(columnScope);
+                }
+            }
+
+            const scopeKeys = dataKeys.map((k) => k.get(scope)).filter((k): k is unknown[] => k != null);
+
+            const scopeInvalidData = invalidData?.get(scope);
+            const scopeInvalidKeys = invalidKeys?.get(scope);
+
+            columnBatches.push([
+                scope,
+                scopeColumnIndexes,
+                scopeKeys,
+                siblingScopes,
+                scopeInvalidData,
+                scopeInvalidKeys,
+            ]);
+        }
+
+        // Merge compatible column batches to reduce iteration overhead.
+        return this.mergeCompatibleBatches(columnBatches);
+    }
+
+    private mergeCompatibleBatches(columnBatches: ColumnBatch[]): MergedColumnBatch[] {
+        const merged: MergedColumnBatch[] = [];
+        const processed = new Set<number>();
+
+        for (let i = 0; i < columnBatches.length; i++) {
+            if (processed.has(i)) continue;
+
+            const [scope, columnIndexes, keys, siblingScopes, invalidData, invalidKeys] = columnBatches[i];
+            const mergedBatch: MergedColumnBatch = [
+                [scope],
+                [...columnIndexes],
+                keys,
+                new Set(siblingScopes),
+                invalidData,
+                invalidKeys,
+            ];
+
+            // Try to merge with subsequent batches
+            this.findAndMergeCompatibleBatches(
+                columnBatches,
+                i,
+                mergedBatch,
+                keys,
+                invalidData,
+                invalidKeys,
+                processed
+            );
+
+            merged.push(mergedBatch);
+            processed.add(i);
+        }
+
+        return merged;
+    }
+
+    private findAndMergeCompatibleBatches(
+        columnBatches: ColumnBatch[],
+        startIndex: number,
+        mergedBatch: MergedColumnBatch,
+        keys: unknown[][],
+        invalidData: boolean[] | undefined,
+        invalidKeys: boolean[] | undefined,
+        processed: Set<number>
+    ) {
+        for (let j = startIndex + 1; j < columnBatches.length; j++) {
+            if (processed.has(j)) continue;
+
+            const [scope, otherColumnIndexes, otherKeys, otherSiblingScopes, otherInvalidData, otherInvalidKeys] =
+                columnBatches[j];
+
+            const isCompatible =
+                keys.every((k, i) => k === otherKeys[i]) &&
+                invalidKeys === otherInvalidKeys &&
+                invalidData === otherInvalidData;
+            if (!isCompatible) continue;
+
+            // Merge the batches
+            mergedBatch[0].push(scope);
+            mergedBatch[1].push(...otherColumnIndexes);
+            for (const siblingScope of otherSiblingScopes) {
+                mergedBatch[3].add(siblingScope);
+            }
+            processed.add(j);
+        }
     }
 
     private aggregateUngroupedData(processedData: UngroupedData<any>) {
@@ -1926,7 +2214,10 @@ export class DataModel<
                 initDataDomain();
             }
 
-            if (valueInDatum && def.validation?.(value, datum, idx) === false) {
+            // Keys cannot be null/undefined - mark as invalid
+            const isKeyWithNullValue = def.type === 'key' && value == null;
+
+            if ((valueInDatum && def.validation?.(value, datum, idx) === false) || isKeyWithNullValue) {
                 reusableResult.valid = false;
 
                 if ('invalidValue' in def) {

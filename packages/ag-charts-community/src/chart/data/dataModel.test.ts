@@ -1858,6 +1858,161 @@ describe('DataModel', () => {
             });
         });
 
+        describe('grouped data reprocessing', () => {
+            it('should handle append to grouped data', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                // Initial grouped data
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+                expect(processedData!.type).toBe('grouped');
+                expect(processedData!.groupsUnique).toBe(true);
+
+                // Initialize diff tracking
+                processedData!.reduced = { diff: {} };
+
+                // Append transaction
+                dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
+
+                // Reprocess
+                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+
+                // Verify groups were updated
+                expect(reprocessed.groups.length).toBe(3);
+                expect(reprocessed.groups[2].keys).toEqual([3]);
+                expect(reprocessed.groups[2].datumIndices).toEqual([[0]]);
+
+                // Verify domain.groups was rebuilt
+                expect(reprocessed.domain.groups).toEqual([[1], [2], [3]]);
+
+                // Verify columns
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify diff metadata
+                expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.added.has('3')).toBe(true);
+            });
+
+            it('should handle prepend to grouped data', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                const initialData = [
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+                processedData!.reduced = { diff: {} };
+
+                // Prepend transaction
+                dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+
+                // Verify groups were updated and shifted
+                expect(reprocessed.groups.length).toBe(3);
+                expect(reprocessed.groups[0].keys).toEqual([1]);
+                expect(reprocessed.groups[1].keys).toEqual([2]);
+                expect(reprocessed.groups[2].keys).toEqual([3]);
+
+                // All relative datumIndices should still be [0]
+                expect(reprocessed.groups[0].datumIndices).toEqual([[0]]);
+                expect(reprocessed.groups[1].datumIndices).toEqual([[0]]);
+                expect(reprocessed.groups[2].datumIndices).toEqual([[0]]);
+
+                // Verify domain.groups
+                expect(reprocessed.domain.groups).toEqual([[1], [2], [3]]);
+
+                // Verify columns
+                expect(reprocessed.columns).toEqual([[10, 20, 30]]);
+
+                // Verify diff metadata
+                expect(reprocessed.reduced?.diff?.test.added.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.moved.size).toBe(2);
+            });
+
+            it('should handle remove from grouped data', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+                processedData!.reduced = { diff: {} };
+
+                // Remove middle item
+                dataSet.addTransaction({ remove: [initialData[1]] });
+
+                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+
+                // Verify group was removed
+                expect(reprocessed.groups.length).toBe(2);
+                expect(reprocessed.groups[0].keys).toEqual([1]);
+                expect(reprocessed.groups[1].keys).toEqual([3]);
+
+                // Verify domain.groups
+                expect(reprocessed.domain.groups).toEqual([[1], [3]]);
+
+                // Verify columns
+                expect(reprocessed.columns).toEqual([[10, 30]]);
+
+                // Verify diff metadata
+                expect(reprocessed.reduced?.diff?.test.removed.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.removed.has('2')).toBe(true);
+            });
+
+            it('should throw error when appending data with invalid keys', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append data with invalid key (null)
+                dataSet.addTransaction({ append: [{ x: null as any, y: 20 }] });
+
+                // Should throw error about invalid keys
+                expect(() => dataModel.reprocessData(processedData!)).toThrow(/invalid keys not supported/i);
+
+                // Verify warning was logged for the invalid key during processing
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [test / undefined] ignored:",
+    "[null]",
+  ],
+]
+`);
+            });
+        });
+
         describe('isReprocessingSupported', () => {
             it('should support ungrouped data without aggregates', () => {
                 const dataModel = new DataModel<any, any>({
@@ -1870,16 +2025,42 @@ describe('DataModel', () => {
                 expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
             });
 
-            it('should not support grouped data', () => {
+            it('should support grouped data with groupsUnique=true and single scope', () => {
                 const dataModel = new DataModel<any, any, true>({
                     props: [rangeKey('x'), value('y')],
                     groupByKeys: true,
                 });
 
-                const sources = basicDataSet([{ x: 1, y: 10 }]);
+                const sources = basicDataSet([
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ]);
                 const processedData = dataModel.processData(sources);
 
-                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+                // Should be supported: single scope, groupsUnique=true, no invalid keys
+                expect(processedData!.type).toBe('grouped');
+                expect(processedData!.groupsUnique).toBe(true);
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+            });
+
+            it('should not support grouped data with groupsUnique=false', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                    groupByFn: () => () => ['shared-group'], // Force all data into one group
+                });
+
+                const sources = basicDataSet([
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ]);
+                const processedData = dataModel.processData(sources);
+
+                // With batch merging optimization, this now has groupsUnique=true
+                // which enables reprocessing support
+                expect(processedData!.type).toBe('grouped');
+                expect(processedData!.groupsUnique).toBe(true);
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
             });
 
             it('should not support data with aggregates', () => {
@@ -2390,6 +2571,166 @@ describe('DataModel', () => {
 
             // Should maintain columnNeedValueOf metadata
             expect(reprocessed.columnNeedValueOf).toEqual([true, false]);
+        });
+    });
+
+    describe('Column Batch Merging', () => {
+        it('should merge batches with identical keys and invalidKeys', () => {
+            const dataSet1 = new DataSet([
+                { key: 1, valueA: 10 },
+                { key: 2, valueA: 20 },
+            ]);
+
+            const dataSet2 = new DataSet([
+                { key: 1, valueB: 100 },
+                { key: 2, valueB: 200 },
+            ]);
+
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('key', ['scope1']),
+                    categoryKey('key', ['scope2']),
+                    scopedValue('scope1', 'valueA'),
+                    scopedValue('scope2', 'valueB'),
+                ],
+                groupByKeys: true,
+            });
+
+            const data = new Map<string, DataSet<any>>([
+                ['scope1', dataSet1],
+                ['scope2', dataSet2],
+            ]);
+
+            const result = dataModel.processData(data);
+
+            // Both scopes have the same keys [1, 2], so batches should be merged
+            expect(result).toBeDefined();
+            expect(result?.type).toBe('grouped');
+            if (result?.type === 'grouped') {
+                expect(result.groups).toHaveLength(2);
+                // Verify that data from both scopes is present
+                expect(result.groups[0].keys).toEqual([1]);
+                expect(result.groups[1].keys).toEqual([2]);
+            }
+        });
+
+        it('should not merge batches with different keys', () => {
+            const dataSet1 = new DataSet([
+                { key: 1, value: 10 },
+                { key: 2, value: 20 },
+            ]);
+
+            const dataSet2 = new DataSet([
+                { key: 3, value: 30 },
+                { key: 4, value: 40 },
+            ]);
+
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('key', ['scope1']),
+                    categoryKey('key', ['scope2']),
+                    scopedValue('scope1', 'value'),
+                    scopedValue('scope2', 'value'),
+                ],
+                groupByKeys: true,
+            });
+
+            const data = new Map<string, DataSet<any>>([
+                ['scope1', dataSet1],
+                ['scope2', dataSet2],
+            ]);
+
+            const result = dataModel.processData(data);
+
+            // Different keys mean batches should NOT be merged
+            expect(result).toBeDefined();
+            expect(result?.type).toBe('grouped');
+            if (result?.type === 'grouped') {
+                // All 4 groups should be present
+                expect(result.groups).toHaveLength(4);
+            }
+        });
+
+        it('should handle edge case with undefined invalidData and invalidKeys', () => {
+            const dataSet1 = new DataSet([
+                { key: 1, value: 10 },
+                { key: 2, value: 20 },
+            ]);
+
+            const dataSet2 = new DataSet([
+                { key: 1, value: 100 },
+                { key: 2, value: 200 },
+            ]);
+
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('key', ['scope1']),
+                    categoryKey('key', ['scope2']),
+                    scopedValue('scope1', 'value'),
+                    scopedValue('scope2', 'value'),
+                ],
+                groupByKeys: true,
+            });
+
+            const data = new Map<string, DataSet<any>>([
+                ['scope1', dataSet1],
+                ['scope2', dataSet2],
+            ]);
+
+            const result = dataModel.processData(data);
+
+            // All data is valid, so batches with same keys should merge cleanly
+            expect(result).toBeDefined();
+            expect(result?.type).toBe('grouped');
+            if (result?.type === 'grouped') {
+                expect(result.groups).toHaveLength(2);
+                expect(result.groups[0].validScopes.size).toBeGreaterThan(0);
+                expect(result.groups[1].validScopes.size).toBeGreaterThan(0);
+            }
+        });
+
+        it('should merge batches with multiple columns per scope', () => {
+            const dataSet1 = new DataSet([
+                { key: 1, valueA1: 10, valueA2: 15 },
+                { key: 2, valueA1: 20, valueA2: 25 },
+            ]);
+
+            const dataSet2 = new DataSet([
+                { key: 1, valueB1: 100, valueB2: 150 },
+                { key: 2, valueB1: 200, valueB2: 250 },
+            ]);
+
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('key', ['scope1']),
+                    categoryKey('key', ['scope2']),
+                    scopedValue('scope1', 'valueA1'),
+                    scopedValue('scope1', 'valueA2'),
+                    scopedValue('scope2', 'valueB1'),
+                    scopedValue('scope2', 'valueB2'),
+                ],
+                groupByKeys: true,
+            });
+
+            const data = new Map<string, DataSet<any>>([
+                ['scope1', dataSet1],
+                ['scope2', dataSet2],
+            ]);
+
+            const result = dataModel.processData(data);
+
+            expect(result).toBeDefined();
+            expect(result?.type).toBe('grouped');
+            if (result?.type === 'grouped') {
+                expect(result.groups).toHaveLength(2);
+                // All groups should have both scopes as valid
+                for (const group of result.groups) {
+                    expect(group.validScopes.has('scope1')).toBe(true);
+                    expect(group.validScopes.has('scope2')).toBe(true);
+                }
+                // Verify column count (2 value columns per scope = 4 total)
+                expect(result.columns).toHaveLength(4);
+            }
         });
     });
 });
