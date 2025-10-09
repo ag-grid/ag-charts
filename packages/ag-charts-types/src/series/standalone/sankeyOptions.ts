@@ -43,6 +43,8 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
+    /** Set to `true` to expand the sankey to the full width and place the first and last column of labels inside. */
+    fillWidth?: boolean;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
