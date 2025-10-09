@@ -1008,6 +1008,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        this.applyDeprecations();
         const { fill, item } = this.getStyle(false);
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item[DEFAULT_ITEM];
 
