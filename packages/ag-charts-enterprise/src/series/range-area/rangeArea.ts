@@ -95,6 +95,15 @@ interface RangeAreaSpanPointDatum {
     low: _ModuleSupport.LineSpanPointDatum;
 }
 
+type BaseUpdate = _ModuleSupport.CartesianSeries<
+    _ModuleSupport.Marker,
+    AgRangeAreaSeriesOptions,
+    RangeAreaProperties,
+    RangeAreaMarkerDatum,
+    RangeAreaLabelDatum,
+    RangeAreaContext
+>['update'];
+
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Marker,
     AgRangeAreaSeriesOptions,
@@ -490,6 +499,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override isPathOrSelectionDirty(): boolean {
         const { low, high } = this.properties.item;
         return low.marker.isDirty() || high.marker.isDirty();
+    }
+
+    override update(a: Parameters<BaseUpdate>[0]): ReturnType<BaseUpdate> {
+        this.properties.applyDeprecations();
+        return super.update(a);
     }
 
     protected override updatePathNodes(opts: {
