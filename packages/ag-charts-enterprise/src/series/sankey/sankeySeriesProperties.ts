@@ -184,6 +184,9 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     readonly node = new SankeySeriesNodeProperties();
 
     @Property
+    fillWidth: boolean = false;
+
+    @Property
     readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<DatumDefault>>();
 
     constructor() {
