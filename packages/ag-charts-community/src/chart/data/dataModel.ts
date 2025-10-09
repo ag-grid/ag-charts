@@ -1225,15 +1225,24 @@ export class DataModel<
             if (domain instanceof BandedDomain) {
                 const stats = domain.getStats();
                 // Initialize if no bands exist, data size changed, or bands were normalized/filtered
-                if (stats.bandCount === 0 || stats.dataSize !== column.length || stats.needsReinitialization) {
+                const shouldReinit =
+                    stats.bandCount === 0 || stats.dataSize !== column.length || stats.needsReinitialization;
+                if (this.debug.check() && shouldReinit) {
+                    this.debug(
+                        `Reinitializing bands for ${String(valueDef.property)}: bandCount=${stats.bandCount}, dataSize=${stats.dataSize}, columnLength=${column.length}, needsReinitialization=${stats.needsReinitialization}`
+                    );
+                }
+                if (shouldReinit) {
                     domain.initializeBands(column.length);
                 }
             }
         }
 
-        // Collect pre-scan band statistics for debugging (after initialization, before extending domains)
+        // Collect pre-scan band statistics (after initialization, before extending domains)
         // This shows how many bands WILL BE scanned, not how many are currently dirty
-        if (this.debug.check() && bandedDomains.size > 0) {
+        // Always collect these stats so they're available for testing
+        const preScanDomainStats = new Map<IDataDomain, ReturnType<BandedDomain['getStats']>>();
+        if (bandedDomains.size > 0) {
             bandStats = {
                 totalBands: 0,
                 dirtyBands: 0,
@@ -1243,6 +1252,9 @@ export class DataModel<
             for (const domain of bandedDomains.values()) {
                 if (domain instanceof BandedDomain) {
                     const stats = domain.getStats();
+                    // Store per-domain stats for metadata collection
+                    preScanDomainStats.set(domain, stats);
+                    // Aggregate for logging
                     bandStats.totalBands += stats.bandCount;
                     bandStats.dirtyBands += stats.dirtyBandCount;
                     bandStats.totalData = Math.max(bandStats.totalData, stats.dataSize);
@@ -1300,6 +1312,10 @@ export class DataModel<
             processedData.domain.groups = processedData.groups.map((group) => group.keys);
         }
 
+        // Always collect banding metadata for testing (pass per-domain pre-scan stats)
+        this.collectDomainBandingMetadata(processedData, keyDomains, valueDomains, bandedDomains, preScanDomainStats);
+
+        // Log performance metrics when debug is enabled
         if (this.debug.check() && startTime > 0) {
             const endTime = performance.now();
             const duration = endTime - startTime;
@@ -1315,9 +1331,6 @@ export class DataModel<
             } else {
                 this.debug(`recomputeDomains: ${duration.toFixed(2)}ms (no banding)`);
             }
-
-            // Store banding statistics in optimization metadata
-            this.collectDomainBandingMetadata(processedData, keyDomains, valueDomains, bandedDomains);
         }
     }
 
@@ -2430,13 +2443,15 @@ export class DataModel<
 
     /**
      * Collects domain banding optimization metadata.
-     * Only called when debug mode is enabled.
+     * Always called to make metadata available for testing and debugging.
+     * @param preScanDomainStats Per-domain pre-scan band statistics collected before extending domains
      */
     private collectDomainBandingMetadata(
         processedData: ProcessedData<D>,
         keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>,
         valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>,
-        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        preScanDomainStats: Map<IDataDomain, ReturnType<BandedDomain['getStats']>>
     ) {
         if (!processedData.optimizations) {
             processedData.optimizations = {};
@@ -2475,7 +2490,8 @@ export class DataModel<
 
             let stats: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number } | undefined;
             if (isBanded && bandedDomain) {
-                const domainStats = bandedDomain.getStats();
+                // Use pre-scan stats if available (collected before extending domains)
+                const domainStats = preScanDomainStats.get(bandedDomain) ?? bandedDomain.getStats();
                 const scanRatio = domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
                 stats = {
                     totalBands: domainStats.bandCount,
@@ -2512,7 +2528,8 @@ export class DataModel<
 
             let stats: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number } | undefined;
             if (isBanded && bandedDomain) {
-                const domainStats = bandedDomain.getStats();
+                // Use pre-scan stats if available (collected before extending domains)
+                const domainStats = preScanDomainStats.get(bandedDomain) ?? bandedDomain.getStats();
                 const scanRatio = domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
                 stats = {
                     totalBands: domainStats.bandCount,

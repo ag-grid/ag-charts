@@ -274,13 +274,14 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         }
 
         // Normalize bands if needed (shift to start at 0)
+        // Note: Normalization just adjusts indices - band domains remain valid
         if (needsNormalization && !this.needsReinitialization) {
             const offset = this.bands[0].startIndex;
             for (const band of this.bands) {
                 band.startIndex -= offset;
                 band.endIndex -= offset;
             }
-            this.needsReinitialization = true;
+            // Don't set needsReinitialization - normalization preserves band domains
         }
 
         this.considerRebalancing();
@@ -300,6 +301,12 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
      * Considers whether bands should be rebalanced based on current distribution.
      */
     private considerRebalancing(): void {
+        // Only rebalance if needsReinitialization flag is set (bands are broken/have gaps)
+        // Don't automatically rebalance just because data size changed
+        if (!this.needsReinitialization) {
+            return;
+        }
+
         // Skip rebalancing for small datasets
         if (this.dataSize < this.config.minDataSizeForBanding) {
             if (this.bands.length > 1) {
