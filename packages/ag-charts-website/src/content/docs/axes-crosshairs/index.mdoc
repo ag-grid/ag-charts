@@ -88,8 +88,11 @@ The label position relative to the crosshair can be modified using the `xOffset`
 {
     crosshair: {
         label: {
-            xOffset: -55, // positions label -55px to the right of the start of the crosshair line
-            yOffset: 40, // positions label 40px down from the start of the crosshair line
+            // positions label -55px to the right of the start of the crosshair line
+            xOffset: -55,
+
+            // positions label 40px down from the start of the crosshair line
+            yOffset: 40,
         },
     },
 }
@@ -123,7 +126,8 @@ The default crosshair label is customisable using the crosshair label `renderer`
 {
     crosshair: {
         label: {
-            renderer: labelRenderer, // Add label renderer callback function to customise label styles and content
+            // Add label renderer callback function to customise label styles and content
+            renderer: labelRenderer,
         },
     },
 }
