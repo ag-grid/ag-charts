@@ -230,7 +230,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     if (!isEphemeralType(selectedDatum)) {
-                        optionsToolbar.updateButtons(this.annotationData.at(index!)!);
+                        optionsToolbar.updateButtons(this.annotationData.at(index));
                         this.postUpdateFns.push(() => {
                             // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                             // element has a width and height that it can use in the anchor calculations.
@@ -373,7 +373,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const node = this.annotations.at(active);
                 if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
-                this.optionsToolbar.updateButtons(this.annotationData.at(active)!);
+                this.optionsToolbar.updateButtons(this.annotationData.at(active));
                 this.optionsToolbar.show();
                 this.optionsToolbar.setAnchorScene(node);
             },
@@ -417,7 +417,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         if (props.position) this.defaults.setDefaultLineTextPosition(datum.type, props.position);
                         this.recordActionAfterNextUpdate(
                             `Change ${datum.type} text ${Object.keys(props)
-                                .map((key) => `${key} to ${(props as any)[key]}`)
+                                .map((key) => `${key} to ${(props)[key]}`)
                                 .join(', ')}`
                         );
                     },
@@ -898,7 +898,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 updateAnnotation(node, datum, context);
             });
 
-        this.postUpdateFns.forEach((fn) => fn());
+        for (const fn of this.postUpdateFns) fn();
         this.postUpdateFns = [];
     }
 

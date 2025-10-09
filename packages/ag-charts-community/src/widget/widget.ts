@@ -58,7 +58,7 @@ export abstract class Widget<
     extends WidgetBounds<TElement>
     implements IWidget<TElement>
 {
-    public index: number = NaN;
+    public index: number = Number.NaN;
     // WARNING (not implemented): setting domIndex will not move it in the DOM. This property is currently only used
     // when adding child widgets.
     public domIndex?: number;
@@ -99,10 +99,10 @@ export abstract class Widget<
         this.destroyListener?.();
         this.destroyListener = undefined;
         this.parent?.removeChild(this);
-        this.children.forEach((child) => {
+        for (const child of this.children) {
             child.parent = undefined;
             child.destroy();
-        });
+        }
         this.children.length = 0;
         this.destructor();
         this.remove();
@@ -177,7 +177,7 @@ export abstract class Widget<
     }
 
     private parseFloat(s: string) {
-        return s === '' ? 0 : parseFloat(s);
+        return s === '' ? 0 : Number.parseFloat(s);
     }
     cssLeft(): number {
         return this.parseFloat(this.elem.style.left);
@@ -256,7 +256,7 @@ export abstract class Widget<
     }
 
     protected removeChildFromDOM(child: TChildWidget): void {
-        this.elem.removeChild(child.getElement());
+        child.getElement().remove();
     }
 
     protected onChildAdded(_child: TChildWidget): void {}

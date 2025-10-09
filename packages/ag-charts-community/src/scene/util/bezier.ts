@@ -13,7 +13,7 @@ export function solveBezier(p0: number, p1: number, p2: number, p3: number, valu
 
     let t0 = 0;
     let t1 = 1;
-    let t = NaN;
+    let t = Number.NaN;
     for (let i = 0; i < 12; i += 1) {
         t = (t0 + t1) / 2;
         const curveValue = evaluateBezier(p0, p1, p2, p3, t);

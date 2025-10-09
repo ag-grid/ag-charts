@@ -74,12 +74,12 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     private updateCaps(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
         if (!datum.startCap && this.startCap) {
-            this.removeChild(this.startCap);
+            this.startCap.remove();
             this.startCap = undefined;
         }
 
         if (!datum.endCap && this.endCap) {
-            this.removeChild(this.endCap);
+            this.endCap.remove();
             this.endCap = undefined;
         }
 
@@ -91,7 +91,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
         if (datum.startCap) {
             if (this.startCap && this.startCap.type !== datum.startCap) {
-                this.removeChild(this.startCap);
+                this.startCap.remove();
                 this.startCap = undefined;
             }
 
@@ -112,7 +112,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
         if (datum.endCap) {
             if (this.endCap && this.endCap.type !== datum.endCap) {
-                this.removeChild(this.endCap);
+                this.endCap.remove();
                 this.endCap = undefined;
             }
 

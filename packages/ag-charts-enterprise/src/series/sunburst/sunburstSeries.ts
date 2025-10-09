@@ -116,7 +116,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     override processData() {
         super.processData();
 
-        setAngleData(this.rootNode!);
+        setAngleData(this.rootNode);
     }
 
     updateSelections() {
@@ -134,7 +134,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const seriesRect = chart.seriesRect;
         if (seriesRect == null) return;
 
-        const descendants = Array.from(this.rootNode!);
+        const descendants = Array.from(this.rootNode);
 
         const updateLabelGroup = (group: _ModuleSupport.Group) => {
             group.append([
@@ -257,7 +257,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             let labelValue: TextOrSegments | undefined;
             if (datum != null && depth != null && labelKey != null) {
-                const value = (datum as any)[labelKey];
+                const value = (datum)[labelKey];
                 labelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
                     value,
                     datum,
@@ -285,7 +285,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             let secondaryLabelValue: TextOrSegments | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null) {
-                const value = (datum as any)[secondaryLabelKey];
+                const value = (datum)[secondaryLabelKey];
                 secondaryLabelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
                     value,
                     datum,
@@ -510,7 +510,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 childrenKey: this.properties.childrenKey,
                 colorKey: this.properties.colorKey,
                 colorName: this.properties.colorName ?? this.properties.colorKey,
-                depth: node.depth ?? NaN,
+                depth: node.depth ?? Number.NaN,
                 labelKey: this.properties.labelKey,
                 secondaryLabelKey: this.properties.secondaryLabelKey,
                 sizeKey: this.properties.sizeKey,
@@ -565,10 +565,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.visible = true;
         };
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
-        this.labelSelection.selectByClass(TransformableText).forEach((text) => {
+        for (const text of this.labelSelection.selectByClass(TransformableText)) {
             const datum = text.closestDatum();
             updateText(datum, text, text.tag, datum === highlightedDatum);
-        });
+        }
     }
 
     override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {

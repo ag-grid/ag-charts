@@ -391,7 +391,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
             ctx.eventsHub.on('zoom:change', () => {
-                this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
+                for (const s of this.series) (s).animationState?.transition('updateData');
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
@@ -514,7 +514,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.performUpdateType = ChartUpdateType.NONE;
 
         this.cleanup.flush();
-        this.processors.forEach((p) => p.destroy());
+        for (const p of this.processors) p.destroy();
         this.overlays.destroy();
         this.modulesManager.destroy();
 
@@ -533,7 +533,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.destroySeries(this.series);
         this.seriesLayerManager.destroy();
 
-        this.axes.forEach((a) => a.destroy());
+        for (const a of this.axes) a.destroy();
         this.axes = [];
 
         // Reset animation state.
@@ -611,7 +611,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.ctx.widgets.seriesWidget.setDragTouchEnabled(this.touch.dragAction !== 'none');
 
         if (forceNodeDataRefresh) {
-            this.series.forEach((series) => series.markNodeDataDirty());
+            for (const series of this.series) series.markNodeDataDirty();
         }
 
         for (const series of seriesToUpdate) {
@@ -918,7 +918,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected destroySeries(allSeries: UnknownSeries[]): void {
-        allSeries?.forEach((series) => {
+        if (allSeries) for (const series of allSeries) {
             series.removeEventListener('seriesNodeClick', this.onSeriesNodeClick);
             series.removeEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
@@ -927,7 +927,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             series.detachSeries(undefined, this.seriesRoot, this.annotationRoot);
 
             series.chart = undefined;
-        });
+        }
     }
 
     private addSeriesListeners(series: UnknownSeries) {
@@ -1041,7 +1041,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     async updateData() {
-        this.series.forEach((s) => s.setChartData(this.data));
+        for (const s of this.series) s.setChartData(this.data);
         const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.(this.data));
         await Promise.all(modulePromises);
     }
@@ -1090,10 +1090,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         } = this;
 
         if (initialState) {
-            this.series.forEach((s) => {
+            for (const s of this.series) {
                 const seriesState = initialState.find((init) => init.seriesId === s.id);
                 s.onLegendInitialState('category', seriesState);
-            });
+            }
         }
 
         const legendData = this.series.flatMap((s) => {
@@ -1665,14 +1665,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         skip = ['axes[].type', ...skip];
 
-        const axes: AgCartesianAxisOptions[] | AgPolarAxisOptions[] = options.axes;
+        const axes: AgCartesianAxisOptions[]   = options.axes;
         const forceRecreate = seriesStatus === 'replaced';
         const matchingTypes =
             !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);
 
         // Try to optimise series updates if series count and types didn't change.
         if (matchingTypes && isAgCartesianChartOptions(oldOpts)) {
-            chart.axes.forEach((axis, index) => {
+            for (const [index, axis] of chart.axes.entries()) {
                 const previousOpts = oldOpts.axes?.[index] ?? {};
                 const axisDiff = jsonDiff(previousOpts, axes[index]) as any;
 
@@ -1680,7 +1680,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 const path = `axes[${index}]`;
                 jsonApply(axis, axisDiff, { path, skip });
-            });
+            }
             return true;
         }
 

@@ -218,7 +218,7 @@ describe('RangeBarSeries', () => {
         direction: 'horizontal' | 'vertical'
     ): T {
         if (axes) {
-            axes.forEach((axis) => {
+            for (const axis of axes) {
                 switch (axis.position) {
                     case 'left':
                         axis.position = 'bottom';
@@ -233,7 +233,7 @@ describe('RangeBarSeries', () => {
                         axis.position = 'right';
                         break;
                 }
-            });
+            }
         }
         return {
             ...opts,
@@ -790,7 +790,7 @@ describe('RangeBarSeries', () => {
 
         it('should render updated data in the itemStyler specified colors', async () => {
             const options = { ...EXAMPLE_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);

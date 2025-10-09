@@ -138,14 +138,14 @@ function extractGroupValues(data: GroupedData<unknown>, groupIndex?: number) {
 function mutilatedBrowserData() {
     const datumKeys = ['ie', 'chrome', 'firefox', 'safari'] as const;
     const rawData = DATA_BROWSER_MARKET_SHARE.map((v) => ({ ...v }));
-    rawData.forEach((datum, idx) => {
+    for (const [idx, datum] of rawData.entries()) {
         const keyToDelete = datumKeys[idx % 4];
         delete datum[keyToDelete];
         if (idx % 3 === 0) {
             const illegalValueKey = datumKeys[(idx + 1) % 4];
             datum[illegalValueKey] = 'illegal value' as any;
         }
-    });
+    }
     return rawData;
 }
 
@@ -1186,7 +1186,7 @@ describe('DataModel', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet(mutilatedBrowserData());
             const DEFAULTS = {
-                invalidValue: NaN,
+                invalidValue: Number.NaN,
                 missingValue: null,
                 validation: isFiniteNumber,
             };
@@ -1206,7 +1206,7 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const defaults = { missingValue: null, invalidValue: NaN };
+            const defaults = { missingValue: null, invalidValue: Number.NaN };
             const validated = { ...defaults, validation: (v: unknown) => typeof v === 'number' };
             const dataModel = new DataModel<any, any, true>({
                 props: [
@@ -1229,7 +1229,7 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(extractGroupValues(result, 0)).toEqual([[null, 7, 1]]);
-                expect(extractGroupValues(result, 1)).toEqual([[1, NaN, 2]]);
+                expect(extractGroupValues(result, 1)).toEqual([[1, Number.NaN, 2]]);
                 expect(extractGroupValues(result, 2)).toEqual([[6, 9, null]]);
                 expect(extractGroupValues(result, 3)).toEqual([[6, 9, 4]]);
             });
@@ -1512,7 +1512,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Verify keys were updated
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
@@ -1551,7 +1551,7 @@ describe('DataModel', () => {
                 // Prepend transaction
                 dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Verify keys were shifted and new key added
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
@@ -1588,7 +1588,7 @@ describe('DataModel', () => {
                 // Remove middle item
                 dataSet.addTransaction({ remove: [initialData[1]] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Verify item was removed
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 3]);
@@ -1625,7 +1625,7 @@ describe('DataModel', () => {
                     append: [{ x: 4, y: 40 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // After remove+append, we expect: [{x:2},{x:3},{x:4}]
                 expect(dataSet.data).toEqual([
@@ -1656,7 +1656,7 @@ describe('DataModel', () => {
 
                 dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: 200 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 expect(reprocessed.columns).toEqual([
                     [10, 20],
@@ -1691,7 +1691,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Verify data was updated correctly
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
@@ -1726,7 +1726,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Verify data was updated correctly
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
@@ -1760,14 +1760,14 @@ describe('DataModel', () => {
                 // No transaction added
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Should return same reference (no changes)
                 expect(reprocessed).toBe(processedData);
 
                 // Diff structure exists but is empty (no scopes changed)
                 expect(reprocessed.reduced?.diff).toBeDefined();
-                expect(Object.keys(reprocessed.reduced!.diff!)).toEqual([]);
+                expect(Object.keys(reprocessed.reduced!.diff)).toEqual([]);
             });
         });
 
@@ -1782,7 +1782,7 @@ describe('DataModel', () => {
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Should return same reference
                 expect(reprocessed).toBe(processedData);
@@ -1804,7 +1804,7 @@ describe('DataModel', () => {
 
                 dataSet.addTransaction({ append: [{ category: 'C', value: 30 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 expect(reprocessed.keys[0].get('test')).toEqual(['A', 'B', 'C']);
                 expect(reprocessed.domain.keys).toEqual([['A', 'B', 'C']]);
@@ -1860,7 +1860,7 @@ describe('DataModel', () => {
                 const sources = basicDataSet([{ x: 1, y: 10 }]);
                 const processedData = dataModel.processData(sources);
 
-                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+                expect(dataModel.isReprocessingSupported(processedData)).toBe(true);
             });
 
             it('should not support grouped data', () => {
@@ -1872,7 +1872,7 @@ describe('DataModel', () => {
                 const sources = basicDataSet([{ x: 1, y: 10 }]);
                 const processedData = dataModel.processData(sources);
 
-                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+                expect(dataModel.isReprocessingSupported(processedData)).toBe(false);
             });
 
             it('should not support data with aggregates', () => {
@@ -1883,7 +1883,7 @@ describe('DataModel', () => {
                 const sources = basicDataSet([{ x: 1, y: 10 }]);
                 const processedData = dataModel.processData(sources);
 
-                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+                expect(dataModel.isReprocessingSupported(processedData)).toBe(false);
             });
         });
     });
@@ -1923,7 +1923,7 @@ describe('DataModel', () => {
                 ];
                 dataSet.addTransaction({ append: appendData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Domain should extend to include new values
                 expect(reprocessed.domain.keys).toEqual([[0, 202]]);
@@ -1968,7 +1968,7 @@ describe('DataModel', () => {
                 ];
                 dataSet.addTransaction({ prepend: prependData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Domain should extend to include new minimum values
                 expect(reprocessed.domain.keys).toEqual([[7, 159]]);
@@ -2017,7 +2017,7 @@ describe('DataModel', () => {
                     ],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Domain should reflect new min/max
                 expect(reprocessed.domain.keys).toEqual([[-2, 202]]);
@@ -2061,7 +2061,7 @@ describe('DataModel', () => {
                     ],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Domain should update to new boundaries
                 expect(reprocessed.domain.keys).toEqual([[1, 58]]);
@@ -2092,7 +2092,7 @@ describe('DataModel', () => {
                 const toRemove = initialData.slice(0, 5);
                 dataSet.addTransaction({ remove: toRemove });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Domain should start from the remaining minimum
                 expect(reprocessed.domain.keys).toEqual([[5, 19]]);
@@ -2133,7 +2133,7 @@ describe('DataModel', () => {
                 }));
                 dataSet.addTransaction({ append: appendData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Domain should include all data
                 expect(reprocessed.domain.keys).toEqual([[0, 19]]);
@@ -2207,7 +2207,7 @@ describe('DataModel', () => {
                 }));
                 dataSet.addTransaction({ append: appendData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Should now use banding and still calculate correct domain
                 expect(reprocessed.domain.keys).toEqual([[0, 109]]);
@@ -2244,7 +2244,7 @@ describe('DataModel', () => {
                 // Add new category
                 dataSet.addTransaction({ append: [{ category: 'F', value: 1000 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Should include new category
                 expect(reprocessed.domain.keys).toEqual([['A', 'B', 'C', 'D', 'E', 'F']]);
@@ -2281,7 +2281,7 @@ describe('DataModel', () => {
                     dataSet.addTransaction({ append: batchData });
                 }
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData);
 
                 // Should handle 100 new data points efficiently
                 expect(reprocessed.input.count).toBe(1100);
@@ -2379,7 +2379,7 @@ describe('DataModel', () => {
                 append: [{ timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 }],
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData);
 
             // Should maintain columnNeedValueOf metadata
             expect(reprocessed.columnNeedValueOf).toEqual([true, false]);

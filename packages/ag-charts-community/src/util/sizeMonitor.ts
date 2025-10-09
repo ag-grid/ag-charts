@@ -59,7 +59,7 @@ export class SizeMonitor {
 
     onLoad: EventListener = () => {
         this.documentReady = true;
-        this.queuedObserveRequests.forEach(([el, cb]) => this.observe(el, cb));
+        for (const [el, cb] of this.queuedObserveRequests) this.observe(el, cb);
         this.queuedObserveRequests = [];
         this.observeWindow();
     };

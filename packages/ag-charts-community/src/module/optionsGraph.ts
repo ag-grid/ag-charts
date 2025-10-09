@@ -252,12 +252,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             this.resolvedAnnotations = {};
 
             debug('resolve params');
-            this.resolveVertex(this.params!, this.resolvedParams);
+            this.resolveVertex(this.params, this.resolvedParams);
             debug('resolve annotations');
-            this.resolveVertex(this.annotations!, this.resolvedAnnotations);
+            this.resolveVertex(this.annotations, this.resolvedAnnotations);
 
             debug('resolve root');
-            this.resolveVertex(this.root!);
+            this.resolveVertex(this.root);
             debug('resolved root', this.resolved);
 
             debug('vertex count', this.getVertexCount());
@@ -414,7 +414,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (this.cachedPathVertices.has(key)) {
             return this.cachedPathVertices.get(key);
         }
-        const vertex = this.findVertexAlongEdge(this.root!, path, PATH_EDGE);
+        const vertex = this.findVertexAlongEdge(this.root, path, PATH_EDGE);
         if (!vertex) return;
         this.cachedPathVertices.set(key, vertex);
         return vertex;
@@ -477,7 +477,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             return this.resolvedParams[path];
         }
 
-        const paramVertex = this.findVertexAlongEdge(this.params!, [path], PATH_EDGE);
+        const paramVertex = this.findVertexAlongEdge(this.params, [path], PATH_EDGE);
         if (!paramVertex) return;
 
         const defaultValueVertex = this.findNeighbour(paramVertex, DEFAULTS_EDGE);
@@ -494,7 +494,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     getResolvedPath(path: Array<string>) {
-        return getPathSafe(this.resolved!, path);
+        return getPathSafe(this.resolved, path);
     }
 
     getCachedValue(path: string[], key: string): unknown {
@@ -895,7 +895,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         }
     }
 
-    private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved!, prune?: unknown) {
+    private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved, prune?: unknown) {
         const pathArray = this.getPathArray(vertex);
 
         // TODO: is it resolving the same vertex multiple times, is that a bug, or should it just skip it if already resolved?
@@ -933,10 +933,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             if (children && children.length > 0 && edgeValue !== highestPriority) continue;
 
             // Do not resolve edges that have been pruned
-            if (Array.isArray(prune) && prune.indexOf(edgeValue) >= 0) continue;
+            if (Array.isArray(prune) && prune.includes(edgeValue)) continue;
 
             this.hasUnsafeClearKeys ||=
-                value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathArray[pathArray.length - 1]);
+                value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathArray.at(-1));
 
             if (pathArray.length === 0) {
                 if (value == null) continue;

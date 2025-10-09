@@ -359,7 +359,7 @@ export abstract class RadialColumnSeriesBase<
             const y = Math.sin(angle) * midRadius;
 
             const labelNodeDatum = this.properties.label.enabled
-                ? getLabelNodeDatum(datum as any, radiusDatum, x, y)
+                ? getLabelNodeDatum(datum, radiusDatum, x, y)
                 : undefined;
 
             const columnWidth = this.getColumnWidth(startAngle, endAngle);
@@ -397,7 +397,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected getColumnWidth(_startAngle: number, _endAngle: number) {
-        return NaN;
+        return Number.NaN;
     }
 
     update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {

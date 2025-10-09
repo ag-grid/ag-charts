@@ -57,9 +57,9 @@ export class ImageLoader extends EventEmitter<EventMap> {
     }
 
     destroy() {
-        this.cache.forEach((entry) => {
+        for (const entry of this.cache) {
             entry.nodes.clear();
-        });
+        }
         this.cache.clear();
     }
 }

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
 import { Canvas, DOMMatrix, ExportFormat, FontLibrary } from 'skia-canvas';
@@ -74,7 +74,7 @@ export class MockContext {
         public height: number,
         public document: Document,
         public realCreateElement: Document['createElement'] = document.createElement,
-        public realOffscreenCanvas: typeof global.OffscreenCanvas = global.OffscreenCanvas
+        public realOffscreenCanvas: typeof globalThis.OffscreenCanvas = globalThis.OffscreenCanvas
     ) {
         const nodeCanvas = new ConfiguredCanvas(width, height);
 
@@ -156,16 +156,16 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         mockCtx = opts;
         mockCtx.reset();
     } else {
-        const { width = 800, height = 600, document = window.document } = opts;
+        const { width = 800, height = 600, document = globalThis.document } = opts;
         mockCtx = new MockContext(width, height, document);
     }
 
     const { width, height, document } = mockCtx;
 
-    if (typeof window === 'undefined') {
-        (global as any)['agChartsSceneRenderModel'] = 'composite';
+    if (typeof globalThis.window === 'undefined') {
+        (globalThis as any)['agChartsSceneRenderModel'] = 'composite';
     } else {
-        (window as any)['agChartsSceneRenderModel'] = 'composite';
+        (globalThis as any)['agChartsSceneRenderModel'] = 'composite';
     }
 
     const realCreateElement = document.createElement;
@@ -192,8 +192,8 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         return realCreateElement.call(document, element, options);
     };
 
-    if (typeof window !== 'undefined') {
-        (window as any).OffscreenCanvas = class OffscreenCanvas extends ConfiguredCanvas {
+    if (typeof globalThis.window !== 'undefined') {
+        (globalThis as any).OffscreenCanvas = class OffscreenCanvas extends ConfiguredCanvas {
             constructor(w: number, h: number) {
                 super(w, h);
                 mockCtx.registerOffscreenCanvasInstance(this as any);
@@ -207,8 +207,8 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
 export function teardown(mockContext: MockContext) {
     mockContext.document.createElement = mockContext.realCreateElement!;
-    if (typeof window !== 'undefined') {
-        window.OffscreenCanvas = mockContext.realOffscreenCanvas;
+    if (typeof globalThis.window !== 'undefined') {
+        globalThis.OffscreenCanvas = mockContext.realOffscreenCanvas;
     }
     mockContext.destroy();
 }

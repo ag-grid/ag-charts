@@ -7,29 +7,29 @@ import { TextDecoder, TextEncoder } from 'util';
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
 // @ts-expect-error types don't exactly align
-global.Canvas = mockCanvas.ConfiguredCanvas;
+globalThis.Canvas = mockCanvas.ConfiguredCanvas;
 
 // @ts-expect-error types don't exactly align
-global.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
+globalThis.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
 
 // @ts-expect-error types don't exactly align
-global.DOMMatrix ??= DOMMatrix;
+globalThis.DOMMatrix ??= DOMMatrix;
 
 // @ts-expect-error types don't exactly align
-global.Image = Image;
+globalThis.Image = Image;
 
 // @ts-expect-error types don't exactly align
-global.Path2D ??= Path2D;
+globalThis.Path2D ??= Path2D;
 
 // @ts-expect-error types don't exactly align
-global.TextDecoder = TextDecoder;
-global.TextEncoder = TextEncoder;
+globalThis.TextDecoder = TextDecoder;
+globalThis.TextEncoder = TextEncoder;
 
 // @ts-expect-error types don't exactly align
-global.URL = URL;
+globalThis.URL = URL;
 
 const TOGGLE_POPOVER_ATTRIBUTE = 'data-presented-as-popover';
-global.HTMLElement.prototype.togglePopover = function (visible) {
+globalThis.HTMLElement.prototype.togglePopover = function (visible) {
     visible ??= !this.hasAttribute(TOGGLE_POPOVER_ATTRIBUTE);
 
     if (visible) {

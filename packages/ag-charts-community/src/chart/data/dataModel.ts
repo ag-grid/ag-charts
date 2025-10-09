@@ -387,7 +387,7 @@ export class DataModel<
         for (const def of opts.props) {
             const scopes = def.type === 'key' ? keyScopes : valueScopes;
             if (isScoped(def)) {
-                def.scopes?.forEach((s) => scopes.add(s));
+                if (def.scopes) for (const s of def.scopes) scopes.add(s);
             }
 
             switch (def.type) {
@@ -432,7 +432,7 @@ export class DataModel<
 
         if (!!this.opts.groupByKeys || this.opts.groupByFn != null) {
             const ungroupedScopes = new Set(valueScopes.values());
-            keyScopes.forEach((s) => ungroupedScopes.delete(s));
+            for (const s of keyScopes) ungroupedScopes.delete(s);
 
             if (ungroupedScopes.size > 0) {
                 throw new Error(
@@ -1158,7 +1158,7 @@ export class DataModel<
                 });
             }
 
-            processedData.reduced!.diff![scope] = diff;
+            processedData.reduced.diff![scope] = diff;
         }
     }
 
@@ -1337,7 +1337,7 @@ export class DataModel<
                 res.push(index);
             }
             return res;
-        }, [] as number[]);
+        }, []);
 
         if (result.length === 0) {
             throw new Error(
@@ -1430,10 +1430,10 @@ export class DataModel<
 
         const cloneScope = (source: unknown[], target: ScopeId) => {
             const sourceScope = scopeDataProcessed.get(source)!;
-            keyDefKeys.set(target, keyDefKeys.get(sourceScope)!);
+            keyDefKeys.set(target, keyDefKeys.get(sourceScope));
             if (invalidKeys.has(sourceScope)) {
-                invalidKeys.set(target, invalidKeys.get(sourceScope)!);
-                invalidData.set(target, invalidData.get(sourceScope)!);
+                invalidKeys.set(target, invalidKeys.get(sourceScope));
+                invalidData.set(target, invalidData.get(sourceScope));
             }
         };
 
@@ -1615,7 +1615,7 @@ export class DataModel<
                 const group = groupingFn?.(keys) ?? keys;
                 const groupStr = groups != null ? toKeyString(group) : undefined;
 
-                let outputGroup: Group | undefined = groups?.get(groupStr!);
+                let outputGroup: Group | undefined = groups?.get(groupStr);
                 if (outputGroup == null) {
                     outputGroup = {
                         keys: group,
@@ -1624,7 +1624,7 @@ export class DataModel<
                         validScopes: allScopes,
                     };
 
-                    groups?.set(groupStr!, outputGroup);
+                    groups?.set(groupStr, outputGroup);
 
                     resultGroups.push(outputGroup.keys);
                     resultData.push(outputGroup);
@@ -1802,7 +1802,7 @@ export class DataModel<
             processedData.reduced[def.property] = def.calculate(
                 processedData,
                 processedData.reduced[def.property]
-            ) as any;
+            );
         }
     }
 

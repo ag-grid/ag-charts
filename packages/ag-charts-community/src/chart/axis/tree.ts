@@ -27,8 +27,8 @@ class Dimensions {
 
 class TreeNode {
     position: number = 0;
-    subtreeLeft: number = NaN;
-    subtreeRight: number = NaN;
+    subtreeLeft: number = Number.NaN;
+    subtreeRight: number = Number.NaN;
     children: TreeNode[] = [];
     leafCount: number = 0;
     depth: number;
@@ -129,7 +129,7 @@ function moveSubtree(wm: TreeNode, wp: TreeNode, shift: number) {
 }
 
 function ancestor(vim: TreeNode, v: TreeNode, defaultAncestor: TreeNode): TreeNode {
-    return v.getSiblings().indexOf(vim.ancestor) >= 0 ? vim.ancestor : defaultAncestor;
+    return v.getSiblings().includes(vim.ancestor) ? vim.ancestor : defaultAncestor;
 }
 
 // Spaces out the children.
@@ -154,7 +154,7 @@ function apportion(v: TreeNode, defaultAncestor: TreeNode) {
         let vop = v;
         let vip = v;
         let vim = w;
-        let vom = vip.getLeftmostSibling()!;
+        let vom = vip.getLeftmostSibling();
         let sip = vip.mod;
         let sop = vop.mod;
         let sim = vim.mod;
@@ -242,7 +242,7 @@ function thirdWalk(v: TreeNode) {
     v.leafCount = leafCount;
     if (children.length) {
         v.subtreeLeft = children[0].subtreeLeft;
-        v.subtreeRight = children[children.length - 1].subtreeRight;
+        v.subtreeRight = children.at(-1).subtreeRight;
         v.position = (v.subtreeLeft + v.subtreeRight) / 2;
     } else {
         v.subtreeLeft = v.position;

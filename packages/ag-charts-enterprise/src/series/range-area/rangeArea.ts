@@ -260,7 +260,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             if (xValue == null) return;
 
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined =
-                spanPoints[spanPoints.length - 1];
+                spanPoints.at(-1);
             if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
                 const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
                     markerData.push({

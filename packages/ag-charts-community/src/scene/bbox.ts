@@ -23,7 +23,7 @@ type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | '
 
 export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
     static readonly zero = Object.freeze(new BBox(0, 0, 0, 0)) as BBox;
-    static readonly NaN = Object.freeze(new BBox(NaN, NaN, NaN, NaN)) as BBox;
+    static readonly NaN = Object.freeze(new BBox(Number.NaN, Number.NaN, Number.NaN, Number.NaN)) as BBox;
 
     static fromObject({ x, y, width, height }: BoxBounds) {
         return new BBox(x, y, width, height);

@@ -535,7 +535,7 @@ describe('SunburstSeries', () => {
 
         it('should render updated data in the itemStyler specified colors', async () => {
             const options = { ...EXAMPLE_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
@@ -560,7 +560,7 @@ describe('SunburstSeries', () => {
                 children: [
                     { name: 'China', gdp: 17.7, gdpChange: 0 },
                     { name: 'Japan', gdp: 4.23, gdpChange: 0 },
-                    { name: 'India', gdp: 4.0, gdpChange: 0.2 },
+                    { name: 'India', gdp: 4, gdpChange: 0.2 },
                 ],
                 gdpChange: 0.05,
             },

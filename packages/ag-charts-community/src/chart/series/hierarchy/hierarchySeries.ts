@@ -69,9 +69,9 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
             callback(this as any as This);
         }
 
-        this.children.forEach((child) => {
+        for (const child of this.children) {
             child.walk(callback, order);
-        });
+        }
 
         if (order === HierarchyNode.Walk.PostOrder) {
             callback(this as any as This);
@@ -278,15 +278,15 @@ export abstract class HierarchySeries<
     }
 
     override dataCount(): number {
-        return NaN; // Not used
+        return Number.NaN; // Not used
     }
 
     override getSeriesDomain() {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
@@ -351,7 +351,7 @@ export abstract class HierarchySeries<
         } else if (depthDelta === 0 && childDelta !== 0) {
             const maxIndex = currentNode.parent!.children.length - 1;
             path = path.slice();
-            path[path.length - 1] = clamp(0, path[path.length - 1] + childDelta, maxIndex);
+            path[path.length - 1] = clamp(0, path.at(-1) + childDelta, maxIndex);
         }
 
         const nextNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);

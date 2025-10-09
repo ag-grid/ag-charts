@@ -18,7 +18,7 @@ import {
     mouseLeaveEvent,
     mouseMoveEvent,
     mouseUpEvent,
-    toMatchImage,
+    
     touchAverage,
     touchEvent,
     wheelEvent,
@@ -37,7 +37,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -182,7 +182,7 @@ function isChartInstance(chartOrProxy: ChartOrProxy): chartOrProxy is Chart {
 }
 
 export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
-    return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy as any).chart as Chart);
+    return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy).chart as Chart);
 }
 
 export function repeat<T>(value: T, count: number): T[] {
@@ -619,7 +619,7 @@ export function twoFingerEnd(
     ]);
 }
 
-export { setupMockCanvas, toMatchImage, CANVAS_TO_BUFFER_DEFAULTS, extractImageData };
+
 
 export async function createChart(options: AgChartOptions<any, any>) {
     options = prepareTestOptions({ ...options });
@@ -641,7 +641,7 @@ export function spyOnAnimationManager() {
         const cbs = [...rafCbs.values()];
         rafCbs.clear();
 
-        // eslint-disable-next-line sonarjs/array-callback-without-return
+         
         await Promise.all(cbs.map((cb) => cb(time)));
     };
 
@@ -672,7 +672,7 @@ export function spyOnAnimationManager() {
             (this as any).requestId = nextRafId++;
 
             const rafId = nextRafId++;
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+             
             rafCbs.set(rafId, cb);
         });
         mocks.push(skippedMock, forceTimeJumpMock, skippingFramesMock, safMock);
@@ -683,7 +683,7 @@ export function spyOnAnimationManager() {
 
     afterEach(() => {
         activeAnimateCb = undefined;
-        mocks.forEach((mock) => mock.mockRestore());
+        for (const mock of mocks) mock.mockRestore();
         rafCbs.clear();
     });
 
@@ -705,14 +705,14 @@ export function mixinReversedAxesCases(
 ): Record<string, CartesianOrPolarTestCase> {
     const result = { ...baseCases };
 
-    Object.keys(baseCases).forEach((name) => {
+    for (const name of Object.keys(baseCases)) {
         const baseCase = baseCases[name];
         result[name + '_REVERSED_AXES'] = {
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
             warnings: baseCase.skipWarningsReversed === false ? baseCase.warnings : [],
         };
-    });
+    }
 
     return result;
 }
@@ -727,3 +727,6 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     const ctx = deproxy(chart).getModuleContext();
     return ctx.domManager.getCursor();
 }
+
+export {toMatchImage} from 'ag-charts-test';
+export {CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas} from '../../util/test/mockCanvas';

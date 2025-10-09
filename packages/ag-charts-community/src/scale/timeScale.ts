@@ -26,7 +26,7 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
     }
 
     override convert(value: Date | number, options?: { clamp: boolean }): number {
-        return super.convert(value?.valueOf() ?? NaN, options);
+        return super.convert(value?.valueOf() ?? Number.NaN, options);
     }
 
     override invert(value: number): Date {
@@ -64,7 +64,7 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
 
         const timestamps = domain.map(dateToNumber);
         const start = timestamps[0];
-        const stop = timestamps[timestamps.length - 1];
+        const stop = timestamps.at(-1);
 
         if (interval != null) {
             const availableRange = this.getPixelRange();
@@ -209,6 +209,6 @@ function updateNiceDomainIteration(
     if (domain == null || domain.length < 2) return [d0, d1];
 
     const r0 = domain[0];
-    const r1 = domain[domain.length - 1];
+    const r1 = domain.at(-1);
     return d0 <= d1 ? [r0, r1] : [r1, r0];
 }

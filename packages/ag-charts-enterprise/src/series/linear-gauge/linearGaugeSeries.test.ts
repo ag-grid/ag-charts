@@ -81,7 +81,7 @@ describe('LinearGaugeSeries', () => {
             'bar-inside-end',
             'bar-outside-end',
             'bar-end',
-        ] as AgLinearGaugeLabelPlacement[])('should render label at placement %s', async (placement) => {
+        ])('should render label at placement %s', async (placement) => {
             const options: AgLinearGaugeOptions = {
                 ...EXAMPLE_OPTIONS,
                 direction,
@@ -108,7 +108,7 @@ describe('LinearGaugeSeries', () => {
             'bar-inside-end',
             'bar-outside-end',
             'bar-end',
-        ] as AgLinearGaugeLabelPlacement[])('should render multi-line labels at placement %s', async (placement) => {
+        ])('should render multi-line labels at placement %s', async (placement) => {
             const options: AgLinearGaugeOptions = {
                 ...EXAMPLE_OPTIONS,
                 direction,
@@ -199,11 +199,11 @@ describe('LinearGaugeSeries', () => {
 
     describe('when in development mode', () => {
         beforeEach(() => {
-            (window as any).agChartsDebug = ['dev'];
+            (globalThis as any).agChartsDebug = ['dev'];
         });
 
         afterEach(() => {
-            delete (window as any).agChartsDebug;
+            delete (globalThis as any).agChartsDebug;
         });
 
         it('should not error when creating gauge with disabled nested options', async () => {

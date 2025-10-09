@@ -11,15 +11,15 @@ import { VERSION } from './version';
 export { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 export * from 'ag-charts-types';
 export { time } from './util/time-interop';
-export { AgCharts, VERSION };
+
 
 // Undocumented APIs used by Enterprise Modules.
 export * as _ModuleSupport from './module-support';
 export * as _Widget from './widget/exports';
-export { registerInbuiltModules as setupCommunityModules };
+
 
 // Undocumented APIs used by Integrated Charts.
-export { _Scene, _Theme, _Util };
+
 
 export const AgChartsCommunityModule = {
     VERSION,
@@ -31,3 +31,10 @@ export const AgChartsCommunityModule = {
     setup: registerInbuiltModules,
     isEnterprise: false,
 } satisfies IntegratedModule;
+
+export {AgCharts} from './api/agCharts';
+export {VERSION} from './version';
+export {registerInbuiltModules as setupCommunityModules} from './chart/factory/registerInbuiltModules';
+export * as _Scene from './integrated-charts-scene';
+export * as _Theme from './integrated-charts-theme';
+export * as _Util from './integrated-charts-util';

@@ -227,9 +227,9 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         path.clear();
         path.moveTo(x, top + cornerRadius);
 
-        pathParams.forEach(({ coordinates, type }) => {
+        for (const { coordinates, type } of pathParams) {
             this.drawPath(path, coordinates, cornerRadius, type);
-        });
+        }
 
         path.closePath();
     }

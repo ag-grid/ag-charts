@@ -41,11 +41,11 @@ export class TopologyChart extends Chart {
         }
 
         const { topology } = this;
-        this.series.forEach((series) => {
+        for (const series of this.series) {
             if (isTopologySeries(series)) {
                 series.setChartTopology(topology);
             }
-        });
+        }
     }
 
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
@@ -101,9 +101,9 @@ export class TopologyChart extends Chart {
             ]);
         }
 
-        mapSeries.forEach((series) => {
+        for (const series of mapSeries) {
             series.scale = scale;
-        });
+        }
 
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;

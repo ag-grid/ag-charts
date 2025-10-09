@@ -93,7 +93,7 @@ const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
 };
 
 function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
-    return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
+    return PRESET_OVERRIDES_TYPES[type] === true;
 }
 
 export class ChartTheme {
@@ -638,7 +638,7 @@ export class ChartTheme {
     }
 
     private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides) {
-        chartTypes.seriesTypes.forEach((s) => {
+        for (const s of chartTypes.seriesTypes) {
             const seriesType = s as keyof AgThemeOverrides;
             const seriesOverrides = overrides[seriesType];
 
@@ -646,7 +646,7 @@ export class ChartTheme {
                 presets[seriesType] = seriesOverrides as any;
                 delete overrides[seriesType];
             }
-        });
+        }
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {

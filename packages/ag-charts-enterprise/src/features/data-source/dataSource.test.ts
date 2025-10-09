@@ -192,7 +192,7 @@ describe('DataSource', () => {
         it('should load a window at the end', async () => {
             await prepareChart(dataSource, {
                 ...EXAMPLE_OPTIONS,
-                initialState: { zoom: { ratioX: { start: 0.5, end: 1.0 } } },
+                initialState: { zoom: { ratioX: { start: 0.5, end: 1 } } },
             });
             await response;
             await compare();

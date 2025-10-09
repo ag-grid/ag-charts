@@ -33,7 +33,7 @@ describe('Number Utilities', () => {
 
     test('isInteger', () => {
         expect(isInteger(5)).toBe(true);
-        expect(isInteger(5.0)).toBe(true); // Integer value as a float
+        expect(isInteger(5)).toBe(true); // Integer value as a float
         expect(isInteger(5.1)).toBe(false);
         expect(isInteger(-5)).toBe(true);
         expect(isInteger(-5.1)).toBe(false);

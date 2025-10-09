@@ -13,7 +13,7 @@ export class AnimationBatch {
     public readonly stoppedCbs: Set<() => void> = new Set();
 
     private currentPhase = 0;
-    private readonly phases = new Map(PHASE_ORDER.map((p) => [p, [] as IAnimation[]]));
+    private readonly phases = new Map(PHASE_ORDER.map((p) => [p, []]));
     private skipAnimations = false;
     private animationTimeConsumed = 0;
 
@@ -206,7 +206,7 @@ export class AnimationBatch {
     }
 
     private dispatchStopped() {
-        this.stoppedCbs.forEach((cb) => cb());
+        for (const cb of this.stoppedCbs) cb();
         this.stoppedCbs.clear();
     }
 

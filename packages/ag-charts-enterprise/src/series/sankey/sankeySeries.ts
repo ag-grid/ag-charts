@@ -122,18 +122,18 @@ export class SankeySeries extends FlowProportionSeries<
 
         const createNode = (node: FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
             ...node,
-            x: NaN,
-            y: NaN,
+            x: Number.NaN,
+            y: Number.NaN,
             width: nodeWidth,
-            height: NaN,
+            height: Number.NaN,
         });
         const createLink = (link: FlowProportionLinkDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
             ...link,
-            x1: NaN,
-            x2: NaN,
-            y1: NaN,
-            y2: NaN,
-            height: NaN,
+            x1: Number.NaN,
+            x2: Number.NaN,
+            y1: Number.NaN,
+            y2: Number.NaN,
+            height: Number.NaN,
             elbows: [],
         });
 
@@ -158,7 +158,7 @@ export class SankeySeries extends FlowProportionSeries<
         }
 
         // Assign nodes to columns
-        nodeGraph.forEach((graphNode) => {
+        for (const graphNode of nodeGraph) {
             const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
             const size = Math.max(
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0),
@@ -167,7 +167,7 @@ export class SankeySeries extends FlowProportionSeries<
 
             if ((linksBefore.length === 0 && linksAfter.length === 0) || size === 0) {
                 graphNode.columnIndex = -1;
-                return;
+                continue;
             }
 
             let column: Column;
@@ -208,7 +208,7 @@ export class SankeySeries extends FlowProportionSeries<
                 ? this.getLabelText<AgSankeySeriesLabelFormatterParams>(
                       node.label,
                       node.datum,
-                      labelKey!,
+                      labelKey,
                       'label',
                       [],
                       this.properties.label,
@@ -221,30 +221,30 @@ export class SankeySeries extends FlowProportionSeries<
             column.size += size;
 
             graphNode.columnIndex = column.index;
-        });
+        }
 
-        nodeGraph.forEach((graphNode) => {
+        for (const graphNode of nodeGraph) {
             graphNode.weight = 0;
 
             // Get the distance to the closest column to which this link is attached, used for sorting later
             let closestColumnDiff = Infinity;
-            graphNode.linksAfter.forEach((link) => {
+            for (const link of graphNode.linksAfter) {
                 const node = link.node as EnhancedNodeGraphEntry;
                 closestColumnDiff = Math.min(closestColumnDiff, node.columnIndex - graphNode.columnIndex);
-            });
+            }
             if (closestColumnDiff === Infinity) {
-                graphNode.linksBefore.forEach((link) => {
+                for (const link of graphNode.linksBefore) {
                     const node = link.node as EnhancedNodeGraphEntry;
                     closestColumnDiff = Math.min(closestColumnDiff, graphNode.columnIndex - node.columnIndex);
-                });
+                }
             }
             graphNode.closestColumnDiff = closestColumnDiff;
 
             // Add ghost nodes into spaces within columns through which the link must pass, to reduce crossovers
-            graphNode.linksAfter.forEach((link) => {
+            for (const link of graphNode.linksAfter) {
                 const node = link.node as EnhancedNodeGraphEntry;
 
-                if (node.columnIndex <= graphNode.columnIndex) return;
+                if (node.columnIndex <= graphNode.columnIndex) continue;
 
                 for (let i = node.columnIndex - 1; i > graphNode.columnIndex; i--) {
                     const size = link.link.size;
@@ -264,8 +264,8 @@ export class SankeySeries extends FlowProportionSeries<
                     columns[i].size += size;
                     columns[i].nodes.push(ghostNode);
                 }
-            });
-        });
+            }
+        }
 
         const sizeScale = columns.reduce((acc, { size, nodes }) => {
             const columnSizeScale = (1 - (nodes.length - 1) * (nodeSpacing / seriesRectHeight)) / size;
@@ -292,7 +292,7 @@ export class SankeySeries extends FlowProportionSeries<
 
                 // Ghost nodes ignore the weight of their links, as this is already factored in by the concrete nodes.
                 if ('ghost' in node && node.ghost) {
-                    node.weight = ((node as any).size / column.size) * columnWeights[column.index];
+                    node.weight = ((node).size / column.size) * columnWeights[column.index];
                     continue;
                 }
 
@@ -357,39 +357,39 @@ export class SankeySeries extends FlowProportionSeries<
         let hasNegativeNodeHeight = false;
 
         // Sort links by weight and position their y-coordinates
-        nodeGraph.forEach(({ datum, linksBefore, linksAfter }) => {
+        for (const { datum, linksBefore, linksAfter } of nodeGraph) {
             hasNegativeNodeHeight ||= datum.height < 0;
 
             let y2 = datum.y;
             linksBefore.sort((a, b) => {
-                const aNode = a.node as EnhancedNodeGraphEntry;
-                const bNode = b.node as EnhancedNodeGraphEntry;
+                const aNode = a.node;
+                const bNode = b.node;
 
                 if (aNode.columnIndex < bNode.columnIndex) return -1;
                 if (aNode.columnIndex > bNode.columnIndex) return 1;
 
                 return aNode.weight - bNode.weight;
             });
-            linksBefore.forEach(({ link }) => {
+            for (const { link } of linksBefore) {
                 link.y2 = y2;
                 y2 += link.size * seriesRectHeight * sizeScale;
-            });
+            }
 
             let y1 = datum.y;
             linksAfter.sort((a, b) => {
-                const aNode = a.node as EnhancedNodeGraphEntry;
-                const bNode = b.node as EnhancedNodeGraphEntry;
+                const aNode = a.node;
+                const bNode = b.node;
 
                 if (aNode.columnIndex < bNode.columnIndex) return 1;
                 if (aNode.columnIndex > bNode.columnIndex) return -1;
 
                 return aNode.weight - bNode.weight;
             });
-            linksAfter.forEach(({ link }) => {
+            for (const { link } of linksAfter) {
                 link.y1 = y1;
                 y1 += link.size * seriesRectHeight * sizeScale;
-            });
-        });
+            }
+        }
 
         if (hasNegativeNodeHeight) {
             Logger.warnOnce(
@@ -404,14 +404,14 @@ export class SankeySeries extends FlowProportionSeries<
         const measurer = cachedTextMeasurer(this.properties.label);
 
         // Create nodeData with midpoints and create the labels
-        columns.forEach((column, index) => {
+        for (const [index, column] of columns.entries()) {
             const leading = index === 0;
             const trailing = index === columns.length - 1;
 
             let bottom = -Infinity;
             column.nodes.sort((a, b) => a.datum.y - b.datum.y);
-            column.nodes.forEach(({ datum: node }) => {
-                if (!('label' in node)) return;
+            for (const { datum: node } of column.nodes) {
+                if (!('label' in node)) continue;
 
                 node.midPoint = {
                     x: node.x + node.width / 2,
@@ -419,7 +419,7 @@ export class SankeySeries extends FlowProportionSeries<
                 };
                 nodeData.push(node);
 
-                if (node.label == null) return;
+                if (node.label == null) continue;
 
                 const x = leading ? node.x - labelSpacing : node.x + node.width + labelSpacing;
                 const y = node.y + node.height / 2;
@@ -429,13 +429,13 @@ export class SankeySeries extends FlowProportionSeries<
                     const y1 = y - lineHeight;
                     const y2 = y + lineHeight;
                     let maxX = seriesRectWidth;
-                    nodeGraph.forEach(({ datum }) => {
+                    for (const { datum } of nodeGraph) {
                         const intersectsLabel =
                             datum.x > node.x && Math.max(datum.y, y1) <= Math.min(datum.y + datum.height, y2);
                         if (intersectsLabel) {
                             maxX = Math.min(maxX, datum.x - labelSpacing);
                         }
-                    });
+                    }
                     const maxWidth = maxX - node.x - 2 * labelSpacing;
                     text = wrapText(node.label, {
                         maxWidth,
@@ -454,7 +454,7 @@ export class SankeySeries extends FlowProportionSeries<
                         textWrap: 'never',
                     });
                 }
-                if (text === '') return;
+                if (text === '') continue;
 
                 const { height } = measurer.measureLines(text);
                 const y0 = y - height / 2;
@@ -464,11 +464,11 @@ export class SankeySeries extends FlowProportionSeries<
                     labelData.push({ x, y, leading, text, size: node.size });
                     bottom = y1;
                 }
-            });
-        });
+            }
+        }
 
         // Create the links nodeData
-        links.forEach((link) => {
+        for (const link of links) {
             const { fromNode, toNode, size } = link;
             link.height = seriesRectHeight * size * sizeScale;
             link.x1 = fromNode.x + nodeWidth;
@@ -479,7 +479,7 @@ export class SankeySeries extends FlowProportionSeries<
             };
 
             nodeData.push(link);
-        });
+        }
 
         return {
             itemId: seriesId,

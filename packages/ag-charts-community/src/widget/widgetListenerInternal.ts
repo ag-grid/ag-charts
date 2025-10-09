@@ -147,7 +147,7 @@ export class WidgetListenerInternal {
     }
 
     private startMouseDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
-        const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
+        const origin: DragOrigin = { pageX: Number.NaN, pageY: Number.NaN, offsetX: Number.NaN, offsetY: Number.NaN };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialDownEvent);
 
         const dragCallbacks: MouseDragCallbacks = {
@@ -186,7 +186,7 @@ export class WidgetListenerInternal {
     }
 
     private startOneFingerTouch<T extends Targetable>(current: T, initialEvent: TouchEvent, initialTouch: Touch) {
-        const origin: DragOrigin = { pageX: NaN, pageY: NaN, ...getTouchOffsets(current, initialTouch) };
+        const origin: DragOrigin = { pageX: Number.NaN, pageY: Number.NaN, ...getTouchOffsets(current, initialTouch) };
         partialAssign(['pageX', 'pageY'], origin, initialTouch);
 
         const dragCallbacks: TouchDragCallbacks = {

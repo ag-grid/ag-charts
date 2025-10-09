@@ -126,7 +126,7 @@ export class CategoryAxis<
         const firstTick = ticks[0];
         const firstFillOffCanvas = firstTick.translation > range[0] + scale.step / 2;
 
-        const lastTick = ticks[ticks.length - 1];
+        const lastTick = ticks.at(-1);
         const lastFillOffCanvas = horizontal && lastTick.translation < range[1] - scale.step / 2;
 
         if (firstFillOffCanvas) {

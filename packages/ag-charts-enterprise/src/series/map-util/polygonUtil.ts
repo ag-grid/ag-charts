@@ -8,10 +8,10 @@ export function polygonBbox(
     polygon: _ModuleSupport.Position[],
     into: _ModuleSupport.LonLatBBox | undefined
 ): _ModuleSupport.LonLatBBox | undefined {
-    polygon.forEach((coordinates) => {
+    for (const coordinates of polygon) {
         const [lon, lat] = coordinates;
         into = LonLatBBox.extend(into, lon, lat, lon, lat);
-    });
+    }
 
     return into;
 }
@@ -22,7 +22,7 @@ export function polygonCentroid(polygon: _ModuleSupport.Position[]): _ModuleSupp
     let x = 0;
     let y = 0;
     let k = 0;
-    let [x0, y0] = polygon[polygon.length - 1];
+    let [x0, y0] = polygon.at(-1);
 
     for (const [x1, y1] of polygon) {
         const c = x0 * y1 - x1 * y0;
@@ -45,7 +45,7 @@ export function polygonDistance(polygons: _ModuleSupport.Position[][], x: number
     let minDistanceSquared = Infinity;
 
     for (const polygon of polygons) {
-        let p0 = polygon[polygon.length - 1];
+        let p0 = polygon.at(-1);
         let [x0, y0] = p0;
 
         for (const p1 of polygon) {

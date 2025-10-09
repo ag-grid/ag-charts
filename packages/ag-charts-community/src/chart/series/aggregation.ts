@@ -130,7 +130,7 @@ export function aggregationRangeFittingPoints(
 export function aggregationDomain(scale: ScaleType, domain: any[]): [number, number] {
     switch (scale) {
         case 'category':
-            return [NaN, NaN];
+            return [Number.NaN, Number.NaN];
         case 'number':
         case 'time':
         case 'ordinal-time':
@@ -189,7 +189,7 @@ export function createAggregationIndices(
     // NOTE: This function has been aggressively optimized for performance over readability, please
     // take care not to undo optimizations when making changes here.
     const indexData = new Int32Array(maxRange * AGGREGATION_SPAN).fill(-1);
-    const valueData = new Float64Array(maxRange * AGGREGATION_SPAN).fill(NaN);
+    const valueData = new Float64Array(maxRange * AGGREGATION_SPAN).fill(Number.NaN);
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
 
@@ -200,13 +200,13 @@ export function createAggregationIndices(
     // Cache for current bucket to reduce array access overhead
     let lastAggIndex = -1;
     let cachedXMinIndex = -1;
-    let cachedXMinValue = NaN;
+    let cachedXMinValue = Number.NaN;
     let cachedXMaxIndex = -1;
-    let cachedXMaxValue = NaN;
+    let cachedXMaxValue = Number.NaN;
     let cachedYMinIndex = -1;
-    let cachedYMinValue = NaN;
+    let cachedYMinValue = Number.NaN;
     let cachedYMaxIndex = -1;
-    let cachedYMaxValue = NaN;
+    let cachedYMaxValue = Number.NaN;
 
     const flushCache = (aggIndex: number) => {
         // NOTE: Access order makes a performance difference here - do not change.
@@ -250,11 +250,11 @@ export function createAggregationIndices(
         let yMax: number;
         let yMin: number;
         if (yNeedsValueOf) {
-            yMax = yMaxValue != null ? yMaxValue.valueOf() : NaN;
-            yMin = yMinValue != null ? yMinValue.valueOf() : NaN;
+            yMax = yMaxValue != null ? yMaxValue.valueOf() : Number.NaN;
+            yMin = yMinValue != null ? yMinValue.valueOf() : Number.NaN;
         } else {
-            yMax = yMaxValue ?? NaN;
-            yMin = yMinValue ?? NaN;
+            yMax = yMaxValue ?? Number.NaN;
+            yMin = yMinValue ?? Number.NaN;
         }
 
         // Early continue for positive check

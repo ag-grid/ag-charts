@@ -139,7 +139,7 @@ describe('Tooltip', () => {
             chart = await createChart({
                 data: [
                     { x: 'Q1', a: 22, b: 25, L: 3.4 },
-                    { x: 'Q2', a: 18, b: 13, L: 4.0 },
+                    { x: 'Q2', a: 18, b: 13, L: 4 },
                 ],
                 series: [
                     { type: 'bar', xKey: 'x', yKey: 'a' },

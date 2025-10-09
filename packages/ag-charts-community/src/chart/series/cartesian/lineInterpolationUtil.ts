@@ -65,7 +65,7 @@ function toAxisValue(value: any) {
 }
 
 export function scale(val: number | string | Date, scaling?: Scaling) {
-    if (!scaling) return NaN;
+    if (!scaling) return Number.NaN;
 
     if (val instanceof Date) {
         val = val.getTime();
@@ -77,7 +77,7 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     if (scaling.type === 'log' && typeof val === 'number') {
         return scaling.convert(val);
     }
-    if (scaling.type !== 'category') return NaN;
+    if (scaling.type !== 'category') return Number.NaN;
 
     // Category axis case.
     const axisValue = toAxisValue(val);
@@ -91,7 +91,7 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     }
 
     // We failed to convert using the scale.
-    return NaN;
+    return Number.NaN;
 }
 
 interface ValueEntry {

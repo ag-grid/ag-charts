@@ -197,11 +197,11 @@ export class MapMarkerSeries
             this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
-        topology?.features.forEach((feature) => {
+        for (const feature of topology?.features) {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null) return;
+            if (property == null) continue;
             featureById.set(property, feature);
-        });
+        }
 
         const sizeScaleType = this.sizeScale.type;
         const colorScaleType = this.colorScale.type;
@@ -384,7 +384,7 @@ export class MapMarkerSeries
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idValues != null && featureValues != null) {
             projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-            processedData.dataSources.get(this.id)?.data.forEach((_datum, datumIndex) => {
+            for (const [datumIndex, _datum] of processedData.dataSources.get(this.id)?.data.entries()) {
                 const id: string | undefined = idValues[datumIndex];
                 const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
                 const projectedGeometry =
@@ -392,14 +392,14 @@ export class MapMarkerSeries
                 if (id != null && projectedGeometry != null) {
                     projectedGeometries!.set(id, projectedGeometry);
                 }
-            });
+            }
         }
 
         const nodeData: MapMarkerNodeDatum[] = [];
         const labelData: MapMarkerNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const idValue = idValues?.[datumIndex];
             const lonValue = lonValues?.[datumIndex];
             const latValue = latValues?.[datumIndex];
@@ -440,7 +440,7 @@ export class MapMarkerSeries
                     style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
                 });
             } else if (projectedGeometry != null) {
-                markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
+                for (const [index, [x, y]] of markerPositions(projectedGeometry, 1).entries()) {
                     const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, measurer);
                     if (labelDatum) {
                         labelData.push(labelDatum);
@@ -463,9 +463,9 @@ export class MapMarkerSeries
                         legendItemName,
                         style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
                     });
-                });
+                }
             }
-        });
+        }
 
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
@@ -716,7 +716,7 @@ export class MapMarkerSeries
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
 
-        this.contextNodeData?.nodeData.forEach((datum) => {
+        for (const datum of this.contextNodeData?.nodeData) {
             const { x, y, size } = datum.point;
             const dx = Math.max(Math.abs(x - x0) - size, 0);
             const dy = Math.max(Math.abs(y - y0) - size, 0);
@@ -725,7 +725,7 @@ export class MapMarkerSeries
                 minDistanceSquared = distanceSquared;
                 minDatum = datum;
             }
-        });
+        }
 
         return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
@@ -736,7 +736,7 @@ export class MapMarkerSeries
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData);
             const colorValue = colorValues[datumIndex];
             fill = this.colorScale.convert(colorValue);
         }
@@ -757,7 +757,7 @@ export class MapMarkerSeries
 
     override getLegendData(
         legendType: _ModuleSupport.ChartLegendType
-    ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
+    ): _ModuleSupport.CategoryLegendDatum[]   {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
 

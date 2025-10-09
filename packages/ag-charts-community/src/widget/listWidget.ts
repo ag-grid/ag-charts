@@ -13,7 +13,7 @@ export class ListWidget extends RovingTabContainerWidget<TChildWidget> {
     }
 
     protected override destructor(): void {
-        this.children.forEach((c) => c.getElement().parentElement!.remove());
+        for (const c of this.children) c.getElement().parentElement!.remove();
     }
 
     protected override addChildToDOM(child: TChildWidget, before: BeforeWidget<TChildWidget> | undefined) {

@@ -256,10 +256,10 @@ export abstract class FlowProportionSeries<
                 };
             };
 
-            linksDataModel.processedData.dataSources.get(this.id)?.data.forEach((_datum, datumIndex) => {
+            for (const [datumIndex, _datum] of linksDataModel.processedData.dataSources.get(this.id)?.data.entries()) {
                 const fromId = fromIdValues[datumIndex];
                 const toId = toIdValues[datumIndex];
-                if (fromId == null || toId == null) return;
+                if (fromId == null || toId == null) continue;
 
                 if (!processedNodes.has(fromId)) {
                     processedNodes.set(fromId, createImplicitNode(fromId));
@@ -268,7 +268,7 @@ export abstract class FlowProportionSeries<
                 if (!processedNodes.has(toId)) {
                     processedNodes.set(toId, createImplicitNode(toId));
                 }
-            });
+            }
         } else {
             const nodeIdValues = nodesDataModel.dataModel.resolveColumnById<string>(
                 this,
@@ -284,7 +284,7 @@ export abstract class FlowProportionSeries<
                       )
                     : undefined;
 
-            nodesDataModel.processedData.dataSources.get(this.id)?.data.forEach((datum, datumIndex) => {
+            for (const [datumIndex, datum] of nodesDataModel.processedData.dataSources.get(this.id)?.data.entries()) {
                 const id: string = nodeIdValues[datumIndex];
                 const label: string | undefined = labelValues?.[datumIndex];
 
@@ -308,7 +308,7 @@ export abstract class FlowProportionSeries<
                         false
                     ),
                 });
-            });
+            }
         }
 
         this.processedNodes = processedNodes;
@@ -355,19 +355,19 @@ export abstract class FlowProportionSeries<
                 : undefined;
 
         const nodesById = new Map<string, TNodeDatum>();
-        this.processedNodes.forEach((datum) => {
+        for (const datum of this.processedNodes) {
             const node = createNode(datum);
             nodesById.set(datum.id, node);
-        });
+        }
 
         const baseLinks: TLinkDatum[] = [];
-        linksProcessedData.dataSources.get(this.id)?.data.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of linksProcessedData.dataSources.get(this.id)?.data.entries()) {
             const fromId: string = fromIdValues[datumIndex];
             const toId: string = toIdValues[datumIndex];
             const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;
             const fromNode = nodesById.get(fromId);
             const toNode = nodesById.get(toId);
-            if (size <= 0 || fromNode == null || toNode == null) return;
+            if (size <= 0 || fromNode == null || toNode == null) continue;
 
             const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
 
@@ -388,7 +388,7 @@ export abstract class FlowProportionSeries<
                 ),
             });
             baseLinks.push(link);
-        });
+        }
 
         const { links, nodeGraph, maxPathLength } = computeNodeGraph(
             nodesById.values(),
@@ -396,10 +396,10 @@ export abstract class FlowProportionSeries<
             includeCircularReferences
         );
 
-        nodeGraph.forEach((node) => {
+        for (const node of nodeGraph) {
             node.datum.linksBefore = node.linksBefore.map((linkedNode) => linkedNode.link);
             node.datum.linksAfter = node.linksAfter.map((linkedNode) => linkedNode.link);
-        });
+        }
 
         this.nodeCount = nodeGraph.size;
         this.linkCount = links.length;
@@ -553,7 +553,7 @@ export abstract class FlowProportionSeries<
     }
 
     override dataCount(): number {
-        return NaN; // Not used
+        return Number.NaN; // Not used
     }
 
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -564,7 +564,7 @@ export abstract class FlowProportionSeries<
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     protected legendItemSymbol(
@@ -686,10 +686,10 @@ export abstract class FlowProportionSeries<
             if (nextIndex >= 0 && nextIndex < allLinks.length) {
                 nextNodeDatum = allLinks[nextIndex];
             } else if (nextIndex > 0) {
-                nextNodeDatum = allLinks[allLinks.length - 1];
+                nextNodeDatum = allLinks.at(-1);
             } else {
                 const allNodes = Array.from(this.nodeSelection, (node) => node.datum);
-                nextNodeDatum = allNodes[allNodes.length - 1];
+                nextNodeDatum = allNodes.at(-1);
             }
         } else if (currentNodeDatum?.type === FlowProportionDatumType.Node) {
             const allNodes = Array.from(this.nodeSelection, (node) => node.datum);

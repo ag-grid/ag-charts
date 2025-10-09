@@ -46,12 +46,12 @@ function isRangeOverlapping(centerA: number, radiusA: number, centerB: number, r
 export class ZoomTwoFingers {
     private readonly touchStart: ZoomTwoFingersTouchStart = {
         origins: [
-            { identifier: 0, normalX: NaN, normalY: NaN },
-            { identifier: 0, normalX: NaN, normalY: NaN },
+            { identifier: 0, normalX: Number.NaN, normalY: Number.NaN },
+            { identifier: 0, normalX: Number.NaN, normalY: Number.NaN },
         ],
     };
     private readonly initialZoom: DefinedZoomState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
-    private readonly previous = { a1: NaN, a2: NaN, b1: NaN, b2: NaN };
+    private readonly previous = { a1: Number.NaN, a2: Number.NaN, b1: Number.NaN, b2: Number.NaN };
 
     start(event: _Widget.TouchWidgetEvent<'touchstart'>, target: _Widget.Widget, zoom: AxisZoomState): boolean {
         if (event.sourceEvent.targetTouches.length !== 2) return false;
@@ -64,12 +64,12 @@ export class ZoomTwoFingers {
         this.initialZoom.x.max = zoom.x?.max ?? 1;
         this.initialZoom.y.min = zoom.y?.min ?? 0;
         this.initialZoom.y.max = zoom.y?.max ?? 1;
-        this.touchStart.origins.forEach((t) => (t.identifier = 0));
+        for (const t of this.touchStart.origins) (t.identifier = 0);
 
-        this.previous.a1 = NaN;
-        this.previous.a2 = NaN;
-        this.previous.b1 = NaN;
-        this.previous.b2 = NaN;
+        this.previous.a1 = Number.NaN;
+        this.previous.a2 = Number.NaN;
+        this.previous.b1 = Number.NaN;
+        this.previous.b2 = Number.NaN;
         for (const i of [0, 1]) {
             const a = targetTouches[i].clientX;
             const b = Ry + Rh - targetTouches[i].clientY;

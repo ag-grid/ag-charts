@@ -133,11 +133,11 @@ export class MapLineSeries extends TopologySeries<
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } = this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
-        topology?.features.forEach((feature) => {
+        for (const feature of topology?.features) {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null || !containsType(feature.geometry, GeometryType.LineString)) return;
+            if (property == null || !containsType(feature.geometry, GeometryType.LineString)) continue;
             featureById.set(property, feature);
-        });
+        }
 
         const sizeScaleType = this.sizeScale.type;
         const colorScaleType = this.colorScale.type;
@@ -279,20 +279,20 @@ export class MapLineSeries extends TopologySeries<
         const measurer = cachedTextMeasurer(label);
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-        processedData.dataSources.get(this.id)?.data.forEach((_datum, datumIndex) => {
+        for (const [datumIndex, _datum] of processedData.dataSources.get(this.id)?.data.entries()) {
             const id: string | undefined = idValues[datumIndex];
             const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
             if (id != null && projectedGeometry != null) {
                 projectedGeometries.set(id, projectedGeometry);
             }
-        });
+        }
 
         const nodeData: MapLineNodeDatum[] = [];
         const labelData: MapLineNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const idValue = idValues[datumIndex];
             const colorValue = colorValues?.[datumIndex];
             const sizeValue = sizeValues?.[datumIndex];
@@ -321,7 +321,7 @@ export class MapLineSeries extends TopologySeries<
                 legendItemName,
                 style: this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
             });
-        });
+        }
 
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
@@ -558,7 +558,7 @@ export class MapLineSeries extends TopologySeries<
 
         let { stroke } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData);
             const colorValue = colorValues[datumIndex];
             stroke = this.colorScale.convert(colorValue);
         }
@@ -585,7 +585,7 @@ export class MapLineSeries extends TopologySeries<
 
     override getLegendData(
         legendType: _ModuleSupport.ChartLegendType
-    ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
+    ): _ModuleSupport.CategoryLegendDatum[]   {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
 

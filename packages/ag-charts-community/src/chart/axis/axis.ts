@@ -161,16 +161,16 @@ export abstract class Axis<
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
         const { CrossLineConstructor } = this.constructor as typeof Axis;
-        this._crossLines.forEach((crossLine) => this.detachCrossLine(crossLine));
+        for (const crossLine of this._crossLines) this.detachCrossLine(crossLine);
         this._crossLines = value.map((crossLine) => {
             const instance = new CrossLineConstructor();
             instance.set(crossLine);
             return instance;
         });
-        this._crossLines.forEach((crossLine) => {
+        for (const crossLine of this._crossLines) {
             this.attachCrossLine(crossLine);
             this.initCrossLine(crossLine);
-        });
+        }
     }
     get crossLines() {
         return this._crossLines;
@@ -306,7 +306,7 @@ export abstract class Axis<
         readonly scale: S
     ) {
         this.range = this.scale.range.slice() as [number, number];
-        this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
+        for (const crossLine of this.crossLines) this.initCrossLine(crossLine);
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e))
         );
@@ -345,9 +345,9 @@ export abstract class Axis<
     }
 
     private detachCrossLine(crossLine: CrossLine) {
-        this.crossLineRangeGroup.removeChild(crossLine.rangeGroup);
-        this.crossLineLineGroup.removeChild(crossLine.lineGroup);
-        this.crossLineLabelGroup.removeChild(crossLine.labelGroup);
+        crossLine.rangeGroup.remove();
+        crossLine.lineGroup.remove();
+        crossLine.labelGroup.remove();
     }
 
     destroy() {
@@ -370,9 +370,9 @@ export abstract class Axis<
         } = this;
 
         this.setScaleRange(this.visibleRange);
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
             crossLine.clippedRange = [r0, r1];
-        });
+        }
     }
 
     setCrossLinesVisible(visible: boolean) {
@@ -391,12 +391,12 @@ export abstract class Axis<
     }
 
     detachAxis(groups: AxisGroups) {
-        groups.gridNode.removeChild(this.gridGroup);
-        groups.axisNode.removeChild(this.axisGroup);
-        groups.labelNode.removeChild(this.labelGroup);
-        groups.crossLineRangeNode.removeChild(this.crossLineRangeGroup);
-        groups.crossLineLineNode.removeChild(this.crossLineLineGroup);
-        groups.crossLineLabelNode.removeChild(this.crossLineLabelGroup);
+        this.gridGroup.remove();
+        this.axisGroup.remove();
+        this.labelGroup.remove();
+        this.crossLineRangeGroup.remove();
+        this.crossLineLineGroup.remove();
+        this.crossLineLabelGroup.remove();
     }
 
     attachLabel(axisLabelNode: Node) {
@@ -436,7 +436,7 @@ export abstract class Axis<
         if (prevValue ^ value) {
             this.onGridVisibilityChange();
         }
-        this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
+        for (const crossLine of this.crossLines) this.initCrossLine(crossLine);
     }
 
     protected onGridVisibilityChange() {}
@@ -691,9 +691,9 @@ export abstract class Axis<
 
     protected updateCrossLines() {
         const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
             crossLine.update(crosslinesVisible);
-        });
+        }
     }
 
     protected updatePosition() {
@@ -879,7 +879,7 @@ export abstract class Axis<
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams) ??
-            this.label.formatValue(f, formatParams, NaN) ??
+            this.label.formatValue(f, formatParams, Number.NaN) ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);
@@ -959,7 +959,7 @@ export abstract class Axis<
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);
-                    seriesKeys.forEach((key) => keys.add(key));
+                    for (const key of seriesKeys) keys.add(key);
                     return keys;
                 }, new Set<string>()),
             seriesIds: () => this.boundSeries.map((series) => series.id),

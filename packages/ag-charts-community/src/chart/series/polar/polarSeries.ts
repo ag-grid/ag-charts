@@ -71,7 +71,7 @@ export abstract class PolarSeries<
 
     protected itemGroup = this.contentGroup.appendChild(new Group());
     public getItemNodes(): TNode[] {
-        return [...this.itemGroup.children()] as TNode[];
+        return [...this.itemGroup.children()];
     }
 
     protected nodeData: TDatum[] = [];
@@ -287,7 +287,7 @@ export abstract class PolarSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, legendItemValues?: string[]) {

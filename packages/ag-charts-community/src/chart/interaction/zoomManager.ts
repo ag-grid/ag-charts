@@ -219,7 +219,7 @@ export class ZoomManager extends BaseManager {
         }
 
         if (this.state.size > 0 && axes.length > 0) {
-            this.updateZoom(this.state.stateId()!, this.state.stateValue());
+            this.updateZoom(this.state.stateId(), this.state.stateValue());
         }
     }
 
@@ -282,9 +282,9 @@ export class ZoomManager extends BaseManager {
             this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
         }
 
-        this.axisZoomManagers.forEach((axis) => {
+        for (const axis of this.axisZoomManagers) {
             axis.updateZoom(callerId, newZoom?.[axis.direction]);
-        });
+        }
 
         this.applyChanges(callerId);
     }
@@ -410,13 +410,13 @@ export class ZoomManager extends BaseManager {
         let y: ZoomState | undefined;
 
         // Use the zoom on the primary (first) axis in each direction
-        this.axisZoomManagers.forEach((axis) => {
+        for (const axis of this.axisZoomManagers) {
             if (axis.direction === ChartAxisDirection.X) {
                 x ??= axis.getZoom();
             } else if (axis.direction === ChartAxisDirection.Y) {
                 y ??= axis.getZoom();
             }
-        });
+        }
 
         if (x || y) {
             return { x, y };
@@ -880,7 +880,7 @@ class AxisZoomManager {
     }
 
     public getZoom() {
-        return deepClone(this.state.stateValue()!);
+        return deepClone(this.state.stateValue());
     }
 
     public hasChanges(): boolean {

@@ -12,7 +12,7 @@ export class Background extends _ModuleSupport.Background<Image> {
             image.onLoad = () => this.onImageLoad();
         },
         oldValue(image: Image) {
-            this.node.removeChild(image.node);
+            image.node.remove();
             image.onLoad = undefined;
         },
     })

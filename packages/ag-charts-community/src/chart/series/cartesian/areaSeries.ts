@@ -190,9 +190,9 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override detachPaths([fill, stroke]: Path[]) {
-        this.backgroundGroup.removeChild(fill);
+        fill.remove();
 
-        this.contentGroup.removeChild(stroke);
+        stroke.remove();
     }
 
     private isStacked() {
@@ -346,7 +346,7 @@ export class AreaSeries extends CartesianSeries<
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const [y0, y1] = this.domainForVisibleRange(
             ChartAxisDirection.Y,
-            [this.yCumulativeKey(this.processedData!)],
+            [this.yCumulativeKey(this.processedData)],
             'xValue',
             visibleRange
         );
@@ -360,7 +360,7 @@ export class AreaSeries extends CartesianSeries<
     ): { x: [number, number]; y: [number, number] | undefined } | undefined {
         return this.zoomFittingVisibleItems(
             'xValue',
-            [this.yCumulativeKey(this.processedData!)],
+            [this.yCumulativeKey(this.processedData)],
             xVisibleRange,
             yVisibleRange,
             minVisibleItems
@@ -374,7 +374,7 @@ export class AreaSeries extends CartesianSeries<
     ): number {
         return this.countVisibleItems(
             'xValue',
-            [this.yCumulativeKey(this.processedData!)],
+            [this.yCumulativeKey(this.processedData)],
             xVisibleRange,
             yVisibleRange,
             minVisibleItems
@@ -675,7 +675,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         if (topSpanPoints.length !== 0) {
-            const previousStack = topStack[topStack.length - 1];
+            const previousStack = topStack.at(-1);
             const trailingIndex = startIndex + topStack.length;
             const trailingPoint: LineSpanPointDatum = {
                 point: {
@@ -873,7 +873,7 @@ export class AreaSeries extends CartesianSeries<
             this.properties.segmentation,
             xAxis,
             yAxis,
-            this.chart!.seriesRect!,
+            this.chart!.seriesRect,
             this.ctx.scene,
             false
         );
@@ -1025,8 +1025,8 @@ export class AreaSeries extends CartesianSeries<
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
                 const params = this.makeItemStylerParams(
-                    this.dataModel!,
-                    this.processedData!,
+                    this.dataModel,
+                    this.processedData,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
@@ -1430,8 +1430,8 @@ export class AreaSeries extends CartesianSeries<
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
         const stylerStyle = this.getStyle(false);
         const params = this.makeItemStylerParams(
-            this.dataModel!,
-            this.processedData!,
+            this.dataModel,
+            this.processedData,
             datum.datumIndex,
             stylerStyle.marker
         );

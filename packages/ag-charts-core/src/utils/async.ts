@@ -25,7 +25,7 @@ export class AsyncAwaitQueue {
 
     /** Trigger any await()ing async processes to continue. */
     public notify() {
-        this.queue.splice(0).forEach((cb) => cb());
+        for (const cb of this.queue.splice(0)) cb();
     }
 }
 

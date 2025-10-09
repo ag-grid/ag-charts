@@ -37,9 +37,9 @@ describe('RadarLineSeries', () => {
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
         data: [
-            { subject: 'Maths', gradeA: 7.0, gradeB: 4.2 },
+            { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
             { subject: 'Physics', gradeA: 4.3, gradeB: 8.5 },
-            { subject: 'Biology', gradeA: 3.0, gradeB: 3.0 },
+            { subject: 'Biology', gradeA: 3, gradeB: 3 },
             { subject: 'History', gradeA: 6.5, gradeB: 4.3 },
             { subject: 'P.E.', gradeA: 9.8, gradeB: 6.4 },
         ],
@@ -151,9 +151,9 @@ describe('RadarLineSeries', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             data: [
-                { subject: 'Maths', gradeA: 7.0, gradeB: 4.2 },
+                { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
                 { subject: 'Physics', gradeA: undefined, gradeB: 8.5 },
-                { subject: 'Biology', gradeA: 3.0, gradeB: 3.0 },
+                { subject: 'Biology', gradeA: 3, gradeB: 3 },
                 { subject: 'History', gradeA: 6.5, gradeB: 4.3 },
                 { subject: 'P.E.', gradeA: 9.8, gradeB: 6.4 },
             ],
@@ -172,9 +172,9 @@ describe('RadarLineSeries', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             data: [
-                { subject: 'Maths', gradeA: 7.0, gradeB: 4.2 },
+                { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
                 { subject: 'Physics', gradeA: undefined, gradeB: 8.5 },
-                { subject: 'Biology', gradeA: 3.0, gradeB: 3.0 },
+                { subject: 'Biology', gradeA: 3, gradeB: 3 },
                 { subject: 'History', gradeA: 6.5, gradeB: 4.3 },
                 { subject: 'P.E.', gradeA: 9.8, gradeB: 6.4 },
             ],

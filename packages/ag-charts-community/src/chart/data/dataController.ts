@@ -106,7 +106,7 @@ export class DataController {
                 }
 
                 if (processedData == null) {
-                    rejects.forEach((cb) => cb(new Error(`AG Charts - no processed data generated`)));
+                    for (const cb of rejects) cb(new Error(`AG Charts - no processed data generated`));
                     return;
                 }
 
@@ -124,7 +124,7 @@ export class DataController {
                     resolveResult(dataModel, processedData);
                     return dataModel;
                 } catch (error) {
-                    rejects.forEach((cb) => cb(error));
+                    for (const cb of rejects) cb(error);
                 }
             };
 

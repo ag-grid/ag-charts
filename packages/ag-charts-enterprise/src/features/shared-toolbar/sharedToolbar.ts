@@ -57,7 +57,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
 
         this.cleanup.register(() => {
             if (!this.sharedToolbar) return;
-            this.container.removeChild(this.sharedToolbar.getElement());
+            this.sharedToolbar.getElement().remove();
             this.sharedToolbar.destroy();
             this.sharedToolbar = undefined;
         });
@@ -100,7 +100,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
                         ...sharedEvent,
                         button: this.sectionButtons[section][sectionIndex],
                     };
-                    handler(event as any);
+                    handler(event);
                 });
             },
             updateButtons: (buttons: ButtonOptions[]) => {

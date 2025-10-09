@@ -32,11 +32,11 @@ export class ZoomDOMProxy {
     constructor(private readonly axesHandlers: AxesHandlers) {}
 
     destroy() {
-        this.axes.forEach((a) => a.div.destroy());
+        for (const a of this.axes) a.div.destroy();
     }
 
     update(enableAxisDragging: boolean, enableAxisScrolling: boolean, ctx: _ModuleSupport.ModuleContext) {
-        this.axes.forEach((ax) => ax.div.setHidden(!enableAxisDragging && !enableAxisScrolling));
+        for (const ax of this.axes) ax.div.setHidden(!enableAxisDragging && !enableAxisScrolling);
         if (!enableAxisDragging && !enableAxisScrolling) return;
 
         const { X, Y } = ChartAxisDirection;

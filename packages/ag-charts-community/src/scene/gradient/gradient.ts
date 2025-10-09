@@ -87,14 +87,14 @@ export abstract class Gradient {
         const bbox = this.bbox ?? shapeBbox;
 
         const gradient = this.createSvgGradient(bbox);
-        this.stops.forEach(({ stop: offset, color }) => {
+        for (const { stop: offset, color } of this.stops) {
             const stop = createSvgElement('stop');
 
             stop.setAttribute('offset', `${offset}`);
             stop.setAttribute('stop-color', `${color}`);
 
             gradient.appendChild(stop);
-        });
+        }
         return gradient;
     }
 }
