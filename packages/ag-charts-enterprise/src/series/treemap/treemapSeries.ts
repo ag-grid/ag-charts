@@ -440,7 +440,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const labelStyle = isLeaf ? tile.label : group.label;
             let labelValue: TextOrSegments | undefined;
             if (labelStyle.enabled && datum != null && depth != null && labelKey != null) {
-                const value = (datum)[labelKey];
+                const value = datum[labelKey];
                 labelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
                     value,
                     datum,
@@ -468,7 +468,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             let secondaryLabelValue: TextOrSegments | undefined;
             if (tile.secondaryLabel.enabled && isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
-                const value = (datum)[secondaryLabelKey];
+                const value = datum[secondaryLabelKey];
                 secondaryLabelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
                     value,
                     datum,

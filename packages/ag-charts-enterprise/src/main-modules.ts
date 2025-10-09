@@ -41,16 +41,6 @@ import { WaterfallSeriesModule } from './series/waterfall';
 export const ModuleRegistry = _ModuleSupport.ModuleRegistry;
 
 export {
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     OhlcSeriesModule,
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
@@ -133,9 +123,15 @@ export const AllEnterpriseModules = [
     InitialStateModule,
 ];
 
-export {OrdinalTimeAxisModule, AngleNumberAxisModule, AngleCategoryAxisModule, RadiusNumberAxisModule, RadiusCategoryAxisModule} from './axes/axisModules';
-export {BoxPlotSeriesModule} from './series/box-plot';
-export {CandlestickSeriesModule} from './series/candlestick';
-export {ConeFunnelSeriesModule} from './series/cone-funnel';
-export {FunnelSeriesModule} from './series/funnel';
-export {HeatmapSeriesModule} from './series/heatmap';
+export {
+    OrdinalTimeAxisModule,
+    AngleNumberAxisModule,
+    AngleCategoryAxisModule,
+    RadiusNumberAxisModule,
+    RadiusCategoryAxisModule,
+} from './axes/axisModules';
+export { BoxPlotSeriesModule } from './series/box-plot';
+export { CandlestickSeriesModule } from './series/candlestick';
+export { ConeFunnelSeriesModule } from './series/cone-funnel';
+export { FunnelSeriesModule } from './series/funnel';
+export { HeatmapSeriesModule } from './series/heatmap';

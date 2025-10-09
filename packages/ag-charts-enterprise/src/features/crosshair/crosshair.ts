@@ -85,7 +85,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.eventsHub.on('zoom:change', () => this.onMouseOut()),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
-            () => { for (const label of Object.values(this.labels)) label.destroy() }
+            () => {
+                for (const label of Object.values(this.labels)) {
+                    label.destroy();
+                }
+            }
         );
         if (seriesDragInterpreter) {
             this.cleanup.register(

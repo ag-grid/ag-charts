@@ -133,10 +133,12 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     protected destroySeries(allSeries: _ModuleSupport.UnknownSeries[]): void {
-        if (allSeries) for (const series of allSeries) {
-            series.destroy();
-            series.detachSeries(this.seriesRoot, this.seriesRoot, undefined);
-            series.chart = undefined;
+        if (allSeries) {
+            for (const series of allSeries) {
+                series.destroy();
+                series.detachSeries(this.seriesRoot, this.seriesRoot, undefined);
+                series.chart = undefined;
+            }
         }
     }
 

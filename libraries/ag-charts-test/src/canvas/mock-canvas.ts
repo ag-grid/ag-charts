@@ -1,4 +1,3 @@
- 
 import path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
 import { Canvas, DOMMatrix, ExportFormat, FontLibrary } from 'skia-canvas';
@@ -73,7 +72,7 @@ export class MockContext {
         public width: number,
         public height: number,
         public document: Document,
-        public realCreateElement: Document['createElement'] = document.createElement,
+        public realCreateElement: Document['createElement'] = document.createElement.bind(document),
         public realOffscreenCanvas: typeof globalThis.OffscreenCanvas = globalThis.OffscreenCanvas
     ) {
         const nodeCanvas = new ConfiguredCanvas(width, height);
@@ -143,9 +142,9 @@ function proxyGetContext2D(_mockCtx: MockContext, canvas: Canvas, target: any) {
     if (target.__patched === true) return;
     target.__patched = true;
 
-    const { getContext } = canvas;
+    const getContext = canvas.getContext.bind(canvas);
     target.getContext = (type: '2d') => {
-        const ctx = getContext.call(canvas, type);
+        const ctx = getContext(type);
         return ctx;
     };
 }
@@ -162,13 +161,9 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
     const { width, height, document } = mockCtx;
 
-    if (typeof globalThis.window === 'undefined') {
-        (globalThis as any)['agChartsSceneRenderModel'] = 'composite';
-    } else {
-        (globalThis as any)['agChartsSceneRenderModel'] = 'composite';
-    }
+    (globalThis as any)['agChartsSceneRenderModel'] = 'composite';
 
-    const realCreateElement = document.createElement;
+    const realCreateElement = document.createElement.bind(document);
     mockCtx.realCreateElement = realCreateElement;
 
     (document as any).createElement = (element: any, options: any) => {

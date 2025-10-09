@@ -257,18 +257,17 @@ export class ChordSeries extends FlowProportionSeries<
             ];
 
             let linkAngle = node.startAngle;
-            for (const { link, after } of combinedLinks
-                .toSorted((a, b) => a.distance - b.distance)) {
-                    const linkSweep = link.size * sizeScale;
-                    if (after) {
-                        link.startAngle1 = linkAngle;
-                        link.endAngle1 = linkAngle + linkSweep;
-                    } else {
-                        link.startAngle2 = linkAngle;
-                        link.endAngle2 = linkAngle + linkSweep;
-                    }
-                    linkAngle += link.size * sizeScale;
+            for (const { link, after } of combinedLinks.toSorted((a, b) => a.distance - b.distance)) {
+                const linkSweep = link.size * sizeScale;
+                if (after) {
+                    link.startAngle1 = linkAngle;
+                    link.endAngle1 = linkAngle + linkSweep;
+                } else {
+                    link.startAngle2 = linkAngle;
+                    link.endAngle2 = linkAngle + linkSweep;
                 }
+                linkAngle += link.size * sizeScale;
+            }
 
             nodeData.push(node);
         }

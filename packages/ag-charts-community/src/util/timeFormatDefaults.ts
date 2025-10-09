@@ -61,8 +61,7 @@ export function lowestGranularityUnitForValue(value: Date | number): AgTimeInter
 }
 
 export function dateTruncationForDomain(domain: (Date | number)[]): 'year' | 'month' | 'day' | undefined {
-    const [d0, d1] =
-        domain.length === 0 ? [0, 0] : findMinMax([domain[0].valueOf(), domain.at(-1).valueOf()]);
+    const [d0, d1] = domain.length === 0 ? [0, 0] : findMinMax([domain[0].valueOf(), domain.at(-1).valueOf()]);
     const startYear = new Date(d0).getFullYear();
     const stopYear = new Date(d1).getFullYear();
     if (startYear !== stopYear) return;

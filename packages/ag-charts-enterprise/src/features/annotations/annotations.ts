@@ -229,8 +229,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
-                    if (!isEphemeralType(selectedDatum)) {
-                        optionsToolbar.updateButtons(this.annotationData.at(index));
+                    if (!isEphemeralType(selectedDatum) && index != null) {
+                        const annotationDatum = this.annotationData.at(index);
+                        if (annotationDatum != null) {
+                            optionsToolbar.updateButtons(annotationDatum);
+                        }
                         this.postUpdateFns.push(() => {
                             // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                             // element has a width and height that it can use in the anchor calculations.
@@ -417,7 +420,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         if (props.position) this.defaults.setDefaultLineTextPosition(datum.type, props.position);
                         this.recordActionAfterNextUpdate(
                             `Change ${datum.type} text ${Object.keys(props)
-                                .map((key) => `${key} to ${(props)[key]}`)
+                                .map((key) => `${key} to ${props[key]}`)
                                 .join(', ')}`
                         );
                     },

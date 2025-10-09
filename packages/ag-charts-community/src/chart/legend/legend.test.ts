@@ -82,7 +82,10 @@ function updatePath(pathData: string, path: AgPath, scale: number, x: number, y:
     let x0 = 0;
     let y0 = 0;
     for (const { 1: command, 2: coordinateString } of pathData.matchAll(/([a-z])([^a-z]*)/gi)) {
-        const coordinates = Array.from(coordinateString.matchAll(/([\d.]+)/g), (m) => (Number.parseFloat(m[0]) - 0.5) * scale);
+        const coordinates = Array.from(
+            coordinateString.matchAll(/([\d.]+)/g),
+            (m) => (Number.parseFloat(m[0]) - 0.5) * scale
+        );
 
         const relative = command === command.toLowerCase();
         const dx = relative ? x0 : 0;

@@ -18,7 +18,6 @@ import {
     mouseLeaveEvent,
     mouseMoveEvent,
     mouseUpEvent,
-    
     touchAverage,
     touchEvent,
     wheelEvent,
@@ -37,7 +36,6 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -182,7 +180,7 @@ function isChartInstance(chartOrProxy: ChartOrProxy): chartOrProxy is Chart {
 }
 
 export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
-    return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy).chart as Chart);
+    return isChartInstance(chartOrProxy) ? chartOrProxy : (chartOrProxy.chart as Chart);
 }
 
 export function repeat<T>(value: T, count: number): T[] {
@@ -619,8 +617,6 @@ export function twoFingerEnd(
     ]);
 }
 
-
-
 export async function createChart(options: AgChartOptions<any, any>) {
     options = prepareTestOptions({ ...options });
     const chart = deproxy(AgCharts.create(options) as AgChartProxy);
@@ -641,8 +637,7 @@ export function spyOnAnimationManager() {
         const cbs = [...rafCbs.values()];
         rafCbs.clear();
 
-         
-        await Promise.all(cbs.map((cb) => cb(time)));
+        await Promise.all(cbs.map((cb) => Promise.resolve(cb(time))));
     };
 
     beforeEach(() => {
@@ -672,8 +667,11 @@ export function spyOnAnimationManager() {
             (this as any).requestId = nextRafId++;
 
             const rafId = nextRafId++;
-             
-            rafCbs.set(rafId, cb);
+
+            rafCbs.set(rafId, (timestamp) => {
+                void cb(timestamp);
+            });
+            return rafId;
         });
         mocks.push(skippedMock, forceTimeJumpMock, skippingFramesMock, safMock);
 
@@ -728,5 +726,5 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     return ctx.domManager.getCursor();
 }
 
-export {toMatchImage} from 'ag-charts-test';
-export {CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas} from '../../util/test/mockCanvas';
+export { toMatchImage } from 'ag-charts-test';
+export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';

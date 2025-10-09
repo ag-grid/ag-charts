@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-charts-community';
+import type { AgLinearGaugeOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,

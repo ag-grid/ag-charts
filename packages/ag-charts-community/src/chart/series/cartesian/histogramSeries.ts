@@ -378,15 +378,14 @@ export class HistogramSeries extends CartesianSeries<
                 selectionDatumLabel = {
                     x: x + w / 2,
                     y: y + h / 2,
-                    text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
-                        total,
+                    text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey, 'y', [], label, {
+                        value: total,
                         datum,
+                        xKey,
                         yKey,
-                        'y',
-                        [],
-                        label,
-                        { value: total, datum, xKey, yKey, xName, yName }
-                    ),
+                        xName,
+                        yName,
+                    }),
                 };
             }
 

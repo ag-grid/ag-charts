@@ -390,7 +390,7 @@ export abstract class Axis<
         groups.crossLineLabelNode.appendChild(this.crossLineLabelGroup);
     }
 
-    detachAxis(groups: AxisGroups) {
+    detachAxis(_groups: AxisGroups) {
         this.gridGroup.remove();
         this.axisGroup.remove();
         this.labelGroup.remove();

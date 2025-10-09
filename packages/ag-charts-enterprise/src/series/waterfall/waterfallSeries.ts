@@ -131,11 +131,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return result;
         }, new Map());
 
-        for (const [i, datum] of data?.data.entries()) {
-            dataWithTotals.push(datum);
-            // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
-            // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
-            totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
+        if (data?.data != null) {
+            for (const [i, datum] of data.data.entries()) {
+                dataWithTotals.push(datum);
+                // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
+                // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
+                totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
+            }
         }
 
         const extraProps = [];

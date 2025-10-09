@@ -66,7 +66,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
     const { fill, align, sign = '-', symbol, zero, width, comma, type, prefix = '', suffix = '', precision } = options;
     let { trim } = options;
 
-    const precisionIsNaN = precision == null || isNaN(precision);
+    const precisionIsNaN = precision == null || Number.isNaN(precision);
     let formatBody: (n: number, f: number) => string;
     if (!type) {
         formatBody = decimalTypes['g'];
@@ -108,7 +108,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
         if (type === '%' || type === 'p') {
             result = `${result}%`;
         }
-        if (width != null && !isNaN(width)) {
+        if (width != null && !Number.isNaN(width)) {
             result = addPadding(result, width, fill ?? zero, align);
         }
         result = `${prefix}${result}${suffix}`;

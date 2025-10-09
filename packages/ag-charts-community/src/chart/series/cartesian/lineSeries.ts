@@ -417,8 +417,7 @@ export class LineSeries extends CartesianSeries<
                 });
             }
 
-            const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined =
-                spanPoints.at(-1);
+            const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined = spanPoints.at(-1);
             if (yDatum != null) {
                 const spanPoint: LineSpanPointDatum = {
                     point: { x, y },

@@ -257,7 +257,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             let labelValue: TextOrSegments | undefined;
             if (datum != null && depth != null && labelKey != null) {
-                const value = (datum)[labelKey];
+                const value = datum[labelKey];
                 labelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
                     value,
                     datum,
@@ -285,7 +285,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             let secondaryLabelValue: TextOrSegments | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null) {
-                const value = (datum)[secondaryLabelKey];
+                const value = datum[secondaryLabelKey];
                 secondaryLabelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
                     value,
                     datum,

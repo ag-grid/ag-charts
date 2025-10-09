@@ -8,9 +8,6 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
-    AgColorRepeat,
-    AgImageFillFit,
-    AgPatternName,
     AgSeriesMarkerStyle,
     AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
@@ -499,9 +496,10 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        if (EXAMPLE.series) for (const s of EXAMPLE.series) {
-            (s as AgAreaSeriesOptions).strokeWidth = 2;
-        }
+        if (EXAMPLE.series)
+            for (const s of EXAMPLE.series) {
+                (s as AgAreaSeriesOptions).strokeWidth = 2;
+            }
 
         describe('hide', () => {
             for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
@@ -760,9 +758,10 @@ describe('AreaSeries', () => {
     describe('pattern fill', () => {
         const EXAMPLE = deepClone(examples.SIMPLE_AREA_GRAPH_EXAMPLE);
 
-        if (EXAMPLE.series) for (const s of EXAMPLE.series) {
-            (s as AgAreaSeriesOptions).normalizedTo = 100;
-        }
+        if (EXAMPLE.series)
+            for (const s of EXAMPLE.series) {
+                (s as AgAreaSeriesOptions).normalizedTo = 100;
+            }
 
         it.each([
             'vertical-lines',
@@ -861,59 +860,53 @@ describe('AreaSeries', () => {
     describe('image fill', () => {
         const EXAMPLE = deepClone(examples.SIMPLE_AREA_GRAPH_EXAMPLE);
 
-        it.each(['repeat', 'no-repeat'])(
-            'it should create a chart with repeat %s image',
-            async (repetition) => {
-                const series = (EXAMPLE.series as AgAreaSeriesOptions[])[0];
-                const options: AgChartOptions = {
-                    ...EXAMPLE,
-                    series: [
-                        {
-                            ...series,
-                            normalizedTo: 100,
-                            fillOpacity: 1,
-                            fill: {
-                                type: 'image',
-                                url: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
-                                width: 50,
-                                height: 50,
-                                repeat: repetition,
-                            },
+        it.each(['repeat', 'no-repeat'])('it should create a chart with repeat %s image', async (repetition) => {
+            const series = (EXAMPLE.series as AgAreaSeriesOptions[])[0];
+            const options: AgChartOptions = {
+                ...EXAMPLE,
+                series: [
+                    {
+                        ...series,
+                        normalizedTo: 100,
+                        fillOpacity: 1,
+                        fill: {
+                            type: 'image',
+                            url: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                            width: 50,
+                            height: 50,
+                            repeat: repetition,
                         },
-                    ],
-                };
-                prepareTestOptions(options);
+                    },
+                ],
+            };
+            prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await compare(PATTERN_SNAPSHOT_DEFAULTS);
-            }
-        );
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
 
-        it.each(['contain', 'cover', 'stretch', 'none'])(
-            'it should create a chart with fit %s image',
-            async (fit) => {
-                const series = (EXAMPLE.series as AgAreaSeriesOptions[])[0];
-                const options: AgChartOptions = {
-                    ...EXAMPLE,
-                    series: [
-                        {
-                            ...series,
-                            normalizedTo: 100,
-                            fillOpacity: 1,
-                            fill: {
-                                type: 'image',
-                                url: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/ag-grid-logomark.png`,
-                                fit,
-                            },
+        it.each(['contain', 'cover', 'stretch', 'none'])('it should create a chart with fit %s image', async (fit) => {
+            const series = (EXAMPLE.series as AgAreaSeriesOptions[])[0];
+            const options: AgChartOptions = {
+                ...EXAMPLE,
+                series: [
+                    {
+                        ...series,
+                        normalizedTo: 100,
+                        fillOpacity: 1,
+                        fill: {
+                            type: 'image',
+                            url: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/ag-grid-logomark.png`,
+                            fit,
                         },
-                    ],
-                };
-                prepareTestOptions(options);
+                    },
+                ],
+            };
+            prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await compare(PATTERN_SNAPSHOT_DEFAULTS);
-            }
-        );
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
     });
 
     describe('item styler', () => {

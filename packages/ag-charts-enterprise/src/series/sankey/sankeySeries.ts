@@ -292,7 +292,7 @@ export class SankeySeries extends FlowProportionSeries<
 
                 // Ghost nodes ignore the weight of their links, as this is already factored in by the concrete nodes.
                 if ('ghost' in node && node.ghost) {
-                    node.weight = ((node).size / column.size) * columnWeights[column.index];
+                    node.weight = (node.size / column.size) * columnWeights[column.index];
                     continue;
                 }
 

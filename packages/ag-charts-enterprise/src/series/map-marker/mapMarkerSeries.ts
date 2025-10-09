@@ -197,10 +197,12 @@ export class MapMarkerSeries
             this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
-        for (const feature of topology?.features) {
-            const property = feature.properties?.[topologyIdKey];
-            if (property == null) continue;
-            featureById.set(property, feature);
+        if (topology?.features != null) {
+            for (const feature of topology.features) {
+                const property = feature.properties?.[topologyIdKey];
+                if (property == null) continue;
+                featureById.set(property, feature);
+            }
         }
 
         const sizeScaleType = this.sizeScale.type;
@@ -384,13 +386,16 @@ export class MapMarkerSeries
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idValues != null && featureValues != null) {
             projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-            for (const [datumIndex, _datum] of processedData.dataSources.get(this.id)?.data.entries()) {
-                const id: string | undefined = idValues[datumIndex];
-                const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
-                const projectedGeometry =
-                    geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
-                if (id != null && projectedGeometry != null) {
-                    projectedGeometries!.set(id, projectedGeometry);
+            const dataSource = processedData.dataSources.get(this.id);
+            if (dataSource?.data != null) {
+                for (const [datumIndex, _datum] of dataSource.data.entries()) {
+                    const id: string | undefined = idValues[datumIndex];
+                    const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
+                    const projectedGeometry =
+                        geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
+                    if (id != null && projectedGeometry != null) {
+                        projectedGeometries.set(id, projectedGeometry);
+                    }
                 }
             }
         }
@@ -716,14 +721,17 @@ export class MapMarkerSeries
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
 
-        for (const datum of this.contextNodeData?.nodeData) {
-            const { x, y, size } = datum.point;
-            const dx = Math.max(Math.abs(x - x0) - size, 0);
-            const dy = Math.max(Math.abs(y - y0) - size, 0);
-            const distanceSquared = dx * dx + dy * dy;
-            if (distanceSquared < minDistanceSquared) {
-                minDistanceSquared = distanceSquared;
-                minDatum = datum;
+        const nodeData = this.contextNodeData?.nodeData;
+        if (nodeData != null) {
+            for (const datum of nodeData) {
+                const { x, y, size } = datum.point;
+                const dx = Math.max(Math.abs(x - x0) - size, 0);
+                const dy = Math.max(Math.abs(y - y0) - size, 0);
+                const distanceSquared = dx * dx + dy * dy;
+                if (distanceSquared < minDistanceSquared) {
+                    minDistanceSquared = distanceSquared;
+                    minDatum = datum;
+                }
             }
         }
 
@@ -755,9 +763,7 @@ export class MapMarkerSeries
         };
     }
 
-    override getLegendData(
-        legendType: _ModuleSupport.ChartLegendType
-    ): _ModuleSupport.CategoryLegendDatum[]   {
+    override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
 

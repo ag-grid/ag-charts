@@ -256,17 +256,20 @@ export abstract class FlowProportionSeries<
                 };
             };
 
-            for (const [datumIndex, _datum] of linksDataModel.processedData.dataSources.get(this.id)?.data.entries()) {
-                const fromId = fromIdValues[datumIndex];
-                const toId = toIdValues[datumIndex];
-                if (fromId == null || toId == null) continue;
+            const linkDataSource = linksDataModel.processedData.dataSources.get(this.id);
+            if (linkDataSource?.data != null) {
+                for (const [datumIndex, _datum] of linkDataSource.data.entries()) {
+                    const fromId = fromIdValues[datumIndex];
+                    const toId = toIdValues[datumIndex];
+                    if (fromId == null || toId == null) continue;
 
                 if (!processedNodes.has(fromId)) {
                     processedNodes.set(fromId, createImplicitNode(fromId));
                 }
 
-                if (!processedNodes.has(toId)) {
-                    processedNodes.set(toId, createImplicitNode(toId));
+                    if (!processedNodes.has(toId)) {
+                        processedNodes.set(toId, createImplicitNode(toId));
+                    }
                 }
             }
         } else {
@@ -284,9 +287,11 @@ export abstract class FlowProportionSeries<
                       )
                     : undefined;
 
-            for (const [datumIndex, datum] of nodesDataModel.processedData.dataSources.get(this.id)?.data.entries()) {
-                const id: string = nodeIdValues[datumIndex];
-                const label: string | undefined = labelValues?.[datumIndex];
+            const nodeDataSource = nodesDataModel.processedData.dataSources.get(this.id);
+            if (nodeDataSource?.data != null) {
+                for (const [datumIndex, datum] of nodeDataSource.data.entries()) {
+                    const id: string = nodeIdValues[datumIndex];
+                    const label: string | undefined = labelValues?.[datumIndex];
 
                 const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
 
@@ -306,8 +311,9 @@ export abstract class FlowProportionSeries<
                         { datumIndex: nodeDatumIndex, datum, size: 0, label } as Partial<TNodeDatum>,
                         datumIndex,
                         false
-                    ),
-                });
+                        ),
+                    });
+                }
             }
         }
 
@@ -361,13 +367,15 @@ export abstract class FlowProportionSeries<
         }
 
         const baseLinks: TLinkDatum[] = [];
-        for (const [datumIndex, datum] of linksProcessedData.dataSources.get(this.id)?.data.entries()) {
-            const fromId: string = fromIdValues[datumIndex];
-            const toId: string = toIdValues[datumIndex];
-            const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;
-            const fromNode = nodesById.get(fromId);
-            const toNode = nodesById.get(toId);
-            if (size <= 0 || fromNode == null || toNode == null) continue;
+        const linksDataSource = linksProcessedData.dataSources.get(this.id);
+        if (linksDataSource?.data != null) {
+            for (const [datumIndex, datum] of linksDataSource.data.entries()) {
+                const fromId: string = fromIdValues[datumIndex];
+                const toId: string = toIdValues[datumIndex];
+                const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;
+                const fromNode = nodesById.get(fromId);
+                const toNode = nodesById.get(toId);
+                if (size <= 0 || fromNode == null || toNode == null) continue;
 
             const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
 
@@ -385,9 +393,10 @@ export abstract class FlowProportionSeries<
                     { datum, datumIndex: linkNodeDatumIndex } as Partial<TLinkDatum>,
                     fromNode.datumIndex,
                     false
-                ),
-            });
-            baseLinks.push(link);
+                    ),
+                });
+                baseLinks.push(link);
+            }
         }
 
         const { links, nodeGraph, maxPathLength } = computeNodeGraph(

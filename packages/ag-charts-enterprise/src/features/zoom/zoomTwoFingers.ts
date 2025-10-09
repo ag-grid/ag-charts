@@ -64,7 +64,9 @@ export class ZoomTwoFingers {
         this.initialZoom.x.max = zoom.x?.max ?? 1;
         this.initialZoom.y.min = zoom.y?.min ?? 0;
         this.initialZoom.y.max = zoom.y?.max ?? 1;
-        for (const t of this.touchStart.origins) (t.identifier = 0);
+        for (const t of this.touchStart.origins) {
+            t.identifier = 0;
+        }
 
         this.previous.a1 = Number.NaN;
         this.previous.a2 = Number.NaN;

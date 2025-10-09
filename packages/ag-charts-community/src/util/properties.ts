@@ -1,9 +1,7 @@
 import { Logger, isArray, isPlainObject } from 'ag-charts-core';
 
-import {  listDecoratedProperties } from './decorator';
+import { listDecoratedProperties } from './decorator';
 import { merge } from './object';
-
-
 
 export class BaseProperties<T extends object = object> {
     handleUnknownProperties(_unknownKeys: Set<unknown>, _properties: T) {
@@ -114,4 +112,4 @@ export function isProperties<T extends object>(value: unknown): value is BasePro
     return value instanceof BaseProperties || value instanceof PropertiesArray;
 }
 
-export {addFakeTransformToInstanceProperty as Property} from './decorator';
+export { addFakeTransformToInstanceProperty as Property } from './decorator';

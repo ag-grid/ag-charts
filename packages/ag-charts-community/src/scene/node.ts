@@ -7,8 +7,6 @@ import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
 import { type ZIndex } from './zIndex';
 
-
-
 export enum PointerEvents {
     All,
     None,
@@ -390,4 +388,4 @@ export abstract class Node<TDatum = unknown> {
     }
 }
 
-export {SceneChangeDetection} from './changeDetectable';
+export { SceneChangeDetection } from './changeDetectable';

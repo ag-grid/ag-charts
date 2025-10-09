@@ -24,7 +24,7 @@ export function getMaxInnerRectSize(
     if (sin === 0) return { width: W, height: H };
     if (cos === 0) return { width: H, height: W };
 
-    if (!isFinite(H)) {
+    if (!Number.isFinite(H)) {
         const r = cos / sin;
         const width = W / (cos + r * sin);
         return { width, height: r * width };

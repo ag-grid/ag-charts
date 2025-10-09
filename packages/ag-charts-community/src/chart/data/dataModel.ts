@@ -1799,10 +1799,7 @@ export class DataModel<
     private postProcessData(processedData: ProcessedData<D>) {
         processedData.reduced ??= {};
         for (const def of this.processors) {
-            processedData.reduced[def.property] = def.calculate(
-                processedData,
-                processedData.reduced[def.property]
-            );
+            processedData.reduced[def.property] = def.calculate(processedData, processedData.reduced[def.property]);
         }
     }
 

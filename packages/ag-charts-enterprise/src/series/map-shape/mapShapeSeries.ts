@@ -167,10 +167,12 @@ export class MapShapeSeries
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
-        for (const feature of topology?.features) {
-            const property = feature.properties?.[topologyIdKey];
-            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) continue;
-            featureById.set(property, feature);
+        if (topology?.features != null) {
+            for (const feature of topology.features) {
+                const property = feature.properties?.[topologyIdKey];
+                if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) continue;
+                featureById.set(property, feature);
+            }
         }
 
         const colorScaleType = this.colorScale.type;
@@ -670,9 +672,7 @@ export class MapShapeSeries
         };
     }
 
-    override getLegendData(
-        legendType: _ModuleSupport.ChartLegendType
-    ): _ModuleSupport.CategoryLegendDatum[]   {
+    override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
 

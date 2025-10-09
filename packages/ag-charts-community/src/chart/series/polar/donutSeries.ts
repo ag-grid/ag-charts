@@ -1417,7 +1417,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         for (const datum of this.calloutNodeData) {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
-                 null; continue;
+                continue;
             }
 
             const style = this.getLabelStyle(datum, calloutLabel);

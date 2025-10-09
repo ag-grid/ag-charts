@@ -1,5 +1,4 @@
 import { type InternalAgImageFill, Logger, createSvgElement } from 'ag-charts-core';
-import type { AgColorRepeat, AgImageFillFit } from 'ag-charts-types';
 
 import { normalizeAngle360FromDegrees } from '../../util/angle';
 import type { BBox } from '../bbox';
@@ -12,8 +11,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     backgroundFillOpacity: number;
     width?: number;
     height?: number;
-    repeat: AgColorRepeat;
-    fit: AgImageFillFit;
+    repeat: InternalAgImageFill['repeat'];
+    fit: InternalAgImageFill['fit'];
     rotation: number;
 
     constructor(

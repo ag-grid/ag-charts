@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
     AgChartInstance,

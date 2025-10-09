@@ -4,7 +4,7 @@ import {
     type RequiredInternalAgPatternColor,
     createSvgElement,
 } from 'ag-charts-core';
-import type { AgPatternName, CssColor } from 'ag-charts-types';
+import type { CssColor } from 'ag-charts-types';
 
 import { normalizeAngle360FromDegrees } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
@@ -12,7 +12,7 @@ import { ExtendedPath2D } from '../extendedPath2D';
 import { PATTERNS } from './patterns';
 
 export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
-    pattern: AgPatternName;
+    pattern: InternalAgPatternColor['pattern'];
     path?: string;
     width: number;
     height: number;

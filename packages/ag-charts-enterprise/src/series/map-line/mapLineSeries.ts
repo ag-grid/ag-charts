@@ -133,10 +133,12 @@ export class MapLineSeries extends TopologySeries<
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } = this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
-        for (const feature of topology?.features) {
-            const property = feature.properties?.[topologyIdKey];
-            if (property == null || !containsType(feature.geometry, GeometryType.LineString)) continue;
-            featureById.set(property, feature);
+        if (topology?.features != null) {
+            for (const feature of topology.features) {
+                const property = feature.properties?.[topologyIdKey];
+                if (property == null || !containsType(feature.geometry, GeometryType.LineString)) continue;
+                featureById.set(property, feature);
+            }
         }
 
         const sizeScaleType = this.sizeScale.type;
@@ -279,12 +281,15 @@ export class MapLineSeries extends TopologySeries<
         const measurer = cachedTextMeasurer(label);
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-        for (const [datumIndex, _datum] of processedData.dataSources.get(this.id)?.data.entries()) {
-            const id: string | undefined = idValues[datumIndex];
-            const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
-            const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
-            if (id != null && projectedGeometry != null) {
-                projectedGeometries.set(id, projectedGeometry);
+        const dataSource = processedData.dataSources.get(this.id);
+        if (dataSource?.data != null) {
+            for (const [datumIndex, _datum] of dataSource.data.entries()) {
+                const id: string | undefined = idValues[datumIndex];
+                const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
+                const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
+                if (id != null && projectedGeometry != null) {
+                    projectedGeometries.set(id, projectedGeometry);
+                }
             }
         }
 
@@ -583,9 +588,7 @@ export class MapLineSeries extends TopologySeries<
         };
     }
 
-    override getLegendData(
-        legendType: _ModuleSupport.ChartLegendType
-    ): _ModuleSupport.CategoryLegendDatum[]   {
+    override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
 

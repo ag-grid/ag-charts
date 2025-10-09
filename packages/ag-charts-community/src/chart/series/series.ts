@@ -1164,7 +1164,10 @@ export abstract class Series<
     }
 
     protected checkResize(newSeriesRect?: BBox) {
-        const { width: seriesRectWidth, height: seriesRectHeight } = newSeriesRect ?? { width: Number.NaN, height: Number.NaN };
+        const { width: seriesRectWidth, height: seriesRectHeight } = newSeriesRect ?? {
+            width: Number.NaN,
+            height: Number.NaN,
+        };
         const newNodeDataDependencies = newSeriesRect ? { seriesRectWidth, seriesRectHeight } : undefined;
         const resize = jsonDiff(this.nodeDataDependencies, newNodeDataDependencies) != null;
         if (resize) {

@@ -20,7 +20,6 @@ import type {
     AgDataTransaction,
     AgInitialStateLegendOptions,
     AgMiniChartSeriesOptions,
-    AgPolarAxisOptions,
     FormatterConfiguration,
     TextOrSegments,
 } from 'ag-charts-types';
@@ -391,7 +390,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
             ctx.eventsHub.on('zoom:change', () => {
-                for (const s of this.series) (s).animationState?.transition('updateData');
+                for (const s of this.series) s.animationState?.transition('updateData');
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
@@ -918,15 +917,17 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected destroySeries(allSeries: UnknownSeries[]): void {
-        if (allSeries) for (const series of allSeries) {
-            series.removeEventListener('seriesNodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
-            series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
-            series.destroy();
-            this.seriesLayerManager.releaseGroup(series);
-            series.detachSeries(undefined, this.seriesRoot, this.annotationRoot);
+        if (allSeries) {
+            for (const series of allSeries) {
+                series.removeEventListener('seriesNodeClick', this.onSeriesNodeClick);
+                series.removeEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
+                series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
+                series.destroy();
+                this.seriesLayerManager.releaseGroup(series);
+                series.detachSeries(undefined, this.seriesRoot, this.annotationRoot);
 
-            series.chart = undefined;
+                series.chart = undefined;
+            }
         }
     }
 
@@ -1665,7 +1666,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         skip = ['axes[].type', ...skip];
 
-        const axes: AgCartesianAxisOptions[]   = options.axes;
+        const axes: AgCartesianAxisOptions[] = options.axes;
         const forceRecreate = seriesStatus === 'replaced';
         const matchingTypes =
             !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);

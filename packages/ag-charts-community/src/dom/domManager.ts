@@ -408,8 +408,7 @@ export class DOMManager extends BaseManager {
 
     private getRawOverlayClientRect(): BBox {
         let element: HTMLElement | null = this.element;
-        const fullScreenElement = (this.element.getRootNode() as any)
-            ?.fullscreenElement;
+        const fullScreenElement = (this.element.getRootNode() as any)?.fullscreenElement;
 
         // Try and find a parent which will clip rendering of children - if found we should restrict
         // to that elements bounding box.

@@ -66,7 +66,7 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
     const ariaLabel: string[] = [];
 
     for (const c of content) {
-        if (c.type === 'raw')  { ''; continue; }
+        if (c.type === 'raw') continue;
         if (c.heading != null) {
             ariaLabel.push(toPlainText(c.heading));
         }
@@ -74,9 +74,10 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
             if (i.title != null) {
                 ariaLabel.push(toPlainText(i.title));
             }
-            if (i.data) for (const datum of i.data) {
-                ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
-            }
+            if (i.data)
+                for (const datum of i.data) {
+                    ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+                }
         }
     }
 
@@ -124,10 +125,11 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
         html += ' ';
     }
 
-    if (content.data) for (const datum of content.data) {
-        html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
-        html += ' ';
-    }
+    if (content.data)
+        for (const datum of content.data) {
+            html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
+            html += ' ';
+        }
 
     return html;
 }
@@ -177,10 +179,11 @@ function tooltipContentHtml(
             html += dataHtml(undefined, compactTitle, false);
         }
 
-        if (singleItem.data) for (const datum of singleItem.data) {
-            html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
-            html += ' ';
-        }
+        if (singleItem.data)
+            for (const datum of singleItem.data) {
+                html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
+                html += ' ';
+            }
     } else {
         // Full rendering
         if (content.heading != null) {
