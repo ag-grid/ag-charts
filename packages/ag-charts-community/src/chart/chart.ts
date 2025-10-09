@@ -1276,7 +1276,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
 
-        console.log(newChartOptions.processedOptions);
         const modulesChanged = this.applyModules(newOpts);
 
         const skip = [
@@ -1544,17 +1543,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const isConfigured = options[module.name as keyof AgChartOptions] != null;
             const shouldBeEnabled = isConfigured && (!module.chartType || module.chartType === chartType);
-
-            console.log(
-                options,
-                module.name,
-                {
-                    isConfigured,
-                    shouldBeEnabled,
-                    isEnabled: this.modulesManager.isEnabled(module.name),
-                },
-                [options[module.name as keyof AgChartOptions], !module.chartType || module.chartType === chartType]
-            );
 
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 

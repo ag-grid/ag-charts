@@ -1,6 +1,7 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     AsyncAwaitQueue,
+    Debug,
     Logger,
     type ModuleInstance,
     type Scale,
@@ -29,7 +30,7 @@ const {
     isObjectWithStringProperty,
 } = _ModuleSupport;
 
-const debug = _ModuleSupport.Debug.create('sync');
+const debug = Debug.create('sync');
 
 function getDirectionKeys(
     series: _ModuleSupport.ISeries<any, any, any, any>,

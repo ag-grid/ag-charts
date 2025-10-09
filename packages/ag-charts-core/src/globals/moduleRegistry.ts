@@ -108,6 +108,13 @@ export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | u
     }
 }
 
+export function getChartModule(moduleName: string): ChartModuleDefinition<any> | undefined {
+    const definition = registeredModules.get(moduleName);
+    if (isModuleType(ModuleType.Chart, definition?.def)) {
+        return definition.def;
+    }
+}
+
 export function getPresetModule(moduleName: string): PresetModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
     if (isModuleType(ModuleType.Preset, definition?.def)) {

@@ -3,18 +3,18 @@ import { toArray } from '../utils/arrays';
 import { getWindow } from '../utils/dom';
 import { log, logGroup } from './logger';
 
-interface DebugLogger {
+export interface DebugLogger {
     (...logContent: any[]): void;
     check(): boolean;
     group<T>(name: string, cb: () => T): T;
 }
 
-const LONG_TIME_PERIOD_THRESHOLD = 2000;
+const LongTimePeriodThreshold = 2000;
 
 let timeOfLastLog = Date.now();
 function logTimeGap() {
     const timeSinceLastLog = Date.now() - timeOfLastLog;
-    if (timeSinceLastLog > LONG_TIME_PERIOD_THRESHOLD) {
+    if (timeSinceLastLog > LongTimePeriodThreshold) {
         const prettyDuration = (Math.floor(timeSinceLastLog / 100) / 10).toFixed(1);
         log(`**** ${prettyDuration}s since last log message ****`);
     }

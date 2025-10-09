@@ -11,7 +11,6 @@ import {
 import type { DatumDefault, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
 import { ChartAxisDirection } from '../chart/chartAxisDirection';
-import { chartTypes } from '../chart/factory/chartTypes';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { CARTESIAN_AXIS_TYPE } from '../chart/themes/constants';
 import { deepClone } from '../util/json';
@@ -167,7 +166,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             this.buildGraphFromObject(
                 this.root,
                 OVERRIDES_EDGE,
-                chartTypes.isCartesian(seriesType) ? commonOverrides : without(commonOverrides, ['zoom', 'navigator'])
+                ModuleRegistry.getSeriesModule(seriesType)?.chartType === 'cartesian'
+                    ? commonOverrides
+                    : without(commonOverrides, ['zoom', 'navigator'])
             );
         }
 
