@@ -10,11 +10,25 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         enabled: false,
         fill: {
             $applySwitch: [
-                { $path: 'type' },
+                // The deprecated option `series[type='range-area'].marker.fill.type` determines the fill defaults,
+                // unless the new option `series[type='range-area'].marker.item.(low|high).marker.fill.type` is set.
+                {
+                    $isUserOption: [
+                        '/series/$index/marker/fill/type',
+                        { $path: '/series/$index/marker/fill/type' },
+                        { $path: 'type' },
+                    ],
+                },
                 { $palette: 'fill' },
                 ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
                 ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                [
+                    'image',
+                    {
+                        ..._ModuleSupport.FILL_IMAGE_DEFAULTS,
+                        url: { $path: '/series/$index/marker/fill/url' },
+                    },
+                ],
             ],
         },
         stroke: { $palette: 'stroke' },
