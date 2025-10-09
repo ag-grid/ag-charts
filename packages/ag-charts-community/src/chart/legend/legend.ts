@@ -1207,7 +1207,7 @@ export class Legend extends BaseProperties {
         const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
         const placementBox =
             floating && (layoutBox.x !== 0 || layoutBox.y !== 0)
-                ? new BBox(0, 0, layoutBox.width, layoutBox.height)
+                ? new BBox(0, 0, this.ctx.scene.width, this.ctx.scene.height)
                 : layoutBox;
         const { x, y, width, height } = placementBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
@@ -1296,7 +1296,7 @@ export class Legend extends BaseProperties {
                     default:
                         unreachable(placement);
                 }
-                placementBox.shrink(shrinkAmount, shrinkDirection);
+                layoutBox.shrink(shrinkAmount, shrinkDirection);
             }
 
             translationX += xOffset;
