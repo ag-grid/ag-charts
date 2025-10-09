@@ -67,8 +67,24 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
     spacing?: PixelSize;
     /** Width of the nodes. */
     width?: PixelSize;
-    /** Alignment of the nodes. */
+    /**
+     * Alignment of the nodes.
+     *
+     * Default: `'center'`
+     */
     alignment?: 'left' | 'right' | 'center' | 'justify';
+    /**
+     * Vertical alignment of the nodes.
+     *
+     * Default: `'center'`
+     */
+    verticalAlignment?: 'top' | 'bottom' | 'center';
+    /**
+     * Sorting method of the nodes.
+     *
+     * Default: `'weight'`
+     */
+    sort?: 'data' | 'a-z' | 'z-a' | 'weight';
     /** Function used to return formatting for individual nodes, based on the given parameters.*/
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum, TContext>, AgSankeySeriesNodeStyle>;
 }

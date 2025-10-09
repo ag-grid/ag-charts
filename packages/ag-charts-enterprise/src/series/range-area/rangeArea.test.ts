@@ -4,7 +4,9 @@ import {
     AgCartesianChartOptions,
     type AgChartOptions,
     AgCharts,
+    AgRangeAreaSeriesItemType,
     AgRangeAreaSeriesLabelPlacement,
+    AgRangeAreaSeriesOptions,
     AgRangeAreaSeriesStyle,
     AgRangeAreaSeriesStylerParams,
     AgSeriesMarkerStyle,
@@ -29,6 +31,10 @@ describe('RangeAreaSeries', () => {
 
     let chart: any;
     const ctx = setupMockCanvas();
+
+    function lowAndHigh<T>(p: T): { low: T; high: T } {
+        return { low: p, high: p };
+    }
 
     afterEach(() => {
         if (chart) {
@@ -130,12 +136,14 @@ describe('RangeAreaSeries', () => {
                     enabled: true,
                     formatter: ({ value }) => `${value}°C`,
                 },
-                strokeWidth: 2,
                 fill: '#E7E8E9',
-                stroke: '#2A5783',
-                marker: {
-                    enabled: true,
-                },
+                item: lowAndHigh({
+                    strokeWidth: 2,
+                    stroke: '#2A5783',
+                    marker: {
+                        enabled: true,
+                    },
+                }),
             },
         ],
     };
@@ -382,21 +390,27 @@ describe('RangeAreaSeries', () => {
                     xKey: 'x',
                     yHighKey: 'fHi',
                     yLowKey: 'fLo',
-                    marker: { shape: 'cross', enabled: false }, // should draw a circle
+                    item: lowAndHigh({
+                        marker: { shape: 'cross', enabled: false }, // should draw a circle
+                    }),
                 },
                 {
                     type: 'range-area',
                     xKey: 'x',
                     yHighKey: 'gHi',
                     yLowKey: 'gLo',
-                    marker: { shape: 'triangle', enabled: true },
+                    item: lowAndHigh({
+                        marker: { shape: 'triangle', enabled: true },
+                    }),
                 },
                 {
                     type: 'range-area',
                     xKey: 'x',
                     yHighKey: 'kHi',
                     yLowKey: 'kLo',
-                    marker: { shape: 'circle', enabled: true },
+                    item: lowAndHigh({
+                        marker: { shape: 'circle', enabled: true },
+                    }),
                 },
             ],
         };
@@ -806,27 +820,32 @@ describe('RangeAreaSeries', () => {
             { month: 'February', gain_low: 1500, gain_high: 1650, loss_low: 950, loss_high: 1450 },
             { month: 'March', gain_low: 1700, gain_high: 1920, loss_low: 1600, loss_high: 1815 },
         ];
+
         beforeEach(() => {
             styler = newFreezableMock<D, C, M>(
                 (params: AgRangeAreaSeriesStylerParams<D, C>): AgRangeAreaSeriesStyle | undefined => {
                     if (params.yLowKey === 'gain_low')
                         return {
                             fill: 'cyan',
-                            lineDash: [4, 4],
-                            lineDashOffset: 5,
-                            stroke: 'blue',
-                            strokeWidth: 2.5,
-                            marker: {},
+                            item: lowAndHigh({
+                                lineDash: [4, 4],
+                                lineDashOffset: 5,
+                                stroke: 'blue',
+                                strokeWidth: 2.5,
+                                marker: {},
+                            }),
                         };
                     else if (params.yLowKey === 'loss_low')
                         return {
                             fill: 'magenta',
                             fillOpacity: 0.5,
-                            marker: {
-                                fill: 'indigo',
-                                strokeWidth: 2.5,
-                                size: 20,
-                            },
+                            item: lowAndHigh({
+                                marker: {
+                                    fill: 'indigo',
+                                    strokeWidth: 2.5,
+                                    size: 20,
+                                },
+                            }),
                         };
                     return {};
                 }
@@ -860,10 +879,12 @@ describe('RangeAreaSeries', () => {
                                 yLowKey: 'loss_low',
                                 yHighKey: 'loss_high',
                                 styler: styler.frozen,
-                                marker: {
-                                    fill: 'lime', // ignored
-                                    fillOpacity: 0.5, // not ignored
-                                },
+                                item: lowAndHigh({
+                                    marker: {
+                                        fill: 'lime', // ignored
+                                        fillOpacity: 0.5, // not ignored
+                                    },
+                                }),
                             },
                         ],
                     })
@@ -908,10 +929,12 @@ describe('RangeAreaSeries', () => {
                                 yLowKey: 'gain_low',
                                 yHighKey: 'gain_high',
                                 fill: 'lime', // ignored
-                                marker: {
-                                    size: 15,
-                                    itemStyler,
-                                },
+                                item: lowAndHigh({
+                                    marker: {
+                                        size: 15,
+                                        itemStyler,
+                                    },
+                                }),
                                 styler: styler.frozen,
                             },
                             {
@@ -922,13 +945,15 @@ describe('RangeAreaSeries', () => {
                                 yLowKey: 'loss_low',
                                 yHighKey: 'loss_high',
                                 fill: 'olive', // ignored
-                                stroke: 'navy', // not ignored
-                                strokeWidth: 7, // not ignored
-                                marker: {
-                                    fill: 'lime', // ignored
-                                    fillOpacity: 0.5, // not ignored
-                                    itemStyler,
-                                },
+                                item: lowAndHigh({
+                                    stroke: 'navy', // not ignored
+                                    strokeWidth: 7, // not ignored
+                                    marker: {
+                                        fill: 'lime', // ignored
+                                        fillOpacity: 0.5, // not ignored
+                                        itemStyler,
+                                    },
+                                }),
                                 styler: styler.frozen,
                             },
                         ],
@@ -1271,7 +1296,20 @@ describe('RangeAreaSeries', () => {
 
     describe('AG-15773 itemStyler itemId', () => {
         it('should render high and low markers differently', async () => {
-            const options: AgChartOptions = {
+            type D = { month: string; low: number; high: number };
+            const itemStyler: NonNullable<
+                NonNullable<NonNullable<AgRangeAreaSeriesOptions<D>['item']>[AgRangeAreaSeriesItemType]>['marker']
+            >['itemStyler'] = (params) => {
+                switch (params.itemId) {
+                    case 'high':
+                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
+                    case 'low':
+                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
+                    default:
+                        return {};
+                }
+            };
+            const options: AgChartOptions<D> = {
                 data: [
                     { month: 'January', low: 1200, high: 1500 },
                     { month: 'February', low: 1500, high: 1650 },
@@ -1293,19 +1331,12 @@ describe('RangeAreaSeries', () => {
                         xKey: 'month',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        marker: {
-                            size: 25,
-                            itemStyler: (params) => {
-                                switch (params.itemId) {
-                                    case 'high':
-                                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
-                                    case 'low':
-                                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
-                                    default:
-                                        return {};
-                                }
+                        item: lowAndHigh({
+                            marker: {
+                                size: 25,
+                                itemStyler,
                             },
-                        },
+                        }),
                     },
                 ],
             };

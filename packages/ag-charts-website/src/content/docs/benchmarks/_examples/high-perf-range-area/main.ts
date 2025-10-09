@@ -24,7 +24,10 @@ const options: AgChartOptions = {
             xKey: 'timestamp',
             yHighKey: 'high',
             yLowKey: 'low',
-            marker: { enabled: false },
+            item: {
+                low: { marker: { enabled: false } },
+                high: { marker: { enabled: false } },
+            },
         },
     ],
     axes: [

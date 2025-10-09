@@ -9,6 +9,10 @@ import {
 
 import { type DatumType, getData } from './data';
 
+function lowAndHigh<T>(p: T): { item: { low: T; high: T } } {
+    return { item: { low: p, high: p } };
+}
+
 const options: AgCartesianChartOptions<DatumType, unknown> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -19,28 +23,34 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yName: 'Gain',
             yLowKey: 'gain_low',
             yHighKey: 'gain_high',
-            marker: {
-                itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
-                    switch (params.highlightState) {
-                        case 'highlighted-item':
-                            return { size: 35, shape: 'star' /* must have marker.fill 'yellow' */ };
-                        case 'unhighlighted-item':
-                            return { size: 20, fill: 'teal' /* must override 'blanchedalmonde' */, fillOpacity: 0.2 };
-                        default:
-                            return {};
-                    }
+            ...lowAndHigh({
+                marker: {
+                    itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
+                        switch (params.highlightState) {
+                            case 'highlighted-item':
+                                return { size: 35, shape: 'star' /* must have marker.fill 'yellow' */ };
+                            case 'unhighlighted-item':
+                                return {
+                                    size: 20,
+                                    fill: 'teal' /* must override 'blanchedalmonde' */,
+                                    fillOpacity: 0.2,
+                                };
+                            default:
+                                return {};
+                        }
+                    },
                 },
-            },
+            }),
             styler: (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRangeAreaSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
-                        return { marker: { fill: 'yellow' } };
+                        return lowAndHigh({ marker: { fill: 'yellow' } });
                     case 'unhighlighted-item':
-                        return { marker: { fill: 'blanchedalmond' } };
+                        return lowAndHigh({ marker: { fill: 'blanchedalmond' } });
                     case 'highlighted-series':
-                        return { fill: 'gold', strokeWidth: 4 };
+                        return { fill: 'gold', ...lowAndHigh({ strokeWidth: 4 }) };
                     case 'unhighlighted-series':
-                        return { fillOpacity: 0.2, strokeOpacity: 0.2 };
+                        return { fillOpacity: 0.2, ...lowAndHigh({ strokeOpacity: 0.2 }) };
                     case 'none':
                     default:
                         return {};
@@ -53,28 +63,30 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yName: 'Loss',
             yLowKey: 'loss_low',
             yHighKey: 'loss_high',
-            marker: {
-                itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
-                    switch (params.highlightState) {
-                        case 'highlighted-item':
-                            return { size: 35 /* must have marker.fill 'fuchsia' */ };
-                        case 'unhighlighted-item':
-                            return { fill: 'darkslateblue' /* must override 'cyan'*/, size: 20 };
-                        default:
-                            return {};
-                    }
+            ...lowAndHigh({
+                marker: {
+                    itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
+                        switch (params.highlightState) {
+                            case 'highlighted-item':
+                                return { size: 35 /* must have marker.fill 'fuchsia' */ };
+                            case 'unhighlighted-item':
+                                return { fill: 'darkslateblue' /* must override 'cyan'*/, size: 20 };
+                            default:
+                                return {};
+                        }
+                    },
                 },
-            },
+            }),
             styler: (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRangeAreaSeriesStyle => {
                 switch (params.highlightState) {
                     case 'highlighted-item':
-                        return { marker: { fill: 'fuchsia' } };
+                        return lowAndHigh({ marker: { fill: 'fuchsia' } });
                     case 'unhighlighted-item':
-                        return { marker: { fill: 'cyan' } };
+                        return lowAndHigh({ marker: { fill: 'cyan' } });
                     case 'highlighted-series':
-                        return { fill: 'limegreen', strokeWidth: 4 };
+                        return { fill: 'limegreen', ...lowAndHigh({ strokeWidth: 4 }) };
                     case 'unhighlighted-series':
-                        return { fillOpacity: 0.2, strokeOpacity: 0.2 };
+                        return { fillOpacity: 0.2, ...lowAndHigh({ strokeOpacity: 0.2 }) };
                     case 'none':
                     default:
                         return {};

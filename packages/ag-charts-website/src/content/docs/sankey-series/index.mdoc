@@ -62,6 +62,40 @@ There are four values supported:
 -   `center` moves nodes as close to the centre as possible.
 -   `justify` moves nodes as far left as possible, except for the last nodes, which are pushed right.
 
+## Vertical alignment
+
+The vertical placement of the nodes can be customised using the `verticalAlignment` property on `node`.
+
+{% chartExampleRunner title="Vertical alignment" name="vertical-alignment" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: {
+                verticalAlignment: 'top',
+            },
+        },
+    ],
+}
+```
+
+## Sorting
+
+The order of the nodes can be customised using the `sort` property on `node`.
+
+{% chartExampleRunner title="Sorting" name="sorting" type="generated" /%}
+
+There are four values supported:
+
+-   `data` sorts nodes in the same order as defined in the `data` array.
+-   `a-z` and `z-a` sort nodes alphanumerically by their labels.
+-   `weight` sorts nodes to minimize cross-overs of links by weighting neighbours by their size and their linked neighbours.
+
 ## Customisation
 
 ### Node Style
