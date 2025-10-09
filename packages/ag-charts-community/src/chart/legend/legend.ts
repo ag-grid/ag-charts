@@ -1205,11 +1205,11 @@ export class Legend extends BaseProperties {
         if (!this.enabled || !this.data.length) return;
 
         const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
-        // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
-        if (floating && (layoutBox.x !== 0 || layoutBox.y !== 0)) {
-            layoutBox = new BBox(0, 0, layoutBox.width, layoutBox.height);
-        }
-        const { x, y, width, height } = layoutBox;
+        const placementBox =
+            floating && (layoutBox.x !== 0 || layoutBox.y !== 0)
+                ? new BBox(0, 0, layoutBox.width, layoutBox.height)
+                : layoutBox;
+        const { x, y, width, height } = placementBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
 
         const { oldPages } = this.calcLayout(legendWidth, legendHeight);
@@ -1296,7 +1296,7 @@ export class Legend extends BaseProperties {
                     default:
                         unreachable(placement);
                 }
-                layoutBox.shrink(shrinkAmount, shrinkDirection);
+                placementBox.shrink(shrinkAmount, shrinkDirection);
             }
 
             translationX += xOffset;

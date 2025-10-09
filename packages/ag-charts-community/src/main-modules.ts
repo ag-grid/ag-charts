@@ -1,6 +1,6 @@
 import { type ModuleDefinition } from 'ag-charts-core';
 
-import { SparklinePresetModule } from './api/preset/presetModules';
+import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
 import { BackgroundModule } from './chart/background/backgroundModule';
 import { CartesianChartModule } from './chart/cartesianChartModule';
 import { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
@@ -46,6 +46,10 @@ export {
     SeriesAreaModule,
     BackgroundModule,
     LegendModule,
+
+    // Enterprise presets
+    PriceVolumePresetModule,
+    GaugePresetModule,
 };
 
 export const AllCartesianCommunityModules: ModuleDefinition[] = [
