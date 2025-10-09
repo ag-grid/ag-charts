@@ -9,24 +9,17 @@ interface DebugLogger {
     group<T>(name: string, cb: () => T): T;
 }
 
-interface DebugTimingOptions {
-    logResult?: boolean;
-    logStack?: boolean;
-    logArgs?: boolean;
-    logData?: (target: any) => any;
-}
-
 const LONG_TIME_PERIOD_THRESHOLD = 2000;
 
 let timeOfLastLog = Date.now();
-const logTimeGap = () => {
+function logTimeGap() {
     const timeSinceLastLog = Date.now() - timeOfLastLog;
     if (timeSinceLastLog > LONG_TIME_PERIOD_THRESHOLD) {
         const prettyDuration = (Math.floor(timeSinceLastLog / 100) / 10).toFixed(1);
         log(`**** ${prettyDuration}s since last log message ****`);
     }
     timeOfLastLog = Date.now();
-};
+}
 
 export function create(...debugSelectors: Array<boolean | string>): DebugLogger {
     const resultFn = (...logContent: any[]) => {
@@ -63,7 +56,15 @@ export function inDevelopmentMode<R>(fn: () => R): R | undefined {
     }
 }
 
-export function time(name: string, opts: DebugTimingOptions = {}) {
+interface DebugTimingOptions {
+    logResult?: boolean;
+    logStack?: boolean;
+    logArgs?: boolean;
+    logData?: (target: any) => any;
+}
+
+// time decorator for measuring method execution time
+export function Time(name: string, opts: DebugTimingOptions = {}) {
     const { logResult = true, logStack = false, logArgs = false, logData } = opts;
     return function (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
         const method = descriptor.value;
