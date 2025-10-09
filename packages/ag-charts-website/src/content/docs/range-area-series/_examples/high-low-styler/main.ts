@@ -2,7 +2,7 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-const options: AgCartesianChartOptions<DataType, never> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'AA-Rated Corporate Bond Yield Range (2024)',
