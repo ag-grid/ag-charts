@@ -1,4 +1,33 @@
-import { type AgChartThemeOverrides, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgChartThemeOverrides,
+    type AgRangeAreaSeriesItemType,
+    type WithThemeParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
+
+type RangeAreaItemOptions = NonNullable<
+    NonNullable<NonNullable<AgChartThemeOverrides['range-area']>['series']>['item']
+>;
+
+const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[AgRangeAreaSeriesItemType]> = {
+    stroke: { $palette: 'stroke' },
+    strokeWidth: 1,
+    marker: {
+        enabled: false,
+        fill: {
+            $applySwitch: [
+                { $path: 'type' },
+                { $palette: 'fill' },
+                ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+            ],
+        },
+        stroke: { $palette: 'stroke' },
+        size: 6,
+        strokeWidth: 2,
+    },
+};
 
 export const RANGE_AREA_SERIES_THEME: WithThemeParams<
     AgChartThemeOverrides['range-area'] & { series: { label: { padding: number } } }
@@ -12,24 +41,11 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
                 ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
             ],
         },
-        stroke: { $palette: 'stroke' },
         fillOpacity: 0.7,
         nodeClickRange: 'nearest',
-        strokeWidth: 1,
-        marker: {
-            enabled: false,
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                ],
-            },
-            stroke: { $palette: 'stroke' },
-            size: 6,
-            strokeWidth: 2,
+        item: {
+            low: RANGE_AREA_ITEM,
+            high: RANGE_AREA_ITEM,
         },
         label: {
             ..._ModuleSupport.LABEL_BOXING_DEFAULTS,

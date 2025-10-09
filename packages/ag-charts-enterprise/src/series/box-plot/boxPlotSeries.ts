@@ -477,9 +477,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         // -   `fill` is a required color property that can be a string or a partial-object.
         // -   `yName` key has no `yKey` fallback like `xName`.
         type T = ReturnType<BoxPlotSeries['makeStylerParams']>;
-        type Rules = _ModuleSupport.CallbackParamRules<
-            DeepRequired<Omit<T, 'fill' | 'yName'>> & Required<Pick<T, 'fill'>> & Pick<T, 'yName'>
-        >;
+        type Rules = _ModuleSupport.CallbackParamRules<DeepRequired<Omit<T, 'yName'>, 'fill'> & Pick<T, 'yName'>>;
         return {
             cap: { lengthRatio },
             cornerRadius,

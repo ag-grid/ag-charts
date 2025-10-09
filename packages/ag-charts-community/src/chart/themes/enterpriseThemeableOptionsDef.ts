@@ -53,6 +53,8 @@ import {
     type AgRadialBarSeriesThemeableOptions,
     type AgRadialColumnSeriesThemeableOptions,
     type AgRadialSeriesStyle,
+    type AgRangeAreaSeriesLineStyle,
+    type AgRangeAreaSeriesLineThemeableOptions,
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesThemeableOptions,
     type AgRangeBarSeriesStyle,
@@ -477,6 +479,18 @@ export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSe
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
+const rangeAreaSeriesLineThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesLineThemeableOptions<unknown, unknown>> = {
+    marker: markerOptionsDefs,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+const rangeAreaSeriesLineStyleDef: OptionsDefs<AgRangeAreaSeriesLineStyle> = {
+    marker: markerStyleOptionsDefs,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     connectMissingData: boolean,
@@ -486,18 +500,21 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
         placement: union('inside', 'outside'),
         spacing: positiveNumber,
     },
-    marker: markerOptionsDefs,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
+    ...rangeAreaSeriesLineThemeableOptionsDef, // deprecated
+    item: {
+        low: { ...rangeAreaSeriesLineThemeableOptionsDef },
+        high: { ...rangeAreaSeriesLineThemeableOptionsDef },
+    },
     styler: callbackDefs<AgRangeAreaSeriesStyle>({
         ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        marker: markerStyleOptionsDefs,
+        item: {
+            low: { ...rangeAreaSeriesLineStyleDef },
+            high: { ...rangeAreaSeriesLineStyleDef },
+        },
     }),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     segmentation: shapeSegmentation,

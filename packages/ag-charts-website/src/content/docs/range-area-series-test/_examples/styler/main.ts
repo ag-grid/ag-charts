@@ -7,25 +7,33 @@ import {
 
 import { type DatumType, getData } from './data';
 
+function lowAndHigh<T>(p: T): { item: { low: T; high: T } } {
+    return { item: { low: p, high: p } };
+}
+
 const styler = (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRangeAreaSeriesStyle | undefined => {
     if (params.yLowKey === 'gain_low')
         return {
             fill: 'cyan',
-            lineDash: [4, 4],
-            lineDashOffset: 5,
-            stroke: 'blue',
-            strokeWidth: 2.5,
-            marker: {},
+            ...lowAndHigh({
+                lineDash: [4, 4],
+                lineDashOffset: 5,
+                stroke: 'blue',
+                strokeWidth: 2.5,
+                marker: {},
+            }),
         };
     else if (params.yLowKey === 'loss_low')
         return {
             fill: 'magenta',
             fillOpacity: 0.5,
-            marker: {
-                fill: 'indigo',
-                strokeWidth: 2.5,
-                size: 20,
-            },
+            ...lowAndHigh({
+                marker: {
+                    fill: 'indigo',
+                    strokeWidth: 2.5,
+                    size: 20,
+                },
+            }),
         };
     return {};
 };
@@ -51,10 +59,12 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yLowKey: 'loss_low',
             yHighKey: 'loss_high',
             styler,
-            marker: {
-                fill: 'lime', // ignored
-                fillOpacity: 0.5, // not ignored
-            },
+            ...lowAndHigh({
+                marker: {
+                    fill: 'lime', // ignored
+                    fillOpacity: 0.5, // not ignored
+                },
+            }),
         },
     ],
 };
