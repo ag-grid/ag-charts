@@ -54,3 +54,46 @@ export type IsUnion<T> = [T] extends [infer U]
 export type IsAny<T> = 0 extends 1 & T ? true : false;
 
 export type AreExact<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+
+type NN<T> = NonNullable<T>;
+/**
+ * Helper macro for nested NonNullable key accessors.
+ *
+ * The maximum depth is capped at 8. This is intentional to keep the implementation simple. A dyanmic & recusive
+ * implementation is possible and would remove this limitation, however the recursive nature would require memory of
+ * exponential complexity (which is impractical, and will choke the TypeScript compiler).
+ *
+ * @example
+ * NonNullablePath< T, 'a', 'b', 'c' >
+ * // expands to...
+ * NonNullable<NonNullable<NonNullable<T>['a']>['b']>['b']>
+ *
+ * @summary Nested NonNullable getters
+ */
+export type NonNullablePath<
+    T,
+    K0 extends keyof T = never,
+    K1 extends keyof NN<T[K0]> = never,
+    K2 extends keyof NN<NN<T[K0]>[K1]> = never,
+    K3 extends keyof NN<NN<NN<T[K0]>[K1]>[K2]> = never,
+    K4 extends keyof NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]> = never,
+    K5 extends keyof NN<NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]>[K4]> = never,
+    K6 extends keyof NN<NN<NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]>[K4]>[K5]> = never,
+    K7 extends keyof NN<NN<NN<NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]>[K4]>[K5]>[K6]> = never,
+> = [K0] extends [never]
+    ? T
+    : [K1] extends [never]
+      ? NN<T[K0]>
+      : [K2] extends [never]
+        ? NN<NN<T[K0]>[K1]>
+        : [K3] extends [never]
+          ? NN<NN<NN<T[K0]>[K1]>[K2]>
+          : [K4] extends [never]
+            ? NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]>
+            : [K5] extends [never]
+              ? NN<NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]>[K4]>
+              : [K6] extends [never]
+                ? NN<NN<NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]>[K4]>[K5]>
+                : [K7] extends [never]
+                  ? NN<NN<NN<NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]>[K4]>[K5]>[K6]>
+                  : NN<NN<NN<NN<NN<NN<NN<NN<T[K0]>[K1]>[K2]>[K3]>[K4]>[K5]>[K6]>[K7]>;
