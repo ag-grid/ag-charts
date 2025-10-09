@@ -1,13 +1,15 @@
-import { type ModuleDefinition, ModuleType } from 'ag-charts-core';
+import { ModuleType } from 'ag-charts-core';
+
+export type ChartType = 'cartesian' | 'polar' | 'topology' | 'standalone';
 
 interface ModulePlaceholder {
     type: `${ModuleType}` | ModuleType;
     name: string;
-    chartType?: string;
+    chartType?: ChartType;
     enterprise?: boolean;
 }
 
-const ExpectedModules: ModulePlaceholder[] = [
+export const ExpectedModules: ModulePlaceholder[] = [
     // Chart types
     { type: 'chart', name: 'cartesian' },
     { type: 'chart', name: 'standalone' },
@@ -41,7 +43,7 @@ const ExpectedModules: ModulePlaceholder[] = [
     { type: 'series', name: 'funnel', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'ohlc', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'heatmap', chartType: 'cartesian', enterprise: true },
-    { type: 'series', name: 'histogram', chartType: 'cartesian', enterprise: true },
+    { type: 'series', name: 'histogram', chartType: 'cartesian' /*, enterprise: true*/ },
     { type: 'series', name: 'range-area', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'range-bar', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'waterfall', chartType: 'cartesian', enterprise: true },
@@ -96,28 +98,4 @@ const ExpectedModules: ModulePlaceholder[] = [
 export function getSeriesExpectedChartType(seriesName: string): string | undefined {
     const series = ExpectedModules.find((m) => m.type === 'series' && m.name === seriesName);
     return series?.chartType;
-}
-
-const verifiedModules = new Set<string>();
-export function verifyIfModuleExpected(module: ModuleDefinition) {
-    if (!module.enterprise) {
-        throw new Error('AG Charts - internal configuration error, only enterprise modules need verification.');
-    }
-    for (const s of ExpectedModules) {
-        if (s.type === module.type && s.name === module.name) {
-            verifiedModules.add(s.name);
-            return true;
-        }
-    }
-    return false;
-}
-
-export function getUnusedExpectedModules() {
-    const unusedExpectedModules = new Set<string>();
-    for (const s of ExpectedModules) {
-        if (s.enterprise && !verifiedModules.has(s.name)) {
-            unusedExpectedModules.add(s.name);
-        }
-    }
-    return unusedExpectedModules;
 }

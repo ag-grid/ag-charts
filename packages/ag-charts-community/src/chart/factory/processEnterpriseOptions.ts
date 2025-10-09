@@ -1,16 +1,17 @@
 import { Logger, ModuleRegistry, ModuleType, isArray } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
-import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
+import { type ChartType } from './expectedModules';
 
 export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
     let usedOptions: string[] = [];
     const optsType = options?.series?.[0]?.type;
     const isGaugeChart = (optsType as string) === 'linear-gauge' || (optsType as string) === 'radial-gauge';
-    const optionsChartType = optsType ? chartTypes.get(optsType) : 'unknown';
+    const optionsChartType = (optsType ? ModuleRegistry.getSeriesModule(optsType)?.chartType : null) ?? 'unknown';
+    // const optionsChartType = optsType ? chartTypes.get(optsType) : 'unknown';
     for (const module of EXPECTED_ENTERPRISE_MODULES) {
-        if (optionsChartType !== 'unknown' && !module.chartTypes.includes(optionsChartType)) continue;
+        if (optionsChartType !== 'unknown' && !module.chartTypes.includes(optionsChartType as ChartType)) continue;
 
         if (module.type === 'root' || module.type === 'legend') {
             const optionValue = options[module.optionsKey as keyof T] as any;

@@ -55,7 +55,7 @@ export const HistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOpti
     type: 'series',
     name: 'histogram',
     chartType: 'cartesian',
-    enterprise: true,
+    // enterprise: true,
 
     options: histogramSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,

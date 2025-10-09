@@ -1,4 +1,4 @@
-import type { ChartType } from './chartTypes';
+import type { ChartType } from './expectedModules';
 
 type EnterpriseModuleStub = {
     packageType?: 'enterprise';

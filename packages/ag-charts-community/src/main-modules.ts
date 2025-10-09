@@ -1,8 +1,10 @@
 import { type ModuleDefinition } from 'ag-charts-core';
 
-import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
+import { SparklinePresetModule } from './api/preset/presetModules';
+import { BackgroundModule } from './chart/background/backgroundModule';
 import { CartesianChartModule } from './chart/cartesianChartModule';
 import { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
+import { LegendModule } from './chart/legend/legendModule';
 import { PolarChartModule } from './chart/polarChartModule';
 import { SeriesAreaModule } from './chart/series-area/seriesAreaModule';
 import { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
@@ -42,6 +44,8 @@ export {
     DonutSeriesModule,
     PieSeriesModule,
     SeriesAreaModule,
+    BackgroundModule,
+    LegendModule,
 };
 
 export const AllCartesianCommunityModules: ModuleDefinition[] = [
@@ -59,6 +63,8 @@ export const AllCartesianCommunityModules: ModuleDefinition[] = [
     LineSeriesModule,
     ScatterSeriesModule,
     SeriesAreaModule,
+    BackgroundModule,
+    LegendModule,
 ];
 
 export const AllPolarCommunityModules: ModuleDefinition[] = [
@@ -66,6 +72,8 @@ export const AllPolarCommunityModules: ModuleDefinition[] = [
     DonutSeriesModule,
     PieSeriesModule,
     SeriesAreaModule,
+    BackgroundModule,
+    LegendModule,
 ];
 
 export const AllCommunityModules: ModuleDefinition[] = [
@@ -77,7 +85,5 @@ export const AllCommunityModules: ModuleDefinition[] = [
     TopologyChartModule,
 
     // Presets
-    PriceVolumePresetModule,
-    GaugePresetModule,
     SparklinePresetModule,
 ];

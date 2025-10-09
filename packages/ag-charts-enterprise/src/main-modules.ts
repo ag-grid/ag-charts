@@ -1,5 +1,6 @@
 import { type ModuleDefinition } from 'ag-charts-core';
 
+import { GaugePresetModule, PriceVolumePresetModule } from '../../ag-charts-community/src/api/preset/presetModules';
 import { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
 import { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
 import { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
@@ -128,6 +129,10 @@ export const AllEnterpriseModules: ModuleDefinition[] = [
     ...AllPolarEnterpriseModules,
     ...AllStandaloneEnterpriseModules,
     ...AllTopologyEnterpriseModules,
+
+    // Presets
+    PriceVolumePresetModule,
+    GaugePresetModule,
 
     // Plugins, WIP
     AnnotationsModule,

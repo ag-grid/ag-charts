@@ -39,14 +39,13 @@ export function register(
         return;
     }
 
-    if (!existingDefinition.enterprise && def.enterprise && version === existingVersion) {
+    if (existingVersion === version) {
         // Enterprise module overwriting community module case.
-        registeredModules.set(def.name, { def, version });
-        return;
+        if (!existingDefinition.enterprise && def.enterprise) {
+            registeredModules.set(def.name, { def, version });
+        }
+        return; // Module already registered with the same version - ignore.
     }
-
-    // Module already registered with the same version - ignore.
-    if (existingVersion === version) return;
 
     // Module already registered with a different version - this is a problem with the users NPM dependencies.
     throw new Error(

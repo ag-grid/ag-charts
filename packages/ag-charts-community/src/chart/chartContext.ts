@@ -18,7 +18,7 @@ import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataService } from './data/dataService';
-import type { ChartType } from './factory/chartTypes';
+import type { ChartType } from './factory/expectedModules';
 import { FontManager } from './fonts/fontManager';
 import { FormatManager } from './formatter/formatManager';
 import { AnimationManager } from './interaction/animationManager';

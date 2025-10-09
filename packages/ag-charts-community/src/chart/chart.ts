@@ -62,7 +62,7 @@ import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
-import type { ChartType } from './factory/chartTypes';
+import type { ChartType } from './factory/expectedModules';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { LayoutElement } from './layout/layoutManager';
