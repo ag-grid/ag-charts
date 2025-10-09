@@ -1,5 +1,28 @@
 [
     {
+        "version": "12.3.0",
+        "date": "October 22nd, 2025",
+        "highlights": [
+            {
+                "text": "Axes Crossing Point",
+                "path": "./axes-types"
+            },
+            {
+                "text": "Sankey Layout Options",
+                "path": "./sankey-series/node-layout"
+            },
+            {
+                "text": "Difference Area Chart",
+                "path": "./range-area-series/#customisation"
+            },
+            {
+                "text": "Multi Style Labels",
+                "path": "./fonts/#multi-style-text-elements"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-12-3"
+    },
+    {
         "version": "12.2.0",
         "date": "September 10th, 2025",
         "highlights": [
