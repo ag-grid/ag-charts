@@ -1,6 +1,5 @@
-import { getWindow } from 'ag-charts-core';
+import { Debug, getWindow } from 'ag-charts-core';
 
-import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { type CachedData, canReuseCachedData } from './caching';
 import {

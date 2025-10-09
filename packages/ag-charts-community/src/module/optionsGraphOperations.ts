@@ -1,10 +1,18 @@
 import type { PlainObject } from 'ag-charts-core';
-import { Logger, circularSliceArray, isArray, isNumber, isObjectLike, isPlainObject, isString } from 'ag-charts-core';
+import {
+    Debug,
+    Logger,
+    circularSliceArray,
+    isArray,
+    isNumber,
+    isObjectLike,
+    isPlainObject,
+    isString,
+} from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
 import { Color } from '../util/color';
-import { Debug } from '../util/debug';
 import { without } from '../util/object';
 import {
     DEFAULTS_EDGE,

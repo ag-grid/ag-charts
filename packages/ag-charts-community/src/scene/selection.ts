@@ -1,4 +1,5 @@
-import { Debug } from '../util/debug';
+import { Debug } from 'ag-charts-core';
+
 import { Group } from './group';
 import { Node } from './node';
 

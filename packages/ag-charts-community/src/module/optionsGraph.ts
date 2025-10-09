@@ -1,5 +1,6 @@
 import {
     AdjacencyListGraph,
+    Debug,
     ModuleRegistry,
     type PlainObject,
     type Vertex,
@@ -13,7 +14,6 @@ import { ChartAxisDirection } from '../chart/chartAxisDirection';
 import { chartTypes } from '../chart/factory/chartTypes';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { CARTESIAN_AXIS_TYPE } from '../chart/themes/constants';
-import { Debug } from '../util/debug';
 import { deepClone } from '../util/json';
 import { simpleMemorize } from '../util/memo';
 import { pick, without } from '../util/object';

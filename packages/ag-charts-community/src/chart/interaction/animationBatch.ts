@@ -1,7 +1,6 @@
-import { Logger } from 'ag-charts-core';
+import { Debug, Logger } from 'ag-charts-core';
 
 import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
-import { Debug } from '../../util/debug';
 
 /**
  * A batch of animations that are synchronised together. Can be skipped independently of other batches and the main

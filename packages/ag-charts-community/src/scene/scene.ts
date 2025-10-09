@@ -1,6 +1,5 @@
-import { CleanupRegistry, EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
+import { CleanupRegistry, Debug, EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
 
-import { Debug } from '../util/debug';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { Group } from './group';

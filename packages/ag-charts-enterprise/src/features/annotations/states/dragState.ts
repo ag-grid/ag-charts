@@ -1,10 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Debug } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from './stateTypes';
 
-const { StateMachine, StateMachineProperty, Vec2, Debug } = _ModuleSupport;
+const { StateMachine, StateMachineProperty, Vec2 } = _ModuleSupport;
 
 export class DragStateMachine<
     Datum extends AnnotationProperties,

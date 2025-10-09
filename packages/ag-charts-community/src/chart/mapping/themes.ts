@@ -1,4 +1,5 @@
 import {
+    Debug,
     Logger,
     type OptionsDefs,
     arrayOf,
@@ -23,7 +24,6 @@ import type {
     AgChartThemeParams,
 } from 'ag-charts-types';
 
-import { Debug } from '../../util/debug';
 import { simpleMemorize } from '../../util/memo';
 import { mergeDefaults } from '../../util/object';
 import { ChartTheme } from '../themes/chartTheme';

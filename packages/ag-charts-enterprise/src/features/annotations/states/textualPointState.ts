@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Debug } from 'ag-charts-core';
 
 import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -10,7 +11,7 @@ import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface TextualPointStateMachineContext<Datum extends TextualPointProperties>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {

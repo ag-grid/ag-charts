@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-properties */
-import { Logger, TextMeasurer, getWindow, isString, toArray } from 'ag-charts-core';
+import { Debug, Logger, TextMeasurer, getWindow, isString, toArray } from 'ag-charts-core';
 
-import { Debug } from '../util/debug';
 import { BBox } from './bbox';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';

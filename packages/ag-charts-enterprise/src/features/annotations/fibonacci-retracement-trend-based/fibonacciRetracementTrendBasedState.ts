@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Debug } from 'ag-charts-core';
 
 import type { AnnotationContext, Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -7,7 +8,7 @@ import { snapPoint } from '../utils/coords';
 import { FibonacciRetracementTrendBasedProperties } from './fibonacciRetracementTrendBasedProperties';
 import type { FibonacciRetracementTrendBasedScene } from './fibonacciRetracementTrendBasedScene';
 
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface FibonacciRetracementTrendBasedStateMachineContext
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
