@@ -518,6 +518,10 @@ const heatmapOptions: AgCartesianChartOptions = {
     ],
 };
 
+function lowAndHigh<T>(p: T): { item: { low: T; high: T } } {
+    return { item: { low: p, high: p } };
+}
+
 const rangeSeriesOptions: AgCartesianChartOptions = {
     series: [
         {
@@ -542,10 +546,12 @@ const rangeSeriesOptions: AgCartesianChartOptions = {
             yLowKey: 'value1',
             yHighKey: 'value2',
             yName: 'Range Area 1',
-            marker: {
-                enabled: true,
-                itemStyler: createItemStyler('rangeArea1-marker'),
-            },
+            ...lowAndHigh({
+                marker: {
+                    enabled: true,
+                    itemStyler: createItemStyler('rangeArea1-marker'),
+                },
+            }),
         },
         {
             type: 'range-area',
@@ -553,10 +559,12 @@ const rangeSeriesOptions: AgCartesianChartOptions = {
             yLowKey: 'min',
             yHighKey: 'max',
             yName: 'Range Area 2',
-            marker: {
-                enabled: true,
-                itemStyler: createItemStyler('rangeArea2-marker'),
-            },
+            ...lowAndHigh({
+                marker: {
+                    enabled: true,
+                    itemStyler: createItemStyler('rangeArea2-marker'),
+                },
+            }),
         },
     ],
     axes: [

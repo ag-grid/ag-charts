@@ -40,6 +40,7 @@ export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum
     y1: number;
     y2: number;
     height: number;
+    elbows: { x: number; y: number }[];
 }
 
 export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
@@ -92,6 +93,12 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
 
     @Property
     alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
+
+    @Property
+    verticalAlignment: 'top' | 'bottom' | 'center' = 'center';
+
+    @Property
+    sort: 'data' | 'a-z' | 'z-a' | 'weight' = 'weight';
 
     @Property
     fill: InternalAgColorType | undefined = undefined;

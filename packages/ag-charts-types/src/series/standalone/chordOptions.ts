@@ -61,7 +61,7 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgChordSeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesLinkStyle {
-    /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual links, based on the given parameters.*/
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
 }
 
@@ -72,7 +72,7 @@ export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> ext
     spacing?: PixelSize;
     /** Width of the nodes. */
     width?: PixelSize;
-    /** Function used to return formatting for individual nodes, based on the given parameters. If the current node is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual nodes, based on the given parameters.*/
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<TDatum, TContext>, AgChordSeriesNodeStyle>;
 }
 

@@ -19,6 +19,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { NonNullablePath } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -509,7 +510,7 @@ describe('RadarAreaSeries', () => {
         });
         describe('priorities', () => {
             beforeEach(async () => {
-                const itemStyler: NonNullable<AgRadarAreaSeriesOptions['marker']>['itemStyler'] = (params) => {
+                const itemStyler: NonNullablePath<AgRadarAreaSeriesOptions, 'marker', 'itemStyler'> = (params) => {
                     if (params.radiusKey === 'healer' && params.datum['trait'] === 'Intelligence') {
                         return { fill: 'gold', size: 30, stroke: 'lime' };
                     }

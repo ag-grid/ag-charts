@@ -121,7 +121,7 @@ export interface AgWaterfallSeriesItemOptions<TDatum, TContext = ContextDefault>
     label?: AgWaterfallSeriesLabelOptions<TDatum, AgWaterfallSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
-    /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters.*/
     itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<TDatum, TContext>, AgWaterfallSeriesStyle>;
     /** Series item specific tooltip configuration. */
     tooltip?: AgWaterfallSeriesItemTooltip<TDatum, TContext>;

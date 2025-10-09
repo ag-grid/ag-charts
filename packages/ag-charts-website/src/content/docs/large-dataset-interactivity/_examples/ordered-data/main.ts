@@ -5,7 +5,7 @@ import {
     AgCharts,
 } from 'ag-charts-enterprise';
 
-import { getBubbleData, getData, getStackedData } from './data';
+import { getData } from './data';
 
 let dataLabel = '1K';
 let seriesType = 'Line';
@@ -21,9 +21,10 @@ const numberAxes: AgCartesianAxisOptions[] = [
     { type: 'number', position: 'bottom' },
 ];
 
+const baseData = getData(1e6);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(datapoints),
+    data: baseData.slice(-datapoints),
     title: { text: `${seriesType} with ${dataLabel} datapoints` },
     animation: { enabled: false },
     zoom: {
@@ -64,19 +65,17 @@ function setSeries(type: string, label: string) {
                 {
                     type,
                     xKey: 'timestamp',
-                    yKey: 'close',
+                    yKey: 'high',
                 },
             ];
-            options.data = getData(datapoints);
             break;
         case 'stacked-bar':
         case 'stacked-area':
             const stackedType = type === 'stacked-bar' ? 'bar' : 'area';
             options.series = [
-                { type: stackedType, xKey: 'timestamp', yKey: 'series1', stacked: true },
-                { type: stackedType, xKey: 'timestamp', yKey: 'series2', stacked: true },
+                { type: stackedType, xKey: 'timestamp', yKey: 'open', stacked: true },
+                { type: stackedType, xKey: 'timestamp', yKey: 'close', stacked: true },
             ];
-            options.data = getStackedData(datapoints);
             break;
 
         case 'range-area':
@@ -89,8 +88,6 @@ function setSeries(type: string, label: string) {
                     yHighKey: 'high',
                 },
             ];
-            options.data = getData(datapoints);
-
             break;
         case 'candlestick':
         case 'ohlc':
@@ -104,7 +101,6 @@ function setSeries(type: string, label: string) {
                     closeKey: 'close',
                 },
             ];
-            options.data = getData(datapoints);
             break;
         case 'scatter':
             options.series = [
@@ -116,7 +112,6 @@ function setSeries(type: string, label: string) {
                     strokeOpacity: 0.2,
                 },
             ];
-            options.data = getBubbleData(datapoints);
             break;
         case 'bubble':
             options.series = [
@@ -129,13 +124,15 @@ function setSeries(type: string, label: string) {
                     strokeOpacity: 0.2,
                 },
             ];
-            options.data = getBubbleData(datapoints);
-
             break;
         default:
             return;
     }
 
+    const newDatapoints = (options.series?.[0] as any)?.stacked ? datapoints / 2 : datapoints;
+    if (options.data?.length !== newDatapoints) {
+        options.data = baseData.slice(-newDatapoints);
+    }
     if (type == 'bubble' || type == 'scatter') {
         options.zoom!.axes = 'xy';
         options.zoom!.autoScaling!.enabled = false;
@@ -153,18 +150,9 @@ function setSeries(type: string, label: string) {
 }
 
 function setData(points: number, label: string) {
-    switch (seriesType) {
-        case 'Stacked Bar':
-        case 'Stacked Area':
-            options.data = getStackedData(points);
-            break;
-        case 'Scatter':
-        case 'Bubble':
-            options.data = getBubbleData(points);
-            break;
-        default:
-            options.data = getData(points);
-            break;
+    const newDatapoints = (options.series?.[0] as any)?.stacked ? points / 2 : points;
+    if (options.data?.length !== newDatapoints) {
+        options.data = baseData.slice(-newDatapoints);
     }
     dataLabel = label;
     datapoints = points;

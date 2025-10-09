@@ -48,10 +48,10 @@ This event contains:
 
 {% chartExampleRunner title="Series Visibility Changed" name="series-visibility-change" type="generated" /%}
 
-```ts format="snippet"
+```js format="snippet"
 {
     listeners: {
-        seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
+        seriesVisibilityChange: ({ seriesId, visible }) => {
             console.log(`seriesId: ${seriesId}, visible: ${visible}`);
         },
     },
@@ -135,11 +135,11 @@ These events contain:
 
 {% chartExampleRunner title="Legend Item Click Event" name="legend-item-click-event" type="generated" /%}
 
-```ts format="snippet"
+```js format="snippet"
 {
     legend: {
         listeners: {
-            legendItemClick: ({ seriesId, itemId, enabled }: AgChartLegendClickEvent) => {
+            legendItemClick: ({ seriesId, itemId, enabled }) => {
                 console.log(`seriesId: ${seriesId}, itemId: ${itemId}`);
             },
         },
