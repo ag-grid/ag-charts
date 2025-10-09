@@ -33,7 +33,8 @@ export class ModuleMap<T extends ModuleInstance = ModuleInstance> {
 
     destroy() {
         for (const moduleInstance of this.moduleMap.values()) {
-            moduleInstance.destroy?.();
+            // TODO: make sure we don't have "fake" plugins/modules with no module instance
+            moduleInstance?.destroy?.();
         }
         this.moduleMap.clear();
     }

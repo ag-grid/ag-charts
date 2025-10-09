@@ -8,8 +8,12 @@ import { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryA
 import { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
 import { StandaloneChartModule } from './charts/standaloneChartModule';
 import { TopologyChartModule } from './charts/topologyChartModule';
+import { AnimationModule } from './features/animation/animationModule';
 import { BackgroundModule } from './features/background/backgroundModule';
+import { CrosshairModule } from './features/crosshair/crosshairModule';
+import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { AnnotationsModule, InitialStateModule, NavigatorModule } from './features/sync/pluginModules';
+import { ZoomModule } from './features/zoom/zoomModule';
 import { BoxPlotSeriesModule } from './series/box-plot';
 import { CandlestickSeriesModule } from './series/candlestick';
 import { ChordSeriesModule } from './series/chord';
@@ -73,6 +77,10 @@ export {
     MapMarkerSeriesModule,
     MapShapeSeriesModule,
     MapShapeBackgroundSeriesModule,
+    CrosshairModule,
+    AnimationModule,
+    ErrorBarsModule,
+    ZoomModule,
 };
 
 export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
@@ -86,7 +94,11 @@ export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
     WaterfallSeriesModule,
+    CrosshairModule,
+    AnimationModule,
     BackgroundModule,
+    ErrorBarsModule,
+    ZoomModule,
 ];
 
 export const AllPolarEnterpriseModules: ModuleDefinition[] = [
@@ -100,6 +112,7 @@ export const AllPolarEnterpriseModules: ModuleDefinition[] = [
     RadialBarSeriesModule,
     RadialColumnSeriesModule,
     BackgroundModule,
+    AnimationModule,
 ];
 
 export const AllStandaloneEnterpriseModules: ModuleDefinition[] = [
@@ -112,6 +125,7 @@ export const AllStandaloneEnterpriseModules: ModuleDefinition[] = [
     ChordSeriesModule,
     SankeySeriesModule,
     BackgroundModule,
+    AnimationModule,
 ];
 
 export const AllTopologyEnterpriseModules: ModuleDefinition[] = [
@@ -122,6 +136,8 @@ export const AllTopologyEnterpriseModules: ModuleDefinition[] = [
     MapShapeSeriesModule,
     MapShapeBackgroundSeriesModule,
     BackgroundModule,
+    AnimationModule,
+    ZoomModule,
 ];
 
 export const AllEnterpriseModules: ModuleDefinition[] = [
