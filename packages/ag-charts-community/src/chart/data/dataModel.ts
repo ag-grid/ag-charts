@@ -102,6 +102,7 @@ interface CommonMetadata<D> {
     };
     partialValidDataCount: number;
     time: number;
+    optimizations?: OptimizationMetadata;
     [DOMAIN_RANGES]: Map<string, RangeLookup>;
     [KEY_SORT_ORDERS]: Map<number, SortOrderEntry>;
     [COLUMN_SORT_ORDERS]: Map<number, SortOrderEntry>;
@@ -133,6 +134,61 @@ export interface ProcessedDataDef {
 }
 
 export type ProcessedData<D> = UngroupedData<D> | GroupedData<D>;
+
+/** Metadata about applied/skipped optimizations for debugging */
+export interface OptimizationMetadata {
+    /** Was reprocessing path used? */
+    reprocessing?: {
+        applied: boolean;
+        reason?: string;
+    };
+
+    /** Domain banding optimization per definition */
+    domainBanding?: {
+        keyDefs: Array<{
+            property: string;
+            applied: boolean;
+            reason?: string;
+            stats?: {
+                totalBands: number;
+                dirtyBands: number;
+                dataSize: number;
+                scanRatio: number; // 0-1, proportion of data scanned
+            };
+        }>;
+        valueDefs: Array<{
+            property: string;
+            applied: boolean;
+            reason?: string;
+            stats?: {
+                totalBands: number;
+                dirtyBands: number;
+                dataSize: number;
+                scanRatio: number;
+            };
+        }>;
+    };
+
+    /** Shared datum indices optimization (grouped data only) */
+    sharedDatumIndices?: {
+        applied: boolean;
+        sharedGroupCount: number;
+        totalGroupCount: number;
+    };
+
+    /** Batch merging optimization */
+    batchMerging?: {
+        originalBatchCount: number;
+        mergedBatchCount: number;
+        mergeRatio: number; // 0-1, higher is better
+    };
+
+    /** Overall performance metrics */
+    performance?: {
+        processingTime: number;
+        pathTaken: 'full-process' | 'reprocess';
+    };
+}
 
 export type DatumPropertyType = 'range' | 'category';
 
@@ -686,7 +742,9 @@ export class DataModel<
         const end = performance.now();
         processedData.time = end - start;
 
+        // Collect optimization metadata if debug enabled
         if (this.debug.check()) {
+            this.collectOptimizationMetadata(processedData, 'full-process');
             logProcessedData(processedData);
         }
 
@@ -759,6 +817,11 @@ export class DataModel<
 
         const end = performance.now();
         processedData.time = end - start;
+
+        // Collect optimization metadata if debug enabled
+        if (this.debug.check()) {
+            this.collectOptimizationMetadata(processedData, 'reprocess');
+        }
 
         return processedData;
     }
@@ -1232,6 +1295,9 @@ export class DataModel<
             } else {
                 this.debug(`recomputeDomains: ${duration.toFixed(2)}ms (no banding)`);
             }
+
+            // Store banding statistics in optimization metadata
+            this.collectDomainBandingMetadata(processedData, keyDomains, valueDomains, bandedDomains);
         }
     }
 
@@ -1775,6 +1841,7 @@ export class DataModel<
         let groupIndex = 0;
 
         // Determine columns we can process in batch.
+        const rawBatchCount = allScopes.size;
         const columnBatches = this.groupBatches(
             allScopes,
             allColumns,
@@ -1783,6 +1850,20 @@ export class DataModel<
             invalidData,
             invalidKeys
         );
+        const mergedBatchCount = columnBatches.length;
+
+        // Track batch merging optimization if debug enabled
+        if (this.debug.check() && !data.optimizations) {
+            data.optimizations = {};
+        }
+        if (this.debug.check()) {
+            const mergeRatio = rawBatchCount > 0 ? 1 - mergedBatchCount / rawBatchCount : 0;
+            data.optimizations!.batchMerging = {
+                originalBatchCount: rawBatchCount,
+                mergedBatchCount,
+                mergeRatio,
+            };
+        }
 
         const singleBatch = columnBatches.length === 1;
         const allZeroDatumIndices = Object.freeze(createArray(columnBatches[0][1].length, ZERO_DATUM_INDICES));
@@ -1868,6 +1949,7 @@ export class DataModel<
             },
             groups: resultData,
             groupsUnique,
+            optimizations: data.optimizations,
             [DOMAIN_BANDS]: data[DOMAIN_BANDS],
         };
     }
@@ -2253,6 +2335,186 @@ export class DataModel<
         return { dataDomain, processValue, initDataDomain, scopes, allScopesHaveSameDefs };
     }
 
+    /**
+     * Collects optimization metadata for debugging purposes.
+     * Only called when debug mode is enabled.
+     */
+    private collectOptimizationMetadata(processedData: ProcessedData<D>, pathTaken: 'full-process' | 'reprocess') {
+        processedData.optimizations = {
+            performance: {
+                processingTime: processedData.time,
+                pathTaken,
+            },
+        };
+
+        // Track reprocessing optimization
+        const reprocessingSupported = this.isReprocessingSupported(processedData);
+        const reprocessingApplied = pathTaken === 'reprocess';
+        let reprocessingReason: string | undefined;
+
+        if (!reprocessingSupported) {
+            const reasons: string[] = [];
+            if (processedData.type === 'grouped') {
+                if (!processedData.groupsUnique) {
+                    reasons.push('groupsUnique=false');
+                }
+                if (processedData.scopes.size !== 1) {
+                    reasons.push('multiple scopes');
+                }
+                const scope = first(processedData.scopes);
+                const invalidKeys = processedData.invalidKeys?.get(scope);
+                if (invalidKeys?.some((invalid) => invalid)) {
+                    reasons.push('has invalid keys');
+                }
+            }
+            if (this.aggregates.length > 0) {
+                reasons.push('has aggregates');
+            }
+            if (this.reducers.length > 0) {
+                reasons.push('has reducers');
+            }
+            if (this.processors.length > 0) {
+                reasons.push('has processors');
+            }
+            if (this.propertyProcessors.length > 0) {
+                reasons.push('has property processors');
+            }
+            reprocessingReason = reasons.length > 0 ? reasons.join(', ') : undefined;
+        }
+
+        processedData.optimizations.reprocessing = {
+            applied: reprocessingApplied,
+            reason: reprocessingReason,
+        };
+
+        // Track shared datum indices for grouped data
+        if (processedData.type === 'grouped') {
+            let sharedGroupCount = 0;
+            const firstGroup = processedData.groups[0];
+            if (firstGroup) {
+                const sharedDatumIndices = firstGroup.datumIndices;
+                for (const group of processedData.groups) {
+                    if (group.datumIndices === sharedDatumIndices) {
+                        sharedGroupCount++;
+                    }
+                }
+            }
+            processedData.optimizations.sharedDatumIndices = {
+                applied: sharedGroupCount > 0,
+                sharedGroupCount,
+                totalGroupCount: processedData.groups.length,
+            };
+        }
+    }
+
+    /**
+     * Collects domain banding optimization metadata.
+     * Only called when debug mode is enabled.
+     */
+    private collectDomainBandingMetadata(
+        processedData: ProcessedData<D>,
+        keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>,
+        valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>,
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>
+    ) {
+        if (!processedData.optimizations) {
+            processedData.optimizations = {};
+        }
+
+        const keyDefs: Array<{
+            property: string;
+            applied: boolean;
+            reason?: string;
+            stats?: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number };
+        }> = [];
+
+        const valueDefs: Array<{
+            property: string;
+            applied: boolean;
+            reason?: string;
+            stats?: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number };
+        }> = [];
+
+        // Collect stats for key definitions
+        for (const keyDef of this.keys) {
+            const domain = keyDomains.get(keyDef);
+            const bandedDomain = bandedDomains.get(keyDef);
+            const isBanded = domain instanceof BandedDomain;
+
+            let reason: string | undefined;
+            if (!isBanded) {
+                if (keyDef.valueType === 'category') {
+                    reason = 'discrete domain';
+                } else if (this.opts.domainBandingConfig?.enableBanding === false) {
+                    reason = 'banding disabled';
+                } else {
+                    reason = 'not configured';
+                }
+            }
+
+            let stats: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number } | undefined;
+            if (isBanded && bandedDomain) {
+                const domainStats = bandedDomain.getStats();
+                const scanRatio = domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
+                stats = {
+                    totalBands: domainStats.bandCount,
+                    dirtyBands: domainStats.dirtyBandCount,
+                    dataSize: domainStats.dataSize,
+                    scanRatio,
+                };
+            }
+
+            keyDefs.push({
+                property: String(keyDef.property),
+                applied: isBanded,
+                reason,
+                stats,
+            });
+        }
+
+        // Collect stats for value definitions
+        for (const valueDef of this.values) {
+            const domain = valueDomains.get(valueDef);
+            const bandedDomain = bandedDomains.get(valueDef);
+            const isBanded = domain instanceof BandedDomain;
+
+            let reason: string | undefined;
+            if (!isBanded) {
+                if (valueDef.valueType === 'category') {
+                    reason = 'discrete domain';
+                } else if (this.opts.domainBandingConfig?.enableBanding === false) {
+                    reason = 'banding disabled';
+                } else {
+                    reason = 'not configured';
+                }
+            }
+
+            let stats: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number } | undefined;
+            if (isBanded && bandedDomain) {
+                const domainStats = bandedDomain.getStats();
+                const scanRatio = domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
+                stats = {
+                    totalBands: domainStats.bandCount,
+                    dirtyBands: domainStats.dirtyBandCount,
+                    dataSize: domainStats.dataSize,
+                    scanRatio,
+                };
+            }
+
+            valueDefs.push({
+                property: String(valueDef.property),
+                applied: isBanded,
+                reason,
+                stats,
+            });
+        }
+
+        processedData.optimizations.domainBanding = {
+            keyDefs,
+            valueDefs,
+        };
+    }
+
     buildAccessors(defs: Iterable<{ property: string }>) {
         const result = new Map<string, (d: any) => any>();
         if (this.suppressFieldDotNotation) {
@@ -2285,7 +2547,60 @@ function logProcessedData(processedData: ProcessedData<any>) {
 
     Logger.log('DataModel.processData() - processedData', processedData);
     logValues('Key Domains', processedData.domain.keys);
-    logValues('Group Domains', processedData.domain.groups ?? []);
     logValues('Value Domains', processedData.domain.values);
     logValues('Aggregate Domains', processedData.domain.aggValues ?? []);
+
+    // Log optimization metadata if present
+    if (processedData.optimizations) {
+        Logger.log('DataModel.processData() - Optimization Summary');
+        const opt = processedData.optimizations;
+
+        if (opt.performance) {
+            Logger.log(`  Performance: ${opt.performance.processingTime.toFixed(2)}ms (${opt.performance.pathTaken})`);
+        }
+
+        if (opt.reprocessing) {
+            const symbol = opt.reprocessing.applied ? '✓' : '✗';
+            const reason = opt.reprocessing.reason ? ` (${opt.reprocessing.reason})` : '';
+            Logger.log(`  Reprocessing: ${symbol}${reason}`);
+        }
+
+        if (opt.domainBanding) {
+            const keyStats = opt.domainBanding.keyDefs.filter((d) => d.applied);
+            const valueStats = opt.domainBanding.valueDefs.filter((d) => d.applied);
+            const totalApplied = keyStats.length + valueStats.length;
+            const totalDefs = opt.domainBanding.keyDefs.length + opt.domainBanding.valueDefs.length;
+
+            if (totalApplied > 0) {
+                Logger.log(`  Domain Banding: ✓ (${totalApplied}/${totalDefs} definitions)`);
+                for (const def of [...keyStats, ...valueStats]) {
+                    if (def.stats) {
+                        const pct = (def.stats.scanRatio * 100).toFixed(1);
+                        Logger.log(
+                            `    ${def.property}: scanned ${def.stats.dirtyBands}/${def.stats.totalBands} bands (${pct}%)`
+                        );
+                    }
+                }
+            } else {
+                const reasons = [
+                    ...opt.domainBanding.keyDefs.filter((d) => !d.applied).map((d) => d.reason),
+                    ...opt.domainBanding.valueDefs.filter((d) => !d.applied).map((d) => d.reason),
+                ];
+                const uniqueReasons = [...new Set(reasons)].join(', ');
+                Logger.log(`  Domain Banding: ✗ (${uniqueReasons})`);
+            }
+        }
+
+        if (opt.sharedDatumIndices) {
+            const symbol = opt.sharedDatumIndices.applied ? '✓' : '✗';
+            const ratio = `${opt.sharedDatumIndices.sharedGroupCount}/${opt.sharedDatumIndices.totalGroupCount}`;
+            Logger.log(`  Shared DatumIndices: ${symbol} (${ratio} groups)`);
+        }
+
+        if (opt.batchMerging) {
+            const pct = (opt.batchMerging.mergeRatio * 100).toFixed(0);
+            const reduction = `${opt.batchMerging.originalBatchCount} → ${opt.batchMerging.mergedBatchCount}`;
+            Logger.log(`  Batch Merging: ${reduction} (${pct}% reduction)`);
+        }
+    }
 }

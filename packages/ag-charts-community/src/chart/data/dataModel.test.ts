@@ -2733,4 +2733,121 @@ describe('DataModel', () => {
             }
         });
     });
+
+    describe('optimization metadata', () => {
+        beforeEach(() => {
+            // Enable debug mode for these tests
+            (global as any).agChartsDebug = true;
+        });
+
+        afterEach(() => {
+            // Clean up
+            delete (global as any).agChartsDebug;
+        });
+
+        it('should collect optimization metadata when debug enabled', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const dataSet = new DataSet([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+            ]);
+            const sources = new Map([['test', dataSet]]);
+
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData?.optimizations).toBeDefined();
+            expect(processedData?.optimizations?.performance).toBeDefined();
+            expect(processedData?.optimizations?.performance?.pathTaken).toBe('full-process');
+            expect(processedData?.optimizations?.reprocessing).toBeDefined();
+            expect(processedData?.optimizations?.reprocessing?.applied).toBe(false);
+        });
+
+        it('should track reprocessing applied', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const dataSet = new DataSet([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+            ]);
+            const sources = new Map([['test', dataSet]]);
+
+            const processedData = dataModel.processData(sources);
+
+            dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
+            const reprocessed = dataModel.reprocessData(processedData!);
+
+            expect(reprocessed.optimizations).toBeDefined();
+            expect(reprocessed.optimizations?.reprocessing?.applied).toBe(true);
+            expect(reprocessed.optimizations?.performance?.pathTaken).toBe('reprocess');
+        });
+
+        it('should explain why reprocessing is not supported', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('category'), value('value', 'value'), sum('value')],
+                groupByKeys: true,
+            });
+
+            const dataSet = new DataSet([
+                { category: 'A', value: 10 },
+                { category: 'B', value: 20 },
+            ]);
+            const sources = new Map([['test', dataSet]]);
+
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData?.optimizations?.reprocessing?.applied).toBe(false);
+            expect(processedData?.optimizations?.reprocessing?.reason).toContain('aggregates');
+        });
+
+        it('should track shared datum indices for grouped data', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('category'), value('value')],
+                groupByKeys: true,
+            });
+
+            const dataSet = new DataSet([
+                { category: 'A', value: 10 },
+                { category: 'B', value: 20 },
+                { category: 'C', value: 30 },
+            ]);
+            const sources = new Map([['test', dataSet]]);
+
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData?.optimizations?.sharedDatumIndices).toBeDefined();
+            expect(processedData?.optimizations?.sharedDatumIndices?.applied).toBe(true);
+            expect(processedData?.optimizations?.sharedDatumIndices?.sharedGroupCount).toBeGreaterThan(0);
+        });
+
+        // Note: Batch merging and domain banding metadata are collected but may not
+        // always be present depending on the data structure and processing path
+
+        it('should not collect metadata when debug disabled', () => {
+            // Temporarily disable debug for this test
+            delete (global as any).agChartsDebug;
+
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+            // Debug is disabled by default
+
+            const dataSet = new DataSet([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+            ]);
+            const sources = new Map([['test', dataSet]]);
+
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData?.optimizations).toBeUndefined();
+
+            // Re-enable for other tests in this describe block
+            (global as any).agChartsDebug = true;
+        });
+    });
 });
