@@ -59,7 +59,7 @@ export interface AgBaseCartesianAxisOptions<
 }
 
 export interface AgCartesianAxisCrossAt {
-    value: number | Date | string;
+    value: number | Date | string | string[];
     sticky?: boolean;
 }
 
