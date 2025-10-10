@@ -78,6 +78,13 @@ export interface AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext> extends
     marker?: RangeAreaMarker<TDatum, TContext>;
 }
 
+export interface AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext> {
+    /** Configuration for the bottom line (defined by the `yLowKey`). */
+    low?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
+    /** Configuration for the top line (defined by the `yHighKey`). */
+    high?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
+}
+
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends FillOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
@@ -94,12 +101,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** The initial offset of the dashed line (low & high) in pixels. */
     lineDashOffset?: PixelSize;
     /** Configuration used for distinct styling of the low & high lines. */
-    item?: {
-        /** Configuration for the bottom line (defined by the `yLowKey`). */
-        low?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
-        /** Configuration for the top line (defined by the `yHighKey`). */
-        high?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
-    };
+    item?: AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** @deprecated Configuration for the range series items when they are hovered over. */
