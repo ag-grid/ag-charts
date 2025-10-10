@@ -41,7 +41,9 @@ export class PolarChart extends Chart {
         this.seriesRoot.translationX = seriesRect.x;
         this.seriesRoot.translationY = seriesRect.y;
         await this.computeCircle(seriesRect);
-        this.axes.forEach((axis) => axis.update());
+        for (const axis of this.axes) {
+            axis.update();
+        }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: true, rect: seriesRect, paddedRect: layoutBox },

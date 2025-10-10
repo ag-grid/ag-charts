@@ -130,11 +130,11 @@ export class MapLineBackgroundSeries
 
         const nodeData: MapLineBackgroundNodeDatum[] = [];
         const labelData: never[] = [];
-        topology.features.forEach((feature, index) => {
+        for (const [index, feature] of topology.features.entries()) {
             const { geometry } = feature;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
-            if (projectedGeometry == null) return;
+            if (projectedGeometry == null) continue;
 
             nodeData.push({
                 series: this,
@@ -145,7 +145,7 @@ export class MapLineBackgroundSeries
                 projectedGeometry,
                 style: { stroke, strokeOpacity, lineDash, lineDashOffset, strokeWidth },
             });
-        });
+        }
 
         return {
             itemId: seriesId,

@@ -62,7 +62,7 @@ export function createFibonacciRangesData(
     let startY = yZero;
     const data: FibonacciRangeDatum[] = [];
 
-    FIBONACCI_RATIOS_MAP[bands].forEach((ratio, index) => {
+    for (const [index, ratio] of FIBONACCI_RATIOS_MAP[bands].entries()) {
         const endY = yZero + verticalDistance * (ratio / 100) * direction;
         const yDatumVal = context.yAxis.scaleInvert(endY);
 
@@ -82,7 +82,7 @@ export function createFibonacciRangesData(
             },
         });
         startY = endY;
-    });
+    }
 
     return data;
 }

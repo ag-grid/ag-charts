@@ -161,7 +161,9 @@ export abstract class Axis<
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
         const { CrossLineConstructor } = this.constructor as typeof Axis;
-        this._crossLines.forEach((crossLine) => this.detachCrossLine(crossLine));
+        for (const crossLine of this._crossLines) {
+            this.detachCrossLine(crossLine);
+        }
         this._crossLines = value.map((crossLine) => {
             const instance = new CrossLineConstructor();
             instance.set(crossLine);
@@ -306,7 +308,9 @@ export abstract class Axis<
         readonly scale: S
     ) {
         this.range = this.scale.range.slice() as [number, number];
-        this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
+        for (const crossLine of this.crossLines) {
+            this.initCrossLine(crossLine);
+        }
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e))
         );
@@ -436,7 +440,9 @@ export abstract class Axis<
         if (prevValue ^ value) {
             this.onGridVisibilityChange();
         }
-        this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
+        for (const crossLine of this.crossLines) {
+            this.initCrossLine(crossLine);
+        }
     }
 
     protected onGridVisibilityChange() {}
@@ -959,7 +965,9 @@ export abstract class Axis<
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);
-                    seriesKeys.forEach((key) => keys.add(key));
+                    for (const key of seriesKeys) {
+                        keys.add(key);
+                    }
                     return keys;
                 }, new Set<string>()),
             seriesIds: () => this.boundSeries.map((series) => series.id),

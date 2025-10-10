@@ -269,7 +269,7 @@ export abstract class RadiusAxis<
             }
 
             const radius = this.getTickRadius(value);
-            angles.forEach((angle, idx) => {
+            for (const [idx, angle] of angles.entries()) {
                 const x = radius * Math.cos(angle);
                 const y = radius * Math.sin(angle);
                 if (idx === 0) {
@@ -278,7 +278,7 @@ export abstract class RadiusAxis<
                     path.lineTo(x, y);
                 }
 
-                angles.forEach((innerAngle, innerIdx) => {
+                for (const [innerIdx, innerAngle] of angles.entries()) {
                     const x2 = radius * Math.cos(innerAngle);
                     const y2 = radius * Math.sin(innerAngle);
                     if (innerIdx === 0) {
@@ -286,9 +286,9 @@ export abstract class RadiusAxis<
                     } else {
                         path.lineTo(x2, y2);
                     }
-                });
+                }
                 path.closePath();
-            });
+            }
             path.closePath();
         };
 
@@ -330,7 +330,7 @@ export abstract class RadiusAxis<
     }
 
     protected override updateCrossLines() {
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
             if (crossLine instanceof RadiusCrossLine) {
                 const { shape, gridAngles, range, innerRadiusRatio } = this;
                 const radius = range[0];
@@ -339,7 +339,7 @@ export abstract class RadiusAxis<
                 crossLine.axisOuterRadius = radius;
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
-        });
+        }
         super.updateCrossLines();
     }
 

@@ -68,7 +68,7 @@ export class LicenseManager {
 
     private static extractExpiry(license: string) {
         const restrictionHashed = license.substring(license.lastIndexOf('_') + 1, license.length);
-        return new Date(parseInt(LicenseManager.decode(restrictionHashed), 10));
+        return new Date(Number.parseInt(LicenseManager.decode(restrictionHashed), 10));
     }
 
     private static extractLicenseComponents(licenseKey: string) {
@@ -103,7 +103,7 @@ export class LicenseManager {
 
         const chartsReleaseDate = LicenseManager.getChartsReleaseDate();
         const { md5, license, version, isTrial, type } = LicenseManager.extractLicenseComponents(licenseKey);
-        let valid = md5 === this.md5.md5(license) && licenseKey.indexOf('For_Trialing_ag-Grid_Only') === -1;
+        let valid = md5 === this.md5.md5(license) && !licenseKey.includes('For_Trialing_ag-Grid_Only');
         let trialExpired: undefined | boolean = undefined;
         let expired: undefined | boolean = undefined;
         let expiry: Date | null = null;
@@ -186,7 +186,7 @@ export class LicenseManager {
         if (!this.document) {
             return 'localhost';
         }
-        const win = this.document.defaultView ?? window;
+        const win = this.document.defaultView ?? globalThis;
         if (!win) {
             return 'localhost';
         }
@@ -200,13 +200,13 @@ export class LicenseManager {
         if (!this.document) {
             return false;
         }
-        const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
+        const win = this.document?.defaultView ?? typeof globalThis.window != 'undefined' ? globalThis : undefined;
         if (!win) {
             return false;
         }
 
         const { pathname } = win.location;
-        return pathname ? pathname.indexOf('forceWatermark') !== -1 : false;
+        return pathname ? pathname.includes('forceWatermark') : false;
     }
 
     private isWebsiteUrl(): boolean {
@@ -248,7 +248,7 @@ export class LicenseManager {
     }
 
     private static getChartsReleaseDate() {
-        return new Date(parseInt(LicenseManager.decode(LicenseManager.RELEASE_INFORMATION), 10));
+        return new Date(Number.parseInt(LicenseManager.decode(LicenseManager.RELEASE_INFORMATION), 10));
     }
 
     private static decode(input: string): string {

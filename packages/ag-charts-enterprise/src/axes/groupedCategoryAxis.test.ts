@@ -74,7 +74,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
 ): Record<string, TestCase<T>> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         // Add manual rotation.
         result[name + '_MANUAL_ROTATION'] = {
             ...baseCase,
@@ -91,7 +91,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }

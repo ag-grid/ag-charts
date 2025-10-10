@@ -33,7 +33,7 @@ export class RangeSelector extends _ModuleSupport.Group {
 
     updateBackground(oldGroup?: _ModuleSupport.Group, newGroup?: _ModuleSupport.Group) {
         if (oldGroup != null) {
-            this.background.removeChild(oldGroup);
+            oldGroup.remove();
         }
 
         if (newGroup != null) {

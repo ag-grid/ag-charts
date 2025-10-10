@@ -258,7 +258,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
 
                 const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
-                invalid.forEach((error) => Logger.warn(error));
+                for (const error of invalid) {
+                    Logger.warn(error);
+                }
 
                 if (hasRequiredInPath(invalid, '')) {
                     options = {} as any;
@@ -290,7 +292,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
             const { cleared, invalid } = validateChart(options, this.chartDef.options, '');
-            invalid.forEach((error) => Logger.warn(error));
+            for (const error of invalid) {
+                Logger.warn(error);
+            }
             options = cleared as T;
         }
 
@@ -341,7 +345,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const pluginKey = pluginDef.name as keyof T;
             if (pluginKey in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)) {
                 const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
-                invalid.forEach((error) => Logger.warn(error));
+                for (const error of invalid) {
+                    Logger.warn(error);
+                }
                 options[pluginKey] = cleared as T[keyof T];
             }
         }
@@ -382,7 +388,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { validate: validateSeries = validate } = seriesDef;
             const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath);
 
-            invalid.forEach((error) => Logger.warn(error));
+            for (const error of invalid) {
+                Logger.warn(error);
+            }
 
             if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedSeriesOptions.push(cleared);
@@ -426,7 +434,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { validate: validateAxis = validate } = axisDef;
             const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath);
 
-            invalid.forEach((error) => Logger.warn(error));
+            for (const error of invalid) {
+                Logger.warn(error);
+            }
 
             if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedAxesOptions.push(cleared);

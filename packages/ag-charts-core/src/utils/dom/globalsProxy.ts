@@ -5,14 +5,14 @@ const verifiedGlobals = {} as { document: Document; window: Window };
 
 if (typeof window !== 'undefined') {
     verifiedGlobals.window = window;
-} else if (typeof global !== 'undefined') {
-    verifiedGlobals.window = global.window;
+} else if (typeof globalThis.global !== 'undefined') {
+    verifiedGlobals.window = globalThis.window;
 }
 
 if (typeof document !== 'undefined') {
     verifiedGlobals.document = document;
-} else if (typeof global !== 'undefined') {
-    verifiedGlobals.document = global.document;
+} else if (typeof globalThis.global !== 'undefined') {
+    verifiedGlobals.document = globalThis.document;
 }
 
 /**

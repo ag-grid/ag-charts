@@ -898,7 +898,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 updateAnnotation(node, datum, context);
             });
 
-        this.postUpdateFns.forEach((fn) => fn());
+        for (const fn of this.postUpdateFns) {
+            fn();
+        }
         this.postUpdateFns = [];
     }
 

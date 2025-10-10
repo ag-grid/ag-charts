@@ -86,9 +86,9 @@ export function sortBasedOnArray<T>(baseArray: T[], orderArray: T[]): T[] {
     const orderMap = new Map<T, number>();
 
     // Create a map from the `orderArray` array for quick lookups
-    orderArray.forEach((item, index) => {
+    for (const [index, item] of orderArray.entries()) {
         orderMap.set(item, index);
-    });
+    }
 
     // Sort the `baseArray` array based on the indices in the `orderMap`
     return baseArray.sort((a, b) => {

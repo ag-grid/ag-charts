@@ -43,7 +43,7 @@ export abstract class AnnotationScene extends _ModuleSupport.Group {
         isConfigured?: boolean
     ) {
         if (!isConfigured && node) {
-            this.removeChild(node);
+            node.remove();
             return;
         }
 

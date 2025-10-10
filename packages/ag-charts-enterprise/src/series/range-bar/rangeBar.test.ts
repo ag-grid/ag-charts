@@ -218,7 +218,7 @@ describe('RangeBarSeries', () => {
         direction: 'horizontal' | 'vertical'
     ): T {
         if (axes) {
-            axes.forEach((axis) => {
+            for (const axis of axes) {
                 switch (axis.position) {
                     case 'left':
                         axis.position = 'bottom';
@@ -233,7 +233,7 @@ describe('RangeBarSeries', () => {
                         axis.position = 'right';
                         break;
                 }
-            });
+            }
         }
         return {
             ...opts,

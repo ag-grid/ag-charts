@@ -147,7 +147,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onCollapse() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
-        this.element.removeChild(this.menuWidget.getElement());
+        this.menuWidget.getElement().remove();
         this.element.style.display = 'none';
     }
 

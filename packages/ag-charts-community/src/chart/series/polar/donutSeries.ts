@@ -1766,7 +1766,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             id: seriesId,
             ctx: { legendManager, updateService },
         } = this;
-        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem(enabled, seriesId, itemId));
+        for (const [itemId, enabled] of enabledItems.entries()) {
+            legendManager.toggleItem(enabled, seriesId, itemId);
+        }
         legendManager.update();
         updateService.update(ChartUpdateType.SERIES_UPDATE);
     }

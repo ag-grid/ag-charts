@@ -28,19 +28,19 @@ export function createAngleMotionCalculator() {
         datum: AngleObject,
         status: _ModuleSupport.NodeUpdateState
     ) => {
-        angleKeys.forEach((key) => {
+        for (const key of angleKeys) {
             const map = angles[key];
             let from = (status === 'removed' || status === 'updated' ? node : datum)[key];
             let to = (status === 'removed' ? node : datum)[key];
             if (isNaN(to)) {
-                to = node.previousDatum?.[key] ?? NaN;
+                to = node.previousDatum?.[key] ?? Number.NaN;
             }
             const diff = from - to;
             if (Math.abs(diff) > Math.PI) {
                 from -= Math.sign(diff) * 2 * Math.PI;
             }
             map.set(datum, { from, to });
-        });
+        }
     };
     const getAngles = (datum: AngleObject, fromToKey: FromToKey) => {
         return {

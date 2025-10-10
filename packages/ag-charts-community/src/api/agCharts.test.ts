@@ -67,11 +67,11 @@ describe('AgCharts', () => {
     }
 
     beforeEach(() => {
-        (window as any).agChartsDebug = ['perf', 'pool', 'dev'];
+        (globalThis as any).agChartsDebug = ['perf', 'pool', 'dev'];
     });
 
     afterEach(() => {
-        delete (window as any).agChartsDebug;
+        delete (globalThis as any).agChartsDebug;
     });
 
     describe('sparkline optimisations', () => {

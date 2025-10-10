@@ -62,7 +62,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         if (!vertices) {
             edges.set(edge, [to]);
             this._edgeCount++;
-        } else if (vertices.indexOf(to) === -1) {
+        } else if (!vertices.includes(to)) {
             if (this.singleValueEdges?.has(edge)) {
                 edges.set(edge, [to]);
             } else {

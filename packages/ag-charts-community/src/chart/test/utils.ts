@@ -679,7 +679,9 @@ export function spyOnAnimationManager() {
 
     afterEach(() => {
         activeAnimateCb = undefined;
-        mocks.forEach((mock) => mock.mockRestore());
+        for (const mock of mocks) {
+            mock.mockRestore();
+        }
         rafCbs.clear();
     });
 

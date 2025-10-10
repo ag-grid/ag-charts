@@ -92,7 +92,7 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     private drawPolygon(radius: number, angles: number[], polygon: _ModuleSupport.Path) {
-        angles.forEach((angle, index) => {
+        for (const [index, angle] of angles.entries()) {
             const x = radius * Math.cos(angle);
             const y = radius * Math.sin(angle);
             if (index === 0) {
@@ -100,7 +100,7 @@ export class RadiusCrossLine extends PolarCrossLine {
             } else {
                 polygon.path.lineTo(x, y);
             }
-        });
+        }
         polygon.path.closePath();
     }
 

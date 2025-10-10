@@ -128,11 +128,12 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
         html += ' ';
     }
 
-    content.data?.forEach((datum) => {
-        html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
-        html += ' ';
-    });
-
+    if (content.data) {
+        for (const datum of content.data) {
+            html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
+            html += ' ';
+        }
+    }
     return html;
 }
 
@@ -181,10 +182,12 @@ function tooltipContentHtml(
             html += dataHtml(undefined, compactTitle, false);
         }
 
-        singleItem.data?.forEach((datum) => {
-            html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
-            html += ' ';
-        });
+        if (singleItem.data) {
+            for (const datum of singleItem.data) {
+                html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
+                html += ' ';
+            }
+        }
     } else {
         // Full rendering
         if (content.heading != null) {

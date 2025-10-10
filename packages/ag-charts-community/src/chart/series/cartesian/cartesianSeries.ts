@@ -1121,7 +1121,9 @@ export abstract class CartesianSeries<
 
     protected updatePaths(opts: { itemId?: string; contextData: TContext; paths: Path[] }): void {
         // Override point for sub-classes.
-        opts.paths.forEach((p) => (p.visible = false));
+        for (const p of opts.paths) {
+            p.visible = false;
+        }
     }
 
     protected updatePathNodes(opts: {

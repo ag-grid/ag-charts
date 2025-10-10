@@ -167,11 +167,11 @@ export class MapShapeSeries
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
-        topology?.features.forEach((feature) => {
+        for (const feature of topology?.features.values() ?? []) {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) return;
+            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) continue;
             featureById.set(property, feature);
-        });
+        }
 
         const colorScaleType = this.colorScale.type;
         const mercatorScaleType = this.scale?.type;
@@ -344,7 +344,7 @@ export class MapShapeSeries
 
         if (dataModel == null || processedData == null) return;
 
-        const scaling = scale != null ? (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width : NaN;
+        const scaling = scale != null ? (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width : Number.NaN;
 
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
@@ -366,7 +366,7 @@ export class MapShapeSeries
         const labelData: MapShapeNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const idValue = idValues[datumIndex];
             const colorValue: number | undefined = colorValues?.[datumIndex];
             const labelValue: string | undefined = labelValues?.[datumIndex];
@@ -407,7 +407,7 @@ export class MapShapeSeries
                 legendItemName,
                 style: this.getItemStyle({ datum, datumIndex, colorValue }, false),
             });
-        });
+        }
 
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {

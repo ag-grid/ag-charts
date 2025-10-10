@@ -48,9 +48,9 @@ export function parseNumberFormat(format: string): FormatterOptions | undefined 
         sign,
         symbol,
         zero,
-        width: parseInt(width),
+        width: Number.parseInt(width),
         comma,
-        precision: parseInt(precision),
+        precision: Number.parseInt(precision),
         trim: Boolean(trim),
         type,
         prefix,
@@ -195,7 +195,7 @@ function absFloor(n: number) {
 }
 
 function removeTrailingZeros(numString: string) {
-    if (!numString.endsWith('0') || numString.indexOf('.') === -1) return numString;
+    if (!numString.endsWith('0') || !numString.includes('.')) return numString;
 
     let endIndex = numString.length - 1;
     while (endIndex > 0) {
