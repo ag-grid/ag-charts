@@ -499,9 +499,10 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        if (EXAMPLE.series) for (const s of EXAMPLE.series) {
-            (s as AgAreaSeriesOptions).strokeWidth = 2;
-        }
+        if (EXAMPLE.series)
+            for (const s of EXAMPLE.series) {
+                (s as AgAreaSeriesOptions).strokeWidth = 2;
+            }
 
         describe('hide', () => {
             for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
@@ -760,9 +761,10 @@ describe('AreaSeries', () => {
     describe('pattern fill', () => {
         const EXAMPLE = deepClone(examples.SIMPLE_AREA_GRAPH_EXAMPLE);
 
-        if (EXAMPLE.series) for (const s of EXAMPLE.series) {
-            (s as AgAreaSeriesOptions).normalizedTo = 100;
-        }
+        if (EXAMPLE.series)
+            for (const s of EXAMPLE.series) {
+                (s as AgAreaSeriesOptions).normalizedTo = 100;
+            }
 
         it.each([
             'vertical-lines',

@@ -444,14 +444,15 @@ export class CartesianChart extends Chart {
 
         for (const axis of this.axes) {
             const { position, label } = axis;
-            if (axis.crossLines) for (const crossLine of axis.crossLines) {
-                if (crossLine instanceof CartesianCrossLine) {
-                    crossLine.position = position ?? 'top';
-                    crossLine.label.parallel ??= label.parallel;
-                }
+            if (axis.crossLines)
+                for (const crossLine of axis.crossLines) {
+                    if (crossLine instanceof CartesianCrossLine) {
+                        crossLine.position = position ?? 'top';
+                        crossLine.label.parallel ??= label.parallel;
+                    }
 
-                crossLine.calculatePadding?.(crossLinePadding);
-            }
+                    crossLine.calculatePadding?.(crossLinePadding);
+                }
         }
         // Reduce cross-line padding to account for overlap with axes.
         for (const [side, padding = 0] of entries(crossLinePadding)) {

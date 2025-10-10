@@ -333,12 +333,13 @@ describe('BarSeries', () => {
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
-                if (example.warnings) for (const [index, message] of example.warnings.entries()) {
-                    expect(console.warn).toHaveBeenNthCalledWith(
-                        index + 1,
-                        ...(Array.isArray(message) ? message : [message])
-                    );
-                }
+                if (example.warnings)
+                    for (const [index, message] of example.warnings.entries()) {
+                        expect(console.warn).toHaveBeenNthCalledWith(
+                            index + 1,
+                            ...(Array.isArray(message) ? message : [message])
+                        );
+                    }
                 if (!example.warnings?.length) {
                     expect(console.warn).not.toHaveBeenCalled();
                 }
