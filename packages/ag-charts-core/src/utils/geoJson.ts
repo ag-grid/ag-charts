@@ -12,7 +12,8 @@ function isValidCoordinates(value: unknown): boolean {
 
 function hasSameStartEndPoint(c: number[][]): boolean {
     const start = c[0];
-    const end = c[c.length - 1];
+    const end = c.at(-1);
+    if (end === undefined) return false;
     return isNumberEqual(start[0], end[0], 1e-3) && isNumberEqual(start[1], end[1], 1e-3);
 }
 

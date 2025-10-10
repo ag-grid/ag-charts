@@ -69,7 +69,7 @@ describe('Integrated Charts Examples', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            for (const _ of [0, 1]) {
+            for (let i = 0; i < 2; i++) {
                 for (const example of examples) {
                     const updatedOptions = prepareEnterpriseTestOptions({ ...example.options });
                     await chart.update(updatedOptions);

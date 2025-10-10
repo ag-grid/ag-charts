@@ -418,7 +418,7 @@ export abstract class AngleAxis<
                 y,
                 textAlign,
                 textBaseline,
-                hidden: text === '' || datum.hidden || isLastTickOverFirst,
+                hidden: text === '' || (datum.hidden ?? isLastTickOverFirst),
                 rotation,
                 box,
             };

@@ -264,7 +264,7 @@ export abstract class FlowProportionSeries<
 
             const linkData = linksDataModel.processedData.dataSources.get(this.id)?.data;
             if (linkData) {
-                for (const [datumIndex, _datum] of linkData.entries()) {
+                for (const [datumIndex] of linkData.entries()) {
                     const fromId = fromIdValues[datumIndex];
                     const toId = toIdValues[datumIndex];
                     if (fromId == null || toId == null) continue;
@@ -701,10 +701,10 @@ export abstract class FlowProportionSeries<
             if (nextIndex >= 0 && nextIndex < allLinks.length) {
                 nextNodeDatum = allLinks[nextIndex];
             } else if (nextIndex > 0) {
-                nextNodeDatum = allLinks[allLinks.length - 1];
+                nextNodeDatum = allLinks.at(-1);
             } else {
                 const allNodes = Array.from(this.nodeSelection, (node) => node.datum);
-                nextNodeDatum = allNodes[allNodes.length - 1];
+                nextNodeDatum = allNodes.at(-1);
             }
         } else if (currentNodeDatum?.type === FlowProportionDatumType.Node) {
             const allNodes = Array.from(this.nodeSelection, (node) => node.datum);

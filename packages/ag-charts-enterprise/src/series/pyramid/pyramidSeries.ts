@@ -741,7 +741,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        for (const [datumIndex, _datum] of rawData.entries()) {
+        for (const [datumIndex] of rawData.entries()) {
             const stageValue = stageValues[datumIndex];
 
             legendData.push({

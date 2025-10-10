@@ -230,7 +230,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
 
         await Promise.all(
-            this.series.map((s) => {
+            this.series.map(async (s) => {
                 s.resetDatumCallbackCache();
                 return s.processData(dataController);
             })
@@ -315,6 +315,6 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             stackCartesianSeries(this.series);
         }
 
-        await Promise.all(this.series.map((series) => series.update({ seriesRect })));
+        await Promise.all(this.series.map(async (series) => series.update({ seriesRect })));
     }
 }

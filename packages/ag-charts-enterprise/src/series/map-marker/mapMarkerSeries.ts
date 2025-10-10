@@ -384,7 +384,7 @@ export class MapMarkerSeries
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idValues != null && featureValues != null) {
             projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-            for (const [datumIndex, _datum] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
+            for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
                 const id: string | undefined = idValues[datumIndex];
                 const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
                 const projectedGeometry =

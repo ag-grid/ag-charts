@@ -76,7 +76,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         this._vertexCount--;
         const edges = vertex.edges;
         if (!edges) return;
-        for (const [_edge, adjacentVertices] of edges) {
+        for (const [, adjacentVertices] of edges) {
             this._vertexCount -= adjacentVertices.length;
         }
         vertex.clear();
@@ -113,7 +113,7 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     // Iterate all the neighbours of a given vertex.
     *neighbours(from: Vertex<V>): Generator<Vertex<V>, void, unknown> {
-        for (const [_edge, adjacentVertices] of from.edges) {
+        for (const [, adjacentVertices] of from.edges) {
             for (const adjacentVertex of adjacentVertices) {
                 yield adjacentVertex;
             }
@@ -183,7 +183,7 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     adjacent(from: Vertex<V>, to: Vertex<V>): boolean {
-        for (const [_edge, adjacentVertices] of from.edges) {
+        for (const [, adjacentVertices] of from.edges) {
             if (adjacentVertices.includes(to)) return true;
         }
         return false;

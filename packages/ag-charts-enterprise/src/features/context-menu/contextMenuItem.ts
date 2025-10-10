@@ -78,7 +78,7 @@ export function expandItems(
         }
     }
     // remove trailing 'separator' menu item
-    if (result[result.length - 1]?.type === 'separator') {
+    if (result.at(-1)?.type === 'separator') {
         result.pop();
     }
 }

@@ -279,7 +279,7 @@ export class MapLineSeries extends TopologySeries<
         const measurer = cachedTextMeasurer(label);
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-        for (const [datumIndex, _datum] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
+        for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
             const id: string | undefined = idValues[datumIndex];
             const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;

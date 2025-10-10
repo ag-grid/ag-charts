@@ -414,7 +414,7 @@ export abstract class Series<
         annotationNode?.appendChild(this.annotationGroup);
     }
 
-    detachSeries(_seriesContentNode: Group | undefined, _seriesNode: Group, annotationNode: Group | undefined) {
+    detachSeries(_seriesContentNode: Group | undefined, _seriesNode: Group, _annotationNode: Group | undefined) {
         this.contentGroup.remove();
         this.highlightGroup.remove();
         this.labelGroup.remove();

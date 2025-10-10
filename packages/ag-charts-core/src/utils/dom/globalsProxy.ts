@@ -3,9 +3,7 @@
  */
 const verifiedGlobals = {} as { document: Document; window: Window };
 
-if (typeof window !== 'undefined') {
-    verifiedGlobals.window = window;
-} else if (typeof globalThis.global !== 'undefined') {
+if (typeof globalThis.window !== 'undefined') {
     verifiedGlobals.window = globalThis.window;
 }
 

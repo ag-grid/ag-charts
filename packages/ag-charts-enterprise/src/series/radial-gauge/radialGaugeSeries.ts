@@ -466,7 +466,7 @@ export class RadialGaugeSeries
         const lineHeight = undefined;
         const angle = scale.convert(value);
 
-        const quadrant = (normalizeAngle360(angle) / (Math.PI / 2)) | 0;
+        const quadrant = Math.trunc(normalizeAngle360(angle) / (Math.PI / 2));
 
         const offset = size / 2 + spacing;
 

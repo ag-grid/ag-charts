@@ -123,7 +123,7 @@ export abstract class ChannelScene<
 
         if (this.topLine.containsPoint(x, y) || this.bottomLine.containsPoint(x, y)) return 'line';
 
-        for (const [_, child] of Object.entries(this.handles)) {
+        for (const [, child] of Object.entries(this.handles)) {
             if (child.containsPoint(x, y)) return 'handle';
         }
     }
