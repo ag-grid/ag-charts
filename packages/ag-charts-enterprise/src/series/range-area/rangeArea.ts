@@ -1,5 +1,4 @@
 import {
-    type AgRangeAreaSeriesItemStylerParams,
     type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
     type AgRangeAreaSeriesOptions,
@@ -12,7 +11,7 @@ import type { DeepRequired, Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
-import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
+import { type RangeAreaMarkerDatum, RangeAreaProperties, type RangeAreaSeriesParams } from './rangeAreaProperties';
 import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
 
 const {
@@ -831,7 +830,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         } satisfies ResultRules;
     }
 
-    private makeItemStylerParams(itemId: AgRangeAreaSeriesItemType): AgRangeAreaSeriesItemStylerParams<unknown> {
+    private makeItemStylerParams(itemId: AgRangeAreaSeriesItemType): RangeAreaSeriesParams {
         const { xKey, yLowKey, yHighKey } = this.properties;
         return { xKey, yLowKey, yHighKey, itemId };
     }
