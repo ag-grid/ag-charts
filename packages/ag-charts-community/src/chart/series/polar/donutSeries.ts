@@ -1396,7 +1396,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const textBoxes: BBox[] = [];
         const text = new Text();
 
-        let titleBox: BBox;
+        let titleBox: BBox | undefined = undefined;
         const { title } = this.properties;
         if (title?.text && title.enabled) {
             const dy = this.getTitleTranslationY();
@@ -1417,7 +1417,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         for (const datum of this.calloutNodeData) {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
-                 null; continue;
+                continue;
             }
 
             const style = this.getLabelStyle(datum, calloutLabel);

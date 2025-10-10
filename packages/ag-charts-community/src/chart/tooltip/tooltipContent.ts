@@ -66,7 +66,9 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
     const ariaLabel: string[] = [];
 
     for (const c of content) {
-        if (c.type === 'raw')  { ''; continue; }
+        if (c.type === 'raw') {
+            continue;
+        }
         if (c.heading != null) {
             ariaLabel.push(toPlainText(c.heading));
         }
@@ -74,8 +76,10 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
             if (i.title != null) {
                 ariaLabel.push(toPlainText(i.title));
             }
-            if (i.data) for (const datum of i.data) {
-                ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+            if (i.data) {
+                for (const datum of i.data) {
+                    ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+                }
             }
         }
     }

@@ -18,7 +18,6 @@ import {
     mouseLeaveEvent,
     mouseMoveEvent,
     mouseUpEvent,
-    toMatchImage,
     touchAverage,
     touchEvent,
     wheelEvent,
@@ -37,7 +36,6 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -619,8 +617,6 @@ export function twoFingerEnd(
     ]);
 }
 
-
-
 export async function createChart(options: AgChartOptions<any, any>) {
     options = prepareTestOptions({ ...options });
     const chart = deproxy(AgCharts.create(options) as AgChartProxy);
@@ -728,5 +724,5 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     return ctx.domManager.getCursor();
 }
 
-export {toMatchImage} from 'ag-charts-test';
-export {CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas} from '../../util/test/mockCanvas';
+export { toMatchImage } from 'ag-charts-test';
+export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
