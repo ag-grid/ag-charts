@@ -108,6 +108,54 @@ const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number
     scopes: ['test'],
 });
 
+/**
+ * JSON replacer for serializing Maps and Sets
+ */
+function jsonReplacer(_key: string, value: any): any {
+    if (value instanceof Map) {
+        return { __type: 'Map', value: Array.from(value.entries()) };
+    }
+    if (value instanceof Set) {
+        return { __type: 'Set', value: Array.from(value) };
+    }
+    return value;
+}
+
+/**
+ * Normalize processed data for comparison by serializing and removing metadata
+ */
+function normalizeForComparison(data: any): any {
+    const json = JSON.parse(JSON.stringify(data, jsonReplacer));
+    delete json.time;
+    delete json.optimizations;
+    // Exclude diff metadata - it's only generated during reprocessData, not processData
+    if (json.reduced?.diff) {
+        delete json.reduced.diff;
+    }
+    // If reduced object is now empty, remove it entirely to match processData output
+    if (json.reduced && Object.keys(json.reduced).length === 0) {
+        delete json.reduced;
+    }
+    return json;
+}
+
+/**
+ * Verify that reprocessed data matches a full processData baseline.
+ * Reuses the same DataModel instance since it's stateless.
+ */
+function verifyReprocessMatchesBaseline(
+    dataModel: DataModel<any, any, any>,
+    reprocessedData: any,
+    sources: Map<string, DataSet<any>>
+): void {
+    const baselineData = dataModel.processData(sources);
+
+    const reprocessedNormalized = normalizeForComparison(reprocessedData);
+    const baselineNormalized = normalizeForComparison(baselineData);
+
+    expect(reprocessedNormalized).toEqual(baselineNormalized);
+}
+
 function basicDataSet<T>(data: T[], scopes = ['test']) {
     const dataSet = new DataSet(data);
     return new Map([...scopes.map((s) => [s, dataSet] as const)]);
@@ -1536,6 +1584,7 @@ describe('DataModel', () => {
 
                 // Reprocess
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify keys were updated
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
@@ -1575,6 +1624,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify keys were shifted and new key added
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
@@ -1612,6 +1662,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ remove: [initialData[1]] });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify item was removed
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 3]);
@@ -1649,6 +1700,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // After remove+append, we expect: [{x:2},{x:3},{x:4}]
                 expect(dataSet.data).toEqual([
@@ -1680,6 +1732,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: 200 }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.columns).toEqual([
                     [10, 20],
@@ -1715,6 +1768,7 @@ describe('DataModel', () => {
 
                 // Reprocess
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify data was updated correctly
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
@@ -1750,6 +1804,7 @@ describe('DataModel', () => {
 
                 // Reprocess
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify data was updated correctly
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
@@ -1784,6 +1839,7 @@ describe('DataModel', () => {
 
                 // Reprocess
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Should return same reference (no changes)
                 expect(reprocessed).toBe(processedData);
@@ -1815,6 +1871,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ remove: [initialData[0]] });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Data adjusted
                 expect(reprocessed.keys[0].get('test')).toEqual([2, 3]);
@@ -1838,6 +1895,7 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources);
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Should return same reference
                 expect(reprocessed).toBe(processedData);
@@ -1860,6 +1918,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ category: 'C', value: 30 }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.keys[0].get('test')).toEqual(['A', 'B', 'C']);
                 expect(reprocessed.domain.keys).toEqual([['A', 'B', 'C']]);
@@ -1892,6 +1951,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // The new invalid value should be tracked
                 const invalidDataArray = reprocessed.invalidData?.get('test');
@@ -1933,6 +1993,7 @@ describe('DataModel', () => {
 
                 // Reprocess
                 const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify groups were updated
                 expect(reprocessed.groups.length).toBe(3);
@@ -1970,6 +2031,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify groups were updated and shifted
                 expect(reprocessed.groups.length).toBe(3);
@@ -2014,6 +2076,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ remove: [initialData[1]] });
 
                 const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify group was removed
                 expect(reprocessed.groups.length).toBe(2);
@@ -2211,6 +2274,7 @@ describe('DataModel', () => {
 
                 // This should trigger a full reprocess, not incremental
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Data should still be correct even with full reprocessing
                 const groups = (reprocessed as any).groups;
@@ -2272,6 +2336,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify the domain is correct (would be wrong if bands were updated twice)
                 expect(reprocessed.domain.values[0]).toEqual([0, 1000]);
@@ -2331,6 +2396,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
                 const columns = reprocessed.columns;
 
                 // Verify stacking was applied ONCE (not doubled)
@@ -2382,6 +2448,7 @@ describe('DataModel', () => {
                 expect(dataSet.getChangeDescription()).toBeTruthy();
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // After reprocessing, transactions should be committed exactly once
                 expect(dataSet.getChangeDescription()).toBeUndefined();
@@ -2436,6 +2503,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
                 const columns = reprocessed.columns;
 
                 // Verify data length is correct (100 items still)
@@ -2542,6 +2610,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ prepend: prependData });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should extend to include new minimum values
                 expect(reprocessed.domain.keys).toEqual([[7, 159]]);
@@ -2635,6 +2704,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should update to new boundaries
                 expect(reprocessed.domain.keys).toEqual([[1, 58]]);
@@ -2666,6 +2736,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ remove: toRemove });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should start from the remaining minimum
                 expect(reprocessed.domain.keys).toEqual([[5, 19]]);
@@ -2707,6 +2778,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: appendData });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should include all data
                 expect(reprocessed.domain.keys).toEqual([[0, 19]]);
@@ -2718,6 +2790,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ remove: toRemove });
 
                 const reprocessed2 = dataModel.reprocessData(reprocessed);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
                 // Should still calculate correct domain with less data
                 // Remaining data: x=5 to x=19
@@ -2732,6 +2805,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ remove: toRemoveMore });
 
                 const reprocessed3 = dataModel.reprocessData(reprocessed2);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed3, sources);
 
                 // Check actual data in dataSet
                 const actualData = dataSet.data;
@@ -2830,6 +2904,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should shift to new range correctly with banding optimization
                 expect(reprocessed.domain.keys).toEqual([[10, 1209]]);
@@ -2885,6 +2960,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should correctly shift to new range
                 expect(reprocessed.domain.keys).toEqual([[10, 1209]]);
@@ -2964,6 +3040,7 @@ describe('DataModel', () => {
                     });
 
                     processedData = dataModel.reprocessData(processedData) as any;
+                    verifyReprocessMatchesBaseline(dataModel, processedData, sources);
 
                     // Verify domain is correct after each iteration
                     const expectedMinX = 10 * (iteration + 1);
@@ -3023,6 +3100,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
                 expect(reprocessed.domain.keys).toEqual([[1, 600]]);
 
                 // CRITICAL: Verify that NOT ALL bands were marked dirty
@@ -3086,6 +3164,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed1 = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
 
                 // First reprocess: bands are created from scratch, all dirty (expected)
                 expect(reprocessed1.input.count).toBe(600);
@@ -3114,6 +3193,7 @@ describe('DataModel', () => {
                 });
 
                 const reprocessed2 = dataModel.reprocessData(reprocessed1);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
                 // Second reprocess: data size still 600
                 expect(reprocessed2.input.count).toBe(600);
@@ -3177,6 +3257,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ category: 'F', value: 1000 }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Should include new category
                 expect(reprocessed.domain.keys).toEqual([['A', 'B', 'C', 'D', 'E', 'F']]);
