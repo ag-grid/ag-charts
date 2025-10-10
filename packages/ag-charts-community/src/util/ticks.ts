@@ -195,7 +195,7 @@ export function tickFormat(ticks: any[], format?: string): ((n: number | { value
     const options = parseNumberFormat(format ?? ',f');
     if (options == null) return;
 
-    if (options.precision == null || isNaN(options.precision)) {
+    if (options.precision == null || Number.isNaN(options.precision)) {
         if (!options.type || 'eEFgGnprs'.includes(options.type)) {
             options.precision = Math.max(
                 ...ticks.map((x) => {

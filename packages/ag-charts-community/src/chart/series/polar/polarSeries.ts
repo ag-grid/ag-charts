@@ -71,7 +71,7 @@ export abstract class PolarSeries<
 
     protected itemGroup = this.contentGroup.appendChild(new Group());
     public getItemNodes(): TNode[] {
-        return [...this.itemGroup.children()];
+        return [...this.itemGroup.children()] as TNode[];
     }
 
     protected nodeData: TDatum[] = [];

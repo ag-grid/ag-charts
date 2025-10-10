@@ -390,7 +390,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
             ctx.eventsHub.on('zoom:change', () => {
-                for (const s of this.series) s.animationState?.transition('updateData');
+                for (const s of this.series) {
+                    (s as any).animationState?.transition('updateData');
+                }
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
@@ -1666,7 +1668,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         skip = ['axes[].type', ...skip];
 
-        const axes: AgCartesianAxisOptions[] = options.axes;
+        const axes = options.axes as AgCartesianAxisOptions[];
         const forceRecreate = seriesStatus === 'replaced';
         const matchingTypes =
             !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);

@@ -174,7 +174,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             this.properties.segmentation,
             xAxis,
             yAxis,
-            this.chart!.seriesRect,
+            this.chart!.seriesRect!,
             this.ctx.scene
         );
 

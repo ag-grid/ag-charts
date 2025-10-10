@@ -13,7 +13,7 @@ export class AnimationBatch {
     public readonly stoppedCbs: Set<() => void> = new Set();
 
     private currentPhase = 0;
-    private readonly phases = new Map(PHASE_ORDER.map((p) => [p, []]));
+    private readonly phases = new Map(PHASE_ORDER.map((p) => [p, [] as IAnimation[]]));
     private skipAnimations = false;
     private animationTimeConsumed = 0;
 
@@ -59,7 +59,7 @@ export class AnimationBatch {
         }
 
         this.controllers.set(animation.id, animation);
-        this.phases.get(animation.phase)?.push(animation);
+        this.phases.get(animation.phase)!.push(animation);
     }
 
     removeAnimation(animation: IAnimation) {

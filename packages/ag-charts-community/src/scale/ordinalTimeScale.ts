@@ -80,10 +80,10 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         let stop: number;
         if (domain && domain.length >= 2) {
             start = domain[0].valueOf();
-            stop = domain.at(-1).valueOf();
+            stop = domain.at(-1)?.valueOf() ?? start;
         } else {
             start = bands[0].valueOf();
-            stop = bands.at(-1).valueOf();
+            stop = bands.at(-1)?.valueOf() ?? start;
         }
 
         const [r0, r1] = this.range;
@@ -198,5 +198,6 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 }
 
 function domainReversed(domain: Date[]): boolean {
-    return domain.length > 0 && domain[0] > domain.at(-1);
+    const lastElement = domain.at(-1);
+    return domain.length > 0 && lastElement != null && domain[0] > lastElement;
 }

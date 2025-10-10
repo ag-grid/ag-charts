@@ -4,15 +4,15 @@
 const verifiedGlobals = {} as { document: Document; window: Window };
 
 if (typeof globalThis.window !== 'undefined') {
-    verifiedGlobals.window = globalThis;
-} else if (typeof globalThis.global !== 'undefined') {
     verifiedGlobals.window = globalThis.window;
+} else if (typeof globalThis.global !== 'undefined') {
+    verifiedGlobals.window = globalThis.global.window;
 }
 
 if (typeof document !== 'undefined') {
     verifiedGlobals.document = document;
 } else if (typeof globalThis.global !== 'undefined') {
-    verifiedGlobals.document = globalThis.document;
+    verifiedGlobals.document = globalThis.global.document;
 }
 
 /**

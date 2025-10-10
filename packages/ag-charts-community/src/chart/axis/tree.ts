@@ -154,7 +154,7 @@ function apportion(v: TreeNode, defaultAncestor: TreeNode) {
         let vop = v;
         let vip = v;
         let vim = w;
-        let vom = vip.getLeftmostSibling();
+        let vom = vip.getLeftmostSibling()!;
         let sip = vip.mod;
         let sop = vop.mod;
         let sim = vim.mod;
@@ -242,7 +242,7 @@ function thirdWalk(v: TreeNode) {
     v.leafCount = leafCount;
     if (children.length) {
         v.subtreeLeft = children[0].subtreeLeft;
-        v.subtreeRight = children.at(-1).subtreeRight;
+        v.subtreeRight = children.at(-1)!.subtreeRight;
         v.position = (v.subtreeLeft + v.subtreeRight) / 2;
     } else {
         v.subtreeLeft = v.position;

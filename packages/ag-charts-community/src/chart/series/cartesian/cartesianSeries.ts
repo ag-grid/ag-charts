@@ -620,7 +620,7 @@ export abstract class CartesianSeries<
 
         for (const datum of contextNodeData.nodeData) {
             const { point: { x: datumX = Number.NaN, y: datumY = Number.NaN } = {} } = datum;
-            if (isNaN(datumX) || isNaN(datumY)) {
+            if (Number.isNaN(datumX) || Number.isNaN(datumY)) {
                 continue;
             }
 
@@ -710,7 +710,7 @@ export abstract class CartesianSeries<
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = Number.NaN, y: datumY = Number.NaN } = datum.point ?? datum.midPoint ?? {};
-            if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) continue;
+            if (Number.isNaN(datumX) || Number.isNaN(datumY) || datum.missing === true) continue;
 
             const visible = [xAxis?.inRange(datumX, 1), yAxis?.inRange(datumY, 1)];
             if (majorDirection !== ChartAxisDirection.X) {
@@ -784,7 +784,7 @@ export abstract class CartesianSeries<
         let sortOrder: 1 | -1;
         if (sortOrderParams == null) {
             const { processedData, dataModel } = this;
-            sortOrder = dataModel!.getColumnSortOrder(this, axisKey, processedData) ?? 1;
+            sortOrder = dataModel!.getColumnSortOrder(this, axisKey, processedData!) ?? 1;
         } else {
             sortOrder = sortOrderParams.sortOrder;
         }
@@ -820,7 +820,7 @@ export abstract class CartesianSeries<
         const sortOrder = this.sortOrder(crossAxisKey);
         if (sortOrder != null) {
             const crossAxisRange = this.visibleRangeIndices(crossAxisKey, visibleRange, indices, { sortOrder });
-            return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData);
+            return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
         }
 
         const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
@@ -847,14 +847,14 @@ export abstract class CartesianSeries<
         const { processedData, dataModel, axes } = this;
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
-        const crossAxisRange = axisExtent(axes[crossDirection]);
+        const crossAxisRange = axisExtent(axes[crossDirection]!);
 
         if (!crossAxisRange) {
-            return axisKeys.flatMap((axisKey) => dataModel!.getDomain(this, axisKey, 'value', processedData));
+            return axisKeys.flatMap((axisKey) => dataModel!.getDomain(this, axisKey, 'value', processedData!));
         }
 
         const crossAxisValues = this.keysOrValues(crossAxisKey);
-        const sortOrder = dataModel!.getColumnSortOrder(this, crossAxisKey, processedData);
+        const sortOrder = dataModel!.getColumnSortOrder(this, crossAxisKey, processedData!);
         if (sortOrder != null) {
             const crossRange = clippedRangeIndices(
                 sortOrder,
@@ -862,7 +862,7 @@ export abstract class CartesianSeries<
                 crossAxisRange,
                 (index) => crossAxisValues[index]
             );
-            return dataModel!.getDomainBetweenRange(this, axisKeys, crossRange, processedData);
+            return dataModel!.getDomainBetweenRange(this, axisKeys, crossRange, processedData!);
         }
 
         const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));

@@ -179,7 +179,7 @@ export class AreaSeries extends CartesianSeries<
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        seriesContentNode?.removeChild(this.backgroundGroup);
+        this.backgroundGroup.remove();
     }
 
     protected override attachPaths([fill, stroke]: Path[]) {
@@ -346,7 +346,7 @@ export class AreaSeries extends CartesianSeries<
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const [y0, y1] = this.domainForVisibleRange(
             ChartAxisDirection.Y,
-            [this.yCumulativeKey(this.processedData)],
+            [this.yCumulativeKey(this.processedData!)],
             'xValue',
             visibleRange
         );
@@ -360,7 +360,7 @@ export class AreaSeries extends CartesianSeries<
     ): { x: [number, number]; y: [number, number] | undefined } | undefined {
         return this.zoomFittingVisibleItems(
             'xValue',
-            [this.yCumulativeKey(this.processedData)],
+            [this.yCumulativeKey(this.processedData!)],
             xVisibleRange,
             yVisibleRange,
             minVisibleItems
@@ -374,7 +374,7 @@ export class AreaSeries extends CartesianSeries<
     ): number {
         return this.countVisibleItems(
             'xValue',
-            [this.yCumulativeKey(this.processedData)],
+            [this.yCumulativeKey(this.processedData!)],
             xVisibleRange,
             yVisibleRange,
             minVisibleItems
@@ -675,7 +675,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         if (topSpanPoints.length !== 0) {
-            const previousStack = topStack.at(-1);
+            const previousStack = topStack.at(-1)!;
             const trailingIndex = startIndex + topStack.length;
             const trailingPoint: LineSpanPointDatum = {
                 point: {
@@ -789,7 +789,9 @@ export class AreaSeries extends CartesianSeries<
             // if normalized, the invalid data points will be processed as 0 rather than `undefined`
             // check if unprocessed datum is valid as we only want to show markers for valid points
             if (
-                isDefined(this.properties.normalizedTo) ? isContinuousY && isContinuous(rawYDatum) : !isNaN(rawYDatum)
+                isDefined(this.properties.normalizedTo)
+                    ? isContinuousY && isContinuous(rawYDatum)
+                    : !Number.isNaN(rawYDatum)
             ) {
                 currY = yEnd;
             }
@@ -873,7 +875,7 @@ export class AreaSeries extends CartesianSeries<
             this.properties.segmentation,
             xAxis,
             yAxis,
-            this.chart!.seriesRect,
+            this.chart!.seriesRect!,
             this.ctx.scene,
             false
         );
@@ -1025,8 +1027,8 @@ export class AreaSeries extends CartesianSeries<
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
                 const params = this.makeItemStylerParams(
-                    this.dataModel,
-                    this.processedData,
+                    this.dataModel!,
+                    this.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
@@ -1430,8 +1432,8 @@ export class AreaSeries extends CartesianSeries<
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
         const stylerStyle = this.getStyle(false);
         const params = this.makeItemStylerParams(
-            this.dataModel,
-            this.processedData,
+            this.dataModel!,
+            this.processedData!,
             datum.datumIndex,
             stylerStyle.marker
         );

@@ -20,12 +20,12 @@ function fixRadialBarAnimationStatus(
     if (status === 'updated') {
         if (
             node.previousDatum == null ||
-            isNaN(node.previousDatum.innerRadius) ||
-            isNaN(node.previousDatum.outerRadius)
+            Number.isNaN(node.previousDatum.innerRadius) ||
+            Number.isNaN(node.previousDatum.outerRadius)
         ) {
             return 'added';
         }
-        if (isNaN(datum.innerRadius) || isNaN(datum.outerRadius)) {
+        if (Number.isNaN(datum.innerRadius) || Number.isNaN(datum.outerRadius)) {
             return 'removed';
         }
     }
@@ -83,8 +83,8 @@ export function prepareRadialBarSeriesAnimationFunctions(axisZeroAngle: number) 
         } else {
             startAngle = datum.startAngle;
             endAngle = datum.endAngle;
-            innerRadius = isNaN(datum.innerRadius) ? sect.innerRadius : datum.innerRadius;
-            outerRadius = isNaN(datum.outerRadius) ? sect.outerRadius : datum.outerRadius;
+            innerRadius = Number.isNaN(datum.innerRadius) ? sect.innerRadius : datum.innerRadius;
+            outerRadius = Number.isNaN(datum.outerRadius) ? sect.outerRadius : datum.outerRadius;
             clipSector = datum.clipSector;
         }
         return { startAngle, endAngle, innerRadius, outerRadius, clipSector };

@@ -87,7 +87,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
             if (prev.hidden || next.hidden) {
                 return false;
             } else if (minSpacing == null) {
-                return prev.box!.collidesBBox(next.box);
+                return prev.box!.collidesBBox(next.box!);
             }
             const prevBox = prev.box!.clone().grow(minSpacing / 2);
             const nextBox = next.box!.clone().grow(minSpacing / 2);

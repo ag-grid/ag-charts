@@ -85,7 +85,7 @@ function arcIntersections(
     x2: number,
     y2: number
 ): number {
-    if (isNaN(cx) || isNaN(cy)) {
+    if (Number.isNaN(cx) || Number.isNaN(cy)) {
         return 0;
     }
     if (counterClockwise) {

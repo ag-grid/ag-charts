@@ -209,6 +209,6 @@ function updateNiceDomainIteration(
     if (domain == null || domain.length < 2) return [d0, d1];
 
     const r0 = domain[0];
-    const r1 = domain.at(-1);
+    const r1 = domain.at(-1)!;
     return d0 <= d1 ? [r0, r1] : [r1, r0];
 }

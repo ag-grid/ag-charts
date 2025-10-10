@@ -195,11 +195,12 @@ export abstract class HierarchySeries<
 
         const appendChildren = (node: Mutable<TNodeClass>, data: any[] | undefined): TNodeClass => {
             const { datumIndex } = node;
-            data?.forEach((datum: any, childIndex: number) => {
+            for (let childIndex = 0; childIndex < (data ?? []).length; childIndex++) {
+                const datum = data![childIndex];
                 const child = createNode(datum, datumIndex.concat(childIndex), node);
                 node.children.push(child);
                 node.sumSize += child.sumSize;
-            });
+            }
             return node;
         };
 
@@ -351,7 +352,7 @@ export abstract class HierarchySeries<
         } else if (depthDelta === 0 && childDelta !== 0) {
             const maxIndex = currentNode.parent!.children.length - 1;
             path = path.slice();
-            path[path.length - 1] = clamp(0, path.at(-1) + childDelta, maxIndex);
+            path[path.length - 1] = clamp(0, path.at(-1)! + childDelta, maxIndex);
         }
 
         const nextNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);

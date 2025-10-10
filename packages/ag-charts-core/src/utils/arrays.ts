@@ -71,7 +71,7 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
     }
     const result: T[] = [];
     for (let i = 0; i < size; i++) {
-        result.push(data.at((i + offset) % data.length));
+        result.push(data.at((i + offset) % data.length)!);
     }
     return result;
 }

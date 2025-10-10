@@ -117,7 +117,7 @@ function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
     let minWidth = Infinity;
 
     for (const polygon of polygons) {
-        let p0 = polygon.at(-1);
+        let p0 = polygon[polygon.length - 1];
         let [x0, y0] = p0;
 
         for (const p1 of polygon) {
@@ -206,7 +206,7 @@ export function maxWidthInPolygonForRectOfHeight(
     };
 
     for (const polygon of polygons) {
-        let p0 = polygon.at(-1);
+        let p0 = polygon[polygon.length - 1];
 
         for (const p1 of polygon) {
             xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(result, p0, p1, cx, cy, height);

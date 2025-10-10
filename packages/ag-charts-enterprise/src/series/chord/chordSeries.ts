@@ -148,7 +148,7 @@ export class ChordSeries extends FlowProportionSeries<
         );
 
         let totalSize = 0;
-        for (const [id, { datum: node, linksBefore, linksAfter }] of nodeGraph.entries()) {
+        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }, id) => {
             const size =
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0) +
                 linksAfter.reduce((acc, { link }) => acc + link.size, 0);
@@ -163,7 +163,7 @@ export class ChordSeries extends FlowProportionSeries<
                     ? this.getLabelText<AgChordSeriesLabelFormatterParams>(
                           node.label,
                           node.datum,
-                          labelKey,
+                          labelKey!,
                           'label',
                           [],
                           label,
@@ -172,15 +172,15 @@ export class ChordSeries extends FlowProportionSeries<
                     : undefined;
                 node.label = toPlainText(labelText);
             }
-        }
+        });
 
         let labelInset = 0;
         if (this.isLabelEnabled()) {
             const measurer = cachedTextMeasurer(this.properties.label);
             let maxMeasuredLabelWidth = 0;
-            for (const { datum: node } of nodeGraph) {
+            nodeGraph.forEach(({ datum: node }) => {
                 const { id, label } = node;
-                if (label == null) continue;
+                if (label == null) return;
 
                 const text = wrapText(label, {
                     maxWidth: labelMaxWidth,
@@ -199,7 +199,7 @@ export class ChordSeries extends FlowProportionSeries<
                     radius: Number.NaN,
                     size: node.size,
                 });
-            }
+            });
 
             labelInset = maxMeasuredLabelWidth + labelSpacing;
         }
@@ -225,7 +225,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         const sizeScale = Math.max((2 * Math.PI - nodeCount * spacingSweep) / totalSize, 0);
         let nodeAngle = 0;
-        for (const { datum: node } of nodeGraph) {
+        nodeGraph.forEach(({ datum: node }) => {
             node.innerRadius = innerRadius;
             node.outerRadius = outerRadius;
             node.startAngle = nodeAngle;
@@ -238,10 +238,10 @@ export class ChordSeries extends FlowProportionSeries<
                 x: node.centerX + midR * Math.cos(midAngle),
                 y: node.centerY + midR * Math.sin(midAngle),
             };
-        }
+        });
 
         const nodeData: ChordDatum[] = [];
-        for (const { datum: node, linksBefore, linksAfter } of nodeGraph) {
+        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
             const midAngle = nodeMidAngle(node);
             const combinedLinks = [
                 ...linksBefore.map((l) => ({
@@ -270,7 +270,7 @@ export class ChordSeries extends FlowProportionSeries<
             }
 
             nodeData.push(node);
-        }
+        });
         const { tension } = this.properties.link;
         for (const link of links) {
             link.radius = radius;

@@ -221,7 +221,7 @@ export class DOMManager extends BaseManager {
         this.pendingContainer = undefined;
 
         for (const el of Object.values(this.rootElements)) {
-            for (const c of el.children) c.remove();
+            for (const [, c] of el.children) c.remove();
             el.element.remove();
         }
 
@@ -342,7 +342,7 @@ export class DOMManager extends BaseManager {
     setThemeClass(themeClassName: string) {
         const themeClassNamePrefix = 'ag-charts-theme-';
 
-        for (const className of this.element.classList) {
+        for (const className of Array.from(this.element.classList)) {
             if (className.startsWith(themeClassNamePrefix) && className !== themeClassName) {
                 this.element.classList.remove(className);
             }

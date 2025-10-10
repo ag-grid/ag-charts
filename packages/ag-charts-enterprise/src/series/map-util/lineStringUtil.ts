@@ -34,7 +34,7 @@ export function lineSegmentDistanceToPointSquared(
 
 export function lineStringDistance(lineString: _ModuleSupport.Position[], x: number, y: number) {
     let minDistanceSquared = Infinity;
-    let p0 = lineString.at(-1);
+    let p0 = lineString[lineString.length - 1];
 
     for (const p1 of lineString) {
         minDistanceSquared = Math.min(minDistanceSquared, lineSegmentDistanceToPointSquared(p0, p1, x, y));

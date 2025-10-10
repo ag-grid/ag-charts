@@ -33,7 +33,7 @@ export class LicenseManager {
     }
 
     public validateLicense(): void {
-        const licenseDetails = this.getLicenseDetails(LicenseManager.licenseKey, LicenseManager.gridContext);
+        const licenseDetails = this.getLicenseDetails(LicenseManager.licenseKey!, LicenseManager.gridContext);
         const currentLicenseName = `AG ${
             licenseDetails.currentLicenseType === 'BOTH' ? 'Grid and ' : ''
         }Charts Enterprise`;
@@ -118,7 +118,7 @@ export class LicenseManager {
 
         if (valid) {
             expiry = LicenseManager.extractExpiry(license);
-            valid = !isNaN(expiry.getTime());
+            valid = !Number.isNaN(expiry.getTime());
 
             if (valid) {
                 expired = chartsReleaseDate > expiry;

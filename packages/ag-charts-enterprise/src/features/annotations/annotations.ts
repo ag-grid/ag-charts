@@ -376,7 +376,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const node = this.annotations.at(active);
                 if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
-                this.optionsToolbar.updateButtons(this.annotationData.at(active));
+                this.optionsToolbar.updateButtons(this.annotationData.at(active)!);
                 this.optionsToolbar.show();
                 this.optionsToolbar.setAnchorScene(node);
             },
@@ -420,7 +420,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         if (props.position) this.defaults.setDefaultLineTextPosition(datum.type, props.position);
                         this.recordActionAfterNextUpdate(
                             `Change ${datum.type} text ${Object.keys(props)
-                                .map((key) => `${key} to ${props[key]}`)
+                                .map((key) => `${key} to ${(props as any)[key]}`)
                                 .join(', ')}`
                         );
                     },

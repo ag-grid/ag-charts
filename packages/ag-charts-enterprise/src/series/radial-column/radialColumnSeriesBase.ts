@@ -359,7 +359,7 @@ export abstract class RadialColumnSeriesBase<
             const y = Math.sin(angle) * midRadius;
 
             const labelNodeDatum = this.properties.label.enabled
-                ? getLabelNodeDatum(datum, radiusDatum, x, y)
+                ? getLabelNodeDatum(datum as any, radiusDatum, x, y)
                 : undefined;
 
             const columnWidth = this.getColumnWidth(startAngle, endAngle);

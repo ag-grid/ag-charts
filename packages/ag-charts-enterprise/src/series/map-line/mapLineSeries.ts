@@ -286,7 +286,8 @@ export class MapLineSeries extends TopologySeries<
             for (const [datumIndex, _datum] of dataSource.data.entries()) {
                 const id: string | undefined = idValues[datumIndex];
                 const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
-                const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
+                const projectedGeometry =
+                    geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
                 if (id != null && projectedGeometry != null) {
                     projectedGeometries.set(id, projectedGeometry);
                 }
@@ -563,7 +564,7 @@ export class MapLineSeries extends TopologySeries<
 
         let { stroke } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData);
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
             const colorValue = colorValues[datumIndex];
             stroke = this.colorScale.convert(colorValue);
         }
@@ -588,7 +589,9 @@ export class MapLineSeries extends TopologySeries<
         };
     }
 
-    override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+    override getLegendData(
+        legendType: _ModuleSupport.ChartLegendType
+    ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
 

@@ -446,9 +446,9 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        EXAMPLE.series?.forEach((series: any) => {
-            series.interpolation = { type: 'smooth' };
-        });
+        for (const series of EXAMPLE.series ?? []) {
+            (series as any).interpolation = { type: 'smooth' };
+        }
 
         const updatedData = deepClone(EXAMPLE.data)!;
         updatedData[4]['Science Museum'] = undefined;

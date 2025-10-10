@@ -1158,7 +1158,7 @@ export class DataModel<
                 });
             }
 
-            processedData.reduced.diff![scope] = diff;
+            processedData.reduced!.diff![scope] = diff;
         }
     }
 
@@ -1327,7 +1327,7 @@ export class DataModel<
             return false;
         };
 
-        const result = this.values.reduce((res, def, index) => {
+        const result = this.values.reduce<number[]>((res, def, index) => {
             const validDefScopes =
                 def.scopes == null ||
                 (noScopesToMatch && !def.scopes.length) ||
@@ -1430,10 +1430,10 @@ export class DataModel<
 
         const cloneScope = (source: unknown[], target: ScopeId) => {
             const sourceScope = scopeDataProcessed.get(source)!;
-            keyDefKeys.set(target, keyDefKeys.get(sourceScope));
+            keyDefKeys.set(target, keyDefKeys.get(sourceScope)!);
             if (invalidKeys.has(sourceScope)) {
-                invalidKeys.set(target, invalidKeys.get(sourceScope));
-                invalidData.set(target, invalidData.get(sourceScope));
+                invalidKeys.set(target, invalidKeys.get(sourceScope)!);
+                invalidData.set(target, invalidData.get(sourceScope)!);
             }
         };
 
@@ -1615,7 +1615,7 @@ export class DataModel<
                 const group = groupingFn?.(keys) ?? keys;
                 const groupStr = groups != null ? toKeyString(group) : undefined;
 
-                let outputGroup: Group | undefined = groups?.get(groupStr);
+                let outputGroup: Group | undefined = groups?.get(groupStr!);
                 if (outputGroup == null) {
                     outputGroup = {
                         keys: group,
@@ -1624,7 +1624,7 @@ export class DataModel<
                         validScopes: allScopes,
                     };
 
-                    groups?.set(groupStr, outputGroup);
+                    groups?.set(groupStr!, outputGroup);
 
                     resultGroups.push(outputGroup.keys);
                     resultData.push(outputGroup);
@@ -1799,7 +1799,10 @@ export class DataModel<
     private postProcessData(processedData: ProcessedData<D>) {
         processedData.reduced ??= {};
         for (const def of this.processors) {
-            processedData.reduced[def.property] = def.calculate(processedData, processedData.reduced[def.property]);
+            processedData.reduced[def.property] = def.calculate(
+                processedData,
+                processedData.reduced[def.property]
+            ) as any;
         }
     }
 

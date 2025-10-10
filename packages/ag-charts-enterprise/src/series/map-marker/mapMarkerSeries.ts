@@ -390,7 +390,8 @@ export class MapMarkerSeries
             if (dataSource?.data != null) {
                 for (const [datumIndex, _datum] of dataSource.data.entries()) {
                     const id: string | undefined = idValues[datumIndex];
-                    const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
+                    const geometry: _ModuleSupport.Geometry | undefined =
+                        featureValues[datumIndex]?.geometry ?? undefined;
                     const projectedGeometry =
                         geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
                     if (id != null && projectedGeometry != null) {
@@ -744,7 +745,7 @@ export class MapMarkerSeries
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData);
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
             const colorValue = colorValues[datumIndex];
             fill = this.colorScale.convert(colorValue);
         }
@@ -763,7 +764,9 @@ export class MapMarkerSeries
         };
     }
 
-    override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+    override getLegendData(
+        legendType: _ModuleSupport.ChartLegendType
+    ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
 

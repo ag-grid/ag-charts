@@ -1,6 +1,7 @@
 // Entry point to implement and test our tree-shaking abilities
 import { _ModuleSupport } from 'ag-charts-community';
 
+// Import modules that are needed for the arrays below
 import {
     AngleCategoryAxisModule,
     AngleNumberAxisModule,
@@ -40,31 +41,30 @@ import { WaterfallSeriesModule } from './series/waterfall';
 
 export const ModuleRegistry = _ModuleSupport.ModuleRegistry;
 
-export {
-    OhlcSeriesModule,
-    RangeAreaSeriesModule,
-    RangeBarSeriesModule,
-    WaterfallSeriesModule,
-    NightingaleSeriesModule,
-    RadarAreaSeriesModule,
-    RadarLineSeriesModule,
-    RadialBarSeriesModule,
-    RadialColumnSeriesModule,
-    ChordSeriesModule,
-    SankeySeriesModule,
-    LinearGaugeSeriesModule,
-    RadialGaugeSeriesModule,
-    SunburstSeriesModule,
-    TreemapSeriesModule,
-    StandaloneChartModule,
-    PyramidSeriesModule,
-    TopologyChartModule,
-    MapLineSeriesModule,
-    MapLineBackgroundSeriesModule,
-    MapMarkerSeriesModule,
-    MapShapeSeriesModule,
-    MapShapeBackgroundSeriesModule,
-};
+// Re-export modules
+export { OhlcSeriesModule } from './series/ohlc';
+export { RangeAreaSeriesModule } from './series/range-area';
+export { RangeBarSeriesModule } from './series/range-bar';
+export { WaterfallSeriesModule } from './series/waterfall';
+export { NightingaleSeriesModule } from './series/nightingale';
+export { RadarAreaSeriesModule } from './series/radar-area';
+export { RadarLineSeriesModule } from './series/radar-line';
+export { RadialBarSeriesModule } from './series/radial-bar';
+export { RadialColumnSeriesModule } from './series/radial-column';
+export { ChordSeriesModule } from './series/chord';
+export { SankeySeriesModule } from './series/sankey';
+export { LinearGaugeSeriesModule } from './series/linear-gauge/linearGaugeModule';
+export { RadialGaugeSeriesModule } from './series/radial-gauge/radialGaugeModule';
+export { SunburstSeriesModule } from './series/sunburst';
+export { TreemapSeriesModule } from './series/treemap';
+export { StandaloneChartModule } from './charts/standaloneChartModule';
+export { PyramidSeriesModule } from './series/pyramid';
+export { TopologyChartModule } from './charts/topologyChartModule';
+export { MapLineSeriesModule } from './series/map-line';
+export { MapLineBackgroundSeriesModule } from './series/map-line-background';
+export { MapMarkerSeriesModule } from './series/map-marker';
+export { MapShapeSeriesModule } from './series/map-shape';
+export { MapShapeBackgroundSeriesModule } from './series/map-shape-background';
 
 export const AllCartesianEnterpriseModules = [
     OrdinalTimeAxisModule,

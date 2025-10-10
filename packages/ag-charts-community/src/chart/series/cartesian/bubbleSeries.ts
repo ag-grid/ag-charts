@@ -216,7 +216,7 @@ export class BubbleSeries extends CartesianSeries<
         const { size, sizeKey } = properties;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const sizeValues =
-            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData) : undefined;
+            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!) : undefined;
         const sizeValue = sizeValues != null ? sizeScale.convert(sizeValues[index]) : size;
         const r = 0.5 * sizeValue * pixelSize;
         return [x - r, x + r];
@@ -227,7 +227,7 @@ export class BubbleSeries extends CartesianSeries<
         const { size, sizeKey } = properties;
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const sizeValues =
-            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData) : undefined;
+            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!) : undefined;
         const sizeValue = sizeValues != null ? sizeScale.convert(sizeValues[index]) : size;
         const r = 0.5 * sizeValue * pixelSize;
         return [y - r, y + r];
@@ -242,7 +242,7 @@ export class BubbleSeries extends CartesianSeries<
             [ChartAxisDirection.Y]: 'yValue',
         };
 
-        const id = dataValues[direction];
+        const id = dataValues[direction]!;
         const dataDef = dataModel.resolveProcessedDataDefById(this, id);
         const domain = dataModel.getDomain(this, id, 'value', processedData);
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
@@ -250,7 +250,7 @@ export class BubbleSeries extends CartesianSeries<
         }
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
-        const crossId = dataValues[crossDirection];
+        const crossId = dataValues[crossDirection]!;
 
         const ext = this.domainForClippedRange(direction, [id], crossId);
         return fixNumericExtent(extent(ext));

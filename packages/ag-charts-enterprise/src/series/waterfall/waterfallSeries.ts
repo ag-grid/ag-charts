@@ -136,7 +136,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 dataWithTotals.push(datum);
                 // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
                 // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
-                totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
+                const totalsAtIndex = totalsMap.get(i);
+                if (totalsAtIndex) {
+                    for (const total of totalsAtIndex) {
+                        dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel });
+                    }
+                }
             }
         }
 

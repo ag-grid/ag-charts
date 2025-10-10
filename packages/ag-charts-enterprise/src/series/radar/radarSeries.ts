@@ -539,7 +539,7 @@ export abstract class RadarSeries<
 
         for (const datum of nodeData) {
             const { point: { x: datumX = Number.NaN, y: datumY = Number.NaN } = {} } = datum;
-            if (isNaN(datumX) || isNaN(datumY)) {
+            if (Number.isNaN(datumX) || Number.isNaN(datumY)) {
                 continue;
             }
 
@@ -621,7 +621,7 @@ export abstract class RadarSeries<
         for (const [index, datum] of data.entries()) {
             let { x, y } = datum.point;
 
-            const isPointInvalid = isNaN(x) || isNaN(y);
+            const isPointInvalid = Number.isNaN(x) || Number.isNaN(y);
 
             if (!isPointInvalid) {
                 firstValid ??= datum;

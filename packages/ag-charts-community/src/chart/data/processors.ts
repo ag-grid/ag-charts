@@ -175,7 +175,7 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
             const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
-            if (!isNaN(interval) && interval > 0 && interval < smallestSoFar) {
+            if (!Number.isNaN(interval) && interval > 0 && interval < smallestSoFar) {
                 return interval;
             }
             return smallestSoFar;
@@ -195,7 +195,7 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
 
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
-            if (!isNaN(interval) && interval > 0 && interval > largestSoFar) {
+            if (!Number.isNaN(interval) && interval > 0 && interval > largestSoFar) {
                 return interval;
             }
             return largestSoFar;

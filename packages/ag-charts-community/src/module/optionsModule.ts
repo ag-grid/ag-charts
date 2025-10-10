@@ -188,7 +188,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.optionsGraph = optionsGraph;
 
         // Capture options processing time for debug stats
-        if (apiStartTime !== undefined && typeof apiStartTime === 'number' && !isNaN(apiStartTime)) {
+        if (apiStartTime !== undefined && typeof apiStartTime === 'number' && !Number.isNaN(apiStartTime)) {
             const endTime = performance.now();
             this.optionsProcessingTime = endTime - apiStartTime;
         }

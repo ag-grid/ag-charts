@@ -43,7 +43,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
             return null;
         }
 
-        return ctx.createPattern(image, this.repeat);
+        return ctx.createPattern(image, this.repeat ?? 'no-repeat');
     }
 
     private getSize(imageWidth: number, imageHeight: number, width: number, height: number): [number, number] {

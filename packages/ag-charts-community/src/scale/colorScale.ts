@@ -93,14 +93,14 @@ export class ColorScale extends AbstractScale<number, string> {
         return;
     }
 
-    convert(x: number) {
+    convert(x: number): string {
         this.refresh();
 
         const { domain, range, parsedRange } = this;
         const d0 = domain[0];
         const d1 = domain.at(-1)!;
         const r0 = range[0];
-        const r1 = range.at(-1);
+        const r1 = range.at(-1)!;
 
         if (x <= d0) {
             return r0;

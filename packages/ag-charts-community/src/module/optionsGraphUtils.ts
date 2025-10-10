@@ -120,7 +120,7 @@ export function setPathSafe(object: PlainObject, path: (string | number)[], valu
 
         if (currentValue == null || !isObjectLike(currentValue)) {
             // TODO: this is not the best fix, this happens when a default value is a string and the user value is an object
-            currentValue = isNaN(Number(nextPart)) ? {} : [];
+            currentValue = Number.isNaN(Number(nextPart)) ? {} : [];
             result[part] = currentValue;
         }
 
@@ -135,7 +135,7 @@ export function getPathLastIndexIndex(pathArray: Array<string>) {
     // Manual loop from end is faster than findLastIndex + Number conversion
     for (let i = pathArray.length - 1; i >= 0; i--) {
         const part = pathArray[i];
-        // Regex test for digits-only is faster than Number() + isNaN()
+        // Regex test for digits-only is faster than Number() + Number.isNaN()
         if (DIGITS_ONLY_REGEX.test(part)) {
             return i;
         }
@@ -165,11 +165,11 @@ export function resolvePath(currentPath: string[], path: string, variables?: Pla
             resolvedPath.pop();
         } else if (part === '$index') {
             const index = getPathLastIndex(currentPath);
-            if (isNaN(index)) return UNRESOLVABLE_PATH;
+            if (Number.isNaN(index)) return UNRESOLVABLE_PATH;
             resolvedPath.push(`${index}`);
         } else if (part === '$prevIndex') {
             const index = getPathLastIndex(currentPath);
-            if (isNaN(index) || Number(index) <= 0) return UNRESOLVABLE_PATH;
+            if (Number.isNaN(index) || Number(index) <= 0) return UNRESOLVABLE_PATH;
             resolvedPath.push(`${Number(index) - 1}`);
         } else if (part.startsWith('$')) {
             const variable = variables?.[part.slice(1)];

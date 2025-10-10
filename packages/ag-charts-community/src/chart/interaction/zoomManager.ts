@@ -219,7 +219,7 @@ export class ZoomManager extends BaseManager {
         }
 
         if (this.state.size > 0 && axes.length > 0) {
-            this.updateZoom(this.state.stateId(), this.state.stateValue());
+            this.updateZoom(this.state.stateId() ?? 'initial', this.state.stateValue());
         }
     }
 
@@ -282,7 +282,7 @@ export class ZoomManager extends BaseManager {
             this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
         }
 
-        for (const axis of this.axisZoomManagers) {
+        for (const [, axis] of this.axisZoomManagers) {
             axis.updateZoom(callerId, newZoom?.[axis.direction]);
         }
 
@@ -410,7 +410,7 @@ export class ZoomManager extends BaseManager {
         let y: ZoomState | undefined;
 
         // Use the zoom on the primary (first) axis in each direction
-        for (const axis of this.axisZoomManagers) {
+        for (const [, axis] of this.axisZoomManagers) {
             if (axis.direction === ChartAxisDirection.X) {
                 x ??= axis.getZoom();
             } else if (axis.direction === ChartAxisDirection.Y) {
@@ -430,10 +430,13 @@ export class ZoomManager extends BaseManager {
     public getAxisZooms(): Record<string, { direction: ChartAxisDirection; zoom: ZoomState }> {
         const axes: Record<string, { direction: ChartAxisDirection; zoom: ZoomState }> = {};
         for (const [axisId, axis] of this.axisZoomManagers.entries()) {
-            axes[axisId] = {
-                direction: axis.direction,
-                zoom: axis.getZoom(),
-            };
+            const zoom = axis.getZoom();
+            if (zoom) {
+                axes[axisId] = {
+                    direction: axis.direction,
+                    zoom,
+                };
+            }
         }
         return axes;
     }

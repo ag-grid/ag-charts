@@ -145,7 +145,10 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
             return this.legendDataMap.get(seriesId) ?? [];
         }
 
-        return [...this.legendDataMap].reduce((data, [_, legendData]) => data.concat(legendData), []);
+        return [...this.legendDataMap].reduce<CategoryLegendDatum[]>(
+            (data, [_, legendData]) => data.concat(legendData),
+            []
+        );
     }
 
     public getDatum({ seriesId, itemId }: { seriesId?: string; itemId?: any } = {}) {

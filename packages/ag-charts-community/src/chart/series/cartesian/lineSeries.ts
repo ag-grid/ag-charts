@@ -278,7 +278,7 @@ export class LineSeries extends CartesianSeries<
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): number[] {
         return this.domainForVisibleRange(
             ChartAxisDirection.Y,
-            [this.yCumulativeKey(this.processedData)],
+            [this.yCumulativeKey(this.processedData!)],
             'xValue',
             visibleRange
         );
@@ -291,7 +291,7 @@ export class LineSeries extends CartesianSeries<
     ): { x: [number, number]; y: [number, number] | undefined } | undefined {
         return this.zoomFittingVisibleItems(
             'xValue',
-            [this.yCumulativeKey(this.processedData)],
+            [this.yCumulativeKey(this.processedData!)],
             xVisibleRange,
             yVisibleRange,
             minVisibleItems
@@ -305,7 +305,7 @@ export class LineSeries extends CartesianSeries<
     ): number {
         return this.countVisibleItems(
             'xValue',
-            [this.yCumulativeKey(this.processedData)],
+            [this.yCumulativeKey(this.processedData!)],
             xVisibleRange,
             yVisibleRange,
             minVisibleItems
@@ -471,7 +471,7 @@ export class LineSeries extends CartesianSeries<
             this.properties.segmentation,
             xAxis,
             yAxis,
-            this.chart!.seriesRect,
+            this.chart!.seriesRect!,
             this.ctx.scene,
             false
         );
@@ -566,8 +566,8 @@ export class LineSeries extends CartesianSeries<
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
                 const params = this.makeItemStylerParams(
-                    this.dataModel,
-                    this.processedData,
+                    this.dataModel!,
+                    this.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
@@ -1008,8 +1008,8 @@ export class LineSeries extends CartesianSeries<
     public getFormattedMarkerStyle(datum: LineNodeDatum) {
         const stylerStyle = this.getStyle(false);
         const params = this.makeItemStylerParams(
-            this.dataModel,
-            this.processedData,
+            this.dataModel!,
+            this.processedData!,
             datum.datumIndex,
             stylerStyle.marker
         );

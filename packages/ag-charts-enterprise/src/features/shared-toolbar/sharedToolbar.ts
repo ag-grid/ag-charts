@@ -100,7 +100,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
                         ...sharedEvent,
                         button: this.sectionButtons[section][sectionIndex],
                     };
-                    handler(event);
+                    handler(event as any);
                 });
             },
             updateButtons: (buttons: ButtonOptions[]) => {

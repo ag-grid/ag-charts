@@ -49,7 +49,7 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
             const insertionTarget = heading != null ? groupedContents.get(heading) : undefined;
             const groupedItem: GroupedTooltipContent = { type: 'structured', heading, items: [item] };
             if (insertionTarget == null) {
-                groupedContents.set(heading, groupedItem);
+                groupedContents.set(heading!, groupedItem);
                 out.push(groupedItem);
             } else {
                 insertionTarget.items.push(item);
@@ -200,7 +200,7 @@ function tooltipContentHtml(
 
     const paginationContent =
         mode !== 'compact' && pagination != null ? tooltipPaginationContentHtml(localeManager, pagination) : undefined;
-    if (paginationContent + null) {
+    if (paginationContent != null) {
         html += paginationContent;
     }
 

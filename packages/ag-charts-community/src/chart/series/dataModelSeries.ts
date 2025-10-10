@@ -56,7 +56,7 @@ export abstract class DataModelSeries<
 
         const values = dataModel.resolveColumnById(this, axisKey, processedData);
         for (const value of values) {
-            if (value != null && (typeof value !== 'number' || !isNaN(value))) {
+            if (value != null && (typeof value !== 'number' || !Number.isNaN(value))) {
                 return true;
             }
         }

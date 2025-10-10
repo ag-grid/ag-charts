@@ -414,7 +414,7 @@ export abstract class Series<
         annotationNode?.appendChild(this.annotationGroup);
     }
 
-    detachSeries(seriesContentNode: Group | undefined, seriesNode: Group, annotationNode: Group | undefined) {
+    detachSeries(seriesContentNode: Group | undefined, _seriesNode: Group, annotationNode: Group | undefined) {
         seriesContentNode?.removeChild(this.contentGroup);
         this.highlightGroup.remove();
         this.labelGroup.remove();
@@ -1116,7 +1116,7 @@ export abstract class Series<
         { applyTranslation = true, selected = true } = {}
     ) {
         const { shape, size = 0 } = style;
-        const visible = this.visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
+        const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
         applyShapeStyle(markerNode, style, fillBBox);
 

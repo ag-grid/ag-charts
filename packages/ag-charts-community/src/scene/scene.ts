@@ -75,7 +75,9 @@ export class Scene extends EventEmitter<EventMap> {
     /** @deprecated v10.2.0 Only used by AG Grid Sparklines */
     setContainer(value: HTMLElement) {
         const { element } = this.canvas;
-        element.parentElement?.removeChild(element);
+        if (element.parentElement) {
+            element.remove();
+        }
         value.appendChild(element);
         return this;
     }

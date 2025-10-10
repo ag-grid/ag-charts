@@ -152,7 +152,7 @@ export class HistogramSeries extends CartesianSeries<
 
     private calculatePrecision(step: number): number {
         let precision = 10;
-        if (isFinite(step) && step > 0) {
+        if (Number.isFinite(step) && step > 0) {
             while (step < 1) {
                 precision *= 10;
                 step *= 10;
@@ -378,14 +378,22 @@ export class HistogramSeries extends CartesianSeries<
                 selectionDatumLabel = {
                     x: x + w / 2,
                     y: y + h / 2,
-                    text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey, 'y', [], label, {
-                        value: total,
+                    text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
+                        total,
                         datum,
-                        xKey,
-                        yKey,
-                        xName,
-                        yName,
-                    }),
+                        yKey!,
+                        'y',
+                        [],
+                        label,
+                        {
+                            value: total,
+                            datum,
+                            xKey,
+                            yKey,
+                            xName,
+                            yName,
+                        }
+                    ),
                 };
             }
 
@@ -585,7 +593,7 @@ export class HistogramSeries extends CartesianSeries<
             },
             {
                 label: localeManager.t('seriesHistogramTooltipFrequency'),
-                value: this.getAxisValueText(yAxis, 'tooltip', frequency, datum, yKey, legendItemName),
+                value: this.getAxisValueText(yAxis, 'tooltip', frequency, datum, yKey!, legendItemName),
             },
         ];
 

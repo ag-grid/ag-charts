@@ -37,7 +37,9 @@ export class LayoutManager {
         const context = new LayoutContext(width, height);
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
-            this.elements.get(element)?.forEach((listener) => listener(context));
+            for (const listener of this.elements.get(element) ?? []) {
+                listener(context);
+            }
         }
         return context;
     }

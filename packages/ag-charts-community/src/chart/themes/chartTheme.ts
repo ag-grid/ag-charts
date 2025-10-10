@@ -93,7 +93,7 @@ const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
 };
 
 function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
-    return PRESET_OVERRIDES_TYPES[type] === true;
+    return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
 
 export class ChartTheme {

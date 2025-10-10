@@ -4,13 +4,13 @@ function sfc32(a: number, b: number, c: number, d: number) {
         b >>>= 0;
         c >>>= 0;
         d >>>= 0;
-        let t = (a + b) | 0;
+        let t = Math.trunc(a + b);
         a = b ^ (b >>> 9);
-        b = (c + (c << 3)) | 0;
+        b = Math.trunc(c + (c << 3));
         c = (c << 21) | (c >>> 11);
-        d = (d + 1) | 0;
-        t = (t + d) | 0;
-        c = (c + t) | 0;
+        d = Math.trunc(d + 1);
+        t = Math.trunc(t + d);
+        c = Math.trunc(c + t);
         return (t >>> 0) / 4294967296;
     };
 }

@@ -12,7 +12,7 @@ import { ExtendedPath2D } from '../extendedPath2D';
 import { PATTERNS } from './patterns';
 
 export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
-    pattern: InternalAgPatternColor['pattern'];
+    pattern: NonNullable<InternalAgPatternColor['pattern']>;
     path?: string;
     width: number;
     height: number;

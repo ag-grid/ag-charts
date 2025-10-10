@@ -120,7 +120,7 @@ export class SeriesLayerManager {
         }
 
         if (this.series.has(internalId)) {
-            this._releaseGroup({ internalId, contentGroup, type: oldType });
+            this._releaseGroup({ internalId, contentGroup, type: oldType ?? type });
         }
         return this.requestGroup(seriesConfig);
     }
@@ -159,8 +159,8 @@ export class SeriesLayerManager {
     }
 
     public updateLayerCompositing() {
-        for (const groups of this.groups) {
-            for (const groupInfo of groups) {
+        for (const [, groups] of this.groups) {
+            for (const [, groupInfo] of groups) {
                 const { group, seriesIds } = groupInfo;
 
                 let renderToOffscreenCanvas: boolean;
@@ -197,8 +197,8 @@ export class SeriesLayerManager {
     }
 
     public destroy() {
-        for (const groups of this.groups) {
-            for (const groupInfo of groups) {
+        for (const [, groups] of this.groups) {
+            for (const [, groupInfo] of groups) {
                 groupInfo.group.remove();
             }
         }

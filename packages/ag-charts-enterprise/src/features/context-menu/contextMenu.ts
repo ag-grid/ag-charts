@@ -276,7 +276,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
                 const pickedNode: undefined | { series: UnknownSeries } = this.pickedNode;
                 const callers: Caller[] = [pickedNode?.series.properties, chart];
-                const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode);
+                const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
                 if (apiEvent) {
                     callWithContext(callers, callback, apiEvent);
                 } else {

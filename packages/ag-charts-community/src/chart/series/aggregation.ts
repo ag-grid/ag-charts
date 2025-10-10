@@ -123,7 +123,7 @@ export function aggregationRangeFittingPoints(
         // This cap represents ~500MB for a Float64Array with 4 values per point (or half that for an Int32Array)
         // This is usually a temporary array, so actual resource usage is much lower
         power = Math.min(Math.max(power, 0), 24);
-        return (2 ** power) | 0;
+        return Math.trunc(2 ** power);
     }
 }
 
@@ -163,7 +163,7 @@ export function aggregationXRatioForXValue(xValue: any, d0: number, d1: number, 
 }
 
 export function aggregationIndexForXRatio(xRatio: number, maxRange: number) {
-    return (Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN) | 0;
+    return Math.trunc(Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN);
 }
 
 export function createAggregationIndices(
@@ -272,7 +272,7 @@ export function createAggregationIndices(
             xRatio = datumIndex * invDomainCount;
         }
 
-        const aggIndex = (Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN) | 0;
+        const aggIndex = Math.trunc(Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN);
 
         // Load cache when switching buckets
         if (aggIndex !== lastAggIndex) {
@@ -336,14 +336,14 @@ export function compactAggregationIndices(
     maxRange: number,
     { inPlace = false } = {}
 ) {
-    const nextMaxRange = (maxRange / 2) | 0;
+    const nextMaxRange = Math.trunc(maxRange / 2);
     const nextIndexData = !inPlace ? new Int32Array(nextMaxRange * AGGREGATION_SPAN) : indexData;
     const nextValueData = !inPlace ? new Float64Array(nextMaxRange * AGGREGATION_SPAN) : valueData;
 
     for (let i = 0; i < nextMaxRange; i += 1) {
-        const aggIndex = (i * AGGREGATION_SPAN) | 0;
-        const index0 = (aggIndex * 2) | 0;
-        const index1 = (index0 + AGGREGATION_SPAN) | 0;
+        const aggIndex = Math.trunc(i * AGGREGATION_SPAN);
+        const index0 = Math.trunc(aggIndex * 2);
+        const index1 = Math.trunc(index0 + AGGREGATION_SPAN);
 
         const index1Unset = indexData[index1 + AGGREGATION_INDEX_X_MIN] === -1;
 

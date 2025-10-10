@@ -263,9 +263,9 @@ export abstract class FlowProportionSeries<
                     const toId = toIdValues[datumIndex];
                     if (fromId == null || toId == null) continue;
 
-                if (!processedNodes.has(fromId)) {
-                    processedNodes.set(fromId, createImplicitNode(fromId));
-                }
+                    if (!processedNodes.has(fromId)) {
+                        processedNodes.set(fromId, createImplicitNode(fromId));
+                    }
 
                     if (!processedNodes.has(toId)) {
                         processedNodes.set(toId, createImplicitNode(toId));
@@ -293,24 +293,24 @@ export abstract class FlowProportionSeries<
                     const id: string = nodeIdValues[datumIndex];
                     const label: string | undefined = labelValues?.[datumIndex];
 
-                const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
+                    const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
 
-                processedNodes.set(id, {
-                    series: this,
-                    itemId: undefined,
-                    datum,
-                    datumIndex: nodeDatumIndex,
-                    type: FlowProportionDatumType.Node,
-                    index: datumIndex,
-                    linksBefore: [],
-                    linksAfter: [],
-                    id,
-                    size: 0,
-                    label,
-                    style: this.getNodeStyle(
-                        { datumIndex: nodeDatumIndex, datum, size: 0, label } as Partial<TNodeDatum>,
-                        datumIndex,
-                        false
+                    processedNodes.set(id, {
+                        series: this,
+                        itemId: undefined,
+                        datum,
+                        datumIndex: nodeDatumIndex,
+                        type: FlowProportionDatumType.Node,
+                        index: datumIndex,
+                        linksBefore: [],
+                        linksAfter: [],
+                        id,
+                        size: 0,
+                        label,
+                        style: this.getNodeStyle(
+                            { datumIndex: nodeDatumIndex, datum, size: 0, label } as Partial<TNodeDatum>,
+                            datumIndex,
+                            false
                         ),
                     });
                 }
@@ -361,10 +361,10 @@ export abstract class FlowProportionSeries<
                 : undefined;
 
         const nodesById = new Map<string, TNodeDatum>();
-        for (const datum of this.processedNodes) {
+        this.processedNodes.forEach((datum) => {
             const node = createNode(datum);
             nodesById.set(datum.id, node);
-        }
+        });
 
         const baseLinks: TLinkDatum[] = [];
         const linksDataSource = linksProcessedData.dataSources.get(this.id);
@@ -377,22 +377,22 @@ export abstract class FlowProportionSeries<
                 const toNode = nodesById.get(toId);
                 if (size <= 0 || fromNode == null || toNode == null) continue;
 
-            const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
+                const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
 
-            const link = createLink({
-                series: this,
-                itemId: undefined,
-                datum,
-                datumIndex: linkNodeDatumIndex,
-                type: FlowProportionDatumType.Link,
-                index: datumIndex,
-                fromNode,
-                toNode,
-                size,
-                style: this.getLinkStyle(
-                    { datum, datumIndex: linkNodeDatumIndex } as Partial<TLinkDatum>,
-                    fromNode.datumIndex,
-                    false
+                const link = createLink({
+                    series: this,
+                    itemId: undefined,
+                    datum,
+                    datumIndex: linkNodeDatumIndex,
+                    type: FlowProportionDatumType.Link,
+                    index: datumIndex,
+                    fromNode,
+                    toNode,
+                    size,
+                    style: this.getLinkStyle(
+                        { datum, datumIndex: linkNodeDatumIndex } as Partial<TLinkDatum>,
+                        fromNode.datumIndex,
+                        false
                     ),
                 });
                 baseLinks.push(link);
@@ -405,10 +405,10 @@ export abstract class FlowProportionSeries<
             includeCircularReferences
         );
 
-        for (const node of nodeGraph) {
+        nodeGraph.forEach((node) => {
             node.datum.linksBefore = node.linksBefore.map((linkedNode) => linkedNode.link);
             node.datum.linksAfter = node.linksAfter.map((linkedNode) => linkedNode.link);
-        }
+        });
 
         this.nodeCount = nodeGraph.size;
         this.linkCount = links.length;

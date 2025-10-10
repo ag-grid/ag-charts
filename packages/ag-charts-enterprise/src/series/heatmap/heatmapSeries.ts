@@ -270,7 +270,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     ? this.getLabelText<AgHeatmapSeriesLabelFormatterParams>(
                           colorValue,
                           datum,
-                          colorKey,
+                          colorKey!,
                           'color',
                           colorDomain,
                           label,

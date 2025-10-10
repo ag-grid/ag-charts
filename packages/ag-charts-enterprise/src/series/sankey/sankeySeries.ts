@@ -158,7 +158,7 @@ export class SankeySeries extends FlowProportionSeries<
         }
 
         // Assign nodes to columns
-        for (const graphNode of nodeGraph) {
+        nodeGraph.forEach((graphNode) => {
             const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
             const size = Math.max(
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0),
@@ -167,7 +167,7 @@ export class SankeySeries extends FlowProportionSeries<
 
             if ((linksBefore.length === 0 && linksAfter.length === 0) || size === 0) {
                 graphNode.columnIndex = -1;
-                continue;
+                return;
             }
 
             let column: Column;
@@ -221,9 +221,9 @@ export class SankeySeries extends FlowProportionSeries<
             column.size += size;
 
             graphNode.columnIndex = column.index;
-        }
+        });
 
-        for (const graphNode of nodeGraph) {
+        nodeGraph.forEach((graphNode) => {
             graphNode.weight = 0;
 
             // Get the distance to the closest column to which this link is attached, used for sorting later
@@ -265,7 +265,7 @@ export class SankeySeries extends FlowProportionSeries<
                     columns[i].nodes.push(ghostNode);
                 }
             }
-        }
+        });
 
         const sizeScale = columns.reduce((acc, { size, nodes }) => {
             const columnSizeScale = (1 - (nodes.length - 1) * (nodeSpacing / seriesRectHeight)) / size;
