@@ -4,7 +4,7 @@ import {
     array,
     arrayOfDefs,
     boolean,
-    callback,
+    callbackOf,
     color,
     fontOptionsDef,
     number,
@@ -45,6 +45,7 @@ const {
     NewLineSeriesModule,
     NewScatterSeriesModule,
     numberFormatValidator,
+    textOrSegments,
     without,
 } = _ModuleSupport;
 
@@ -166,7 +167,7 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
             avoidCollisions: boolean,
             spacing: positiveNumber,
             format: numberFormatValidator,
-            formatter: callback,
+            formatter: callbackOf(textOrSegments),
             interval: {
                 minSpacing: positiveNumber,
                 maxSpacing: positiveNumber,
