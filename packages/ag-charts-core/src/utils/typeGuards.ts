@@ -49,6 +49,7 @@ export function isPlainObject(value: unknown): value is PlainObject {
 export function isEmptyObject(value: unknown): value is {} {
     if (typeof value !== 'object' || value === null) return false;
 
+    // eslint-disable-next-line sonarjs/no-unused-vars -- iteration variable only used to check if object has any properties
     for (const _ in value) {
         return false;
     }
