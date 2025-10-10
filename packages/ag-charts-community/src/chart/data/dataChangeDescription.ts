@@ -282,7 +282,11 @@ export class DataChangeDescription {
      * });
      * ```
      */
-    applyToArray<T>(array: T[], processInsertion: (destIndex: number) => T): void {
+    applyToArray<T>(
+        array: T[],
+        processInsertion: (destIndex: number) => T,
+        onRemove?: (removed: T[], op: SpliceOperation) => void
+    ): void {
         const { spliceOps, finalLength, originalLength } = this.indexMap;
 
         // Early exit if no changes
@@ -300,7 +304,10 @@ export class DataChangeDescription {
                     : [];
 
             // Apply the splice operation (handles insert, delete, or both)
-            array.splice(op.index, op.deleteCount, ...insertElements);
+            const removed = array.splice(op.index, op.deleteCount, ...insertElements);
+            if (onRemove && removed.length > 0) {
+                onRemove(removed, op);
+            }
         }
 
         // Ensure final length is correct (should already be from splice operations)

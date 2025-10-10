@@ -806,15 +806,12 @@ export class DataModel<
             return processedData;
         }
 
-        // Cache removed keys BEFORE committing transactions (while data is still accessible)
-        const removedKeys = this.cacheRemovedKeys(processedData, scopeChanges);
-
         this.commitPendingTransactions(processedData);
         const { processValue } = this.initDataDomainProcessor();
         const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
 
         this.updateBandsForChanges(processedData, scopeChanges);
-        this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
+        const removedKeys = this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
         this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
         this.transformInvalidityArrays(processedData, scopeChanges, insertionCaches);
 
@@ -997,21 +994,77 @@ export class DataModel<
         processedData: ProcessedData<D>,
         scopeChanges: Map<ScopeId, DataChangeDescription>,
         insertionCaches: Map<ScopeId, InsertionCache>
-    ): void {
-        this.transformArraysWithCache(
-            this.keys,
-            scopeChanges,
-            insertionCaches,
-            (defIndex, scope) => processedData.keys[defIndex]?.get(scope),
-            (def) => def.scopes ?? [],
-            (cached, def, defIndex) => {
-                if (cached) {
-                    const keyResult = cached.keys.get(defIndex);
-                    return keyResult?.valid ? keyResult.value : def.invalidValue;
-                }
-                return def.invalidValue;
+    ): Map<ScopeId, Set<string>> {
+        type RemovedMetadata = { tuples: any[][] };
+        const removedByScope = new Map<ScopeId, RemovedMetadata>();
+
+        const ensureRemovedMetadata = (scope: ScopeId): RemovedMetadata => {
+            let metadata = removedByScope.get(scope);
+            if (!metadata) {
+                metadata = { tuples: [] };
+                removedByScope.set(scope, metadata);
             }
-        );
+            return metadata;
+        };
+
+        for (const [defIndex, def] of this.keys.entries()) {
+            for (const scope of def.scopes ?? []) {
+                const changeDesc = scopeChanges.get(scope);
+                if (!changeDesc) continue;
+
+                const keysArray = processedData.keys[defIndex]?.get(scope);
+                if (!keysArray) continue;
+
+                const insertionCache = insertionCaches.get(scope);
+                const removedMetadata = ensureRemovedMetadata(scope);
+                let removalCursor = 0;
+
+                changeDesc.applyToArray(
+                    keysArray,
+                    (destIndex) => {
+                        const cached = insertionCache?.get(destIndex);
+                        if (cached) {
+                            const keyResult = cached.keys.get(defIndex);
+                            return keyResult?.valid ? keyResult.value : def.invalidValue;
+                        }
+                        return def.invalidValue;
+                    },
+                    (removedValues) => {
+                        for (const value of removedValues) {
+                            if (!removedMetadata.tuples[removalCursor]) {
+                                removedMetadata.tuples[removalCursor] = new Array(this.keys.length);
+                            }
+
+                            removedMetadata.tuples[removalCursor][defIndex] = value;
+                            removalCursor += 1;
+                        }
+                    }
+                );
+            }
+        }
+
+        const removedKeyStrings = new Map<ScopeId, Set<string>>();
+        for (const [scope, { tuples }] of removedByScope) {
+            if (tuples.length === 0) continue;
+
+            const scopeSet = new Set<string>();
+            for (const tuple of tuples) {
+                const keyValues: any[] = [];
+                for (const [defIndex, value] of tuple.entries()) {
+                    const keyDef = this.keys[defIndex];
+                    if (!keyDef.scopes?.includes(scope)) continue;
+                    keyValues.push(value);
+                }
+
+                if (keyValues.length > 0) {
+                    scopeSet.add(toKeyString(keyValues));
+                }
+            }
+
+            removedKeyStrings.set(scope, scopeSet);
+        }
+
+        return removedKeyStrings;
     }
 
     /**
@@ -1363,46 +1416,6 @@ export class DataModel<
                 this.debug(`recomputeDomains: ${duration.toFixed(2)}ms (no banding)`);
             }
         }
-    }
-
-    /**
-     * Cache the keys of removed items before committing transactions.
-     * This must be called BEFORE commitPendingTransactions() because we need access to the original data.
-     */
-    private cacheRemovedKeys(
-        processedData: ProcessedData<D>,
-        scopeChanges: Map<ScopeId, DataChangeDescription>
-    ): Map<ScopeId, Set<string>> {
-        const removedKeysByScope = new Map<ScopeId, Set<string>>();
-
-        for (const [scope, changeDesc] of scopeChanges) {
-            const removedIndices = changeDesc.getRemovedIndices();
-            if (removedIndices.length === 0) continue;
-
-            const removedKeysSet = new Set<string>();
-            const dataSet = processedData.dataSources.get(scope);
-            if (dataSet) {
-                // Access the ORIGINAL data (before commit)
-                const originalData = dataSet.data;
-                for (const originalIndex of removedIndices) {
-                    const datum = originalData[originalIndex];
-                    if (datum != null && typeof datum === 'object') {
-                        const keys: any[] = [];
-                        for (const keyDef of this.keys) {
-                            if (!keyDef.scopes?.includes(scope)) continue;
-                            const key = (datum as any)[keyDef.property];
-                            keys.push(key);
-                        }
-                        if (keys.length > 0) {
-                            removedKeysSet.add(toKeyString(keys));
-                        }
-                    }
-                }
-            }
-            removedKeysByScope.set(scope, removedKeysSet);
-        }
-
-        return removedKeysByScope;
     }
 
     /**

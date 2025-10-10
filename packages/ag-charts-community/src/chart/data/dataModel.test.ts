@@ -1792,6 +1792,38 @@ describe('DataModel', () => {
                 expect(reprocessed.reduced?.diff).toBeDefined();
                 expect(Object.keys(reprocessed.reduced!.diff!)).toEqual([]);
             });
+
+            it('should capture removed keys when rows are deleted', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Opt-in to diff tracking
+                processedData!.reduced = { diff: {} };
+
+                // Remove first row
+                dataSet.addTransaction({ remove: [initialData[0]] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Data adjusted
+                expect(reprocessed.keys[0].get('test')).toEqual([2, 3]);
+                expect(reprocessed.columns).toEqual([[20, 30]]);
+
+                // Removed keys captured
+                expect(reprocessed.reduced?.diff?.test.removed.size).toBe(1);
+                expect(reprocessed.reduced?.diff?.test.removed.has('1')).toBe(true);
+            });
         });
 
         describe('edge cases', () => {
