@@ -56,9 +56,9 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, T
 
 export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
     extends AgRangeAreaSeriesOptionsKeys<TDatum>,
-        Required<AgSeriesMarkerStyle>,
         DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum>,
-        ContextCallbackParams<TContext> {
+        ContextCallbackParams<TContext>,
+        Required<AgSeriesMarkerStyle> {
     /** The Id to distinguish the type of datum. This can be `up` or `down`. */
     itemId: AgRangeAreaSeriesItemType;
 }
