@@ -50,7 +50,7 @@ If I specify command arguments ($ARGUMENTS), just perform review for them withou
 
 ### Identifying PRs for JIRA tickets
 
--   Use the MCP server `ag-jira` to search for JIRA tickets.
+-   Use the MCP server `atlassian` to search for JIRA tickets.
 -   Unless requested otherwise:
     -   We're only interested in tickets in the `AG` project with a component of `Charts`.
     -   We're usually interested in tickets with a status of `Needs Review`.
