@@ -85,8 +85,17 @@ jobs:
             - name: Build tests
               run: yarn nx run-many -t generate-test-files --parallel=3
 
-            - name: Build examples
-              run: yarn nx run-many -t generate-examples --parallel=3
+            - name: Build cacheable examples
+              run: |
+                  # Build all cacheable examples
+                  yarn nx run-many -t generate-example --exclude tag:skip-gha-cache --parallel=3
+
+                  # Get all non-benchmark non-Nx-cacheable examples for e2e tests
+                  yarn nx graph --file=/tmp/graph.json
+                  e2e_cacheable=$(jq -r '[.graph.nodes | to_entries[] | select(.value.data.tags | contains(["skip-gha-cache"]) and contains(["type:generated-example"])) | .key] | map(select(contains("benchmarks") | not)) | join(",")' /tmp/graph.json)
+
+                  # Build all non-Nx-cacheable examples for e2e tests
+                  yarn nx run-many -t generate-example -p ${e2e_cacheable} --parallel=3 --excludeTaskDependencies --skip-nx-cache
 
             - name: Calculate test matrices
               id: matrix

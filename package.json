@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "12.2.0-beta.20250928",
+  "version": "12.2.0-beta.20251005",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -80,6 +80,7 @@
     "eslint-plugin-check-file": "^2.8.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc-df783f9ea1-20240708",
     "eslint-plugin-sonarjs": "^2.0.4",
+    "eslint-plugin-unicorn": "^61.0.2",
     "event-stream": "4.0.1",
     "glob": "8.0.3",
     "globals": "^15.12.0",

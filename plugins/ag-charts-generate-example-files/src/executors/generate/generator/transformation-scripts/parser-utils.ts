@@ -116,18 +116,13 @@ export function tsCollect(tsTree, tsBindings, collectors, recurse = true) {
                 let res = false;
                 try {
                     res = c.matches(node);
-                } catch (error) {
+                } catch {
                     return false;
                 }
                 return res;
             })
             .forEach((c) => {
-                try {
-                    c.apply(tsBindings, node);
-                } catch (error) {
-                    // eslint-disable-next-line no-console
-                    console.error(error);
-                }
+                c.apply(tsBindings, node);
             });
         if (recurse) {
             tsCollect(node, tsBindings, collectors, recurse);

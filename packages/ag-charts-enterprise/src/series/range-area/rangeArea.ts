@@ -1,10 +1,14 @@
 import {
+    type AgRangeAreaSeriesItemStylerParams,
+    type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
     type AgRangeAreaSeriesOptions,
+    type AgRangeAreaSeriesStyle,
+    type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
+import type { DeepRequired, Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
@@ -49,9 +53,27 @@ const {
     markerEnabled,
     getMarkerStyles,
     calculateSegments,
+    toHighlightString,
+    HighlightState,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
+
+const DEFAULT_ITEM = 'low';
+
+type ResolvedLineStyleMixin = {
+    marker?: {
+        enabled?: boolean;
+    };
+};
+type ResolvedStyleMixin = {
+    item?: {
+        low?: ResolvedLineStyleMixin;
+        high?: ResolvedLineStyleMixin;
+    };
+};
+type PartialStylerResult = AgRangeAreaSeriesStyle & ResolvedStyleMixin & { opacity?: number };
+type StylerResult = DeepRequired<PartialStylerResult, 'fill'>;
 
 class RangeAreaSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -93,7 +115,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            pathsPerSeries: ['fill', 'stroke'],
+            pathsPerSeries: ['fill', 'lowStroke', 'highStroke'],
             pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
             propertyKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
@@ -159,7 +181,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return memoizedAggregateRangeAreaData(xAxis.scale.type, xValues, yHighValues, yLowValues, domain);
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `yHighValue`, processedData);
+
+        return memoizedAggregateRangeAreaData(
+            xAxis.scale.type,
+            xValues,
+            yHighValues,
+            yLowValues,
+            domain,
+            xNeedsValueOf,
+            yNeedsValueOf
+        );
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
@@ -215,7 +248,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             yLowKey,
             yHighKey,
             connectMissingData,
-            marker,
             interpolation,
             fill,
             fillOpacity,
@@ -223,7 +255,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeWidth,
             strokeOpacity,
         } = this.properties;
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const marker = this.properties.item[DEFAULT_ITEM].marker;
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
@@ -358,7 +391,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         );
 
         let intersectionSegments: _ModuleSupport.Segment[] | undefined = undefined;
-        if (this.properties.negativeStyle.enabled) {
+        if (this.properties.invertedStyle.enabled) {
             const startsInverted = yHighValues[0] < yLowValues[0];
             const intersectionXValues = findRangeAreaIntersections(
                 highSpans,
@@ -372,7 +405,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 this.chart.seriesRect,
                 this.ctx.scene,
                 startsInverted,
-                this.properties.negativeStyle
+                this.properties.invertedStyle
             );
         }
 
@@ -385,7 +418,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: getMarkerStyles(this, marker, {
+            styles: getMarkerStyles(this, this.properties.item[DEFAULT_ITEM], marker, {
                 fill,
                 fillOpacity,
                 stroke,
@@ -413,7 +446,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         value: any;
         yLowValue: any;
         yHighValue: any;
-        itemId: string;
+        itemId: AgRangeAreaSeriesItemType;
         inverted: boolean;
         datum: any;
         series: RangeAreaSeries;
@@ -455,7 +488,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override isPathOrSelectionDirty(): boolean {
-        return this.properties.marker.isDirty();
+        const { low, high } = this.properties.item;
+        return low.marker.isDirty() || high.marker.isDirty();
     }
 
     protected override updatePathNodes(opts: {
@@ -464,59 +498,55 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         animationEnabled: boolean;
     }) {
         const { visible } = opts;
-        const [fill, stroke] = opts.paths;
+        const [fillPath, lowStrokePath, highStrokePath] = opts.paths;
 
         const segments = this.contextNodeData?.segments;
 
-        const {
-            strokeWidth,
-            stroke: strokeColor,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            fill: seriesFill,
-            fillOpacity,
-            opacity,
-        } = mergeDefaults(this.getHighlightStyle(), this.properties);
+        const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightState(highlightDatum, false);
+        const highlightStyle = this.getHighlightStyle();
 
-        stroke.setProperties({
+        const { item, fill, fillOpacity, opacity } = mergeDefaults(
+            highlightStyle,
+            this.getStyle(false, highlightState)
+        );
+
+        lowStrokePath.setProperties({
+            datum: segments,
             segments,
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            stroke: strokeColor,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
+            stroke: item.low.stroke,
+            strokeWidth: item.low.strokeWidth,
+            strokeOpacity: item.low.strokeOpacity,
+            lineDash: item.low.lineDash,
+            lineDashOffset: item.low.lineDashOffset,
+            opacity,
+            visible,
+        });
+        highStrokePath.setProperties({
+            segments,
+            fill: undefined,
+            lineCap: 'round',
+            lineJoin: 'round',
+            pointerEvents: PointerEvents.None,
+            stroke: item.high.stroke,
+            strokeWidth: item.high.strokeWidth,
+            strokeOpacity: item.high.strokeOpacity,
+            lineDash: item.high.lineDash,
+            lineDashOffset: item.high.lineDashOffset,
             opacity,
             visible,
         });
 
-        stroke.datum = segments;
-
         const fillBBox = this.getShapeFillBBox();
-
-        applyShapeFillBBox(fill, seriesFill, fillBBox);
-
-        applyShapeStyle(
-            fill,
-            {
-                stroke: undefined,
-                fill: seriesFill,
-                fillOpacity,
-                lineDash,
-                lineDashOffset,
-                strokeOpacity,
-                strokeWidth,
-                opacity,
-            },
-            fillBBox
-        );
+        applyShapeFillBBox(fillPath, fill, fillBBox);
+        applyShapeStyle(fillPath, { stroke: undefined, fill, fillOpacity, opacity }, fillBBox);
 
         const fillSegments = this.contextNodeData?.intersectionSegments ?? segments;
-        fill.setProperties({
+        fillPath.setProperties({
             segments: fillSegments,
             pointerEvents: PointerEvents.None,
             lineJoin: 'round',
@@ -525,10 +555,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible,
         });
 
-        fill.datum = fillSegments;
+        fillPath.datum = fillSegments;
 
-        updateClipPath(this, stroke);
-        updateClipPath(this, fill);
+        updateClipPath(this, fillPath);
+        updateClipPath(this, lowStrokePath);
+        updateClipPath(this, highStrokePath);
     }
 
     protected override updatePaths(opts: { contextData: RangeAreaContext; paths: _ModuleSupport.Path[] }) {
@@ -559,11 +590,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private updateStrokePath(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
-        const [, stroke] = paths;
-        stroke.path.clear();
-        plotLinePathStroke(stroke, contextData.highStrokeData.spans);
-        plotLinePathStroke(stroke, contextData.lowStrokeData.spans);
-        stroke.markDirty('RangeArea');
+        const [, lowStroke, highStroke] = paths;
+        lowStroke.path.clear();
+        highStroke.path.clear();
+        plotLinePathStroke(lowStroke, contextData.lowStrokeData.spans);
+        plotLinePathStroke(highStroke, contextData.highStrokeData.spans);
+        lowStroke.markDirty('RangeArea');
+        highStroke.markDirty('RangeArea');
     }
 
     protected override updateDatumSelection(opts: {
@@ -572,10 +605,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const { processedData, axes, properties } = this;
-        const { marker } = properties;
-        const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
 
-        if (marker.isDirty()) {
+        type LowHighRules = { [K in 'low' | 'high']: { marker: { enabled: boolean } } };
+        const { low, high }: LowHighRules = properties.styler ? this.getStyle(false).item : properties.item;
+
+        const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, {
+            enabled: low.marker.enabled || high.marker.enabled,
+        });
+
+        if (properties.item.low.marker.isDirty() || properties.item.high.marker.isDirty()) {
             datumSelection.clear();
             datumSelection.cleanup();
         }
@@ -589,17 +627,29 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
-            this.properties;
-
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, datum) => {
-            datum.style = this.getMarkerStyle(marker, datum, { xKey, yHighKey, yLowKey }, { isHighlight }, undefined, {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const stylerStyle = this.getStyle(isHighlight, highlightState);
+            const { fill, fillOpacity, item } = stylerStyle;
+            const { stroke, strokeWidth, strokeOpacity } = item[datum.itemId];
+            const { marker } = this.properties.item[datum.itemId];
+
+            const params = this.makeItemStylerParams(datum.itemId);
+            datum.style = this.getMarkerStyle(
+                marker,
+                datum,
+                params,
+                { isHighlight, highlightState, resolveMarkerSubPath: ['item', datum.itemId, 'marker'] },
+                stylerStyle.item[datum.itemId].marker,
+                {
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                }
+            );
         });
     }
 
@@ -625,7 +675,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
 
         if (!isHighlight) {
-            this.properties.marker.markClean();
+            this.properties.item.low.marker.markClean();
+            this.properties.item.high.marker.markClean();
         }
     }
 
@@ -667,15 +718,112 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: _ModuleSupport.HighlightState): never {
-        throw new Error('not implemented');
+    private getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): StylerResult {
+        const { fill, fillOpacity, item, styler } = this.properties;
+
+        let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
+        }
+
+        const makeItemResult = (lowOrHigh: 'low' | 'high'): StylerResult['item'][typeof lowOrHigh] => {
+            const stylerItem = stylerResult.item?.[lowOrHigh];
+            const { lineDash, lineDashOffset, marker, stroke, strokeOpacity, strokeWidth } = item[lowOrHigh];
+            return {
+                marker: {
+                    enabled: stylerItem?.marker?.enabled ?? marker.enabled,
+                    fill: stylerItem?.marker?.fill ?? marker.fill ?? fill,
+                    fillOpacity: stylerItem?.marker?.fillOpacity ?? marker.fillOpacity,
+                    shape: stylerItem?.marker?.shape ?? marker.shape,
+                    size: stylerItem?.marker?.size ?? marker.size,
+                    lineDash: stylerItem?.marker?.lineDash ?? marker.lineDash,
+                    lineDashOffset: stylerItem?.marker?.lineDashOffset ?? marker.lineDashOffset,
+                    stroke: stylerItem?.marker?.stroke ?? marker.stroke ?? stroke,
+                    strokeOpacity: stylerItem?.marker?.strokeOpacity ?? marker.strokeOpacity,
+                    strokeWidth: stylerItem?.marker?.strokeWidth ?? marker.strokeWidth,
+                },
+                lineDash: stylerItem?.lineDash ?? lineDash,
+                lineDashOffset: stylerItem?.lineDashOffset ?? lineDashOffset,
+                stroke: stylerItem?.stroke ?? stroke,
+                strokeOpacity: stylerItem?.strokeOpacity ?? strokeOpacity,
+                strokeWidth: stylerItem?.strokeWidth ?? strokeWidth,
+            };
+        };
+        return {
+            fill: stylerResult.fill ?? fill,
+            fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
+            opacity: 1,
+            item: {
+                low: makeItemResult('low'),
+                high: makeItemResult('high'),
+            },
+        };
+    }
+
+    private makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): AgRangeAreaSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const { fill, fillOpacity, item, xKey, yHighKey, yLowKey } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type ParamsRules = DeepRequired<AgRangeAreaSeriesStylerParams<unknown, unknown>, 'fill'>;
+        type ResultRules = _ModuleSupport.CallbackParamRules<ParamsRules>;
+
+        const makeItemParam = (lowOrHigh: 'low' | 'high'): ResultRules['item'][typeof lowOrHigh] => {
+            const { lineDash, lineDashOffset, marker, stroke, strokeOpacity, strokeWidth } = item[lowOrHigh];
+            return {
+                marker: {
+                    fill: marker.fill ?? fill,
+                    fillOpacity: marker.fillOpacity,
+                    size: marker.size,
+                    shape: marker.shape,
+                    stroke: marker.stroke ?? stroke,
+                    strokeOpacity: marker.strokeOpacity,
+                    strokeWidth: marker.strokeWidth,
+                    lineDash: marker.lineDash,
+                    lineDashOffset: marker.lineDashOffset,
+                },
+                lineDash,
+                lineDashOffset,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+            };
+        };
+        return {
+            item: {
+                low: makeItemParam('low'),
+                high: makeItemParam('high'),
+            },
+            fill,
+            fillOpacity,
+            highlightState,
+            highlighted,
+            seriesId,
+            xKey,
+            yLowKey,
+            yHighKey,
+        } satisfies ResultRules;
+    }
+
+    private makeItemStylerParams(itemId: AgRangeAreaSeriesItemType): AgRangeAreaSeriesItemStylerParams<unknown> {
+        const { xKey, yLowKey, yHighKey } = this.properties;
+        return { xKey, yLowKey, yHighKey, itemId };
     }
 
     override getTooltipContent(
         datumIndex: number,
         removeThisDatum: RangeAreaMarkerDatum | undefined
     ): _ModuleSupport.TooltipContent | undefined {
-        const itemId = removeThisDatum?.itemId ?? 'high';
+        const itemId: AgRangeAreaSeriesItemType = removeThisDatum?.itemId ?? 'high';
 
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = properties;
@@ -684,17 +832,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
+        const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(itemId);
         const format = this.getMarkerStyle(
-            this.properties.marker,
+            this.properties.item[itemId].marker,
             { datumIndex, datum },
-            { xKey, yLowKey, yHighKey }
+            params,
+            { isHighlight: false, resolveMarkerSubPath: ['item', itemId, 'marker'] },
+            stylerStyle.item[itemId].marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
@@ -723,7 +875,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
+        const { fill, item } = this.getStyle(false);
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item[DEFAULT_ITEM];
 
         const markerStyle = {
             shape: marker.shape,
@@ -896,8 +1049,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
-        const { xKey, yLowKey, yHighKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, datum, { xKey, yLowKey, yHighKey }, { isHighlight: true });
+        const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(datum.itemId);
+
+        return this.getMarkerStyle(
+            this.properties.item[datum.itemId].marker,
+            datum,
+            params,
+            { isHighlight: true, resolveMarkerSubPath: ['item', datum.itemId, 'marker'] },
+            undefined,
+            stylerStyle
+        );
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
@@ -914,6 +1076,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.item.low.marker.itemStyler != null ||
+            this.properties.item.high.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

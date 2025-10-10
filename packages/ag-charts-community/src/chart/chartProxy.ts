@@ -3,6 +3,7 @@ import type {
     AgChartInstance,
     AgChartOptions,
     AgChartState,
+    AgDataTransaction,
     DownloadOptions,
     ImageDataUrlOptions,
 } from 'ag-charts-types';
@@ -111,6 +112,31 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (!this.chart) throw new Error(DESTROYED_ERROR);
 
         return this.chart.waitForUpdate();
+    }
+
+    async applyTransaction(transaction: AgDataTransaction) {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
+        // Validate transaction structure
+        if (transaction == null || typeof transaction !== 'object') {
+            throw new Error('AG Charts - applyTransaction expects a transaction object.');
+        }
+
+        const { append, prepend, remove } = transaction;
+
+        if (append != null && !Array.isArray(append)) {
+            throw new Error('AG Charts - transaction "append" must be an array.');
+        }
+
+        if (prepend != null && !Array.isArray(prepend)) {
+            throw new Error('AG Charts - transaction "prepend" must be an array.');
+        }
+
+        if (remove != null && !Array.isArray(remove)) {
+            throw new Error('AG Charts - transaction "remove" must be an array or single value.');
+        }
+
+        return this.chart.applyTransaction(transaction);
     }
 
     async download(opts?: DownloadOptions) {

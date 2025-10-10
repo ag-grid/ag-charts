@@ -11,11 +11,12 @@ import { Logger, cachedTextMeasurer, calcLineHeight, toPlainText, wrapText } fro
 
 import {
     FlowProportionDatumType,
+    type FlowProportionLinkDatum,
+    type FlowProportionNodeDatum,
     type FlowProportionNodeDatumIndex,
     FlowProportionSeries,
 } from '../flow-proportion/flowProportionSeries';
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
-import { type Column, layoutColumns } from './sankeyLayout';
 import { SankeyLink } from './sankeyLink';
 import {
     type SankeyDatum,
@@ -39,6 +40,37 @@ const {
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
+
+interface GhostNodeGraphEntry {
+    ghost: boolean;
+    columnIndex: number;
+    datum: {
+        size: number;
+        y: number;
+        height: number;
+    };
+    closestColumnDiff: number;
+    size: number;
+    weight: number;
+    link: SankeyLinkDatum;
+    linksBefore: { node: { columnIndex: number; datum: { size: number } } }[];
+    linksAfter: { node: { columnIndex: number; datum: { size: number } } }[];
+    fromNode: { y: number };
+    toNode: { y: number };
+}
+
+type EnhancedNodeGraphEntry = NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum> & {
+    weight: number;
+    columnIndex: number;
+    closestColumnDiff: number;
+};
+
+type Column = {
+    index: number;
+    nodes: ((NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum> & { weight: number }) | GhostNodeGraphEntry)[];
+    size: number;
+    readonly x: number;
+};
 
 export class SankeySeries extends FlowProportionSeries<
     SankeyNodeDatum,
@@ -88,33 +120,29 @@ export class SankeySeries extends FlowProportionSeries<
             node: { spacing: nodeSpacing, width: nodeWidth, alignment },
         } = this.properties;
 
+        const createNode = (node: FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
+            ...node,
+            x: NaN,
+            y: NaN,
+            width: nodeWidth,
+            height: NaN,
+        });
+        const createLink = (link: FlowProportionLinkDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
+            ...link,
+            x1: NaN,
+            x2: NaN,
+            y1: NaN,
+            y2: NaN,
+            height: NaN,
+            elbows: [],
+        });
+
+        // Create the base node graph. This is only a graph of nodes and links and does not include any columns.
         const {
             nodeGraph: baseNodeGraph,
             links,
             maxPathLength,
-        } = this.getNodeGraph(
-            (node) => ({
-                ...node,
-                x: NaN,
-                y: NaN,
-                width: nodeWidth,
-                height: NaN,
-            }),
-            (link) => ({
-                ...link,
-                x1: NaN,
-                x2: NaN,
-                y1: NaN,
-                y2: NaN,
-                height: NaN,
-            }),
-            { includeCircularReferences: false }
-        );
-        type EnhancedNodeGraphEntry = NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum> & {
-            columnIndex: number;
-            closestColumnIndex: number;
-            maxSizeOfClosestNodesAfter: number;
-        };
+        } = this.getNodeGraph(createNode, createLink, { includeCircularReferences: false });
         const nodeGraph = baseNodeGraph as Map<string, EnhancedNodeGraphEntry>;
 
         const inset = this.isLabelEnabled()
@@ -122,12 +150,14 @@ export class SankeySeries extends FlowProportionSeries<
             : 0;
         const columnWidth = (seriesRectWidth - nodeWidth - 2 * inset) / (maxPathLength - 1);
 
+        // Initialise columns
         const columns: Column[] = [];
         for (let index = 0; index < maxPathLength; index += 1) {
             const x = inset + index * columnWidth;
             columns.push({ index, size: 0, nodes: [], x });
         }
 
+        // Assign nodes to columns
         nodeGraph.forEach((graphNode) => {
             const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
             const size = Math.max(
@@ -194,20 +224,47 @@ export class SankeySeries extends FlowProportionSeries<
         });
 
         nodeGraph.forEach((graphNode) => {
-            let closestColumnIndex = Infinity;
-            let maxSizeOfClosestNodesAfter = 0;
+            graphNode.weight = 0;
+
+            // Get the distance to the closest column to which this link is attached, used for sorting later
+            let closestColumnDiff = Infinity;
             graphNode.linksAfter.forEach((link) => {
                 const node = link.node as EnhancedNodeGraphEntry;
-                const { columnIndex } = node;
-                if (columnIndex < closestColumnIndex) {
-                    closestColumnIndex = columnIndex;
-                    maxSizeOfClosestNodesAfter = node.datum.size;
-                } else if (columnIndex === closestColumnIndex) {
-                    maxSizeOfClosestNodesAfter = Math.max(maxSizeOfClosestNodesAfter, node.datum.size);
+                closestColumnDiff = Math.min(closestColumnDiff, node.columnIndex - graphNode.columnIndex);
+            });
+            if (closestColumnDiff === Infinity) {
+                graphNode.linksBefore.forEach((link) => {
+                    const node = link.node as EnhancedNodeGraphEntry;
+                    closestColumnDiff = Math.min(closestColumnDiff, graphNode.columnIndex - node.columnIndex);
+                });
+            }
+            graphNode.closestColumnDiff = closestColumnDiff;
+
+            // Add ghost nodes into spaces within columns through which the link must pass, to reduce crossovers
+            graphNode.linksAfter.forEach((link) => {
+                const node = link.node as EnhancedNodeGraphEntry;
+
+                if (node.columnIndex <= graphNode.columnIndex) return;
+
+                for (let i = node.columnIndex - 1; i > graphNode.columnIndex; i--) {
+                    const size = link.link.size;
+                    const ghostNode: GhostNodeGraphEntry = {
+                        ghost: true,
+                        datum: { ...graphNode.datum, size, y: 0, height: 0 },
+                        weight: 0,
+                        linksBefore: [{ node: { columnIndex: i - 1, datum: { size } } }],
+                        linksAfter: [{ node: { columnIndex: i + 1, datum: { size } } }],
+                        link: link.link,
+                        columnIndex: graphNode.columnIndex,
+                        size: graphNode.datum.size,
+                        closestColumnDiff,
+                        fromNode: { y: node.datum.y },
+                        toNode: { y: 0 },
+                    };
+                    columns[i].size += size;
+                    columns[i].nodes.push(ghostNode);
                 }
             });
-            graphNode.closestColumnIndex = closestColumnIndex;
-            graphNode.maxSizeOfClosestNodesAfter = maxSizeOfClosestNodesAfter;
         });
 
         const sizeScale = columns.reduce((acc, { size, nodes }) => {
@@ -215,51 +272,95 @@ export class SankeySeries extends FlowProportionSeries<
             return Math.min(acc, columnSizeScale);
         }, Infinity);
 
-        for (let i = columns.length - 1; i >= 0; i -= 1) {
-            const nodes = columns[i].nodes as EnhancedNodeGraphEntry[];
-            nodes.sort(
-                (a, b) =>
-                    a.closestColumnIndex - b.closestColumnIndex ||
-                    a.maxSizeOfClosestNodesAfter - b.maxSizeOfClosestNodesAfter ||
-                    a.datum.size - b.datum.size
-            );
-        }
-
-        layoutColumns(columns, {
-            seriesRectHeight,
-            nodeSpacing,
-            sizeScale,
+        // Weight the columns into powers of 10 so that columns with fewer and larger nodes have more influence on each
+        // node's weight.
+        const sortedColumns = columns.toSorted((a, b) => {
+            const aMax = a.nodes.reduce((acc, n) => Math.max(acc, n.datum.size), 0);
+            const bMax = b.nodes.reduce((acc, n) => Math.max(acc, n.datum.size), 0);
+            return bMax - aMax;
         });
 
+        const columnWeights: Record<number, number> = {};
+        for (let i = 0; i < sortedColumns.length; i++) {
+            columnWeights[sortedColumns[i].index] = Math.pow(10, sortedColumns.length - i - 1);
+        }
+
+        // Sort nodes within columns by their weight plus the weight of their links, influenced by the column weight.
+        for (const column of columns) {
+            for (const node of column.nodes) {
+                node.weight = (node.datum.size / column.size) * columnWeights[column.index];
+
+                // Ghost nodes ignore the weight of their links, as this is already factored in by the concrete nodes.
+                if ('ghost' in node && node.ghost) {
+                    node.weight = ((node as any).size / column.size) * columnWeights[column.index];
+                    continue;
+                }
+
+                node.weight += node.linksBefore.reduce((acc, before: any) => {
+                    if (before.node.columnIndex !== column.index - 1) return acc;
+                    const weight =
+                        (before.node.datum.size / columns[before.node.columnIndex].size) *
+                        columnWeights[before.node.columnIndex];
+                    return Math.max(acc, weight);
+                }, 0);
+                node.weight += node.linksAfter.reduce((acc, after: any) => {
+                    if (after.node.columnIndex !== column.index + 1) return acc;
+                    const weight =
+                        (after.node.datum.size / columns[after.node.columnIndex].size) *
+                        columnWeights[after.node.columnIndex];
+                    return Math.max(acc, weight);
+                }, 0);
+            }
+
+            column.nodes.sort((a, b) => this.sortNodes(a as EnhancedNodeGraphEntry, b as EnhancedNodeGraphEntry));
+        }
+
+        // Layout the nodes in their columns
+        for (const column of columns) {
+            const nodesHeight = seriesRectHeight * column.size * sizeScale;
+
+            let y = 0;
+            if (this.properties.node.verticalAlignment === 'bottom') {
+                y = seriesRectHeight - (nodesHeight + nodeSpacing * (column.nodes.length - 1));
+            } else if (this.properties.node.verticalAlignment === 'center') {
+                y = (seriesRectHeight - (nodesHeight + nodeSpacing * (column.nodes.length - 1))) / 2;
+            }
+
+            for (const node of column.nodes) {
+                const height = seriesRectHeight * node.datum.size * sizeScale;
+                node.datum.y = y;
+                node.datum.height = height;
+                y += height + nodeSpacing;
+
+                // Add an elbow to the link to align it with the ghost node in this column
+                if ('ghost' in node && node.ghost) {
+                    node.link.elbows.push({ x: column.x, y: node.datum.y });
+                }
+            }
+        }
+
         let hasNegativeNodeHeight = false;
-        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
-            hasNegativeNodeHeight ||= node.height < 0;
 
-            const bottom = node.y + node.height;
-            const sortNodes = (l: typeof linksBefore) => {
-                return l.sort((a, b) => {
-                    const aNode = a.node.datum;
-                    const bNode = b.node.datum;
-                    const aBottom = aNode.y + aNode.height;
-                    const bBottom = bNode.y + bNode.height;
-                    const dAngleTop =
-                        Math.atan2(aNode.y - node.y, Math.abs(aNode.x - node.x)) -
-                        Math.atan2(bNode.y - node.y, Math.abs(bNode.x - node.x));
-                    const dAngleBottom =
-                        Math.atan2(aBottom - bottom, Math.abs(aNode.x - node.x)) -
-                        Math.atan2(bBottom - bottom, Math.abs(bNode.x - node.x));
-                    return dAngleTop + dAngleBottom;
-                });
-            };
+        // Sort links by weight and position their y-coordinates
+        nodeGraph.forEach(({ datum, linksBefore, linksAfter }) => {
+            hasNegativeNodeHeight ||= datum.height < 0;
 
-            let y2 = node.y;
-            sortNodes(linksBefore).forEach(({ link }) => {
+            let y2 = datum.y;
+            linksBefore.sort((a, b) =>
+                this.sortNodes(a.node as EnhancedNodeGraphEntry, b.node as EnhancedNodeGraphEntry)
+            );
+            linksBefore.forEach(({ link }) => {
                 link.y2 = y2;
                 y2 += link.size * seriesRectHeight * sizeScale;
             });
 
-            let y1 = node.y;
-            sortNodes(linksAfter).forEach(({ link }) => {
+            let y1 = datum.y;
+            linksAfter.sort((a, b) =>
+                this.sortNodes(a.node as EnhancedNodeGraphEntry, b.node as EnhancedNodeGraphEntry, {
+                    invertColumnSort: true,
+                })
+            );
+            linksAfter.forEach(({ link }) => {
                 link.y1 = y1;
                 y1 += link.size * seriesRectHeight * sizeScale;
             });
@@ -276,13 +377,19 @@ export class SankeySeries extends FlowProportionSeries<
         const labelData: SankeyNodeLabelDatum[] = [];
         const { fontSize } = this.properties.label;
         const measurer = cachedTextMeasurer(this.properties.label);
+
+        // Create nodeData with midpoints and create the labels
         columns.forEach((column, index) => {
             const leading = index === 0;
             const trailing = index === columns.length - 1;
 
             let bottom = -Infinity;
             column.nodes.sort((a, b) => a.datum.y - b.datum.y);
-            column.nodes.forEach(({ datum: node }) => {
+            column.nodes.forEach((n) => {
+                if ('ghost' in n && n.ghost) return;
+
+                const { datum: node } = n as EnhancedNodeGraphEntry;
+
                 node.midPoint = {
                     x: node.x + node.width / 2,
                     y: node.y + node.height / 2,
@@ -336,6 +443,8 @@ export class SankeySeries extends FlowProportionSeries<
                 }
             });
         });
+
+        // Create the links nodeData
         links.forEach((link) => {
             const { fromNode, toNode, size } = link;
             link.height = seriesRectHeight * size * sizeScale;
@@ -354,6 +463,35 @@ export class SankeySeries extends FlowProportionSeries<
             nodeData,
             labelData,
         };
+    }
+
+    private sortNodes(a: EnhancedNodeGraphEntry, b: EnhancedNodeGraphEntry, opts?: { invertColumnSort: boolean }) {
+        const { properties } = this;
+
+        if (properties.node.sort === 'a-z') {
+            return (a.datum.label ?? '').localeCompare(b.datum.label ?? '');
+        } else if (properties.node.sort === 'z-a') {
+            return (b.datum.label ?? '').localeCompare(a.datum.label ?? '');
+        } else if (properties.node.sort === 'data') {
+            return 0;
+        }
+
+        // Ghost nodes reference their concrete column index so are sorted such that ghosts linked before are
+        // given priority
+        if (a.columnIndex < b.columnIndex) return opts?.invertColumnSort ? 1 : -1;
+        if (a.columnIndex > b.columnIndex) return opts?.invertColumnSort ? -1 : 1;
+
+        // Ghost nodes with the same weight are compared by their associated concrete datum's size
+        if (a.weight === b.weight) {
+            return a.datum.size - b.datum.size;
+        }
+
+        // Sort nodes that have distal links to the top
+        if (a.closestColumnDiff < b.closestColumnDiff) return 1;
+        if (a.closestColumnDiff > b.closestColumnDiff) return -1;
+
+        // Sort heavier nodes to the bottom
+        return a.weight - b.weight;
     }
 
     protected updateLabelSelection(opts: {
@@ -598,6 +736,7 @@ export class SankeySeries extends FlowProportionSeries<
             link.x2 = datum.x2;
             link.y2 = datum.y2;
             link.height = datum.height;
+            link.elbows = datum.elbows;
 
             applyShapeStyle(link, style, fillBBox);
 
@@ -629,8 +768,8 @@ export class SankeySeries extends FlowProportionSeries<
                 : seriesDatum.label;
         const datum =
             datumIndex.type === FlowProportionDatumType.Link
-                ? linksProcessedData?.dataSources.get(this.id)?.[datumIndex.index]
-                : nodesProcessedData?.dataSources.get(this.id)?.[datumIndex.index];
+                ? linksProcessedData?.dataSources.get(this.id)?.data[datumIndex.index]
+                : nodesProcessedData?.dataSources.get(this.id)?.data[datumIndex.index];
         const size = seriesDatum.size;
 
         let format: Required<NodeStyle>;

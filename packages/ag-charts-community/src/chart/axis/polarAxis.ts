@@ -35,6 +35,13 @@ export abstract class PolarAxis<
 
     abstract calculateRotations(): { rotation: number; parallelFlipRotation: number; regularFlipRotation: number };
 
+    override update() {
+        super.update();
+
+        this.tickLineGroup.visible = this.tick.enabled;
+        this.tickLabelGroup.visible = this.label.enabled;
+    }
+
     layoutCrossLines() {
         const sideFlag = this.label.getSideFlag();
         const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();

@@ -205,7 +205,7 @@ export abstract class RadarSeries<
 
         const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius);
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const nodeData = rawData.map((datum, datumIndex): RadarNodeDatum => {
             const angleDatum = angleValues[datumIndex];
             const radiusDatum = radiusValues[datumIndex];
@@ -274,7 +274,7 @@ export abstract class RadarSeries<
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
-            styles: getMarkerStyles(this, marker),
+            styles: getMarkerStyles(this, this.properties, marker),
         };
     }
 
@@ -433,7 +433,7 @@ export abstract class RadarSeries<
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const angleValue = dataModel.resolveColumnById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData)[datumIndex];
 

@@ -53,6 +53,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
+import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
@@ -310,8 +311,8 @@ export abstract class Series<
 
     protected readonly moduleMap: SeriesModuleMap = new ModuleMap();
 
-    protected _data?: any[];
-    protected _chartData?: any[];
+    protected _data?: DataSet<any>;
+    protected _chartData?: DataSet<any>;
 
     private readonly datumCallbackCache = new Map<any, any>();
 
@@ -339,7 +340,9 @@ export abstract class Series<
     }
 
     get hasData() {
-        return this.data != null && this.data.length > 0;
+        const dataSet = this.data;
+        if (dataSet == null) return false;
+        return dataSet.netSize() > 0;
     }
 
     get tooltipEnabled() {
@@ -351,12 +354,12 @@ export abstract class Series<
         this._pickNodeCache.clear();
     }
 
-    setOptionsData(input: unknown[]) {
+    setOptionsData(input: DataSet | undefined) {
         this._data = input;
         this.onDataChange();
     }
 
-    setChartData(input: unknown[]) {
+    setChartData(input: DataSet | undefined) {
         this._chartData = input;
         if (this.data === input) {
             this.onDataChange();
@@ -1046,8 +1049,8 @@ export abstract class Series<
             highlightState?: HighlightState;
             isHighlight?: boolean;
             checkForHighlight?: boolean;
-            resolveItemStylerMarkerPath?: boolean;
-            resolveStylerMarkerPath?: 'marker' | 'marker-only';
+            resolveMarkerSubPath?: string[];
+            resolveStyler?: boolean;
         },
         defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
         inheritedStyle?: AgSeriesMarkerStyle
@@ -1057,15 +1060,12 @@ export abstract class Series<
             highlightState,
             isHighlight = false,
             checkForHighlight = true,
-            resolveItemStylerMarkerPath = true,
-            resolveStylerMarkerPath,
+            resolveMarkerSubPath = ['marker'],
+            resolveStyler = false,
         } = opts ?? {};
+        const resolvePath = ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath];
 
-        if (resolveStylerMarkerPath) {
-            const resolvePath =
-                resolveStylerMarkerPath === 'marker'
-                    ? ['series', `${this.declarationOrder}`, 'marker']
-                    : ['series', `${this.declarationOrder}`];
+        if (resolveStyler) {
             const resolveOpt = { permissivePath: true };
             const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, defaultOverrideStyle, resolveOpt);
             if (resolved) {
@@ -1094,9 +1094,6 @@ export abstract class Series<
                 highlightState: highlightStateString,
                 datum,
             });
-            const resolvePath = resolveItemStylerMarkerPath
-                ? ['series', `${this.declarationOrder}`, 'marker']
-                : ['series', `${this.declarationOrder}`];
             const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, style);
 
             markerStyle = mergeDefaults(resolved, markerStyle);

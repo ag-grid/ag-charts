@@ -18,50 +18,52 @@ In this example:
 -   The 'Imported' series bar for 'Jul' is red with a lime highlight style.
 -   The y-axis labels are coloured with a gradient scale.
 
-```js
-series: [
-    {
-        type: 'line',
-        //...
-        marker: {
-            itemStyler: ({ datum: { coal, nuclear }, fill, size }) => {
-                return coal > nuclear ? { fill: '#f44', size: 15 } : { fill, size };
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'line',
+            //...
+            marker: {
+                itemStyler: ({ datum: { coal, nuclear }, fill, size }) => {
+                    return coal > nuclear ? { fill: '#f44', size: 15 } : { fill, size };
+                },
+            },
+            label: {
+                itemStyler: ({ datum: { coal, nuclear } }) => {
+                    if (coal > nuclear) {
+                        return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
+                    }
+                    return { fontSize: 8 };
+                },
             },
         },
-        label: {
-            itemStyler: ({ datum: { coal, nuclear } }) => {
-                if (coal > nuclear) {
-                    return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
-                }
-                return { fontSize: 8 };
+        {
+            type: 'bar',
+            //...
+            itemStyler: ({ datum, fill, highlighted }) => {
+                return {
+                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
+                };
+            },
+            label: {
+                itemStyler: ({ datum: { month } }) => {
+                    return { color: month !== 'Jul' ? 'transparent' : undefined };
+                },
             },
         },
-    },
-    {
-        type: 'bar',
-        //...
-        itemStyler: ({ datum, fill, highlighted }) => {
-            return {
-                fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
-            };
-        },
-        label: {
-            itemStyler: ({ datum: { month } }) => {
-                return { color: month !== 'Jul' ? 'transparent' : undefined };
+    ],
+    axes: [
+        {
+            //...
+            label: {
+                itemStyler: (params) => {
+                    return { color: lerpColor(params.value, '#00b347', '#cc2900') };
+                },
             },
         },
-    },
-],
-axes: [
-    {
-        //...
-        label: {
-            itemStyler: (params) => {
-                return { color: lerpColor(params.value, '#00b347', '#cc2900') };
-            },
-        },
-    },
-]
+    ],
+}
 ```
 
 ### Usage
@@ -96,26 +98,28 @@ In this example:
 -   Any series containing 'benchmark' in its key is coloured gray, and the other series are blue.
 -   The legend items also reflect this styling.
 
-```js
-theme: {
-    overrides: {
-        bar: {
-            series: {
-                styler: (params) => {
-                    if (params.yKey.includes('benchmark')) {
-                        return { fill: 'lightgray' };
-                    }
-                    return { fill: '#5090DC' };
+```js format="snippet"
+{
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    styler: (params) => {
+                        if (params.yKey.includes('benchmark')) {
+                            return { fill: 'lightgray' };
+                        }
+                        return { fill: '#5090DC' };
+                    },
                 },
             },
-        },
-        line: {
-            series: {
-                styler: (params) => {
-                    if (params.yKey.includes('benchmark')) {
-                        return { stroke: 'lightgray' };
-                    }
-                    return { stroke: '#5090DC' };
+            line: {
+                series: {
+                    styler: (params) => {
+                        if (params.yKey.includes('benchmark')) {
+                            return { stroke: 'lightgray' };
+                        }
+                        return { stroke: '#5090DC' };
+                    },
                 },
             },
         },

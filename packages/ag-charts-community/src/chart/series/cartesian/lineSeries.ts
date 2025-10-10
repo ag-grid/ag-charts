@@ -324,7 +324,14 @@ export class LineSeries extends CartesianSeries<
         const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
         const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
 
-        return memoizedAggregateLineData(scale.type, xValues, yValues, domain);
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
+            this,
+            this.yCumulativeKey(processedData),
+            processedData
+        );
+
+        return memoizedAggregateLineData(scale.type, xValues, yValues, domain, xNeedsValueOf, yNeedsValueOf);
     }
 
     override createNodeData() {
@@ -352,7 +359,7 @@ export class LineSeries extends CartesianSeries<
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const size = marker.enabled ? marker.size : 0;
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
         const yCumulativeValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
@@ -478,7 +485,7 @@ export class LineSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
-            styles: getMarkerStyles(this, marker),
+            styles: getMarkerStyles(this, this.properties, marker),
             segments,
         };
     }
@@ -719,7 +726,7 @@ export class LineSeries extends CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
@@ -773,7 +780,6 @@ export class LineSeries extends CartesianSeries<
             {
                 isHighlight: false,
                 checkForHighlight: false,
-                resolveStylerMarkerPath: 'marker',
             },
             {
                 size: marker.size,

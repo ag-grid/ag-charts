@@ -1,6 +1,7 @@
 import pluginJs from '@eslint/js';
 import checkFile from 'eslint-plugin-check-file';
 import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -61,6 +62,17 @@ export const sonarjsConfig = [
             'sonarjs/sonar-prefer-optional-chain': 0,
             'sonarjs/no-base-to-string': 0,
             'sonarjs/no-misused-promises': 0,
+
+            // Unicorn rules, as referenced from the SonarCloud documentation.
+            'unicorn/prefer-number-properties': 1,
+            'unicorn/no-array-for-each': 1,
+            'unicorn/prefer-export-from': 1,
+            'unicorn/prefer-dom-node-remove': 1,
+            'unicorn/prefer-math-trunc': 1,
+            'unicorn/prefer-at': 1,
+            'unicorn/prefer-global-this': 1,
+            'unicorn/prefer-includes': 1,
+            'unicorn/no-zero-fractions': 1,
         },
     },
 ];
@@ -115,6 +127,7 @@ export default [
                     'change-detection': lintChangeDetection,
                 },
             },
+            unicorn,
         },
         rules: {
             'no-lonely-if': 2,

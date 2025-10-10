@@ -2,6 +2,7 @@ import {
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
+    type AgRangeBarSeriesStylerParams,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -47,6 +48,8 @@ const {
     simpleMemorize2,
     getItemStyles,
     calculateSegments,
+    toHighlightString,
+    HighlightState,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeBarData = simpleMemorize2(aggregateRangeBarData);
@@ -64,7 +67,7 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
-    itemId: string;
+    itemId: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 }
 
@@ -272,7 +275,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
         if (!visible) return context;
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
@@ -515,6 +518,83 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return new Rect();
     }
 
+    private getStyle(
+        ignoreStylerCallback: boolean,
+        highlighted: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ): Required<AgRangeBarSeriesStyle> & { opacity: number } {
+        const {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            styler,
+        } = this.properties;
+        let stylerResult: AgRangeBarSeriesStyle = {};
+        if (!ignoreStylerCallback && styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
+        }
+        return {
+            cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
+            fill: stylerResult.fill ?? fill,
+            fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            opacity: 1,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+        };
+    }
+
+    private makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): AgRangeBarSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yLowKey,
+            yHighKey,
+        } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        return {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            highlightState,
+            highlighted,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yLowKey,
+            yHighKey,
+        } satisfies _ModuleSupport.CallbackParamRules<AgRangeBarSeriesStylerParams<unknown, unknown>>;
+    }
+
     protected override updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
@@ -533,8 +613,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
-        let style = baseStyle;
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, isHighlight, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -558,7 +637,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId, properties, processedData } = this;
         const { xKey, yHighKey, yLowKey } = properties;
 
-        const datum = processedData!.dataSources.get(seriesId)?.[datumIndex];
+        const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -576,16 +655,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
     }
 
-    protected override updateDatumStyles({
-        datumSelection,
-        isHighlight,
-    }: {
+    protected override updateDatumStyles(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
     }) {
-        datumSelection.each((node, datum) => {
-            if (!datumSelection.isGarbage(node)) {
-                datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        opts.datumSelection.each((node, datum) => {
+            if (!opts.datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
             }
         });
     }
@@ -657,7 +735,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
@@ -690,7 +768,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
+            false,
+            false,
+            HighlightState.None
+        );
         return {
             marker: {
                 fill,
@@ -780,6 +862,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

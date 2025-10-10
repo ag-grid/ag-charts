@@ -1,4 +1,3 @@
-// Fictitious data used for demonstration purposes
 import { AgCharts, AgFlowProportionChartOptions, AgSankeySeriesOptions } from 'ag-charts-enterprise';
 
 const options: AgFlowProportionChartOptions = {

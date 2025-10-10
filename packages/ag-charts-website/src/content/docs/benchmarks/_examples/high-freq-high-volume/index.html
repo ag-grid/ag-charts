@@ -1,0 +1,20 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+        <button id="addBtn" onclick="addBatch()">Add 100</button>
+        <button id="removeBtn" onclick="removeBatch()">Remove 100</button>
+        <select id="batchSizeSelect" onchange="updateBatchSize(this.value)">
+            <option value="10">10 points</option>
+            <option value="100" selected>100 points</option>
+            <option value="500">500 points</option>
+            <option value="1000">1000 points</option>
+        </select>
+        <select id="methodSelect" onchange="updateMethod(this.value)">
+            <option value="applyTransaction">applyTransaction()</option>
+            <option value="updateDelta">updateDelta()</option>
+        </select>
+        <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+        <span id="dataCount" style="margin-left: 10px">Points: 100000</span>
+    </div>
+</div>
+<div id="myChart"></div>

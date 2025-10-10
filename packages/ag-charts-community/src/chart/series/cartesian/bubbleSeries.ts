@@ -98,6 +98,7 @@ class BubbleScatterSeriesNodeEvent<
 }
 
 export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+    readonly itemId: string;
     readonly point: Readonly<SizedPoint>;
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
@@ -295,6 +296,8 @@ export class BubbleSeries extends CartesianSeries<
         const xDomain = dataModel.getDomain(this, `xValue`, 'value', processedData);
         const yDomain = dataModel.getDomain(this, `yValue`, 'value', processedData);
         const sizeDomain = sizeKey ? sizeScale.domain : [0, 0];
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `yValue`, processedData);
 
         // Not used in mini chart - no memoization needed
         return aggregateBubbleData(
@@ -305,7 +308,9 @@ export class BubbleSeries extends CartesianSeries<
             sizeValues,
             xDomain,
             yDomain,
-            sizeDomain
+            sizeDomain,
+            xNeedsValueOf,
+            yNeedsValueOf
         );
     }
 
@@ -406,7 +411,7 @@ export class BubbleSeries extends CartesianSeries<
         sizeScale.range = this.getSizeRange();
 
         const textMeasurer = cachedTextMeasurer(label);
-        const rawData = processedData.dataSources.get(this.id);
+        const rawData = processedData.dataSources.get(this.id)?.data;
         if (rawData == null) return;
 
         const padding = expandLabelPadding(label);
@@ -533,7 +538,7 @@ export class BubbleSeries extends CartesianSeries<
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
-            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, marker),
+            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, this.properties, marker),
         };
     }
 
@@ -587,7 +592,7 @@ export class BubbleSeries extends CartesianSeries<
                     {
                         isHighlight,
                         highlightState,
-                        resolveItemStylerMarkerPath: false,
+                        resolveMarkerSubPath: [],
                     },
                     stylerStyle
                 );
@@ -796,7 +801,7 @@ export class BubbleSeries extends CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
@@ -857,7 +862,7 @@ export class BubbleSeries extends CartesianSeries<
             marker,
             { datum, datumIndex },
             { xKey, yKey, sizeKey, labelKey, highlighted: true },
-            { resolveItemStylerMarkerPath: false }
+            { resolveMarkerSubPath: [] }
         );
 
         return this.formatTooltipWithContext(
@@ -894,7 +899,7 @@ export class BubbleSeries extends CartesianSeries<
             {
                 isHighlight: false,
                 checkForHighlight: false,
-                resolveItemStylerMarkerPath: false,
+                resolveMarkerSubPath: [],
             },
             style satisfies RequireOptional<AgSeriesMarkerStyle>
         );
@@ -910,7 +915,7 @@ export class BubbleSeries extends CartesianSeries<
             visible,
         } = this;
 
-        const { yKey: itemId, yName, title } = this.properties;
+        const { yKey: itemId, yName, title, showInLegend } = this.properties;
 
         return [
             {
@@ -923,6 +928,7 @@ export class BubbleSeries extends CartesianSeries<
                     text: title ?? yName ?? itemId,
                 },
                 symbol: this.legendItemSymbol(),
+                hideInLegend: !showInLegend,
             },
         ];
     }
@@ -976,12 +982,7 @@ export class BubbleSeries extends CartesianSeries<
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        return this.getMarkerStyle(
-            marker,
-            datum,
-            { xKey, yKey, sizeKey, labelKey },
-            { resolveItemStylerMarkerPath: false }
-        );
+        return this.getMarkerStyle(marker, datum, { xKey, yKey, sizeKey, labelKey }, { resolveMarkerSubPath: [] });
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

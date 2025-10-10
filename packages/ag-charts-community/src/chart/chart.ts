@@ -17,6 +17,7 @@ import type {
     AgChartInstance,
     AgChartOptions,
     AgColorType,
+    AgDataTransaction,
     AgInitialStateLegendOptions,
     AgMiniChartSeriesOptions,
     AgPolarAxisOptions,
@@ -61,6 +62,7 @@ import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
+import { DataSet } from './data/dataSet';
 import { axisRegistry } from './factory/axisRegistry';
 import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
@@ -151,7 +153,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     })
     container?: HTMLElement;
 
-    public data: any = [];
+    public data: DataSet = DataSet.empty();
 
     @ActionOnSet<Chart>({
         newValue(value) {
@@ -370,7 +372,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = event.data;
+                this.data = new DataSet(event.data);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -643,6 +645,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private readonly _performUpdateSplits: Record<string, number> = {};
+    private _previousSplit: number = 0;
+
+    private updateSplits(splitName: string) {
+        const splits = this._performUpdateSplits;
+        splits[splitName] ??= 0;
+        splits[splitName] += performance.now() - this._previousSplit;
+        this._previousSplit = performance.now();
+    }
+
     private async performUpdate(count: number) {
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
@@ -670,13 +681,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.ctx.scene.updateDebugFlags();
 
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
-        let previousSplit = performance.now();
-        splits.start ??= previousSplit;
-        const updateSplits = (splitName: string) => {
-            splits[splitName] ??= 0;
-            splits[splitName] += performance.now() - previousSplit;
-            previousSplit = performance.now();
-        };
+        this._previousSplit = performance.now();
+        splits.start ??= this._previousSplit;
 
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
@@ -690,7 +696,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (this.checkUpdateShortcut(ChartUpdateType.UPDATE_DATA)) break;
 
                 await this.updateData();
-                updateSplits('⬇️');
+                this.updateSplits('⬇️');
             // fallthrough
 
             case ChartUpdateType.PROCESS_DATA:
@@ -698,14 +704,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 await this.processData();
                 this.seriesAreaManager.dataChanged();
-                updateSplits('🏭');
+                this.updateSplits('📊');
             // fallthrough
 
             case ChartUpdateType.PROCESS_DOMAIN:
                 if (this.checkUpdateShortcut(ChartUpdateType.PROCESS_DOMAIN)) break;
 
                 await this.processDomains();
-                updateSplits('⛰️');
+                this.updateSplits('⛰️');
             // fallthrough
 
             case ChartUpdateType.PERFORM_LAYOUT:
@@ -713,7 +719,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
                 await this.processLayout();
-                updateSplits('⌖');
+                this.updateSplits('⌖');
             // fallthrough
 
             case ChartUpdateType.SERIES_UPDATE: {
@@ -726,7 +732,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 this.updateAriaLabels();
                 this.seriesLayerManager.updateLayerCompositing();
 
-                updateSplits('🤔');
+                this.updateSplits('🤔');
             }
             // fallthrough
 
@@ -736,7 +742,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 // Allow any additional pre-rendering processing to happen.
                 ctx.updateService.dispatchPreSceneRender();
 
-                updateSplits('↖');
+                this.updateSplits('↖');
             // fallthrough
 
             case ChartUpdateType.SCENE_RENDER:
@@ -1051,6 +1057,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const seriesPromises = this.series.map((s) => s.processData(dataController));
         const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
         this._cachedData = dataController.execute(this._cachedData);
+        this.updateSplits('🏭');
         await Promise.all([...seriesPromises, ...modulePromises]);
 
         this.updateLegends();
@@ -1218,7 +1225,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this._pendingFactoryUpdatesCount > 0 ||
             this.performUpdateType !== ChartUpdateType.NONE ||
             this.runningUpdateType !== ChartUpdateType.NONE ||
-            this.ctx.scene.waitingForUpdate()
+            this.ctx.scene.waitingForUpdate() ||
+            this.data.hasPendingTransactions()
         ) {
             if (this.destroyed) break;
 
@@ -1227,7 +1235,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.updateMutex.waitForClearAcquireQueue();
             }
 
-            if (this.performUpdateType !== ChartUpdateType.NONE || this.runningUpdateType !== ChartUpdateType.NONE) {
+            if (
+                this.performUpdateType !== ChartUpdateType.NONE ||
+                this.runningUpdateType !== ChartUpdateType.NONE ||
+                this.data.hasPendingTransactions()
+            ) {
                 await this._performUpdateNotify.await();
             }
 
@@ -1313,7 +1325,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (deltaOptions.data) {
-            this.data = deltaOptions.data;
+            // Always create a new DataSet for updateDelta to ensure cache invalidation
+            // This ensures the cache check (DataSet reference equality) will fail
+            this.data = new DataSet(deltaOptions.data);
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
@@ -1716,7 +1730,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(data);
+            target.setOptionsData(data != null ? DataSet.wrap(data) : undefined);
         }
 
         if (listeners) {
@@ -1774,5 +1788,18 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         for (const [property, listener] of entries(listeners)) {
             source.addEventListener(property, listener);
         }
+    }
+
+    async applyTransaction(transaction: AgDataTransaction) {
+        // Note: Validation happens at the public API layer (AgChartInstanceProxy)
+
+        await this.updateMutex.acquire(() => {
+            this.data.addTransaction(transaction);
+            this.update(ChartUpdateType.UPDATE_DATA, {
+                apiUpdate: true,
+                skipAnimations: true,
+            });
+        });
+        await this.waitForUpdate();
     }
 }

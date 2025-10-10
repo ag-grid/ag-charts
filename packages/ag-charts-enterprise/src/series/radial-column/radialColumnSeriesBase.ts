@@ -322,7 +322,7 @@ export abstract class RadialColumnSeriesBase<
         if (!this.visible) return context;
 
         const { dataSources } = processedData;
-        const rawData = dataSources.get(this.id) ?? [];
+        const rawData = dataSources.get(this.id)?.data ?? [];
         for (const { datumIndex, group } of dataModel.forEachGroupDatum(this, processedData)) {
             const datum = rawData[datumIndex];
             const angleDatum = angleValues[datumIndex];
@@ -521,7 +521,7 @@ export abstract class RadialColumnSeriesBase<
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis || !nodeDatum) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData)[datumIndex];
 

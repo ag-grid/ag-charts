@@ -38,6 +38,7 @@ export type LinearGaugeNodeDatumIndex = { type: NodeDataType.Node } | { type: No
 
 export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     type: NodeDataType.Node;
+    readonly itemId: 'value' | 'scale' | `value-${number}` | `scale-${number}`;
     x0: number;
     y0: number;
     x1: number;
@@ -70,6 +71,7 @@ export interface LinearGaugeTargetDatumLabel {
 
 export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     type: NodeDataType.Target;
+    readonly itemId: `target-${number}`;
     value: number;
     text: string | undefined;
     x: number;

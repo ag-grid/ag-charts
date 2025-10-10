@@ -43,7 +43,7 @@ interface ErrorBarNameOptions {
 }
 
 interface ErrorBarFormatterOption<TDatum, TContext> {
-    /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual error bars, based on the given parameters.*/
     itemStyler?: Styler<AgErrorBarItemStylerParams<TDatum, TContext>, AgErrorBarThemeableOptions>;
 }
 

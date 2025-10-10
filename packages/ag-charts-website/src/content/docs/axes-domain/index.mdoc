@@ -14,14 +14,16 @@ By default, a continuous axis is extended to have start and stop values that are
 
 To prevent this and use the exact data domain as the axis domain, set the `axis.nice` property to `false`:
 
-```js
-axes: [
-    {
-        type: 'number',
-        position: 'left',
-        nice: false, // Use the exact data domain as the axis domain
-    },
-];
+```js format="snippet"
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            nice: false, // Use the exact data domain as the axis domain
+        },
+    ],
+}
 ```
 
 The `axis.nice` configuration is demonstrated in the example below. Use the button to toggle the `nice` property. Note that:
@@ -35,15 +37,17 @@ The `axis.nice` configuration is demonstrated in the example below. Use the butt
 
 The domain of a continuous axis can be configured explicitly by using the `axis.min` and `axis.max` properties.
 
-```js
-axes: [
-    {
-        type: 'number',
-        position: 'left',
-        min: -50,
-        max: 150,
-    },
-];
+```js format="snippet"
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            min: -50,
+            max: 150,
+        },
+    ],
+}
 ```
 
 The example below shows how to use the `axis.min` and `axis.max` configurations.
@@ -61,14 +65,16 @@ To enforce the axis domain minimum and maximum configurations while also respect
 
 To invert the display of data items in a chart, you can reverse the domain of an axis by setting the `axis.reverse` property to `true`.
 
-```js
-axes: [
-    {
-        type: 'number',
-        position: 'left',
-        reverse: true,
-    },
-];
+```js format="snippet"
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            reverse: true,
+        },
+    ],
+}
 ```
 
 The visual impact of using a reversed axis varies depending on the specific series type.

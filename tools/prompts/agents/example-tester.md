@@ -81,21 +81,21 @@ You are an experienced QA tester specializing in AG Charts, Ag-Grid's sophistica
         script: `
             const wrapper = document.querySelector('.ag-charts-wrapper');
             if (!wrapper) throw new Error('Chart not found');
-            
+    
             // Check chart is fully rendered
             const canvas = document.querySelector('canvas');
             if (!canvas || !canvas.width || !canvas.height) {
                 throw new Error('Chart canvas not ready');
             }
-            
+    
             // Wait for animations to complete
             const isAnimating = wrapper.getAttribute('data-animating') === 'true';
             const updatePending = wrapper.getAttribute('data-update-pending') === 'true';
-            
+    
             if (isAnimating || updatePending) {
                 throw new Error('Chart still rendering');
             }
-            
+    
             true;
         `,
     });
@@ -157,7 +157,7 @@ You are an experienced QA tester specializing in AG Charts, Ag-Grid's sophistica
             // Focus the chart for keyboard navigation
             const wrapper = document.querySelector('.ag-charts-wrapper');
             wrapper.focus();
-            
+    
             // Simulate Tab key to enter chart navigation
             const tabEvent = new KeyboardEvent('keydown', {
                 key: 'Tab',
@@ -165,7 +165,7 @@ You are an experienced QA tester specializing in AG Charts, Ag-Grid's sophistica
                 bubbles: true
             });
             document.activeElement.dispatchEvent(tabEvent);
-            
+    
             // Arrow keys navigate between data points
             const arrowRight = new KeyboardEvent('keydown', {
                 key: 'ArrowRight',

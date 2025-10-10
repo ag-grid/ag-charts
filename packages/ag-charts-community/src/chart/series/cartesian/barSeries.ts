@@ -87,6 +87,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
 }
 
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
+    readonly itemId: string;
     readonly xValue: string | number;
     readonly yValue: string | number;
     readonly cumulativeValue: number;
@@ -518,7 +519,7 @@ export class BarSeries extends AbstractBarSeries<
             const xValue = xValues[datumIndex];
             if (xValue == null) return;
 
-            const datum = rawData[datumIndex];
+            const datum = rawData.data[datumIndex];
 
             const yRawValue = yRawValues[datumIndex];
             const yFilterValue = yFilterValues != null ? Number(yFilterValues[datumIndex]) : undefined;
@@ -565,7 +566,7 @@ export class BarSeries extends AbstractBarSeries<
 
             if (yFilterValue != null) {
                 const phantomNodeData = nodeDatum({
-                    datum: rawData[datumIndex],
+                    datum: rawData.data[datumIndex],
                     datumIndex,
                     xValue,
                     yValue: yFilterValue,
@@ -644,6 +645,7 @@ export class BarSeries extends AbstractBarSeries<
                 }
             }
         } else if (processedData.type === 'grouped') {
+            const invalidData = processedData.invalidData?.get(this.id);
             const width = barWidth;
             const yRangeIndex = isStacked ? dataModel.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
             const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
@@ -664,8 +666,10 @@ export class BarSeries extends AbstractBarSeries<
 
                 for (const datumIndex of datumIndices) {
                     const x = xPosition(datumIndex);
+                    if (invalidData?.[datumIndex] === true) continue;
 
                     const yRawValue = yRawValues[datumIndex];
+                    if (yRawValue == null) continue;
                     const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
                     const yStart = isStacked ? Number(yStartValues?.[datumIndex]) : 0;
                     const yEnd = isStacked ? Number(yEndValues?.[datumIndex]) : yRawValue;
@@ -690,8 +694,11 @@ export class BarSeries extends AbstractBarSeries<
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 if (invalidData?.[datumIndex] === true) continue;
 
+                const yRawValue = yRawValues[datumIndex];
+                if (yRawValue == null) continue;
+
                 const x = xPosition(datumIndex);
-                const yEnd = Number(yRawValues[datumIndex]);
+                const yEnd = Number(yRawValue);
 
                 handleDatum(datumIndex, x, width, 0, yEnd, yEnd);
             }
@@ -787,7 +794,7 @@ export class BarSeries extends AbstractBarSeries<
         const { id: seriesId } = this;
         const { xKey, yKey, stackGroup } = this.properties;
 
-        const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
+        const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData);
@@ -980,7 +987,7 @@ export class BarSeries extends AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 

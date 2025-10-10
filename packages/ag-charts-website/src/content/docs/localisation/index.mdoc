@@ -60,7 +60,7 @@ The locale `AG_CHARTS_LOCALE_EN_US` is also exported from `ag-charts-community`/
 
 {% chartExampleRunner title="Installing a Locale" name="installing-locale" type="generated" /%}
 
-```ts
+```js
 import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 
 const options = {
@@ -84,8 +84,8 @@ Overrides for individual translations can be done by applying overrides to an ex
 
 {% chartExampleRunner title="Custom Text Values" name="custom-text-values" type="generated" /%}
 
-```ts
-const options = {
+```js format="snippet"
+{
     locale: {
         localeText: {
             ...AG_CHARTS_LOCALE_EN_US,
@@ -101,7 +101,7 @@ const options = {
             contextMenuPanToCursor: 'Pan the Chart to Your Cursor',
         },
     },
-};
+}
 ```
 
 In this configuration, `localeText` is a dictionary mapping translation keys to the translated text.
@@ -110,8 +110,8 @@ Some translations have parameters, which can be included in the translation usin
 
 Values can be formatted by appending a format style in square brackets, like `'${value}[percent]'`. The available formatters are `[number]`, `[percent]`, `[date]`, `[time]`, and `[datetime]`.
 
-```ts
-const options = {
+```js format="snippet"
+{
     locale: {
         localeText: {
             ...AG_CHARTS_LOCALE_EN_US,
@@ -119,7 +119,7 @@ const options = {
             ariaValuePanRange: '${min}[percent] to ${max}[percent]',
         },
     },
-};
+}
 ```
 
 Please see [All Built-In Translations](./localisation/#all-built-in-translations) for a full list of built-in translations.
@@ -128,14 +128,14 @@ Please see [All Built-In Translations](./localisation/#all-built-in-translations
 
 You can integrate the internationalisation framework using the `getLocaleText` option within the `locale` options.
 
-```ts
-const options = {
+```js format="snippet"
+{
     locale: {
         getLocaleText({ key, defaultValue, variables }) {
             return internationalisationFramework.getLocaleText({ key, defaultValue, variables });
         },
     },
-};
+}
 ```
 
 If you return `undefined` from this function, it will fall back to the default behaviour of using `localeText` with the default formatter.
@@ -148,7 +148,7 @@ If you return `undefined` from this function, it will fall back to the default b
 
 {% tabItem id="FormatJS" label="FormatJS" %}
 
-```js
+```js format="snippet"
 import { createIntl } from '@formatjs/intl';
 
 const intl = createIntl({
@@ -176,7 +176,7 @@ AgCharts.create({
 
 {% tabItem id="I18Next" label="I18Next" %}
 
-```js
+```js format="snippet"
 import i18next from 'i18next';
 
 await i18next.init({
@@ -219,7 +219,6 @@ AgCharts.create({
 {% tabItem id="React Intl" label="React Intl" %}
 
 ```tsx
-import { AgCharts } from 'ag-charts-react';
 import { IntlProvider, useIntl } from 'react-intl';
 
 const messages = {
@@ -232,7 +231,8 @@ const MyChart = () => {
     const options = {
         // ...
         locale: {
-            getLocaleText({ key, variables }) {
+            getLocaleText(params) {
+                const { key, variables } = params;
                 if (!intl.messages[key]) {
                     // Fallback to default behaviour for missing messages
                     return undefined;
@@ -259,7 +259,6 @@ const App = () => {
 {% tabItem id="React I18Next" label="React I18Next" %}
 
 ```tsx
-import { AgCharts } from 'ag-charts-react';
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 
@@ -280,7 +279,8 @@ const MyChart = () => {
     const options = {
         // ...
         locale: {
-            getLocaleText({ key, variables }) {
+            getLocaleText(params) {
+                const { key, variables } = params;
                 if (!i18n.exists(key)) {
                     // Fallback to default behaviour for missing messages
                     return undefined;

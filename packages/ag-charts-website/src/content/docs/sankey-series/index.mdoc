@@ -10,15 +10,17 @@ A Sankey Series visualises movement or change between different items, using nod
 
 To create a Sankey Series, use the `sankey` series type.
 
-```js
-series: [
-    {
-        type: 'sankey',
-        fromKey: 'from',
-        toKey: 'to',
-        sizeKey: 'size',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -31,24 +33,28 @@ In this configuration:
 Circular loops are not allowed in Sankey diagrams, and links forming a circular loop will be removed.
 {% /warning %}
 
-## Alignment
+## Node Layout
+
+### Horizontal Alignment
 
 The horizontal placement of the nodes can be customised using the `alignment` property on `node`.
 
 {% chartExampleRunner title="Alignment" name="alignment" type="generated" /%}
 
-```js
-series: [
-    {
-        type: 'sankey',
-        fromKey: 'from',
-        toKey: 'to',
-        sizeKey: 'size',
-        node: {
-            alignment: 'left',
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: {
+                alignment: 'left',
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 There are four values supported:
@@ -58,6 +64,46 @@ There are four values supported:
 -   `center` moves nodes as close to the centre as possible.
 -   `justify` moves nodes as far left as possible, except for the last nodes, which are pushed right.
 
+### Vertical Alignment
+
+The vertical placement of the nodes can be customised using the `verticalAlignment` property on `node`.
+
+{% chartExampleRunner title="Vertical alignment" name="vertical-alignment" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: {
+                verticalAlignment: 'top',
+            },
+        },
+    ],
+}
+```
+
+There are three values supported:
+
+-   `top` moves nodes as far up as possible.
+-   `bottom` moves nodes as far down as possible.
+-   `center` places the nodes in the middle and distributes evenly in each direction.
+
+### Sorting
+
+The order of the nodes can be customised using the `sort` property on `node`.
+
+{% chartExampleRunner title="Sorting" name="sorting" type="generated" /%}
+
+There are three values supported:
+
+-   `data` sorts nodes in the same order as they first appear in the `data` array.
+-   `a-z` and `z-a` sort nodes alphanumerically by their displayed labels.
+-   `weight` sorts nodes to reduce overlapping links and produce a cleaner layout.
+
 ## Customisation
 
 ### Node Style
@@ -66,20 +112,22 @@ There are four values supported:
 
 The styling of all nodes can be customised using the `node` property.
 
-```js
-series: [
-    {
-        type: 'sankey',
-        fromKey: 'from',
-        toKey: 'to',
-        sizeKey: 'size',
-        node: {
-            fill: '#34495e',
-            stroke: '#2c3e50',
-            strokeWidth: 2,
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: {
+                fill: '#34495e',
+                stroke: '#2c3e50',
+                strokeWidth: 2,
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 ### Link Style
@@ -88,22 +136,24 @@ series: [
 
 The styling of all links can be customised using the `link` property.
 
-```js
-series: [
-    {
-        type: 'sankey',
-        fromKey: 'from',
-        toKey: 'to',
-        sizeKey: 'size',
-        link: {
-            fill: '#34495e',
-            fillOpacity: 0.25,
-            stroke: '#2c3e50',
-            strokeWidth: 1,
-            strokeOpacity: 0.25,
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            link: {
+                fill: '#34495e',
+                fillOpacity: 0.25,
+                stroke: '#2c3e50',
+                strokeWidth: 1,
+                strokeOpacity: 0.25,
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 ## API Reference

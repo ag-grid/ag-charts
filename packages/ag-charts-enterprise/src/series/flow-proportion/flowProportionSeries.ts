@@ -24,6 +24,7 @@ export interface FlowProportionLinkDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
+    readonly itemId: undefined;
     index: number;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
@@ -36,6 +37,7 @@ export interface FlowProportionNodeDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
+    readonly itemId: undefined;
     index: number;
     linksBefore: TLinkDatum[];
     linksAfter: TLinkDatum[];
@@ -175,15 +177,19 @@ export abstract class FlowProportionSeries<
         const nodesDataController = new DataController('standalone', dataController.suppressFieldDotNotation);
         const nodesDataModelPromise =
             nodes != null
-                ? nodesDataController.request<any, any, true>(this.id, nodes, {
-                      props: [
-                          keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
-                          ...(labelKey != null
-                              ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                              : []),
-                      ],
-                      groupByKeys: true,
-                  })
+                ? nodesDataController.request<any, any, true>(
+                      this.id,
+                      _ModuleSupport.DataSet.wrap(nodes) ?? _ModuleSupport.DataSet.empty(),
+                      {
+                          props: [
+                              keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
+                              ...(labelKey != null
+                                  ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
+                                  : []),
+                          ],
+                          groupByKeys: true,
+                      }
+                  )
                 : null;
 
         const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {
@@ -250,7 +256,7 @@ export abstract class FlowProportionSeries<
                 };
             };
 
-            linksDataModel.processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
+            linksDataModel.processedData.dataSources.get(this.id)?.data.forEach((_datum, datumIndex) => {
                 const fromId = fromIdValues[datumIndex];
                 const toId = toIdValues[datumIndex];
                 if (fromId == null || toId == null) return;
@@ -278,7 +284,7 @@ export abstract class FlowProportionSeries<
                       )
                     : undefined;
 
-            nodesDataModel.processedData.dataSources.get(this.id)?.forEach((datum, datumIndex) => {
+            nodesDataModel.processedData.dataSources.get(this.id)?.data.forEach((datum, datumIndex) => {
                 const id: string = nodeIdValues[datumIndex];
                 const label: string | undefined = labelValues?.[datumIndex];
 
@@ -355,7 +361,7 @@ export abstract class FlowProportionSeries<
         });
 
         const baseLinks: TLinkDatum[] = [];
-        linksProcessedData.dataSources.get(this.id)?.forEach((datum, datumIndex) => {
+        linksProcessedData.dataSources.get(this.id)?.data.forEach((datum, datumIndex) => {
             const fromId: string = fromIdValues[datumIndex];
             const toId: string = toIdValues[datumIndex];
             const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;

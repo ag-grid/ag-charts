@@ -10,19 +10,21 @@ A Bubble Series extends the Scatter Series by using the size of each marker to r
 
 To create a Bubble Series use the `'bubble'` series type, and provide a `sizeKey` for the variable that will determine the size of each bubble or marker.
 
-```js
-series: [
-    {
-        type: 'bubble',
-        xKey: 'height',
-        yKey: 'weight',
-        sizeKey: 'age',
-        xName: 'Height',
-        yName: 'Weight',
-        sizeName: 'Age',
-        title: 'Male',
-    },
-];
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bubble',
+            xKey: 'height',
+            yKey: 'weight',
+            sizeKey: 'age',
+            xName: 'Height',
+            yName: 'Weight',
+            sizeName: 'Age',
+            title: 'Male',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -45,12 +47,16 @@ It is possible to use `size` to set the minimum possible marker size, and `maxSi
 
 To manually set the value domain used to calculate the size, use `domain`. This is particularly useful when showing multiple Bubble Series in the same chart.
 
-```js
-series: {
-    //...
-    size: 10, //defaults to 7
-    maxSize: 20, //defaults to 30
-    domain: [0, 100], //defaults to the series data domain
+```js format="snippet"
+{
+    series: [
+        {
+            //...
+            size: 10, //defaults to 7
+            maxSize: 20, //defaults to 30
+            domain: [0, 100], //defaults to the series data domain
+        },
+    ],
 }
 ```
 
@@ -65,12 +71,16 @@ Using the above configuration
 
 It is possible to customise the fill, stroke and shape of the markers used in the Bubble Series.
 
-```js
-series: {
-    //...
-    shape: 'square',
-    fill: '#e36f6ab5',
-    stroke: '#9f4e4a',
+```js format="snippet"
+{
+    series: [
+        {
+            //...
+            shape: 'square',
+            fill: '#e36f6ab5',
+            stroke: '#9f4e4a',
+        },
+    ],
 }
 ```
 

@@ -240,7 +240,7 @@ export class MapMarkerSeries
         const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
         this.topologyBounds = processedData.dataSources
             .get(this.id)
-            ?.reduce<_ModuleSupport.LonLatBBox | undefined>((current, _datum, datumIndex) => {
+            ?.data.reduce<_ModuleSupport.LonLatBBox | undefined>((current, _datum, datumIndex) => {
                 const feature: _ModuleSupport.Feature | undefined = featureValues?.[datumIndex];
                 const geometry = feature?.geometry;
                 if (geometry != null) {
@@ -384,7 +384,7 @@ export class MapMarkerSeries
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idValues != null && featureValues != null) {
             projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-            processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
+            processedData.dataSources.get(this.id)?.data.forEach((_datum, datumIndex) => {
                 const id: string | undefined = idValues[datumIndex];
                 const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
                 const projectedGeometry =
@@ -398,7 +398,7 @@ export class MapMarkerSeries
         const nodeData: MapMarkerNodeDatum[] = [];
         const labelData: MapMarkerNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         rawData.forEach((datum, datumIndex) => {
             const idValue = idValues?.[datumIndex];
             const lonValue = lonValues?.[datumIndex];
@@ -822,7 +822,7 @@ export class MapMarkerSeries
         } = properties;
         if (!dataModel || !processedData) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const sizeValue =
             sizeKey != null
                 ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex]

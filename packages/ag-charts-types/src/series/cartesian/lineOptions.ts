@@ -31,7 +31,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     extends StrokeOptions,
         LineDashOptions,
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
-    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgLineSeriesStylerParams<TDatum, TContext>, AgLineSeriesStylerResult>;
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum, TContext>, TContext>;

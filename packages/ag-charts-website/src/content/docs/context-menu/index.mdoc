@@ -14,9 +14,11 @@ In this example:
 
 The Context Menu is enabled by default, to disable set `contextMenu.enabled` to `false`.
 
-```ts
-contextMenu: {
-    enabled: false,
+```js format="snippet"
+{
+    contextMenu: {
+        enabled: false,
+    },
 }
 ```
 
@@ -28,18 +30,20 @@ The `contextMenu.items` array accepts special string values to conveniently reco
 
 {% chartExampleRunner title="Context Menu Built-in Items" name="context-menu-builtins" type="generated" /%}
 
-```ts
-contextMenu: {
-    items: [
-        'defaults', //all the default menu-items in the pre-determined order.
-        'separator', // a non-interactive horizontal line.
-        'toggle-series-visibility', // used for legend items.
-        'toggle-other-series', // used for legend items in multi-series charts.
-        'zoom-to-cursor', // used with zoom.
-        'pan-to-cursor', // used with zoom.
-        'reset-zoom', // used with zoom.
-        'download',
-    ],
+```js format="snippet"
+{
+    contextMenu: {
+        items: [
+            'defaults', //all the default menu-items in the pre-determined order.
+            'separator', // a non-interactive horizontal line.
+            'toggle-series-visibility', // used for legend items.
+            'toggle-other-series', // used for legend items in multi-series charts.
+            'zoom-to-cursor', // used with zoom.
+            'pan-to-cursor', // used with zoom.
+            'reset-zoom', // used with zoom.
+            'download',
+        ],
+    },
 }
 ```
 
@@ -58,30 +62,32 @@ The Context Menu's custom actions can be used to run arbitrary functions based o
 
 Use the `showOn` property to specify when the action should be shown.
 
-```ts
-contextMenu: {
-    items: [
-        {
-            showOn: 'always',
-            label: 'Say hello',
-            action: () => log('Hello world!'),
-        },
-        {
-            showOn: 'series-area',
-            label: 'Say hello in the series area',
-            action: () => log('Hello in the series area!'),
-        },
-        {
-            showOn: 'series-node',
-            label: 'Say hello to a node',
-            action: ({ datum, yKey }) => console.log(`Hello ${yKey} in ${datum.month}!`),
-        },
-        {
-            showOn: 'legend-item',
-            label: 'Say hello to a legend item',
-            action: ({ itemId }) => console.log(`Hello ${itemId}!`),
-        },
-    ],
+```js format="snippet"
+{
+    contextMenu: {
+        items: [
+            {
+                showOn: 'always',
+                label: 'Say hello',
+                action: () => log('Hello world!'),
+            },
+            {
+                showOn: 'series-area',
+                label: 'Say hello in the series area',
+                action: () => log('Hello in the series area!'),
+            },
+            {
+                showOn: 'series-node',
+                label: 'Say hello to a node',
+                action: ({ datum, yKey }) => console.log(`Hello ${yKey} in ${datum.month}!`),
+            },
+            {
+                showOn: 'legend-item',
+                label: 'Say hello to a legend item',
+                action: ({ itemId }) => console.log(`Hello ${itemId}!`),
+            },
+        ],
+    },
 }
 ```
 
@@ -98,49 +104,50 @@ To add Sub-Menus to the Context Menu, simply use the `items` property recursivel
 
 {% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-submenus" type="generated" /%}
 
-```ts
-contextMenu: {
-    items: [
-        'download',
-        {
-            showOn: 'series-area',
-            label: 'Zoom Controls',
-            items: ['zoom-to-cursor', 'pan-to-cursor', 'reset-zoom'],
-        },
-        {
-            showOn: 'legend-item',
-            label: 'Legend Controls',
-            items: ['toggle-series-visibility', 'toggle-other-series'],
-        },
-        'separator',
-        {
-            label: 'Debug Console',
-            items: [
-                {
-                    type: 'action',
-                    showOn: 'always',
-                    label: `On 'always'`,
-                    action: () => console.log(`On 'always' clicked.`),
-                },
-                {
-                    showOn: 'series-area',
-                    label: `On 'series-area'`,
-                    action: () => console.log(`On 'series-area' clicked.`),
-                },
-                {
-                    showOn: 'series-node',
-                    label: `On 'series-node'`,
-                    action: ({ datum, xKey, yKey }) =>
-                        console.log(`On 'series-node' clicked -`, yKey, datum[xKey], datum[yKey]),
-                },
-                {
-                    showOn: 'legend-item',
-                    label: `On 'legend-item'`,
-                    action: ({ itemId }) => console.log(`On 'legend-item' clicked -`, itemId),
-                },
-            ],
-        },
-    ],
+```js format="snippet"
+{
+    contextMenu: {
+        items: [
+            'download',
+            {
+                showOn: 'series-area',
+                label: 'Zoom Controls',
+                items: ['zoom-to-cursor', 'pan-to-cursor', 'reset-zoom'],
+            },
+            {
+                showOn: 'legend-item',
+                label: 'Legend Controls',
+                items: ['toggle-series-visibility', 'toggle-other-series'],
+            },
+            'separator',
+            {
+                label: 'Debug Console',
+                items: [
+                    {
+                        type: 'action',
+                        showOn: 'always',
+                        label: `On 'always'`,
+                        action: () => console.log(`On 'always' clicked.`),
+                    },
+                    {
+                        showOn: 'series-area',
+                        label: `On 'series-area'`,
+                        action: () => console.log(`On 'series-area' clicked.`),
+                    },
+                    {
+                        showOn: 'series-node',
+                        label: `On 'series-node'`,
+                        action: ({ datum, xKey, yKey }) => console.log(`On 'series-node' clicked -`, yKey, datum[xKey], datum[yKey]),
+                    },
+                    {
+                        showOn: 'legend-item',
+                        label: `On 'legend-item'`,
+                        action: ({ itemId }) => console.log(`On 'legend-item' clicked -`, itemId),
+                    },
+                ],
+            },
+        ],
+    },
 }
 ```
 

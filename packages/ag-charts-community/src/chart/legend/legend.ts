@@ -220,7 +220,7 @@ export class Legend extends BaseProperties {
     /** Item index to track on re-pagination, so current page updates appropriately. */
     private paginationTrackingIndex: number = 0;
 
-    private readonly truncatedItems: Set<string> = new Set();
+    private readonly truncatedItems: Set<string | number> = new Set();
 
     private _data: CategoryLegendDatum[] = [];
     set data(value: CategoryLegendDatum[]) {
@@ -375,6 +375,14 @@ export class Legend extends BaseProperties {
 
     private updateGroupVisibility() {
         this.group.visible = this.enabled && this.visible && this.data.length > 0;
+    }
+
+    private isInteractive(): boolean {
+        const {
+            toggleSeries,
+            listeners: { legendItemClick, legendItemDoubleClick },
+        } = this;
+        return toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
     }
 
     attachLegend(scene: Scene) {
@@ -606,7 +614,7 @@ export class Legend extends BaseProperties {
         maxItemWidth: number,
         paddedMarkerWidth: number,
         measurer: ITextMeasurer,
-        id: string
+        id: string | number
     ): string {
         let addEllipsis = false;
         if (text.length > maxCharLength) {
@@ -813,7 +821,7 @@ export class Legend extends BaseProperties {
     }
 
     private updatePageNumber(pageNumber: number) {
-        const { itemSelection, group, pagination, pages, toggleSeries: interactive } = this;
+        const { itemSelection, group, pagination, pages } = this;
 
         // Track an item on the page in re-pagination cases (e.g. resize).
         const { startIndex, endIndex } = pages[pageNumber];
@@ -832,7 +840,7 @@ export class Legend extends BaseProperties {
         this.pagination.updateMarkers();
 
         this.updatePositions(pageNumber);
-        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive });
+        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive: this.isInteractive() });
 
         this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
@@ -1305,17 +1313,9 @@ export class Legend extends BaseProperties {
         return oldPages;
     }
     private positionLegendDOM(oldPages: Page[] | undefined) {
-        const {
-            ctx,
-            itemSelection,
-            pagination,
-            pages: newPages,
-            toggleSeries,
-            group,
-            listeners: { legendItemClick, legendItemDoubleClick },
-        } = this;
+        const { ctx, itemSelection, pagination, pages: newPages, group } = this;
         const visible = this.visible && this.enabled;
-        const interactive = toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
+        const interactive = this.isInteractive();
         this.domProxy.update({
             visible,
             interactive,

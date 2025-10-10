@@ -35,6 +35,7 @@ export type RadialGaugeNodeDatumIndex = { type: NodeDataType.Node } | { type: No
 
 export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<RadialGaugeNodeDatumIndex> {
     type: NodeDataType.Node;
+    readonly itemId: 'value' | 'scale' | `value-${number}` | `scale-${number}`;
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -63,6 +64,7 @@ export interface RadialGaugeTargetDatumLabel {
 
 export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<RadialGaugeNodeDatumIndex> {
     type: NodeDataType.Target;
+    readonly itemId: `target-${number}`;
     value: number;
     text: string | undefined;
     centerX: number;

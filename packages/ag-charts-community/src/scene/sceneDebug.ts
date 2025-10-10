@@ -211,14 +211,14 @@ export function debugStats(
         .join(' ; ');
 
     const detailedStats = Debug.check(DebugSelectors.SCENE_STATS_VERBOSE);
-    const memUsage = memoryUsage();
+    const memUsage = detailedStats ? memoryUsage() : null;
     const stats = [
         `${time('⏱️', start, end)} (${splits})`,
         `${extras}`,
         `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
         detailedStats ? `Ops: ${pct(opsPerformed, opsSkipped)}` : null,
-        detailedStats && memUsage ? memUsage : null,
+        memUsage,
     ].filter(isString);
     const measurer = new TextMeasurer(ctx);
     const statsSize = new Map(stats.map((t) => [t, measurer.measureText(t)]));

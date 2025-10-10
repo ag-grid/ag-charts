@@ -221,6 +221,10 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'primaryLabel' | 'crosshair'>
 > = {
     ...commonAxisOptionsDefs,
+    crossAt: {
+        value: or(number, date, string),
+        sticky: boolean,
+    },
     keys: arrayOf(string),
     crossLines: arrayOfDefs(cartesianCrossLineOptionsDefs, 'a cross-line options array'),
     position: union('top', 'right', 'bottom', 'left'),

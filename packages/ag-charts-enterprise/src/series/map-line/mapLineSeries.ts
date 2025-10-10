@@ -279,7 +279,7 @@ export class MapLineSeries extends TopologySeries<
         const measurer = cachedTextMeasurer(label);
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-        processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
+        processedData.dataSources.get(this.id)?.data.forEach((_datum, datumIndex) => {
             const id: string | undefined = idValues[datumIndex];
             const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
@@ -291,7 +291,7 @@ export class MapLineSeries extends TopologySeries<
         const nodeData: MapLineNodeDatum[] = [];
         const labelData: MapLineNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
-        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         rawData.forEach((datum, datumIndex) => {
             const idValue = idValues[datumIndex];
             const colorValue = colorValues?.[datumIndex];
@@ -646,7 +646,7 @@ export class MapLineSeries extends TopologySeries<
         } = properties;
         if (!dataModel || !processedData) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const sizeValue =
             sizeKey != null
