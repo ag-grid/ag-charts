@@ -1,4 +1,9 @@
-import type { ContextCallbackParams, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumItemCallbackParams,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -49,7 +54,11 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, T
     itemId: AgRangeAreaSeriesItemType;
 }
 
-export interface AgRangeAreaSeriesItemStylerParams<TDatum> extends AgRangeAreaSeriesOptionsKeys<TDatum> {
+export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
+    extends AgRangeAreaSeriesOptionsKeys<TDatum>,
+        Required<AgSeriesMarkerStyle>,
+        DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum>,
+        ContextCallbackParams<TContext> {
     /** The Id to distinguish the type of datum. This can be `up` or `down`. */
     itemId: AgRangeAreaSeriesItemType;
 }
@@ -67,15 +76,15 @@ export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 export type AgRangeAreaSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRangeAreaSeriesOptionsKeys<TDatum> &
     AgRangeAreaSeriesOptionsNames;
 
-type RangeAreaMarker<TDatum, TContext> = AgSeriesMarkerOptions<
-    TDatum,
-    AgRangeAreaSeriesItemStylerParams<TDatum>,
-    TContext
->;
+export interface AgRangeAreaMarker<TDatum, TContext>
+    extends AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesItemStylerParams<TDatum, TContext>, TContext> {
+    /** Function used to return formatting for individual markers, based on the supplied information.*/
+    itemStyler?: Styler<AgRangeAreaSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
+}
 
 export interface AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext> extends StrokeOptions, LineDashOptions {
     /** Styling configuration for the markers used in the series.  */
-    marker?: RangeAreaMarker<TDatum, TContext>;
+    marker?: AgRangeAreaMarker<TDatum, TContext>;
 }
 
 export interface AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext> {
