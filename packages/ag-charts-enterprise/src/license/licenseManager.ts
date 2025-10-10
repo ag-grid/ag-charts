@@ -118,7 +118,7 @@ export class LicenseManager {
 
         if (valid) {
             expiry = LicenseManager.extractExpiry(license);
-            valid = !isNaN(expiry.getTime());
+            valid = !Number.isNaN(expiry.getTime());
 
             if (valid) {
                 expired = chartsReleaseDate > expiry;

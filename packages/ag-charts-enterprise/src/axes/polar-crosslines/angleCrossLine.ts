@@ -83,7 +83,7 @@ export class AngleCrossLine extends PolarCrossLine {
         }
 
         const angle = scale.convert(value);
-        if (isNaN(angle)) {
+        if (Number.isNaN(angle)) {
             line.visible = false;
             return;
         }

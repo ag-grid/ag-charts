@@ -7,7 +7,7 @@ export class LinearAngleScale extends LinearScale {
     static getNiceStepAndTickCount(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[]) {
         const [start, stop] = domain;
         let step = LinearScale.getTickStep(start, stop, ticks);
-        const maxTickCount = isNaN(ticks.maxTickCount) ? Infinity : ticks.maxTickCount;
+        const maxTickCount = Number.isNaN(ticks.maxTickCount) ? Infinity : ticks.maxTickCount;
         const expectedTickCount = Math.abs(stop - start) / step;
         let niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
         if (niceTickCount > maxTickCount) {
@@ -25,7 +25,7 @@ export class LinearAngleScale extends LinearScale {
     ): { ticks: number[]; count: number } {
         const { arcLength } = this;
 
-        if (!domain || domain.length < 2 || domain.some((d) => !isFinite(d)) || arcLength <= 0) {
+        if (!domain || domain.length < 2 || domain.some((d) => !Number.isFinite(d)) || arcLength <= 0) {
             return { ticks: [], count: 0 };
         }
 

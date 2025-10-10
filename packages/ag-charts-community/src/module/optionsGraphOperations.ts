@@ -550,7 +550,7 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
         const pathArray = graph.getPathArray(vertex);
         const index = getPathLastIndex(pathArray);
 
-        if (isNaN(index)) return;
+        if (Number.isNaN(index)) return;
 
         switch (key) {
             case 'fill':
@@ -604,7 +604,7 @@ function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
         }
         index -= ignoreIndexOffset;
 
-        if (isNaN(index)) return;
+        if (Number.isNaN(index)) return;
 
         switch (key) {
             case 'fill':
@@ -1051,7 +1051,7 @@ const numericOperations: Record<NumericOperation, OperationFns> = {
 function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
-    if (isNaN(Number(value))) return false;
+    if (Number.isNaN(Number(value))) return false;
     return Number(value) % 2 === 0;
 }
 

@@ -92,7 +92,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         const maxHeight = this.maxHeight ?? containerHeight - padding * 2;
         const options = { maxWidth, maxHeight, font: this, textWrap: wrapping };
 
-        if (!isFinite(maxWidth) && !isFinite(maxHeight)) {
+        if (!Number.isFinite(maxWidth) && !Number.isFinite(maxHeight)) {
             this.node.text = text;
             return;
         }

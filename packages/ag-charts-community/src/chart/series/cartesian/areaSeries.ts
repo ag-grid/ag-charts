@@ -789,7 +789,9 @@ export class AreaSeries extends CartesianSeries<
             // if normalized, the invalid data points will be processed as 0 rather than `undefined`
             // check if unprocessed datum is valid as we only want to show markers for valid points
             if (
-                isDefined(this.properties.normalizedTo) ? isContinuousY && isContinuous(rawYDatum) : !isNaN(rawYDatum)
+                isDefined(this.properties.normalizedTo)
+                    ? isContinuousY && isContinuous(rawYDatum)
+                    : !Number.isNaN(rawYDatum)
             ) {
                 currY = yEnd;
             }

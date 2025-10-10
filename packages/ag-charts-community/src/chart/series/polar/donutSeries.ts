@@ -883,10 +883,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         if (title) {
             const dy = this.getTitleTranslationY();
-            title.node.y = isFinite(dy) ? dy : 0;
+            title.node.y = Number.isFinite(dy) ? dy : 0;
 
             const titleBox = title.node.getBBox();
-            title.node.visible = title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
+            title.node.visible =
+                title.enabled && Number.isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
         }
 
         for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
@@ -1400,7 +1401,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { title } = this.properties;
         if (title?.text && title.enabled) {
             const dy = this.getTitleTranslationY();
-            if (isFinite(dy)) {
+            if (Number.isFinite(dy)) {
                 text.text = title.text;
                 text.x = 0;
                 text.y = dy;

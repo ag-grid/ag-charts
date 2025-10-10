@@ -50,7 +50,7 @@ const options: AgChartOptions = {
                     const value = Number(datum[sizeKey!]);
                     const maxValue = 7566000;
                     const minValue = 1645002;
-                    const numberValue = !isNaN(value) ? value : 0;
+                    const numberValue = !Number.isNaN(value) ? value : 0;
                     const opacity = 0.5 + 0.6 * ((numberValue - minValue) / (maxValue - minValue));
                     return {
                         fillOpacity: opacity,

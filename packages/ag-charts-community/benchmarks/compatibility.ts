@@ -17,7 +17,7 @@ export function getVersion() {
         .split('.')
         .map((n) => /(\d+)/.exec(n)?.[1])
         .map(Number);
-    if (result.length !== 3 || result.some((n) => isNaN(n))) {
+    if (result.length !== 3 || result.some((n) => Number.isNaN(n))) {
         throw new Error("Couldn't parse semver of: " + process.env.VERSION);
     }
     return result;

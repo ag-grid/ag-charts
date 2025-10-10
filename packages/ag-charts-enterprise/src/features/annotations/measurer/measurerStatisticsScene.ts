@@ -278,7 +278,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
     }
 
     private formatVolume(volume: number, localeManager?: _ModuleSupport.ModuleContext['localeManager']) {
-        const volumeString = isNaN(volume) ? '' : this.volumeFormatter.format(volume);
+        const volumeString = Number.isNaN(volume) ? '' : this.volumeFormatter.format(volume);
         return localeManager?.t('measurerVolume', { value: volumeString }) ?? volumeString;
     }
 }

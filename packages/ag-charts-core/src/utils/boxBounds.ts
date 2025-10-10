@@ -19,7 +19,7 @@ export function boxContains(b: BoxBounds, x: number, y: number, w: number = 0, h
 }
 
 export function boxEmpty(b: BoxBounds | undefined): boolean {
-    return b == null || b.height === 0 || b.width === 0 || isNaN(b.height) || isNaN(b.width);
+    return b == null || b.height === 0 || b.width === 0 || Number.isNaN(b.height) || Number.isNaN(b.width);
 }
 
 export function boxesEqual(a: BoxBounds, b: BoxBounds): boolean {

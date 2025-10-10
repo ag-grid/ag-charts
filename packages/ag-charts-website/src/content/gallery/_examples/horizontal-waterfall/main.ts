@@ -87,7 +87,7 @@ const options: AgCartesianChartOptions = {
                     return {
                         heading: category,
                         title: typeLabel,
-                        data: !isNaN(value)
+                        data: !Number.isNaN(value)
                             ? [
                                   {
                                       label: 'Amount',

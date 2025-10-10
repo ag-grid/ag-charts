@@ -1110,7 +1110,7 @@ export abstract class Series<
         { applyTranslation = true, selected = true } = {}
     ) {
         const { shape, size = 0 } = style;
-        const visible = this.visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
+        const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
         applyShapeStyle(markerNode, style, fillBBox);
 

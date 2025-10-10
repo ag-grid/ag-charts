@@ -152,7 +152,7 @@ export class HistogramSeries extends CartesianSeries<
 
     private calculatePrecision(step: number): number {
         let precision = 10;
-        if (isFinite(step) && step > 0) {
+        if (Number.isFinite(step) && step > 0) {
             while (step < 1) {
                 precision *= 10;
                 step *= 10;

@@ -22,7 +22,7 @@ export function isDate(value: unknown): value is Date {
 }
 
 export function isValidDate(value: unknown): value is Date {
-    return isDate(value) && !isNaN(Number(value));
+    return isDate(value) && !Number.isNaN(Number(value));
 }
 
 export function isRegExp(value: unknown): value is RegExp {
