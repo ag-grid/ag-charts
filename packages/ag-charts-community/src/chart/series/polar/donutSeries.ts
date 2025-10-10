@@ -250,7 +250,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        seriesContentNode?.removeChild(this.backgroundGroup);
+        this.backgroundGroup.remove();
     }
 
     override setZIndex(zIndex: number) {
@@ -909,7 +909,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         if (oldTitle !== title) {
             if (oldTitle) {
-                this.labelGroup?.removeChild(oldTitle.node);
+                oldTitle.node.remove();
             }
 
             if (title) {
@@ -929,8 +929,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 y: d.midSin * Math.max(0, radius),
             };
         };
-        this.nodeData.forEach(setMidPoint);
-        this.phantomNodeData?.forEach(setMidPoint);
+        for (const datum of this.nodeData) {
+            setMidPoint(datum);
+        }
+        if (this.phantomNodeData) {
+            for (const datum of this.phantomNodeData) {
+                setMidPoint(datum);
+            }
+        }
     }
 
     private updateSelections() {

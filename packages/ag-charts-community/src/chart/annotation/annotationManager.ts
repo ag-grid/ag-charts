@@ -53,7 +53,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     public attachNode(node: Node) {
         this.annotationRoot.append(node);
         return () => {
-            this.annotationRoot?.removeChild(node);
+            node.remove();
             return this;
         };
     }

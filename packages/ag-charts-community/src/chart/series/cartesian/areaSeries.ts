@@ -179,7 +179,7 @@ export class AreaSeries extends CartesianSeries<
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        seriesContentNode?.removeChild(this.backgroundGroup);
+        this.backgroundGroup.remove();
     }
 
     protected override attachPaths([fill, stroke]: Path[]) {

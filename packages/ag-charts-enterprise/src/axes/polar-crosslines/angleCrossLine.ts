@@ -129,7 +129,7 @@ export class AngleCrossLine extends PolarCrossLine {
 
         const { path } = polygon;
         path.clear(true);
-        angles.forEach((angle: number, index: number) => {
+        for (const [index, angle] of angles.entries()) {
             const x = axisOuterRadius * Math.cos(angle);
             const y = axisOuterRadius * Math.sin(angle);
             if (index === 0) {
@@ -137,18 +137,16 @@ export class AngleCrossLine extends PolarCrossLine {
             } else {
                 path.lineTo(x, y);
             }
-        });
+        }
         if (axisInnerRadius === 0) {
             path.lineTo(0, 0);
         } else {
-            angles
-                .slice()
-                .reverse()
-                .forEach((angle: number) => {
-                    const x = axisInnerRadius * Math.cos(angle);
-                    const y = axisInnerRadius * Math.sin(angle);
-                    path.lineTo(x, y);
-                });
+            const reversedAngles = angles.slice().reverse();
+            for (const angle of reversedAngles) {
+                const x = axisInnerRadius * Math.cos(angle);
+                const y = axisInnerRadius * Math.sin(angle);
+                path.lineTo(x, y);
+            }
         }
         polygon.path.closePath();
 

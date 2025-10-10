@@ -40,7 +40,12 @@ export class EventEmitter<EventMap extends object> {
      * @param event The event payload.
      */
     emit<K extends keyof EventMap>(eventName: K, event: EventMap[K]) {
-        this.events.get(eventName)?.forEach((callback) => callback(event));
+        const listeners = this.events.get(eventName);
+        if (listeners) {
+            for (const callback of listeners) {
+                callback(event);
+            }
+        }
     }
 
     /**

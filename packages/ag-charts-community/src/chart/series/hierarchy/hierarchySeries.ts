@@ -195,11 +195,13 @@ export abstract class HierarchySeries<
 
         const appendChildren = (node: Mutable<TNodeClass>, data: any[] | undefined): TNodeClass => {
             const { datumIndex } = node;
-            data?.forEach((datum: any, childIndex: number) => {
-                const child = createNode(datum, datumIndex.concat(childIndex), node);
-                node.children.push(child);
-                node.sumSize += child.sumSize;
-            });
+            if (data) {
+                for (const [childIndex, datum] of data.entries()) {
+                    const child = createNode(datum, datumIndex.concat(childIndex), node);
+                    node.children.push(child);
+                    node.sumSize += child.sumSize;
+                }
+            }
             return node;
         };
 

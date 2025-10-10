@@ -62,9 +62,11 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     }
     if (isHistoricBenchmarkTest() && isBeforeVersion(12, 1, 0)) {
         // maxRenderedItems not available in older versions.
-        options.series?.forEach((series: any) => {
-            delete series.maxRenderedItems;
-        });
+        if (options.series) {
+            for (const series of options.series) {
+                delete (series as any).maxRenderedItems;
+            }
+        }
     }
     if (isHistoricBenchmarkTest() && isBeforeVersion(12, 0, 0)) {
         // highlightStyle => highlight for 12.
@@ -143,10 +145,10 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
         (options as any).mode === 'integrated' &&
         (options as any).axes?.some((a) => a.type === 'grouped-category')
     ) {
-        (options as any).data.forEach((d: object) => {
+        for (const d of (options as any).data) {
             const labels = d['ag-Grid-AutoColumn'];
             d['ag-Grid-AutoColumn'] = { labels, toString: () => labels.join(' - ') };
-        });
+        }
     }
 
     return options;

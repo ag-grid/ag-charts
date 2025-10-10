@@ -8,10 +8,10 @@ export function polygonBbox(
     polygon: _ModuleSupport.Position[],
     into: _ModuleSupport.LonLatBBox | undefined
 ): _ModuleSupport.LonLatBBox | undefined {
-    polygon.forEach((coordinates) => {
+    for (const coordinates of polygon) {
         const [lon, lat] = coordinates;
         into = LonLatBBox.extend(into, lon, lat, lon, lat);
-    });
+    }
 
     return into;
 }

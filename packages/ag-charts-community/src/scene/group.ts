@@ -143,7 +143,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      */
     append(nodes: Iterable<Node> | Node) {
         for (const node of toIterable(nodes)) {
-            node.parentNode?.removeChild(node);
+            node.remove();
             this.childNodes.add(node);
 
             node.parentNode = this;

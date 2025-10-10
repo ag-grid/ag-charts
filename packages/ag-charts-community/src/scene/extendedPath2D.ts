@@ -617,11 +617,11 @@ export class ExtendedPath2D {
                     const ts = bezier2DExtrema(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cp3x, cp3y);
 
                     // Check points where the derivative is zero
-                    ts.forEach((t: number) => {
+                    for (const t of ts) {
                         const px = evaluateBezier(cp0x, cp1x, cp2x, cp3x, t);
                         const py = evaluateBezier(cp0y, cp1y, cp2y, cp3y, t);
                         joinPoint(px, py);
-                    });
+                    }
 
                     joinPoint(cp3x, cp3y);
                     break;

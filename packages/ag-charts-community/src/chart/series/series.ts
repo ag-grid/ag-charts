@@ -414,11 +414,11 @@ export abstract class Series<
         annotationNode?.appendChild(this.annotationGroup);
     }
 
-    detachSeries(seriesContentNode: Group | undefined, _seriesNode: Group, annotationNode: Group | undefined) {
-        seriesContentNode?.removeChild(this.contentGroup);
+    detachSeries(_seriesContentNode: Group | undefined, _seriesNode: Group, annotationNode: Group | undefined) {
+        this.contentGroup.remove();
         this.highlightGroup.remove();
         this.labelGroup.remove();
-        annotationNode?.removeChild(this.annotationGroup);
+        this.annotationGroup.remove();
     }
 
     declarationOrder: number = -1;
