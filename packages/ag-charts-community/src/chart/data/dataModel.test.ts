@@ -2565,16 +2565,16 @@ describe('DataModel', () => {
 
                 expect(groups.length).toBe(3);
 
-                // With normal accumulation, values accumulate across groups
-                // A: seriesA=100, seriesB=150 (100+50)
-                // B: seriesA=250 (100+150), seriesB=325 (150+75)
-                // C: seriesA=450 (250+200), seriesB=425 (325+100)
+                // With normal accumulation, values stack within groups (no accumulation across groups)
+                // A: seriesA=100, seriesB=150 (100+50 stacked)
+                // B: seriesA=150, seriesB=225 (150+75 stacked)
+                // C: seriesA=200, seriesB=300 (200+100 stacked)
                 expect(columns[0][0]).toBe(100); // A seriesA
-                expect(columns[1][0]).toBe(150); // A seriesB (100+50)
-                expect(columns[0][1]).toBe(250); // B seriesA (100+150)
-                expect(columns[1][1]).toBe(325); // B seriesB (150+75)
-                expect(columns[0][2]).toBe(450); // C seriesA (250+200)
-                expect(columns[1][2]).toBe(425); // C seriesB (325+100)
+                expect(columns[1][0]).toBe(150); // A seriesB (100+50 stacked)
+                expect(columns[0][1]).toBe(150); // B seriesA
+                expect(columns[1][1]).toBe(225); // B seriesB (150+75 stacked)
+                expect(columns[0][2]).toBe(200); // C seriesA
+                expect(columns[1][2]).toBe(300); // C seriesB (200+100 stacked)
             });
 
             it('should handle stacking with zero and negative values', () => {
