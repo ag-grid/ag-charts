@@ -506,10 +506,17 @@ export function accumulateGroup(
         adjust = memo({ mode: mode as 'normal' | 'trailing', separateNegative }, buildGroupAccFn);
     }
 
+    // Determine if this processor supports reprocessing
+    // When mode is window-based and sum is 'current', the processor only uses
+    // the current value and doesn't depend on previous accumulated values,
+    // making it safe for incremental reprocessing
+    const supportsReprocessing = mode.startsWith('window') && sum === 'current';
+
     return {
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
         adjust,
+        supportsReprocessing,
     };
 }
 

@@ -300,6 +300,12 @@ export type GroupValueProcessorDefinition<D, K extends keyof D & string> = Prope
          * innermost called once per datum.
          */
         adjust: () => () => GroupValueAdjustFn<D, K>;
+        /**
+         * Indicates whether this processor supports incremental reprocessing.
+         * When true, the processor can safely be reapplied to modified data without
+         * causing double-processing issues.
+         */
+        supportsReprocessing?: boolean;
     };
 
 type PropertyValueAdjustFn<D> = (processedData: ProcessedData<D>, valueIndex: number) => void;
@@ -773,7 +779,10 @@ export class DataModel<
         if (this.aggregates.length > 0) return false;
         if (this.reducers.length > 0) return false;
         if (this.processors.length > 0) return false;
-        return this.propertyProcessors.length <= 0;
+        if (this.propertyProcessors.length > 0) return false;
+
+        // Check if all group processors support reprocessing
+        return this.groupProcessors.every((p) => p.supportsReprocessing ?? false);
     }
 
     public reprocessData(
@@ -781,7 +790,12 @@ export class DataModel<
         dataSets?: Map<DataSet<any>, DataChangeDescription | undefined>
     ): ProcessedData<D> {
         if (!this.isReprocessingSupported(processedData)) {
-            throw new Error('reprocessing data is not supported');
+            // Fallback to full reprocessing when incremental is not supported
+            // First commit any pending transactions
+            for (const dataSet of processedData.dataSources.values()) {
+                dataSet.commitPendingTransactions();
+            }
+            return this.processData(processedData.dataSources)!;
         }
 
         const start = performance.now();
@@ -806,6 +820,11 @@ export class DataModel<
         // Transform groups array for grouped data (when groupsUnique=true)
         if (processedData.type === 'grouped') {
             this.transformGroupsArray(processedData, scopeChanges, insertionCaches);
+
+            // Reapply group processors to new data if they support reprocessing
+            if (this.groupProcessors.length > 0) {
+                this.reprocessGroupProcessors(processedData, scopeChanges);
+            }
         }
 
         this.recomputeDomains(processedData);
@@ -2200,6 +2219,52 @@ export class DataModel<
                 }
 
                 processedData.domain.values[valueIndex] = domain.getDomain();
+            }
+        }
+    }
+
+    /**
+     * Reprocesses group processors for incremental updates.
+     * Only processes newly inserted groups to avoid double-processing.
+     * This is safe only when all group processors support reprocessing.
+     */
+    private reprocessGroupProcessors(
+        processedData: GroupedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        const { groupProcessors } = this;
+        const { columns } = processedData;
+
+        // Verify all processors support reprocessing
+        for (const processor of groupProcessors) {
+            if (!processor.supportsReprocessing) {
+                throw new Error(
+                    'AG Charts - attempted to reprocess group processor that does not support reprocessing. ' +
+                        'This is an internal error that should not occur.'
+                );
+            }
+        }
+
+        // Process each group processor
+        for (const processor of groupProcessors) {
+            const valueIndexes = this.valueGroupIdxLookup(processor);
+            const adjustFn = processor.adjust()();
+
+            // Process only modified groups from scope changes
+            for (const [, changeDesc] of scopeChanges) {
+                const { indexMap } = changeDesc;
+
+                // Process insertions - these are new groups that need processing
+                for (const op of indexMap.spliceOps) {
+                    if (op.insertCount > 0) {
+                        // Apply processor to newly inserted groups
+                        for (let i = 0; i < op.insertCount; i++) {
+                            const groupIndex = op.index + i;
+                            const dataGroup = processedData.groups[groupIndex];
+                            adjustFn(columns, valueIndexes, dataGroup, groupIndex);
+                        }
+                    }
+                }
             }
         }
     }
