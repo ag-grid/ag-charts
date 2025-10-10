@@ -203,7 +203,6 @@ export class BarSeries extends AbstractBarSeries<
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
-                    'current',
                     {
                         id: `yValue-end`,
                         rangeId: `yValue-range`,
@@ -218,7 +217,6 @@ export class BarSeries extends AbstractBarSeries<
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'trailing',
-                    'current',
                     {
                         id: `yValue-start`,
                         invalidValue: null,

@@ -123,6 +123,7 @@ exports[`DataModel empty data set processing should generated the expected resul
       "test" => [],
     },
   ],
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -411,7 +412,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "reduced": {
     "sortedGroupDomain": [
@@ -738,7 +739,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "reduced": {
     "sortedGroupDomain": [
@@ -1041,7 +1042,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "reduced": {
     "sortedGroupDomain": [
@@ -1413,7 +1414,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -2286,7 +2287,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -2769,7 +2770,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -3288,7 +3289,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -3807,7 +3808,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -4284,7 +4285,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       ],
     },
   ],
-  "optimizations": undefined,
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -4837,6 +4838,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       ],
     },
   ],
+  "optimizations": Any<Object>,
   "partialValidDataCount": 6,
   "scopes": Set {
     "test",
@@ -5153,6 +5155,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
       ],
     },
   ],
+  "optimizations": Any<Object>,
   "partialValidDataCount": 6,
   "scopes": Set {
     "test",
@@ -5279,6 +5282,7 @@ exports[`DataModel repeated property processing should generated the expected re
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [],
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -5452,6 +5456,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [],
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
@@ -5979,6 +5984,7 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
       ],
     },
   ],
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",

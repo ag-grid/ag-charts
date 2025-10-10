@@ -748,9 +748,9 @@ export class DataModel<
         const end = performance.now();
         processedData.time = end - start;
 
-        // Collect optimization metadata if debug enabled
+        // Collect optimization metadata for testing
+        this.collectOptimizationMetadata(processedData, 'full-process');
         if (this.debug.check()) {
-            this.collectOptimizationMetadata(processedData, 'full-process');
             logProcessedData(processedData);
         }
 
@@ -838,10 +838,8 @@ export class DataModel<
         const end = performance.now();
         processedData.time = end - start;
 
-        // Collect optimization metadata if debug enabled
-        if (this.debug.check()) {
-            this.collectOptimizationMetadata(processedData, 'reprocess');
-        }
+        // Collect optimization metadata for testing
+        this.collectOptimizationMetadata(processedData, 'reprocess');
 
         return processedData;
     }

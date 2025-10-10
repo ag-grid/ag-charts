@@ -152,14 +152,13 @@ export function trailingAccumulatedValueProperty<K>(
 
 export function groupAccumulativeValueProperty<K>(
     propName: K,
-    mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
-    sum: 'current' | 'last',
+    mode: 'normal' | 'trailing',
     opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
     scaleType?: ScaleType
 ) {
     return [
         valueProperty(propName, scaleType, opts),
-        accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
+        accumulateGroup(opts.groupId, mode, opts.separateNegative),
         ...(opts.rangeId == null ? [] : [range(opts.rangeId, opts.groupId)]),
     ];
 }
@@ -449,74 +448,18 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
     };
 }
 
-function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum: 'current' | 'last' }) {
-    return () => {
-        // Entire data-set scope.
-        const lastValues: any[] = [];
-        let firstRow = true;
-        return () => {
-            // Group scope.
-            return (columns: any[][], valueIndexes: number[], dataGroup: DataGroup, groupIndex: number) => {
-                // Datum scope.
-                let acc = 0;
-                for (const valueIdx of valueIndexes) {
-                    const column = columns[valueIdx];
-                    const datumIndices = dataGroup.datumIndices[valueIdx];
-                    if (datumIndices == null) continue;
-
-                    for (const relativeDatumIndex of datumIndices) {
-                        const datumIndex = groupIndex + relativeDatumIndex;
-                        const currentVal = column[datumIndex];
-                        const lastValue = firstRow && sum === 'current' ? 0 : lastValues[valueIdx];
-                        lastValues[valueIdx] = currentVal;
-
-                        const sumValue = sum === 'current' ? currentVal : lastValue;
-                        if (!isFiniteNumber(currentVal) || !isFiniteNumber(lastValue)) {
-                            column[datumIndex] = acc;
-                            continue;
-                        }
-
-                        if (mode === 'normal') {
-                            acc += sumValue;
-                        }
-                        column[datumIndex] = acc;
-                        if (mode === 'trailing') {
-                            acc += sumValue;
-                        }
-                    }
-                }
-
-                firstRow = false;
-            };
-        };
-    };
-}
-
 export function accumulateGroup(
     matchGroupId: string,
-    mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
-    sum: 'current' | 'last',
+    mode: 'normal' | 'trailing',
     separateNegative = false
 ): GroupValueProcessorDefinition<any, any> {
-    let adjust;
-    if (mode.startsWith('window')) {
-        const modeParam = mode.endsWith('-trailing') ? 'trailing' : 'normal';
-        adjust = memo({ mode: modeParam, sum }, buildGroupWindowAccFn);
-    } else {
-        adjust = memo({ mode: mode as 'normal' | 'trailing', separateNegative }, buildGroupAccFn);
-    }
-
-    // Determine if this processor supports reprocessing
-    // When mode is window-based and sum is 'current', the processor only uses
-    // the current value and doesn't depend on previous accumulated values,
-    // making it safe for incremental reprocessing
-    const supportsReprocessing = mode.startsWith('window') && sum === 'current';
+    const adjust = memo({ mode, separateNegative }, buildGroupAccFn);
 
     return {
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
         adjust,
-        supportsReprocessing,
+        supportsReprocessing: true,
     };
 }
 

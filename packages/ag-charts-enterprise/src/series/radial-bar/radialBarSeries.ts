@@ -169,7 +169,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 ...groupAccumulativeValueProperty(
                     angleKey,
                     'normal',
-                    'current',
                     {
                         id: `angleValue-end`,
                         rangeId: `angleValue-range`,
@@ -183,7 +182,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 ...groupAccumulativeValueProperty(
                     angleKey,
                     'trailing',
-                    'current',
                     {
                         id: `angleValue-start`,
                         invalidValue: null,

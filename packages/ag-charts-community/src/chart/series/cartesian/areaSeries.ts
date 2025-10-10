@@ -261,7 +261,6 @@ export class AreaSeries extends CartesianSeries<
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
-                    'current',
                     { id: `yValueCumulative`, ...common, groupId: idMap.marker },
                     yScaleType
                 )

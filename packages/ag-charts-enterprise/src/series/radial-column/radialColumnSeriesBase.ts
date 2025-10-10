@@ -179,7 +179,6 @@ export abstract class RadialColumnSeriesBase<
                 ...groupAccumulativeValueProperty(
                     radiusKey,
                     'normal',
-                    'current',
                     {
                         id: `radiusValue-end`,
                         rangeId: `radiusValue-range`,
@@ -193,7 +192,6 @@ export abstract class RadialColumnSeriesBase<
                 ...groupAccumulativeValueProperty(
                     radiusKey,
                     'trailing',
-                    'current',
                     {
                         id: `radiusValue-start`,
                         invalidValue: null,
