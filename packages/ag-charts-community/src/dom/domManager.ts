@@ -220,10 +220,10 @@ export class DOMManager extends BaseManager {
         }
         this.pendingContainer = undefined;
 
-        Object.values(this.rootElements).forEach((el) => {
-            el.children.forEach((c) => c.remove());
+        for (const el of Object.values(this.rootElements)) {
+            for (const c of el.children) c.remove();
             el.element.remove();
-        });
+        }
 
         this.element.remove();
     }
@@ -297,7 +297,7 @@ export class DOMManager extends BaseManager {
         if (pendingContainer == null || pendingContainer === this.container) return;
 
         if (this.container) {
-            this.container.removeChild(this.element);
+            this.element.remove();
             this.sizeMonitor.unobserve(this.container);
         }
 
@@ -342,11 +342,11 @@ export class DOMManager extends BaseManager {
     setThemeClass(themeClassName: string) {
         const themeClassNamePrefix = 'ag-charts-theme-';
 
-        this.element.classList.forEach((className) => {
+        for (const className of this.element.classList) {
             if (className.startsWith(themeClassNamePrefix) && className !== themeClassName) {
                 this.element.classList.remove(className);
             }
-        });
+        }
 
         this.element.classList.add(themeClassName);
     }

@@ -59,7 +59,7 @@ export function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
 }
 
 function matchesKey(event: KeyboardEvent, ...keys: string[]): boolean {
-    return hasNoModifiers(event) && keys.some((key) => event.key === key);
+    return hasNoModifiers(event) && keys.includes(event.key);
 }
 
 function linkTwoButtons(src: HTMLElement, dst: HTMLElement, key: string) {

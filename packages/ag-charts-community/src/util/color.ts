@@ -64,11 +64,11 @@ export class Color implements IColor {
      * - CSS color name such as 'white', 'orange', 'cyan', etc.
      */
     static validColorString(str: string): boolean {
-        if (str.indexOf('#') >= 0) {
+        if (str.includes('#')) {
             return !!Color.parseHex(str);
         }
 
-        if (str.indexOf('rgb') >= 0) {
+        if (str.includes('rgb')) {
             return !!Color.stringToRgba(str);
         }
 
@@ -86,7 +86,7 @@ export class Color implements IColor {
      */
     static fromString(str: string): Color {
         // hexadecimal notation
-        if (str.indexOf('#') >= 0) {
+        if (str.includes('#')) {
             // there can be some leading whitespace
             return Color.fromHexString(str);
         }
@@ -98,7 +98,7 @@ export class Color implements IColor {
         }
 
         // rgb(a) notation
-        if (str.indexOf('rgb') >= 0) {
+        if (str.includes('rgb')) {
             return Color.fromRgbaString(str);
         }
 
@@ -115,14 +115,14 @@ export class Color implements IColor {
             case 8:
                 parts = [];
                 for (let i = 0; i < input.length; i += 2) {
-                    parts.push(parseInt(`${input[i]}${input[i + 1]}`, 16));
+                    parts.push(Number.parseInt(`${input[i]}${input[i + 1]}`, 16));
                 }
                 break;
             case 3:
             case 4:
                 parts = input
                     .split('')
-                    .map((p) => parseInt(p, 16))
+                    .map((p) => Number.parseInt(p, 16))
                     .map((p) => p + p * 16);
                 break;
         }
@@ -167,11 +167,11 @@ export class Color implements IColor {
 
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
-            let value = parseFloat(part);
+            let value = Number.parseFloat(part);
             if (!Number.isFinite(value)) {
                 return;
             }
-            if (part.indexOf('%') >= 0) {
+            if (part.includes('%')) {
                 // percentage r, g, or b value
                 value = clamp(0, value, 100);
                 value /= 100;
@@ -389,13 +389,13 @@ export class Color implements IColor {
             if (r === max) {
                 H = bc - gc;
             } else if (g === max) {
-                H = 2.0 + rc - bc;
+                H = 2 + rc - bc;
             } else {
-                H = 4.0 + gc - rc;
+                H = 4 + gc - rc;
             }
-            H /= 6.0;
+            H /= 6;
             if (H < 0) {
-                H = H + 1.0;
+                H = H + 1;
             }
         }
 
@@ -421,7 +421,7 @@ export class Color implements IColor {
             const q = B * (1 - S * f);
             const t = B * (1 - S * (1 - f));
             switch (
-                h >> 0 // discard the floating point part of the number
+                Math.trunc(h) // discard the floating point part of the number
             ) {
                 case 0:
                     r = B;

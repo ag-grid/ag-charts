@@ -25,10 +25,10 @@ export class ExtendedPath2D {
     commands: Command[] = [];
     params: number[] = [];
 
-    cx = NaN;
-    cy = NaN;
-    sx = NaN;
-    sy = NaN;
+    cx = Number.NaN;
+    cy = Number.NaN;
+    sx = Number.NaN;
+    sy = Number.NaN;
     openedPath: boolean = false;
     closedPath: boolean = false;
 
@@ -86,8 +86,8 @@ export class ExtendedPath2D {
         if (this.openedPath) {
             this.cx = this.sx;
             this.cy = this.sy;
-            this.sx = NaN;
-            this.sy = NaN;
+            this.sx = Number.NaN;
+            this.sy = Number.NaN;
             this.path2d.closePath();
             this.commands.push(Command.ClosePath);
             this.openedPath = false;
@@ -448,8 +448,8 @@ export class ExtendedPath2D {
         const ox = -10000;
         const oy = -10000;
         // the starting point of the  current path
-        let sx: number = NaN;
-        let sy: number = NaN;
+        let sx: number = Number.NaN;
+        let sy: number = Number.NaN;
         // the previous point of the current path
         let px = 0;
         let py = 0;
@@ -502,8 +502,8 @@ export class ExtendedPath2D {
         const params = this.params;
         const cn = commands.length;
         // the starting point of the  current path
-        let sx: number = NaN;
-        let sy: number = NaN;
+        let sx: number = Number.NaN;
+        let sy: number = Number.NaN;
         // the previous point of the current path
         let cx = 0;
         let cy = 0;
@@ -580,8 +580,8 @@ export class ExtendedPath2D {
     computeBBox(): BBox {
         const { commands, params } = this;
         let [top, left, right, bot] = [Infinity, Infinity, -Infinity, -Infinity];
-        let [cx, cy] = [NaN, NaN]; // the starting point of the current path
-        let [sx, sy] = [NaN, NaN]; // the end point for a ClosePath command.
+        let [cx, cy] = [Number.NaN, Number.NaN]; // the starting point of the current path
+        let [sx, sy] = [Number.NaN, Number.NaN]; // the end point for a ClosePath command.
 
         const joinPoint = (x: number, y: number) => {
             top = Math.min(y, top);
@@ -628,8 +628,8 @@ export class ExtendedPath2D {
                 }
                 case Command.ClosePath:
                     joinPoint(sx, sy);
-                    sx = NaN;
-                    sy = NaN;
+                    sx = Number.NaN;
+                    sy = Number.NaN;
                     break;
             }
         }

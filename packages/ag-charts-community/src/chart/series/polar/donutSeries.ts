@@ -466,8 +466,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const phantomNodes: PieDonutNodeDatum[] | undefined = angleFilterRawValues != null ? [] : undefined;
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const invalidData = processedData.invalidData?.get(this.id);
-        rawData.forEach((datum, datumIndex) => {
-            if (invalidData?.[datumIndex] === true) return;
+        for (const [datumIndex, datum] of rawData.entries()) {
+            if (invalidData?.[datumIndex] === true) continue;
             const currentValue = useFilterAngles ? angleFilterValues![datumIndex] : angleValues[datumIndex];
             const crossFilterScale =
                 angleFilterRawValues != null && !useFilterAngles
@@ -522,7 +522,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                     focusable: false,
                 });
             }
-        });
+        }
 
         this.zerosumOuterRing.visible = sum === 0;
         this.zerosumInnerRing.visible =
@@ -846,7 +846,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     private getTitleTranslationY() {
         const outerRadius = Math.max(0, this.radiusScale.range[1]);
         if (outerRadius === 0) {
-            return NaN;
+            return Number.NaN;
         }
         const spacing = this.properties.title?.spacing ?? 0;
         const titleOffset = 2 + spacing;
@@ -1085,7 +1085,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { strokes } = this.properties;
         const { offset } = this.properties.calloutLabel;
 
-        this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine).forEach((line) => {
+        for (const line of this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine)) {
             const datum = line.closestDatum() as PieDonutNodeDatum;
             const { length: calloutLength, strokeWidth, color, colors } = this.getCalloutLineStyle(datum, false);
             const calloutStrokeWidth = strokeWidth;
@@ -1138,7 +1138,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             } else {
                 line.visible = false;
             }
-        });
+        }
     }
 
     private getLabelOverflow(box: BBox, seriesRect: BBox) {
@@ -1187,14 +1187,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         const fullData = this.calloutNodeData;
         const data = fullData.filter((t): t is Has<'calloutLabel', PieDonutNodeDatum> => !shouldSkip(t));
-        data.forEach((datum) => {
+        for (const datum of data) {
             const label = datum.calloutLabel;
-            if (label == null) return;
+            if (label == null) continue;
 
             label.hidden = false;
             label.collisionTextAlign = undefined;
             label.collisionOffsetY = 0;
-        });
+        }
 
         if (data.length <= 1) {
             return;
@@ -1321,7 +1321,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         const tempTextNode = new Text();
 
-        this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel).forEach((text) => {
+        for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
             const datum: PieDonutNodeDatum = text.closestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
@@ -1329,7 +1329,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
             if (!label?.text || outerRadius === 0 || label.hidden) {
                 text.visible = false;
-                return;
+                continue;
             }
 
             const style = this.getLabelStyle(datum, calloutLabel);
@@ -1377,7 +1377,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             text.fill = style.color;
             text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             text.visible = visible;
-        });
+        }
     }
 
     override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
@@ -1414,10 +1414,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             }
         }
 
-        this.calloutNodeData.forEach((datum) => {
+        for (const datum of this.calloutNodeData) {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
-                return null;
+                 null; continue;
             }
 
             const style = this.getLabelStyle(datum, calloutLabel);
@@ -1440,7 +1440,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             // Hide labels that where pushed too far by the collision avoidance algorithm
             if (Math.abs(label.collisionOffsetY) > maxCollisionOffset) {
                 label.hidden = true;
-                return;
+                continue;
             }
 
             // Hide labels intersecting or above the title
@@ -1454,7 +1454,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 );
                 if (box.collidesBBox(titleCleanArea)) {
                     label.hidden = true;
-                    return;
+                    continue;
                 }
             }
 
@@ -1467,13 +1467,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
                 if (hasVerticalOverflow || isTooShort || hasSurroundingSeriesOverflow) {
                     label.hidden = true;
-                    return;
+                    continue;
                 }
             }
 
             label.hidden = false;
             textBoxes.push(box);
-        });
+        }
         if (textBoxes.length === 0) {
             return null;
         }

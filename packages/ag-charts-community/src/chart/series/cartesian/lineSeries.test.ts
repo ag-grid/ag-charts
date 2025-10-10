@@ -207,12 +207,12 @@ describe('LineSeries', () => {
                 await waitForChartStability(chart);
                 await assertions(chart);
 
-                warnings.forEach((message, index) => {
+                for (const [index, message] of warnings.entries()) {
                     expect(console.warn).toHaveBeenNthCalledWith(
                         index + 1,
                         ...(Array.isArray(message) ? message : [message])
                     );
-                });
+                }
                 if (warnings.length === 0) {
                     expect(console.warn).not.toHaveBeenCalled();
                 }
@@ -1159,20 +1159,20 @@ describe('LineSeries', () => {
                     { month: "Mar '24", value: 12.2e6 },
                     { month: "Apr '24", value: 11.6e6 },
                     { month: "May '24", value: 10.2e6 },
-                    { month: "Jun '24", value: 9.0e6 },
+                    { month: "Jun '24", value: 9e6 },
                     { month: "Jul '24", value: 8.8e6 },
                     { month: "Aug '24", value: 8.3e6 },
-                    { month: "Sep '24", value: 8.0e6 },
+                    { month: "Sep '24", value: 8e6 },
                     { month: "Oct '24", value: 7.6e6 },
                     { month: "Nov '24", value: 7.2e6 },
-                    { month: "Dec '24", value: 7.0e6 },
+                    { month: "Dec '24", value: 7e6 },
                     { month: "Jan '25", value: 17.8e6 },
-                    { month: "Feb '25", value: 17.0e6 },
-                    { month: "Mar '25", value: 16.0e6 },
+                    { month: "Feb '25", value: 17e6 },
+                    { month: "Mar '25", value: 16e6 },
                     { month: "Apr '25", value: 15.2e6 },
-                    { month: "May '25", value: 14.0e6 },
+                    { month: "May '25", value: 14e6 },
                     { month: "Jun '25", value: 12.5e6 },
-                    { month: "Jul '25", value: 9.0e6 },
+                    { month: "Jul '25", value: 9e6 },
                 ],
                 padding: { top: 40, right: 10, bottom: 40, left: 60 },
                 title: { text: 'Cash' },

@@ -62,7 +62,7 @@ export function parseSegment(command: SVGCommand, d: string, index: number): [nu
         const match = regex.exec(segment);
 
         if (match != null) {
-            pathSeg.params.push(parseFloat(match[0]));
+            pathSeg.params.push(Number.parseFloat(match[0]));
             index += match[0].length;
             const next = commaEx.exec(segment.slice(match[0].length));
             if (next != null) {

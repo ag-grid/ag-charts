@@ -143,7 +143,7 @@ export abstract class Node<TDatum = unknown> {
 
     constructor(options?: NodeOptions) {
         this.name = options?.name;
-        this.tag = options?.tag ?? NaN;
+        this.tag = options?.tag ?? Number.NaN;
         this.zIndex = options?.zIndex ?? 0;
         this.scene = options?.scene;
 
@@ -365,18 +365,18 @@ export abstract class Node<TDatum = unknown> {
 
         if (!this._debugDirtyProperties.has('__first__')) {
             // Construction cases aren't interesting - we only really care about update cases.
-            this._debugDirtyProperties.forEach((sources, property) => {
+            for (const [property, sources] of this._debugDirtyProperties.entries()) {
                 if (sources.length > 1) {
                     // eslint-disable-next-line no-console
                     console.groupCollapsed(
                         `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`
                     );
                     // eslint-disable-next-line no-console
-                    sources.forEach((source) => console.log(source));
+                    for (const source of sources) console.log(source);
                     // eslint-disable-next-line no-console
                     console.groupEnd();
                 }
-            });
+            }
         }
         this._debugDirtyProperties.clear();
     }

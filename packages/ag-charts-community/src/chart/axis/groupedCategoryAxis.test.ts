@@ -181,7 +181,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
 ): Record<string, TestCase<T>> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         // Add manual rotation.
         result[name + '_MANUAL_ROTATION'] = {
             ...baseCase,
@@ -198,7 +198,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }
@@ -292,14 +292,14 @@ describe('Grouped Category Axis Examples', () => {
             await waitForChartStability(chart);
 
             const data = [
-                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1658289600000.0 },
-                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1681358400000.0 },
-                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1607576400000.0 },
-                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1656561600000.0 },
-                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1718856000000.0 },
-                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1747195200000.0 },
-                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1742443200000.0 },
-                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1798434000000.0 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1658289600000 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1681358400000 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1607576400000 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1656561600000 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1718856000000 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1747195200000 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1742443200000 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1798434000000 },
             ];
 
             await chart.updateDelta({ data });

@@ -34,7 +34,7 @@ if (isHistoricBenchmarkTest()) {
 }
 
 globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
-const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT ? parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT) : undefined;
+const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT ? Number.parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT) : undefined;
 const softFailMode = ['1', 'true'].includes(process.env.AG_BENCHMARK_SOFT_FAIL ?? '0');
 const debugMode = ['1', 'true'].includes(process.env.AG_BENCHMARK_DEBUG ?? '0');
 
@@ -322,7 +322,7 @@ export function benchmark(
     callback: () => Promise<void> | void,
     timeoutMs = defaultTimeoutMs(ctx)
 ) {
-    if (!global.gc) {
+    if (!globalThis.gc) {
         // Just warn and fail on exit - this allows us to run the benchmarks for debugging from VSCode.
         console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
         process.exitCode = 1;
@@ -331,7 +331,7 @@ export function benchmark(
     it(
         name,
         async () => {
-            global.gc?.();
+            globalThis.gc?.();
 
             const { repeat: runCount = 1 } = ctx;
 
@@ -351,11 +351,11 @@ export function benchmark(
                 await callback();
                 const end = performance.now();
                 totalDuration += end - start;
-                global.gc?.();
+                globalThis.gc?.();
             }
 
             await new Promise((r) => setTimeout(r, 100));
-            global.gc?.();
+            globalThis.gc?.();
 
             const memoryAfter = process.memoryUsage();
 

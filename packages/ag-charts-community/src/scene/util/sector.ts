@@ -110,10 +110,10 @@ function arcIntersections(
     const i2x = (-b - Math.sqrt(d)) / 2 / a;
 
     let intersections = 0;
-    [i1x, i2x].forEach((x) => {
+    for (const x of [i1x, i2x]) {
         const isXInsideLine = x >= Math.min(x1, x2) && x <= Math.max(x1, x2);
         if (!isXInsideLine) {
-            return;
+            continue;
         }
 
         const y = k * x + y0;
@@ -124,7 +124,7 @@ function arcIntersections(
         if (isBetweenAngles(angle, startAngle, endAngle)) {
             intersections++;
         }
-    });
+    }
 
     return intersections;
 }
@@ -293,8 +293,8 @@ export function arcRadialLineIntersectionAngle(
     const p0DotNormalized = p0x * normalisedX + p0y * normalisedY;
     const p1DotNormalized = p1x * normalisedX + p1y * normalisedY;
 
-    const a0 = p0DotNormalized > 0 ? clockwiseAngle(Math.atan2(p0y - cy, p0x - cx), startAngle) : NaN;
-    const a1 = p1DotNormalized > 0 ? clockwiseAngle(Math.atan2(p1y - cy, p1x - cx), startAngle) : NaN;
+    const a0 = p0DotNormalized > 0 ? clockwiseAngle(Math.atan2(p0y - cy, p0x - cx), startAngle) : Number.NaN;
+    const a1 = p1DotNormalized > 0 ? clockwiseAngle(Math.atan2(p1y - cy, p1x - cx), startAngle) : Number.NaN;
 
     if (a0 >= startAngle && a0 <= endAngle) {
         return a0;

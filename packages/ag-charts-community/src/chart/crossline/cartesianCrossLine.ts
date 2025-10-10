@@ -271,9 +271,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         if (type === 'line') {
             const offset = bandwidth / 2;
             yStart = scale.convert(value as any) + offset;
-            yEnd = NaN;
+            yEnd = Number.NaN;
             clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
-            clampedYEnd = NaN;
+            clampedYEnd = Number.NaN;
 
             if (clampedYStart >= clippedRange1 || clampedYStart <= clippedRange0) {
                 return;

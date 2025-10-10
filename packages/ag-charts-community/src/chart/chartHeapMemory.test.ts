@@ -81,7 +81,7 @@ describe('Chart Heap Memory', () => {
     };
 
     beforeEach(() => {
-        global.gc?.();
+        globalThis.gc?.();
     });
 
     afterEach(() => {
@@ -109,7 +109,7 @@ describe('Chart Heap Memory', () => {
         }
 
         it('should not leak memory after many updates', async () => {
-            global.gc?.();
+            globalThis.gc?.();
             const startingHeap = memoryUsage().heapUsed;
 
             const options = [options1, options2, options1, options2];
@@ -122,7 +122,7 @@ describe('Chart Heap Memory', () => {
             }
 
             chartProxy.destroy();
-            global.gc?.();
+            globalThis.gc?.();
             const endingHeap = memoryUsage().heapUsed;
             const heapProportionChange = Math.abs(endingHeap - startingHeap) / startingHeap;
 
@@ -147,7 +147,7 @@ describe('Chart Heap Memory', () => {
 
             chartProxy = null;
 
-            global.gc?.();
+            globalThis.gc?.();
 
             expect(instantiatedSeries).toEqual(new Set());
         });

@@ -167,14 +167,14 @@ export function deepFreeze<T>(obj: T): T {
     Object.freeze(obj);
 
     // Get all properties of the object
-    Object.getOwnPropertyNames(obj).forEach((prop) => {
+    for (const prop of Object.getOwnPropertyNames(obj)) {
         const value = (obj as any)[prop];
 
         // If the value is an object, and not null, and hasn't already been frozen, recursively freeze it
         if (value !== null && (typeof value === 'object' || typeof value === 'function') && !Object.isFrozen(value)) {
             deepFreeze(value);
         }
-    });
+    }
 
     return obj;
 }

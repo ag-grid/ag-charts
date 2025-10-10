@@ -325,7 +325,7 @@ export abstract class CartesianSeries<
 
     protected detachPaths(paths: Path[]) {
         for (const path of paths) {
-            this.contentGroup.removeChild(path);
+            path.remove();
         }
     }
 
@@ -619,7 +619,7 @@ export abstract class CartesianSeries<
         let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
-            const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
+            const { point: { x: datumX = Number.NaN, y: datumY = Number.NaN } = {} } = datum;
             if (isNaN(datumX) || isNaN(datumY)) {
                 continue;
             }
@@ -709,7 +709,7 @@ export abstract class CartesianSeries<
         let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
-            const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
+            const { x: datumX = Number.NaN, y: datumY = Number.NaN } = datum.point ?? datum.midPoint ?? {};
             if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) continue;
 
             const visible = [xAxis?.inRange(datumX, 1), yAxis?.inRange(datumY, 1)];
@@ -827,18 +827,18 @@ export abstract class CartesianSeries<
 
         let axisMin = Infinity;
         let axisMax = -Infinity;
-        crossAxisValues.forEach((crossAxisValue, i) => {
+        for (const [i, crossAxisValue] of crossAxisValues.entries()) {
             const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
-            if (x1 < r0 || x0 > r1) return;
+            if (x1 < r0 || x0 > r1) continue;
 
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
                 axisMin = Math.min(axisMin, axisValue);
                 axisMax = Math.max(axisMax, axisValue);
             }
-        });
+        }
 
-        if (axisMin > axisMax) return [NaN, NaN];
+        if (axisMin > axisMax) return [Number.NaN, Number.NaN];
 
         return [axisMin, axisMax];
     }
@@ -869,9 +869,9 @@ export abstract class CartesianSeries<
         const range0 = crossAxisRange[0].valueOf();
         const range1 = crossAxisRange[1].valueOf();
         const axisValues: any[] = [];
-        crossAxisValues.forEach((crossAxisValue, i) => {
+        for (const [i, crossAxisValue] of crossAxisValues.entries()) {
             const c = crossAxisValue.valueOf();
-            if (c < range0 || c > range1) return;
+            if (c < range0 || c > range1) continue;
 
             const values = allAxisValues.map((v) => v[i]);
             if (c >= range0) {
@@ -880,7 +880,7 @@ export abstract class CartesianSeries<
             if (c <= range1) {
                 axisValues.push(...values);
             }
-        });
+        }
 
         return axisValues;
     }
@@ -1140,9 +1140,9 @@ export abstract class CartesianSeries<
         const { path } = this.opts?.animationResetFns ?? {};
 
         if (path) {
-            data.paths.forEach((paths) => {
+            for (const paths of data.paths) {
                 resetMotion([paths], path);
-            });
+            }
         }
     }
 

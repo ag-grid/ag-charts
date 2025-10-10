@@ -23,7 +23,7 @@ describe('extent module', () => {
         });
 
         test('returns undefined for list of invalid values', () => {
-            const result = extent([NaN, null, undefined] as any[]);
+            const result = extent([Number.NaN, null, undefined] as any[]);
             expect(result).toBe(null);
         });
 

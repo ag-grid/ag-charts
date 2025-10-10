@@ -416,8 +416,8 @@ export abstract class Series<
 
     detachSeries(seriesContentNode: Group | undefined, seriesNode: Group, annotationNode: Group | undefined) {
         seriesContentNode?.removeChild(this.contentGroup);
-        seriesNode.removeChild(this.highlightGroup);
-        seriesNode.removeChild(this.labelGroup);
+        this.highlightGroup.remove();
+        this.labelGroup.remove();
         annotationNode?.removeChild(this.annotationGroup);
     }
 
@@ -1154,11 +1154,11 @@ export abstract class Series<
     protected _nodeDataDependencies?: NodeDataDependencies;
 
     public get nodeDataDependencies(): NodeDataDependencies {
-        return this._nodeDataDependencies ?? { seriesRectWidth: NaN, seriesRectHeight: NaN };
+        return this._nodeDataDependencies ?? { seriesRectWidth: Number.NaN, seriesRectHeight: Number.NaN };
     }
 
     protected checkResize(newSeriesRect?: BBox) {
-        const { width: seriesRectWidth, height: seriesRectHeight } = newSeriesRect ?? { width: NaN, height: NaN };
+        const { width: seriesRectWidth, height: seriesRectHeight } = newSeriesRect ?? { width: Number.NaN, height: Number.NaN };
         const newNodeDataDependencies = newSeriesRect ? { seriesRectWidth, seriesRectHeight } : undefined;
         const resize = jsonDiff(this.nodeDataDependencies, newNodeDataDependencies) != null;
         if (resize) {

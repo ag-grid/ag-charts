@@ -72,11 +72,11 @@ export class PolarChart extends Chart {
         radiusAxis.gridRange = angleAxis.range;
         radiusAxis.range = [radius, radius * innerRadiusRatio];
 
-        [angleAxis, radiusAxis].forEach((axis) => {
+        for (const axis of [angleAxis, radiusAxis]) {
             axis.translation.x = seriesBox.x + cx;
             axis.translation.y = seriesBox.y + cy;
             axis.calculateLayout();
-        });
+        }
     }
 
     private async computeCircle(seriesBox: BBox) {
@@ -85,11 +85,11 @@ export class PolarChart extends Chart {
 
         const setSeriesCircle = (cx: number, cy: number, r: number) => {
             this.updateAxes(seriesBox, cx, cy, r);
-            polarSeries.forEach((series) => {
+            for (const series of polarSeries) {
                 series.centerX = cx;
                 series.centerY = cy;
                 series.radius = r;
-            });
+            }
 
             const pieSeries = polarSeries.filter((s) => s.type === 'donut' || s.type === 'pie');
             if (pieSeries.length > 1) {

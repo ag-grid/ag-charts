@@ -27,8 +27,8 @@ class Dimensions {
 
 class TreeNode {
     position: number = 0;
-    subtreeLeft: number = NaN;
-    subtreeRight: number = NaN;
+    subtreeLeft: number = Number.NaN;
+    subtreeRight: number = Number.NaN;
     children: TreeNode[] = [];
     leafCount: number = 0;
     depth: number;
@@ -129,7 +129,7 @@ function moveSubtree(wm: TreeNode, wp: TreeNode, shift: number) {
 }
 
 function ancestor(vim: TreeNode, v: TreeNode, defaultAncestor: TreeNode): TreeNode {
-    return v.getSiblings().indexOf(vim.ancestor) >= 0 ? vim.ancestor : defaultAncestor;
+    return v.getSiblings().includes(vim.ancestor) ? vim.ancestor : defaultAncestor;
 }
 
 // Spaces out the children.

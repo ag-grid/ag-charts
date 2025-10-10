@@ -11,10 +11,10 @@ export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<B
 }
 
 export function getElementBBox(element: HTMLElement): BoxBounds {
-    const width = parseFloat(element.style.width) || element.offsetWidth;
-    const height = parseFloat(element.style.height) || element.offsetHeight;
-    const x = parseFloat(element.style.left) || element.offsetLeft;
-    const y = parseFloat(element.style.top) || element.offsetTop;
+    const width = Number.parseFloat(element.style.width) || element.offsetWidth;
+    const height = Number.parseFloat(element.style.height) || element.offsetHeight;
+    const x = Number.parseFloat(element.style.left) || element.offsetLeft;
+    const y = Number.parseFloat(element.style.top) || element.offsetTop;
     return { x, y, width, height };
 }
 

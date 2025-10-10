@@ -247,9 +247,9 @@ class AgChartsInternal {
             });
         }
 
-        styles.forEach(([id, css]) => {
+        for (const [id, css] of styles) {
             chart.ctx.domManager.addStyles(id, css);
-        });
+        }
 
         chart.ctx.fontManager.updateFonts(chartOptions.googleFonts);
 
@@ -266,9 +266,9 @@ class AgChartsInternal {
             proxy.releaseChart = poolResult?.release;
         }
 
-        if (debug.check() && typeof window !== 'undefined') {
-            (window as any).agChartInstances ??= {};
-            (window as any).agChartInstances[chart.id] = chart;
+        if (debug.check() && typeof globalThis.window !== 'undefined') {
+            (globalThis as any).agChartInstances ??= {};
+            (globalThis as any).agChartInstances[chart.id] = chart;
         }
 
         chart.queuedUserOptions.push(chartOptions.userOptions);

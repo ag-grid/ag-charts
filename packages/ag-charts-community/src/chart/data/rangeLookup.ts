@@ -15,7 +15,7 @@ export class RangeLookup {
         }
         this.maxLevelSize = maxLevelSize;
 
-        const buffer = new Float64Array((maxLevelSize * 2 - 1) * 2).fill(NaN);
+        const buffer = new Float64Array((maxLevelSize * 2 - 1) * 2).fill(Number.NaN);
 
         for (const values of allValues) {
             for (let i = 0; i < values.length; i += 1) {
@@ -84,7 +84,7 @@ export class RangeLookup {
     }
 
     rangeBetween(start: number, end: number): [number, number] {
-        if (start > end) return [NaN, NaN];
+        if (start > end) return [Number.NaN, Number.NaN];
         const { maxLevelSize, buffer } = this;
         const range: [number, number] = [Infinity, -Infinity];
         this.computeRangeInto(buffer, start, end, 0, 0, maxLevelSize, range);

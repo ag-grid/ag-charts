@@ -88,13 +88,13 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
             x + (0.15625 - cx) * s,
             y + (0.151491 - cy) * s,
             x + (0.307741 - cx) * s,
-            y + (0.0 - cy) * s,
+            y + (0 - cy) * s,
             x + (0.5 - cx) * s,
-            y + (0.0 - cy) * s
+            y + (0 - cy) * s
         );
         path.cubicCurveTo(
             x + (0.692259 - cx) * s,
-            y + (0.0 - cy) * s,
+            y + (0 - cy) * s,
             x + (0.84375 - cx) * s,
             y + (0.151491 - cy) * s,
             x + (0.84375 - cx) * s,
@@ -128,13 +128,13 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
             x + (0.524075 - cx) * s,
             y + (0.992358 - cy) * s,
             x + (0.512663 - cx) * s,
-            y + (1.0 - cy) * s,
+            y + (1 - cy) * s,
             x + (0.5 - cx) * s,
-            y + (1.0 - cy) * s
+            y + (1 - cy) * s
         );
         path.cubicCurveTo(
             x + (0.487337 - cx) * s,
-            y + (1.0 - cy) * s,
+            y + (1 - cy) * s,
             x + (0.475925 - cx) * s,
             y + (0.992358 - cy) * s,
             x + (0.471104 - cx) * s,
@@ -142,7 +142,7 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
         );
         path.cubicCurveTo(
             x + (0.487337 - cx) * s,
-            y + (1.0 - cy) * s,
+            y + (1 - cy) * s,
             x + (0.475925 - cx) * s,
             y + (0.992358 - cy) * s,
             x + (0.471104 - cx) * s,

@@ -637,10 +637,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static removeDisabledOptionJson(this: void, optionsNode: any) {
         if ('enabled' in optionsNode && optionsNode.enabled === false) {
-            Object.keys(optionsNode).forEach((key) => {
-                if (key === 'enabled') return;
+            for (const key of Object.keys(optionsNode)) {
+                if (key === 'enabled') continue;
                 delete optionsNode[key];
-            });
+            }
         }
     }
 

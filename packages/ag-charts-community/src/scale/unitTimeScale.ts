@@ -69,14 +69,14 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (!(value instanceof Date)) value = new Date(value as any);
 
         const { domain, interval } = this;
-        if (domain.length < 2) return NaN;
+        if (domain.length < 2) return Number.NaN;
         if (options?.clamp !== true && interval != null) {
             const t = value.valueOf();
             const [start, stop] = calculateBandRange(domain, interval);
             const d0 = Math.min(start.valueOf(), stop.valueOf());
             const d1 = Math.max(start.valueOf(), stop.valueOf());
             const dNext = intervalNext(interval, new Date(d1)).valueOf();
-            if (t < d0 || t >= dNext) return NaN;
+            if (t < d0 || t >= dNext) return Number.NaN;
         }
 
         return super.convert(value, options);

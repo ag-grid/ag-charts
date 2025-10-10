@@ -138,14 +138,14 @@ function extractGroupValues(data: GroupedData<unknown>, groupIndex?: number) {
 function mutilatedBrowserData() {
     const datumKeys = ['ie', 'chrome', 'firefox', 'safari'] as const;
     const rawData = DATA_BROWSER_MARKET_SHARE.map((v) => ({ ...v }));
-    rawData.forEach((datum, idx) => {
+    for (const [idx, datum] of rawData.entries()) {
         const keyToDelete = datumKeys[idx % 4];
         delete datum[keyToDelete];
         if (idx % 3 === 0) {
             const illegalValueKey = datumKeys[(idx + 1) % 4];
             datum[illegalValueKey] = 'illegal value' as any;
         }
-    });
+    }
     return rawData;
 }
 
@@ -1186,7 +1186,7 @@ describe('DataModel', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet(mutilatedBrowserData());
             const DEFAULTS = {
-                invalidValue: NaN,
+                invalidValue: Number.NaN,
                 missingValue: null,
                 validation: isFiniteNumber,
             };
@@ -1206,7 +1206,7 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const defaults = { missingValue: null, invalidValue: NaN };
+            const defaults = { missingValue: null, invalidValue: Number.NaN };
             const validated = { ...defaults, validation: (v: unknown) => typeof v === 'number' };
             const dataModel = new DataModel<any, any, true>({
                 props: [
@@ -1229,7 +1229,7 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(extractGroupValues(result, 0)).toEqual([[null, 7, 1]]);
-                expect(extractGroupValues(result, 1)).toEqual([[1, NaN, 2]]);
+                expect(extractGroupValues(result, 1)).toEqual([[1, Number.NaN, 2]]);
                 expect(extractGroupValues(result, 2)).toEqual([[6, 9, null]]);
                 expect(extractGroupValues(result, 3)).toEqual([[6, 9, 4]]);
             });

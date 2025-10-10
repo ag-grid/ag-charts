@@ -638,7 +638,7 @@ export class BubbleSeries extends CartesianSeries<
                     0.000683 * count +
                     -37.534348 * area +
                     0.004449 * count * area +
-                    -0.0 * count ** 2 +
+                    -0 * count ** 2 +
                     44.428603 * area ** 2;
                 style.fillOpacity = clamp(fillOpacity / dilation, (fillOpacity / 0.1) * opacityScale, 1);
             }

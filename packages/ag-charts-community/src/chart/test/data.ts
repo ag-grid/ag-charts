@@ -187,7 +187,7 @@ export const DATA_VISITORS = [
     },
     {
         year: new Date('01 Jan 2015 00:00:00 GMT'),
-        visitors: NaN,
+        visitors: Number.NaN,
     },
     {
         year: new Date('01 Jan 2016 00:00:00 GMT'),
