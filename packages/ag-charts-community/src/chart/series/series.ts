@@ -495,7 +495,7 @@ export abstract class Series<
     ): string[] {
         const direction = propertyAxisDirection(property);
         const resolvedProperty =
-            direction != null ? axisDirectionProperty(this.resolveKeyDirection(direction)) : property;
+            direction == null ? property : axisDirectionProperty(this.resolveKeyDirection(direction));
         const keys = properties?.[resolvedProperty];
         const values: string[] = [];
 
@@ -784,10 +784,10 @@ export abstract class Series<
 
                 case SeriesNodePickMode.AXIS_ALIGNED: {
                     const closest =
-                        pickModeAxis != null
-                            ? this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category')
-                            : undefined;
-                    result = closest != null ? { datums: [closest.datum], distance: closest.distance } : undefined;
+                        pickModeAxis == null
+                            ? undefined
+                            : this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category');
+                    result = closest == null ? undefined : { datums: [closest.datum], distance: closest.distance };
                     break;
                 }
             }
@@ -973,7 +973,7 @@ export abstract class Series<
         };
 
         const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
-        const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
+        const axis = direction == null ? undefined : axes[this.resolveKeyDirection(direction)];
         if (axis != null) {
             return axis.formatDatum(
                 properties,

@@ -125,7 +125,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         if (formatter == null) return;
         if (typeof formatter === 'function') {
             const value = formatInContext(formatter, params);
-            return value != null ? String(value) : undefined;
+            return value == null ? undefined : String(value);
         }
 
         const propertyFormatter = formatter[params.property];

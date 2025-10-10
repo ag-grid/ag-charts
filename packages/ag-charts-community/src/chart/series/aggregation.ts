@@ -114,9 +114,9 @@ export function aggregationRangeFittingPoints(
         const smallestKeyInterval = opts?.smallestKeyInterval;
         const xNeedsValueOf = opts?.xNeedsValueOf ?? true;
         const smallestPixelInterval =
-            smallestKeyInterval != null
-                ? smallestKeyInterval / (d1 - d0)
-                : estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf);
+            smallestKeyInterval == null
+                ? estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf)
+                : smallestKeyInterval / (d1 - d0);
         return nextPowerOf2(Math.trunc(1 / smallestPixelInterval)) >> 3;
     } else {
         let power = Math.ceil(Math.log2(xValues.length)) - 1;
@@ -250,8 +250,8 @@ export function createAggregationIndices(
         let yMax: number;
         let yMin: number;
         if (yNeedsValueOf) {
-            yMax = yMaxValue != null ? yMaxValue.valueOf() : Number.NaN;
-            yMin = yMinValue != null ? yMinValue.valueOf() : Number.NaN;
+            yMax = yMaxValue == null ? Number.NaN : yMaxValue.valueOf();
+            yMin = yMinValue == null ? Number.NaN : yMinValue.valueOf();
         } else {
             yMax = yMaxValue ?? Number.NaN;
             yMin = yMinValue ?? Number.NaN;

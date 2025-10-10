@@ -211,9 +211,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbar.clearActiveButton();
                 toolbar.resetButtonIcons();
 
-                const selectedNode = index != null ? annotations.at(index) : null;
-                const previousNode = previous != null ? annotations.at(previous) : null;
-                const selectedDatum = index != null ? this.annotationData.at(index) : null;
+                const selectedNode = index == null ? null : annotations.at(index);
+                const previousNode = previous == null ? null : annotations.at(previous);
+                const selectedDatum = index == null ? null : this.annotationData.at(index);
 
                 // Only change anything else if a different node has been selected or when deselecting
                 if (previousNode === selectedNode && selectedNode != null) {
@@ -305,7 +305,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             update: () => {
                 this.postUpdateFns.push(() => {
                     const active = this.state.getActive();
-                    const node = active != null ? this.annotations.at(active) : null;
+                    const node = active == null ? null : this.annotations.at(active);
                     if (node == null) return;
                     this.optionsToolbar.setAnchorScene(node);
                 });

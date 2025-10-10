@@ -160,7 +160,7 @@ export function groupAccumulativeValueProperty<K>(
     return [
         valueProperty(propName, scaleType, opts),
         accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
-        ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
+        ...(opts.rangeId == null ? [] : [range(opts.rangeId, opts.groupId)]),
     ];
 }
 
@@ -608,9 +608,9 @@ export function diff(
                 const hasDatum = i < processedData.input.count;
 
                 const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i) : undefined;
-                const prevId = prevKeys != null ? createDatumId(...prevKeys) : '';
+                const prevId = prevKeys == null ? '' : createDatumId(...prevKeys);
                 const dKeys = hasDatum ? datumKeys(keys, i) : undefined;
-                const datumId = dKeys != null ? createDatumId(...dKeys) : '';
+                const datumId = dKeys == null ? '' : createDatumId(...dKeys);
 
                 if (hasDatum && hasPreviousDatum && prevId === datumId) {
                     if (!columnsEqual(previousColumns, columns, indices, i, i)) {

@@ -195,9 +195,9 @@ export function formatRadialGaugeLabels(
     if (labelText == null) return;
 
     const secondaryLabelText =
-        secondaryLabelDatum != null
-            ? getLabelText(series.id, ctx, secondaryLabelDatum, datumOverrides?.secondaryLabel)
-            : undefined;
+        secondaryLabelDatum == null
+            ? undefined
+            : getLabelText(series.id, ctx, secondaryLabelDatum, datumOverrides?.secondaryLabel);
 
     const params = { padding };
     const horizontalFactor = textAlign === 'center' ? 2 : 1;

@@ -364,7 +364,7 @@ export class LineSeries extends CartesianSeries<
         const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
         const yCumulativeValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
         const selectionValues =
-            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
+            yFilterKey == null ? undefined : dataModel.resolveColumnById(this, `yFilterRaw`, processedData);
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 

@@ -210,16 +210,16 @@ export class MapMarkerSeries
         const hasLatLon = latitudeKey != null && longitudeKey != null;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                ...(idKey != null
-                    ? [
+                ...(idKey == null
+                    ? []
+                    : [
                           valueProperty(idKey, mercatorScaleType, { id: 'idValue', includeProperty: false }),
                           valueProperty(idKey, mercatorScaleType, {
                               id: 'featureValue',
                               includeProperty: false,
                               processor: () => (datum) => featureById.get(datum as string),
                           }),
-                      ]
-                    : []),
+                      ]),
                 ...(hasLatLon
                     ? [
                           valueProperty(latitudeKey, mercatorScaleType, { id: 'latValue' }),
@@ -233,9 +233,9 @@ export class MapMarkerSeries
         });
 
         const featureValues =
-            idKey != null
-                ? dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData)
-                : undefined;
+            idKey == null
+                ? undefined
+                : dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData);
         const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
         const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
         this.topologyBounds = processedData.dataSources
@@ -363,19 +363,19 @@ export class MapMarkerSeries
         const hasLatLon = latitudeKey != null && longitudeKey != null;
 
         const idValues =
-            idKey != null ? dataModel.resolveColumnById<string>(this, `idValue`, processedData) : undefined;
+            idKey == null ? undefined : dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const featureValues =
-            idKey != null
-                ? dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData)
-                : undefined;
+            idKey == null
+                ? undefined
+                : dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData);
         const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
         const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
         const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+            labelKey == null ? undefined : dataModel.resolveColumnById<string>(this, `labelValue`, processedData);
         const sizeValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+            sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData);
         const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+            colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData);
 
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
@@ -407,9 +407,9 @@ export class MapMarkerSeries
             const sizeValue = sizeValues?.[datumIndex];
             const labelValue = labelValues?.[datumIndex];
 
-            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clamp: true }) : properties.size;
+            const size = sizeValue == null ? properties.size : sizeScale.convert(sizeValue, { clamp: true });
 
-            const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
+            const projectedGeometry = idValue == null ? undefined : projectedGeometries?.get(idValue);
             if (idValue != null && projectGeometry == null) {
                 missingGeometries.push(idValue);
             }
@@ -529,7 +529,7 @@ export class MapMarkerSeries
         this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum });
 
         this.highlightMarkerSelection = this.updateMarkerSelection({
-            markerData: highlightedDatum != null ? [highlightedDatum] : [],
+            markerData: highlightedDatum == null ? [] : [highlightedDatum],
             markerSelection: highlightMarkerSelection,
         });
         this.updateMarkerNodes({
@@ -727,7 +727,7 @@ export class MapMarkerSeries
             }
         }
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
@@ -824,13 +824,13 @@ export class MapMarkerSeries
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const sizeValue =
-            sizeKey != null
-                ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex]
-                : undefined;
+            sizeKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
         const colorValue =
-            colorKey != null
-                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
-                : undefined;
+            colorKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 

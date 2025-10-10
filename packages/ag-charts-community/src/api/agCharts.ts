@@ -181,7 +181,7 @@ class AgChartsInternal {
             stripSymbols = false,
             apiStartTime,
         } = opts;
-        const styles = enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [];
+        const styles = enterpriseModule.styles == null ? [] : [['ag-charts-enterprise', enterpriseModule.styles]];
 
         AgChartsInternal.initialiseModules();
 

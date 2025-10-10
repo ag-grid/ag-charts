@@ -253,7 +253,7 @@ export class AreaSeries extends CartesianSeries<
         const props: PropertyDefinition<any, any>[] = [
             keyProperty(xKey, xScaleType, { id: 'xValue' }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
-            ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
+            ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })]),
         ];
 
         if (stacked) {
@@ -754,7 +754,7 @@ export class AreaSeries extends CartesianSeries<
             ? dataModel.resolveColumnById(this, `yValueCumulative`, processedData)
             : yRawValues;
         const yFilterValues =
-            yFilterKey != null ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData) : undefined;
+            yFilterKey == null ? undefined : dataModel.resolveColumnById(this, 'yFilterRaw', processedData);
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
@@ -816,7 +816,7 @@ export class AreaSeries extends CartesianSeries<
             // marker data
             const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);
 
-            const selected = yFilterValues != null ? yFilterValues[datumIndex] === yDatum : undefined;
+            const selected = yFilterValues == null ? undefined : yFilterValues[datumIndex] === yDatum;
             if (selected === false) {
                 crossFiltering = true;
             }

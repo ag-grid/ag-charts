@@ -72,7 +72,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         if (interval == null) {
             const { ticks, tickOffset, tickEvery } = this.getDefaultTicks(domain, tickCount, visibleRange, extend);
             let firstTickIndex = ticks.length > 0 ? this.findIndex(ticks[0]) : undefined;
-            firstTickIndex = firstTickIndex != null ? Math.floor((firstTickIndex - tickOffset) / tickEvery) : undefined;
+            firstTickIndex = firstTickIndex == null ? undefined : Math.floor((firstTickIndex - tickOffset) / tickEvery);
             return { ticks, count: undefined, firstTickIndex };
         }
 

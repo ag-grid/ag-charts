@@ -181,16 +181,15 @@ export class SankeySeries extends FlowProportionSeries<
                 case 'center': {
                     if (linksBefore.length !== 0) {
                         column = columns[maxPathLengthBefore];
-                        // eslint-disable-next-line no-negated-condition
-                    } else if (linksAfter.length !== 0) {
+                    } else if (linksAfter.length === 0) {
+                        column = columns[0];
+                    } else {
                         const columnIndex =
                             linksAfter.reduce(
                                 (acc, link) => Math.min(acc, link.node.maxPathLengthBefore),
                                 maxPathLength
                             ) - 1;
                         column = columns[columnIndex];
-                    } else {
-                        column = columns[0];
                     }
                     break;
                 }

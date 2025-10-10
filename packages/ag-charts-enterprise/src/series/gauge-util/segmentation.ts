@@ -39,7 +39,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
                     maxTickCount: Infinity,
                 })
                 ?.ticks?.filter((v) => v > d0 && v < d1);
-            ticks = segments != null ? [d0, ...segments, d1] : undefined;
+            ticks = segments == null ? undefined : [d0, ...segments, d1];
         } else {
             const segments = count + 1;
             ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);

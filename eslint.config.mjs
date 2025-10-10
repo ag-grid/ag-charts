@@ -129,7 +129,7 @@ export default [
         },
         rules: {
             'no-lonely-if': 2,
-            'no-negated-condition': 1,
+            'unicorn/no-negated-condition': 1,
             'no-nested-ternary': 2,
             'no-unneeded-ternary': 2,
             'no-eval': 2,

@@ -438,7 +438,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 applyShapeStyle(node, style, fillBBox, fillParams);
 
                 node.lineJoin = 'round';
-                node.inset = node.stroke != null ? node.strokeWidth / 2 : 0;
+                node.inset = node.stroke == null ? 0 : node.strokeWidth / 2;
 
                 node.startInnerCornerRadius = datum.reversed ? cornerRadius : 0;
                 node.startOuterCornerRadius = datum.reversed ? cornerRadius : 0;

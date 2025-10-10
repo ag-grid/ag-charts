@@ -151,9 +151,9 @@ export class MapLineSeries extends TopologySeries<
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum as string),
                 }),
-                ...(labelKey != null ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
-                ...(sizeKey != null ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
-                ...(colorKey != null ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
+                ...(labelKey == null ? [] : [valueProperty(labelKey, 'category', { id: 'labelValue' })]),
+                ...(sizeKey == null ? [] : [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })]),
+                ...(colorKey == null ? [] : [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })]),
             ],
         });
 
@@ -268,11 +268,11 @@ export class MapLineSeries extends TopologySeries<
             processedData
         );
         const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+            labelKey == null ? undefined : dataModel.resolveColumnById<string>(this, `labelValue`, processedData);
         const sizeValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+            sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData);
         const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+            colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData);
 
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
@@ -377,7 +377,7 @@ export class MapLineSeries extends TopologySeries<
         this.updateDatumNodes({ datumSelection, isHighlight: false });
 
         this.highlightDatumSelection = this.updateDatumSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
@@ -530,7 +530,7 @@ export class MapLineSeries extends TopologySeries<
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     private _previousDatumMidPoint:
@@ -543,9 +543,9 @@ export class MapLineSeries extends TopologySeries<
         }
 
         const projectedGeometry = (datum as MapLineNodeDatum).projectedGeometry;
-        const lineString = projectedGeometry != null ? largestLineString(projectedGeometry) : undefined;
-        const center = lineString != null ? lineStringCenter(lineString)?.point : undefined;
-        const point = center != null ? { x: center[0], y: center[1] } : undefined;
+        const lineString = projectedGeometry == null ? undefined : largestLineString(projectedGeometry);
+        const center = lineString == null ? undefined : lineStringCenter(lineString)?.point;
+        const point = center == null ? undefined : { x: center[0], y: center[1] };
 
         this._previousDatumMidPoint = { datum, point };
 
@@ -649,13 +649,13 @@ export class MapLineSeries extends TopologySeries<
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const sizeValue =
-            sizeKey != null
-                ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex]
-                : undefined;
+            sizeKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
         const colorValue =
-            colorKey != null
-                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
-                : undefined;
+            colorKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 

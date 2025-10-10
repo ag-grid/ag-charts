@@ -44,7 +44,7 @@ Shows top ESLint violations by count with recommendations.
 
 3. **Generate a formatted report showing:**
 
-    - Top 10-15 violations ranked by count
+    - Top 10-15 violations ranked by type (error > warning) then by count
     - Which rules are auto-fixable (✅) vs manual (❌)
     - Recommended next rule to fix (highest count auto-fixable)
     - Brief description of what each rule fixes

@@ -53,8 +53,8 @@ export class SegmentedPath<D = any> extends Path<D> {
             segmentPath.path = this.path;
             segmentPath.setProperties(styles);
 
-            segmentPath.fill = this.fill != null ? fill : 'none';
-            segmentPath.stroke = this.stroke != null ? stroke : 'none';
+            segmentPath.fill = this.fill == null ? 'none' : fill;
+            segmentPath.stroke = this.stroke == null ? 'none' : stroke;
 
             const clipPath = new Path2D();
             rect(clipPath, clipRect);

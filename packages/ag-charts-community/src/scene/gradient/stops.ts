@@ -34,7 +34,7 @@ function discreteColorStops(colorStops: GradientColorStop[]): GradientColorStop[
     return colorStops.flatMap((colorStop, i) => {
         const { stop } = colorStop;
         const nextColor = colorStops.at(i + 1)?.color;
-        return nextColor != null ? [colorStop, { stop, color: nextColor }] : [colorStop];
+        return nextColor == null ? [colorStop] : [colorStop, { stop, color: nextColor }];
     });
 }
 

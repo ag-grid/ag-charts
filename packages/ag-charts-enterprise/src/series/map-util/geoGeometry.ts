@@ -37,7 +37,7 @@ export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.Dist
         this.strokePath.clear();
         this.path.clear();
 
-        this.bbox = projectedGeometry != null ? this.drawGeometry(projectedGeometry, undefined) : undefined;
+        this.bbox = projectedGeometry == null ? undefined : this.drawGeometry(projectedGeometry, undefined);
     }
 
     override drawPath(ctx: any) {

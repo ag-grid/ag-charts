@@ -176,29 +176,35 @@ export abstract class FlowProportionSeries<
 
         const nodesDataController = new DataController('standalone', dataController.suppressFieldDotNotation);
         const nodesDataModelPromise =
-            nodes != null
-                ? nodesDataController.request<any, any, true>(
+            nodes == null
+                ? null
+                : nodesDataController.request<any, any, true>(
                       this.id,
                       _ModuleSupport.DataSet.wrap(nodes) ?? _ModuleSupport.DataSet.empty(),
                       {
                           props: [
                               keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
-                              ...(labelKey != null
-                                  ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                                  : []),
+                              ...(labelKey == null
+                                  ? []
+                                  : [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]),
                           ],
                           groupByKeys: true,
                       }
-                  )
-                : null;
+                  );
 
         const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {
             props: [
                 valueProperty(fromKey, undefined, { id: 'fromValue', includeProperty: false }),
                 valueProperty(toKey, undefined, { id: 'toValue', includeProperty: false }),
-                ...(sizeKey != null
-                    ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false, missingValue: 0 })]
-                    : []),
+                ...(sizeKey == null
+                    ? []
+                    : [
+                          valueProperty(sizeKey, undefined, {
+                              id: 'sizeValue',
+                              includeProperty: false,
+                              missingValue: 0,
+                          }),
+                      ]),
             ],
             groupByKeys: false,
         });
@@ -279,13 +285,13 @@ export abstract class FlowProportionSeries<
                 nodesDataModel.processedData
             );
             const labelValues =
-                labelKey != null
-                    ? nodesDataModel.dataModel.resolveColumnById<string | undefined>(
+                labelKey == null
+                    ? undefined
+                    : nodesDataModel.dataModel.resolveColumnById<string | undefined>(
                           this,
                           'labelValue',
                           nodesDataModel.processedData
-                      )
-                    : undefined;
+                      );
 
             const nodeData = nodesDataModel.processedData.dataSources.get(this.id)?.data;
             if (nodeData) {
@@ -356,9 +362,9 @@ export abstract class FlowProportionSeries<
         const fromIdValues = linksDataModel.resolveColumnById<string>(this, 'fromValue', linksProcessedData);
         const toIdValues = linksDataModel.resolveColumnById<string>(this, 'toValue', linksProcessedData);
         const sizeValues =
-            sizeKey != null
-                ? linksDataModel.resolveColumnById<number>(this, 'sizeValue', linksProcessedData)
-                : undefined;
+            sizeKey == null
+                ? undefined
+                : linksDataModel.resolveColumnById<number>(this, 'sizeValue', linksProcessedData);
 
         const nodesById = new Map<string, TNodeDatum>();
         for (const datum of this.processedNodes.values()) {
@@ -372,7 +378,7 @@ export abstract class FlowProportionSeries<
             for (const [datumIndex, datum] of linkData.entries()) {
                 const fromId: string = fromIdValues[datumIndex];
                 const toId: string = toIdValues[datumIndex];
-                const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;
+                const size: number = sizeValues == null ? 1 : sizeValues[datumIndex];
                 const fromNode = nodesById.get(fromId);
                 const toNode = nodesById.get(toId);
                 if (size <= 0 || fromNode == null || toNode == null) continue;
@@ -448,16 +454,16 @@ export abstract class FlowProportionSeries<
             // Handle highlighting legend items
             const { itemId } = highlightedDatum;
             highlightedDatum =
-                itemId != null
-                    ? nodeData.find((node) => node.type === FlowProportionDatumType.Node && node.id === itemId)
-                    : undefined;
+                itemId == null
+                    ? undefined
+                    : nodeData.find((node) => node.type === FlowProportionDatumType.Node && node.id === itemId);
         } else if (highlightedDatum?.series !== this) {
             highlightedDatum = undefined;
         }
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity =
-            highlightedDatum != null ? this.properties.highlight.unhighlightedItem.opacity ?? 1 : 1;
+            highlightedDatum == null ? 1 : this.properties.highlight.unhighlightedItem.opacity ?? 1;
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
         this.updateLabelNodes({ labelSelection: this.labelSelection });
@@ -653,7 +659,7 @@ export abstract class FlowProportionSeries<
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {

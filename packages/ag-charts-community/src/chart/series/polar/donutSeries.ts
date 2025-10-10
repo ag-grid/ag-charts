@@ -395,13 +395,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const angleValues = dataModel.resolveColumnById<number>(this, `angleValue`, processedData);
         const angleRawValues = dataModel.resolveColumnById<number>(this, `angleRaw`, processedData);
         const angleFilterValues =
-            this.properties.angleFilterKey != null
-                ? dataModel.resolveColumnById<number>(this, `angleFilterValue`, processedData)
-                : undefined;
+            this.properties.angleFilterKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `angleFilterValue`, processedData);
         const angleFilterRawValues =
-            this.properties.angleFilterKey != null
-                ? dataModel.resolveColumnById<number>(this, `angleFilterRaw`, processedData)
-                : undefined;
+            this.properties.angleFilterKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `angleFilterRaw`, processedData);
         const radiusValues = this.properties.radiusKey
             ? dataModel.resolveColumnById<number>(this, `radiusValue`, processedData)
             : undefined;
@@ -463,7 +463,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         let currentStart = 0;
         let sum = 0;
         const nodes: PieDonutNodeDatum[] = [];
-        const phantomNodes: PieDonutNodeDatum[] | undefined = angleFilterRawValues != null ? [] : undefined;
+        const phantomNodes: PieDonutNodeDatum[] | undefined = angleFilterRawValues == null ? undefined : [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const invalidData = processedData.invalidData?.get(this.id);
         for (const [datumIndex, datum] of rawData.entries()) {
@@ -1057,7 +1057,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
             const inset = Math.max(
-                (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
+                (this.properties.sectorSpacing + (format.stroke == null ? 0 : format.strokeWidth)) / 2,
                 0
             );
             sector.inset = inset;
@@ -1753,7 +1753,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                     text: labelParts.map((s) => toPlainText(s)).join(' - '),
                 },
                 symbol: this.legendItemSymbol(datumIndex),
-                legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
+                legendItemName: legendItemKey == null ? undefined : datum[legendItemKey],
                 hideInLegend: !showInLegend,
             });
         }

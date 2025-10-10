@@ -255,7 +255,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // so we need to get the theme before and after applying the preset
                 const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
                 const presetTheme =
-                    presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
+                    presetSubType == null ? undefined : getChartTheme(options.theme).presets[presetSubType];
 
                 const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
                 for (const error of invalid) {

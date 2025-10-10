@@ -263,12 +263,12 @@ function collapseSpan(
 
     if (indices.xValue0Index >= range.xValue1Index) {
         const datumIndex = axisIndices.findLast((i) => i.xValue1Index <= range.xValue1Index)?.datumIndex;
-        const datum = datumIndex != null ? data.data[datumIndex] : undefined;
+        const datum = datumIndex == null ? undefined : data.data[datumIndex];
         xValue = datum?.xValue1;
         yValue = datum?.yValue1;
     } else if (indices.xValue0Index <= range.xValue0Index) {
         const datumIndex = axisIndices.find((i) => i.xValue0Index >= range.xValue0Index)?.datumIndex;
-        const datum = datumIndex != null ? data.data[datumIndex] : undefined;
+        const datum = datumIndex == null ? undefined : data.data[datumIndex];
         xValue = datum?.xValue0;
         yValue = datum?.yValue0;
     }

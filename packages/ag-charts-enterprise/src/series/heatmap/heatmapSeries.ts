@@ -540,8 +540,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined =
-            fill != null
-                ? {
+            fill == null
+                ? undefined
+                : {
                       marker: {
                           shape: 'square',
                           fill: fill,
@@ -552,8 +553,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                           lineDash: [0],
                           lineDashOffset: 0,
                       },
-                  }
-                : undefined;
+                  };
 
         return this.formatTooltipWithContext(
             tooltip,
