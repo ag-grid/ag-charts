@@ -174,19 +174,25 @@ function configure_mcp() {
         claude mcp add "$name" -s $scope -- "$command" $args
     }
 
+    function add_sse_mcp() {
+        local name=$1
+        local scope=$2
+        local url=$3
+        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Project") ; then
+            claude mcp remove "$name" -s project
+        fi
+        if (claude mcp get "$name" 2>&1 | grep -q "Scope: Local") ; then
+            claude mcp remove "$name" -s local
+        fi
+        claude mcp add "$name" -s $scope --transport sse $url
+    }
+
     add_mcp fetch project yarn run --silent mcp-fetch
     add_mcp sequential-thinking project yarn run --silent mcp-server-sequential-thinking
     add_mcp context7 project yarn run --silent context7-mcp
     add_mcp puppeteer project yarn run --silent mcp-server-puppeteer
     add_mcp chrome-devtools project tools/prompts/nvm-exec.sh --silent 22 npx -y --silent chrome-devtools-mcp@latest
-
-    if command -v docker >/dev/null 2>&1; then
-        if [ -n "${JIRA_URL}" ] && [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_API_TOKEN}" ]; then
-            add_mcp ag-jira local docker run -i --rm -e JIRA_URL=${JIRA_URL} -e JIRA_USERNAME=${JIRA_USERNAME} -e JIRA_API_TOKEN=${JIRA_API_TOKEN} ghcr.io/sooperset/mcp-atlassian:latest
-        else
-            echo "JIRA_URL, JIRA_USERNAME, and JIRA_API_TOKEN are not set, skipping ag-jira"
-        fi
-    fi
+    add_sse_mcp atlassian project https://mcp.atlassian.com/v1/sse
 
     # Ensure Gemini config entries are added
     target_file="tools/prompts/.mcp.json"

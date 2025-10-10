@@ -222,7 +222,7 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 
 ## JIRA Ticket Search Guidelines
 
--   When searching for JIRA tickets using the MCP server `mcp-ag-jira`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
+-   When searching for JIRA tickets using the MCP server `atlassian`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
 -   When searching for JIRA tickets that need review, we're usually interested in tickets with a status of `Needs Review`.
 
 ## Documentation Resources
