@@ -50,23 +50,17 @@ const series4Style: ItemStyle = {
     },
 };
 
-let options: AgChartOptions = {
-    container: document.getElementById('myChart'),
-};
-
+let options = { container: document.getElementById('myChart')! } as const;
 let chart: ReturnType<typeof AgCharts.create>;
 
 function toggleLowHigh(lowHigh: boolean): void {
     function lowAndHigh(p: ItemStyle) {
         return { item: { low: p, high: p } };
     }
-    function safeAs<T>(input: T): T {
-        return input;
-    }
 
     chart?.destroy();
     chart = AgCharts.create({
-        ...safeAs<{ container?: HTMLElement }>(options),
+        ...options,
         animation: { enabled: false },
         data: getData(),
         legend: { item: { line: { length: 50 } } },
