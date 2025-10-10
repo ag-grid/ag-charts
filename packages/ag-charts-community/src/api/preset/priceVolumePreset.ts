@@ -268,10 +268,7 @@ export function priceVolume(
                     'range-area': {
                         series: {
                             fillOpacity: 0.3,
-                            item: {
-                                low: { strokeWidth: 2 },
-                                high: { strokeWidth: 2 },
-                            },
+                            strokeWidth: 2,
                         },
                     },
                 },
@@ -451,10 +448,7 @@ function createPriceSeriesHLC(
             yHighKey: highKey,
             yLowKey: closeKey,
             fill: PALETTE_UP_FILL,
-            item: {
-                low: { stroke: PALETTE_UP_STROKE },
-                high: { stroke: PALETTE_UP_STROKE },
-            },
+            stroke: PALETTE_UP_STROKE,
         } satisfies AgRangeAreaSeriesOptions,
         {
             type: RANGE_AREA_TYPE,
@@ -465,10 +459,7 @@ function createPriceSeriesHLC(
             yHighKey: closeKey,
             yLowKey: lowKey,
             fill: PALETTE_DOWN_FILL,
-            item: {
-                low: { stroke: PALETTE_DOWN_STROKE },
-                high: { stroke: PALETTE_DOWN_STROKE },
-            },
+            stroke: PALETTE_DOWN_STROKE,
         } satisfies AgRangeAreaSeriesOptions,
         {
             type: 'line',
