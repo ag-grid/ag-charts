@@ -1289,23 +1289,8 @@ describe('RangeAreaSeries', () => {
 
     describe('AG-15773 itemStyler itemId', () => {
         it('should render high and low markers differently', async () => {
-<<<<<<< HEAD
             type D = { month: string; low: number; high: number };
-            type F = NonNullablePath<AgRangeAreaSeriesOptions<D>, 'item', 'low' | 'high', 'marker', 'itemStyler'>;
-            const itemStyler: F = (params) => {
-                switch (params.itemId) {
-                    case 'high':
-                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
-                    case 'low':
-                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
-                    default:
-                        return {};
-                }
-            };
             const options: AgChartOptions<D> = {
-=======
-            const options: AgChartOptions = {
->>>>>>> parent of dc87189077 (AG-9002 Migrate away from deprecated range-area options)
                 data: [
                     { month: 'January', low: 1200, high: 1500 },
                     { month: 'February', low: 1500, high: 1650 },
