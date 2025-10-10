@@ -371,6 +371,7 @@ export const and = (...validators: Validator[]): Validator =>
             return { valid: true, cleared: value, invalid };
         },
         validators
+            .filter((v) => !v[undocumentedSymbol])
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
             .join(' and ')
@@ -393,6 +394,7 @@ export const or = (...validators: Validator[]) =>
             return false;
         },
         validators
+            .filter((v) => !v[undocumentedSymbol])
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
             .join(' or ')

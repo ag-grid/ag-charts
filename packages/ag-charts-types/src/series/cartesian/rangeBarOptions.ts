@@ -72,9 +72,9 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     label?: AgRangeBarSeriesLabelOptions<TDatum, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
-    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgRangeBarSeriesStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
-    /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters.*/
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;

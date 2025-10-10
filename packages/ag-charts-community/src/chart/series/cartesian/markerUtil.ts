@@ -123,8 +123,8 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
 export function markerEnabled(
     dataCount: number,
     scale: Scale<unknown, number, unknown>,
-    marker: Pick<SeriesMarker<unknown>, 'enabled' | 'size'>,
-    markerStyle: { enabled?: boolean; size: number } = marker
+    marker: { enabled: boolean },
+    markerStyle: { enabled?: boolean } = marker
 ) {
     const enabled = markerStyle.enabled ?? marker.enabled;
     if (!enabled) return false;
@@ -140,30 +140,34 @@ type DefaultOverrideStyle = AgSeriesMarkerStyle & { size: number };
 
 interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
     properties: {
-        stroke?: string;
-        strokeWidth: number;
-        strokeOpacity: number;
         styler?: SeriesStyler<TStylerParams, TStylerResult>;
     };
     getMarkerStyle<TParams>(
         marker: SeriesMarker<TParams>,
         nodeDatum: object,
         params?: TParams,
-        opts?: { highlightState?: HighlightState; resolveStylerMarkerPath?: 'marker' | 'marker-only' },
+        opts?: { highlightState?: HighlightState },
         defaultOverrideStyle?: DefaultOverrideStyle,
         inheritedStyle?: AgSeriesMarkerStyle
     ): AgSeriesMarkerStyle & { size: number };
 }
 
+type LineProperties = {
+    stroke?: string;
+    strokeWidth: number;
+    strokeOpacity: number;
+};
+
 export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>(
     series: MarkerSeriesStylerProps<TStylerParams, TStylerResult>,
+    line: LineProperties,
     marker: SeriesMarker<TItemStylerParams>,
     inheritedStyle?: AgSeriesMarkerStyle
 ) {
     inheritedStyle ??= {
-        stroke: series.properties.stroke,
-        strokeOpacity: series.properties.strokeOpacity,
-        strokeWidth: series.properties.strokeWidth,
+        stroke: line.stroke,
+        strokeOpacity: line.strokeOpacity,
+        strokeWidth: line.strokeWidth,
     };
 
     return highlightStates.reduce(

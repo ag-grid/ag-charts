@@ -250,7 +250,7 @@ export class SankeySeries extends FlowProportionSeries<
                     const size = link.link.size;
                     const ghostNode: GhostNodeGraphEntry = {
                         ghost: true,
-                        datum: { size, y: 0, height: 0 },
+                        datum: { ...graphNode.datum, size, y: 0, height: 0 },
                         weight: 0,
                         linksBefore: [{ node: { columnIndex: i - 1, datum: { size } } }],
                         linksAfter: [{ node: { columnIndex: i + 1, datum: { size } } }],
@@ -312,34 +312,19 @@ export class SankeySeries extends FlowProportionSeries<
                 }, 0);
             }
 
-            column.nodes.sort((a: any, b: any) => {
-                // Ghost nodes reference their concrete column index so are sorted such that ghosts linked before are
-                // given priority
-                if (a.columnIndex < b.columnIndex) return -1;
-                if (a.columnIndex > b.columnIndex) return 1;
-
-                // Ghost nodes with the same weight are compared by their associated concrete datum's size
-                if (a.weight === b.weight) {
-                    return a.datum.size - b.datum.size;
-                }
-
-                // Sort nodes that have distal links to the top
-                if (a.closestColumnDiff < b.closestColumnDiff) return 1;
-                if (a.closestColumnDiff > b.closestColumnDiff) return -1;
-
-                // Sort heavier nodes to the bottom
-                return a.weight - b.weight;
-            });
+            column.nodes.sort((a, b) => this.sortNodes(a as EnhancedNodeGraphEntry, b as EnhancedNodeGraphEntry));
         }
 
         // Layout the nodes in their columns
         for (const column of columns) {
             const nodesHeight = seriesRectHeight * column.size * sizeScale;
-            let y = (seriesRectHeight - (nodesHeight + nodeSpacing * (column.nodes.length - 1))) / 2; // center
 
-            // TODO: vertical alignment option
-            // let y = seriesRectHeight - (nodesHeight + nodeSpacing * (column.nodes.length - 1)); // bottom
-            // let y = 0; // top
+            let y = 0;
+            if (this.properties.node.verticalAlignment === 'bottom') {
+                y = seriesRectHeight - (nodesHeight + nodeSpacing * (column.nodes.length - 1));
+            } else if (this.properties.node.verticalAlignment === 'center') {
+                y = (seriesRectHeight - (nodesHeight + nodeSpacing * (column.nodes.length - 1))) / 2;
+            }
 
             for (const node of column.nodes) {
                 const height = seriesRectHeight * node.datum.size * sizeScale;
@@ -361,31 +346,21 @@ export class SankeySeries extends FlowProportionSeries<
             hasNegativeNodeHeight ||= datum.height < 0;
 
             let y2 = datum.y;
-            linksBefore.sort((a, b) => {
-                const aNode = a.node;
-                const bNode = b.node;
-
-                if (aNode.columnIndex < bNode.columnIndex) return -1;
-                if (aNode.columnIndex > bNode.columnIndex) return 1;
-
-                return aNode.weight - bNode.weight;
-            });
-            for (const { link } of linksBefore) {
+            linksBefore.sort((a, b) =>
+                this.sortNodes(a.node as EnhancedNodeGraphEntry, b.node as EnhancedNodeGraphEntry)
+            );
+            linksBefore.forEach(({ link }) => {
                 link.y2 = y2;
                 y2 += link.size * seriesRectHeight * sizeScale;
             }
 
             let y1 = datum.y;
-            linksAfter.sort((a, b) => {
-                const aNode = a.node;
-                const bNode = b.node;
-
-                if (aNode.columnIndex < bNode.columnIndex) return 1;
-                if (aNode.columnIndex > bNode.columnIndex) return -1;
-
-                return aNode.weight - bNode.weight;
-            });
-            for (const { link } of linksAfter) {
+            linksAfter.sort((a, b) =>
+                this.sortNodes(a.node as EnhancedNodeGraphEntry, b.node as EnhancedNodeGraphEntry, {
+                    invertColumnSort: true,
+                })
+            );
+            linksAfter.forEach(({ link }) => {
                 link.y1 = y1;
                 y1 += link.size * seriesRectHeight * sizeScale;
             }
@@ -410,8 +385,10 @@ export class SankeySeries extends FlowProportionSeries<
 
             let bottom = -Infinity;
             column.nodes.sort((a, b) => a.datum.y - b.datum.y);
-            for (const { datum: node } of column.nodes) {
-                if (!('label' in node)) continue;
+            column.nodes.forEach((n) => {
+                if ('ghost' in n && n.ghost) return;
+
+                const { datum: node } = n as EnhancedNodeGraphEntry;
 
                 node.midPoint = {
                     x: node.x + node.width / 2,
@@ -486,6 +463,35 @@ export class SankeySeries extends FlowProportionSeries<
             nodeData,
             labelData,
         };
+    }
+
+    private sortNodes(a: EnhancedNodeGraphEntry, b: EnhancedNodeGraphEntry, opts?: { invertColumnSort: boolean }) {
+        const { properties } = this;
+
+        if (properties.node.sort === 'a-z') {
+            return (a.datum.label ?? '').localeCompare(b.datum.label ?? '');
+        } else if (properties.node.sort === 'z-a') {
+            return (b.datum.label ?? '').localeCompare(a.datum.label ?? '');
+        } else if (properties.node.sort === 'data') {
+            return 0;
+        }
+
+        // Ghost nodes reference their concrete column index so are sorted such that ghosts linked before are
+        // given priority
+        if (a.columnIndex < b.columnIndex) return opts?.invertColumnSort ? 1 : -1;
+        if (a.columnIndex > b.columnIndex) return opts?.invertColumnSort ? -1 : 1;
+
+        // Ghost nodes with the same weight are compared by their associated concrete datum's size
+        if (a.weight === b.weight) {
+            return a.datum.size - b.datum.size;
+        }
+
+        // Sort nodes that have distal links to the top
+        if (a.closestColumnDiff < b.closestColumnDiff) return 1;
+        if (a.closestColumnDiff > b.closestColumnDiff) return -1;
+
+        // Sort heavier nodes to the bottom
+        return a.weight - b.weight;
     }
 
     protected updateLabelSelection(opts: {

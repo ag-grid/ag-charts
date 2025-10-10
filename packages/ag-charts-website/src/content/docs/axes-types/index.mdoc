@@ -26,6 +26,7 @@ different groups, and the number axis displays the corresponding sale value for 
             type: 'category',
             position: 'bottom',
         },
+        //...
     ],
 }
 ```
@@ -92,6 +93,7 @@ round it up and try to segment the rounded range with evenly spaced intervals.
             type: 'number',
             position: 'left',
         },
+        //..
     ],
 }
 ```
@@ -121,9 +123,14 @@ necessary to reduce the number of ticks.
 
 ```js format="snippet"
 {
-    type: 'log',
-    position: 'left',
-    minSpacing: 200,
+    axes: [
+        {
+            type: 'log',
+            position: 'left',
+            minSpacing: 200,
+        },
+        //...
+    ],
 }
 ```
 
@@ -132,9 +139,14 @@ you to change the base to any number you like, for example `Math.E` for natural 
 
 ```js format="snippet"
 {
-    type: 'log',
-    position: 'left',
-    base: 2,
+    axes: [
+        {
+            type: 'log',
+            position: 'left',
+            base: 2,
+        },
+        ///...
+    ],
 }
 ```
 

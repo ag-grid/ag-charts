@@ -264,8 +264,8 @@ Themes can also be customised or created with the [Theming API](/themes-api/).
 
 Use `params` to set styles across the whole chart, `palette` to define the colour palette used for the datapoints, and `overrides` to change a specific default within the base theme.
 
-```ts
-const customTheme: AgChartTheme = {
+```js
+const customTheme = {
     palette: {
         //these are used by each series in rotation
         fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
@@ -329,7 +329,7 @@ Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is r
 
 Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
 
-```ts format="snippet"
+```js format="snippet"
 {
     tooltip: {
         renderer: (params) => {

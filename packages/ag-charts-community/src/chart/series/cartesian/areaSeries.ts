@@ -890,7 +890,7 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
-            styles: getMarkerStyles(this, marker),
+            styles: getMarkerStyles(this, this.properties, marker),
             segments,
         };
 

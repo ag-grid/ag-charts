@@ -136,7 +136,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     avoidCollisions: boolean,
     minSpacing: positiveNumber,
     spacing: positiveNumber,
-    formatter: callback,
+    formatter: callbackOf(textOrSegments),
     itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
         ...fontOptionsDef,
         ...labelBoxOptionsDef,
@@ -234,7 +234,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
         enabled: boolean,
         text: textOrSegments,
         spacing: positiveNumber,
-        formatter: callback,
+        formatter: callbackOf(textOrSegments),
         ...fontOptionsDef,
     },
 };

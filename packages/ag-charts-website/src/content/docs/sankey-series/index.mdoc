@@ -33,7 +33,9 @@ In this configuration:
 Circular loops are not allowed in Sankey diagrams, and links forming a circular loop will be removed.
 {% /warning %}
 
-## Alignment
+## Node Layout
+
+### Horizontal Alignment
 
 The horizontal placement of the nodes can be customised using the `alignment` property on `node`.
 
@@ -61,6 +63,46 @@ There are four values supported:
 -   `right` moves nodes as far right as possible.
 -   `center` moves nodes as close to the centre as possible.
 -   `justify` moves nodes as far left as possible, except for the last nodes, which are pushed right.
+
+### Vertical Alignment
+
+The vertical placement of the nodes can be customised using the `verticalAlignment` property on `node`.
+
+{% chartExampleRunner title="Vertical alignment" name="vertical-alignment" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: {
+                verticalAlignment: 'top',
+            },
+        },
+    ],
+}
+```
+
+There are three values supported:
+
+-   `top` moves nodes as far up as possible.
+-   `bottom` moves nodes as far down as possible.
+-   `center` places the nodes in the middle and distributes evenly in each direction.
+
+### Sorting
+
+The order of the nodes can be customised using the `sort` property on `node`.
+
+{% chartExampleRunner title="Sorting" name="sorting" type="generated" /%}
+
+There are three values supported:
+
+-   `data` sorts nodes in the same order as they first appear in the `data` array.
+-   `a-z` and `z-a` sort nodes alphanumerically by their displayed labels.
+-   `weight` sorts nodes to reduce overlapping links and produce a cleaner layout.
 
 ## Customisation
 

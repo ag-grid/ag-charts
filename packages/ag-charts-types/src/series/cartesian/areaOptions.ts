@@ -29,7 +29,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
         FillOptions,
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
-    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgAreaSeriesStylerParams<TDatum, TContext>, AgAreaSeriesStylerResult>;
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum, TContext>, TContext>;

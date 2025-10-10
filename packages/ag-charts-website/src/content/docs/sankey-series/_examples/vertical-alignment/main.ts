@@ -28,7 +28,7 @@ const options: AgFlowProportionChartOptions = {
             sizeKey: 'size',
             sizeName: 'Total (USD millions)',
             node: {
-                alignment: 'left',
+                verticalAlignment: 'center',
             },
         },
     ],
@@ -36,22 +36,17 @@ const options: AgFlowProportionChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function alignLeft() {
-    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'left';
+function verticalAlignTop() {
+    (options.series![0] as AgSankeySeriesOptions).node!.verticalAlignment = 'top';
     chart.update(options);
 }
 
-function alignRight() {
-    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'right';
+function verticalAlignBottom() {
+    (options.series![0] as AgSankeySeriesOptions).node!.verticalAlignment = 'bottom';
     chart.update(options);
 }
 
-function alignCenter() {
-    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'center';
-    chart.update(options);
-}
-
-function alignJustify() {
-    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'justify';
+function verticalAlignCenter() {
+    (options.series![0] as AgSankeySeriesOptions).node!.verticalAlignment = 'center';
     chart.update(options);
 }
