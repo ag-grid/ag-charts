@@ -2198,6 +2198,235 @@ describe('DataModel', () => {
                 expect(columns[1][2]).toBe(300); // C seriesB (200+100 stacked)
             });
         });
+
+        describe('multiple scopes sharing same DataSet', () => {
+            it('should not over-apply band updates when multiple scopes share same DataSet', () => {
+                // This test verifies that updateBandsForChanges() deduplicates change descriptions
+                // to avoid applying band insertions/removals multiple times
+                const dataModel = new DataModel<any, any, true>({
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
+                    groupByKeys: true,
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 50,
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Create initial data with 100 items (above threshold to enable banding)
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    category: `Cat${i}`,
+                    value1: i * 10,
+                    value2: i * 100,
+                }));
+                const dataSet = new DataSet(initialData);
+
+                // Multiple scopes, same DataSet
+                const sources = new Map([
+                    ['scope1', dataSet],
+                    ['scope2', dataSet],
+                ]);
+
+                const processedData = dataModel.processData(sources);
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+                // Append new data
+                dataSet.addTransaction({
+                    append: [{ category: 'Cat100', value1: 1000, value2: 10000 }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify the domain is correct (would be wrong if bands were updated twice)
+                expect(reprocessed.domain.values[0]).toEqual([0, 1000]);
+                expect(reprocessed.domain.values[1]).toEqual([0, 10000]);
+                expect(reprocessed.columns[0][100]).toBe(1000);
+                expect(reprocessed.columns[1][100]).toBe(10000);
+
+                // Verify optimization metadata shows banding was used efficiently
+                const metadata = reprocessed.optimizations;
+                if (metadata?.domainBanding) {
+                    const valueDefStats0 = metadata.domainBanding.valueDefs[0]?.stats;
+                    const valueDefStats1 = metadata.domainBanding.valueDefs[1]?.stats;
+
+                    if (valueDefStats0 && valueDefStats1) {
+                        // Both value defs should have band stats
+                        expect(valueDefStats0.totalBands).toBeGreaterThan(0);
+                        expect(valueDefStats1.totalBands).toBeGreaterThan(0);
+
+                        // Not all bands should be dirty (only affected ones)
+                        expect(valueDefStats0.dirtyBands).toBeLessThan(valueDefStats0.totalBands);
+                        expect(valueDefStats1.dirtyBands).toBeLessThan(valueDefStats1.totalBands);
+                    }
+                }
+            });
+
+            it('should not double-apply group processors when multiple scopes share same DataSet', () => {
+                // This test verifies that reprocessGroupProcessors() deduplicates change descriptions
+                // to avoid applying group processor adjustments multiple times (which would double stacking values)
+                const dataModel = new DataModel<any, any, true>({
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'seriesA', 'stack'),
+                        scopedValue('scope2', 'seriesB', 'stack'),
+                        actualAccumulateGroup('stack', 'normal'),
+                    ],
+                    groupByKeys: true,
+                });
+
+                const initialData = [
+                    { category: 'A', seriesA: 100, seriesB: 50 },
+                    { category: 'B', seriesA: 150, seriesB: 75 },
+                ];
+                const dataSet = new DataSet(initialData);
+
+                // Multiple scopes, same DataSet
+                const sources = new Map([
+                    ['scope1', dataSet],
+                    ['scope2', dataSet],
+                ]);
+
+                const processedData = dataModel.processData(sources);
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+                // Append new data
+                dataSet.addTransaction({
+                    append: [{ category: 'C', seriesA: 200, seriesB: 100 }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                const columns = reprocessed.columns;
+
+                // Verify stacking was applied ONCE (not doubled)
+                // Category A: seriesA=100, seriesB=150 (100+50 stacked)
+                expect(columns[0][0]).toBe(100);
+                expect(columns[1][0]).toBe(150); // Should be 150, not 200 (would be doubled if bug)
+
+                // Category B: seriesA=150, seriesB=225 (150+75 stacked)
+                expect(columns[0][1]).toBe(150);
+                expect(columns[1][1]).toBe(225); // Should be 225, not 300 (would be doubled if bug)
+
+                // Category C (new): seriesA=200, seriesB=300 (200+100 stacked)
+                expect(columns[0][2]).toBe(200);
+                expect(columns[1][2]).toBe(300); // Should be 300, not 400 (would be doubled if bug)
+            });
+
+            it('should not commit transactions multiple times when multiple scopes share same DataSet', () => {
+                // This test verifies that commitPendingTransactions() deduplicates DataSets
+                // to avoid committing the same transaction multiple times
+                const dataModel = new DataModel<any, any, true>({
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
+                    groupByKeys: true,
+                });
+
+                const initialData = [
+                    { category: 'A', value1: 10, value2: 100 },
+                    { category: 'B', value1: 20, value2: 200 },
+                ];
+                const dataSet = new DataSet(initialData);
+
+                // Multiple scopes, same DataSet
+                const sources = new Map([
+                    ['scope1', dataSet],
+                    ['scope2', dataSet],
+                ]);
+
+                const processedData = dataModel.processData(sources);
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+                // Add multiple transactions
+                dataSet.addTransaction({ append: [{ category: 'C', value1: 30, value2: 300 }] });
+                dataSet.addTransaction({ append: [{ category: 'D', value1: 40, value2: 400 }] });
+
+                // Before reprocessing, the DataSet should have pending transactions
+                expect(dataSet.getChangeDescription()).toBeTruthy();
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // After reprocessing, transactions should be committed exactly once
+                expect(dataSet.getChangeDescription()).toBeUndefined();
+
+                // Verify data is correct
+                expect(reprocessed.columns[0]).toEqual([10, 20, 30, 40]);
+                expect(reprocessed.columns[1]).toEqual([100, 200, 300, 400]);
+
+                // Verify domain is correct
+                expect(reprocessed.domain.values[0]).toEqual([10, 40]);
+                expect(reprocessed.domain.values[1]).toEqual([100, 400]);
+            });
+
+            it('should handle mixed operations with multiple scopes sharing same DataSet', () => {
+                // This test verifies all deduplication logic works together with complex operations
+                const dataModel = new DataModel<any, any, true>({
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'seriesA', 'stack'),
+                        scopedValue('scope2', 'seriesB', 'stack'),
+                        actualAccumulateGroup('stack', 'normal'),
+                    ],
+                    groupByKeys: true,
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 50,
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
+                });
+
+                // Create larger dataset to enable banding
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    category: `Cat${i}`,
+                    seriesA: i * 10,
+                    seriesB: i * 5,
+                }));
+                const dataSet = new DataSet(initialData);
+
+                // Multiple scopes, same DataSet
+                const sources = new Map([
+                    ['scope1', dataSet],
+                    ['scope2', dataSet],
+                ]);
+
+                const processedData = dataModel.processData(sources);
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+                // Perform mixed operations: remove from start, append at end
+                dataSet.addTransaction({
+                    remove: [initialData[0]],
+                    append: [{ category: 'Cat100', seriesA: 1000, seriesB: 500 }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                const columns = reprocessed.columns;
+
+                // Verify data length is correct (100 items still)
+                expect(columns[0].length).toBe(100);
+                expect(columns[1].length).toBe(100);
+
+                // Verify first item is now Cat1 (Cat0 was removed)
+                expect(reprocessed.domain.groups![0]).toEqual(['Cat1']);
+
+                // Verify last item is Cat100 (newly appended)
+                expect(reprocessed.domain.groups![99]).toEqual(['Cat100']);
+
+                // Verify stacking on the last item (should be applied once, not doubled)
+                expect(columns[0][99]).toBe(1000); // seriesA
+                expect(columns[1][99]).toBe(1500); // seriesB stacked: 1000 + 500 = 1500
+
+                // Verify domain reflects correct range
+                // domain.values[0] is seriesA range (not stacked)
+                // domain.values[1] is seriesB range (after stacking)
+                expect(reprocessed.domain.values[0]).toEqual([10, 1000]); // seriesA range
+                expect(reprocessed.domain.values[1]).toEqual([15, 1500]); // seriesB stacked range (10+5 to 1000+500)
+            });
+        });
     });
 
     describe('banded domain optimization', () => {

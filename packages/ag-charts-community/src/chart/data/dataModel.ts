@@ -791,8 +791,9 @@ export class DataModel<
     ): ProcessedData<D> {
         if (!this.isReprocessingSupported(processedData)) {
             // Fallback to full reprocessing when incremental is not supported
-            // First commit any pending transactions
-            for (const dataSet of processedData.dataSources.values()) {
+            // First commit any pending transactions (deduplicate DataSets)
+            const uniqueDataSets = new Set(processedData.dataSources.values());
+            for (const dataSet of uniqueDataSets) {
                 dataSet.commitPendingTransactions();
             }
             return this.processData(processedData.dataSources)!;
@@ -861,6 +862,8 @@ export class DataModel<
     /**
      * Updates banded domains based on pending changes.
      * This optimizes domain recalculation by only marking affected bands as dirty.
+     * Deduplicates change descriptions to avoid processing the same changes multiple times
+     * when multiple scopes share the same DataSet.
      */
     private updateBandsForChanges(
         processedData: ProcessedData<D>,
@@ -869,7 +872,14 @@ export class DataModel<
         const bandedDomains = processedData[DOMAIN_BANDS];
         if (bandedDomains.size === 0) return;
 
+        // Deduplicate change descriptions (multiple scopes can share same DataSet/changeDesc)
+        const processedChangeDescs = new Set<DataChangeDescription>();
+
         for (const [, changeDesc] of scopeChanges) {
+            // Skip if we've already processed this change description
+            if (processedChangeDescs.has(changeDesc)) continue;
+            processedChangeDescs.add(changeDesc);
+
             const { indexMap } = changeDesc;
             const { spliceOps } = indexMap;
 
@@ -911,9 +921,13 @@ export class DataModel<
 
     /**
      * Commits all pending transactions to the data arrays.
+     * Deduplicates DataSets to avoid committing the same DataSet multiple times
+     * when multiple scopes share the same DataSet.
      */
     private commitPendingTransactions(processedData: ProcessedData<D>): void {
-        for (const dataSet of processedData.dataSources.values()) {
+        // Deduplicate DataSets before committing (multiple scopes can share same DataSet)
+        const uniqueDataSets = new Set(processedData.dataSources.values());
+        for (const dataSet of uniqueDataSets) {
             dataSet.commitPendingTransactions();
         }
     }
@@ -2225,6 +2239,8 @@ export class DataModel<
      * Reprocesses group processors for incremental updates.
      * Only processes newly inserted groups to avoid double-processing.
      * This is safe only when all group processors support reprocessing.
+     * Deduplicates change descriptions to avoid processing the same groups multiple times
+     * when multiple scopes share the same DataSet.
      */
     private reprocessGroupProcessors(
         processedData: GroupedData<D>,
@@ -2243,13 +2259,20 @@ export class DataModel<
             }
         }
 
+        // Deduplicate change descriptions (multiple scopes can share same DataSet/changeDesc)
+        const processedChangeDescs = new Set<DataChangeDescription>();
+        for (const [, changeDesc] of scopeChanges) {
+            if (processedChangeDescs.has(changeDesc)) continue;
+            processedChangeDescs.add(changeDesc);
+        }
+
         // Process each group processor
         for (const processor of groupProcessors) {
             const valueIndexes = this.valueGroupIdxLookup(processor);
             const adjustFn = processor.adjust()();
 
-            // Process only modified groups from scope changes
-            for (const [, changeDesc] of scopeChanges) {
+            // Process only modified groups from unique change descriptions
+            for (const changeDesc of processedChangeDescs) {
                 const { indexMap } = changeDesc;
 
                 // Process insertions - these are new groups that need processing
