@@ -69,7 +69,7 @@ export function isFiniteNumber(value: unknown): value is number {
 }
 
 export function isHtmlElement(value: unknown): value is HTMLElement {
-    return typeof window !== 'undefined' && value instanceof HTMLElement;
+    return typeof globalThis.window !== 'undefined' && value instanceof HTMLElement;
 }
 
 export function isEnumKey<T extends object>(enumObject: T, enumKey: keyof T): enumKey is keyof T {

@@ -14,7 +14,9 @@ describe('ChartSync', () => {
 
     afterEach(() => {
         if (charts) {
-            charts.forEach((c) => c.destroy());
+            for (const c of charts) {
+                c.destroy();
+            }
             (charts as unknown) = undefined;
         }
     });

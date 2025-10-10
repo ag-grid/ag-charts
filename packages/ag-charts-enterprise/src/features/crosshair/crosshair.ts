@@ -85,7 +85,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.eventsHub.on('zoom:change', () => this.onMouseOut()),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
-            () => Object.values(this.labels).forEach((label) => label.destroy())
+            () => {
+                for (const label of Object.values(this.labels)) {
+                    label.destroy();
+                }
+            }
         );
         if (seriesDragInterpreter) {
             this.cleanup.register(
@@ -299,8 +303,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const halfBandwidth = (axisCtx.scale.bandwidth ?? 0) / 2;
 
         const matchingAxisId = series.axes[axisCtx.direction]?.id === axisCtx.axisId;
-        const isYKey = seriesKeyProperties.indexOf('yKey') > -1 && matchingAxisId;
-        const isXKey = seriesKeyProperties.indexOf('xKey') > -1 && matchingAxisId;
+        const isYKey = seriesKeyProperties.includes('yKey') && matchingAxisId;
+        const isXKey = seriesKeyProperties.includes('xKey') && matchingAxisId;
 
         const datumValue = aggregatedValue ?? cumulativeValue;
         if (isYKey && datumValue !== undefined) {
@@ -321,7 +325,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
 
-        seriesKeyProperties.forEach((key) => {
+        for (const key of seriesKeyProperties) {
             const keyValue = series.properties[key];
             const value = datum?.[keyValue];
             const position = axisCtx.scale.convert(value) + halfBandwidth;
@@ -330,7 +334,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             if (isInRange) {
                 activeHighlightData[key] = { value, position };
             }
-        });
+        }
 
         return activeHighlightData;
     }

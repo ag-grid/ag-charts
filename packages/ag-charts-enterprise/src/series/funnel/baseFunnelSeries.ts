@@ -250,7 +250,7 @@ export abstract class BaseFunnelSeries<
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override createNodeData() {
@@ -312,11 +312,11 @@ export abstract class BaseFunnelSeries<
         }
         let previousConnection: ConnectorConfig | undefined;
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const visible = isVisible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             const xDatum = xValues[datumIndex];
-            if (xDatum == null) return;
+            if (xDatum == null) continue;
 
             const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex)) + barOffset;
 
@@ -418,7 +418,7 @@ export abstract class BaseFunnelSeries<
                     datumIndex: datumIndex,
                 };
             }
-        });
+        }
 
         return context;
     }

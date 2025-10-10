@@ -387,7 +387,11 @@ export class DataModel<
         for (const def of opts.props) {
             const scopes = def.type === 'key' ? keyScopes : valueScopes;
             if (isScoped(def)) {
-                def.scopes?.forEach((s) => scopes.add(s));
+                if (def.scopes) {
+                    for (const s of def.scopes) {
+                        scopes.add(s);
+                    }
+                }
             }
 
             switch (def.type) {
@@ -432,7 +436,9 @@ export class DataModel<
 
         if (!!this.opts.groupByKeys || this.opts.groupByFn != null) {
             const ungroupedScopes = new Set(valueScopes.values());
-            keyScopes.forEach((s) => ungroupedScopes.delete(s));
+            for (const s of keyScopes) {
+                ungroupedScopes.delete(s);
+            }
 
             if (ungroupedScopes.size > 0) {
                 throw new Error(

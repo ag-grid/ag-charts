@@ -162,7 +162,9 @@ export class ChartContext implements ModuleContext {
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
         this.widgets.destroy();
-        this.contextModules.forEach((m) => m.destroy());
+        for (const m of this.contextModules) {
+            m.destroy();
+        }
         this.cleanup.flush();
     }
 }

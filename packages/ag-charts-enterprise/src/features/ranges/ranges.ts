@@ -34,7 +34,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     }
 
     private teardown() {
-        this.container.removeChild(this.toolbar.getElement());
+        this.toolbar.getElement().remove();
         this.toolbar.destroy();
     }
 

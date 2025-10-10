@@ -68,4 +68,4 @@ const options: AgCartesianChartOptions = {
 };
 
 const chart = AgCharts.create(options);
-(window as any).chart = chart;
+(globalThis as any).chart = chart;

@@ -439,7 +439,7 @@ describe('Zoom', () => {
         it('should pan the y-axis', async () => {
             await prepareChart(
                 { axisDraggingMode: 'pan', enableAxisDragging: true, enablePanning: false },
-                { ratioX: { start: 0, end: 0.7 }, ratioY: { start: 0.3, end: 1.0 } }
+                { ratioX: { start: 0, end: 0.7 }, ratioY: { start: 0.3, end: 1 } }
             );
 
             const from = { x: 30, y: cy };

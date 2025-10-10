@@ -72,7 +72,7 @@ export const sonarjsConfig = [
             'unicorn/prefer-at': 1,
             'unicorn/prefer-global-this': 1,
             'unicorn/prefer-includes': 1,
-            'unicorn/no-zero-fractions': 1,
+            'unicorn/no-zero-fractions': 2,
         },
     },
 ];

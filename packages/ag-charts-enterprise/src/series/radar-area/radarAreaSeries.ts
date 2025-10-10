@@ -147,7 +147,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
             areaPath.clear(true);
 
-            areaPoints.forEach(({ x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 }) => {
+            for (const { x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 } of areaPoints) {
                 if (arc) {
                     areaPath.arc(x, y, radius, startAngle, endAngle);
                 } else if (moveTo) {
@@ -155,7 +155,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
                 } else {
                     areaPath.lineTo(x, y);
                 }
-            });
+            }
             areaPath.closePath();
 
             areaNode.checkPathDirty();

@@ -14,7 +14,7 @@ export const arrowUpPoints: Array<[number, number]> = [
     [0.75, 1],
     [0.25, 1],
     [0.25, 0.5],
-    [0.0, 0.5],
+    [0, 0.5],
 ];
 
 function arrowUp(params: AgMarkerShapeFnParams) {

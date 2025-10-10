@@ -96,7 +96,9 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.destroySeries(this.series);
 
-        this.axes.forEach((a) => a.destroy());
+        for (const a of this.axes) {
+            a.destroy();
+        }
         this.axes = [];
 
         this._destroyed = true;
@@ -133,40 +135,42 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     protected destroySeries(allSeries: _ModuleSupport.UnknownSeries[]): void {
-        allSeries?.forEach((series) => {
-            series.destroy();
-            series.detachSeries(this.seriesRoot, this.seriesRoot, undefined);
-            series.chart = undefined;
-        });
+        if (allSeries) {
+            for (const series of allSeries) {
+                series.destroy();
+                series.detachSeries(this.seriesRoot, this.seriesRoot, undefined);
+                series.chart = undefined;
+            }
+        }
     }
 
     protected assignSeriesToAxes() {
-        this.axes.forEach((axis) => {
+        for (const axis of this.axes) {
             axis.boundSeries = this.series.filter((s) => {
                 const seriesAxis = s.axes[axis.direction];
                 return seriesAxis === axis;
             });
-        });
+        }
     }
 
     protected assignAxesToSeries() {
         // This method has to run before `assignSeriesToAxes`.
         const directionToAxesMap: { [K in _ModuleSupport.ChartAxisDirection]?: _ModuleSupport.ChartAxis[] } = {};
 
-        this.axes.forEach((axis) => {
+        for (const axis of this.axes) {
             const direction = axis.direction;
             const directionAxes = (directionToAxesMap[direction] ??= []);
             directionAxes.push(axis);
-        });
+        }
 
-        this.series.forEach((series) => {
-            series.directions.forEach((direction) => {
+        for (const series of this.series) {
+            for (const direction of series.directions) {
                 const directionAxes = directionToAxesMap[direction];
                 if (!directionAxes) {
                     Logger.warnOnce(
                         `no available axis for direction [${direction}]; check series and axes configuration.`
                     );
-                    return;
+                    continue;
                 }
 
                 const seriesKeys = series.getKeys(direction);
@@ -175,12 +179,12 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                     Logger.warnOnce(
                         `no matching axis for direction [${direction}] and keys [${seriesKeys}]; check series and axes configuration.`
                     );
-                    return;
+                    continue;
                 }
 
                 series.axes[direction] = newAxis;
-            });
-        });
+            }
+        }
     }
 
     private findMatchingAxis(
@@ -205,12 +209,16 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     updateData(data: any) {
-        this.series.forEach((s) => s.setChartData(data));
+        for (const s of this.series) {
+            s.setChartData(data);
+        }
         if (this.miniChartAnimationPhase === 'initial') {
             this.ctx.animationManager.onBatchStop(() => {
                 this.miniChartAnimationPhase = 'ready';
                 // Disable animations after initial load.
-                this.series.forEach((s) => s.resetAnimation('disabled'));
+                for (const s of this.series) {
+                    s.resetAnimation('disabled');
+                }
             });
         }
     }
@@ -239,8 +247,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             return padding;
         }
 
-        this.axes.forEach(({ position, thickness, line, label }) => {
-            if (position == null) return;
+        for (const { position, thickness, line, label } of this.axes) {
+            if (position == null) continue;
 
             let size: number;
             if (thickness) {
@@ -252,7 +260,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             }
 
             padding[position] = Math.ceil(size);
-        });
+        }
 
         return padding;
     }
@@ -268,7 +276,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.seriesRoot.translationY = padding.top;
         this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -padding.top, width, height));
 
-        this.axes.forEach((axis) => {
+        for (const axis of this.axes) {
             const { position = 'left' } = axis;
             switch (position) {
                 case 'top':
@@ -301,7 +309,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
             axis.calculateLayout();
             axis.update();
-        });
+        }
 
         if (resized) {
             stackCartesianSeries(this.series);

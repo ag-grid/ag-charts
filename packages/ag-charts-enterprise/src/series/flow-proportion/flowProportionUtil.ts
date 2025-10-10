@@ -43,14 +43,14 @@ export function computeNodeGraph<N extends Node, L extends Link<N>>(
     }
 
     let maxPathLength = 0;
-    nodeGraph.forEach((node, id) => {
+    for (const [id, node] of nodeGraph.entries()) {
         maxPathLength = Math.max(
             maxPathLength,
             computePathLength(nodeGraph, links, node, id, -1, []) +
                 computePathLength(nodeGraph, links, node, id, 1, []) +
                 1
         );
-    });
+    }
 
     return { links, nodeGraph, maxPathLength };
 }

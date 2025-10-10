@@ -93,7 +93,9 @@ export function initRovingTabIndex(opts: {
     // Therefore, we must use brute-force to ensure that there's only one tabIndex=0 in the toolbar.
     const setTabIndices = (event: FocusEvent) => {
         if (event.target && 'tabIndex' in event.target) {
-            buttons.forEach((b) => (b.tabIndex = -1));
+            for (const b of buttons) {
+                b.tabIndex = -1;
+            }
             event.target.tabIndex = 0;
         }
     };

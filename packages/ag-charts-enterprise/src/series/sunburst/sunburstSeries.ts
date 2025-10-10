@@ -510,7 +510,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 childrenKey: this.properties.childrenKey,
                 colorKey: this.properties.colorKey,
                 colorName: this.properties.colorName ?? this.properties.colorKey,
-                depth: node.depth ?? NaN,
+                depth: node.depth ?? Number.NaN,
                 labelKey: this.properties.labelKey,
                 secondaryLabelKey: this.properties.secondaryLabelKey,
                 sizeKey: this.properties.sizeKey,
@@ -565,10 +565,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.visible = true;
         };
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
-        this.labelSelection.selectByClass(TransformableText).forEach((text) => {
+        for (const text of this.labelSelection.selectByClass(TransformableText)) {
             const datum = text.closestDatum();
             updateText(datum, text, text.tag, datum === highlightedDatum);
-        });
+        }
     }
 
     override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {

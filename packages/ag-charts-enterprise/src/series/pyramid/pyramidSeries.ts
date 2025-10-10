@@ -226,14 +226,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         let yTotal = 0;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
             const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             yTotal += yValue;
 
-            if (stageLabelData == null) return;
+            if (stageLabelData == null) continue;
 
             const text = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
                 xValue,
@@ -252,14 +252,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             maxLabelHeight = Math.max(maxLabelHeight, height);
 
             stageLabelData.push({
-                x: NaN,
-                y: NaN,
+                x: Number.NaN,
+                y: Number.NaN,
                 text,
                 textAlign,
                 textBaseline,
                 visible: enabled,
             });
-        });
+        }
 
         const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
@@ -319,7 +319,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const nodeData: PyramidNodeDatum[] = [];
         const labelData: PyramidNodeLabelDatum[] = [];
         let yStart = 0;
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
 
@@ -415,7 +415,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             });
 
             yStart = yEnd;
-        });
+        }
 
         return {
             itemId: seriesId,
@@ -680,14 +680,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override getSeriesDomain(): any[] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override getSeriesRange(
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
@@ -741,7 +741,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((_datum, datumIndex) => {
+        for (const [datumIndex, _datum] of rawData.entries()) {
             const stageValue = stageValues[datumIndex];
 
             legendData.push({
@@ -754,7 +754,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 symbol: this.legendItemSymbol(datumIndex),
                 hideInLegend: !showInLegend,
             });
-        });
+        }
 
         return legendData;
     }

@@ -48,7 +48,7 @@ class HierarchicalBBox {
 export class ErrorBarNode extends _ModuleSupport.Group {
     private readonly whiskerPath: _ModuleSupport.Path;
     private readonly capsPath: _ModuleSupport.Path;
-    private capLength: number = NaN;
+    private capLength: number = Number.NaN;
 
     // The ErrorBarNode does not need to handle the 'nearest' interaction range type, we can let the
     // series class handle that for us. The 'exact' interaction range is the same as having a distance

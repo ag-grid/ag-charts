@@ -192,9 +192,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         if (!visible) return context;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
-            if (xValue == null) return;
+            if (xValue == null) continue;
 
             const minValue = minValues[datumIndex];
             const q1Value = q1Values[datumIndex];
@@ -209,7 +209,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 medianValue > q3Value ||
                 q3Value > maxValue
             ) {
-                return;
+                continue;
             }
 
             const scaledValues = {
@@ -262,7 +262,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 midPoint,
                 focusRect,
             });
-        });
+        }
 
         return context;
     }

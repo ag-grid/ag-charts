@@ -129,26 +129,26 @@ export class ChordSeries extends FlowProportionSeries<
                 ...node,
                 centerX,
                 centerY,
-                innerRadius: NaN,
-                outerRadius: NaN,
-                startAngle: NaN,
-                endAngle: NaN,
+                innerRadius: Number.NaN,
+                outerRadius: Number.NaN,
+                startAngle: Number.NaN,
+                endAngle: Number.NaN,
             }),
             (link) => ({
                 ...link,
                 centerX,
                 centerY,
-                radius: NaN,
-                startAngle1: NaN,
-                endAngle1: NaN,
-                startAngle2: NaN,
-                endAngle2: NaN,
+                radius: Number.NaN,
+                startAngle1: Number.NaN,
+                endAngle1: Number.NaN,
+                startAngle2: Number.NaN,
+                endAngle2: Number.NaN,
             }),
             { includeCircularReferences: true }
         );
 
         let totalSize = 0;
-        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }, id) => {
+        for (const [id, { datum: node, linksBefore, linksAfter }] of nodeGraph.entries()) {
             const size =
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0) +
                 linksAfter.reduce((acc, { link }) => acc + link.size, 0);
@@ -172,15 +172,15 @@ export class ChordSeries extends FlowProportionSeries<
                     : undefined;
                 node.label = toPlainText(labelText);
             }
-        });
+        }
 
         let labelInset = 0;
         if (this.isLabelEnabled()) {
             const measurer = cachedTextMeasurer(this.properties.label);
             let maxMeasuredLabelWidth = 0;
-            nodeGraph.forEach(({ datum: node }) => {
+            for (const { datum: node } of nodeGraph.values()) {
                 const { id, label } = node;
-                if (label == null) return;
+                if (label == null) continue;
 
                 const text = wrapText(label, {
                     maxWidth: labelMaxWidth,
@@ -195,11 +195,11 @@ export class ChordSeries extends FlowProportionSeries<
                     text,
                     centerX,
                     centerY,
-                    angle: NaN,
-                    radius: NaN,
+                    angle: Number.NaN,
+                    radius: Number.NaN,
                     size: node.size,
                 });
-            });
+            }
 
             labelInset = maxMeasuredLabelWidth + labelSpacing;
         }
@@ -225,7 +225,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         const sizeScale = Math.max((2 * Math.PI - nodeCount * spacingSweep) / totalSize, 0);
         let nodeAngle = 0;
-        nodeGraph.forEach(({ datum: node }) => {
+        for (const { datum: node } of nodeGraph.values()) {
             node.innerRadius = innerRadius;
             node.outerRadius = outerRadius;
             node.startAngle = nodeAngle;
@@ -238,10 +238,10 @@ export class ChordSeries extends FlowProportionSeries<
                 x: node.centerX + midR * Math.cos(midAngle),
                 y: node.centerY + midR * Math.sin(midAngle),
             };
-        });
+        }
 
         const nodeData: ChordDatum[] = [];
-        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+        for (const { datum: node, linksBefore, linksAfter } of nodeGraph.values()) {
             const midAngle = nodeMidAngle(node);
             const combinedLinks = [
                 ...linksBefore.map((l) => ({
@@ -257,24 +257,22 @@ export class ChordSeries extends FlowProportionSeries<
             ];
 
             let linkAngle = node.startAngle;
-            combinedLinks
-                .toSorted((a, b) => a.distance - b.distance)
-                .forEach(({ link, after }) => {
-                    const linkSweep = link.size * sizeScale;
-                    if (after) {
-                        link.startAngle1 = linkAngle;
-                        link.endAngle1 = linkAngle + linkSweep;
-                    } else {
-                        link.startAngle2 = linkAngle;
-                        link.endAngle2 = linkAngle + linkSweep;
-                    }
-                    linkAngle += link.size * sizeScale;
-                });
+            for (const { link, after } of combinedLinks.toSorted((a, b) => a.distance - b.distance)) {
+                const linkSweep = link.size * sizeScale;
+                if (after) {
+                    link.startAngle1 = linkAngle;
+                    link.endAngle1 = linkAngle + linkSweep;
+                } else {
+                    link.startAngle2 = linkAngle;
+                    link.endAngle2 = linkAngle + linkSweep;
+                }
+                linkAngle += link.size * sizeScale;
+            }
 
             nodeData.push(node);
-        });
+        }
         const { tension } = this.properties.link;
-        links.forEach((link) => {
+        for (const link of links) {
             link.radius = radius;
 
             const outer = bezierControlPoints({
@@ -301,14 +299,14 @@ export class ChordSeries extends FlowProportionSeries<
             };
 
             nodeData.push(link);
-        });
+        }
 
-        labelData.forEach((label) => {
+        for (const label of labelData) {
             const node = nodeGraph.get(label.id)?.datum;
-            if (node == null) return;
+            if (node == null) continue;
             label.radius = outerRadius + labelSpacing;
             label.angle = normalizeAngle360(node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2);
-        });
+        }
         labelData.sort((a, b) => a.angle - b.angle);
 
         let minAngle = Infinity;
@@ -351,7 +349,7 @@ export class ChordSeries extends FlowProportionSeries<
             toKey: this.properties.toKey,
             fromKey: this.properties.fromKey,
             sizeKey: this.properties.sizeKey,
-            size: NaN,
+            size: Number.NaN,
         } satisfies RequireOptional<AgChordSeriesLabelFormatterParams>;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();

@@ -206,7 +206,9 @@ export class AnimationBatch {
     }
 
     private dispatchStopped() {
-        this.stoppedCbs.forEach((cb) => cb());
+        for (const cb of this.stoppedCbs) {
+            cb();
+        }
         this.stoppedCbs.clear();
     }
 
