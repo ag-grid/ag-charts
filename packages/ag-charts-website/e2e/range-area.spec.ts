@@ -1,5 +1,3 @@
-import { Locator } from '@playwright/test';
-
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
