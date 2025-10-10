@@ -30,18 +30,18 @@ import { createEnterpriseChart } from '../../test/utils';
 
 const SERIES_CANADA = {
     data: [
-        { month: 'Jan', temperature: 12.5, temperatureLower: 10.0, temperatureUpper: 15.0 },
-        { month: 'Feb', temperature: 13.0, temperatureLower: 11.5, temperatureUpper: 15.5 },
-        { month: 'Mar', temperature: 15.5, temperatureLower: 13.0, temperatureUpper: 18.0 },
-        { month: 'Apr', temperature: 18.0, temperatureLower: 16.5, temperatureUpper: 19.5 },
-        { month: 'May', temperature: 21.5, temperatureLower: 19.0, temperatureUpper: 24.0 },
-        { month: 'Jun', temperature: 24.0, temperatureLower: 22.5, temperatureUpper: 26.0 },
-        { month: 'Jul', temperature: 26.5, temperatureLower: 24.0, temperatureUpper: 29.0 },
-        { month: 'Aug', temperature: 25.0, temperatureLower: 22.5, temperatureUpper: 28.0 },
-        { month: 'Sep', temperature: 23.5, temperatureLower: 21.0, temperatureUpper: 27.0 },
-        { month: 'Oct', temperature: 20.0, temperatureLower: 17.5, temperatureUpper: 22.5 },
-        { month: 'Nov', temperature: 16.5, temperatureLower: 14.0, temperatureUpper: 19.0 },
-        { month: 'Dec', temperature: 13.0, temperatureLower: 11.5, temperatureUpper: 15.5 },
+        { month: 'Jan', temperature: 12.5, temperatureLower: 10, temperatureUpper: 15 },
+        { month: 'Feb', temperature: 13, temperatureLower: 11.5, temperatureUpper: 15.5 },
+        { month: 'Mar', temperature: 15.5, temperatureLower: 13, temperatureUpper: 18 },
+        { month: 'Apr', temperature: 18, temperatureLower: 16.5, temperatureUpper: 19.5 },
+        { month: 'May', temperature: 21.5, temperatureLower: 19, temperatureUpper: 24 },
+        { month: 'Jun', temperature: 24, temperatureLower: 22.5, temperatureUpper: 26 },
+        { month: 'Jul', temperature: 26.5, temperatureLower: 24, temperatureUpper: 29 },
+        { month: 'Aug', temperature: 25, temperatureLower: 22.5, temperatureUpper: 28 },
+        { month: 'Sep', temperature: 23.5, temperatureLower: 21, temperatureUpper: 27 },
+        { month: 'Oct', temperature: 20, temperatureLower: 17.5, temperatureUpper: 22.5 },
+        { month: 'Nov', temperature: 16.5, temperatureLower: 14, temperatureUpper: 19 },
+        { month: 'Dec', temperature: 13, temperatureLower: 11.5, temperatureUpper: 15.5 },
     ],
     xKey: 'month',
     yKey: 'temperature',
@@ -51,18 +51,18 @@ const SERIES_CANADA = {
 
 const SERIES_AUSTRALIA = {
     data: [
-        { month: 'Jan', temperature: 8.0, temperatureLower: 6.5, temperatureUpper: 10.0 },
-        { month: 'Feb', temperature: 8.5, temperatureLower: 7.0, temperatureUpper: 10.5 },
-        { month: 'Mar', temperature: 10.0, temperatureLower: 8.5, temperatureUpper: 12.0 },
-        { month: 'Apr', temperature: 12.0, temperatureLower: 10.5, temperatureUpper: 13.5 },
-        { month: 'May', temperature: 14.5, temperatureLower: 13.0, temperatureUpper: 16.0 },
-        { month: 'Jun', temperature: 16.5, temperatureLower: 15.0, temperatureUpper: 18.0 },
-        { month: 'Jul', temperature: 18.0, temperatureLower: 16.5, temperatureUpper: 19.5 },
-        { month: 'Aug', temperature: 17.0, temperatureLower: 15.5, temperatureUpper: 18.5 },
-        { month: 'Sep', temperature: 15.5, temperatureLower: 14.0, temperatureUpper: 17.0 },
-        { month: 'Oct', temperature: 12.5, temperatureLower: 11.0, temperatureUpper: 14.0 },
-        { month: 'Nov', temperature: 10.0, temperatureLower: 8.5, temperatureUpper: 11.5 },
-        { month: 'Dec', temperature: 8.5, temperatureLower: 7.0, temperatureUpper: 10.0 },
+        { month: 'Jan', temperature: 8, temperatureLower: 6.5, temperatureUpper: 10 },
+        { month: 'Feb', temperature: 8.5, temperatureLower: 7, temperatureUpper: 10.5 },
+        { month: 'Mar', temperature: 10, temperatureLower: 8.5, temperatureUpper: 12 },
+        { month: 'Apr', temperature: 12, temperatureLower: 10.5, temperatureUpper: 13.5 },
+        { month: 'May', temperature: 14.5, temperatureLower: 13, temperatureUpper: 16 },
+        { month: 'Jun', temperature: 16.5, temperatureLower: 15, temperatureUpper: 18 },
+        { month: 'Jul', temperature: 18, temperatureLower: 16.5, temperatureUpper: 19.5 },
+        { month: 'Aug', temperature: 17, temperatureLower: 15.5, temperatureUpper: 18.5 },
+        { month: 'Sep', temperature: 15.5, temperatureLower: 14, temperatureUpper: 17 },
+        { month: 'Oct', temperature: 12.5, temperatureLower: 11, temperatureUpper: 14 },
+        { month: 'Nov', temperature: 10, temperatureLower: 8.5, temperatureUpper: 11.5 },
+        { month: 'Dec', temperature: 8.5, temperatureLower: 7, temperatureUpper: 10 },
     ],
     xKey: 'month',
     yKey: 'temperature',
@@ -74,74 +74,74 @@ const SERIES_AUSTRALIA = {
 const EXTENDING_BARS = [
     // Same data as Canada, but with Jan & Jul changed to test errorBar.ts's
     // ability to extend the domain for error values.
-    { month: 'Jan', temperature: 12.5, temperatureLower: 2.0, temperatureUpper: 15.0 },
-    { month: 'Feb', temperature: 13.0, temperatureLower: 11.5, temperatureUpper: 15.5 },
-    { month: 'Mar', temperature: 15.5, temperatureLower: 13.0, temperatureUpper: 18.0 },
-    { month: 'Apr', temperature: 18.0, temperatureLower: 16.5, temperatureUpper: 19.5 },
-    { month: 'May', temperature: 21.5, temperatureLower: 19.0, temperatureUpper: 24.0 },
-    { month: 'Jun', temperature: 24.0, temperatureLower: 22.5, temperatureUpper: 26.0 },
-    { month: 'Jul', temperature: 26.5, temperatureLower: 24.0, temperatureUpper: 40.0 },
-    { month: 'Aug', temperature: 25.0, temperatureLower: 22.5, temperatureUpper: 28.0 },
-    { month: 'Sep', temperature: 23.5, temperatureLower: 21.0, temperatureUpper: 27.0 },
-    { month: 'Oct', temperature: 20.0, temperatureLower: 17.5, temperatureUpper: 22.5 },
-    { month: 'Nov', temperature: 16.5, temperatureLower: 14.0, temperatureUpper: 19.0 },
-    { month: 'Dec', temperature: 13.0, temperatureLower: 11.5, temperatureUpper: 15.5 },
+    { month: 'Jan', temperature: 12.5, temperatureLower: 2, temperatureUpper: 15 },
+    { month: 'Feb', temperature: 13, temperatureLower: 11.5, temperatureUpper: 15.5 },
+    { month: 'Mar', temperature: 15.5, temperatureLower: 13, temperatureUpper: 18 },
+    { month: 'Apr', temperature: 18, temperatureLower: 16.5, temperatureUpper: 19.5 },
+    { month: 'May', temperature: 21.5, temperatureLower: 19, temperatureUpper: 24 },
+    { month: 'Jun', temperature: 24, temperatureLower: 22.5, temperatureUpper: 26 },
+    { month: 'Jul', temperature: 26.5, temperatureLower: 24, temperatureUpper: 40 },
+    { month: 'Aug', temperature: 25, temperatureLower: 22.5, temperatureUpper: 28 },
+    { month: 'Sep', temperature: 23.5, temperatureLower: 21, temperatureUpper: 27 },
+    { month: 'Oct', temperature: 20, temperatureLower: 17.5, temperatureUpper: 22.5 },
+    { month: 'Nov', temperature: 16.5, temperatureLower: 14, temperatureUpper: 19 },
+    { month: 'Dec', temperature: 13, temperatureLower: 11.5, temperatureUpper: 15.5 },
 ];
 
 const FEWER_MONTHS = [
     // Same data as Canada, but with few months for test cap lengthRatio better
-    { month: 'Jan', temperature: 12.5, temperatureLower: 10.0, temperatureUpper: 15.0 },
-    { month: 'Apr', temperature: 18.0, temperatureLower: 16.5, temperatureUpper: 19.5 },
-    { month: 'Jul', temperature: 26.5, temperatureLower: 24.0, temperatureUpper: 29.0 },
-    { month: 'Oct', temperature: 20.0, temperatureLower: 17.5, temperatureUpper: 22.5 },
+    { month: 'Jan', temperature: 12.5, temperatureLower: 10, temperatureUpper: 15 },
+    { month: 'Apr', temperature: 18, temperatureLower: 16.5, temperatureUpper: 19.5 },
+    { month: 'Jul', temperature: 26.5, temperatureLower: 24, temperatureUpper: 29 },
+    { month: 'Oct', temperature: 20, temperatureLower: 17.5, temperatureUpper: 22.5 },
 ];
 
 const SERIES_ALTERNATE_NAMES = {
     ...SERIES_AUSTRALIA,
     // Same data as Australia, but with alternate names for error bar keys
     data: [
-        { month: 'Jan', temperature: 8.0, lower: 6.5, upper: 10.0 },
-        { month: 'Feb', temperature: 8.5, lower: 7.0, upper: 10.5 },
-        { month: 'Mar', temperature: 10.0, lower: 8.5, upper: 12.0 },
-        { month: 'Apr', temperature: 12.0, lower: 10.5, upper: 13.5 },
-        { month: 'May', temperature: 14.5, lower: 13.0, upper: 16.0 },
-        { month: 'Jun', temperature: 16.5, lower: 15.0, upper: 18.0 },
-        { month: 'Jul', temperature: 18.0, lower: 16.5, upper: 19.5 },
-        { month: 'Aug', temperature: 17.0, lower: 15.5, upper: 18.5 },
-        { month: 'Sep', temperature: 15.5, lower: 14.0, upper: 17.0 },
-        { month: 'Oct', temperature: 12.5, lower: 11.0, upper: 14.0 },
-        { month: 'Nov', temperature: 10.0, lower: 8.5, upper: 11.5 },
-        { month: 'Dec', temperature: 8.5, lower: 7.0, upper: 10.0 },
+        { month: 'Jan', temperature: 8, lower: 6.5, upper: 10 },
+        { month: 'Feb', temperature: 8.5, lower: 7, upper: 10.5 },
+        { month: 'Mar', temperature: 10, lower: 8.5, upper: 12 },
+        { month: 'Apr', temperature: 12, lower: 10.5, upper: 13.5 },
+        { month: 'May', temperature: 14.5, lower: 13, upper: 16 },
+        { month: 'Jun', temperature: 16.5, lower: 15, upper: 18 },
+        { month: 'Jul', temperature: 18, lower: 16.5, upper: 19.5 },
+        { month: 'Aug', temperature: 17, lower: 15.5, upper: 18.5 },
+        { month: 'Sep', temperature: 15.5, lower: 14, upper: 17 },
+        { month: 'Oct', temperature: 12.5, lower: 11, upper: 14 },
+        { month: 'Nov', temperature: 10, lower: 8.5, upper: 11.5 },
+        { month: 'Dec', temperature: 8.5, lower: 7, upper: 10 },
     ],
     errorBar: { yLowerKey: 'lower', yUpperKey: 'upper' },
 };
 
 const AUSTRALIA_AND_CANADA_DATA = [
-    { month: 'Jan', aus: 8.0, ausLo: 6.5, ausHi: 10.0, can: 12.5, canLo: 10.0, canHi: 15.0 },
-    { month: 'Feb', aus: 8.5, ausLo: 7.0, ausHi: 10.5, can: 13.0, canLo: 11.5, canHi: 15.5 },
-    { month: 'Mar', aus: 10.0, ausLo: 8.5, ausHi: 12.0, can: 15.5, canLo: 13.0, canHi: 18.0 },
-    { month: 'Apr', aus: 12.0, ausLo: 10.5, ausHi: 13.5, can: 18.0, canLo: 16.5, canHi: 19.5 },
-    { month: 'May', aus: 14.5, ausLo: 13.0, ausHi: 16.0, can: 21.5, canLo: 19.0, canHi: 24.0 },
-    { month: 'Jun', aus: 16.5, ausLo: 15.0, ausHi: 18.0, can: 24.0, canLo: 22.5, canHi: 26.0 },
-    { month: 'Jul', aus: 18.0, ausLo: 16.5, ausHi: 19.5, can: 26.5, canLo: 24.0, canHi: 29.0 },
-    { month: 'Aug', aus: 17.0, ausLo: 15.5, ausHi: 18.5, can: 25.0, canLo: 22.5, canHi: 28.0 },
-    { month: 'Sep', aus: 15.5, ausLo: 14.0, ausHi: 17.0, can: 23.5, canLo: 21.0, canHi: 27.0 },
-    { month: 'Oct', aus: 12.5, ausLo: 11.0, ausHi: 14.0, can: 20.0, canLo: 17.5, canHi: 22.5 },
-    { month: 'Nov', aus: 10.0, ausLo: 8.5, ausHi: 11.5, can: 16.5, canLo: 14.0, canHi: 19.0 },
-    { month: 'Dec', aus: 8.5, ausLo: 7.0, ausHi: 10.0, can: 13.0, canLo: 11.5, canHi: 15.5 },
+    { month: 'Jan', aus: 8, ausLo: 6.5, ausHi: 10, can: 12.5, canLo: 10, canHi: 15 },
+    { month: 'Feb', aus: 8.5, ausLo: 7, ausHi: 10.5, can: 13, canLo: 11.5, canHi: 15.5 },
+    { month: 'Mar', aus: 10, ausLo: 8.5, ausHi: 12, can: 15.5, canLo: 13, canHi: 18 },
+    { month: 'Apr', aus: 12, ausLo: 10.5, ausHi: 13.5, can: 18, canLo: 16.5, canHi: 19.5 },
+    { month: 'May', aus: 14.5, ausLo: 13, ausHi: 16, can: 21.5, canLo: 19, canHi: 24 },
+    { month: 'Jun', aus: 16.5, ausLo: 15, ausHi: 18, can: 24, canLo: 22.5, canHi: 26 },
+    { month: 'Jul', aus: 18, ausLo: 16.5, ausHi: 19.5, can: 26.5, canLo: 24, canHi: 29 },
+    { month: 'Aug', aus: 17, ausLo: 15.5, ausHi: 18.5, can: 25, canLo: 22.5, canHi: 28 },
+    { month: 'Sep', aus: 15.5, ausLo: 14, ausHi: 17, can: 23.5, canLo: 21, canHi: 27 },
+    { month: 'Oct', aus: 12.5, ausLo: 11, ausHi: 14, can: 20, canLo: 17.5, canHi: 22.5 },
+    { month: 'Nov', aus: 10, ausLo: 8.5, ausHi: 11.5, can: 16.5, canLo: 14, canHi: 19 },
+    { month: 'Dec', aus: 8.5, ausLo: 7, ausHi: 10, can: 13, canLo: 11.5, canHi: 15.5 },
 ];
 
 const SERIES_BOYLESLAW: AgScatterSeriesOptions = {
     type: 'scatter',
     data: [
         { volume: 0.5, volumeLower: 0.45, volumeUpper: 0.55, pressure: 9.5, pressureLower: 10.3, pressureUpper: 8.7 },
-        { volume: 1.0, volumeLower: 0.9, volumeUpper: 1.1, pressure: 8.1, pressureLower: 8.9, pressureUpper: 7.4 },
+        { volume: 1, volumeLower: 0.9, volumeUpper: 1.1, pressure: 8.1, pressureLower: 8.9, pressureUpper: 7.4 },
         { volume: 1.5, volumeLower: 1.35, volumeUpper: 1.65, pressure: 6.8, pressureLower: 7.5, pressureUpper: 6.2 },
-        { volume: 2.0, volumeLower: 1.8, volumeUpper: 2.2, pressure: 5.5, pressureLower: 5.9, pressureUpper: 5.0 },
+        { volume: 2, volumeLower: 1.8, volumeUpper: 2.2, pressure: 5.5, pressureLower: 5.9, pressureUpper: 5 },
         { volume: 2.5, volumeLower: 2.25, volumeUpper: 2.75, pressure: 4.2, pressureLower: 4.7, pressureUpper: 3.8 },
-        { volume: 3.0, volumeLower: 2.7, volumeUpper: 3.3, pressure: 3.1, pressureLower: 3.5, pressureUpper: 2.8 },
-        { volume: 3.5, volumeLower: 3.15, volumeUpper: 3.85, pressure: 2.0, pressureLower: 2.3, pressureUpper: 1.8 },
-        { volume: 4.0, volumeLower: 3.6, volumeUpper: 4.4, pressure: 1.2, pressureLower: 1.4, pressureUpper: 1.1 },
+        { volume: 3, volumeLower: 2.7, volumeUpper: 3.3, pressure: 3.1, pressureLower: 3.5, pressureUpper: 2.8 },
+        { volume: 3.5, volumeLower: 3.15, volumeUpper: 3.85, pressure: 2, pressureLower: 2.3, pressureUpper: 1.8 },
+        { volume: 4, volumeLower: 3.6, volumeUpper: 4.4, pressure: 1.2, pressureLower: 1.4, pressureUpper: 1.1 },
     ],
     xKey: 'volume',
     yKey: 'pressure',
@@ -455,7 +455,7 @@ describe('ErrorBars', () => {
                     type: 'bar',
                     direction: 'vertical',
                     data: FEWER_MONTHS,
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1.0 } },
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1 } },
                 },
             ],
         });
@@ -470,7 +470,7 @@ describe('ErrorBars', () => {
                     type: 'bar',
                     direction: 'horizontal',
                     data: FEWER_MONTHS,
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1.0 } },
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1 } },
                 },
             ],
         });
@@ -483,7 +483,7 @@ describe('ErrorBars', () => {
                 {
                     ...SERIES_CANADA,
                     type: 'line',
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 75.0 } },
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 75 } },
                 },
             ],
         });
@@ -496,7 +496,7 @@ describe('ErrorBars', () => {
                 {
                     ...SERIES_CANADA,
                     type: 'bar',
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 30.0 } },
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 30 } },
                 },
             ],
         });
@@ -508,7 +508,7 @@ describe('ErrorBars', () => {
             series: [
                 {
                     ...SERIES_BOYLESLAW,
-                    errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, length: 75.0 } },
+                    errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, length: 75 } },
                 },
             ],
         });
@@ -521,7 +521,7 @@ describe('ErrorBars', () => {
                 {
                     ...SERIES_CANADA,
                     type: 'bar',
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 100.0 } },
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 100 } },
                 },
             ],
         });
@@ -538,8 +538,8 @@ describe('ErrorBars', () => {
                         ...SERIES_BOYLESLAW.errorBar,
                         cap: {
                             strokeWidth: 4,
-                            length: 45.0,
-                            lengthRatio: 1.0,
+                            length: 45,
+                            lengthRatio: 1,
                         },
                     },
                 },
@@ -807,7 +807,7 @@ describe('ErrorBars', () => {
         const opts: AgCartesianChartOptions<TDatum> = {
             data: [
                 { x: 'Jan', y: 2.5, yLower: 1.5, yUpper: 3.5 },
-                { x: 'Feb', y: 3.0, yLower: 2.3, yUpper: 3.7 },
+                { x: 'Feb', y: 3, yLower: 2.3, yUpper: 3.7 },
                 { x: 'Mar', y: 2.8, yLower: 2.1, yUpper: 3.5 },
             ],
             series: [

@@ -288,9 +288,9 @@ export class RadialGaugeSeries
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
         const largerThanHalf = sweepAngle > Math.PI;
         const containsTop = largerThanHalf || isBetweenAngles(1.5 * Math.PI, startAngle, endAngle);
-        const containsRight = largerThanHalf || isBetweenAngles(0.0 * Math.PI, startAngle, endAngle);
+        const containsRight = largerThanHalf || isBetweenAngles(0 * Math.PI, startAngle, endAngle);
         const containsBottom = largerThanHalf || isBetweenAngles(0.5 * Math.PI, startAngle, endAngle);
-        const containsLeft = largerThanHalf || isBetweenAngles(1.0 * Math.PI, startAngle, endAngle);
+        const containsLeft = largerThanHalf || isBetweenAngles(1 * Math.PI, startAngle, endAngle);
 
         let textAlign: TextAlign;
         if (containsLeft && !containsRight) {

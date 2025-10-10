@@ -138,7 +138,7 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
         options: {
             ...VALID_RANGE_CROSSLINES,
             navigator: { enabled: true },
-            initialState: { zoom: { ratioX: { start: 0.95, end: 1.0 } } },
+            initialState: { zoom: { ratioX: { start: 0.95, end: 1 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
     },
@@ -154,7 +154,7 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
         options: {
             ...VALID_RANGE_CROSSLINES,
             navigator: { enabled: true },
-            initialState: { zoom: { ratioX: { start: 0.5, end: 1.0 } } },
+            initialState: { zoom: { ratioX: { start: 0.5, end: 1 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
     },

@@ -704,7 +704,7 @@ describe('BoxPlotSeries', () => {
                     { category: 'B', min: 4.87, q1: 5.8, median: 6.13, q3: 6.66, max: 7.09 },
                     { category: 'C', min: 4.4, q1: 4.41, median: 4.64, q3: 4.96, max: 5.2 },
                     { category: 'D', min: 7.31, q1: 7.32, median: 7.32, q3: 7.33, max: 7.33 },
-                    { category: 'E', min: 5.1, q1: 6.2, median: 7.0, q3: 8.1, max: 9.0 },
+                    { category: 'E', min: 5.1, q1: 6.2, median: 7, q3: 8.1, max: 9 },
                 ],
                 series: [
                     {
