@@ -88,7 +88,16 @@ Shows top ESLint violations by count with recommendations.
 
 ### When Invoked WITH a Rule Name (Fix Mode)
 
-Execute the isolated auto-fix procedure:
+First, determine if the rule supports auto-fix:
+
+```bash
+# Check if rule appears in auto-fixable list
+nx run-many -t lint:eslint --fix --dry-run 2>&1 | grep '<RULE_NAME>'
+```
+
+**If the rule is NOT auto-fixable (e.g., `no-negated-condition`)**, follow the [Manual Fix Procedure](#manual-fix-procedure) below.
+
+**If the rule IS auto-fixable**, execute the isolated auto-fix procedure:
 
 #### 1. Backup Config
 
@@ -215,6 +224,156 @@ Fix <RULE_NAME> ESLint warnings
 ```
 
 **Wait for user confirmation before committing.**
+
+---
+
+## Manual Fix Procedure
+
+For rules that don't support auto-fix (marked ❌), use this systematic approach:
+
+#### 1. Extract All Violations
+
+```bash
+# Get complete list of violations with file paths and line numbers
+nx run-many -t lint:eslint 2>&1 | grep '<RULE_NAME>' | grep -oE '/[^:]+:[0-9]+' > /tmp/violations-list.txt
+
+# Or use more detailed extraction
+nx run-many -t lint:eslint 2>&1 | grep -B2 '<RULE_NAME>' | grep -E '^\s+[0-9]+:[0-9]+' > /tmp/violations-list.txt
+```
+
+#### 2. Backup Config (For Verification)
+
+```bash
+cp eslint.config.mjs eslint.config.mjs.backup
+```
+
+#### 3. Create Todo List
+
+Use the TodoWrite tool to create a task list tracking:
+
+-   Getting complete violation list
+-   Backing up config
+-   Fixing each category/group of files
+-   Formatting changes
+-   Verifying no violations remain
+-   Building and testing
+-   Reporting results
+
+#### 4. Systematic Fixing
+
+For each violation:
+
+a. **Read the file context** around the violation:
+
+```bash
+# Read file with context around the violation line
+Read(file_path, offset=line_number-5, limit=10)
+```
+
+b. **Understand the pattern** - Identify what needs to change based on the rule
+
+c. **Make the fix** using the Edit tool
+
+d. **Update todo list** to mark progress
+
+Example for `no-negated-condition`:
+
+-   Invert ternary operators: `!cond ? a : b` → `cond ? b : a`
+-   Swap if/else branches: `if (!cond) { ... } else { ... }` → `if (cond) { ... } else { ... }`
+-   Reorder compound conditions: `!a && b` → `b && !a` (minimize negation)
+
+#### 5. Format All Changes
+
+```bash
+nx format
+```
+
+#### 6. Verify Fixes
+
+```bash
+# Should output 0
+nx run-many -t lint:eslint 2>&1 | grep '<RULE_NAME>' | wc -l
+
+# Check modified files
+git status --short
+git diff --stat
+```
+
+#### 7. Build and Test
+
+```bash
+# Build affected packages
+nx build ag-charts-community
+nx build ag-charts-enterprise
+
+# Run tests if needed
+nx test ag-charts-community
+nx test ag-charts-enterprise
+```
+
+#### 8. Generate Report
+
+Provide comprehensive summary:
+
+```markdown
+## ✅ Manual Fix Complete: `<RULE_NAME>`
+
+### Summary
+
+-   **Violations Fixed:** N → 0
+-   **Files Modified:** M files across K packages
+-   **Packages Affected:** List of packages
+-   **Tests:** ✅ All passing
+-   **Builds:** ✅ All successful
+
+### Files Fixed
+
+#### package-name (X violations)
+
+1. `file/path.ts` - N violations
+2. `file/path2.ts` - N violations
+
+### Pattern of Fixes
+
+Document the fix pattern used:
+
+-   **Before:** Example code before fix
+-   **After:** Example code after fix
+
+### Example Changes
+
+Show 2-3 representative examples with file locations
+
+### Verification
+
+-   ✅ All violations fixed (verified with ESLint)
+-   ✅ Code formatted with nx format
+-   ✅ All packages build successfully
+-   ✅ Tests passing (if run)
+```
+
+#### 9. Prepare Commit Message
+
+```
+Fix <RULE_NAME> ESLint violations
+
+Manually fixed all N violations of the <RULE_NAME> ESLint rule
+across <package-list> packages.
+
+Changes include:
+- <Brief description of fix pattern 1>
+- <Brief description of fix pattern 2>
+- <Brief description of fix pattern 3>
+
+All changes maintain identical logic while improving <code quality aspect>.
+```
+
+**Important:** Manual fixes require extra verification:
+
+-   Review each change carefully - no automated transformation
+-   Ensure logic equivalence - behavior must not change
+-   Check edge cases - manual fixes more prone to errors
+-   Test thoroughly - run relevant test suites
 
 ---
 
