@@ -17,21 +17,6 @@ import type {
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-interface DeprecatedRangeAreaSeriesStyleOptions<TMarker extends AgSeriesMarkerStyle> {
-    /** @deprecated Use `item` styling. Configuration for the markers used in the series.  */
-    marker?: TMarker;
-    /** @deprecated Use `item` styling. The colour for the stroke. */
-    stroke?: CssColor;
-    /** @deprecated Use `item` styling. The width of the stroke in pixels. */
-    strokeWidth?: PixelSize;
-    /** @deprecated Use `item` styling. The opacity of the stroke colour. */
-    strokeOpacity?: Opacity;
-    /** @deprecated Use `item` styling. An array specifying the length in pixels of alternating dashes and gaps. */
-    lineDash?: PixelSize[];
-    /** @deprecated Use `item` styling. The initial offset of the dashed line in pixels. */
-    lineDashOffset?: PixelSize;
-}
-
 export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
     extends SeriesCallbackParams,
         ContextCallbackParams<TContext>,
@@ -44,7 +29,7 @@ export interface AgRangeAreaSeriesLineStyle extends StrokeOptions, LineDashOptio
 }
 
 export interface AgRangeAreaSeriesStyle extends FillOptions {
-    /** Configuration used for the range area series high & low lines. */
+    /** Configuration used for the range area series low & high lines. */
     item?: {
         /** Configuration for the bottom line (defined by the `yLowKey`). */
         low?: AgRangeAreaSeriesLineStyle;
@@ -94,10 +79,21 @@ export interface AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext> extends
 }
 
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DeprecatedRangeAreaSeriesStyleOptions<RangeAreaMarker<TDatum, TContext>>,
-        FillOptions,
+    extends FillOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
-    /** Configuration used for the range area series high & low lines. */
+    /** Configuration for the markers (low & high) used in the series.  */
+    marker?: AgSeriesMarkerStyle;
+    /** The colour for the stroke (low & high). */
+    stroke?: CssColor;
+    /** The width of the stroke (low & high) in pixels. */
+    strokeWidth?: PixelSize;
+    /** The opacity of the stroke (low & high) colour. */
+    strokeOpacity?: Opacity;
+    /** An array specifying the length in pixels of alternating dashes and gaps for the stroke (low & high). */
+    lineDash?: PixelSize[];
+    /** The initial offset of the dashed line (low & high) in pixels. */
+    lineDashOffset?: PixelSize;
+    /** Configuration used for distinct styling of the low & high lines. */
     item?: {
         /** Configuration for the bottom line (defined by the `yLowKey`). */
         low?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
