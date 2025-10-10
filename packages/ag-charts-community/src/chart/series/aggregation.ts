@@ -337,8 +337,8 @@ export function compactAggregationIndices(
     { inPlace = false } = {}
 ) {
     const nextMaxRange = (maxRange / 2) | 0;
-    const nextIndexData = !inPlace ? new Int32Array(nextMaxRange * AGGREGATION_SPAN) : indexData;
-    const nextValueData = !inPlace ? new Float64Array(nextMaxRange * AGGREGATION_SPAN) : valueData;
+    const nextIndexData = inPlace ? indexData : new Int32Array(nextMaxRange * AGGREGATION_SPAN);
+    const nextValueData = inPlace ? valueData : new Float64Array(nextMaxRange * AGGREGATION_SPAN);
 
     for (let i = 0; i < nextMaxRange; i += 1) {
         const aggIndex = (i * AGGREGATION_SPAN) | 0;

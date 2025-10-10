@@ -314,13 +314,13 @@ function addSpan(
     const newSpan = newSpanDatum.span;
     const zeroSpan = zeroDataSpan(newSpanDatum, oldZeroData);
 
-    if (zeroSpan != null) {
+    if (zeroSpan == null) {
+        const oldSpan = collapseSpan(newSpan, collapseMode, newData, newAxisIndices, newIndices, range);
+        out.added.push({ from: oldSpan, to: newSpan });
+    } else {
         out.removed.push({ from: zeroSpan, to: zeroSpan });
         out.moved.push({ from: zeroSpan, to: newSpan });
         out.added.push({ from: newSpan, to: newSpan });
-    } else {
-        const oldSpan = collapseSpan(newSpan, collapseMode, newData, newAxisIndices, newIndices, range);
-        out.added.push({ from: oldSpan, to: newSpan });
     }
 }
 
@@ -337,13 +337,13 @@ function removeSpan(
     const oldSpan = oldSpanDatum.span;
     const zeroSpan = zeroDataSpan(oldSpanDatum, newZeroData);
 
-    if (zeroSpan != null) {
+    if (zeroSpan == null) {
+        const newSpan = collapseSpan(oldSpan, collapseMode, oldData, oldAxisIndices, oldIndices, range);
+        out.removed.push({ from: oldSpan, to: newSpan });
+    } else {
         out.removed.push({ from: oldSpan, to: oldSpan });
         out.moved.push({ from: oldSpan, to: zeroSpan });
         out.added.push({ from: zeroSpan, to: zeroSpan });
-    } else {
-        const newSpan = collapseSpan(oldSpan, collapseMode, oldData, oldAxisIndices, oldIndices, range);
-        out.removed.push({ from: oldSpan, to: newSpan });
     }
 }
 
@@ -451,12 +451,12 @@ function appendSpanPhases(
             newData,
             newIndices
         );
-        if (clippedPostRemoveOldSpanOldScale != null) {
+        if (clippedPostRemoveOldSpanOldScale == null) {
+            removeSpan(oldData, collapseMode, oldAxisIndices, oldIndices, newZeroData, range, out);
+        } else {
             out.removed.push({ from: clippedOldSpanOldScale, to: clippedPostRemoveOldSpanOldScale });
             out.moved.push({ from: clippedPostRemoveOldSpanOldScale, to: clippedNewSpanNewScale });
             out.added.push({ from: clippedNewSpanNewScale, to: clippedNewSpanNewScale });
-        } else {
-            removeSpan(oldData, collapseMode, oldAxisIndices, oldIndices, newZeroData, range, out);
         }
     } else if (ordering === -1) {
         // Added
@@ -467,12 +467,12 @@ function appendSpanPhases(
             oldData,
             oldIndices
         );
-        if (clippedPreAddedNewSpanNewScale != null) {
+        if (clippedPreAddedNewSpanNewScale == null) {
+            addSpan(newData, collapseMode, newAxisIndices, newIndices, oldZeroData, range, out);
+        } else {
             out.removed.push({ from: clippedOldSpanOldScale, to: clippedOldSpanOldScale });
             out.moved.push({ from: clippedOldSpanOldScale, to: clippedPreAddedNewSpanNewScale });
             out.added.push({ from: clippedPreAddedNewSpanNewScale, to: clippedNewSpanNewScale });
-        } else {
-            addSpan(newData, collapseMode, newAxisIndices, newIndices, oldZeroData, range, out);
         }
     } else {
         // Updated

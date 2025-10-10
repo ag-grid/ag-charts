@@ -21,7 +21,7 @@ function removeCommonIndent(lines: string[]): string[] {
 
     let commonPrefix = nonEmptyIndents[0];
     for (const indent of nonEmptyIndents.slice(1)) {
-        while (!indent.startsWith(commonPrefix) && commonPrefix.length > 0) {
+        while (commonPrefix.length > 0 && !indent.startsWith(commonPrefix)) {
             commonPrefix = commonPrefix.slice(0, -1);
         }
         if (commonPrefix.length === 0) {
@@ -79,7 +79,9 @@ const snippetStrategy: WrapStrategy = {
             // Look for statement keywords after any decorator and its closing parens/braces
             const hasStatementAfterDecorator =
                 /^\s*(const|let|var|import|export|function|class|interface|type)\s/m.test(codeWithoutComments);
-            if (hasStatementAfterDecorator) {
+            if (!hasStatementAfterDecorator) {
+                // Decorator without statement - continue processing
+            } else {
                 return code;
             }
         }
@@ -209,7 +211,9 @@ const snippetStrategy: WrapStrategy = {
         if (hasDecorator) {
             const hasStatementAfterDecorator =
                 /^\s*(const|let|var|import|export|function|class|interface|type)\s/m.test(codeWithoutComments);
-            if (hasStatementAfterDecorator) {
+            if (!hasStatementAfterDecorator) {
+                // Decorator without statement - continue processing
+            } else {
                 return formatted;
             }
         }
@@ -275,7 +279,7 @@ const reactHooksStrategy: WrapStrategy = {
         }
 
         // If we found return null, use that as the end, otherwise use the line before the closing brace
-        const contentEndIdx = returnNullIdx !== -1 ? returnNullIdx : endIdx;
+        const contentEndIdx = returnNullIdx === -1 ? endIdx : returnNullIdx;
 
         // Get lines between function declaration and end
         let content = lines.slice(startIdx + 1, contentEndIdx);

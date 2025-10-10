@@ -143,7 +143,9 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
             scenes.push(dateScenes);
         }
 
-        if (stats.volume != null) {
+        if (stats.volume == null) {
+            volumeText.visible = false;
+        } else {
             volumeText.setProperties({
                 ...textStyles,
                 x: anchor.x,
@@ -151,8 +153,6 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
                 visible: true,
             });
             scenes.push(volumeText);
-        } else {
-            volumeText.visible = false;
         }
 
         layoutScenesColumn(scenes, anchor.y, verticalGap);

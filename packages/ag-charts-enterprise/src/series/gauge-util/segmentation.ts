@@ -29,10 +29,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
             }
             segments.push(d1);
             ticks = segments;
-        } else if (count != null) {
-            const segments = count + 1;
-            ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);
-        } else {
+        } else if (count == null) {
             const segments = scale
                 .ticks({
                     nice: true,
@@ -43,6 +40,9 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
                 })
                 ?.ticks?.filter((v) => v > d0 && v < d1);
             ticks = segments != null ? [d0, ...segments, d1] : undefined;
+        } else {
+            const segments = count + 1;
+            ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);
         }
 
         if (ticks != null && ticks.length > maxTicks) {

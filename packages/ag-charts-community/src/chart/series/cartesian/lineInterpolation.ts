@@ -121,8 +121,8 @@ export function collapseSpanToPoint(span: Span, point: Point): Span {
 
 export function rescaleSpan(span: Span, nextStart: Point, nextEnd: Point): Span {
     const [prevStart, prevEnd] = spanRange(span);
-    const widthScale = prevEnd.x !== prevStart.x ? (nextEnd.x - nextStart.x) / (prevEnd.x - prevStart.x) : 0;
-    const heightScale = prevEnd.y !== prevStart.y ? (nextEnd.y - nextStart.y) / (prevEnd.y - prevStart.y) : 0;
+    const widthScale = prevEnd.x === prevStart.x ? 0 : (nextEnd.x - nextStart.x) / (prevEnd.x - prevStart.x);
+    const heightScale = prevEnd.y === prevStart.y ? 0 : (nextEnd.y - nextStart.y) / (prevEnd.y - prevStart.y);
 
     switch (span.type) {
         case 'linear':

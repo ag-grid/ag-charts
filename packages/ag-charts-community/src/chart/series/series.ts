@@ -554,7 +554,7 @@ export abstract class Series<
         const seriesDomain: any[] = this.getSeriesDomain(direction);
         const moduleDomains: any[] = this.moduleMap.mapModules((module) => module.getDomain(direction)).flat();
         // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
-        return moduleDomains.length !== 0 ? seriesDomain.concat(moduleDomains) : seriesDomain;
+        return moduleDomains.length === 0 ? seriesDomain : seriesDomain.concat(moduleDomains);
     }
 
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[] {

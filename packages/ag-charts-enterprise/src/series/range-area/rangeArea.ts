@@ -333,10 +333,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
                 if (Array.isArray(currentSpanPoints)) {
                     currentSpanPoints.push(spanPoint);
-                } else if (currentSpanPoints != null) {
-                    currentSpanPoints.skip += 1;
+                } else if (currentSpanPoints == null) {
                     spanPoints.push([spanPoint]);
                 } else {
+                    currentSpanPoints.skip += 1;
                     spanPoints.push([spanPoint]);
                 }
             } else if (!connectMissingData) {

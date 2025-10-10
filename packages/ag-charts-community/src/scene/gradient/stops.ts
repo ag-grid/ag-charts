@@ -113,9 +113,7 @@ export function getColorStops(
 
         if (color != null) {
             lastDefinedColor = color;
-        } else if (lastDefinedColor != null) {
-            color = lastDefinedColor;
-        } else {
+        } else if (lastDefinedColor == null) {
             if (colorScale == null) {
                 colorScale = new ColorScale();
                 colorScale.domain = [0, 1];
@@ -123,6 +121,8 @@ export function getColorStops(
             }
 
             color = colorScale.convert(stop);
+        } else {
+            color = lastDefinedColor;
         }
 
         return { stop, color };

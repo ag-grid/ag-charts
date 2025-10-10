@@ -44,7 +44,19 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
     let maxWidth = Infinity;
 
     // (y - y0) = m(x - x0)
-    if (abx !== 0) {
+    if (abx === 0) {
+        // x = ax = bx
+        for (let i = 0; i <= 1; i += 1) {
+            const m = i === 0 ? positiveM : -positiveM;
+            // (y - cy) = m * (x - cx); x = ax
+            const y = m * (ax - cx) + cy;
+            if (y >= topPointY && y <= bottomPointY) {
+                const height = Math.abs(cy - y) * 2;
+                const width = height * aspectRatio;
+                maxWidth = Math.min(maxWidth, width);
+            }
+        }
+    } else {
         const abm = aby / abx;
 
         for (let i = 0; i <= 1; i += 1) {
@@ -57,18 +69,6 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
             const x = (abm * ax - ay - m * cx + cy) / (abm - m);
             if (x >= leftPointX && x <= rightPointX) {
                 const width = Math.abs(cx - x) * 2;
-                maxWidth = Math.min(maxWidth, width);
-            }
-        }
-    } else {
-        // x = ax = bx
-        for (let i = 0; i <= 1; i += 1) {
-            const m = i === 0 ? positiveM : -positiveM;
-            // (y - cy) = m * (x - cx); x = ax
-            const y = m * (ax - cx) + cy;
-            if (y >= topPointY && y <= bottomPointY) {
-                const height = Math.abs(cy - y) * 2;
-                const width = height * aspectRatio;
                 maxWidth = Math.min(maxWidth, width);
             }
         }

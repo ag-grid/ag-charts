@@ -484,7 +484,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                       }
 
                       const stroke = tickOptions?.stroke ?? tick.stroke;
-                      const strokeWidth = tickOptions?.enabled !== false ? tickOptions?.width ?? tick.width : 0;
+                      const strokeWidth = tickOptions?.enabled === false ? 0 : tickOptions?.width ?? tick.width;
                       const h = -direction * tickSize;
                       const [x1, x2, y1, y2] = horizontal ? [offset, offset, 0, h] : [0, h, offset, offset];
                       const lineDash = undefined;

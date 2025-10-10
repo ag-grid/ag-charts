@@ -41,7 +41,7 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
 
     getText() {
         const isPlaceholder = this.text.length == 0;
-        const text = !isPlaceholder ? this.text : this.placeholderText ?? '';
+        const text = isPlaceholder ? this.placeholderText ?? '' : this.text;
         return {
             text,
             isPlaceholder,
