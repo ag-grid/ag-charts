@@ -39,7 +39,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: LegendDataMemento | undefined) {
-        if (memento)
+        if (memento) {
             for (const datum of memento) {
                 const { seriesId, data } = this.getRestoredData(datum) ?? {};
 
@@ -49,6 +49,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
 
                 this.updateData(seriesId, data);
             }
+        }
 
         this.update();
     }
