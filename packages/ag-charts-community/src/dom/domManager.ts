@@ -221,7 +221,7 @@ export class DOMManager extends BaseManager {
         this.pendingContainer = undefined;
 
         for (const el of Object.values(this.rootElements)) {
-            for (const [, c] of el.children) {
+            for (const c of el.children.values()) {
                 c.remove();
             }
             el.element.remove();

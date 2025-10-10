@@ -159,8 +159,8 @@ export class SeriesLayerManager {
     }
 
     public updateLayerCompositing() {
-        for (const [, groups] of this.groups) {
-            for (const [, groupInfo] of groups) {
+        for (const groups of this.groups.values()) {
+            for (const groupInfo of groups.values()) {
                 const { group, seriesIds } = groupInfo;
 
                 let renderToOffscreenCanvas: boolean;
@@ -197,8 +197,8 @@ export class SeriesLayerManager {
     }
 
     public destroy() {
-        for (const [, groups] of this.groups) {
-            for (const [, groupInfo] of groups) {
+        for (const groups of this.groups. values()) {
+            for (const groupInfo of groups. values()) {
                 groupInfo.group.remove();
             }
         }

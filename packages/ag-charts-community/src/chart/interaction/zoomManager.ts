@@ -282,7 +282,7 @@ export class ZoomManager extends BaseManager {
             this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
         }
 
-        for (const [, axis] of this.axisZoomManagers) {
+        for (const axis of this.axisZoomManagers.values()) {
             axis.updateZoom(callerId, newZoom?.[axis.direction]);
         }
 
@@ -410,7 +410,7 @@ export class ZoomManager extends BaseManager {
         let y: ZoomState | undefined;
 
         // Use the zoom on the primary (first) axis in each direction
-        for (const [, axis] of this.axisZoomManagers) {
+        for (const axis of this.axisZoomManagers.values()) {
             if (axis.direction === ChartAxisDirection.X) {
                 x ??= axis.getZoom();
             } else if (axis.direction === ChartAxisDirection.Y) {
