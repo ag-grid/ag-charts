@@ -197,8 +197,8 @@ export class SeriesLayerManager {
     }
 
     public destroy() {
-        for (const groups of this.groups. values()) {
-            for (const groupInfo of groups. values()) {
+        for (const groups of this.groups.values()) {
+            for (const groupInfo of groups.values()) {
                 groupInfo.group.remove();
             }
         }
