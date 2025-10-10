@@ -64,14 +64,14 @@ export const sonarjsConfig = [
             'sonarjs/no-misused-promises': 0,
 
             // Unicorn rules, as referenced from the SonarCloud documentation.
-            'unicorn/prefer-number-properties': 1,
-            'unicorn/no-array-for-each': 1,
             'unicorn/prefer-export-from': 1,
-            'unicorn/prefer-dom-node-remove': 1,
             'unicorn/prefer-math-trunc': 1,
             'unicorn/prefer-at': 1,
-            'unicorn/prefer-global-this': 1,
-            'unicorn/prefer-includes': 1,
+            'unicorn/prefer-number-properties': 2,
+            'unicorn/no-array-for-each': 2,
+            'unicorn/prefer-dom-node-remove': 2,
+            'unicorn/prefer-global-this': 2,
+            'unicorn/prefer-includes': 2,
             'unicorn/no-zero-fractions': 2,
         },
     },
@@ -97,12 +97,10 @@ export default [
         languageOptions: {
             globals: globals.browser,
             parserOptions: {
-                // projectService: true,
-                project: './tsconfig.lint.json',
+                projectService: true,
             },
         },
     },
-
     {
         files: ['**/src/**/*'],
         ignores: ['**/src/pages/**'], // Ignore astro pages
