@@ -68,9 +68,9 @@ export const DATA_TREEMAP: any = convertGridTreeData(rowData);
 function convertGridTreeData(ds: any[]) {
     const root: any = {};
 
-    ds.forEach((row) => {
+    for (const row of ds) {
         insert(root, row, 'orgHierarchy');
-    });
+    }
 
     return root.children;
 }

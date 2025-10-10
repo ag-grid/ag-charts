@@ -341,12 +341,12 @@ describe('AreaSeries', () => {
                     await waitForChartStability(chart);
                     await assertions(chart);
 
-                    warnings.forEach((message, index) => {
+                    for (const [index, message] of warnings.entries()) {
                         expect(console.warn).toHaveBeenNthCalledWith(
                             index + 1,
                             ...(Array.isArray(message) ? message : [message])
                         );
-                    });
+                    }
                     if (warnings.length === 0) {
                         expect(console.warn).not.toHaveBeenCalled();
                     }
@@ -499,9 +499,10 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        EXAMPLE.series?.forEach((s) => {
-            (s as AgAreaSeriesOptions).strokeWidth = 2;
-        });
+        if (EXAMPLE.series)
+            for (const s of EXAMPLE.series) {
+                (s as AgAreaSeriesOptions).strokeWidth = 2;
+            }
 
         describe('hide', () => {
             for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
@@ -760,9 +761,10 @@ describe('AreaSeries', () => {
     describe('pattern fill', () => {
         const EXAMPLE = deepClone(examples.SIMPLE_AREA_GRAPH_EXAMPLE);
 
-        EXAMPLE.series?.forEach((s) => {
-            (s as AgAreaSeriesOptions).normalizedTo = 100;
-        });
+        if (EXAMPLE.series)
+            for (const s of EXAMPLE.series) {
+                (s as AgAreaSeriesOptions).normalizedTo = 100;
+            }
 
         it.each([
             'vertical-lines',
@@ -1028,7 +1030,7 @@ describe('AreaSeries', () => {
             { month: 'Jul', subscriptions: 300, services: 255, products: 100 },
             { month: 'Aug', subscriptions: 270, services: 305, products: 210 },
             { month: 'Sep', subscriptions: 260, services: 280, products: 250 },
-            { month: 'Oct', subscriptions: 385, services: 250, products: NaN },
+            { month: 'Oct', subscriptions: 385, services: 250, products: Number.NaN },
             { month: 'Nov', subscriptions: 320, services: 265, products: 215 },
             { month: 'Dec', subscriptions: 330, services: 255, products: 220 },
         ];

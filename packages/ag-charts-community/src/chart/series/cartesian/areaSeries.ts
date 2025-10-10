@@ -190,9 +190,9 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override detachPaths([fill, stroke]: Path[]) {
-        this.backgroundGroup.removeChild(fill);
+        fill.remove();
 
-        this.contentGroup.removeChild(stroke);
+        stroke.remove();
     }
 
     private isStacked() {

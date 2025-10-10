@@ -1090,10 +1090,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         } = this;
 
         if (initialState) {
-            this.series.forEach((s) => {
+            for (const s of this.series) {
                 const seriesState = initialState.find((init) => init.seriesId === s.id);
                 s.onLegendInitialState('category', seriesState);
-            });
+            }
         }
 
         const legendData = this.series.flatMap((s) => {
@@ -1672,7 +1672,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         // Try to optimise series updates if series count and types didn't change.
         if (matchingTypes && isAgCartesianChartOptions(oldOpts)) {
-            chart.axes.forEach((axis, index) => {
+            for (const [index, axis] of chart.axes.entries()) {
                 const previousOpts = oldOpts.axes?.[index] ?? {};
                 const axisDiff = jsonDiff(previousOpts, axes[index]) as any;
 
@@ -1680,7 +1680,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 const path = `axes[${index}]`;
                 jsonApply(axis, axisDiff, { path, skip });
-            });
+            }
             return true;
         }
 

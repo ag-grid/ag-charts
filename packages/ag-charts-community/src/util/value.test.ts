@@ -19,7 +19,7 @@ describe('value module', () => {
                 valueOf: () => '',
             })
         ).toBe(false);
-        expect(isContinuous(NaN)).toBe(false);
+        expect(isContinuous(Number.NaN)).toBe(false);
         expect(isContinuous(null)).toBe(false);
         expect(isContinuous(undefined)).toBe(false);
         expect(isContinuous('')).toBe(false);
@@ -39,7 +39,7 @@ describe('value module', () => {
         expect(isStringObject(1)).toBe(false);
         expect(isStringObject(-1)).toBe(false);
         expect(isStringObject(null)).toBe(false);
-        expect(isStringObject(NaN)).toBe(false);
+        expect(isStringObject(Number.NaN)).toBe(false);
         expect(isStringObject(undefined)).toBe(false);
         expect(isStringObject(Symbol.iterator)).toBe(false);
         expect(isStringObject(Number(5))).toBe(false);

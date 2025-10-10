@@ -157,13 +157,13 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
     if (start === end) {
         return clamp(1, minCount, maxCount);
     } else if (count < 1) {
-        return NaN;
+        return Number.NaN;
     }
 
     const extent = Math.abs(end - start);
     const step = 10 ** Math.floor(Math.log10(extent / count));
 
-    let m = NaN,
+    let m = Number.NaN,
         minDiff = Infinity,
         isInBounds = false;
     for (const multiplier of TickMultipliers) {

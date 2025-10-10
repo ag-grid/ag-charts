@@ -31,7 +31,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         if (!(value instanceof Date)) value = new Date(value as any);
         const { domain, bands, reversed } = this;
 
-        if (domain.length <= 0) return NaN;
+        if (domain.length <= 0) return Number.NaN;
 
         const r0 = this.ordinalRange(0);
         const r1 = this.ordinalRange(bands.length - 1);

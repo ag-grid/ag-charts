@@ -62,8 +62,8 @@ export interface AreaSeriesNodeDataContext
 
 export function plotAreaPathFill({ path }: Path, { spans, phantomSpans }: AreaFillPathDatum) {
     let phantomSpanIndex = 0;
-    let sp = { x: NaN, y: NaN };
-    let pp = { x: NaN, y: NaN };
+    let sp = { x: Number.NaN, y: Number.NaN };
+    let pp = { x: Number.NaN, y: Number.NaN };
     for (let i = 0; i < spans.length; i += 1) {
         const { span } = spans[i];
         const { span: phantomSpan } = phantomSpans[i];

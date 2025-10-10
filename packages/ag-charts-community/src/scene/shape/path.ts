@@ -17,8 +17,8 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
      */
     path = new ExtendedPath2D();
 
-    protected _clipX: number = NaN;
-    protected _clipY: number = NaN;
+    protected _clipX: number = Number.NaN;
+    protected _clipY: number = Number.NaN;
     protected _clipPath?: ExtendedPath2D;
 
     @SceneChangeDetection()
@@ -123,7 +123,7 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
         }
     }
 
-    private lastPixelRatio = NaN;
+    private lastPixelRatio = Number.NaN;
     override preRender(renderCtx: RenderContext): ChildNodeCounts {
         if (renderCtx.devicePixelRatio !== this.lastPixelRatio) {
             // Some shapes algin the paths to pixels

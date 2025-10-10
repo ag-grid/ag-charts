@@ -15,9 +15,9 @@ export class FontManager {
     public updateFonts(fonts?: Set<string>) {
         if (!fonts || fonts.size === 0) return;
         this.loadFonts(fonts);
-        fonts.forEach((font) => {
+        for (const font of fonts) {
             this.observeFontStatus(font);
-        });
+        }
     }
 
     public destroy() {
@@ -36,7 +36,7 @@ export class FontManager {
     }
 
     private observeFontStatus(font: string) {
-        const fontCheckElement = window.document.createElement('div');
+        const fontCheckElement = globalThis.document.createElement('div');
         fontCheckElement.style.setProperty('position', 'absolute');
         fontCheckElement.style.setProperty('top', '0');
         fontCheckElement.style.setProperty('margin', '0');

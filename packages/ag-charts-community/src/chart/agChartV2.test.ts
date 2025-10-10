@@ -43,7 +43,7 @@ describe('AgChartV2', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        document.body.removeChild(container);
+        container.remove();
     });
 
     const compare = async () => {

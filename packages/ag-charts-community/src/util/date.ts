@@ -3,7 +3,7 @@ export function compareDates(a: Date, b: Date) {
 }
 
 function deduplicateSortedArray(values: Date[]) {
-    let v0 = NaN;
+    let v0 = Number.NaN;
     const out: Date[] = [];
     for (const v of values) {
         const v1 = v.valueOf();
@@ -21,7 +21,7 @@ export function sortAndUniqueDates(values: Date[]) {
 export function datesSortOrder(d: Date[]): 1 | -1 | undefined {
     if (d.length === 0) return 1;
 
-    const sign: 1 | -1 = Number(d[d.length - 1]) > Number(d[0]) ? 1 : -1;
+    const sign: 1 | -1 = Number(d.at(-1)) > Number(d[0]) ? 1 : -1;
     let v0 = -Infinity * sign;
     for (const v of d) {
         const v1 = v.valueOf();

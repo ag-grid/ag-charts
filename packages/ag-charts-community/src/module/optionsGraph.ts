@@ -933,7 +933,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             if (children && children.length > 0 && edgeValue !== highestPriority) continue;
 
             // Do not resolve edges that have been pruned
-            if (Array.isArray(prune) && prune.indexOf(edgeValue) >= 0) continue;
+            if (Array.isArray(prune) && prune.includes(edgeValue)) continue;
 
             this.hasUnsafeClearKeys ||=
                 value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathArray[pathArray.length - 1]);

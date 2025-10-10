@@ -226,9 +226,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         return into;
     }
 
-    private _lastWidth = NaN;
-    private _lastHeight = NaN;
-    private _lastDevicePixelRatio = NaN;
+    private _lastWidth = Number.NaN;
+    private _lastHeight = Number.NaN;
+    private _lastDevicePixelRatio = Number.NaN;
     private isDirty(renderCtx: RenderContext) {
         const { width, height, devicePixelRatio } = renderCtx;
         const { dirty, layer } = this;

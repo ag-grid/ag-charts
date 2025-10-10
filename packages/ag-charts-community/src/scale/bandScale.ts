@@ -97,7 +97,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         this.refresh();
         const i = this.findIndex(d, options?.alignment);
         if (i == null || i < 0 || i >= this.bands.length) {
-            return NaN;
+            return Number.NaN;
         }
         return this.ordinalRange(i);
     }

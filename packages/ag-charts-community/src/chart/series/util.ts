@@ -58,14 +58,14 @@ export function visibleRangeIndices(
     let xMinIndex =
         findMinIndex(0, length - 1, (i) => {
             const index = sortOrder === 1 ? i : length - i;
-            const x1 = xRange(index)?.[1] ?? NaN;
+            const x1 = xRange(index)?.[1] ?? Number.NaN;
             return !Number.isFinite(x1) || x1 >= range0;
         }) ?? 0;
 
     let xMaxIndex =
         findMaxIndex(0, length - 1, (i) => {
             const index = sortOrder === 1 ? i : length - i;
-            const x0 = xRange(index)?.[0] ?? NaN;
+            const x0 = xRange(index)?.[0] ?? Number.NaN;
             return !Number.isFinite(x0) || x0 <= range1;
         }) ?? length - 1;
 

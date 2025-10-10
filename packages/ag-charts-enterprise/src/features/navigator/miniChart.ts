@@ -65,7 +65,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
             for (const axis of oldValue) {
                 if (newValue.includes(axis)) continue;
-                axis.detachAxis(axisNodes);
+                axis.detachAxis();
                 axis.destroy();
             }
 

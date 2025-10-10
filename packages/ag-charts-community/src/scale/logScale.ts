@@ -49,13 +49,13 @@ export class LogScale extends ContinuousScale<number> {
 
     override transform(this: LogScale, x: number) {
         const [min, max] = findMinMax(this.domain);
-        if (min >= 0 !== max >= 0) return NaN;
+        if (min >= 0 !== max >= 0) return Number.NaN;
         return min >= 0 ? Math.log(x) : -Math.log(-x);
     }
 
     override transformInvert(this: LogScale, x: number) {
         const [min, max] = findMinMax(this.domain);
-        if (min >= 0 !== max >= 0) return NaN;
+        if (min >= 0 !== max >= 0) return Number.NaN;
         return min >= 0 ? Math.exp(x) : -Math.exp(-x);
     }
 

@@ -638,7 +638,7 @@ export class ChartTheme {
     }
 
     private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides) {
-        chartTypes.seriesTypes.forEach((s) => {
+        for (const s of chartTypes.seriesTypes) {
             const seriesType = s as keyof AgThemeOverrides;
             const seriesOverrides = overrides[seriesType];
 
@@ -646,7 +646,7 @@ export class ChartTheme {
                 presets[seriesType] = seriesOverrides as any;
                 delete overrides[seriesType];
             }
-        });
+        }
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {

@@ -65,20 +65,24 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
     const content = aggregateTooltipContent(ungroupedContent);
     const ariaLabel: string[] = [];
 
-    content.forEach((c) => {
-        if (c.type === 'raw') return '';
+    for (const c of content) {
+        if (c.type === 'raw') {
+            continue;
+        }
         if (c.heading != null) {
             ariaLabel.push(toPlainText(c.heading));
         }
-        c.items.forEach((i) => {
+        for (const i of c.items) {
             if (i.title != null) {
                 ariaLabel.push(toPlainText(i.title));
             }
-            i.data?.forEach((datum) => {
-                ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
-            });
-        });
-    });
+            if (i.data) {
+                for (const datum of i.data) {
+                    ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+                }
+            }
+        }
+    }
 
     return ariaLabel.join('; ');
 }
@@ -188,9 +192,9 @@ function tooltipContentHtml(
             html += ' ';
         }
 
-        content.items.forEach((item) => {
+        for (const item of content.items) {
             html += tooltipRowContentHtml(item);
-        });
+        }
     }
 
     if (html.length === 0) return;

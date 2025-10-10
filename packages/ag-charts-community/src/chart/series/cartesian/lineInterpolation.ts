@@ -282,8 +282,8 @@ export enum SpanJoin {
 export function linearPoints(points: Iterable<Point>): Span[] {
     const spans: Span[] = [];
     let i = 0;
-    let x0 = NaN;
-    let y0 = NaN;
+    let x0 = Number.NaN;
+    let y0 = Number.NaN;
     for (const { x: x1, y: y1 } of points) {
         if (i > 0) {
             const moveTo = i === 1;
@@ -305,8 +305,8 @@ const lineSteps = {
 export function stepPoints(points: Iterable<Point>, position: number | keyof typeof lineSteps): Span[] {
     const spans: Span[] = [];
     let i = 0;
-    let x0 = NaN;
-    let y0 = NaN;
+    let x0 = Number.NaN;
+    let y0 = Number.NaN;
     const p0 = typeof position === 'number' ? position : lineSteps[position];
     for (const { x: x1, y: y1 } of points) {
         if (i > 0) {

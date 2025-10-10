@@ -56,7 +56,7 @@ describe('themes module', () => {
             { n: 'B', v0: 1.8, v1: 7.1, v2: 8.4, v3: 1.3, v4: 6.8, v5: 5.5, v6: 2.7, v7: 4.8, v8: 4.8, v9: 5.2 },
             { n: 'C', v0: 7.1, v1: 7.4, v2: 1.9, v3: 9.8, v4: 1.3, v5: 4.4, v6: 8.3, v7: 9.5, v8: 1.3, v9: 0.9 },
             { n: 'D', v0: 3.5, v1: 9.2, v2: 4.2, v3: 2.5, v4: 6.3, v5: 4.4, v6: 5.9, v7: 2.2, v8: 6.8, v9: 0.1 },
-            { n: 'E', v0: 9.0, v1: 2.8, v2: 1.9, v3: 7.4, v4: 5.9, v5: 8.1, v6: 0.6, v7: 7.6, v8: 3.0, v9: 3.4 },
+            { n: 'E', v0: 9, v1: 2.8, v2: 1.9, v3: 7.4, v4: 5.9, v5: 8.1, v6: 0.6, v7: 7.6, v8: 3, v9: 3.4 },
         ],
         series: [
             { type: 'bar', xKey: 'n', yKey: 'v0', stacked: true },
@@ -122,7 +122,7 @@ describe('themes module', () => {
         const chart = AgCharts.create({
             ...opts,
             theme: {
-                baseTheme: NaN,
+                baseTheme: Number.NaN,
                 palette: 'foobar',
                 overrides: true,
             } as unknown as AgChartTheme,

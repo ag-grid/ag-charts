@@ -306,9 +306,9 @@ describe('Rect', () => {
                     ['width', 'height'],
                     ['height', 'width'],
                 ];
-                sizeProps.forEach(([thinProp, thickProp]) => {
-                    strokeWidths.forEach((strokeWidth) => {
-                        thicknesses.forEach((thickness) => {
+                for (const [thinProp, thickProp] of sizeProps) {
+                    for (const strokeWidth of strokeWidths) {
+                        for (const thickness of thicknesses) {
                             results.push({
                                 [thinProp]: thickness,
                                 [thickProp]: 40,
@@ -317,9 +317,9 @@ describe('Rect', () => {
                                 fill: 'red',
                                 crisp: true,
                             });
-                        });
-                    });
-                });
+                        }
+                    }
+                }
                 return results;
             })(),
         ];

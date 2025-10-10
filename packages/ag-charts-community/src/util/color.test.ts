@@ -86,7 +86,7 @@ describe('Color', () => {
             expect(color.r).toBe(0.1);
             expect(color.g).toBe(0.2);
             expect(color.b).toBe(0.3);
-            expect(color.a).toBe(1.0);
+            expect(color.a).toBe(1);
         }
     });
 
@@ -109,7 +109,7 @@ describe('Color', () => {
             const color = new Color(0.5, 0.5, 0.5);
             const hsb = color.toHSB();
             expect(hsb[0]).toBe(0);
-            expect(hsb[1]).toBe(0.0);
+            expect(hsb[1]).toBe(0);
             expect(hsb[2]).toBe(0.5);
         }
     });

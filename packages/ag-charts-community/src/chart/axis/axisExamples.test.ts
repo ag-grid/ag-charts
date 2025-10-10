@@ -245,7 +245,7 @@ const EXAMPLES_LAYOUT: Record<string, TestCase> = {
 function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         // Add manual rotation.
         result[name + '_MANUAL_ROTATION'] = {
             ...baseCase,
@@ -262,7 +262,7 @@ function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, 
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }
@@ -270,12 +270,12 @@ function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, 
 function mixinReversedAxesCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         result[name + '_REVERSED_AXES'] = {
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }
@@ -364,19 +364,19 @@ describe('Axis Examples', () => {
                 chart = await createChart({ ...example.options, legend: { enabled: true } });
                 const reference = await snapshot();
 
-                chart.series.forEach((s) => {
+                for (const s of chart.series) {
                     const itemId = s.getKeys(ChartAxisDirection.Y)[0];
                     (s as any).toggleSeriesItem(true, 'category', itemId, undefined);
-                });
+                }
                 chart.update(ChartUpdateType.FULL);
 
                 const afterUpdate = await snapshot();
                 expect(afterUpdate).not.toMatchImage(reference);
 
-                chart.series.forEach((s) => {
+                for (const s of chart.series) {
                     const itemId = s.getKeys(ChartAxisDirection.Y)[0];
                     (s as any).toggleSeriesItem(false, 'category', itemId, undefined);
-                });
+                }
                 chart.update(ChartUpdateType.FULL);
 
                 const afterFinalUpdate = await snapshot();

@@ -70,7 +70,7 @@ const mixinFlippedRangeCases = (
 
     const examplesToFlip = Object.entries(baseRangeCases).slice(0, -2);
 
-    examplesToFlip.forEach(([name, example]) => {
+    for (const [name, example] of examplesToFlip) {
         const prefix = name.substring(0, name.indexOf('_'));
         const suffix = name.substring(name.indexOf('_'));
         result[`${prefix}_FLIPPED${suffix}`] = {
@@ -82,7 +82,7 @@ const mixinFlippedRangeCases = (
                 ),
             },
         };
-    });
+    }
 
     return result;
 };

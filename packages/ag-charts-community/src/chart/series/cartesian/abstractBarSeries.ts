@@ -66,7 +66,7 @@ export abstract class AbstractBarSeries<
     protected padBandExtent(keys: any[], alignStart?: boolean) {
         const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;
         const scalePadding = isFiniteNumber(this.smallestDataInterval) ? this.smallestDataInterval * ratio : 0;
-        const keysExtent = extent(keys) ?? [NaN, NaN];
+        const keysExtent = extent(keys) ?? [Number.NaN, Number.NaN];
         if (typeof alignStart === 'boolean') {
             keysExtent[alignStart ? 0 : 1] -= (alignStart ? 1 : -1) * scalePadding;
         } else {
