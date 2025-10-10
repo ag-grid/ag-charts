@@ -72,8 +72,9 @@ type ResolvedStyleMixin = {
         high?: ResolvedLineStyleMixin;
     };
 };
-type PartialStylerResult = AgRangeAreaSeriesStyle & ResolvedStyleMixin & { opacity?: number };
+type PartialStylerResult = AgRangeAreaSeriesStyle & { opacity?: number };
 type StylerResult = DeepRequired<PartialStylerResult, 'fill'>;
+type StylerMarkerOptionsResult = DeepRequired<ResolvedStyleMixin>;
 
 class RangeAreaSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -607,7 +608,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { processedData, axes, properties } = this;
 
         type LowHighRules = { [K in 'low' | 'high']: { marker: { enabled: boolean } } };
-        const { low, high }: LowHighRules = properties.styler ? this.getStyle(false).item : properties.item;
+        const { low, high }: LowHighRules = properties.styler ? this.getStylerMarkerOptions().item : properties.item;
 
         const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, {
             enabled: low.marker.enabled || high.marker.enabled,
@@ -719,6 +720,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): StylerResult {
+        return this.getStylerCouple(highlighted, highlightState)[0];
+    }
+
+    private getStylerMarkerOptions(): StylerMarkerOptionsResult {
+        return this.getStylerCouple(false)[1];
+    }
+
+    private getStylerCouple(
+        highlighted: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ): [StylerResult, StylerMarkerOptionsResult] {
         const { fill, fillOpacity, item, styler } = this.properties;
 
         let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
@@ -732,12 +744,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 ) ?? {};
         }
 
+        const markerOpts: StylerMarkerOptionsResult = {
+            item: { low: { marker: { enabled: false } }, high: { marker: { enabled: false } } },
+        };
+
         const makeItemResult = (lowOrHigh: 'low' | 'high'): StylerResult['item'][typeof lowOrHigh] => {
             const stylerItem = stylerResult.item?.[lowOrHigh];
             const { lineDash, lineDashOffset, marker, stroke, strokeOpacity, strokeWidth } = item[lowOrHigh];
+            markerOpts.item[lowOrHigh].marker.enabled = stylerItem?.marker?.enabled ?? marker.enabled;
             return {
                 marker: {
-                    enabled: stylerItem?.marker?.enabled ?? marker.enabled,
                     fill: stylerItem?.marker?.fill ?? marker.fill ?? fill,
                     fillOpacity: stylerItem?.marker?.fillOpacity ?? marker.fillOpacity,
                     shape: stylerItem?.marker?.shape ?? marker.shape,
@@ -755,7 +771,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 strokeWidth: stylerItem?.strokeWidth ?? strokeWidth,
             };
         };
-        return {
+        const style: StylerResult = {
             fill: stylerResult.fill ?? fill,
             fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
             opacity: 1,
@@ -764,6 +780,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 high: makeItemResult('high'),
             },
         };
+        return [style, markerOpts];
     }
 
     private makeStylerParams(
