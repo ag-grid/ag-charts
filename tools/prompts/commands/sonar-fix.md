@@ -28,6 +28,14 @@ Shows summary of open SonarCloud issues with counts by severity and rule type.
 
 ---
 
+## Rule Guide Library
+
+Per-issue-type guides are available in `tools/prompts/sonar-fix/` directory:
+
+-   **README.md** - Index of all available guides
+-   **Individual guides** - Detailed fix patterns, examples, and AG Charts context for each rule type
+-   Guides are automatically created/updated using the SonarCloud API when new rule types are encountered
+
 ## Instructions for AI Agent
 
 ### When Invoked WITHOUT Arguments (Report Mode)
@@ -125,6 +133,66 @@ Shows summary of open SonarCloud issues with counts by severity and rule type.
 ---
 
 ### When Invoked WITH Arguments (Fix Mode)
+
+#### Phase 0: Ensure Rule Guides Exist
+
+**Before fetching issues, ensure rule-specific guides are available:**
+
+1. **Check for existing guides:**
+
+    Rule guides are located in `tools/prompts/sonar-fix/` directory.
+
+    Each guide follows the naming pattern: `{rule-number}-{kebab-case-description}.md`
+
+    Example: `S7728-use-for-of-loops.md`
+
+2. **For missing guides:**
+
+    If you encounter a rule type without a guide:
+
+    a. **Fetch rule details from SonarCloud API:**
+
+    ```
+    URL: https://sonarcloud.io/api/rules/show?key={encoded-rule-id}&organization=ag-grid
+    Example: https://sonarcloud.io/api/rules/show?key=typescript%3AS7728&organization=ag-grid
+
+    Prompt: "Extract the complete rule information including:
+    - Rule key, name, description
+    - Severity, type, tags
+    - All code examples (noncompliant and compliant)
+    Return in structured format with all details"
+    ```
+
+    b. **Create guide file following the standard structure:**
+
+    ```markdown
+    # {Issue Description}
+
+    Rule ID: {full-rule-id}
+    Rule URL: https://sonarcloud.io/api/rules/show?key={encoded-rule-id}&organization=ag-grid
+
+    {Human-readable description from SonarCloud API}
+
+    ## Example Violations
+
+    {Code examples from API}
+
+    ## Example Fixes
+
+    {Code examples from API}
+
+    ## AG Charts Context
+
+    {Project-specific notes - can be added incrementally}
+    ```
+
+    c. **Save to:** `tools/prompts/sonar-fix/{rule-number}-{description}.md`
+
+    d. **Update README.md:** Add entry to the appropriate tier table in `tools/prompts/sonar-fix/README.md`
+
+3. **Reference during fixing:**
+
+    When processing issues in Phase 3, read the appropriate guide to inform your fixes.
 
 #### Phase 1: Parse Arguments and Fetch Issues
 
@@ -244,7 +312,14 @@ Wait for user confirmation before proceeding.
 
     c. **Apply rule-specific fix:**
 
-    See [Rule-Specific Fix Patterns](#rule-specific-fix-patterns) below
+    **Read the appropriate rule guide:**
+
+    - Guides are in `tools/prompts/sonar-fix/{rule-number}-{description}.md`
+    - Example: For rule `typescript:S7728`, read `tools/prompts/sonar-fix/S7728-use-for-of-loops.md`
+    - Use the guide's examples, AG Charts context, and fix patterns to inform your changes
+    - If no guide exists, create one following Phase 0 instructions
+
+    **Quick reference patterns are also available below:** [Rule-Specific Fix Patterns](#rule-specific-fix-patterns)
 
     d. **Use Edit tool for precise changes:**
 
