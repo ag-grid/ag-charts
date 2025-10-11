@@ -28,6 +28,7 @@ export function calculateSegments(
         return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const axis = segmentation.key === ChartAxisDirection.X ? xAxis : yAxis;
     const { scale, direction } = axis;
 

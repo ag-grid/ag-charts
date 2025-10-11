@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 
 /* eslint-disable sonarjs/class-name */
-
-/* eslint-disable sonarjs/prefer-function-type */
 import type { Operation } from './chart/operationOptions';
 import type { AgChartThemePalette, AgPaletteColors } from './chart/themeOptions';
 import type { AgChartInstance, AgChartInstanceOptions, AgSparklineOptions } from './chartBuilderOptions';
