@@ -347,14 +347,14 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
             y = this.align(y);
 
             clipBBox =
-                clipBBox != null
-                    ? new BBox(
+                clipBBox == null
+                    ? undefined
+                    : new BBox(
                           this.align(clipBBox.x),
                           this.align(clipBBox.y),
                           this.align(clipBBox.x, clipBBox.width),
                           this.align(clipBBox.y, clipBBox.height)
-                      )
-                    : undefined;
+                      );
         }
 
         if (strokeWidth) {

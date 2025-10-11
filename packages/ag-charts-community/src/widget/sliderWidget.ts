@@ -52,7 +52,7 @@ export class SliderWidget extends Widget<HTMLInputElement> {
         return getAttribute(this.elem, 'aria-orientation') ?? 'both';
     }
     public set orientation(orientation: RovingDirection) {
-        setAttribute(this.elem, 'aria-orientation', orientation !== 'both' ? orientation : undefined);
+        setAttribute(this.elem, 'aria-orientation', orientation === 'both' ? undefined : orientation);
         SliderWidget.registerDefaultPreventers(this, orientation);
     }
 

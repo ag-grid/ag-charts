@@ -98,7 +98,7 @@ export abstract class Widget<
     destroy(): void {
         this.destroyListener?.();
         this.destroyListener = undefined;
-        this.parent?.removeChild(this);
+        this.remove();
         for (const child of this.children) {
             child.parent = undefined;
             child.destroy();

@@ -485,8 +485,9 @@ export class BarSeries extends AbstractBarSeries<
                 clipBBox,
                 crisp,
                 label:
-                    labelText != null
-                        ? {
+                    labelText == null
+                        ? undefined
+                        : {
                               text: labelText,
                               ...adjustLabelPlacement({
                                   isUpward: isUpward,
@@ -495,8 +496,7 @@ export class BarSeries extends AbstractBarSeries<
                                   spacing,
                                   rect,
                               }),
-                          }
-                        : undefined,
+                          },
                 missing: yValue == null,
                 focusable: !phantom,
             };
@@ -522,7 +522,7 @@ export class BarSeries extends AbstractBarSeries<
             const datum = rawData.data[datumIndex];
 
             const yRawValue = yRawValues[datumIndex];
-            const yFilterValue = yFilterValues != null ? Number(yFilterValues[datumIndex]) : undefined;
+            const yFilterValue = yFilterValues == null ? undefined : Number(yFilterValues[datumIndex]);
             const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
 
             if (!Number.isFinite(yEnd)) return;
@@ -550,7 +550,7 @@ export class BarSeries extends AbstractBarSeries<
                 yValue: yFilterValue ?? yRawValue,
                 cumulativeValue: yFilterValue ?? yEnd,
                 phantom: false,
-                currY: yFilterValue != null ? yStart + yFilterValue : yEnd,
+                currY: yFilterValue == null ? yEnd : yStart + yFilterValue,
                 prevY: yStart,
                 x,
                 width,
@@ -735,7 +735,7 @@ export class BarSeries extends AbstractBarSeries<
         const highlightItem = nodeData.find(
             (nodeDatum) => nodeDatum.datum === highlightedItem.datum && !nodeDatum.phantom
         );
-        return highlightItem != null ? [{ ...highlightItem }] : undefined;
+        return highlightItem == null ? undefined : [{ ...highlightItem }];
     }
 
     protected override updateDatumSelection(opts: {

@@ -620,7 +620,7 @@ export abstract class CartesianSeries<
 
         for (const datum of contextNodeData.nodeData) {
             const { point: { x: datumX = Number.NaN, y: datumY = Number.NaN } = {} } = datum;
-            if (isNaN(datumX) || isNaN(datumY)) {
+            if (Number.isNaN(datumX) || Number.isNaN(datumY)) {
                 continue;
             }
 
@@ -710,7 +710,7 @@ export abstract class CartesianSeries<
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = Number.NaN, y: datumY = Number.NaN } = datum.point ?? datum.midPoint ?? {};
-            if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) continue;
+            if (Number.isNaN(datumX) || Number.isNaN(datumY) || datum.missing === true) continue;
 
             const visible = [xAxis?.inRange(datumX, 1), yAxis?.inRange(datumY, 1)];
             if (majorDirection !== ChartAxisDirection.X) {

@@ -89,7 +89,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
 
                 layoutBox.shrink({ left: width + sharedToolbar.horizontalSpacing + (padding ?? 0) });
             },
-            addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap & string>(
+            addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap>(
                 eventType: K,
                 handler: (event: _ModuleSupport.ToolbarEventMap<ButtonOptions>[K]) => void
             ) => {

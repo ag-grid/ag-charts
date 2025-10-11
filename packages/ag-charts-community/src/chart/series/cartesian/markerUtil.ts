@@ -67,7 +67,7 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
         // Parallel swipe animations use the function x = easeOut(time). But in this case, we
         // know the x value and need to calculate the time delay. So use the inverse function:
         let delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
-        if (isNaN(delay)) {
+        if (Number.isNaN(delay)) {
             delay = 0;
         }
         return { scalingX: 0, scalingY: 0, delay, duration: QUICK_TRANSITION, phase: 'initial' as const };

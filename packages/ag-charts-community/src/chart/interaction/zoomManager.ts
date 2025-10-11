@@ -552,7 +552,7 @@ export class ZoomManager extends BaseManager {
 
         if (zoomX.min === 0 && zoomX.max === 1) {
             // If autoScaling is not possible (i.e. horizontal bar series), do not autoscale when zoomed out
-            return yZoom != null ? { min: 0, max: 1 } : undefined;
+            return yZoom == null ? undefined : { min: 0, max: 1 };
         } else {
             return yZoom;
         }

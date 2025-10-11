@@ -18,7 +18,7 @@ export function extent(values: Array<unknown>): [number, number] | null {
     }
 
     const result: [number, number] = [min, max];
-    return result.every(isFinite) ? result : null;
+    return result.every(Number.isFinite) ? result : null;
 }
 
 export function normalisedExtentWithMetadata(

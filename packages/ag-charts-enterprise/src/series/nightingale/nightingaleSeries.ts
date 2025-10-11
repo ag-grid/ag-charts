@@ -45,8 +45,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
         const { negative } = datum;
         node.centerX = 0;
         node.centerY = 0;
-        node.startOuterCornerRadius = !negative ? this.properties.cornerRadius : 0;
-        node.endOuterCornerRadius = !negative ? this.properties.cornerRadius : 0;
+        node.startOuterCornerRadius = negative ? 0 : this.properties.cornerRadius;
+        node.endOuterCornerRadius = negative ? 0 : this.properties.cornerRadius;
         node.startInnerCornerRadius = negative ? this.properties.cornerRadius : 0;
         node.endInnerCornerRadius = negative ? this.properties.cornerRadius : 0;
         if (highlight) {

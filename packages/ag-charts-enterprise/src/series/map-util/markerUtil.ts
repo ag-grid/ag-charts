@@ -31,17 +31,17 @@ export function markerPositions(geometry: _ModuleSupport.Geometry, precision: nu
             return [geometry.coordinates];
         case 'MultiPolygon': {
             const polygon = largestPolygon(geometry);
-            center = polygon != null ? polygonMarkerCenter(polygon, precision) : undefined;
+            center = polygon == null ? undefined : polygonMarkerCenter(polygon, precision);
             break;
         }
         case 'Polygon': {
             const polygon = geometry.coordinates;
-            center = polygon != null ? polygonMarkerCenter(polygon, precision) : undefined;
+            center = polygon == null ? undefined : polygonMarkerCenter(polygon, precision);
             break;
         }
         case 'MultiLineString': {
             const lineString = largestLineString(geometry);
-            center = lineString != null ? lineStringCenter(lineString)?.point : undefined;
+            center = lineString == null ? undefined : lineStringCenter(lineString)?.point;
             break;
         }
         case 'LineString': {
@@ -51,5 +51,5 @@ export function markerPositions(geometry: _ModuleSupport.Geometry, precision: nu
         }
     }
 
-    return center != null ? [center] : [];
+    return center == null ? [] : [center];
 }

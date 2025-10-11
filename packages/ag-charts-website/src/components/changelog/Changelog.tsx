@@ -28,10 +28,10 @@ const compareSemver = (a: any, b: any) => {
     const [bMajor, bMinor, bPatch] = b.split('.').map((num: string) => parseInt(num, 10));
     if (aMajor !== bMajor) {
         return bMajor - aMajor; // Sort by major version descending
-    } else if (aMinor !== bMinor) {
-        return bMinor - aMinor; // Sort by minor version descending
-    } else {
+    } else if (aMinor === bMinor) {
         return bPatch - aPatch;
+    } else {
+        return bMinor - aMinor; // Sort by minor version descending
     }
 };
 
@@ -172,7 +172,7 @@ export const Changelog = () => {
     );
 
     const isRowMaster = useCallback((params: any) => {
-        return params.moreInformation || params.deprecationNotes || params.breakingChangesNotes;
+        return params.moreInformation ?? params.deprecationNotes ?? params.breakingChangesNotes;
     }, []);
 
     const switchDisplayedFixVersion = useCallback(
@@ -210,9 +210,9 @@ export const Changelog = () => {
 
     const detailCellRendererParams = useCallback((params: any) => {
         function produceHTML(fieldName: any, fieldInfo: any) {
-            return fieldName !== 'Link to Documentation'
-                ? `<strong>${fieldName}:</strong><br> ${fieldInfo}<br><br>`
-                : `<strong>${fieldName}:</strong><br> ${fieldInfo}`;
+            return fieldName === 'Link to Documentation'
+                ? `<strong>${fieldName}:</strong><br> ${fieldInfo}`
+                : `<strong>${fieldName}:</strong><br> ${fieldInfo}<br><br>`;
         }
 
         const moreInfo = params.data.moreInformation

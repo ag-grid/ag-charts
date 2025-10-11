@@ -414,11 +414,11 @@ export abstract class Series<
         annotationNode?.appendChild(this.annotationGroup);
     }
 
-    detachSeries(seriesContentNode: Group | undefined, _seriesNode: Group, annotationNode: Group | undefined) {
-        seriesContentNode?.removeChild(this.contentGroup);
+    detachSeries(_seriesContentNode: Group | undefined, _seriesNode: Group, _annotationNode: Group | undefined) {
+        this.contentGroup.remove();
         this.highlightGroup.remove();
         this.labelGroup.remove();
-        annotationNode?.removeChild(this.annotationGroup);
+        this.annotationGroup.remove();
     }
 
     declarationOrder: number = -1;
@@ -495,7 +495,7 @@ export abstract class Series<
     ): string[] {
         const direction = propertyAxisDirection(property);
         const resolvedProperty =
-            direction != null ? axisDirectionProperty(this.resolveKeyDirection(direction)) : property;
+            direction == null ? property : axisDirectionProperty(this.resolveKeyDirection(direction));
         const keys = properties?.[resolvedProperty];
         const values: string[] = [];
 
@@ -554,7 +554,7 @@ export abstract class Series<
         const seriesDomain: any[] = this.getSeriesDomain(direction);
         const moduleDomains: any[] = this.moduleMap.mapModules((module) => module.getDomain(direction)).flat();
         // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
-        return moduleDomains.length !== 0 ? seriesDomain.concat(moduleDomains) : seriesDomain;
+        return moduleDomains.length === 0 ? seriesDomain : seriesDomain.concat(moduleDomains);
     }
 
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[] {
@@ -784,10 +784,10 @@ export abstract class Series<
 
                 case SeriesNodePickMode.AXIS_ALIGNED: {
                     const closest =
-                        pickModeAxis != null
-                            ? this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category')
-                            : undefined;
-                    result = closest != null ? { datums: [closest.datum], distance: closest.distance } : undefined;
+                        pickModeAxis == null
+                            ? undefined
+                            : this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category');
+                    result = closest == null ? undefined : { datums: [closest.datum], distance: closest.distance };
                     break;
                 }
             }
@@ -973,7 +973,7 @@ export abstract class Series<
         };
 
         const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
-        const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
+        const axis = direction == null ? undefined : axes[this.resolveKeyDirection(direction)];
         if (axis != null) {
             return axis.formatDatum(
                 properties,
@@ -1110,7 +1110,7 @@ export abstract class Series<
         { applyTranslation = true, selected = true } = {}
     ) {
         const { shape, size = 0 } = style;
-        const visible = this.visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
+        const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
         applyShapeStyle(markerNode, style, fillBBox);
 

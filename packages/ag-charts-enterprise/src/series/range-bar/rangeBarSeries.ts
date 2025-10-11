@@ -380,7 +380,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
                 const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
                 if (xMinIndex === -1) return;
-                const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
+                const midDatumIndex = Math.trunc((xMinIndex + xMaxIndex) / 2);
                 return [xPosition(midDatumIndex), xPosition(xMaxIndex) + effectiveBarWidth];
             });
 
@@ -393,7 +393,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
                 if (xMinIndex === -1) continue;
 
-                const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
+                const midDatumIndex = Math.trunc((xMinIndex + xMaxIndex) / 2);
 
                 const xValue = xValues[midDatumIndex];
                 if (xValue == null) continue;

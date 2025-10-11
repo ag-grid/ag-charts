@@ -160,7 +160,7 @@ export function groupAccumulativeValueProperty<K>(
     return [
         valueProperty(propName, scaleType, opts),
         accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
-        ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
+        ...(opts.rangeId == null ? [] : [range(opts.rangeId, opts.groupId)]),
     ];
 }
 
@@ -170,12 +170,11 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     initialValue: Infinity,
     reducer: () => {
         let prevX = Number.NaN;
-        // eslint-disable-next-line sonarjs/default-param-last
         return (smallestSoFar = Infinity, keys) => {
             const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
-            if (!isNaN(interval) && interval > 0 && interval < smallestSoFar) {
+            if (!Number.isNaN(interval) && interval > 0 && interval < smallestSoFar) {
                 return interval;
             }
             return smallestSoFar;
@@ -189,13 +188,12 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     initialValue: -Infinity,
     reducer: () => {
         let prevX = Number.NaN;
-        // eslint-disable-next-line sonarjs/default-param-last
         return (largestSoFar = -Infinity, keys) => {
             const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
 
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
-            if (!isNaN(interval) && interval > 0 && interval > largestSoFar) {
+            if (!Number.isNaN(interval) && interval > 0 && interval > largestSoFar) {
                 return interval;
             }
             return largestSoFar;
@@ -608,9 +606,9 @@ export function diff(
                 const hasDatum = i < processedData.input.count;
 
                 const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i) : undefined;
-                const prevId = prevKeys != null ? createDatumId(...prevKeys) : '';
+                const prevId = prevKeys == null ? '' : createDatumId(...prevKeys);
                 const dKeys = hasDatum ? datumKeys(keys, i) : undefined;
-                const datumId = dKeys != null ? createDatumId(...dKeys) : '';
+                const datumId = dKeys == null ? '' : createDatumId(...dKeys);
 
                 if (hasDatum && hasPreviousDatum && prevId === datumId) {
                     if (!columnsEqual(previousColumns, columns, indices, i, i)) {

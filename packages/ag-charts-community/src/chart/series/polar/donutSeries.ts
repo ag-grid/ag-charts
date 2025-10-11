@@ -250,7 +250,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        seriesContentNode?.removeChild(this.backgroundGroup);
+        this.backgroundGroup.remove();
     }
 
     override setZIndex(zIndex: number) {
@@ -395,13 +395,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const angleValues = dataModel.resolveColumnById<number>(this, `angleValue`, processedData);
         const angleRawValues = dataModel.resolveColumnById<number>(this, `angleRaw`, processedData);
         const angleFilterValues =
-            this.properties.angleFilterKey != null
-                ? dataModel.resolveColumnById<number>(this, `angleFilterValue`, processedData)
-                : undefined;
+            this.properties.angleFilterKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `angleFilterValue`, processedData);
         const angleFilterRawValues =
-            this.properties.angleFilterKey != null
-                ? dataModel.resolveColumnById<number>(this, `angleFilterRaw`, processedData)
-                : undefined;
+            this.properties.angleFilterKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `angleFilterRaw`, processedData);
         const radiusValues = this.properties.radiusKey
             ? dataModel.resolveColumnById<number>(this, `radiusValue`, processedData)
             : undefined;
@@ -463,7 +463,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         let currentStart = 0;
         let sum = 0;
         const nodes: PieDonutNodeDatum[] = [];
-        const phantomNodes: PieDonutNodeDatum[] | undefined = angleFilterRawValues != null ? [] : undefined;
+        const phantomNodes: PieDonutNodeDatum[] | undefined = angleFilterRawValues == null ? undefined : [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const invalidData = processedData.invalidData?.get(this.id);
         for (const [datumIndex, datum] of rawData.entries()) {
@@ -883,10 +883,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         if (title) {
             const dy = this.getTitleTranslationY();
-            title.node.y = isFinite(dy) ? dy : 0;
+            title.node.y = Number.isFinite(dy) ? dy : 0;
 
             const titleBox = title.node.getBBox();
-            title.node.visible = title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
+            title.node.visible =
+                title.enabled && Number.isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
         }
 
         for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
@@ -908,7 +909,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         if (oldTitle !== title) {
             if (oldTitle) {
-                this.labelGroup?.removeChild(oldTitle.node);
+                oldTitle.node.remove();
             }
 
             if (title) {
@@ -928,8 +929,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 y: d.midSin * Math.max(0, radius),
             };
         };
-        this.nodeData.forEach(setMidPoint);
-        this.phantomNodeData?.forEach(setMidPoint);
+        for (const datum of this.nodeData) {
+            setMidPoint(datum);
+        }
+        if (this.phantomNodeData) {
+            for (const datum of this.phantomNodeData) {
+                setMidPoint(datum);
+            }
+        }
     }
 
     private updateSelections() {
@@ -1056,7 +1063,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
             const inset = Math.max(
-                (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
+                (this.properties.sectorSpacing + (format.stroke == null ? 0 : format.strokeWidth)) / 2,
                 0
             );
             sector.inset = inset;
@@ -1400,7 +1407,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { title } = this.properties;
         if (title?.text && title.enabled) {
             const dy = this.getTitleTranslationY();
-            if (isFinite(dy)) {
+            if (Number.isFinite(dy)) {
                 text.text = title.text;
                 text.x = 0;
                 text.y = dy;
@@ -1752,7 +1759,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                     text: labelParts.map((s) => toPlainText(s)).join(' - '),
                 },
                 symbol: this.legendItemSymbol(datumIndex),
-                legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
+                legendItemName: legendItemKey == null ? undefined : datum[legendItemKey],
                 hideInLegend: !showInLegend,
             });
         }

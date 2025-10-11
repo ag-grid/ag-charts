@@ -37,7 +37,8 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     }
 
     const isContinuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
-    const validValue = (val: unknown) => checkDatum(val, isContinuous) && !isNaN(scale.convert(val, { clamp: true }));
+    const validValue = (val: unknown) =>
+        checkDatum(val, isContinuous) && !Number.isNaN(scale.convert(val, { clamp: true }));
 
     if (crossLine.type === 'range') {
         const [start, end] = value as [unknown, unknown];

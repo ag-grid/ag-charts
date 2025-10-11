@@ -292,7 +292,7 @@ function clippedRoundRect(
             height,
             width,
             cornerRadii,
-            clipBBox != null ? new BBox(clipBBox.y, clipBBox.x, clipBBox.height, clipBBox.width) : undefined
+            clipBBox == null ? undefined : new BBox(clipBBox.y, clipBBox.x, clipBBox.height, clipBBox.width)
         );
     } else {
         baseClippedRoundRect(path, x, y, width, height, cornerRadii, clipBBox);

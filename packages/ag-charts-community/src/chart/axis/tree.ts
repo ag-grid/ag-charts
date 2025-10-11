@@ -242,7 +242,7 @@ function thirdWalk(v: TreeNode) {
     v.leafCount = leafCount;
     if (children.length) {
         v.subtreeLeft = children[0].subtreeLeft;
-        v.subtreeRight = children[children.length - 1].subtreeRight;
+        v.subtreeRight = children.at(-1)!.subtreeRight;
         v.position = (v.subtreeLeft + v.subtreeRight) / 2;
     } else {
         v.subtreeLeft = v.position;

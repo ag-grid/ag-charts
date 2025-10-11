@@ -39,7 +39,7 @@ export function joinFormatted(
  */
 export function stringifyValue(value: unknown, maxLength = Infinity): string {
     if (typeof value === 'number') {
-        if (isNaN(value)) {
+        if (Number.isNaN(value)) {
             return 'NaN';
         } else if (value === Infinity) {
             return 'Infinity';

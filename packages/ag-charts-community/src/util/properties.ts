@@ -1,9 +1,9 @@
 import { Logger, isArray, isPlainObject } from 'ag-charts-core';
 
-import { addFakeTransformToInstanceProperty, listDecoratedProperties } from './decorator';
+import { listDecoratedProperties } from './decorator';
 import { merge } from './object';
 
-export const Property = addFakeTransformToInstanceProperty;
+export { addFakeTransformToInstanceProperty as Property } from './decorator';
 
 export class BaseProperties<T extends object = object> {
     handleUnknownProperties(_unknownKeys: Set<unknown>, _properties: T) {

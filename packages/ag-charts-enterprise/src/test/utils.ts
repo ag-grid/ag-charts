@@ -14,10 +14,8 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any> 
     options: T,
     container = document.body
 ) {
-    if (!options.animation) {
-        // Default to animation off.
-        options.animation ??= { enabled: false };
-    }
+    // Default to animation off.
+    options.animation ??= { enabled: false };
     return prepareTestOptions(options as any, container);
 }
 

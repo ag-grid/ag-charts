@@ -19,7 +19,7 @@ const formatters: Record<string, { format(value: unknown): string }> = {
 export const defaultMessageFormatter: Formatter<MessageFormatterParams> = ({ defaultValue, variables }) => {
     return defaultValue?.replaceAll(messageRegExp, (_, match, format) => {
         const value = variables[match];
-        const formatter = format != null ? formatters[format] : null;
+        const formatter = format == null ? null : formatters[format];
 
         if (format != null && formatter == null) {
             Logger.warnOnce(`Format style [${format}] is not supported`);

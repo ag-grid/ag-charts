@@ -521,7 +521,7 @@ describe('DataSet', () => {
                 return new Proxy(array, {
                     get(target, prop) {
                         // Count element reads
-                        if (typeof prop === 'string' && !isNaN(Number(prop))) {
+                        if (typeof prop === 'string' && !Number.isNaN(Number(prop))) {
                             tracker.reads++;
                         }
                         // Intercept splice to count batch operations

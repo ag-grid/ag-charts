@@ -46,7 +46,7 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
     for (const item of content) {
         if (item.type === 'structured') {
             const { heading } = item;
-            const insertionTarget = heading != null ? groupedContents.get(heading) : undefined;
+            const insertionTarget = heading == null ? undefined : groupedContents.get(heading);
             const groupedItem: GroupedTooltipContent = { type: 'structured', heading, items: [item] };
             if (insertionTarget == null) {
                 groupedContents.set(heading!, groupedItem);

@@ -77,7 +77,7 @@ export class CrosshairLabelProperties
             result ??= cachedFormatter.formatter?.(value);
         }
 
-        return result != null ? String(result) : undefined;
+        return result == null ? undefined : String(result);
     }
 }
 

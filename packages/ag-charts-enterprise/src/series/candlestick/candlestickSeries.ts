@@ -84,7 +84,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
 
         const upColorStops = isGradientFill(up.fill)
             ? up.fill.colorStops!.map((c) =>
-                  typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
+                  typeof c === 'string' ? c : { color: c.color, stop: c.stop == null ? undefined : c.stop * 0.5 }
               )
             : [
                   { color: isPatternFill(up.fill) || isImageFill(up.fill) ? up.stroke : up.fill, stop: 0 },
@@ -93,7 +93,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
 
         const downColorStops = isGradientFill(down.fill)
             ? down.fill.colorStops!.map((c) =>
-                  typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
+                  typeof c === 'string' ? c : { color: c.color, stop: c.stop == null ? undefined : c.stop * 0.5 }
               )
             : [{ color: isPatternFill(down.fill) || isImageFill(down.fill) ? down.stroke : down.fill, stop: 0.5 }];
 

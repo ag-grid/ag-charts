@@ -118,7 +118,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     });
 
     const seriesOpts = pickProps<AgRadialGaugePreset>(opts, {
-        needle: needle != null ? { enabled: true, ...needle } : IGNORED_PROP,
+        needle: needle == null ? IGNORED_PROP : { enabled: true, ...needle },
         startAngle,
         endAngle,
         scale,

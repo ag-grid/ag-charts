@@ -246,7 +246,7 @@ describe('PolarSeries', () => {
             const reference = await snapshot();
 
             if (options.data) {
-                for (const [idx, _] of options.data.entries()) {
+                for (const [idx] of options.data.entries()) {
                     (deproxied.series[0] as any).toggleSeriesItem(false, 'category', idx, undefined);
                 }
             }
@@ -256,7 +256,7 @@ describe('PolarSeries', () => {
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
             if (options.data) {
-                for (const [idx, _] of options.data.entries()) {
+                for (const [idx] of options.data.entries()) {
                     (deproxied.series[0] as any).toggleSeriesItem(true, 'category', idx, undefined);
                 }
             }

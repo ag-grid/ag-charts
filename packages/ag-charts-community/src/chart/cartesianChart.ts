@@ -381,7 +381,7 @@ export class CartesianChart extends Chart {
         }
 
         const { domain, range } = perpendicularAxis.scale;
-        const clampedPosition = isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
+        const clampedPosition = Number.isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
 
         return { crossPosition: clampedPosition, visible: true };
     }

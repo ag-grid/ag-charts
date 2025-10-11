@@ -364,7 +364,7 @@ export class LineSeries extends CartesianSeries<
         const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
         const yCumulativeValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
         const selectionValues =
-            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
+            yFilterKey == null ? undefined : dataModel.resolveColumnById(this, `yFilterRaw`, processedData);
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
@@ -417,8 +417,7 @@ export class LineSeries extends CartesianSeries<
                 });
             }
 
-            const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined =
-                spanPoints[spanPoints.length - 1];
+            const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined = spanPoints.at(-1);
             if (yDatum != null) {
                 const spanPoint: LineSpanPointDatum = {
                     point: { x, y },
@@ -428,10 +427,10 @@ export class LineSeries extends CartesianSeries<
 
                 if (Array.isArray(currentSpanPoints)) {
                     currentSpanPoints.push(spanPoint);
-                } else if (currentSpanPoints != null) {
-                    currentSpanPoints.skip += 1;
+                } else if (currentSpanPoints == null) {
                     spanPoints.push([spanPoint]);
                 } else {
+                    currentSpanPoints.skip += 1;
                     spanPoints.push([spanPoint]);
                 }
             } else if (!connectMissingData) {

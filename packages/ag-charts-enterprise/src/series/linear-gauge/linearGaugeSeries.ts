@@ -822,7 +822,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.updateLabelNodes({ labelSelection });
 
         this.highlightTargetSelection = this.updateTargetSelection({
-            targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
+            targetData: highlightTargetDatum == null ? [] : [highlightTargetDatum],
             targetSelection: highlightTargetSelection,
         });
         this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });

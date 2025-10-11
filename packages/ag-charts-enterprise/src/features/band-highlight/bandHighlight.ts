@@ -205,10 +205,10 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
 
         this.activeAxisHighlight = axisBandDatum;
 
-        if (!this.activeAxisHighlight) {
-            this.hideBand();
-        } else {
+        if (this.activeAxisHighlight) {
             this.showBand();
+        } else {
+            this.hideBand();
         }
 
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);

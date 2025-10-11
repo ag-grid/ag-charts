@@ -466,7 +466,7 @@ export class RadialGaugeSeries
         const lineHeight = undefined;
         const angle = scale.convert(value);
 
-        const quadrant = (normalizeAngle360(angle) / (Math.PI / 2)) | 0;
+        const quadrant = Math.trunc(normalizeAngle360(angle) / (Math.PI / 2));
 
         const offset = size / 2 + spacing;
 
@@ -705,7 +705,7 @@ export class RadialGaugeSeries
         }
 
         if (needle.enabled) {
-            let needleRadius = needle.radiusRatio != null ? radius * needle.radiusRatio : innerRadius;
+            let needleRadius = needle.radiusRatio == null ? innerRadius : radius * needle.radiusRatio;
             needleRadius = Math.max(needleRadius - needle.spacing, 0);
             const needleAngle = scale.convert(value);
 
@@ -825,7 +825,7 @@ export class RadialGaugeSeries
         this.updateLabelNodes({ labelSelection });
 
         this.highlightTargetSelection = this.updateTargetSelection({
-            targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
+            targetData: highlightTargetDatum == null ? [] : [highlightTargetDatum],
             targetSelection: highlightTargetSelection,
         });
         this.updateTargetStyles({ targetSelection: highlightTargetSelection, isHighlight: true });

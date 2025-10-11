@@ -55,6 +55,7 @@ NOTE: These are only intended for agentic tools that don't support custom slash 
 -   `/pr-review` - execute `tools/prompts/commands/pr-review.md` on specified PR.
 -   `/release-options-review` - execute `tools/prompts/commands/release-options-review.md` on specified release options.
 -   `/docs-review` - execute `tools/prompts/commands/docs-review.md` on specified docs.
+-   `/sonar-fix` - execute `tools/prompts/commands/sonar-fix.md` to review and fix SonarCloud issues.
 
 ## Architecture
 

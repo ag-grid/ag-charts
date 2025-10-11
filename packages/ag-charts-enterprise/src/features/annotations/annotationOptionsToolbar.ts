@@ -246,7 +246,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
 
     private updateFontSize(fontSize: number | undefined) {
         this.updateButtonByValue(AnnotationOptions.TextSize, {
-            label: fontSize != null ? String(fontSize) : undefined,
+            label: fontSize == null ? undefined : String(fontSize),
         });
     }
 
@@ -308,7 +308,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     sourceEvent: event.sourceEvent,
                     hasMultiColorOption: 'isMultiColor' in datum,
                     isMultiColor: 'isMultiColor' in datum && datum?.isMultiColor,
-                    onChange: datum != null ? this.onColorPickerChange.bind(this, button.value, datum) : undefined,
+                    onChange: datum == null ? undefined : this.onColorPickerChange.bind(this, button.value, datum),
                     onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
                         this.events.emit('saved-color', {
                             type: datum.type,

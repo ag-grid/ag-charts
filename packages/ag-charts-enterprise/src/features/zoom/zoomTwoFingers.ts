@@ -175,7 +175,14 @@ function twitchTolerantZoomPan2(
     Rw: number,
     initialZoom: ZoomState
 ): ZoomState {
-    if (x1 != x2) {
+    if (x1 == x2) {
+        // pan-only mode:
+        const xn1 = clientToNormal(initialZoom, a1, Rx, Rw);
+        const xn2 = clientToNormal(initialZoom, a2, Rx, Rw);
+        const xavg = (xn1 + xn2) / 2;
+        const dzoom = (x1 - xavg) / N;
+        return { min: initialZoom.min + dzoom, max: initialZoom.max + dzoom };
+    } else {
         // zoom-pan mode:
         const a1prev = previous[previousKey1];
         const a2prev = previous[previousKey2];
@@ -188,12 +195,5 @@ function twitchTolerantZoomPan2(
             previous[previousKey2] = a2;
         }
         return solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw);
-    } else {
-        // pan-only mode:
-        const xn1 = clientToNormal(initialZoom, a1, Rx, Rw);
-        const xn2 = clientToNormal(initialZoom, a2, Rx, Rw);
-        const xavg = (xn1 + xn2) / 2;
-        const dzoom = (x1 - xavg) / N;
-        return { min: initialZoom.min + dzoom, max: initialZoom.max + dzoom };
     }
 }

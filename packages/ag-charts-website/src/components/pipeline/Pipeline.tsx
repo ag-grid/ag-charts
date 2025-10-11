@@ -97,7 +97,7 @@ const defaultColDef = {
 
 const IS_SSR = typeof window === 'undefined';
 
-const isRowMaster = (row: any) => row.moreInformation || row.deprecationNotes || row.breakingChangesNotes;
+const isRowMaster = (row: any) => row.moreInformation ?? row.deprecationNotes ?? row.breakingChangesNotes;
 
 const newLinesToBreaks = (message: string) =>
     message.replaceAll('\n\r', '<br>').replaceAll('\n', '<br>').replaceAll('\r', '<br>');

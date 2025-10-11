@@ -155,5 +155,5 @@ const FileView = ({ path, code }) => {
     const parts = path.split('.');
     const extension = parts[parts.length - 1];
 
-    return <Code code={code} language={ExtensionMap[extension] || extension} lineNumbers={true} />;
+    return <Code code={code} language={ExtensionMap[extension] ?? extension} lineNumbers={true} />;
 };

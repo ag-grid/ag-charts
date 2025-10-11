@@ -166,11 +166,11 @@ export abstract class HierarchySeries<
         let maxColor = -Infinity;
 
         const createNode = (datum: any, indexPath: number[], parent: TNodeClass): TNodeClass => {
-            const depth = parent.depth != null ? parent.depth + 1 : 0;
-            const children = childrenKey != null ? datum[childrenKey] : undefined;
+            const depth = parent.depth == null ? 0 : parent.depth + 1;
+            const children = childrenKey == null ? undefined : datum[childrenKey];
             const isLeaf = children == null || children.length === 0;
 
-            let sizeValue = sizeKey != null ? datum[sizeKey] : undefined;
+            let sizeValue = sizeKey == null ? undefined : datum[sizeKey];
             if (Number.isFinite(sizeValue)) {
                 sizeValue = Math.max(sizeValue, 0);
             } else {
@@ -180,7 +180,7 @@ export abstract class HierarchySeries<
             const sumSize = sizeValue;
             maxDepth = Math.max(maxDepth, depth);
 
-            const colorValue = colorKey != null ? datum[colorKey] : undefined;
+            const colorValue = colorKey == null ? undefined : datum[colorKey];
             if (typeof colorValue === 'number') {
                 minColor = Math.min(minColor, colorValue);
                 maxColor = Math.max(maxColor, colorValue);
@@ -195,11 +195,13 @@ export abstract class HierarchySeries<
 
         const appendChildren = (node: Mutable<TNodeClass>, data: any[] | undefined): TNodeClass => {
             const { datumIndex } = node;
-            data?.forEach((datum: any, childIndex: number) => {
-                const child = createNode(datum, datumIndex.concat(childIndex), node);
-                node.children.push(child);
-                node.sumSize += child.sumSize;
-            });
+            if (data) {
+                for (const [childIndex, datum] of data.entries()) {
+                    const child = createNode(datum, datumIndex.concat(childIndex), node);
+                    node.children.push(child);
+                    node.sumSize += child.sumSize;
+                }
+            }
             return node;
         };
 
@@ -351,7 +353,7 @@ export abstract class HierarchySeries<
         } else if (depthDelta === 0 && childDelta !== 0) {
             const maxIndex = currentNode.parent!.children.length - 1;
             path = path.slice();
-            path[path.length - 1] = clamp(0, path[path.length - 1] + childDelta, maxIndex);
+            path[path.length - 1] = clamp(0, path.at(-1)! + childDelta, maxIndex);
         }
 
         const nextNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);

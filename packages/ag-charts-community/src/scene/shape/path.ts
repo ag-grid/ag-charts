@@ -140,7 +140,7 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
     override render(renderCtx: RenderContext) {
         const { ctx } = renderCtx;
 
-        if (this.clip && !isNaN(this._clipX) && !isNaN(this._clipY)) {
+        if (this.clip && !Number.isNaN(this._clipX) && !Number.isNaN(this._clipY)) {
             ctx.save();
 
             try {

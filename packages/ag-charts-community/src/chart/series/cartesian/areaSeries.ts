@@ -179,7 +179,7 @@ export class AreaSeries extends CartesianSeries<
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        seriesContentNode?.removeChild(this.backgroundGroup);
+        this.backgroundGroup.remove();
     }
 
     protected override attachPaths([fill, stroke]: Path[]) {
@@ -253,7 +253,7 @@ export class AreaSeries extends CartesianSeries<
         const props: PropertyDefinition<any, any>[] = [
             keyProperty(xKey, xScaleType, { id: 'xValue' }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
-            ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
+            ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })]),
         ];
 
         if (stacked) {
@@ -675,7 +675,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         if (topSpanPoints.length !== 0) {
-            const previousStack = topStack[topStack.length - 1];
+            const previousStack = topStack.at(-1)!;
             const trailingIndex = startIndex + topStack.length;
             const trailingPoint: LineSpanPointDatum = {
                 point: {
@@ -754,7 +754,7 @@ export class AreaSeries extends CartesianSeries<
             ? dataModel.resolveColumnById(this, `yValueCumulative`, processedData)
             : yRawValues;
         const yFilterValues =
-            yFilterKey != null ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData) : undefined;
+            yFilterKey == null ? undefined : dataModel.resolveColumnById(this, 'yFilterRaw', processedData);
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
@@ -789,7 +789,9 @@ export class AreaSeries extends CartesianSeries<
             // if normalized, the invalid data points will be processed as 0 rather than `undefined`
             // check if unprocessed datum is valid as we only want to show markers for valid points
             if (
-                isDefined(this.properties.normalizedTo) ? isContinuousY && isContinuous(rawYDatum) : !isNaN(rawYDatum)
+                isDefined(this.properties.normalizedTo)
+                    ? isContinuousY && isContinuous(rawYDatum)
+                    : !Number.isNaN(rawYDatum)
             ) {
                 currY = yEnd;
             }
@@ -814,7 +816,7 @@ export class AreaSeries extends CartesianSeries<
             // marker data
             const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);
 
-            const selected = yFilterValues != null ? yFilterValues[datumIndex] === yDatum : undefined;
+            const selected = yFilterValues == null ? undefined : yFilterValues[datumIndex] === yDatum;
             if (selected === false) {
                 crossFiltering = true;
             }

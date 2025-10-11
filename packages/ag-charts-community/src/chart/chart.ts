@@ -1054,8 +1054,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         for (const s of this.series) {
             s.setChartData(this.data);
         }
-        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.(this.data));
-        await Promise.all(modulePromises);
+        const moduleResults = this.modulesManager.mapModules((m) => m.updateData?.(this.data));
+        await Promise.all(
+            moduleResults.filter((p) => p != null && typeof p === 'object') as unknown as Promise<void>[]
+        );
     }
 
     private _cachedData: CachedData | undefined = undefined;
@@ -1179,7 +1181,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
         const { seriesRect } = this;
 
-        await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
+        await Promise.all(
+            seriesToUpdate.map((series) => series.update({ seriesRect })).filter((p): p is Promise<void> => p != null)
+        );
 
         this.ctx.seriesLabelLayoutManager.updateLabels(
             this.series.filter((s) => s.visible && s.usesPlacedLabels),
@@ -1721,7 +1725,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     private applySeriesValues(target: UnknownSeries, options: SeriesOptionsTypes) {
         const moduleMap = target.getModuleMap();
-        const { type: _, data, listeners, seriesGrouping, showInMiniChart: __, ...seriesOptions } = options as any;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { type, data, listeners, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
 
         for (const moduleDef of EXPECTED_ENTERPRISE_MODULES) {
             if (moduleDef.type !== 'series-option') continue;
@@ -1742,7 +1747,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(data != null ? DataSet.wrap(data) : undefined);
+            target.setOptionsData(data == null ? undefined : DataSet.wrap(data));
         }
 
         if (listeners) {

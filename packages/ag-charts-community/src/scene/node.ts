@@ -7,7 +7,7 @@ import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
 import { type ZIndex } from './zIndex';
 
-export { SceneChangeDetection };
+export { SceneChangeDetection } from './changeDetectable';
 
 export enum PointerEvents {
     All,
@@ -267,11 +267,14 @@ export abstract class Node<TDatum = unknown> {
     }
 
     remove() {
+        // eslint-disable-next-line unicorn/prefer-dom-node-remove
         this.parentNode?.removeChild(this);
     }
 
     destroy(): void {
-        this.parentNode?.removeChild(this);
+        if (this.parentNode) {
+            this.remove();
+        }
     }
 
     batchedUpdate(fn: () => void) {

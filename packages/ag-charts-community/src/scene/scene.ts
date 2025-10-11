@@ -75,7 +75,7 @@ export class Scene extends EventEmitter<EventMap> {
     /** @deprecated v10.2.0 Only used by AG Grid Sparklines */
     setContainer(value: HTMLElement) {
         const { element } = this.canvas;
-        element.parentElement?.removeChild(element);
+        element.remove();
         value.appendChild(element);
         return this;
     }
@@ -107,7 +107,7 @@ export class Scene extends EventEmitter<EventMap> {
 
     attachNode<T extends Node>(node: T) {
         this.appendChild(node);
-        return () => this.removeChild(node);
+        return () => node.remove();
     }
 
     appendChild<T extends Node>(node: T) {
@@ -116,7 +116,7 @@ export class Scene extends EventEmitter<EventMap> {
     }
 
     removeChild<T extends Node>(node: T) {
-        this.root?.removeChild(node);
+        node.remove();
         return this;
     }
 

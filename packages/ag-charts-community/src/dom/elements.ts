@@ -14,11 +14,11 @@ export type ButtonOptions = LabelIcon & {
 };
 export function createButton(options: ButtonOptions, attrs?: AttributeSet) {
     const button = createElement('button', getClassName('ag-charts-input ag-charts-button', attrs));
-    if (options.label !== undefined) {
-        button.append(options.label);
-    } else {
+    if (options.label === undefined) {
         button.append(createIcon(options.icon));
         button.ariaLabel = options.altText;
+    } else {
+        button.append(options.label);
     }
     button.addEventListener('click', options.onPress);
     setAttributes(button, attrs);

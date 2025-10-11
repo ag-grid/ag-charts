@@ -466,7 +466,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
 
         this.highlightDatumSelection = this.updateDatumSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
@@ -702,7 +702,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     private legendItemSymbol(datumIndex: number) {
@@ -741,7 +741,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        for (const [datumIndex, _datum] of rawData.entries()) {
+        for (const [datumIndex] of rawData.entries()) {
             const stageValue = stageValues[datumIndex];
 
             legendData.push({

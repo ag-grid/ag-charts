@@ -1544,7 +1544,7 @@ export class DataModel<
                 if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') continue;
 
                 const valueDatum = columnSource[datumIndex];
-                const invalidKey = invalidKeys != null ? invalidKeys[datumIndex] : false;
+                const invalidKey = invalidKeys == null ? false : invalidKeys[datumIndex];
 
                 const result = processValue(def, valueDatum, datumIndex, def.scopes);
                 let value = result.value;
@@ -1619,7 +1619,7 @@ export class DataModel<
                 }
 
                 const group = groupingFn?.(keys) ?? keys;
-                const groupStr = groups != null ? toKeyString(group) : undefined;
+                const groupStr = groups == null ? undefined : toKeyString(group);
 
                 let outputGroup: Group | undefined = groups?.get(groupStr!);
                 if (outputGroup == null) {
@@ -1682,7 +1682,7 @@ export class DataModel<
                 let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
                 const valuesToAgg = indices.map((columnIndex) => columns[columnIndex][datumIndex] as D[K]);
                 const k = datumKeys(keys, datumIndex);
-                const valuesAgg = k != null ? def.aggregateFunction(valuesToAgg, k) : undefined;
+                const valuesAgg = k == null ? undefined : def.aggregateFunction(valuesToAgg, k);
                 if (valuesAgg) {
                     groupAggValues =
                         def.groupAggregateFunction?.(valuesAgg, groupAggValues) ??

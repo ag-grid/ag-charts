@@ -275,8 +275,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const xValue = xValues[datumIndex];
             if (xValue == null) return;
 
-            const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined =
-                spanPoints[spanPoints.length - 1];
+            const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined = spanPoints.at(-1);
             if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
                 const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
                     markerData.push({
@@ -333,10 +332,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
                 if (Array.isArray(currentSpanPoints)) {
                     currentSpanPoints.push(spanPoint);
-                } else if (currentSpanPoints != null) {
-                    currentSpanPoints.skip += 1;
+                } else if (currentSpanPoints == null) {
                     spanPoints.push([spanPoint]);
                 } else {
+                    currentSpanPoints.skip += 1;
                     spanPoints.push([spanPoint]);
                 }
             } else if (!connectMissingData) {

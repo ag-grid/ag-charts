@@ -302,7 +302,7 @@ describe('ChordSeries', () => {
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;
-                return datum != null ? [datum[params.fromKey], datum[params.toKey], 1] : ['(node)'];
+                return datum == null ? ['(node)'] : [datum[params.fromKey], datum[params.toKey], 1];
             },
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();

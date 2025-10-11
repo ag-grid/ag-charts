@@ -51,7 +51,6 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._interval = interval;
         this._bands = undefined;
     }
-    /* eslint-enable */
 
     private _bands: Date[] | undefined = undefined;
     get bands(): readonly Date[] {

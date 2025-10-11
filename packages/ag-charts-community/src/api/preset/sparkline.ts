@@ -284,7 +284,7 @@ const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineToo
     ): AgTooltipRendererResult | string => {
         const xValue = params.datum[params.xKey];
         const yValue = params.datum[params.yKey];
-        const datum = datumKey != null ? params.datum[datumKey] : params.datum;
+        const datum = datumKey == null ? params.datum : params.datum[datumKey];
 
         const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
         if (typeof userContent === 'string') return userContent;

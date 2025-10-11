@@ -161,7 +161,7 @@ export class Caster<T> {
         expect(this.value[arrayName]).toBeInstanceOf(Array);
         for (const unknownElem of this.value[arrayName] as unknown[]) {
             expect(unknownElem).toHaveProperty(elementPropertyName);
-            const elem = unknownElem as typeof unknownElem & { [Pl in L]: unknown };
+            const elem = unknownElem as { [Pl in L]: unknown };
             expect(elem[elementPropertyName]).toBeInstanceOf(elementPropertyCtor);
         }
         return convert<NewT>(this);

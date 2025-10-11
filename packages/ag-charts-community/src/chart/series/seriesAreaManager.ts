@@ -102,7 +102,7 @@ class PickedNodeState {
         this.candidates = nextCandidates;
 
         let nextIndex =
-            previousActive != null ? nextCandidates.findIndex((c) => pickedNodesEqual(c, previousActive)) : -1;
+            previousActive == null ? -1 : nextCandidates.findIndex((c) => pickedNodesEqual(c, previousActive));
         if (nextIndex === -1) nextIndex = 0;
         this.active = nextCandidates[nextIndex];
 

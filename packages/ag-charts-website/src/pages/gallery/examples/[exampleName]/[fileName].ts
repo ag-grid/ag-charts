@@ -43,7 +43,7 @@ export async function GET({ params }: { params: Params }) {
             exampleName,
         })) ?? {};
     const file = files ? files[fileName] : undefined;
-    const body = file ? file : createErrorBody({ availableFiles: files });
+    const body = file ?? createErrorBody({ availableFiles: files });
 
     const response = new Response(body, {
         headers: {

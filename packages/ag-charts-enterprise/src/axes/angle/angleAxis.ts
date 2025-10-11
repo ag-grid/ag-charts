@@ -149,9 +149,9 @@ export abstract class AngleAxis<
     private normalizedAngles(): [number, number] {
         const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
         const sweep =
-            this.endAngle != null
-                ? normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle))
-                : 2 * Math.PI;
+            this.endAngle == null
+                ? 2 * Math.PI
+                : normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle));
         const endAngle = startAngle + sweep;
         return [startAngle, endAngle];
     }
@@ -418,7 +418,7 @@ export abstract class AngleAxis<
                 y,
                 textAlign,
                 textBaseline,
-                hidden: text === '' || datum.hidden || isLastTickOverFirst,
+                hidden: text === '' || (datum.hidden ?? isLastTickOverFirst),
                 rotation,
                 box,
             };
