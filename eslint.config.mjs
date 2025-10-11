@@ -45,7 +45,6 @@ export const sonarjsConfig = [
             // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
             'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
             'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/sonar-max-params': env !== 'nx-task' ? 1 : 0,
             'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
             'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
             'sonarjs/no-redeclare': env !== 'nx-task' ? 1 : 0,
