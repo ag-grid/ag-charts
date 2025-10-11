@@ -52,7 +52,7 @@ export class TouchDragger {
     }
 
     private findInitialFinger(...touchLists: TouchList[]): Touch | undefined {
-        const touches: Touch[] = touchLists.map((touchList) => Array.from(touchList)).flat();
+        const touches: Touch[] = touchLists.flatMap((touchList) => Array.from(touchList));
         return Array.from(touches).find((v) => v.identifier === this.initialTouch.identifier);
     }
 

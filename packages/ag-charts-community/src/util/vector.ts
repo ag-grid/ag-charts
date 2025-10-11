@@ -76,7 +76,7 @@ function multiply(a: Vec2, b: Vec2 | number): Vec2 {
  * Get the length of a vector.
  */
 function length(a: Vec2) {
-    return Math.sqrt(a.x * a.x + a.y * a.y);
+    return Math.hypot(a.x, a.y);
 }
 
 /**

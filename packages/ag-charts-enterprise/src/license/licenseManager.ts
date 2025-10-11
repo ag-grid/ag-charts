@@ -279,10 +279,10 @@ export class LicenseManager {
     }
 
     private static utf8_decode(input: string): string {
-        input = input.replace(/rn/g, 'n');
+        input = input.replaceAll('rn', 'n');
         let t = '';
         for (let n = 0; n < input.length; n++) {
-            const r = input.charCodeAt(n);
+            const r = input.codePointAt(n)!;
             if (r < 128) {
                 t += String.fromCharCode(r);
             } else if (r > 127 && r < 2048) {
@@ -324,9 +324,9 @@ export class LicenseManager {
         }
 
         const isTrial = matches.filter((match) => match === 'TRIAL').length === 1;
-        const rawVersion = matches.filter((match) => match.startsWith('v'))[0];
+        const rawVersion = matches.find((match) => match.startsWith('v'));
         const version = rawVersion ? rawVersion.replace('v', '') : 'legacy';
-        const type = (LICENSE_TYPES as any)[matches.filter((match) => (LICENSE_TYPES as any)[match])[0]];
+        const type = (LICENSE_TYPES as any)[matches.find((match) => (LICENSE_TYPES as any)[match])!];
 
         return [version, isTrial, type];
     }

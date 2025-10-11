@@ -28,7 +28,7 @@ export class LinearGradient extends Gradient {
         const cx = bbox.x + w * 0.5;
         const cy = bbox.y + h * 0.5;
 
-        const diagonal = Math.sqrt(h * h + w * w) / 2;
+        const diagonal = Math.hypot(h, w) / 2;
         const diagonalAngle = Math.atan2(h, w);
 
         let quarteredAngle: number;
