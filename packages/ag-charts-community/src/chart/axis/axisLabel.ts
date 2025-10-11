@@ -167,13 +167,10 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         ) => TextOrSegments | undefined,
         params: FormatterParams<any>,
         index: number,
-        options: {
+        options?: {
             specifier?: string | Record<string, string>;
             dateStyle: DateFormatterStyle;
             truncateDate: 'year' | 'month' | 'day' | undefined;
-        } = {
-            dateStyle: 'long',
-            truncateDate: undefined,
         }
     ): TextOrSegments | undefined {
         const { formatter, format } = this;
@@ -188,7 +185,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         }
 
         if (format != null && result == null) {
-            const { specifier, dateStyle, truncateDate } = options;
+            const { specifier, dateStyle = 'long', truncateDate } = options ?? {};
             const cacheKey: FormatterCacheKey = `${dateStyle}:${truncateDate ?? 'none'}`;
             let valueFormatter = this._formatters[cacheKey];
 
@@ -203,7 +200,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
                     type,
                     mergedFormat,
                     unit,
-                    formatter: FormatManager.getFormatter(type, mergedFormat, unit, dateStyle, options),
+                    formatter: FormatManager.getFormatter(type, mergedFormat, unit, dateStyle, { truncateDate }),
                 };
 
                 this._formatters[cacheKey] = valueFormatter;

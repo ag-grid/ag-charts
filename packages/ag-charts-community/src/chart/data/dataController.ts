@@ -43,6 +43,13 @@ type Result<
     G extends boolean | undefined = undefined,
 > = { processedData: ProcessedData<D>; dataModel: DataModel<D, K, G> };
 
+function getPropertyKeys(props: PropertyDefinition<any>[]) {
+    return props
+        .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
+        .map((p) => p.property)
+        .join(';');
+}
+
 /** Implements cross-series data model coordination. */
 export class DataController {
     private readonly debug = Debug.create(true, 'data-model');
@@ -190,21 +197,14 @@ export class DataController {
     }
 
     private static groupMatch({ dataSet, opts }: RequestedProcessing<any, any, any>) {
-        function keys(props: PropertyDefinition<any>[]) {
-            return props
-                .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
-                .map((p) => p.property)
-                .join(';');
-        }
-
         const { groupByData, groupByKeys = false, groupByFn, props } = opts;
-        const propsKeys = keys(props);
+        const propsKeys = getPropertyKeys(props);
 
         return ([group]: RequestedProcessing<any, any, any>[]) =>
             (groupByData === false || group.dataSet === dataSet) &&
             (group.opts.groupByKeys ?? false) === groupByKeys &&
             group.opts.groupByFn === groupByFn &&
-            keys(group.opts.props) === propsKeys;
+            getPropertyKeys(group.opts.props) === propsKeys;
     }
 
     private static readonly crossScopeMergableTypes = new Set(['key', 'group-value-processor']);
