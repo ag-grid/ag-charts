@@ -111,17 +111,23 @@ describe('Module', () => {
 
             moduleRegistry.register(one, two, three);
 
-            expect(() => moduleRegistry.byType('root').next()).toThrowErrorMatchingInlineSnapshot(
-                `"Maximum call stack size exceeded"`
-            );
+            expect(() => {
+                const generator = moduleRegistry.byType('root');
+                for (const x of generator) {
+                    expect(x).toBeDefined();
+                }
+            }).toThrowErrorMatchingInlineSnapshot(`"Maximum call stack size exceeded"`);
         });
 
         it('should fail on missing dependencies', () => {
             moduleRegistry.register(two);
 
-            expect(() => moduleRegistry.byType('root').next()).toThrowErrorMatchingInlineSnapshot(
-                `"Could not resolve module dependencies: three"`
-            );
+            expect(() => {
+                const generator = moduleRegistry.byType('root');
+                for (const x of generator) {
+                    expect(x).toBeDefined();
+                }
+            }).toThrowErrorMatchingInlineSnapshot(`"Could not resolve module dependencies: three"`);
         });
     });
 });
