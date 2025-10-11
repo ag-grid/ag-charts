@@ -40,14 +40,22 @@ Rule URL: https://sonarcloud.io/api/rules/show?key={encoded-rule-id}&organizatio
 
 ### Tier 1 (Quick Wins - Low Effort)
 
-| Rule ID | File                             | Description                             | Auto-Fix | Effort/Issue |
-| ------- | -------------------------------- | --------------------------------------- | -------- | ------------ |
-| S7726   | [S7726-default-exports-named.md] | Default exports should be named         | ❌       | ~5min        |
-| S7728   | [S7728-use-for-of-loops.md]      | Use for...of instead of forEach         | ❌       | ~5min        |
-| S7732   | [S7732-shorthand-properties.md]  | Prefer shorthand property notation      | ❌       | ~2min        |
-| S7772   | [S7772-node-protocol.md]         | Use "node:" protocol for Node.js import | ❌       | ~2min        |
-| S7773   | [S7773-number-static-methods.md] | Prefer Number static methods            | ❌       | ~3min        |
-| S1874   | [S1874-deprecated-api.md]        | Remove deprecated API usage             | ❌       | ~10min       |
+| Rule ID | File                                  | Description                                     | Auto-Fix | Effort/Issue |
+| ------- | ------------------------------------- | ----------------------------------------------- | -------- | ------------ |
+| S7726   | [S7726-default-exports-named.md]      | Default exports should be named                 | ❌       | ~5min        |
+| S7728   | [S7728-use-for-of-loops.md]           | Use for...of instead of forEach                 | ❌       | ~5min        |
+| S7732   | [S7732-shorthand-properties.md]       | Prefer shorthand property notation              | ❌       | ~2min        |
+| S7741   | [S7741-compare-undefined-directly.md] | Compare with undefined directly                 | ❌       | ~2min        |
+| S7750   | [S7750-use-find-method.md]            | Use .find() over .filter()[0]                   | ❌       | ~5min        |
+| S7752   | [S7752-use-flat-map.md]               | Use .flatMap() over .map().flat()               | ❌       | ~2min        |
+| S7758   | [S7758-use-code-point-at.md]          | Use Unicode-aware string methods                | ❌       | ~5min        |
+| S7763   | [S7763-export-from-syntax.md]         | Use export...from for re-exports                | ❌       | ~5min        |
+| S7767   | [S7767-use-math-trunc.md]             | Use Math.trunc() instead of bitwise ops         | ❌       | ~5min        |
+| S7769   | [S7769-use-modern-math-apis.md]       | Use modern Math APIs (hypot, log10, etc.)       | ❌       | ~5min        |
+| S7772   | [S7772-node-protocol.md]              | Use "node:" protocol for Node.js import         | ❌       | ~2min        |
+| S7773   | [S7773-number-static-methods.md]      | Prefer Number static methods                    | ❌       | ~3min        |
+| S7781   | [S7781-use-replace-all.md]            | Use String.replaceAll() over replace() w/ regex | ❌       | ~5min        |
+| S1874   | [S1874-deprecated-api.md]             | Remove deprecated API usage                     | ❌       | ~10min       |
 
 ### Tier 2 (Medium Effort)
 
