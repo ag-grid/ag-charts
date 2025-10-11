@@ -675,7 +675,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         if (topSpanPoints.length !== 0) {
-            const previousStack = topStack[topStack.length - 1];
+            const previousStack = topStack.at(-1)!;
             const trailingIndex = startIndex + topStack.length;
             const trailingPoint: LineSpanPointDatum = {
                 point: {

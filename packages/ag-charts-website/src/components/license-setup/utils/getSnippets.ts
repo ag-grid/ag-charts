@@ -75,7 +75,7 @@ export const getBootstrapSnippet = ({
     const chartsSnippet = chartsTemplate ? chartsTemplate({ license }).trim() : '';
 
     return {
-        grid: gridSnippet || '',
-        charts: chartsSnippet || '',
+        grid: gridSnippet ?? '',
+        charts: chartsSnippet ?? '',
     };
 };

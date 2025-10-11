@@ -353,7 +353,7 @@ export abstract class HierarchySeries<
         } else if (depthDelta === 0 && childDelta !== 0) {
             const maxIndex = currentNode.parent!.children.length - 1;
             path = path.slice();
-            path[path.length - 1] = clamp(0, path[path.length - 1] + childDelta, maxIndex);
+            path[path.length - 1] = clamp(0, path.at(-1)! + childDelta, maxIndex);
         }
 
         const nextNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);

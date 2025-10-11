@@ -184,7 +184,7 @@ export function calculateDefaultUnit(
         if (domain.length === 0) continue;
 
         const d0 = domain[0].valueOf();
-        const d1 = domain[domain.length - 1].valueOf();
+        const d1 = domain.at(-1)!.valueOf();
 
         domainValues.push(d0, d1);
 

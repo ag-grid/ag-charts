@@ -229,9 +229,9 @@ export async function waitForChartStability<
     }
 
     if (activeAnimateCb) {
-        await activeAnimateCb(0, 1);
+        activeAnimateCb(0, 1);
         if (animationAdvanceMs > 0) {
-            await activeAnimateCb(animationAdvanceMs, 1);
+            activeAnimateCb(animationAdvanceMs, 1);
         }
         await chart.waitForUpdate(timeoutMs, true);
     } else if (animationAdvanceMs > 0) {
@@ -624,7 +624,7 @@ export async function createChart(options: AgChartOptions<any, any>) {
     return chart;
 }
 
-let activeAnimateCb: ((totalDuration: number, ratio: number) => Promise<void>) | undefined;
+let activeAnimateCb: ((totalDuration: number, ratio: number) => void) | undefined;
 export function spyOnAnimationManager() {
     const mocks: jest.SpiedFunction<AnyFn>[] = [];
     const rafCbs: Map<number, Parameters<typeof requestAnimationFrame>[0]> = new Map();
@@ -632,13 +632,14 @@ export function spyOnAnimationManager() {
     const animateParameters = [0, 0];
 
     let time = Date.now();
-    const animateCb = async (totalDuration: number, ratio: number) => {
+    const animateCb = (totalDuration: number, ratio: number) => {
         time += totalDuration * ratio;
         const cbs = [...rafCbs.values()];
         rafCbs.clear();
 
-        // eslint-disable-next-line sonarjs/array-callback-without-return
-        await Promise.all(cbs.map((cb) => cb(time)));
+        for (const cb of cbs) {
+            cb(time);
+        }
     };
 
     beforeEach(() => {

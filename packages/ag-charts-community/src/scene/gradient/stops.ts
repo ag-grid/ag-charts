@@ -120,7 +120,7 @@ export function getColorStops(
                 colorScale.range = defaultColorStops;
             }
 
-            color = colorScale.convert(stop);
+            color = colorScale.convert(stop)!;
         } else {
             color = lastDefinedColor;
         }

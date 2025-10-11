@@ -129,7 +129,6 @@ ${category.examples.map((ex) => `        { path: '${ex.path}', affected: ${ex.af
         for (const opts of convertPageUrls(path, EXAMPLE_OPTIONS)) {
             const { framework, pagePath, example } = opts;
 
-            // eslint-disable-next-line @typescript-eslint/unbound-method
             const testFn = affected ? contextTest : contextTest.skip;
 
             contextTest.describe(\`Framework: \${framework}\`, () => {

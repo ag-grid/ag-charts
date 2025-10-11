@@ -24,7 +24,7 @@ export function getPageNameFromPath(path: string): string {
 }
 
 export const getExamplePageUrl = ({ framework, path }: { framework?: Framework; path: string }) => {
-    const frameworkPath = framework ? framework : FRAMEWORK_REDIRECT_PATH;
+    const frameworkPath = framework ?? FRAMEWORK_REDIRECT_PATH;
     return pathJoin(SITE_BASE_URL, frameworkPath, path) + '/';
 };
 

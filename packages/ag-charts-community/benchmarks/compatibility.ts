@@ -92,10 +92,8 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     options.container = container;
 
     if (enterprise) {
-        if (!options.animation) {
-            // Default to animation off.
-            options.animation ??= { enabled: false };
-        }
+        // Default to animation off.
+        options.animation ??= { enabled: false };
     }
 
     let baseTestTheme = {

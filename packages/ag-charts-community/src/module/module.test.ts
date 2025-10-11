@@ -119,12 +119,9 @@ describe('Module', () => {
         it('should fail on missing dependencies', () => {
             moduleRegistry.register(two);
 
-            expect(() => {
-                const generator = moduleRegistry.byType('root');
-                for (const _x of generator) {
-                    // do nothing
-                }
-            }).toThrowErrorMatchingInlineSnapshot(`"Could not resolve module dependencies: three"`);
+            expect(() => moduleRegistry.byType('root').next()).toThrowErrorMatchingInlineSnapshot(
+                `"Could not resolve module dependencies: three"`
+            );
         });
     });
 });

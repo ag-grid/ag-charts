@@ -12,7 +12,7 @@ function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
     const datumValue = datum.valueOf();
 
     const d0 = domain[0];
-    const d1 = domain[domain.length - 1];
+    const d1 = domain.at(-1);
 
     if (typeof d0 === 'string') {
         return [datumValue === d0, datumValue === d1];

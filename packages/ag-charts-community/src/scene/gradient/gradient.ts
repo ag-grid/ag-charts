@@ -63,7 +63,7 @@ export abstract class Gradient {
                 scale.domain = [c0.stop, c1.stop];
                 scale.range = [c0.color, c1.color];
                 for (let stop = c0.stop + step; stop < c1.stop; stop += step) {
-                    gradient.addColorStop(stop, scale.convert(stop));
+                    gradient.addColorStop(stop, scale.convert(stop) ?? 'transparent');
                 }
             }
 

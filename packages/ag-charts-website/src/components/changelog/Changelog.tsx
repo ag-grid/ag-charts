@@ -172,7 +172,7 @@ export const Changelog = () => {
     );
 
     const isRowMaster = useCallback((params: any) => {
-        return params.moreInformation || params.deprecationNotes || params.breakingChangesNotes;
+        return params.moreInformation ?? params.deprecationNotes ?? params.breakingChangesNotes;
     }, []);
 
     const switchDisplayedFixVersion = useCallback(

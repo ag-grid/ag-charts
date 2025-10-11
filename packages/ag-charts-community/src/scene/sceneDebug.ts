@@ -124,9 +124,7 @@ let globalStatsAccumulator: StatsAccumulator | undefined;
 let statsAccumulatorConsumers = 0;
 
 function getStatsAccumulator() {
-    if (!globalStatsAccumulator) {
-        globalStatsAccumulator = new StatsAccumulator();
-    }
+    globalStatsAccumulator ??= new StatsAccumulator();
 
     return globalStatsAccumulator;
 }

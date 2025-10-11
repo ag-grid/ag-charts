@@ -129,7 +129,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                                     (licenseState.expiredError ?? licenseState.expiredTrialError) && styles.expired
                                 }
                             >
-                                {userLicenseExpiry ? userLicenseExpiry : '--'}
+                                {userLicenseExpiry ?? '--'}
                             </b>
                         </div>
                     )}

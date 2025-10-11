@@ -170,7 +170,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
         let lowerBound = index;
         let upperBound = maxIterations;
         while (lowerBound <= upperBound) {
-            index = ((lowerBound + upperBound) / 2) | 0;
+            index = Math.trunc((lowerBound + upperBound) / 2);
             countParams.tickCount = countTicks(index);
             const nextTicksCandidate = calculateRawTicks(options, tickGenerationType, countParams);
 
@@ -309,8 +309,8 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                         (generatePrimaryTicks && (TimeScale.is(scale) || OrdinalTimeScale.is(scale))))
                 ) {
                     const dates = niceDomain as (Date | number)[];
-                    const start = Math.min(dates[0].valueOf(), dates[dates.length - 1].valueOf());
-                    const end = Math.max(dates[0].valueOf(), dates[dates.length - 1].valueOf());
+                    const start = Math.min(dates[0].valueOf(), dates.at(-1)!.valueOf());
+                    const end = Math.max(dates[0].valueOf(), dates.at(-1)!.valueOf());
                     timeInterval = getTickTimeInterval(start, end, tickCount, minTickCount, maxTickCount, {
                         weekStart: primaryLabel == null ? sunday : undefined,
                         primaryOnly: true,

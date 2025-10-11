@@ -360,7 +360,7 @@ export function smoothPoints(iPoints: Iterable<Point>, tension: number): Span[] 
     if (gradients[1] === 0) {
         gradients[0] *= 2;
     }
-    if (gradients[gradients.length - 2] === 0) {
+    if (gradients.at(-2) === 0) {
         gradients[gradients.length - 1] *= 2;
     }
 
