@@ -75,8 +75,8 @@ export class LicenseManager {
         // when users copy the license key from a PDF extra zero width characters are sometimes copied too
         // carriage returns and line feeds are problematic too
         // all of which causes license key validation to fail - strip these out
-        let cleanedLicenseKey = licenseKey.replace(/[\u200B-\u200D\uFEFF]/g, '');
-        cleanedLicenseKey = cleanedLicenseKey.replace(/\r?\n|\r/g, '');
+        let cleanedLicenseKey = licenseKey.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
+        cleanedLicenseKey = cleanedLicenseKey.replaceAll(/\r?\n|\r/g, '');
 
         // the hash that follows the key is 32 chars long
         if (licenseKey.length <= 32) {
@@ -257,7 +257,7 @@ export class LicenseManager {
         let n: any, r: any, i: any;
         let s: any, o: any, u: any, a: any;
         let f: number = 0;
-        const e: string = input.replace(/[^A-Za-z0-9+/=]/g, '');
+        const e: string = input.replaceAll(/[^A-Za-z0-9+/=]/g, '');
         while (f < e.length) {
             s = keystr.indexOf(e.charAt(f++));
             o = keystr.indexOf(e.charAt(f++));

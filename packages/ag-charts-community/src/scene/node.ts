@@ -350,7 +350,7 @@ export abstract class Node<TDatum = unknown> {
     private markDebugProperties(property: string) {
         const sources = this._debugDirtyProperties?.get(property) ?? [];
         const caller =
-            new Error().stack?.split('\n').filter((line) => {
+            new Error('Stack trace for property change tracking').stack?.split('\n').filter((line) => {
                 return (
                     line !== 'Error' &&
                     !line.includes('.markDebugProperties') &&
