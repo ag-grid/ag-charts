@@ -197,7 +197,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         const value = options[key as keyof object];
 
         optionsKeys.delete(key);
-        if (typeof value === 'undefined') {
+        if (value === undefined) {
             if (!validatorOrDefs[undocumentedSymbol]) {
                 unusedKeys.push(key);
             }
@@ -242,7 +242,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
     for (const key of optionsKeys) {
         const value = options[key as keyof object];
-        if (typeof value === 'undefined') continue;
+        if (value === undefined) continue;
         invalid.push(new UnknownError(unusedKeys, value, path, key));
     }
 

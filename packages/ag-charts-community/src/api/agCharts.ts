@@ -266,7 +266,7 @@ class AgChartsInternal {
             proxy.releaseChart = poolResult?.release;
         }
 
-        if (debug.check() && typeof globalThis.window !== 'undefined') {
+        if (debug.check() && 'window' in globalThis) {
             (globalThis as any).agChartInstances ??= {};
             (globalThis as any).agChartInstances[chart.id] = chart;
         }

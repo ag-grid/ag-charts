@@ -3,13 +3,13 @@
  */
 const verifiedGlobals = {} as { document: Document; window: Window };
 
-if (typeof globalThis.window !== 'undefined') {
+if (globalThis.window !== undefined) {
     verifiedGlobals.window = globalThis.window;
 }
 
-if (typeof document !== 'undefined') {
+if (document !== undefined) {
     verifiedGlobals.document = document;
-} else if (typeof globalThis.global !== 'undefined') {
+} else if (globalThis.global !== undefined) {
     verifiedGlobals.document = globalThis.document;
 }
 
