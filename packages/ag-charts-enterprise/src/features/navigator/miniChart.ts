@@ -113,18 +113,16 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
             series.attachSeries(this.seriesRoot, this.seriesRoot, undefined);
 
-            const chart = this;
-            series.chart = {
-                get mode() {
-                    return 'standalone' as const;
-                },
-                get isMiniChart() {
-                    return true;
-                },
-                get seriesRect() {
-                    return chart.seriesRect;
-                },
-            };
+            series.chart = {} as any;
+            Object.defineProperty(series.chart, 'mode', {
+                get: () => 'standalone' as const,
+            });
+            Object.defineProperty(series.chart, 'isMiniChart', {
+                get: () => true,
+            });
+            Object.defineProperty(series.chart, 'seriesRect', {
+                get: () => this.seriesRect,
+            });
 
             series.resetAnimation(this.miniChartAnimationPhase === 'initial' ? 'initial' : 'disabled');
             // @todo(AG-10653) Enable when there is an id per series group, irrespective of series instance

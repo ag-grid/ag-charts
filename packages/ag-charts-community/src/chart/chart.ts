@@ -904,18 +904,16 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const seriesContentNode = this.seriesLayerManager.requestGroup(series);
             series.attachSeries(seriesContentNode, this.seriesRoot, this.annotationRoot);
 
-            const chart = this;
-            series.chart = {
-                get mode() {
-                    return chart.mode;
-                },
-                get isMiniChart() {
-                    return false;
-                },
-                get seriesRect() {
-                    return chart.seriesRect;
-                },
-            };
+            series.chart = {} as any;
+            Object.defineProperty(series.chart, 'mode', {
+                get: () => this.mode,
+            });
+            Object.defineProperty(series.chart, 'isMiniChart', {
+                get: () => false,
+            });
+            Object.defineProperty(series.chart, 'seriesRect', {
+                get: () => this.seriesRect,
+            });
 
             series.resetAnimation(this.chartAnimationPhase);
             this.addSeriesListeners(series);

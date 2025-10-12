@@ -50,23 +50,23 @@ class TreeNode {
     }
 
     insertTick(tick: string[], index: number) {
-        let root: TreeNode = this;
+        let current: TreeNode = this;
         let endNode: TreeNode | undefined;
         for (let i = 0; i < tick.length; i++) {
             const pathPart = tick[i];
             const isNotLeaf = i !== tick.length - 1;
-            const { children } = root;
+            const { children } = current;
             const existingNode = children.find((child) => child.label === pathPart);
             if (existingNode && isNotLeaf) {
                 // the isNotLeaf check is to allow duplicate leafs
-                root = existingNode;
+                current = existingNode;
                 endNode = existingNode;
             } else {
-                const node = new TreeNode(pathPart, root, index);
+                const node = new TreeNode(pathPart, current, index);
                 node.index = children.length;
                 children.push(node);
                 if (isNotLeaf) {
-                    root = node;
+                    current = node;
                 }
                 endNode = node;
             }

@@ -213,9 +213,10 @@ export abstract class FlowProportionSeries<
             nodesDataController.execute();
         }
 
-        const [nodesDataModel, linksDataModel] = await Promise.all(
-            [nodesDataModelPromise, linksDataModelPromise].filter((p) => p != null)
-        );
+        const [nodesDataModel, linksDataModel] = await Promise.all([
+            nodesDataModelPromise ?? Promise.resolve(null),
+            linksDataModelPromise,
+        ]);
 
         this.nodesDataModel = nodesDataModel?.dataModel;
         this.nodesProcessedData = nodesDataModel?.processedData;
