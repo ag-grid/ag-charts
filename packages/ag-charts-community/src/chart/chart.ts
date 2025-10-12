@@ -640,8 +640,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (this.debug.check()) {
-            let stack = new Error().stack ?? '<unknown>';
-            stack = stack.replace(/\([^)]*/g, '');
+            let stack = new Error('Stack trace for update tracking').stack ?? '<unknown>';
+            stack = stack.replaceAll(/\([^)]*/g, '');
             this.updateRequestors[stack] = type;
         }
 
@@ -1033,7 +1033,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const width = inWidth ?? this.width ?? this._lastAutoSize?.[0];
         const height = inHeight ?? this.height ?? this._lastAutoSize?.[1];
         const pixelRatio = inOverrideDevicePixelRatio ?? this.overrideDevicePixelRatio ?? this._lastAutoSize?.[2];
-        this.debug(`Chart.resize() from ${source}`, { width, height, pixelRatio, stack: new Error().stack });
+        this.debug(`Chart.resize() from ${source}`, {
+            width,
+            height,
+            pixelRatio,
+            stack: new Error('Stack trace for resize tracking').stack,
+        });
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
         if (scene.resize(width, height, pixelRatio)) {
@@ -1228,7 +1233,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     async waitForUpdate(timeoutMs?: number, failOnTimeout?: boolean): Promise<void> {
         const agChartsDebugTimeout = getWindow<number>('agChartsDebugTimeout');
         if (agChartsDebugTimeout == null) {
-            timeoutMs ??= 10_0000;
+            timeoutMs ??= 100_000;
             failOnTimeout ??= false;
         } else {
             timeoutMs = agChartsDebugTimeout;
