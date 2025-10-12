@@ -200,7 +200,7 @@ export class LicenseManager {
         if (!this.document) {
             return false;
         }
-        const win = this.document?.defaultView ?? typeof globalThis.window != 'undefined' ? globalThis : undefined;
+        const win = this.document?.defaultView ?? globalThis.window != undefined ? globalThis : undefined;
         if (!win) {
             return false;
         }
@@ -266,12 +266,12 @@ export class LicenseManager {
             n = (s << 2) | (o >> 4);
             r = ((o & 15) << 4) | (u >> 2);
             i = ((u & 3) << 6) | a;
-            t = t + String.fromCharCode(n);
+            t = t + String.fromCodePoint(n);
             if (u != 64) {
-                t = t + String.fromCharCode(r);
+                t = t + String.fromCodePoint(r);
             }
             if (a != 64) {
-                t = t + String.fromCharCode(i);
+                t = t + String.fromCodePoint(i);
             }
         }
         t = LicenseManager.utf8_decode(t);
@@ -284,14 +284,14 @@ export class LicenseManager {
         for (let n = 0; n < input.length; n++) {
             const r = input.codePointAt(n)!;
             if (r < 128) {
-                t += String.fromCharCode(r);
+                t += String.fromCodePoint(r);
             } else if (r > 127 && r < 2048) {
-                t += String.fromCharCode((r >> 6) | 192);
-                t += String.fromCharCode((r & 63) | 128);
+                t += String.fromCodePoint((r >> 6) | 192);
+                t += String.fromCodePoint((r & 63) | 128);
             } else {
-                t += String.fromCharCode((r >> 12) | 224);
-                t += String.fromCharCode(((r >> 6) & 63) | 128);
-                t += String.fromCharCode((r & 63) | 128);
+                t += String.fromCodePoint((r >> 12) | 224);
+                t += String.fromCodePoint(((r >> 6) & 63) | 128);
+                t += String.fromCodePoint((r & 63) | 128);
             }
         }
         return t;
