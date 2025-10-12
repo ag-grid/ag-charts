@@ -378,6 +378,39 @@ node_modules/.cache/sonar-issues/
     ## AG Charts Context
 
     {Project-specific notes - can be added incrementally}
+
+    ### Important Exceptions
+
+    ⚠️ **If this rule has known exceptions in the AG Charts codebase, document them here.**
+
+    Use this section to list patterns that match the rule but are intentionally used and MUST NOT be changed.
+
+    Format:
+
+    -   **Pattern description**: Explain why this is an exception
+    -   **Example location**: File patterns or specific locations
+    -   **Rationale**: Why the exception is necessary
+
+    Example:
+    ```
+
+    ### Important Exceptions
+
+    Accesses to `globalThis.window` and `globalThis.document` are intentionally
+    checked with `typeof` to ensure they are defined - this is VERY IMPORTANT for
+    the proper functioning of the codebase, DO NOT FIX IN THESE FILES as it will
+    break server-side rendering support in Astro.
+
+    **Affected patterns:**
+
+    - `typeof globalThis.window !== 'undefined'`
+    - `typeof globalThis.document !== 'undefined'`
+
+    **Rationale:** These global objects may not exist in SSR environments, and
+    direct access would throw ReferenceError.
+
+    ```
+
     ```
 
     c. **Save to:** `tools/prompts/sonar-fix/{rule-number}-{description}.md`
@@ -510,7 +543,39 @@ node_modules/.cache/sonar-issues/
     echo "Final count after verification: $actual_count issues"
     ```
 
-5. **Group by rule type and prioritize:**
+5. **Filter out known exceptions (if documented):**
+
+    ```bash
+    # For each rule, check if there's a guide with documented exceptions
+    # This is an optional optimization step - sub-agents will also check
+
+    # Example: S7741 has exceptions for globalThis.window and globalThis.document
+    # Filter those out before creating batches
+
+    # Read verified-issues.json and for each rule, check tools/prompts/sonar-fix/{rule}-*.md
+    # If the guide has an "Important Exceptions" section with file patterns,
+    # filter out matching issues
+
+    # This can be done manually for known high-volume exceptions
+    # For S7741 specifically:
+    jq '[.[] | select(
+        .rule != "typescript:S7741" or
+        (.component | contains("globalThis.window") | not) and
+        (.component | contains("globalThis.document") | not)
+    )]' node_modules/.cache/sonar-issues/processed/verified-issues.json \
+        > node_modules/.cache/sonar-issues/processed/filtered-exceptions.json || \
+    cp node_modules/.cache/sonar-issues/processed/verified-issues.json \
+       node_modules/.cache/sonar-issues/processed/filtered-exceptions.json
+
+    exceptions_removed=$(($(jq '. | length' node_modules/.cache/sonar-issues/processed/verified-issues.json) - \
+                          $(jq '. | length' node_modules/.cache/sonar-issues/processed/filtered-exceptions.json)))
+
+    if [ $exceptions_removed -gt 0 ]; then
+        echo "Pre-filtered $exceptions_removed known exceptions"
+    fi
+    ```
+
+6. **Group by rule type and prioritize:**
 
     ```bash
     # Group issues by rule for batch processing
@@ -520,7 +585,7 @@ node_modules/.cache/sonar-issues/
         severity: .[0].impacts[0].severity,
         issues: .
     }) | sort_by(.severity, -.count)' \
-        node_modules/.cache/sonar-issues/processed/verified-issues.json \
+        node_modules/.cache/sonar-issues/processed/filtered-exceptions.json \
         > node_modules/.cache/sonar-issues/processed/batched-issues.json
 
     echo "Grouped into batches by rule type"
@@ -572,164 +637,127 @@ These require more careful refactoring and should be addressed separately:
 
 Wait for user confirmation before proceeding.
 
-#### Phase 3: Systematic Fixing
+#### Phase 3: Parallel Batch Execution Using Sub-Agents
 
-**For each batch:**
+**IMPORTANT:** Use parallel sub-agents for efficient execution of multiple batches.
 
-1. **Create todo list for the batch:**
+1. **Create todo list for tracking:**
 
-    Use TodoWrite to track progress:
-
-    - Batch N: Fix <rule-name> issues
-    - For each file in batch
-    - Format code
-    - Verify with lint/types
-    - Commit changes
-
-2. **Process each issue:**
-
-    a. **Read the file and locate the issue:**
-
-    ```bash
-    # Read file with context around the issue line
-    Read(<file_path>, offset=<line-5>, limit=20)
+    ```javascript
+    TodoWrite with one entry per batch:
+    - Batch 1: Fix S7767 issues (10 issues, HIGH)
+    - Batch 2: Fix S7741 issues (11 issues, LOW)
+    - ... etc
     ```
 
-    b. **Verify issue still exists:**
+2. **Launch sub-agents in parallel:**
 
-    - Code may have changed since SonarCloud scan
-    - Skip if already fixed
+    For each batch from the batched-issues.json, launch a `general-purpose` sub-agent with a comprehensive prompt.
 
-    c. **Apply rule-specific fix:**
+    **Launch up to 4-5 agents in parallel** to maximize throughput while avoiding overwhelming the system.
 
-    **Read the appropriate rule guide:**
+    **Sub-agent prompt template:**
 
-    - Guides are in `tools/prompts/sonar-fix/{rule-number}-{description}.md`
-    - Example: For rule `typescript:S7728`, read `tools/prompts/sonar-fix/S7728-use-for-of-loops.md`
-    - Use the guide's examples, AG Charts context, and fix patterns to inform your changes
-    - If no guide exists, create one following Phase 0 instructions
+    ```markdown
+    Fix all SonarCloud {RULE_ID} issues ({RULE_DESCRIPTION}).
 
-    **Quick reference patterns are also available below:** [Rule-Specific Fix Patterns](#rule-specific-fix-patterns)
+    **Rule Guide:** Check if a guide exists at `tools/prompts/sonar-fix/{RULE_NUMBER}-{kebab-case}.md`.
+    If not, create one using the SonarCloud API:
 
-    d. **Use Edit tool for precise changes:**
+    -   URL: https://sonarcloud.io/api/rules/show?key={encoded-rule-id}&organization=ag-grid
+    -   Extract rule details, examples, and create guide following standard structure
 
-    - Keep changes minimal and focused
-    - Preserve surrounding code style
-    - Don't make unrelated changes
+    **CRITICAL: Check for Exceptions**
+    Before fixing ANY issue, read the rule guide's "Important Exceptions" section (if present).
+    Some patterns that match the rule are intentionally used and MUST NOT be changed.
+    For each file, verify it's not covered by an exception pattern before applying the fix.
 
-    e. **Track progress after processing issue:**
+    **Issues to fix ({COUNT} total):**
+    {LIST_OF_FILES_AND_LINES}
 
-    ```bash
-    # Update progress file with fix status
-    progress_file="node_modules/.cache/sonar-issues/progress/$(git branch --show-current).json"
+    **Fix pattern:** {BRIEF_DESCRIPTION}
 
-    # After successfully fixing an issue
-    jq --arg key "$issue_key" --arg status "fixed" --arg commit "$(git rev-parse HEAD 2>/dev/null || echo 'uncommitted')" \
-        '(.verified[$key].status = $status) | (.verified[$key].fixedAt = (now | todate)) | (.verified[$key].commit = $commit)' \
-        "$progress_file" > "$progress_file.tmp" && mv "$progress_file.tmp" "$progress_file"
+    **Instructions:**
 
-    # After skipping an issue (already fixed, too complex, etc.)
-    jq --arg key "$issue_key" --arg status "skipped" --arg reason "$skip_reason" \
-        '(.verified[$key].status = $status) | (.verified[$key].skippedAt = (now | todate)) | (.verified[$key].reason = $reason)' \
-        "$progress_file" > "$progress_file.tmp" && mv "$progress_file.tmp" "$progress_file"
+    1. Read the rule guide and note any exceptions in the "Important Exceptions" section
+    2. Read each file and locate the issue
+    3. Verify the issue still exists (may have been fixed already)
+    4. Check if the issue matches any exception pattern - if so, SKIP IT
+    5. Apply the fix using the rule guide patterns (only for non-exception cases)
+    6. After all fixes, run: `nx format`
+    7. Verify: `nx lint {affected-packages}`
+    8. Verify: `nx build:types {affected-packages}`
+    9. Create ONE commit with message:
     ```
 
-    f. **Mark todo as complete and move to next issue**
+    Fix SonarCloud {RULE_ID} issues
 
-3. **After completing all issues in batch:**
+    {Description of changes}
 
-    a. **Format code:**
+    Fixed N violations across M files.
 
-    ```bash
-    nx format
+    Affected packages:
+
+    - {package-list}
+
+    Rule: {RULE_ID} - {RULE_DESCRIPTION}
+
     ```
 
-    b. **Identify affected packages:**
-
-    Parse file paths to extract package names:
-
-    - `packages/ag-charts-core/...` → `ag-charts-core`
-    - `packages/ag-charts-community/...` → `ag-charts-community`
-    - `packages/ag-charts-enterprise/...` → `ag-charts-enterprise`
-
-    c. **Verify affected packages:**
-
-    ```bash
-    # Run for each affected package
-    nx lint <package-name>
-    nx build:types <package-name>
+    Return: Commit hash and summary of fixes.
     ```
 
-    d. **Check results:**
+    **Example launch:**
 
-    - ✅ **If all pass:** Proceed to commit
-    - ❌ **If verification fails:**
-        - Review the errors
-        - Fix any issues introduced by the changes
-        - Re-run verification
-        - If unable to fix, revert the batch and report to user
-
-4. **Create commit:**
-
-    ```bash
-    git add <affected-files>
-
-    git commit -m "$(cat <<'EOF'
-    Fix SonarCloud <RULE_ID> issues
-
-    Fixed N violations of <RULE_NAME> across M files.
-
-    Changes:
-    - <Brief description of the fix pattern>
-    - <Package(s) affected>
-
-    All tests passing, no functional changes.
-
-    Rule: <RULE_ID> - <RULE_DESCRIPTION>
-    EOF
-    )"
+    ```javascript
+    Task(
+      subagent_type: "general-purpose",
+      description: "Fix S7767 issues (Batch 1)",
+      prompt: "Fix all SonarCloud S7767 issues (Use Math.trunc instead of | 0).\n\n**Rule Guide:** Check tools/prompts/sonar-fix/S7767-use-math-trunc.md...\n\n**Issues:** \n- file.ts:123\n- file2.ts:456\n..."
+    )
     ```
 
-5. **Report batch completion:**
+3. **Monitor sub-agent execution:**
 
-    Read from progress file for accurate counts:
+    - Mark batches as `in_progress` when agents start
+    - Mark as `completed` when agent returns with commit hash
+    - If an agent reports issues, investigate and potentially re-run
 
-    ```bash
-    # Get batch statistics from progress file
-    progress_file="node_modules/.cache/sonar-issues/progress/$(git branch --show-current).json"
+4. **Handle agent results:**
 
-    batch_fixed=$(jq --arg rule "$current_rule" '[.verified[] | select(.rule == $rule and .status == "fixed")] | length' "$progress_file")
-    batch_skipped=$(jq --arg rule "$current_rule" '[.verified[] | select(.rule == $rule and .status == "skipped")] | length' "$progress_file")
-    batch_total=$((batch_fixed + batch_skipped))
+    As each agent completes:
 
-    echo "✅ Batch $batch_number Complete: $current_rule"
-    echo "   - Fixed: $batch_fixed/$batch_total issues"
-    echo "   - Skipped: $batch_skipped"
-    echo "   - Files modified: <file count>"
-    echo "   - Verification: ✅ Passed"
-    echo "   - Commit: $(git rev-parse HEAD 2>/dev/null || echo 'uncommitted')"
-    echo ""
-    echo "Remaining batches: $remaining_batches"
-    ```
-
-6. **Save session summary to progress file:**
+    a. **Verify the commit was created:**
 
     ```bash
-    # After all batches complete, add session summary
-    jq --arg startedAt "$session_start_time" \
-       --argjson requestedCount "$requested_limit" \
-       --argjson actualFixed "$(jq '[.verified[] | select(.status == "fixed")] | length' "$progress_file")" \
-       --argjson skipped "$(jq '[.verified[] | select(.status == "skipped")] | length' "$progress_file")" \
-       '.sessions += [{
-           startedAt: $startedAt,
-           completedAt: (now | todate),
-           requestedCount: $requestedCount,
-           actualFixed: $actualFixed,
-           skipped: $skipped
-       }]' "$progress_file" > "$progress_file.tmp" && mv "$progress_file.tmp" "$progress_file"
+    git log --oneline -1
     ```
 
-7. **Move to next batch** and repeat
+    b. **Update todo list** to mark batch as completed
+
+    c. **Continue with remaining agents** until all complete
+
+5. **Benefits of parallel execution:**
+
+    - ✅ **Speed:** Multiple batches processed simultaneously
+    - ✅ **Isolation:** Each agent works independently on separate files
+    - ✅ **Rollback:** Each batch is a separate commit for easy revert
+    - ✅ **Scalability:** Can handle large numbers of issues efficiently
+    - ✅ **Token efficiency:** Sub-agents have fresh token budgets
+
+6. **When NOT to use parallel execution:**
+
+    - ❌ If batches affect the same files (potential conflicts)
+    - ❌ If there are < 3 batches (overhead not worth it)
+    - ❌ If user specifically requests sequential execution
+
+7. **Conflict resolution:**
+
+    If multiple agents modify the same file:
+
+    - The first agent to commit wins
+    - Subsequent agents may fail with merge conflicts
+    - Re-run failed agents after pulling latest changes
 
 #### Phase 4: Final Report
 
@@ -1012,10 +1040,13 @@ packages/ag-charts-core/src/utils/validation.ts
 ### When to Skip Issues
 
 -   **Already fixed:** Issue no longer exists in current codebase
+-   **Documented exceptions:** Issue matches a pattern in the rule guide's "Important Exceptions" section
 -   **Generated code:** Files with generation markers or in generated directories
 -   **Test-specific patterns:** Some patterns are acceptable in tests
 -   **Complex refactoring needed:** Effort > 15 minutes per issue
 -   **Requires architectural changes:** Better as dedicated task
+
+**For documented exceptions:** Always add a skip reason in the progress file noting which exception pattern matched, e.g., "Skipped: matches globalThis.window exception in S7741"
 
 ### Error Recovery
 

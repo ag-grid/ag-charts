@@ -41,6 +41,10 @@ In AG Charts codebase, this pattern may appear in:
 -   Configuration value validation
 -   Default value assignments
 
+### Important Exceptions
+
+Accesses to `globalThis.window` and `globalThis.document` are intentionally checked with `typeof` to ensure they are defined - this is VERY IMPORTANT for the proper functioning of the codebase, DO NOT FIX IN THESE FILES as it will break server-side rendering support in Astro.
+
 **Historical context:**
 The `typeof` approach was necessary in pre-ES5 JavaScript to safely check undeclared variables. In modern TypeScript with proper typing, direct comparison is safe and preferred.
 
