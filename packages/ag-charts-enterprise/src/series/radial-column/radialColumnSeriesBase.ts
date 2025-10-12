@@ -137,7 +137,7 @@ export abstract class RadialColumnSeriesBase<
         } else {
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]]
+                ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];
             return fixNumericExtent(fixedYExtent);
         }

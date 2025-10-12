@@ -101,7 +101,7 @@ class TreeNode {
  * Ensures that every branch matches the depth of the tree by creating empty labels.
  */
 function ticksToTree(ticks: string[][]): { root: TreeNode; tickNodes: Map<string[], TreeNode> } {
-    const maxDepth = ticks.reduce((depth, tick) => (depth < tick.length ? tick.length : depth), 0);
+    const maxDepth = ticks.reduce((depth, tick) => Math.max(depth, tick.length), 0);
     const root = new TreeNode();
     const tickNodes = new Map<string[], TreeNode>();
     for (let i = 0; i < ticks.length; i++) {

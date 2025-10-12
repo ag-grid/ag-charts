@@ -161,8 +161,8 @@ export class ZoomSelector {
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
 
         // Ensure we create a box starting at the top left corner
-        const x = x1 <= x2 ? x1 : x2;
-        const y = y1 <= y2 ? y1 : y2;
+        const x = Math.min(x1, x2);
+        const y = Math.min(y1, y2);
         const width = x1 <= x2 ? x2 - x1 : x1 - x2;
         const height = y1 <= y2 ? y2 - y1 : y1 - y2;
 
