@@ -1,10 +1,10 @@
 import type {
     AgMarkerShape,
+    AgRangeAreaSeriesItemStylerParams,
     AgRangeAreaSeriesItemType,
     AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
-    AgRangeAreaSeriesOptionsKeys,
     AgRangeAreaSeriesTooltipRendererParams,
     AgSeriesMarkerOptions,
     AgSeriesMarkerStyle,
@@ -39,6 +39,11 @@ const {
 
 type RangeAreaSeriesItemOptions = NonNullable<AgRangeAreaSeriesOptions['item']>;
 type RangeAreaSeriesLineOptions = NonNullable<RangeAreaSeriesItemOptions[AgRangeAreaSeriesItemType]>;
+
+export type RangeAreaSeriesParams = Pick<
+    AgRangeAreaSeriesItemStylerParams<unknown, unknown>,
+    'xKey' | 'yLowKey' | 'yHighKey' | 'itemId'
+>;
 
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {
     @Property
@@ -76,7 +81,7 @@ class RangeAreaLineStyle extends BaseProperties<RangeAreaSeriesLineOptions> {
     lineDashOffset: number = 0;
 
     @Property
-    readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys>();
+    readonly marker = new SeriesMarker<RangeAreaSeriesParams>();
 }
 
 class RangeAreaItemProperties extends BaseProperties<RangeAreaSeriesItemOptions> {
