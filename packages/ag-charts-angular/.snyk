@@ -49,8 +49,13 @@ ignore:
     SNYK-JS-VITE-9653016:
         - '@angular-devkit/build-angular@17.3.11 > vite@5.1.8':
               reason: >-
-                  Vitest is only used for development and we do not expose
-                  the dev server to the network
+                  Only used by angular dev server
+              expires: 2025-12-08T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-VITE-9512410:
+        - '@angular-devkit/build-angular@17.3.11 > vite@5.1.8':
+              reason: >-
+                  Only used by angular dev server
               expires: 2025-12-08T12:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
     SNYK-JS-UNDICI-8641354:
@@ -98,7 +103,7 @@ ignore:
     SNYK-JS-WEBPACKDEVMIDDLEWARE-6476555:
         - '@angular-devkit/build-angular@17.3.11 > webpack-dev-server@4.15.1 > webpack-dev-middleware@5.3.3':
               reason: >-
-                  Vitest is only used for development and we do not expose
+                  Only used for development and we do not expose
                   the dev server to the network
               expires: 2025-12-08T12:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
