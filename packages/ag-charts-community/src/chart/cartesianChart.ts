@@ -372,7 +372,10 @@ export class CartesianChart extends Chart {
         const perpendicularAxis = axis.direction === ChartAxisDirection.X ? primaryYAxis : primaryXAxis;
         if (!perpendicularAxis) return { crossPosition: undefined, visible: true };
 
-        const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false });
+        const { domain, range, bandwidth } = perpendicularAxis.scale;
+        const halfBandwidth = (bandwidth ?? 0) / 2;
+
+        const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false }) + halfBandwidth;
 
         if (perpendicularAxis.inRange(crossPosition)) return { crossPosition, visible: true };
 
@@ -380,8 +383,7 @@ export class CartesianChart extends Chart {
             return { crossPosition: undefined, visible: false };
         }
 
-        const { domain, range } = perpendicularAxis.scale;
-        const clampedPosition = Number.isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
+        const clampedPosition = isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
 
         return { crossPosition: clampedPosition, visible: true };
     }
