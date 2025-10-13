@@ -1960,8 +1960,11 @@ describe('DataModel', () => {
                 expect(invalidDataArray![2]).toBe(true); // Third item (appended)
                 expect(reprocessed.partialValidDataCount).toBeGreaterThan(0);
 
-                // Verify domains (only valid data: x=1 with y=10)
-                expect(reprocessed.domain.keys).toEqual([[1, 1]]);
+                // Verify domains
+                // Key domain includes all valid keys (1, 2, 3), even though items 1 and 2 have invalid values
+                // This matches processData() behavior where each property domain is independent
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                // Value domain only includes valid values (only item 0 with y=10 is fully valid)
                 expect(reprocessed.domain.values).toEqual([[10, 10]]);
             });
         });

@@ -1382,8 +1382,11 @@ export class DataModel<
                 const keys = keysMap.get(scope);
                 if (!keys) continue;
 
-                const invalidData = processedData.invalidData?.get(scope);
-                this.extendDomainFromData(domain, keys, invalidData);
+                // Use invalidKeys (not invalidData) to only skip items with invalid keys
+                // This matches processData() behavior where valid keys contribute to domain
+                // even if their corresponding values are invalid
+                const invalidKeys = processedData.invalidKeys?.get(scope);
+                this.extendDomainFromData(domain, keys, invalidKeys);
             }
         }
 
