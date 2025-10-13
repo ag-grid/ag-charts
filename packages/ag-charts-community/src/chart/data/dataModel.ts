@@ -807,7 +807,7 @@ export class DataModel<
         }
 
         this.commitPendingTransactions(processedData);
-        const { processValue } = this.initDataDomainProcessor();
+        const { processValue } = this.initDataDomainProcessor(false);
         const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
 
         this.updateBandsForChanges(processedData, scopeChanges);
@@ -1007,6 +1007,10 @@ export class DataModel<
             return metadata;
         };
 
+        // Track which arrays have already been processed to avoid double-processing
+        // when multiple scopes share the same array reference
+        const processedArrays = new WeakSet<unknown[]>();
+
         for (const [defIndex, def] of this.keys.entries()) {
             for (const scope of def.scopes ?? []) {
                 const changeDesc = scopeChanges.get(scope);
@@ -1014,6 +1018,20 @@ export class DataModel<
 
                 const keysArray = processedData.keys[defIndex]?.get(scope);
                 if (!keysArray) continue;
+
+                // Skip if this array has already been processed (shared between scopes)
+                if (processedArrays.has(keysArray)) {
+                    // Still need to track removed metadata for this scope
+                    const sourceScope = Array.from(processedData.keys[defIndex].entries()).find(
+                        ([_, arr]) => arr === keysArray
+                    )?.[0];
+                    if (sourceScope && sourceScope !== scope && removedByScope.has(sourceScope)) {
+                        // Copy removed metadata from the scope that processed this array
+                        removedByScope.set(scope, removedByScope.get(sourceScope)!);
+                    }
+                    continue;
+                }
+                processedArrays.add(keysArray);
 
                 const insertionCache = insertionCaches.get(scope);
                 const removedMetadata = ensureRemovedMetadata(scope);
@@ -1100,9 +1118,17 @@ export class DataModel<
         insertionCaches: Map<ScopeId, InsertionCache>,
         extractValue: (cached: InsertionCacheValue | undefined) => boolean
     ): void {
+        // Track which arrays have already been processed to avoid double-processing
+        // when multiple scopes share the same array reference
+        const processedArrays = new Set<boolean[]>();
+
         for (const [scope, changeDesc] of scopeChanges) {
             const array = invalidityMap.get(scope);
             if (!array) continue;
+
+            // Skip if this array has already been processed (shared between scopes)
+            if (processedArrays.has(array)) continue;
+            processedArrays.add(array);
 
             const insertionCache = insertionCaches.get(scope);
 
@@ -1678,7 +1704,7 @@ export class DataModel<
     }
 
     private extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
-        const { dataDomain, processValue, allScopesHaveSameDefs } = this.initDataDomainProcessor();
+        const { dataDomain, processValue, allScopesHaveSameDefs } = this.initDataDomainProcessor(true);
 
         const { keys: keyDefs, values: valueDefs } = this;
 
@@ -2348,7 +2374,7 @@ export class DataModel<
         }
     }
 
-    private initDataDomainProcessor() {
+    private initDataDomainProcessor(extendDomains: boolean) {
         const { keys: keyDefs, values: valueDefs } = this;
 
         const scopes = new Set<string>();
@@ -2459,7 +2485,9 @@ export class DataModel<
                 value = processor(value, idx);
             }
 
-            dataDomain.get(def)?.extend(value);
+            if (extendDomains) {
+                dataDomain.get(def)?.extend(value);
+            }
             reusableResult.value = value;
             return reusableResult;
         };
