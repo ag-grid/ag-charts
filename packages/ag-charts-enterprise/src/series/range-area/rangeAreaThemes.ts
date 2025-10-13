@@ -1,5 +1,5 @@
 import { type AgChartThemeOverrides, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import { type NonNullablePath } from 'ag-charts-core';
+import type { NonNullablePath } from 'ag-charts-core';
 
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
