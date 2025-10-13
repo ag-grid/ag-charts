@@ -66,7 +66,7 @@ function circleRectOverlap(
     // Find distance to the closest edges.
     const dx = cx - edgeX;
     const dy = cy - edgeY;
-    const d = Math.sqrt(dx ** 2 + dy ** 2);
+    const d = Math.hypot(dx, dy);
     return d <= c.size / 2;
 }
 

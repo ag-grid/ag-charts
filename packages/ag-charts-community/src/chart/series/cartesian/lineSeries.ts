@@ -267,7 +267,7 @@ export class LineSeries extends CartesianSeries<
 
         if (this.isNormalized() && yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]]
+                ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];
             return fixNumericExtent(fixedYExtent);
         } else {

@@ -308,10 +308,10 @@ export function getPathComponents(path: string) {
             const accessor = match.slice(1, -1).trim();
             if (accessor.startsWith(`'`)) {
                 // ['string-property']
-                components.push(accessor.slice(1, -1).replace(/(?<!\\)\\'/g, `'`));
+                components.push(accessor.slice(1, -1).replaceAll(/(?<!\\)\\'/g, `'`));
             } else if (accessor.startsWith(`"`)) {
                 // ["string-property"]
-                components.push(accessor.slice(1, -1).replace(/(?<!\\)\\"/g, `"`));
+                components.push(accessor.slice(1, -1).replaceAll(/(?<!\\)\\"/g, `"`));
             } else {
                 // ["number-property"]
                 components.push(accessor);

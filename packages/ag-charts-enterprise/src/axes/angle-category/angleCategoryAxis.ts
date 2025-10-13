@@ -60,7 +60,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
             }
             const nextX = radius * Math.cos(nextAngle);
             const nextY = radius * Math.sin(nextAngle);
-            const spacing = Math.sqrt((nextX - startX) ** 2 + (nextY - startY) ** 2);
+            const spacing = Math.hypot(nextX - startX, nextY - startY);
             if (spacing > minSpacing) {
                 // Filter ticks by step
                 const visibleTicks = new Set([startTick]);

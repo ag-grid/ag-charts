@@ -147,7 +147,7 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
         if (sector.datum.missing === true) continue;
 
         if (isBetweenAngles(angle, sector.startAngle, sector.endAngle)) {
-            const radius = Math.sqrt(dx * dx + dy * dy);
+            const radius = Math.hypot(dx, dy);
             let distance = 0;
             if (radius < sector.innerRadius) {
                 distance = sector.innerRadius - radius;

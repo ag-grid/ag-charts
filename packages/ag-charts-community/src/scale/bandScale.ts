@@ -115,7 +115,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         let closestIndex = 0;
 
         while (low <= high) {
-            const mid = ((high + low) / 2) | 0;
+            const mid = Math.trunc((high + low) / 2);
             const p = this.ordinalRange(mid);
             const distance = Math.abs(p - position);
 

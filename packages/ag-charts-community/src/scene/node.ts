@@ -244,12 +244,13 @@ export abstract class Node<TDatum = unknown> {
     }
 
     *traverseUp(includeSelf?: boolean): Generator<Node, void, unknown> {
-        let node: Node | undefined = this;
         if (includeSelf) {
-            yield node;
+            yield this;
         }
-        while ((node = node.parentNode)) {
+        let node = this.parentNode;
+        while (node) {
             yield node;
+            node = node.parentNode;
         }
     }
 
@@ -350,7 +351,7 @@ export abstract class Node<TDatum = unknown> {
     private markDebugProperties(property: string) {
         const sources = this._debugDirtyProperties?.get(property) ?? [];
         const caller =
-            new Error().stack?.split('\n').filter((line) => {
+            new Error('Stack trace for property change tracking').stack?.split('\n').filter((line) => {
                 return (
                     line !== 'Error' &&
                     !line.includes('.markDebugProperties') &&

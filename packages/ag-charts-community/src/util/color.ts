@@ -107,7 +107,7 @@ export class Color implements IColor {
 
     // See https://drafts.csswg.org/css-color/#hex-notation
     static parseHex(input: string): [number, number, number, number] | undefined {
-        input = input.replace(/ /g, '').slice(1);
+        input = input.replaceAll(' ', '').slice(1);
         let parts: any;
 
         switch (input.length) {

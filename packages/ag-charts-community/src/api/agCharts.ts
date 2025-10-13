@@ -290,7 +290,7 @@ class AgChartsInternal {
         if (typeof node !== 'object') return modified;
         for (const key of Object.keys(node)) {
             const value = node[key];
-            if (typeof value === 'undefined') {
+            if (value === undefined) {
                 Object.assign(node, { [key]: Symbol('UNSET') });
                 modified ||= true;
             }

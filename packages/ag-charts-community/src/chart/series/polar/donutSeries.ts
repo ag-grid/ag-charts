@@ -1556,7 +1556,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         });
         const getMarginTop = (index: number) => (index === 0 ? 0 : margins[index]);
         const getMarginBottom = (index: number) => (index === margins.length - 1 ? 0 : margins[index]);
-        const totalWidth = textBBoxes.reduce((max, bbox) => (max < bbox.width ? bbox.width : max), 0);
+        const totalWidth = textBBoxes.reduce((max, bbox) => Math.max(max, bbox.width), 0);
         const totalHeight = textBBoxes.reduce(
             (sum, bbox, i) => sum + bbox.height + getMarginTop(i) + getMarginBottom(i),
             0

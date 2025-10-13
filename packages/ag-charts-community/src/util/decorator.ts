@@ -148,7 +148,7 @@ export function addObserverToInstanceProperty(setObserver: TransformFn): Propert
 }
 
 export function isDecoratedObject(target: any): target is DecoratedObject {
-    return typeof target !== 'undefined' && CONFIG_KEY in target;
+    return target !== undefined && CONFIG_KEY in target;
 }
 
 export function listDecoratedProperties<T>(target: T): (keyof T)[] {

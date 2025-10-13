@@ -14,7 +14,7 @@ export const AnimationModule: PluginModuleDefinition<AgAnimationOptions> = {
     },
     themeTemplate: {
         enabled: true,
-        maxAnimatableItems: 1_000,
+        maxAnimatableItems: 1000,
     },
 
     create: (ctx) => new Animation(ctx),

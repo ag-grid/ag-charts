@@ -611,7 +611,7 @@ export class BarSeries extends AbstractBarSeries<
                     if (xMinIndex === -1) continue;
                     if (xValues[yMaxIndex] == null || xValues[yMinIndex] == null) continue;
 
-                    const x = xPosition(((xMinIndex + xMaxIndex) / 2) | 0);
+                    const x = xPosition(Math.trunc((xMinIndex + xMaxIndex) / 2));
                     // The width of the shape is the width from the left of the first bar to the right of the second bar
                     const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + barWidth;
 

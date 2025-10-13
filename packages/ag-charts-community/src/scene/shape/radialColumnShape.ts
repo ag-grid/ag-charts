@@ -6,7 +6,7 @@ import { SceneChangeDetection } from '../changeDetectable';
 import { Path } from './path';
 
 function rotatePoint(x: number, y: number, rotation: number) {
-    const radius = Math.sqrt(x ** 2 + y ** 2);
+    const radius = Math.hypot(x, y);
     const angle = Math.atan2(y, x);
     const rotated = angle + rotation;
     return {
@@ -126,7 +126,7 @@ export class RadialColumnShape<D = any> extends Path<D> {
         const pointRotation = this.getRotation();
         const rotate = (x: number, y: number) => rotatePoint(x, y, pointRotation);
 
-        const getTriangleHypotenuse = (leg: number, otherLeg: number) => Math.sqrt(leg ** 2 + otherLeg ** 2);
+        const getTriangleHypotenuse = (leg: number, otherLeg: number) => Math.hypot(leg, otherLeg);
         const getTriangleLeg = (hypotenuse: number, otherLeg: number) => {
             if (otherLeg > hypotenuse) {
                 return 0;
@@ -268,7 +268,7 @@ export function getRadialColumnWidth(
     const endX = axisOuterRadius * Math.cos(endAngle);
     const endY = axisOuterRadius * Math.sin(endAngle);
 
-    const colWidth = Math.floor(Math.sqrt((startX - endX) ** 2 + (startY - endY) ** 2));
+    const colWidth = Math.floor(Math.hypot(startX - endX, startY - endY));
     const maxWidth = 2 * axisOuterRadius * maxColumnWidthRatio;
 
     return Math.max(1, Math.min(maxWidth, colWidth));

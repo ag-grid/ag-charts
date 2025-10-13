@@ -118,7 +118,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
 
 const integerTypes: Record<string, (n: number) => string> = {
     b: (n) => absFloor(n).toString(2),
-    c: (n) => String.fromCharCode(n),
+    c: (n) => String.fromCodePoint(n),
     d: (n) => Math.round(Math.abs(n)).toFixed(0),
     o: (n) => absFloor(n).toString(8),
     x: (n) => absFloor(n).toString(16),

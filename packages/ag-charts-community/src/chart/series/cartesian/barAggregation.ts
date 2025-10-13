@@ -25,7 +25,7 @@ function getIndices(maxRange: number, indexData: Int32Array): number[] {
         const aggIndex = index * AGGREGATION_SPAN;
         const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
         const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
-        return ((xMinIndex + xMaxIndex) / 2) | 0;
+        return Math.trunc((xMinIndex + xMaxIndex) / 2);
     });
 }
 

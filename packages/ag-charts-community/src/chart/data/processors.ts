@@ -17,7 +17,7 @@ import {
     datumKeys,
 } from './dataModel';
 
-const MAX_ANIMATABLE_NODES = 1_000;
+const MAX_ANIMATABLE_NODES = 1000;
 
 export function processedDataIsAnimatable(processedData: ProcessedData<any>) {
     return processedData.input.count <= MAX_ANIMATABLE_NODES;

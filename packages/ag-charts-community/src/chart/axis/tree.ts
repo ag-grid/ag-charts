@@ -50,23 +50,23 @@ class TreeNode {
     }
 
     insertTick(tick: string[], index: number) {
-        let root: TreeNode = this;
+        let current: TreeNode = this;
         let endNode: TreeNode | undefined;
         for (let i = 0; i < tick.length; i++) {
             const pathPart = tick[i];
             const isNotLeaf = i !== tick.length - 1;
-            const { children } = root;
+            const { children } = current;
             const existingNode = children.find((child) => child.label === pathPart);
             if (existingNode && isNotLeaf) {
                 // the isNotLeaf check is to allow duplicate leafs
-                root = existingNode;
+                current = existingNode;
                 endNode = existingNode;
             } else {
-                const node = new TreeNode(pathPart, root, index);
+                const node = new TreeNode(pathPart, current, index);
                 node.index = children.length;
                 children.push(node);
                 if (isNotLeaf) {
-                    root = node;
+                    current = node;
                 }
                 endNode = node;
             }
@@ -101,7 +101,7 @@ class TreeNode {
  * Ensures that every branch matches the depth of the tree by creating empty labels.
  */
 function ticksToTree(ticks: string[][]): { root: TreeNode; tickNodes: Map<string[], TreeNode> } {
-    const maxDepth = ticks.reduce((depth, tick) => (depth < tick.length ? tick.length : depth), 0);
+    const maxDepth = ticks.reduce((depth, tick) => Math.max(depth, tick.length), 0);
     const root = new TreeNode();
     const tickNodes = new Map<string[], TreeNode>();
     for (let i = 0; i < ticks.length; i++) {
