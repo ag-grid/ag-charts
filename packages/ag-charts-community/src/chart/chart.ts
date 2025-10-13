@@ -1231,7 +1231,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     async waitForUpdate(timeoutMs?: number, failOnTimeout?: boolean): Promise<void> {
         const agChartsDebugTimeout = getWindow<number>('agChartsDebugTimeout');
         if (agChartsDebugTimeout == null) {
-            timeoutMs ??= 100_000;
+            timeoutMs ??= 10_000;
             failOnTimeout ??= false;
         } else {
             timeoutMs = agChartsDebugTimeout;
