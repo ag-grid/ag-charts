@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { AgChartOptions, AgCharts, AgRangeAreaSeriesThemeableOptions } from 'ag-charts-enterprise';
 
 import { type DatumType, getData } from './data';
