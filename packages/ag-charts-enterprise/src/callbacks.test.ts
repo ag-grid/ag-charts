@@ -1,5 +1,4 @@
 import { afterEach, describe, expect } from '@jest/globals';
-import { AgDataSourceCallbackParams } from 'packages/ag-charts-types/src/chart/dataSourceOptions';
 
 import {
     AgAnnotationsEvent,
@@ -45,6 +44,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from './test/utils';
 

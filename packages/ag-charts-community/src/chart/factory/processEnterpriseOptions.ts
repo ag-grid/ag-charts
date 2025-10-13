@@ -10,8 +10,8 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
     const optionsChartType = optsType ? ModuleRegistry.getSeriesModule(optsType)?.chartType : null;
 
     for (const module of ExpectedModules) {
-        if (!module.enterprise) continue;
-        if (module.chartType && !optionsChartType && optionsChartType !== module.chartType) continue;
+        if (!module.enterprise || module.removable === false) continue;
+        if (optionsChartType && module.chartType && optionsChartType !== module.chartType) continue;
 
         switch (module.type) {
             case 'chart':
@@ -21,7 +21,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
                 if (
                     'axes' in options &&
                     isArray(options.axes) &&
-                    options.axes?.some((axis) => axis.type === module.name)
+                    options.axes.some((axis) => axis.type === module.name)
                 ) {
                     usedOptions.push(`axis[type=${module.name}]`);
                     options.axes = (options.axes as any[]).filter((axis) => axis.type !== module.name);
@@ -29,10 +29,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
                 break;
 
             case 'series':
-                if (
-                    isArray(options.series as unknown) &&
-                    options.series?.some((series) => series.type === module.name)
-                ) {
+                if (isArray(options.series) && options.series.some((series) => series.type === module.name)) {
                     usedOptions.push(`series[type=${module.name}]`);
                     options.series = (options.series as any[]).filter((series) => series.type !== module.name);
                 }
@@ -49,8 +46,8 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
             case 'axis:plugin':
                 if (
                     'axes' in options &&
-                    isArray(options.axes as unknown) &&
-                    options.axes?.some((axis) => axis[module.name as keyof typeof axis])
+                    isArray(options.axes) &&
+                    options.axes.some((axis) => axis[module.name as keyof typeof axis])
                 ) {
                     usedOptions.push(`axis.${module.name}`);
                     for (const axis of options.axes) {
