@@ -108,6 +108,9 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
     private dataSize: number = 0;
     private fullDomainCache: T[] | null = null;
     private readonly isDiscrete: boolean;
+    // Tracks when band structure has gaps due to removals and needs rebalancing.
+    // Set to true when removing data creates non-contiguous bands.
+    // Prevents unnecessary rebalancing when bands are still valid.
     private needsReinitialization: boolean = false;
 
     constructor(domainFactory: () => IDataDomain<T>, config: BandedDomainConfig = {}, isDiscrete: boolean = false) {

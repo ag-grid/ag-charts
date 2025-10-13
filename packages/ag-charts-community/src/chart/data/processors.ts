@@ -232,6 +232,8 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
             if (datumIndices == null) continue;
 
             for (const relativeDatumIndex of datumIndices) {
+                // Convert relative datum index to absolute column index
+                // (relative index is offset from group start, absolute is for the entire column)
                 const datumIndex = groupIndex + relativeDatumIndex;
                 const column = columns[valueIdx];
                 const value: null | number = column[datumIndex];
@@ -253,6 +255,8 @@ function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup
         if (datumIndices == null) continue;
 
         for (const relativeDatumIndex of datumIndices) {
+            // Convert relative datum index to absolute column index
+            // (relative index is offset from group start, absolute is for the entire column)
             const datumIndex = groupIndex + relativeDatumIndex;
             const value: null | number | (null | number)[] = column[datumIndex];
             if (value == null) continue;
@@ -425,6 +429,8 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
             const column = columns[valueIdx];
             let didAccumulate = false;
             for (const relativeDatumIndex of datumIndices) {
+                // Convert relative datum index to absolute column index
+                // (relative index is offset from group start, absolute is for the entire column)
                 const datumIndex = groupIndex + relativeDatumIndex;
                 const currentVal = column[datumIndex];
                 if (!isFiniteNumber(currentVal)) continue;
