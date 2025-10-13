@@ -2503,11 +2503,15 @@ export class DataModel<
      * Only called when debug mode is enabled.
      */
     private collectOptimizationMetadata(processedData: ProcessedData<D>, pathTaken: 'full-process' | 'reprocess') {
+        // Preserve existing domainBanding metadata if it exists (set by collectDomainBandingMetadata)
+        const existingDomainBanding = processedData.optimizations?.domainBanding;
+
         processedData.optimizations = {
             performance: {
                 processingTime: processedData.time,
                 pathTaken,
             },
+            ...(existingDomainBanding && { domainBanding: existingDomainBanding }),
         };
 
         // Track reprocessing optimization

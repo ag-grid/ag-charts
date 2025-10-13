@@ -2338,31 +2338,49 @@ describe('DataModel', () => {
                     append: [{ category: 'Cat100', value1: 1000, value2: 10000 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
-                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+                const reprocessed1 = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
 
                 // Verify the domain is correct (would be wrong if bands were updated twice)
-                expect(reprocessed.domain.values[0]).toEqual([0, 1000]);
-                expect(reprocessed.domain.values[1]).toEqual([0, 10000]);
-                expect(reprocessed.columns[0][100]).toBe(1000);
-                expect(reprocessed.columns[1][100]).toBe(10000);
+                expect(reprocessed1.domain.values[0]).toEqual([0, 1000]);
+                expect(reprocessed1.domain.values[1]).toEqual([0, 10000]);
+                expect(reprocessed1.columns[0][100]).toBe(1000);
+                expect(reprocessed1.columns[1][100]).toBe(10000);
 
-                // Verify optimization metadata shows banding was used efficiently
-                const metadata = reprocessed.optimizations;
-                if (metadata?.domainBanding) {
-                    const valueDefStats0 = metadata.domainBanding.valueDefs[0]?.stats;
-                    const valueDefStats1 = metadata.domainBanding.valueDefs[1]?.stats;
+                // First reprocess: all bands dirty (banding initialized)
+                expect(reprocessed1.optimizations?.domainBanding).toBeDefined();
 
-                    if (valueDefStats0 && valueDefStats1) {
-                        // Both value defs should have band stats
-                        expect(valueDefStats0.totalBands).toBeGreaterThan(0);
-                        expect(valueDefStats1.totalBands).toBeGreaterThan(0);
+                // Do a SECOND append to test the optimization
+                dataSet.addTransaction({
+                    append: [{ category: 'Cat101', value1: 1010, value2: 10100 }],
+                });
 
-                        // Not all bands should be dirty (only affected ones)
-                        expect(valueDefStats0.dirtyBands).toBeLessThan(valueDefStats0.totalBands);
-                        expect(valueDefStats1.dirtyBands).toBeLessThan(valueDefStats1.totalBands);
-                    }
-                }
+                const reprocessed2 = dataModel.reprocessData(reprocessed1);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
+
+                // Verify the domain is correct
+                expect(reprocessed2.domain.values[0]).toEqual([0, 1010]);
+                expect(reprocessed2.domain.values[1]).toEqual([0, 10100]);
+                expect(reprocessed2.columns[0][101]).toBe(1010);
+                expect(reprocessed2.columns[1][101]).toBe(10100);
+
+                // Verify optimization metadata shows banding was used efficiently on SECOND reprocess
+                const metadata = reprocessed2.optimizations;
+                expect(metadata?.domainBanding).toBeDefined();
+
+                const valueDefStats0 = metadata!.domainBanding!.valueDefs[0]?.stats;
+                const valueDefStats1 = metadata!.domainBanding!.valueDefs[1]?.stats;
+
+                expect(valueDefStats0).toBeDefined();
+                expect(valueDefStats1).toBeDefined();
+
+                // Both value defs should have band stats
+                expect(valueDefStats0!.totalBands).toBeGreaterThan(0);
+                expect(valueDefStats1!.totalBands).toBeGreaterThan(0);
+
+                // Not all bands should be dirty (only affected ones)
+                expect(valueDefStats0!.dirtyBands).toBeLessThan(valueDefStats0!.totalBands);
+                expect(valueDefStats1!.dirtyBands).toBeLessThan(valueDefStats1!.totalBands);
             });
 
             it('should not double-apply group processors when multiple scopes share same DataSet', () => {
@@ -2970,40 +2988,55 @@ describe('DataModel', () => {
                 expect(reprocessed.domain.values).toEqual([[100, 12090]]);
                 expect(reprocessed.input.count).toBe(1200);
 
-                // Verify the banding optimization worked
+                // First reprocess: all bands dirty (banding initialized)
+                expect(reprocessed.optimizations?.domainBanding).toBeDefined();
+
+                // Do a SECOND scrolling operation to test the optimization
+                const currentData = dataSet.data;
+                const toRemove2 = currentData.slice(0, 10);
+                const toAppend2 = Array.from({ length: 10 }, (_, i) => ({
+                    x: 1210 + i,
+                    y: (1210 + i) * 10,
+                }));
+                dataSet.addTransaction({
+                    remove: toRemove2,
+                    append: toAppend2,
+                });
+
+                const reprocessed2 = dataModel.reprocessData(reprocessed);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
+
+                // Domain should correctly shift to new range
+                expect(reprocessed2.domain.keys).toEqual([[20, 1219]]);
+                expect(reprocessed2.domain.values).toEqual([[200, 12190]]);
+                expect(reprocessed2.input.count).toBe(1200);
+
+                // Verify the banding optimization worked on SECOND reprocess
                 // In a scrolling scenario with 1200 items and 12 bands:
                 // - Only 2 bands should be dirty (band 0 shrunk, band 11 extended)
                 // - That's 2/12 = 16.7% of bands scanned, not 100%
-                const metadata = reprocessed.optimizations;
-                expect(metadata).toBeDefined();
+                const metadata = reprocessed2.optimizations;
+                expect(metadata?.domainBanding).toBeDefined();
+                expect(metadata!.domainBanding!.keyDefs).toBeDefined();
+                expect(metadata!.domainBanding!.valueDefs).toBeDefined();
 
-                // CRITICAL: If domainBanding metadata is available, verify optimization is working
-                if (metadata?.domainBanding) {
-                    expect(metadata.domainBanding.keyDefs).toBeDefined();
-                    expect(metadata.domainBanding.valueDefs).toBeDefined();
+                // Verify key domain banding efficiency
+                const keyDefStats = metadata!.domainBanding!.keyDefs[0].stats;
+                expect(keyDefStats).toBeDefined();
+                expect(keyDefStats!.totalBands).toBeGreaterThan(1); // Should have multiple bands
+                expect(keyDefStats!.dirtyBands).toBeLessThan(keyDefStats!.totalBands); // Not all bands dirty
+                expect(keyDefStats!.dirtyBands).toBeLessThanOrEqual(5); // At most ~40% of bands
+                expect(keyDefStats!.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
+                expect(keyDefStats!.scanRatio).toBeGreaterThan(0); // But more than 0%
 
-                    // Verify key domain banding efficiency
-                    const keyDefStats = metadata.domainBanding.keyDefs[0].stats;
-                    if (keyDefStats) {
-                        expect(keyDefStats.totalBands).toBeGreaterThan(1); // Should have multiple bands
-                        expect(keyDefStats.dirtyBands).toBeLessThan(keyDefStats.totalBands); // Not all bands dirty
-                        expect(keyDefStats.dirtyBands).toBeLessThanOrEqual(5); // At most ~40% of bands
-                        expect(keyDefStats.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
-                        expect(keyDefStats.scanRatio).toBeGreaterThan(0); // But more than 0%
-                    }
-
-                    // Verify value domain banding efficiency
-                    const valueDefStats = metadata.domainBanding.valueDefs[0].stats;
-                    if (valueDefStats) {
-                        expect(valueDefStats.totalBands).toBeGreaterThan(1); // Should have multiple bands
-                        expect(valueDefStats.dirtyBands).toBeLessThan(valueDefStats.totalBands); // Not all bands dirty
-                        expect(valueDefStats.dirtyBands).toBeLessThanOrEqual(5); // At most ~40% of bands
-                        expect(valueDefStats.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
-                        expect(valueDefStats.scanRatio).toBeGreaterThan(0); // But more than 0%
-                    }
-                }
-                // Note: If metadata is not available, we can still verify the optimization worked
-                // by checking that the domain is correct (which it wouldn't be if all bands were reinit)
+                // Verify value domain banding efficiency
+                const valueDefStats = metadata!.domainBanding!.valueDefs[0].stats;
+                expect(valueDefStats).toBeDefined();
+                expect(valueDefStats!.totalBands).toBeGreaterThan(1); // Should have multiple bands
+                expect(valueDefStats!.dirtyBands).toBeLessThan(valueDefStats!.totalBands); // Not all bands dirty
+                expect(valueDefStats!.dirtyBands).toBeLessThanOrEqual(5); // At most ~40% of bands
+                expect(valueDefStats!.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
+                expect(valueDefStats!.scanRatio).toBeGreaterThan(0); // But more than 0%
             });
 
             it('should handle multiple scrolling operations efficiently', () => {
@@ -3051,20 +3084,21 @@ describe('DataModel', () => {
                     expect(processedData.domain.keys).toEqual([[expectedMinX, expectedMaxX]]);
                     expect(processedData.input.count).toBe(1200);
 
-                    // CRITICAL: Verify optimization is working on EVERY iteration
-                    const metadata = processedData.optimizations;
-                    if (metadata?.domainBanding) {
-                        const keyDefStats = metadata.domainBanding.keyDefs[0].stats;
-                        if (keyDefStats) {
-                            expect(keyDefStats.dirtyBands).toBeLessThan(keyDefStats.totalBands); // Not all bands dirty
-                            expect(keyDefStats.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
-                        }
+                    // CRITICAL: Verify optimization is working after first iteration
+                    // (first iteration initializes banding, so all bands are dirty)
+                    if (iteration > 0) {
+                        const metadata = processedData.optimizations;
+                        expect(metadata?.domainBanding).toBeDefined();
 
-                        const valueDefStats = metadata.domainBanding.valueDefs[0].stats;
-                        if (valueDefStats) {
-                            expect(valueDefStats.dirtyBands).toBeLessThan(valueDefStats.totalBands); // Not all bands dirty
-                            expect(valueDefStats.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
-                        }
+                        const keyDefStats = metadata!.domainBanding!.keyDefs[0].stats;
+                        expect(keyDefStats).toBeDefined();
+                        expect(keyDefStats!.dirtyBands).toBeLessThan(keyDefStats!.totalBands); // Not all bands dirty
+                        expect(keyDefStats!.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
+
+                        const valueDefStats = metadata!.domainBanding!.valueDefs[0].stats;
+                        expect(valueDefStats).toBeDefined();
+                        expect(valueDefStats!.dirtyBands).toBeLessThan(valueDefStats!.totalBands); // Not all bands dirty
+                        expect(valueDefStats!.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
                     }
                 }
 
@@ -3079,14 +3113,14 @@ describe('DataModel', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
                     domainBandingConfig: {
-                        minDataSizeForBanding: 100, // Lower threshold to enable banding with 600 items
+                        minDataSizeForBanding: 100, // Lower threshold to enable banding with 1200 items
                         targetBandCount: 5,
                         enableBanding: true,
                     },
                 });
 
-                // Create dataset with 600 items (above threshold to enable banding)
-                const initialData = Array.from({ length: 600 }, (_, i) => ({
+                // Create dataset with 1200 items (above threshold to enable banding)
+                const initialData = Array.from({ length: 1200 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
@@ -3094,46 +3128,38 @@ describe('DataModel', () => {
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources)!;
-                expect(processedData.domain.keys).toEqual([[0, 599]]);
+                expect(processedData.domain.keys).toEqual([[0, 1199]]);
 
                 // Scroll: remove 1 from start, append 1 at end
                 dataSet.addTransaction({
                     remove: [initialData[0]],
-                    append: [{ x: 600, y: 6000 }],
+                    append: [{ x: 1200, y: 12000 }],
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-                expect(reprocessed.domain.keys).toEqual([[1, 600]]);
+                expect(reprocessed.domain.keys).toEqual([[1, 1200]]);
 
-                // CRITICAL: Verify that NOT ALL bands were marked dirty
-                // Verify that the optimization is working - only affected bands should be marked dirty
-                // during scrolling operations, not all bands
+                // Verify banding metadata is present and bands are created
+                // Note: On first reprocess after processData, all bands are initialized as dirty
+                // (banded domains are created for the first time during reprocessData)
                 const metadata = reprocessed.optimizations;
-                if (metadata?.domainBanding) {
-                    const keyDefStats = metadata.domainBanding.keyDefs[0].stats;
-                    if (keyDefStats) {
-                        expect(keyDefStats.totalBands).toBe(5); // Should have 5 bands
-                        expect(keyDefStats.dirtyBands).toBeLessThan(5); // NOT all 5 bands dirty
-                        expect(keyDefStats.dirtyBands).toBeLessThanOrEqual(2); // Should be ~2 bands
-                        expect(keyDefStats.scanRatio).toBeLessThan(0.5); // Less than 50% scanned
-                    }
+                expect(metadata?.domainBanding).toBeDefined();
 
-                    const valueDefStats = metadata.domainBanding.valueDefs[0].stats;
-                    if (valueDefStats) {
-                        expect(valueDefStats.totalBands).toBe(5);
-                        expect(valueDefStats.dirtyBands).toBeLessThan(5); // NOT all 5 bands dirty
-                        expect(valueDefStats.dirtyBands).toBeLessThanOrEqual(2);
-                        expect(valueDefStats.scanRatio).toBeLessThan(0.5);
-                    }
-                }
-                // Note: If metadata is not available during reprocessing, the correct domain
-                // proves the optimization worked (would be wrong if all bands were reinit)
+                const keyDefStats = metadata!.domainBanding!.keyDefs[0].stats;
+                expect(keyDefStats).toBeDefined();
+                expect(keyDefStats!.totalBands).toBe(5); // Should have 5 bands
+                expect(keyDefStats!.dirtyBands).toBe(5); // First reprocess: all bands dirty (expected)
+
+                const valueDefStats = metadata!.domainBanding!.valueDefs[0].stats;
+                expect(valueDefStats).toBeDefined();
+                expect(valueDefStats!.totalBands).toBe(5);
+                expect(valueDefStats!.dirtyBands).toBe(5); // First reprocess: all bands dirty (expected)
             });
 
-            it('should only mark affected bands dirty when scrolling (5 bands, 600 items)', () => {
+            it('should only mark affected bands dirty when scrolling (5 bands, 1200 items)', () => {
                 // This test verifies the specific scenario from the user's high-freq-multi-chart example
-                // With 600 items and 5 bands, scrolling should only dirty 2 bands (first and last)
+                // With 1200 items and 5 bands, scrolling should only dirty 2 bands (first and last)
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('time'), value('value')],
                     domainBandingConfig: {
@@ -3143,8 +3169,8 @@ describe('DataModel', () => {
                     },
                 });
 
-                // Create dataset with 600 items (will create 5 bands of 120 items each)
-                const initialData = Array.from({ length: 600 }, (_, i) => ({
+                // Create dataset with 1200 items (will create 5 bands of 240 items each)
+                const initialData = Array.from({ length: 1200 }, (_, i) => ({
                     time: i,
                     value: i * 10,
                 }));
@@ -3154,13 +3180,13 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Initial domain
-                expect(processedData!.domain.keys).toEqual([[0, 599]]);
-                expect(processedData!.domain.values).toEqual([[0, 5990]]);
+                expect(processedData!.domain.keys).toEqual([[0, 1199]]);
+                expect(processedData!.domain.values).toEqual([[0, 11990]]);
 
                 // Simulate scrolling: remove 1 from start, append 1 at end
                 // This is the exact pattern from the high-freq-multi-chart example
                 const toRemove = [initialData[0]];
-                const toAppend = [{ time: 600, value: 6000 }];
+                const toAppend = [{ time: 1200, value: 12000 }];
                 dataSet.addTransaction({
                     remove: toRemove,
                     append: toAppend,
@@ -3170,26 +3196,19 @@ describe('DataModel', () => {
                 verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
 
                 // First reprocess: bands are created from scratch, all dirty (expected)
-                expect(reprocessed1.input.count).toBe(600);
-                expect(reprocessed1.domain.keys).toEqual([[1, 600]]);
-                expect(reprocessed1.domain.values).toEqual([[10, 6000]]);
+                expect(reprocessed1.input.count).toBe(1200);
+                expect(reprocessed1.domain.keys).toEqual([[1, 1200]]);
+                expect(reprocessed1.domain.values).toEqual([[10, 12000]]);
 
                 const metadata1 = reprocessed1.optimizations?.domainBanding;
-                // Debug: check what's in the metadata
-                if (metadata1) {
-                    expect(metadata1?.keyDefs[0].stats?.dirtyBands).toBe(5); // First reprocess: all bands dirty (expected)
-                } else {
-                    console.log('No domainBanding metadata in reprocessed1.optimizations:', reprocessed1.optimizations);
-                    // For now, skip this assertion if metadata is missing
-                    // The domain is correctly updated which proves the optimization works
-                    expect(reprocessed1.domain.keys).toEqual([[1, 600]]);
-                }
+                expect(metadata1).toBeDefined();
+                expect(metadata1!.keyDefs[0].stats?.dirtyBands).toBe(5); // First reprocess: all bands dirty (expected)
 
                 // Now do a SECOND transaction - this is where the optimization should kick in
                 // Note: We use the actual data object from the dataset, not the original initialData
                 const currentData = dataSet.data;
                 const toRemove2 = [currentData[0]]; // Remove first item from current data
-                const toAppend2 = [{ time: 601, value: 6010 }];
+                const toAppend2 = [{ time: 1201, value: 12010 }];
                 dataSet.addTransaction({
                     remove: toRemove2,
                     append: toAppend2,
@@ -3198,10 +3217,10 @@ describe('DataModel', () => {
                 const reprocessed2 = dataModel.reprocessData(reprocessed1);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
-                // Second reprocess: data size still 600
-                expect(reprocessed2.input.count).toBe(600);
-                expect(reprocessed2.domain.keys).toEqual([[2, 601]]);
-                expect(reprocessed2.domain.values).toEqual([[20, 6010]]);
+                // Second reprocess: data size still 1200
+                expect(reprocessed2.input.count).toBe(1200);
+                expect(reprocessed2.domain.keys).toEqual([[2, 1201]]);
+                expect(reprocessed2.domain.values).toEqual([[20, 12010]]);
 
                 // CRITICAL: Verify banding optimization is working on SECOND reprocess
                 const metadata2 = reprocessed2.optimizations;
@@ -3211,23 +3230,19 @@ describe('DataModel', () => {
                 // - Band 4 (last) should be dirty (affected by append)
                 // - Bands 1-3 should remain clean (only indices shifted)
                 // Total: 2/5 bands dirty = 40% scan, NOT 100%
-                if (metadata2?.domainBanding) {
-                    const keyDefStats = metadata2?.domainBanding?.keyDefs[0].stats;
-                    expect(keyDefStats).toBeDefined();
-                    expect(keyDefStats?.totalBands).toBe(5);
-                    expect(keyDefStats?.dirtyBands).toBe(2); // MUST be 2, not 5!
-                    expect(keyDefStats?.scanRatio).toBeCloseTo(0.4, 1); // 2/5 = 40%
+                expect(metadata2?.domainBanding).toBeDefined();
 
-                    const valueDefStats = metadata2?.domainBanding?.valueDefs[0].stats;
-                    expect(valueDefStats).toBeDefined();
-                    expect(valueDefStats?.totalBands).toBe(5);
-                    expect(valueDefStats?.dirtyBands).toBe(2); // MUST be 2, not 5!
-                    expect(valueDefStats?.scanRatio).toBeCloseTo(0.4, 1); // 2/5 = 40%
-                } else {
-                    console.log('No domainBanding metadata in reprocessed2.optimizations:', metadata2);
-                    // The domain is correctly updated which proves the optimization works
-                    expect(reprocessed2.domain.keys).toEqual([[2, 601]]);
-                }
+                const keyDefStats = metadata2!.domainBanding!.keyDefs[0].stats;
+                expect(keyDefStats).toBeDefined();
+                expect(keyDefStats!.totalBands).toBe(5);
+                expect(keyDefStats!.dirtyBands).toBe(2); // MUST be 2, not 5!
+                expect(keyDefStats!.scanRatio).toBeCloseTo(0.4, 1); // 2/5 = 40%
+
+                const valueDefStats = metadata2!.domainBanding!.valueDefs[0].stats;
+                expect(valueDefStats).toBeDefined();
+                expect(valueDefStats!.totalBands).toBe(5);
+                expect(valueDefStats!.dirtyBands).toBe(2); // MUST be 2, not 5!
+                expect(valueDefStats!.scanRatio).toBeCloseTo(0.4, 1); // 2/5 = 40%
             });
         });
 
