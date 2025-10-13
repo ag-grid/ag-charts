@@ -16,7 +16,12 @@ export interface AgRadarAreaSeriesStylerParams<TDatum = DatumDefault, TContext =
 
 export interface AgRadarAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends FillOptions,
-        AgRadarSeriesThemeableOptions<TDatum, TContext, AgRadarAreaSeriesStyle> {
+        AgRadarSeriesThemeableOptions<
+            TDatum,
+            TContext,
+            AgRadarAreaSeriesStyle,
+            AgRadarAreaSeriesStylerParams<TDatum, TContext>
+        > {
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /** Function used to return formatting for entire series, based on the given parameters.*/
