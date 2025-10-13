@@ -372,7 +372,10 @@ export class CartesianChart extends Chart {
         const perpendicularAxis = axis.direction === ChartAxisDirection.X ? primaryYAxis : primaryXAxis;
         if (!perpendicularAxis) return { crossPosition: undefined, visible: true };
 
-        const { domain, range, bandwidth } = perpendicularAxis.scale;
+        const {
+            scale: { domain, bandwidth },
+            range,
+        } = perpendicularAxis;
         const halfBandwidth = (bandwidth ?? 0) / 2;
 
         const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false }) + halfBandwidth;
