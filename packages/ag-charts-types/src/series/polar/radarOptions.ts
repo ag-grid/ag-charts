@@ -38,7 +38,7 @@ export interface AgRadarSeriesThemeableOptions<
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgRadarHighlightStyleOptions<TStyle>>;
 }
 
-type AgRadarHighlightStyleOptions<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'marker'> & {
+export type AgRadarHighlightStyleOptions<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'marker'> & {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
 };
