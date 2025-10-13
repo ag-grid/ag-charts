@@ -53,7 +53,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     convert(value: D | number, options?: { clamp?: boolean }) {
         const { domain } = this;
         if (!domain || domain.length < 2 || value == null) {
-            return NaN;
+            return Number.NaN;
         }
 
         const { range } = this;

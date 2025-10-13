@@ -288,9 +288,9 @@ export class RadialGaugeSeries
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
         const largerThanHalf = sweepAngle > Math.PI;
         const containsTop = largerThanHalf || isBetweenAngles(1.5 * Math.PI, startAngle, endAngle);
-        const containsRight = largerThanHalf || isBetweenAngles(0.0 * Math.PI, startAngle, endAngle);
+        const containsRight = largerThanHalf || isBetweenAngles(0 * Math.PI, startAngle, endAngle);
         const containsBottom = largerThanHalf || isBetweenAngles(0.5 * Math.PI, startAngle, endAngle);
-        const containsLeft = largerThanHalf || isBetweenAngles(1.0 * Math.PI, startAngle, endAngle);
+        const containsLeft = largerThanHalf || isBetweenAngles(1 * Math.PI, startAngle, endAngle);
 
         let textAlign: TextAlign;
         if (containsLeft && !containsRight) {
@@ -466,7 +466,7 @@ export class RadialGaugeSeries
         const lineHeight = undefined;
         const angle = scale.convert(value);
 
-        const quadrant = (normalizeAngle360(angle) / (Math.PI / 2)) | 0;
+        const quadrant = Math.trunc(normalizeAngle360(angle) / (Math.PI / 2));
 
         const offset = size / 2 + spacing;
 
@@ -705,7 +705,7 @@ export class RadialGaugeSeries
         }
 
         if (needle.enabled) {
-            let needleRadius = needle.radiusRatio != null ? radius * needle.radiusRatio : innerRadius;
+            let needleRadius = needle.radiusRatio == null ? innerRadius : radius * needle.radiusRatio;
             needleRadius = Math.max(needleRadius - needle.spacing, 0);
             const needleAngle = scale.convert(value);
 
@@ -825,7 +825,7 @@ export class RadialGaugeSeries
         this.updateLabelNodes({ labelSelection });
 
         this.highlightTargetSelection = this.updateTargetSelection({
-            targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
+            targetData: highlightTargetDatum == null ? [] : [highlightTargetDatum],
             targetSelection: highlightTargetSelection,
         });
         this.updateTargetStyles({ targetSelection: highlightTargetSelection, isHighlight: true });
@@ -886,7 +886,7 @@ export class RadialGaugeSeries
         });
 
         this.datumUnion.update(datumSelection, this.itemGroup, _ModuleSupport.Sector, (node, first, last) => {
-            node.clipSector ??= new SectorBox(NaN, NaN, NaN, NaN);
+            node.clipSector ??= new SectorBox(Number.NaN, Number.NaN, Number.NaN, Number.NaN);
             node.centerX = first.centerX;
             node.centerY = first.centerY;
             node.outerRadius = node.clipSector.outerRadius = first.outerRadius;
@@ -1264,18 +1264,18 @@ export class RadialGaugeSeries
     }
 
     override dataCount(): number {
-        return NaN; // Not used
+        return Number.NaN; // Not used
     }
 
     override getSeriesDomain() {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override getSeriesRange(
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override getLegendData(): _ModuleSupport.ChartLegendDatum<any>[] {

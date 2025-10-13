@@ -23,8 +23,8 @@ class Arc {
         public a1: number
     ) {
         if (this.a0 >= this.a1) {
-            this.a0 = NaN;
-            this.a1 = NaN;
+            this.a0 = Number.NaN;
+            this.a1 = Number.NaN;
         }
     }
 
@@ -43,8 +43,8 @@ class Arc {
         if (a == null || !this.isValid() || a < this.a0) return;
         this.a0 = a;
         if (Number.isNaN(a) || this.a0 >= this.a1) {
-            this.a0 = NaN;
-            this.a1 = NaN;
+            this.a0 = Number.NaN;
+            this.a1 = Number.NaN;
         }
     }
 
@@ -52,8 +52,8 @@ class Arc {
         if (a == null || !this.isValid() || a > this.a1) return;
         this.a1 = a;
         if (Number.isNaN(a) || this.a0 >= this.a1) {
-            this.a0 = NaN;
-            this.a1 = NaN;
+            this.a0 = Number.NaN;
+            this.a1 = Number.NaN;
         }
     }
 }
@@ -451,7 +451,7 @@ export class Sector<D = any> extends Path<D> {
             const x =
                 sweepAngle < Math.PI * 0.5
                     ? (radialEdgeInset * (1 + Math.cos(sweepAngle))) / Math.sin(sweepAngle)
-                    : NaN;
+                    : Number.NaN;
             // r = sqrt(x**2 + y**2)
             let r: number;
             if (x > 0 && x < outerRadius) {

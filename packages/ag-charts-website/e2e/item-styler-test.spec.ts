@@ -102,9 +102,9 @@ test.describe('item-styler-test', () => {
             // Verify no undefined values for highlightState in styler params
             const undefinedHighlightStateLogs = itemStylerLogs.filter(
                 (log) =>
-                    log.text.includes('highlightState: undefined') ||
-                    log.text.includes('highlightState:undefined') ||
-                    log.text.includes('"highlightState":undefined') ||
+                    log.text.includes('highlightState: undefined') ??
+                    log.text.includes('highlightState:undefined') ??
+                    log.text.includes('"highlightState":undefined') ??
                     log.text.includes('"highlightState": undefined')
             );
 

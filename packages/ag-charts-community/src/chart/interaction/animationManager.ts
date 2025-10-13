@@ -23,7 +23,7 @@ type AnimationEventMap = { [K in AnimationEventType]: AnimationEvent };
 
 function validAnimationDuration(testee?: number) {
     if (testee == null) return true;
-    return !isNaN(testee) && testee >= 0 && testee <= 2;
+    return !Number.isNaN(testee) && testee >= 0 && testee <= 2;
 }
 
 /**

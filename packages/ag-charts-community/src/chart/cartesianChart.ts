@@ -73,8 +73,8 @@ export class CartesianChart extends Chart {
     override destroySeries(series: UnknownSeries[]) {
         super.destroySeries(series);
 
-        this.lastLayoutWidth = NaN;
-        this.lastLayoutHeight = NaN;
+        this.lastLayoutWidth = Number.NaN;
+        this.lastLayoutHeight = Number.NaN;
     }
 
     override getChartType() {
@@ -381,7 +381,7 @@ export class CartesianChart extends Chart {
         }
 
         const { domain, range } = perpendicularAxis.scale;
-        const clampedPosition = isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
+        const clampedPosition = Number.isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
 
         return { crossPosition: clampedPosition, visible: true };
     }
@@ -442,17 +442,18 @@ export class CartesianChart extends Chart {
     private buildCrossLinePadding(axisAreaSize: AreaWidthMap) {
         const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0 };
 
-        this.axes.forEach((axis) => {
+        for (const axis of this.axes) {
             const { position, label } = axis;
-            axis.crossLines?.forEach((crossLine) => {
-                if (crossLine instanceof CartesianCrossLine) {
-                    crossLine.position = position ?? 'top';
-                    crossLine.label.parallel ??= label.parallel;
-                }
+            if (axis.crossLines)
+                for (const crossLine of axis.crossLines) {
+                    if (crossLine instanceof CartesianCrossLine) {
+                        crossLine.position = position ?? 'top';
+                        crossLine.label.parallel ??= label.parallel;
+                    }
 
-                crossLine.calculatePadding?.(crossLinePadding);
-            });
-        });
+                    crossLine.calculatePadding?.(crossLinePadding);
+                }
+        }
         // Reduce cross-line padding to account for overlap with axes.
         for (const [side, padding = 0] of entries(crossLinePadding)) {
             crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side as AgCartesianAxisPosition) ?? 0), 0);

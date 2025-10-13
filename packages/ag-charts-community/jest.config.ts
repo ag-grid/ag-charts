@@ -22,9 +22,9 @@ const tests = glob.sync('packages/ag-charts-community/src/**/*.test.ts').map((pa
     const fileContents = readFileSync(path).toString();
 
     let type = 'unit';
-    if (fileContents.indexOf('jest.retryTimes') >= 0) {
+    if (fileContents.includes('jest.retryTimes')) {
         type = 'flaky';
-    } else if (fileContents.indexOf('setupMockCanvas()') >= 0) {
+    } else if (fileContents.includes('setupMockCanvas()')) {
         // 'Heuristic' for finding e2e tests :-P
         type = 'e2e';
     }

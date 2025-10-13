@@ -39,7 +39,7 @@ export class LegendMarkerLabel extends TranslatableGroup {
 
     proxyButton?: SwitchWidget;
 
-    pageIndex: number = NaN;
+    pageIndex: number = Number.NaN;
 
     @ProxyPropertyOnWrite('label')
     text?: string;

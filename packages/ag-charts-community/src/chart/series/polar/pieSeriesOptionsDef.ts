@@ -2,8 +2,8 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
-    callback,
     callbackDefs,
+    callbackOf,
     color,
     colorUnion,
     constant,
@@ -34,6 +34,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     shadowOptionsDefs,
+    textOrSegments,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
@@ -67,7 +68,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         offset: number,
         minAngle: positiveNumber,
         avoidCollisions: boolean,
-        formatter: callback,
+        formatter: callbackOf(textOrSegments),
         format: string,
         itemStyler: callbackDefs<AgChartLabelStyleOptions>({
             enabled: boolean,
@@ -81,7 +82,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         enabled: boolean,
         positionOffset: number,
         positionRatio: ratio,
-        formatter: callback,
+        formatter: callbackOf(textOrSegments),
         format: string,
         itemStyler: callbackDefs<AgChartLabelStyleOptions>({
             enabled: boolean,

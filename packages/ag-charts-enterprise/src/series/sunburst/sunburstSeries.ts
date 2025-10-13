@@ -121,7 +121,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     updateSelections() {
         const highlightedNode: SunburstNode | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        this.highlightSelection.update(highlightedNode != null ? [highlightedNode] : [], undefined, (node) =>
+        this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, (node) =>
             this.getDatumId(node)
         );
 
@@ -510,7 +510,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 childrenKey: this.properties.childrenKey,
                 colorKey: this.properties.colorKey,
                 colorName: this.properties.colorName ?? this.properties.colorKey,
-                depth: node.depth ?? NaN,
+                depth: node.depth ?? Number.NaN,
                 labelKey: this.properties.labelKey,
                 secondaryLabelKey: this.properties.secondaryLabelKey,
                 sizeKey: this.properties.sizeKey,
@@ -565,10 +565,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.visible = true;
         };
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
-        this.labelSelection.selectByClass(TransformableText).forEach((text) => {
+        for (const text of this.labelSelection.selectByClass(TransformableText)) {
             const datum = text.closestDatum();
             updateText(datum, text, text.tag, datum === highlightedDatum);
-        });
+        }
     }
 
     override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
@@ -583,7 +583,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        const datumSize = sizeKey == null ? undefined : datum[sizeKey];
         if (datumSize != null) {
             const sizeDomain = [0, this.rootNode?.sumSize ?? 0];
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -602,7 +602,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             data.push({ label: sizeName, fallbackLabel: sizeKey!, value: content ?? formatValue(datumSize) });
         }
 
-        const datumColor = colorKey != null ? datum[colorKey] : undefined;
+        const datumColor = colorKey == null ? undefined : datum[colorKey];
         if (datumColor != null) {
             const { colorDomain } = this;
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -646,7 +646,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                title: labelKey != null ? datum[labelKey] : undefined,
+                title: labelKey == null ? undefined : datum[labelKey],
                 symbol: {
                     marker: markerStyle,
                 },

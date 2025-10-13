@@ -29,7 +29,9 @@ export function markerFadeInAnimation<T>(
 ) {
     const params = { phase: status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing' };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
-    markerSelections.forEach((s) => s.cleanup());
+    for (const s of markerSelections) {
+        s.cleanup();
+    }
 }
 
 export function markerScaleInAnimation<T>(
@@ -46,7 +48,9 @@ export function markerScaleInAnimation<T>(
         { scalingX: 1, scalingY: 1 },
         { phase: 'initial' }
     );
-    markerSelections.forEach((s) => s.cleanup());
+    for (const s of markerSelections) {
+        s.cleanup();
+    }
 }
 
 export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
@@ -63,7 +67,7 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
         // Parallel swipe animations use the function x = easeOut(time). But in this case, we
         // know the x value and need to calculate the time delay. So use the inverse function:
         let delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
-        if (isNaN(delay)) {
+        if (Number.isNaN(delay)) {
             delay = 0;
         }
         return { scalingX: 0, scalingY: 0, delay, duration: QUICK_TRANSITION, phase: 'initial' as const };
@@ -81,10 +85,10 @@ export function resetMarkerFn(_node: NodeWithOpacity & Node) {
 
 export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
     return {
-        x: datum.point?.x ?? NaN,
-        y: datum.point?.y ?? NaN,
-        scalingCenterX: datum.point?.x ?? NaN,
-        scalingCenterY: datum.point?.y ?? NaN,
+        x: datum.point?.x ?? Number.NaN,
+        y: datum.point?.y ?? Number.NaN,
+        scalingCenterX: datum.point?.x ?? Number.NaN,
+        scalingCenterY: datum.point?.y ?? Number.NaN,
     };
 }
 

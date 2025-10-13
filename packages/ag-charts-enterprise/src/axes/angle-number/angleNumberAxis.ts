@@ -118,22 +118,22 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
                 }
             }
             if (!collisionDetected) {
-                labelData.forEach((datum, i) => {
+                for (const [i, datum] of labelData.entries()) {
                     if (i % step > 0) {
                         datum.hidden = true;
                         datum.box = undefined;
                     }
-                });
+                }
                 return;
             }
         }
 
-        labelData.forEach((datum, i) => {
+        for (const [i, datum] of labelData.entries()) {
             if (i > 0) {
                 datum.hidden = true;
                 datum.box = undefined;
             }
-        });
+        }
     }
 
     override tickFormatParams(

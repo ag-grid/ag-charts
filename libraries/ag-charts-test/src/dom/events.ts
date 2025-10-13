@@ -87,7 +87,7 @@ export function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) 
         bubbleChain = [bubbleChain[0]];
     }
 
-    bubbleChain.forEach((currentTarget) => {
+    for (const currentTarget of bubbleChain) {
         Object.defineProperty(event, 'target', {
             value: target,
             writable: true,
@@ -101,7 +101,7 @@ export function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) 
         currentTarget.dispatchEvent(event);
         delete (event as any).target;
         delete (event as any).currentTarget;
-    });
+    }
 }
 
 export enum WheelDeltaMode {
@@ -135,10 +135,10 @@ export function touchAverage(touches: MockTouch[]): Pick<MockTouch, 'clientX' | 
     expect(touches.length).not.toBe(0);
     let sumX = 0,
         sumY = 0;
-    touches.forEach((t) => {
+    for (const t of touches) {
         sumX += t.clientX;
         sumY += t.clientY;
-    });
+    }
     return { clientX: sumX / touches.length, clientY: sumY / touches.length };
 }
 

@@ -58,7 +58,7 @@ export class SharedToolbar extends AbstractModuleInstance {
 
         this.cleanup.register(() => {
             if (!this.sharedToolbar) return;
-            this.container.removeChild(this.sharedToolbar.getElement());
+            this.sharedToolbar.getElement().remove();
             this.sharedToolbar.destroy();
             this.sharedToolbar = undefined;
         });
@@ -90,7 +90,7 @@ export class SharedToolbar extends AbstractModuleInstance {
 
                 layoutBox.shrink({ left: width + sharedToolbar.horizontalSpacing + (padding ?? 0) });
             },
-            addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap & string>(
+            addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap>(
                 eventType: K,
                 handler: (event: _ModuleSupport.ToolbarEventMap<ButtonOptions>[K]) => void
             ) => {

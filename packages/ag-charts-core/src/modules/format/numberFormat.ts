@@ -48,9 +48,9 @@ export function parseNumberFormat(format: string): FormatterOptions | undefined 
         sign,
         symbol,
         zero,
-        width: parseInt(width),
+        width: Number.parseInt(width),
         comma,
-        precision: parseInt(precision),
+        precision: Number.parseInt(precision),
         trim: Boolean(trim),
         type,
         prefix,
@@ -66,7 +66,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
     const { fill, align, sign = '-', symbol, zero, width, comma, type, prefix = '', suffix = '', precision } = options;
     let { trim } = options;
 
-    const precisionIsNaN = precision == null || isNaN(precision);
+    const precisionIsNaN = precision == null || Number.isNaN(precision);
     let formatBody: (n: number, f: number) => string;
     if (!type) {
         formatBody = decimalTypes['g'];
@@ -108,7 +108,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
         if (type === '%' || type === 'p') {
             result = `${result}%`;
         }
-        if (width != null && !isNaN(width)) {
+        if (width != null && !Number.isNaN(width)) {
             result = addPadding(result, width, fill ?? zero, align);
         }
         result = `${prefix}${result}${suffix}`;
@@ -195,7 +195,7 @@ function absFloor(n: number) {
 }
 
 function removeTrailingZeros(numString: string) {
-    if (!numString.endsWith('0') || numString.indexOf('.') === -1) return numString;
+    if (!numString.endsWith('0') || !numString.includes('.')) return numString;
 
     let endIndex = numString.length - 1;
     while (endIndex > 0) {

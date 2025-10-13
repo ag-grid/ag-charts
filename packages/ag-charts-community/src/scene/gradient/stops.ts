@@ -34,7 +34,7 @@ function discreteColorStops(colorStops: GradientColorStop[]): GradientColorStop[
     return colorStops.flatMap((colorStop, i) => {
         const { stop } = colorStop;
         const nextColor = colorStops.at(i + 1)?.color;
-        return nextColor != null ? [colorStop, { stop, color: nextColor }] : [colorStop];
+        return nextColor == null ? [colorStop] : [colorStop, { stop, color: nextColor }];
     });
 }
 
@@ -113,16 +113,16 @@ export function getColorStops(
 
         if (color != null) {
             lastDefinedColor = color;
-        } else if (lastDefinedColor != null) {
-            color = lastDefinedColor;
-        } else {
+        } else if (lastDefinedColor == null) {
             if (colorScale == null) {
                 colorScale = new ColorScale();
                 colorScale.domain = [0, 1];
                 colorScale.range = defaultColorStops;
             }
 
-            color = colorScale.convert(stop);
+            color = colorScale.convert(stop)!;
+        } else {
+            color = lastDefinedColor;
         }
 
         return { stop, color };

@@ -18,7 +18,6 @@ import {
     mouseLeaveEvent,
     mouseMoveEvent,
     mouseUpEvent,
-    toMatchImage,
     touchAverage,
     touchEvent,
     wheelEvent,
@@ -37,7 +36,6 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -231,9 +229,9 @@ export async function waitForChartStability<
     }
 
     if (activeAnimateCb) {
-        await activeAnimateCb(0, 1);
+        activeAnimateCb(0, 1);
         if (animationAdvanceMs > 0) {
-            await activeAnimateCb(animationAdvanceMs, 1);
+            activeAnimateCb(animationAdvanceMs, 1);
         }
         await chart.waitForUpdate(timeoutMs, true);
     } else if (animationAdvanceMs > 0) {
@@ -619,8 +617,6 @@ export function twoFingerEnd(
     ]);
 }
 
-export { setupMockCanvas, toMatchImage, CANVAS_TO_BUFFER_DEFAULTS, extractImageData };
-
 export async function createChart(options: AgChartOptions<any, any>) {
     options = prepareTestOptions({ ...options });
     const chart = deproxy(AgCharts.create(options) as AgChartProxy);
@@ -628,7 +624,7 @@ export async function createChart(options: AgChartOptions<any, any>) {
     return chart;
 }
 
-let activeAnimateCb: ((totalDuration: number, ratio: number) => Promise<void>) | undefined;
+let activeAnimateCb: ((totalDuration: number, ratio: number) => void) | undefined;
 export function spyOnAnimationManager() {
     const mocks: jest.SpiedFunction<AnyFn>[] = [];
     const rafCbs: Map<number, Parameters<typeof requestAnimationFrame>[0]> = new Map();
@@ -636,13 +632,14 @@ export function spyOnAnimationManager() {
     const animateParameters = [0, 0];
 
     let time = Date.now();
-    const animateCb = async (totalDuration: number, ratio: number) => {
+    const animateCb = (totalDuration: number, ratio: number) => {
         time += totalDuration * ratio;
         const cbs = [...rafCbs.values()];
         rafCbs.clear();
 
-        // eslint-disable-next-line sonarjs/array-callback-without-return
-        await Promise.all(cbs.map((cb) => cb(time)));
+        for (const cb of cbs) {
+            cb(time);
+        }
     };
 
     beforeEach(() => {
@@ -683,7 +680,9 @@ export function spyOnAnimationManager() {
 
     afterEach(() => {
         activeAnimateCb = undefined;
-        mocks.forEach((mock) => mock.mockRestore());
+        for (const mock of mocks) {
+            mock.mockRestore();
+        }
         rafCbs.clear();
     });
 
@@ -705,14 +704,14 @@ export function mixinReversedAxesCases(
 ): Record<string, CartesianOrPolarTestCase> {
     const result = { ...baseCases };
 
-    Object.keys(baseCases).forEach((name) => {
+    for (const name of Object.keys(baseCases)) {
         const baseCase = baseCases[name];
         result[name + '_REVERSED_AXES'] = {
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
             warnings: baseCase.skipWarningsReversed === false ? baseCase.warnings : [],
         };
-    });
+    }
 
     return result;
 }
@@ -727,3 +726,6 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     const ctx = deproxy(chart).getModuleContext();
     return ctx.domManager.getCursor();
 }
+
+export { toMatchImage } from 'ag-charts-test';
+export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';

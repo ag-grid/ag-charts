@@ -227,9 +227,9 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         path.clear();
         path.moveTo(x, top + cornerRadius);
 
-        pathParams.forEach(({ coordinates, type }) => {
+        for (const { coordinates, type } of pathParams) {
             this.drawPath(path, coordinates, cornerRadius, type);
-        });
+        }
 
         path.closePath();
     }
@@ -265,21 +265,21 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                 break;
             }
             case 'calloutSide': {
-                if (x0 !== x1) {
-                    const direction = x0 > x1 ? -1 : 1;
-                    const midX = Math.min(x0, x1) + Math.abs(x1 - x0) / 2;
-
-                    path.lineTo(midX - sideTailRadius * direction, y0);
-                    path.lineTo(cx, cy);
-                    path.lineTo(midX + sideTailRadius * direction, y0);
-                    path.lineTo(x1, y1);
-                } else {
+                if (x0 === x1) {
                     const direction = y0 > y1 ? -1 : 1;
                     const midY = Math.min(y0, y1) + Math.abs(y0 - y1) / 2;
 
                     path.lineTo(x0, midY - sideTailRadius * direction);
                     path.lineTo(cx, cy);
                     path.lineTo(x0, midY + sideTailRadius * direction);
+                    path.lineTo(x1, y1);
+                } else {
+                    const direction = x0 > x1 ? -1 : 1;
+                    const midX = Math.min(x0, x1) + Math.abs(x1 - x0) / 2;
+
+                    path.lineTo(midX - sideTailRadius * direction, y0);
+                    path.lineTo(cx, cy);
+                    path.lineTo(midX + sideTailRadius * direction, y0);
                     path.lineTo(x1, y1);
                 }
                 break;

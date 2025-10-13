@@ -167,11 +167,11 @@ export class MapShapeSeries
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
-        topology?.features.forEach((feature) => {
+        for (const feature of topology?.features.values() ?? []) {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) return;
+            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) continue;
             featureById.set(property, feature);
-        });
+        }
 
         const colorScaleType = this.colorScale.type;
         const mercatorScaleType = this.scale?.type;
@@ -344,7 +344,7 @@ export class MapShapeSeries
 
         if (dataModel == null || processedData == null) return;
 
-        const scaling = scale != null ? (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width : NaN;
+        const scaling = scale == null ? Number.NaN : (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width;
 
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
@@ -353,9 +353,9 @@ export class MapShapeSeries
             processedData
         );
         const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+            labelKey == null ? undefined : dataModel.resolveColumnById<string>(this, `labelValue`, processedData);
         const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+            colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData);
 
         const measurer = cachedTextMeasurer(label);
 
@@ -366,7 +366,7 @@ export class MapShapeSeries
         const labelData: MapShapeNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const idValue = idValues[datumIndex];
             const colorValue: number | undefined = colorValues?.[datumIndex];
             const labelValue: string | undefined = labelValues?.[datumIndex];
@@ -407,7 +407,7 @@ export class MapShapeSeries
                 legendItemName,
                 style: this.getItemStyle({ datum, datumIndex, colorValue }, false),
             });
-        });
+        }
 
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
@@ -466,7 +466,7 @@ export class MapShapeSeries
         this.updateLabelNodes({ labelSelection });
 
         this.highlightDatumSelection = this.updateDatumSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
@@ -624,7 +624,7 @@ export class MapShapeSeries
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     private _previousDatumMidPoint:
@@ -637,9 +637,9 @@ export class MapShapeSeries
         }
 
         const projectedGeometry = (datum as MapShapeNodeDatum).projectedGeometry;
-        const polygon = projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
-        const center = polygon != null ? polygonMarkerCenter(polygon, 2) : undefined;
-        const point = center != null ? { x: center[0], y: center[1] } : undefined;
+        const polygon = projectedGeometry == null ? undefined : largestPolygon(projectedGeometry);
+        const center = polygon == null ? undefined : polygonMarkerCenter(polygon, 2);
+        const point = center == null ? undefined : { x: center[0], y: center[1] };
 
         this._previousDatumMidPoint = { datum, point };
 
@@ -724,9 +724,9 @@ export class MapShapeSeries
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
         const colorValue =
-            colorKey != null
-                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
-                : undefined;
+            colorKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 

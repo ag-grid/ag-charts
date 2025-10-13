@@ -33,8 +33,7 @@ export class DatumUnion<
             }
             const first = nodes[0];
             const last =
-                nodes.toReversed().find((n) => n.datum.datum.value > n.datum.datum.segmentStart) ??
-                nodes[nodes.length - 1];
+                nodes.toReversed().find((n) => n.datum.datum.value > n.datum.datum.segmentStart) ?? nodes.at(-1)!;
 
             this.node.datum = this.datum = first.datum;
             nodeUpdater(this.node, first, last);

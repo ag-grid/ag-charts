@@ -82,7 +82,10 @@ function updatePath(pathData: string, path: AgPath, scale: number, x: number, y:
     let x0 = 0;
     let y0 = 0;
     for (const { 1: command, 2: coordinateString } of pathData.matchAll(/([a-z])([^a-z]*)/gi)) {
-        const coordinates = Array.from(coordinateString.matchAll(/([\d.]+)/g), (m) => (parseFloat(m[0]) - 0.5) * scale);
+        const coordinates = Array.from(
+            coordinateString.matchAll(/([\d.]+)/g),
+            (m) => (Number.parseFloat(m[0]) - 0.5) * scale
+        );
 
         const relative = command === command.toLowerCase();
         const dx = relative ? x0 : 0;
@@ -817,9 +820,9 @@ describe('Legend', () => {
             const options = prepareTestOptions({
                 data: [
                     { ticker: 'AAPL', 2020: 0.7, 2021: 0.6, 2022: 0.5 },
-                    { ticker: 'KO', 2020: 3.0, 2021: 2.9, 2022: 2.8 },
+                    { ticker: 'KO', 2020: 3, 2021: 2.9, 2022: 2.8 },
                     { ticker: 'JNJ', 2020: 2.6, 2021: 2.5, 2022: 2.4 },
-                    { ticker: 'T', 2020: 6.5, 2021: 7.0, 2022: 6.0 },
+                    { ticker: 'T', 2020: 6.5, 2021: 7, 2022: 6 },
                     { ticker: 'PG', 2020: 2.3, 2021: 2.2, 2022: 2.1 },
                 ],
                 series: [

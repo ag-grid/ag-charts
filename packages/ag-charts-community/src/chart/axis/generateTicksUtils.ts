@@ -315,8 +315,10 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
         visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
     }
 
-    const dv0 = Math.min(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
-    const dv1 = Math.max(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const dv0 = Math.min(scale.domain[0].valueOf() as number, scale.domain.at(-1)!.valueOf() as number);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const dv1 = Math.max(scale.domain[0].valueOf() as number, scale.domain.at(-1)!.valueOf() as number);
 
     // Generate at least one tick outside the range on each side
     let [dp0, dp1] = intervalExtent(new Date(dv0), new Date(dv1), visibleRange);
@@ -461,10 +463,10 @@ export function timeIntervalMaxLabelSize(
     const primaryLabelFormatter = primarySpecifier ? buildDateFormatter(primarySpecifier) : labelFormatter;
 
     const d0 = new Date(domain[0]);
-    const d1 = new Date(domain[domain.length - 1]);
+    const d1 = new Date(domain.at(-1)!);
 
     const hierarchyRange = hierarchy
-        ? intervalRange(hierarchy, new Date(domain[0]), new Date(domain[domain.length - 1]), { extend: true })
+        ? intervalRange(hierarchy, new Date(domain[0]), new Date(domain.at(-1)!), { extend: true })
         : undefined;
 
     let maxWidth = 0;

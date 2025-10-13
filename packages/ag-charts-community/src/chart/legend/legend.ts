@@ -456,7 +456,7 @@ export class Legend extends BaseProperties {
         width = Math.max(1, width);
         height = Math.max(1, height);
 
-        if (!isFinite(width)) {
+        if (!Number.isFinite(width)) {
             return {};
         }
 

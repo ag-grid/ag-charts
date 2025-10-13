@@ -284,13 +284,13 @@ export abstract class PolarSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, legendItemValues?: string[]) {
         const { series, legendItemName: activeLegendItemName, itemId } = highlightedDatum ?? {};
 
-        const legendItemName = typeof itemId !== 'number' ? undefined : legendItemValues?.[itemId];
+        const legendItemName = typeof itemId === 'number' ? legendItemValues?.[itemId] : undefined;
 
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }

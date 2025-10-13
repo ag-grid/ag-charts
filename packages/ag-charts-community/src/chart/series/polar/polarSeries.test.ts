@@ -245,17 +245,21 @@ describe('PolarSeries', () => {
             const deproxied = deproxy(chart);
             const reference = await snapshot();
 
-            options.data?.forEach((_, idx) => {
-                (deproxied.series[0] as any).toggleSeriesItem(false, 'category', idx, undefined);
-            });
+            if (options.data) {
+                for (const [idx] of options.data.entries()) {
+                    (deproxied.series[0] as any).toggleSeriesItem(false, 'category', idx, undefined);
+                }
+            }
             deproxied.update(ChartUpdateType.FULL);
 
             const afterUpdate = await snapshot();
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
-            options.data?.forEach((_, idx) => {
-                (deproxied.series[0] as any).toggleSeriesItem(true, 'category', idx, undefined);
-            });
+            if (options.data) {
+                for (const [idx] of options.data.entries()) {
+                    (deproxied.series[0] as any).toggleSeriesItem(true, 'category', idx, undefined);
+                }
+            }
             deproxied.update(ChartUpdateType.FULL);
 
             const afterFinalUpdate = await snapshot();

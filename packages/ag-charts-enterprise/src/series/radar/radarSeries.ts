@@ -538,8 +538,8 @@ export abstract class RadarSeries<
         let closestDatum: RadarNodeDatum | undefined;
 
         for (const datum of nodeData) {
-            const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
-            if (isNaN(datumX) || isNaN(datumY)) {
+            const { point: { x: datumX = Number.NaN, y: datumY = Number.NaN } = {} } = datum;
+            if (Number.isNaN(datumX) || Number.isNaN(datumY)) {
                 continue;
             }
 
@@ -563,9 +563,9 @@ export abstract class RadarSeries<
 
         const textBoxes: _ModuleSupport.BBox[] = [];
         const tempText = new Text();
-        this.nodeData.forEach((nodeDatum) => {
+        for (const nodeDatum of this.nodeData) {
             if (!label.enabled || !nodeDatum.label) {
-                return;
+                continue;
             }
             tempText.text = nodeDatum.label.text;
             tempText.x = nodeDatum.label.x;
@@ -574,7 +574,7 @@ export abstract class RadarSeries<
             tempText.setAlign(nodeDatum.label);
             const box = tempText.getBBox();
             textBoxes.push(box);
-        });
+        }
         if (textBoxes.length === 0) {
             return null;
         }
@@ -618,10 +618,10 @@ export abstract class RadarSeries<
         let prevPointInvalid = false;
         let firstValid: RadarNodeDatum | undefined;
 
-        data.forEach((datum, index) => {
+        for (const [index, datum] of data.entries()) {
             let { x, y } = datum.point;
 
-            const isPointInvalid = isNaN(x) || isNaN(y);
+            const isPointInvalid = Number.isNaN(x) || Number.isNaN(y);
 
             if (!isPointInvalid) {
                 firstValid ??= datum;
@@ -638,7 +638,7 @@ export abstract class RadarSeries<
             points.push({ x, y, moveTo });
 
             prevPointInvalid = isPointInvalid;
-        });
+        }
 
         if (firstValid !== undefined) {
             points.push({ x: firstValid.point.x, y: firstValid.point.y, moveTo: false });
@@ -659,7 +659,7 @@ export abstract class RadarSeries<
             ? this.radius + axisInnerRadius - radiusAxis?.scale.convert(0)
             : axisInnerRadius;
 
-        points.forEach((point) => {
+        for (const point of points) {
             const { x: x1, y: y1, arc, radius = 0, startAngle = 0, endAngle = 0, moveTo } = point;
             const angle = Math.atan2(y1, x1);
             const x0 = radiusZero * Math.cos(angle);
@@ -675,7 +675,7 @@ export abstract class RadarSeries<
             } else {
                 path.lineTo(x, y);
             }
-        });
+        }
 
         pathNode.checkPathDirty();
     }

@@ -93,7 +93,7 @@ export class AxisManager {
 
     destroy() {
         this.axes.clear();
-        this.sceneRoot.removeChild(this.axisGroup);
-        this.sceneRoot.removeChild(this.axisGridGroup);
+        this.axisGroup.remove();
+        this.axisGridGroup.remove();
     }
 }

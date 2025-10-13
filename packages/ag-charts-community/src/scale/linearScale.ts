@@ -31,7 +31,7 @@ export class LinearScale extends ContinuousScale<number> {
         domain: number[] = this.domain,
         visibleRange?: [number, number]
     ): { ticks: number[]; count: number; firstTickIndex?: number } {
-        if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(isFinite)) {
+        if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(Number.isFinite)) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
         const [d0, d1] = domain;

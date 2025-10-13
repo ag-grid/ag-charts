@@ -7,7 +7,7 @@ import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
 import { type ZIndex } from './zIndex';
 
-export { SceneChangeDetection };
+export { SceneChangeDetection } from './changeDetectable';
 
 export enum PointerEvents {
     All,
@@ -143,7 +143,7 @@ export abstract class Node<TDatum = unknown> {
 
     constructor(options?: NodeOptions) {
         this.name = options?.name;
-        this.tag = options?.tag ?? NaN;
+        this.tag = options?.tag ?? Number.NaN;
         this.zIndex = options?.zIndex ?? 0;
         this.scene = options?.scene;
 
@@ -267,11 +267,14 @@ export abstract class Node<TDatum = unknown> {
     }
 
     remove() {
+        // eslint-disable-next-line unicorn/prefer-dom-node-remove
         this.parentNode?.removeChild(this);
     }
 
     destroy(): void {
-        this.parentNode?.removeChild(this);
+        if (this.parentNode) {
+            this.remove();
+        }
     }
 
     batchedUpdate(fn: () => void) {
@@ -365,14 +368,14 @@ export abstract class Node<TDatum = unknown> {
 
         if (!this._debugDirtyProperties.has('__first__')) {
             // Construction cases aren't interesting - we only really care about update cases.
-            this._debugDirtyProperties.forEach((sources, property) => {
+            for (const [property, sources] of this._debugDirtyProperties.entries()) {
                 if (sources.length > 1) {
                     Logger.logGroup(
                         `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`,
                         () => sources.forEach((source) => Logger.log(source))
                     );
                 }
-            });
+            }
         }
         this._debugDirtyProperties.clear();
     }

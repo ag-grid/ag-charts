@@ -196,10 +196,10 @@ function buildPages(
             });
             let columnHeight = 0;
             let columnWidth = 0;
-            colBBoxes.forEach((bbox) => {
+            for (const bbox of colBBoxes) {
                 columnHeight += bbox.height + itemPaddingY;
                 columnWidth = Math.max(columnWidth, bbox.width + itemPaddingX);
-            });
+            }
             return {
                 indices: colIndices,
                 bboxes: colBBoxes,
@@ -210,10 +210,10 @@ function buildPages(
 
         let pageWidth = 0;
         let pageHeight = 0;
-        columns.forEach((column) => {
+        for (const column of columns) {
             pageWidth += column.columnWidth;
             pageHeight = Math.max(pageHeight, column.columnHeight);
-        });
+        }
 
         maxPageWidth = Math.max(pageWidth, maxPageWidth);
         maxPageHeight = Math.max(pageHeight, maxPageHeight);
@@ -232,15 +232,16 @@ function buildPages(
 
 function transpose(data: number[][]) {
     const result: number[][] = [];
+    // eslint-disable-next-line sonarjs/no-unused-vars
     for (const _ of data[0]) {
         result.push([]);
     }
 
-    data.forEach((innerData, dataIdx) => {
-        innerData.forEach((item, itemIdx) => {
+    for (const [dataIdx, innerData] of data.entries()) {
+        for (const [itemIdx, item] of innerData.entries()) {
             result[itemIdx][dataIdx] = item;
-        });
-    });
+        }
+    }
 
     return result;
 }

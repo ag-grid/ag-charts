@@ -40,6 +40,11 @@ export class Observable {
     }
 
     protected fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
-        this.eventListeners.get(event.type)?.forEach((listener) => listener(event));
+        const listeners = this.eventListeners.get(event.type);
+        if (listeners) {
+            for (const listener of listeners) {
+                listener(event);
+            }
+        }
     }
 }

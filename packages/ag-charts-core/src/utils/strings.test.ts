@@ -40,7 +40,7 @@ describe('Strings Utilities', () => {
         });
 
         it('stringifies NaN', () => {
-            const result = stringifyValue(NaN);
+            const result = stringifyValue(Number.NaN);
             expect(result).toBe('NaN');
         });
 

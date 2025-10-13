@@ -70,7 +70,9 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         // Ensure no side-effects in `onHide()` listeners are caused by modules eagerly hiding the popover when it is
         // already hidden.
         if (this.element.children.length === 0) return;
-        this.hideFns.forEach((fn) => fn());
+        for (const fn of this.hideFns) {
+            fn();
+        }
 
         lastFocus?.focus();
         this.lastFocus = undefined;

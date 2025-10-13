@@ -72,7 +72,7 @@ export interface ChartAxis {
     createAxisContext(): AxisContext;
     createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
-    detachAxis(opts: AxisGroups): void;
+    detachAxis(): void;
     formatDatum(
         contextProvider: { context?: unknown },
         value: any,

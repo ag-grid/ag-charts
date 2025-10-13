@@ -57,4 +57,4 @@ const options: AgChartOptions = {
   ],
 }
 
-const chart = AgCharts.create(options)
+AgCharts.create(options)

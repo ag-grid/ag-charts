@@ -308,7 +308,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     async getSyncedDomain(axis: unknown) {
-        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== (axis.direction as string))) {
             return;
         }
 
@@ -501,7 +501,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     removeAxis(axis: unknown) {
-        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== (axis.direction as string))) {
             return;
         }
 

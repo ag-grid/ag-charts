@@ -197,11 +197,11 @@ export class MapMarkerSeries
             this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
-        topology?.features.forEach((feature) => {
+        for (const feature of topology?.features.values() ?? []) {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null) return;
+            if (property == null) continue;
             featureById.set(property, feature);
-        });
+        }
 
         const sizeScaleType = this.sizeScale.type;
         const colorScaleType = this.colorScale.type;
@@ -210,16 +210,16 @@ export class MapMarkerSeries
         const hasLatLon = latitudeKey != null && longitudeKey != null;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                ...(idKey != null
-                    ? [
+                ...(idKey == null
+                    ? []
+                    : [
                           valueProperty(idKey, mercatorScaleType, { id: 'idValue', includeProperty: false }),
                           valueProperty(idKey, mercatorScaleType, {
                               id: 'featureValue',
                               includeProperty: false,
                               processor: () => (datum) => featureById.get(datum as string),
                           }),
-                      ]
-                    : []),
+                      ]),
                 ...(hasLatLon
                     ? [
                           valueProperty(latitudeKey, mercatorScaleType, { id: 'latValue' }),
@@ -233,9 +233,9 @@ export class MapMarkerSeries
         });
 
         const featureValues =
-            idKey != null
-                ? dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData)
-                : undefined;
+            idKey == null
+                ? undefined
+                : dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData);
         const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
         const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
         this.topologyBounds = processedData.dataSources
@@ -363,19 +363,19 @@ export class MapMarkerSeries
         const hasLatLon = latitudeKey != null && longitudeKey != null;
 
         const idValues =
-            idKey != null ? dataModel.resolveColumnById<string>(this, `idValue`, processedData) : undefined;
+            idKey == null ? undefined : dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const featureValues =
-            idKey != null
-                ? dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData)
-                : undefined;
+            idKey == null
+                ? undefined
+                : dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData);
         const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
         const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
         const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+            labelKey == null ? undefined : dataModel.resolveColumnById<string>(this, `labelValue`, processedData);
         const sizeValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+            sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData);
         const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+            colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData);
 
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
@@ -384,22 +384,22 @@ export class MapMarkerSeries
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idValues != null && featureValues != null) {
             projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-            processedData.dataSources.get(this.id)?.data.forEach((_datum, datumIndex) => {
+            for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
                 const id: string | undefined = idValues[datumIndex];
                 const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
                 const projectedGeometry =
                     geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
                 if (id != null && projectedGeometry != null) {
-                    projectedGeometries!.set(id, projectedGeometry);
+                    projectedGeometries.set(id, projectedGeometry);
                 }
-            });
+            }
         }
 
         const nodeData: MapMarkerNodeDatum[] = [];
         const labelData: MapMarkerNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const idValue = idValues?.[datumIndex];
             const lonValue = lonValues?.[datumIndex];
             const latValue = latValues?.[datumIndex];
@@ -407,9 +407,9 @@ export class MapMarkerSeries
             const sizeValue = sizeValues?.[datumIndex];
             const labelValue = labelValues?.[datumIndex];
 
-            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clamp: true }) : properties.size;
+            const size = sizeValue == null ? properties.size : sizeScale.convert(sizeValue, { clamp: true });
 
-            const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
+            const projectedGeometry = idValue == null ? undefined : projectedGeometries?.get(idValue);
             if (idValue != null && projectGeometry == null) {
                 missingGeometries.push(idValue);
             }
@@ -440,7 +440,7 @@ export class MapMarkerSeries
                     style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
                 });
             } else if (projectedGeometry != null) {
-                markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
+                for (const [index, [x, y]] of markerPositions(projectedGeometry, 1).entries()) {
                     const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, measurer);
                     if (labelDatum) {
                         labelData.push(labelDatum);
@@ -463,9 +463,9 @@ export class MapMarkerSeries
                         legendItemName,
                         style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
                     });
-                });
+                }
             }
-        });
+        }
 
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
@@ -529,7 +529,7 @@ export class MapMarkerSeries
         this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum });
 
         this.highlightMarkerSelection = this.updateMarkerSelection({
-            markerData: highlightedDatum != null ? [highlightedDatum] : [],
+            markerData: highlightedDatum == null ? [] : [highlightedDatum],
             markerSelection: highlightMarkerSelection,
         });
         this.updateMarkerNodes({
@@ -716,7 +716,7 @@ export class MapMarkerSeries
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
 
-        this.contextNodeData?.nodeData.forEach((datum) => {
+        for (const datum of this.contextNodeData?.nodeData ?? []) {
             const { x, y, size } = datum.point;
             const dx = Math.max(Math.abs(x - x0) - size, 0);
             const dy = Math.max(Math.abs(y - y0) - size, 0);
@@ -725,9 +725,9 @@ export class MapMarkerSeries
                 minDistanceSquared = distanceSquared;
                 minDatum = datum;
             }
-        });
+        }
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
@@ -824,13 +824,13 @@ export class MapMarkerSeries
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const sizeValue =
-            sizeKey != null
-                ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex]
-                : undefined;
+            sizeKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
         const colorValue =
-            colorKey != null
-                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
-                : undefined;
+            colorKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 

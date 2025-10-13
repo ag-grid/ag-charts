@@ -37,7 +37,7 @@ export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.Dist
         this.strokePath.clear();
         this.path.clear();
 
-        this.bbox = projectedGeometry != null ? this.drawGeometry(projectedGeometry, undefined) : undefined;
+        this.bbox = projectedGeometry == null ? undefined : this.drawGeometry(projectedGeometry, undefined);
     }
 
     override drawPath(ctx: any) {
@@ -113,15 +113,15 @@ export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.Dist
 
         switch (geometry.type) {
             case 'GeometryCollection':
-                geometry.geometries.forEach((g) => {
+                for (const g of geometry.geometries) {
                     bbox = this.drawGeometry(g, bbox);
-                });
+                }
                 break;
             case 'MultiPolygon':
                 if (drawPolygons) {
-                    geometry.coordinates.forEach((coordinates) => {
+                    for (const coordinates of geometry.coordinates) {
                         bbox = this.drawPolygon(path, coordinates, bbox);
-                    });
+                    }
                 }
                 break;
             case 'Polygon':
@@ -136,9 +136,9 @@ export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.Dist
                 break;
             case 'MultiLineString':
                 if (drawLines) {
-                    geometry.coordinates.forEach((coordinates) => {
+                    for (const coordinates of geometry.coordinates) {
                         bbox = this.drawLineString(strokePath, coordinates, bbox, false);
-                    });
+                    }
                 }
                 break;
             case 'Point':

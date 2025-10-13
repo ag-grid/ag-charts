@@ -30,7 +30,7 @@ export function getBBox(
     let height = bbox?.height ?? 0;
 
     if (!bbox) {
-        const wrappedText = options.width != null ? maybeWrapText(options, text, options.width) : text;
+        const wrappedText = options.width == null ? text : maybeWrapText(options, text, options.width);
         ({ width, height } = measureAnnotationText(options, wrappedText));
     }
 

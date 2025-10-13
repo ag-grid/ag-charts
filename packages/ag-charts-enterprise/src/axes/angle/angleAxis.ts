@@ -153,9 +153,9 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     private normalizedAngles(): [number, number] {
         const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
         const sweep =
-            this.endAngle != null
-                ? normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle))
-                : 2 * Math.PI;
+            this.endAngle == null
+                ? 2 * Math.PI
+                : normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle));
         const endAngle = startAngle + sweep;
         return [startAngle, endAngle];
     }
@@ -196,7 +196,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
 
         const { points, closePath } = this.getAxisLinePoints();
 
-        points.forEach(({ x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 }) => {
+        for (const { x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 } of points) {
             if (arc) {
                 path.arc(x, y, radius, startAngle, endAngle);
             } else if (moveTo) {
@@ -204,7 +204,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
             } else {
                 path.lineTo(x, y);
             }
-        });
+        }
 
         if (closePath) {
             path.closePath();
@@ -266,12 +266,12 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
                 })
                 ?.ticks?.map((value) => scale.convert(value));
             if (angles && angles.length > 2) {
-                angles.forEach((angle, i) => {
+                for (const [i, angle] of angles.entries()) {
                     const x = radius * Math.cos(angle);
                     const y = radius * Math.sin(angle);
                     const moveTo = i === 0;
                     points.push({ x, y, moveTo });
-                });
+                }
             }
         }
 
@@ -422,7 +422,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
                 y,
                 textAlign,
                 textBaseline,
-                hidden: text === '' || datum.hidden || isLastTickOverFirst,
+                hidden: text === '' || (datum.hidden ?? isLastTickOverFirst),
                 rotation,
                 box,
             };
@@ -518,14 +518,14 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
 
     protected override updateCrossLines() {
         const { shape, gridLength: radius, innerRadiusRatio } = this;
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
             if (crossLine instanceof AngleCrossLine) {
                 crossLine.ticks = this.tickData.map((t) => t.value);
                 crossLine.shape = shape;
                 crossLine.axisOuterRadius = radius;
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
-        });
+        }
         super.updateCrossLines();
     }
 }

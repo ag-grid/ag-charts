@@ -1,6 +1,7 @@
 import pluginJs from '@eslint/js';
 import checkFile from 'eslint-plugin-check-file';
 import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -41,13 +42,14 @@ export const sonarjsConfig = [
     {
         files: ['**/*.{js,ts}'],
         rules: {
+            // Rules moved from sonarjs to @typescript-eslint.
+            '@typescript-eslint/no-redeclare': env !== 'nx-task' ? 1 : 0,
+
             // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
             'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
             'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/sonar-max-params': env !== 'nx-task' ? 1 : 0,
             'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
             'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/no-redeclare': env !== 'nx-task' ? 1 : 0,
             'sonarjs/function-return-type': env !== 'nx-task' ? 1 : 0,
 
             // We don't really care about these.
@@ -61,6 +63,17 @@ export const sonarjsConfig = [
             'sonarjs/sonar-prefer-optional-chain': 0,
             'sonarjs/no-base-to-string': 0,
             'sonarjs/no-misused-promises': 0,
+
+            // Unicorn rules, as referenced from the SonarCloud documentation.
+            'unicorn/prefer-export-from': 1,
+            'unicorn/prefer-math-trunc': 1,
+            'unicorn/prefer-at': 1,
+            'unicorn/prefer-number-properties': 2,
+            'unicorn/no-array-for-each': 2,
+            'unicorn/prefer-dom-node-remove': 2,
+            'unicorn/prefer-global-this': 2,
+            'unicorn/prefer-includes': 2,
+            'unicorn/no-zero-fractions': 2,
         },
     },
 ];
@@ -85,12 +98,10 @@ export default [
         languageOptions: {
             globals: globals.browser,
             parserOptions: {
-                // projectService: true,
-                project: './tsconfig.lint.json',
+                projectService: true,
             },
         },
     },
-
     {
         files: ['**/src/**/*'],
         ignores: ['**/src/pages/**'], // Ignore astro pages
@@ -115,10 +126,11 @@ export default [
                     'change-detection': lintChangeDetection,
                 },
             },
+            unicorn,
         },
         rules: {
             'no-lonely-if': 2,
-            'no-negated-condition': 1,
+            'unicorn/no-negated-condition': 1,
             'no-nested-ternary': 2,
             'no-unneeded-ternary': 2,
             'no-eval': 2,

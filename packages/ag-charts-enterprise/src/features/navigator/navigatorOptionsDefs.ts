@@ -12,7 +12,7 @@ import {
     array,
     arrayOfDefs,
     boolean,
-    callback,
+    callbackOf,
     color,
     fontOptionsDef,
     number,
@@ -45,7 +45,7 @@ import { RangeAreaSeriesModule } from '../../series/range-area';
 import { RangeBarSeriesModule } from '../../series/range-bar';
 import { WaterfallSeriesModule } from '../../series/waterfall';
 
-const { numberFormatValidator, without } = _ModuleSupport;
+const { numberFormatValidator, textOrSegments, without } = _ModuleSupport;
 
 export const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
     width: positiveNumber,
@@ -165,7 +165,7 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
             avoidCollisions: boolean,
             spacing: positiveNumber,
             format: numberFormatValidator,
-            formatter: callback,
+            formatter: callbackOf(textOrSegments),
             interval: {
                 minSpacing: positiveNumber,
                 maxSpacing: positiveNumber,

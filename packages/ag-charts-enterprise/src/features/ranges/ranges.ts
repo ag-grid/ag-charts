@@ -35,7 +35,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private teardown() {
-        this.container.removeChild(this.toolbar.getElement());
+        this.toolbar.getElement().remove();
         this.toolbar.destroy();
     }
 

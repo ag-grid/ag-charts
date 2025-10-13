@@ -63,7 +63,7 @@ export abstract class Gradient {
                 scale.domain = [c0.stop, c1.stop];
                 scale.range = [c0.color, c1.color];
                 for (let stop = c0.stop + step; stop < c1.stop; stop += step) {
-                    gradient.addColorStop(stop, scale.convert(stop));
+                    gradient.addColorStop(stop, scale.convert(stop) ?? 'transparent');
                 }
             }
 
@@ -87,14 +87,14 @@ export abstract class Gradient {
         const bbox = this.bbox ?? shapeBbox;
 
         const gradient = this.createSvgGradient(bbox);
-        this.stops.forEach(({ stop: offset, color }) => {
+        for (const { stop: offset, color } of this.stops) {
             const stop = createSvgElement('stop');
 
             stop.setAttribute('offset', `${offset}`);
             stop.setAttribute('stop-color', `${color}`);
 
             gradient.appendChild(stop);
-        });
+        }
         return gradient;
     }
 }

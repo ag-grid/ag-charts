@@ -176,29 +176,35 @@ export abstract class FlowProportionSeries<
 
         const nodesDataController = new DataController('standalone', dataController.suppressFieldDotNotation);
         const nodesDataModelPromise =
-            nodes != null
-                ? nodesDataController.request<any, any, true>(
+            nodes == null
+                ? null
+                : nodesDataController.request<any, any, true>(
                       this.id,
                       _ModuleSupport.DataSet.wrap(nodes) ?? _ModuleSupport.DataSet.empty(),
                       {
                           props: [
                               keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
-                              ...(labelKey != null
-                                  ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                                  : []),
+                              ...(labelKey == null
+                                  ? []
+                                  : [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]),
                           ],
                           groupByKeys: true,
                       }
-                  )
-                : null;
+                  );
 
         const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {
             props: [
                 valueProperty(fromKey, undefined, { id: 'fromValue', includeProperty: false }),
                 valueProperty(toKey, undefined, { id: 'toValue', includeProperty: false }),
-                ...(sizeKey != null
-                    ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false, missingValue: 0 })]
-                    : []),
+                ...(sizeKey == null
+                    ? []
+                    : [
+                          valueProperty(sizeKey, undefined, {
+                              id: 'sizeValue',
+                              includeProperty: false,
+                              missingValue: 0,
+                          }),
+                      ]),
             ],
             groupByKeys: false,
         });
@@ -256,19 +262,22 @@ export abstract class FlowProportionSeries<
                 };
             };
 
-            linksDataModel.processedData.dataSources.get(this.id)?.data.forEach((_datum, datumIndex) => {
-                const fromId = fromIdValues[datumIndex];
-                const toId = toIdValues[datumIndex];
-                if (fromId == null || toId == null) return;
+            const linkData = linksDataModel.processedData.dataSources.get(this.id)?.data;
+            if (linkData) {
+                for (const [datumIndex] of linkData.entries()) {
+                    const fromId = fromIdValues[datumIndex];
+                    const toId = toIdValues[datumIndex];
+                    if (fromId == null || toId == null) continue;
 
-                if (!processedNodes.has(fromId)) {
-                    processedNodes.set(fromId, createImplicitNode(fromId));
-                }
+                    if (!processedNodes.has(fromId)) {
+                        processedNodes.set(fromId, createImplicitNode(fromId));
+                    }
 
-                if (!processedNodes.has(toId)) {
-                    processedNodes.set(toId, createImplicitNode(toId));
+                    if (!processedNodes.has(toId)) {
+                        processedNodes.set(toId, createImplicitNode(toId));
+                    }
                 }
-            });
+            }
         } else {
             const nodeIdValues = nodesDataModel.dataModel.resolveColumnById<string>(
                 this,
@@ -276,39 +285,42 @@ export abstract class FlowProportionSeries<
                 nodesDataModel.processedData
             );
             const labelValues =
-                labelKey != null
-                    ? nodesDataModel.dataModel.resolveColumnById<string | undefined>(
+                labelKey == null
+                    ? undefined
+                    : nodesDataModel.dataModel.resolveColumnById<string | undefined>(
                           this,
                           'labelValue',
                           nodesDataModel.processedData
-                      )
-                    : undefined;
+                      );
 
-            nodesDataModel.processedData.dataSources.get(this.id)?.data.forEach((datum, datumIndex) => {
-                const id: string = nodeIdValues[datumIndex];
-                const label: string | undefined = labelValues?.[datumIndex];
+            const nodeData = nodesDataModel.processedData.dataSources.get(this.id)?.data;
+            if (nodeData) {
+                for (const [datumIndex, datum] of nodeData.entries()) {
+                    const id: string = nodeIdValues[datumIndex];
+                    const label: string | undefined = labelValues?.[datumIndex];
 
-                const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
+                    const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
 
-                processedNodes.set(id, {
-                    series: this,
-                    itemId: undefined,
-                    datum,
-                    datumIndex: nodeDatumIndex,
-                    type: FlowProportionDatumType.Node,
-                    index: datumIndex,
-                    linksBefore: [],
-                    linksAfter: [],
-                    id,
-                    size: 0,
-                    label,
-                    style: this.getNodeStyle(
-                        { datumIndex: nodeDatumIndex, datum, size: 0, label } as Partial<TNodeDatum>,
-                        datumIndex,
-                        false
-                    ),
-                });
-            });
+                    processedNodes.set(id, {
+                        series: this,
+                        itemId: undefined,
+                        datum,
+                        datumIndex: nodeDatumIndex,
+                        type: FlowProportionDatumType.Node,
+                        index: datumIndex,
+                        linksBefore: [],
+                        linksAfter: [],
+                        id,
+                        size: 0,
+                        label,
+                        style: this.getNodeStyle(
+                            { datumIndex: nodeDatumIndex, datum, size: 0, label } as Partial<TNodeDatum>,
+                            datumIndex,
+                            false
+                        ),
+                    });
+                }
+            }
         }
 
         this.processedNodes = processedNodes;
@@ -350,45 +362,48 @@ export abstract class FlowProportionSeries<
         const fromIdValues = linksDataModel.resolveColumnById<string>(this, 'fromValue', linksProcessedData);
         const toIdValues = linksDataModel.resolveColumnById<string>(this, 'toValue', linksProcessedData);
         const sizeValues =
-            sizeKey != null
-                ? linksDataModel.resolveColumnById<number>(this, 'sizeValue', linksProcessedData)
-                : undefined;
+            sizeKey == null
+                ? undefined
+                : linksDataModel.resolveColumnById<number>(this, 'sizeValue', linksProcessedData);
 
         const nodesById = new Map<string, TNodeDatum>();
-        this.processedNodes.forEach((datum) => {
+        for (const datum of this.processedNodes.values()) {
             const node = createNode(datum);
             nodesById.set(datum.id, node);
-        });
+        }
 
         const baseLinks: TLinkDatum[] = [];
-        linksProcessedData.dataSources.get(this.id)?.data.forEach((datum, datumIndex) => {
-            const fromId: string = fromIdValues[datumIndex];
-            const toId: string = toIdValues[datumIndex];
-            const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;
-            const fromNode = nodesById.get(fromId);
-            const toNode = nodesById.get(toId);
-            if (size <= 0 || fromNode == null || toNode == null) return;
+        const linkData = linksProcessedData.dataSources.get(this.id)?.data;
+        if (linkData) {
+            for (const [datumIndex, datum] of linkData.entries()) {
+                const fromId: string = fromIdValues[datumIndex];
+                const toId: string = toIdValues[datumIndex];
+                const size: number = sizeValues == null ? 1 : sizeValues[datumIndex];
+                const fromNode = nodesById.get(fromId);
+                const toNode = nodesById.get(toId);
+                if (size <= 0 || fromNode == null || toNode == null) continue;
 
-            const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
+                const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
 
-            const link = createLink({
-                series: this,
-                itemId: undefined,
-                datum,
-                datumIndex: linkNodeDatumIndex,
-                type: FlowProportionDatumType.Link,
-                index: datumIndex,
-                fromNode,
-                toNode,
-                size,
-                style: this.getLinkStyle(
-                    { datum, datumIndex: linkNodeDatumIndex } as Partial<TLinkDatum>,
-                    fromNode.datumIndex,
-                    false
-                ),
-            });
-            baseLinks.push(link);
-        });
+                const link = createLink({
+                    series: this,
+                    itemId: undefined,
+                    datum,
+                    datumIndex: linkNodeDatumIndex,
+                    type: FlowProportionDatumType.Link,
+                    index: datumIndex,
+                    fromNode,
+                    toNode,
+                    size,
+                    style: this.getLinkStyle(
+                        { datum, datumIndex: linkNodeDatumIndex } as Partial<TLinkDatum>,
+                        fromNode.datumIndex,
+                        false
+                    ),
+                });
+                baseLinks.push(link);
+            }
+        }
 
         const { links, nodeGraph, maxPathLength } = computeNodeGraph(
             nodesById.values(),
@@ -396,10 +411,10 @@ export abstract class FlowProportionSeries<
             includeCircularReferences
         );
 
-        nodeGraph.forEach((node) => {
+        for (const node of nodeGraph.values()) {
             node.datum.linksBefore = node.linksBefore.map((linkedNode) => linkedNode.link);
             node.datum.linksAfter = node.linksAfter.map((linkedNode) => linkedNode.link);
-        });
+        }
 
         this.nodeCount = nodeGraph.size;
         this.linkCount = links.length;
@@ -439,16 +454,16 @@ export abstract class FlowProportionSeries<
             // Handle highlighting legend items
             const { itemId } = highlightedDatum;
             highlightedDatum =
-                itemId != null
-                    ? nodeData.find((node) => node.type === FlowProportionDatumType.Node && node.id === itemId)
-                    : undefined;
+                itemId == null
+                    ? undefined
+                    : nodeData.find((node) => node.type === FlowProportionDatumType.Node && node.id === itemId);
         } else if (highlightedDatum?.series !== this) {
             highlightedDatum = undefined;
         }
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity =
-            highlightedDatum != null ? this.properties.highlight.unhighlightedItem.opacity ?? 1 : 1;
+            highlightedDatum == null ? 1 : this.properties.highlight.unhighlightedItem.opacity ?? 1;
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
         this.updateLabelNodes({ labelSelection: this.labelSelection });
@@ -553,7 +568,7 @@ export abstract class FlowProportionSeries<
     }
 
     override dataCount(): number {
-        return NaN; // Not used
+        return Number.NaN; // Not used
     }
 
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -564,7 +579,7 @@ export abstract class FlowProportionSeries<
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     protected legendItemSymbol(
@@ -644,7 +659,7 @@ export abstract class FlowProportionSeries<
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {
@@ -686,10 +701,10 @@ export abstract class FlowProportionSeries<
             if (nextIndex >= 0 && nextIndex < allLinks.length) {
                 nextNodeDatum = allLinks[nextIndex];
             } else if (nextIndex > 0) {
-                nextNodeDatum = allLinks[allLinks.length - 1];
+                nextNodeDatum = allLinks.at(-1);
             } else {
                 const allNodes = Array.from(this.nodeSelection, (node) => node.datum);
-                nextNodeDatum = allNodes[allNodes.length - 1];
+                nextNodeDatum = allNodes.at(-1);
             }
         } else if (currentNodeDatum?.type === FlowProportionDatumType.Node) {
             const allNodes = Array.from(this.nodeSelection, (node) => node.datum);

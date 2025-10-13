@@ -248,7 +248,7 @@ export async function locateCanvas(page: Page) {
     const height = Number(await canvasElem.getAttribute('height'));
     const bbox = await canvas.boundingBox();
 
-    if ([width, height].some((n) => [-Infinity, 0, Infinity].includes(n) || isNaN(n))) {
+    if ([width, height].some((n) => [-Infinity, 0, Infinity].includes(n) || Number.isNaN(n))) {
         throw new Error(`Invalid canvasDims: { width: ${width}, height: ${height} }`);
     }
     if (bbox == null) {

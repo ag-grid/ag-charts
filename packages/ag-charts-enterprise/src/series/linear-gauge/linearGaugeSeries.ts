@@ -822,7 +822,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.updateLabelNodes({ labelSelection });
 
         this.highlightTargetSelection = this.updateTargetSelection({
-            targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
+            targetData: highlightTargetDatum == null ? [] : [highlightTargetDatum],
             targetSelection: highlightTargetSelection,
         });
         this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
@@ -1201,14 +1201,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     override dataCount(): number {
-        return NaN; // Not used
+        return Number.NaN; // Not used
     }
 
     override getSeriesRange(
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override getLegendData(): _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {

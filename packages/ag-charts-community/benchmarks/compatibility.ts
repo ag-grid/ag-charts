@@ -17,7 +17,7 @@ export function getVersion() {
         .split('.')
         .map((n) => /(\d+)/.exec(n)?.[1])
         .map(Number);
-    if (result.length !== 3 || result.some((n) => isNaN(n))) {
+    if (result.length !== 3 || result.some((n) => Number.isNaN(n))) {
         throw new Error("Couldn't parse semver of: " + process.env.VERSION);
     }
     return result;
@@ -62,9 +62,11 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     }
     if (isHistoricBenchmarkTest() && isBeforeVersion(12, 1, 0)) {
         // maxRenderedItems not available in older versions.
-        options.series?.forEach((series: any) => {
-            delete series.maxRenderedItems;
-        });
+        if (options.series) {
+            for (const series of options.series) {
+                delete (series as any).maxRenderedItems;
+            }
+        }
     }
     if (isHistoricBenchmarkTest() && isBeforeVersion(12, 0, 0)) {
         // highlightStyle => highlight for 12.
@@ -90,10 +92,8 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     options.container = container;
 
     if (enterprise) {
-        if (!options.animation) {
-            // Default to animation off.
-            options.animation ??= { enabled: false };
-        }
+        // Default to animation off.
+        options.animation ??= { enabled: false };
     }
 
     let baseTestTheme = {
@@ -143,10 +143,10 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
         (options as any).mode === 'integrated' &&
         (options as any).axes?.some((a) => a.type === 'grouped-category')
     ) {
-        (options as any).data.forEach((d: object) => {
+        for (const d of (options as any).data) {
             const labels = d['ag-Grid-AutoColumn'];
             d['ag-Grid-AutoColumn'] = { labels, toString: () => labels.join(' - ') };
-        });
+        }
     }
 
     return options;

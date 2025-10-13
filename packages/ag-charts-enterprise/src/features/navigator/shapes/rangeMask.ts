@@ -21,8 +21,8 @@ export class RangeMask<D = any> extends Path<D> {
     private readonly visiblePath = new ExtendedPath2D();
 
     layout(x: number, y: number, width: number, height: number, min: number, max: number) {
-        min = isNaN(min) ? this.min : min;
-        max = isNaN(max) ? this.max : max;
+        min = Number.isNaN(min) ? this.min : min;
+        max = Number.isNaN(max) ? this.max : max;
 
         if (
             x !== this.x ||

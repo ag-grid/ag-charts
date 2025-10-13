@@ -380,7 +380,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
 
         const itemId = activeHighlight?.itemId;
 
-        let baseStyle = itemId != null ? itemIdMap[itemId] : undefined;
+        let baseStyle = itemId == null ? undefined : itemIdMap[itemId];
         if (baseStyle == null && this.openKey != null && this.closeKey != null) {
             // Fallback for series without distinct positive/negative items.
             if (datum[this.openKey] < datum[this.closeKey]) {
@@ -399,7 +399,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             }
 
             const datumKey = this[key];
-            const datumValue = datumKey != null ? datum?.[datumKey] : undefined;
+            const datumValue = datumKey == null ? undefined : datum?.[datumKey];
 
             value.setFont(this[labelStyle]);
             value.fill = this[labelStyle].color;

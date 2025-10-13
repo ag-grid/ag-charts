@@ -199,11 +199,11 @@ export class Navigator extends AbstractModuleInstance {
             maxHandle.zIndex = 3;
         }
 
-        [minHandle, this.maskVisibleRange, maxHandle].forEach((node, index) => {
+        for (const [index, node] of [minHandle, this.maskVisibleRange, maxHandle].entries()) {
             const bbox = node.getBBox();
             const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
             this.domProxy.updateSliderBounds(index, tbox);
-        });
+        }
     }
 
     private updateZoom() {

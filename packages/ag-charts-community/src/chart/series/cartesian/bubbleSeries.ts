@@ -189,11 +189,11 @@ export class BubbleSeries extends CartesianSeries<
             props: [
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
                 valueProperty(yKey, yScaleType, { id: `yValue` }),
-                ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })] : []),
-                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: `yFilterValue` })] : []),
-                ...(sizeFilterKey != null
-                    ? [valueProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterValue` })]
-                    : []),
+                ...(xFilterKey == null ? [] : [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })]),
+                ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: `yFilterValue` })]),
+                ...(sizeFilterKey == null
+                    ? []
+                    : [valueProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterValue` })]),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'category', { id: `labelValue` })] : []),
             ],
@@ -216,8 +216,8 @@ export class BubbleSeries extends CartesianSeries<
         const { size, sizeKey } = properties;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const sizeValues =
-            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!) : undefined;
-        const sizeValue = sizeValues != null ? sizeScale.convert(sizeValues[index]) : size;
+            sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
+        const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
         const r = 0.5 * sizeValue * pixelSize;
         return [x - r, x + r];
     }
@@ -227,8 +227,8 @@ export class BubbleSeries extends CartesianSeries<
         const { size, sizeKey } = properties;
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const sizeValues =
-            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!) : undefined;
-        const sizeValue = sizeValues != null ? sizeScale.convert(sizeValues[index]) : size;
+            sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
+        const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
         const r = 0.5 * sizeValue * pixelSize;
         return [y - r, y + r];
     }
@@ -381,17 +381,17 @@ export class BubbleSeries extends CartesianSeries<
         const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yDataValues = dataModel.resolveColumnById(this, `yValue`, processedData);
         const sizeDataValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+            sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData);
         const labelDataValues =
-            labelKey != null ? dataModel.resolveColumnById(this, `labelValue`, processedData) : undefined;
+            labelKey == null ? undefined : dataModel.resolveColumnById(this, `labelValue`, processedData);
         const xFilterDataValues =
-            xFilterKey != null ? dataModel.resolveColumnById(this, `xFilterValue`, processedData) : undefined;
+            xFilterKey == null ? undefined : dataModel.resolveColumnById(this, `xFilterValue`, processedData);
         const yFilterDataValues =
-            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterValue`, processedData) : undefined;
+            yFilterKey == null ? undefined : dataModel.resolveColumnById(this, `yFilterValue`, processedData);
         const sizeFilterDataValues =
-            sizeFilterKey != null
-                ? dataModel.resolveColumnById<number>(this, `sizeFilterValue`, processedData)
-                : undefined;
+            sizeFilterKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `sizeFilterValue`, processedData);
 
         let labelTextDomain: any[];
         if (labelKey) {
@@ -470,7 +470,7 @@ export class BubbleSeries extends CartesianSeries<
                 nodeLabel = { text: '', width: 0, height: 0 };
             }
 
-            const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : sizeScale.range[0];
+            const markerSize = sizeValue == null ? sizeScale.range[0] : sizeScale.convert(sizeValue);
             const point = { x, y, size: Math.sqrt(dilation) * markerSize };
 
             nodeData.push({
@@ -638,7 +638,7 @@ export class BubbleSeries extends CartesianSeries<
                     0.000683 * count +
                     -37.534348 * area +
                     0.004449 * count * area +
-                    -0.0 * count ** 2 +
+                    -0 * count ** 2 +
                     44.428603 * area ** 2;
                 style.fillOpacity = clamp(fillOpacity / dilation, (fillOpacity / 0.1) * opacityScale, 1);
             }

@@ -63,7 +63,7 @@ export function collapsedStartingBarPosition(
         let height = isVertical ? 0 : datum.height;
         const { opacity = 1 } = datum;
 
-        if (prevDatum && (isNaN(x) || isNaN(y))) {
+        if (prevDatum && (Number.isNaN(x) || Number.isNaN(y))) {
             // Fallback
             ({ x, y } = prevDatum);
             width = isVertical ? prevDatum.width : 0;
@@ -126,7 +126,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     initPos: InitialPosition<T>,
     unknownStatus: NodeUpdateState
 ) {
-    const isRemoved = (datum?: T) => datum == null || isNaN(datum.x) || isNaN(datum.y);
+    const isRemoved = (datum?: T) => datum == null || Number.isNaN(datum.x) || Number.isNaN(datum.y);
 
     const fromFn: FromToMotionPropFn<BarRect, AnimatableBarDatum, T> = (rect, datum, status) => {
         if (status === 'updated' && isRemoved(datum)) {

@@ -1647,7 +1647,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1665,7 +1665,7 @@ describe('ChartOptions', () => {
                             );
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1676,7 +1676,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(console.warn).not.toHaveBeenCalled();
@@ -1691,7 +1691,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1702,7 +1702,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(console.warn).not.toHaveBeenCalled();
@@ -1724,7 +1724,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1735,7 +1735,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1753,7 +1753,7 @@ describe('ChartOptions', () => {
                             );
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1764,7 +1764,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable, stackable, stackedByDefault } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1786,7 +1786,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1797,7 +1797,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(console.warn).not.toHaveBeenCalled();
@@ -1812,7 +1812,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1823,7 +1823,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1858,7 +1858,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1873,7 +1873,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(series.seriesGrouping).toBe(undefined);
@@ -1885,7 +1885,7 @@ describe('ChartOptions', () => {
                                 expect.stringMatching(/AG Charts - Unknown option `series\[\d+].grouped`, ignoring./)
                             );
                         }
-                    });
+                    }
                 }
             );
 
@@ -1900,7 +1900,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1922,7 +1922,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1937,7 +1937,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable, stackable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1968,7 +1968,7 @@ describe('ChartOptions', () => {
                                 );
                             }
                         }
-                    });
+                    }
                 }
             );
 
@@ -1983,7 +1983,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(console.warn).not.toHaveBeenCalled();
@@ -1998,7 +1998,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
         });

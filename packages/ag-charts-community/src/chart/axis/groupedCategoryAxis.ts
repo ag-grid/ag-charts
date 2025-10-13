@@ -270,15 +270,15 @@ export class GroupedCategoryAxis extends CategoryAxis {
         };
 
         const depthLabelMaxSize: Record<number, number> = {};
-        treeLabels.forEach((datum, index) => {
+        for (const [index, datum] of treeLabels.entries()) {
             const depth = maxDepth - datum.depth;
             depthLabelMaxSize[depth] ??= 0;
 
             const isLeaf = !datum.children.length;
-            if (isLeaf && step < MIN_CATEGORY_SPACING) return;
+            if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
 
             const isVisible = setLabelProps(datum, index);
-            if (!isVisible || !tempText.getBBox()) return;
+            if (!isVisible || !tempText.getBBox()) continue;
 
             labelBBoxes.set(index, tempText.getBBox());
             tempText.rotation = normalizeAngle360FromDegrees(optionsMap[depth]?.rotation);
@@ -289,7 +289,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             if (depthLabelMaxSize[depth] < labelSize) {
                 depthLabelMaxSize[depth] = labelSize;
             }
-        });
+        }
 
         const idGenerator = createIdsGenerator();
         const nestedPadding = (d: number) => {
@@ -304,19 +304,19 @@ export class GroupedCategoryAxis extends CategoryAxis {
             return v;
         };
 
-        treeLabels.forEach((datum, index) => {
-            if (index === 0) return;
+        for (const [index, datum] of treeLabels.entries()) {
+            if (index === 0) continue;
 
             const visible = setLabelProps(datum, index);
             const isLeaf = !datum.children.length;
             const depth = maxDepth - datum.depth;
 
-            if (isLeaf && step < MIN_CATEGORY_SPACING) return;
-            if (!visible) return;
+            if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
+            if (!visible) continue;
 
             const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth].rotation);
             const labelBBox = labelBBoxes.get(index);
-            if (!labelBBox) return;
+            if (!labelBBox) continue;
             const { width: w, height: h } = labelBBox;
             const depthPadding = nestedPadding(depth);
 
@@ -347,7 +347,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 const availableRange = isLeaf ? step : datum.leafCount * step;
                 if (labelSize > availableRange) {
                     labelBBoxes.delete(index);
-                    return;
+                    continue;
                 }
             }
 
@@ -377,7 +377,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 y: tempText.y,
             });
             labelBBoxes.set(index, Transformable.toCanvas(tempText));
-        });
+        }
 
         let maxTickSize = depthLabelMaxSize[0];
         for (let i = 0; i < maxDepth; i++) {
@@ -472,7 +472,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 ? rawTicks.map((t, index) => {
                       const { tickId, translation: offset } = gridLineData[index];
                       const node = this.tickNodes?.get(t);
-                      const depth = node != null ? Math.min(separatorDepth2(node), maxDepth - 1) : maxDepth - 1;
+                      const depth = node == null ? maxDepth - 1 : Math.min(separatorDepth2(node), maxDepth - 1);
 
                       const tickOptions = this.depthOptions[depth]?.tick;
                       let tickSize = depthLabelMaxSize[0];
@@ -484,7 +484,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                       }
 
                       const stroke = tickOptions?.stroke ?? tick.stroke;
-                      const strokeWidth = tickOptions?.enabled !== false ? tickOptions?.width ?? tick.width : 0;
+                      const strokeWidth = tickOptions?.enabled === false ? 0 : tickOptions?.width ?? tick.width;
                       const h = -direction * tickSize;
                       const [x1, x2, y1, y2] = horizontal ? [offset, offset, 0, h] : [0, h, offset, offset];
                       const lineDash = undefined;

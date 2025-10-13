@@ -65,7 +65,7 @@ export class ContextMenu extends AbstractModuleInstance {
             }
         });
         this.cleanup.register(
-            () => this.element.parentNode?.removeChild(this.element),
+            () => this.element.remove(),
             () => this.menuWidget.destroy(),
             ctx.eventsHub.on('dom:hidden', () => this.hide()),
             this.menuWidget.addListener('collapse-widget', () => this.onCollapse())
@@ -147,7 +147,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
     private onCollapse() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
-        this.element.removeChild(this.menuWidget.getElement());
+        this.menuWidget.getElement().remove();
         this.element.style.display = 'none';
     }
 

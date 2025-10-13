@@ -163,7 +163,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             padding,
         } = this.properties.group;
         const fontHeight = this.groupTitleHeight(node, bbox);
-        const titleHeight = fontHeight != null ? fontHeight + spacing : 0;
+        const titleHeight = fontHeight == null ? 0 : fontHeight + spacing;
 
         return {
             top: padding + titleHeight,
@@ -195,18 +195,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         if (bbox.width <= 0 || bbox.height <= 0) {
             node.bbox = undefined;
             node.padding = undefined;
-            node.midPoint.x = NaN;
-            node.midPoint.y = NaN;
+            node.midPoint.x = Number.NaN;
+            node.midPoint.y = Number.NaN;
             return;
         }
 
-        const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };
+        const padding = datum == null ? { top: 0, right: 0, bottom: 0, left: 0 } : this.getNodePadding(node, bbox);
 
         if (node.parent == null) {
             node.bbox = undefined;
             node.padding = undefined;
-            node.midPoint.x = NaN;
-            node.midPoint.y = NaN;
+            node.midPoint.x = Number.NaN;
+            node.midPoint.y = Number.NaN;
         } else {
             node.bbox = bbox;
             node.padding = padding;
@@ -315,11 +315,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const innerBounds = getBounds(innerBox);
         const childBounds = getBounds(childBox);
         const sides: Side[] = ['top', 'right', 'bottom', 'left'];
-        sides.forEach((side) => {
+        for (const side of sides) {
             if (!isNumberEqual(innerBounds[side], childBounds[side])) {
                 childBox.shrink(gap, side);
             }
-        });
+        }
     }
 
     override createNodeData() {
@@ -393,7 +393,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             highlightedNode = undefined;
         }
 
-        this.highlightSelection.update(highlightedNode != null ? [highlightedNode] : [], undefined, (node) =>
+        this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, (node) =>
             this.getDatumId(node)
         );
 
@@ -646,8 +646,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 
             const onlyLeaves = node.parent?.children.every((n) => n.children.length === 0);
-            const parentBbox = node.parent != null ? node.parent.bbox : undefined;
-            const parentPadding = node.parent != null ? node.parent.padding : undefined;
+            const parentBbox = node.parent == null ? undefined : node.parent.bbox;
+            const parentPadding = node.parent == null ? undefined : node.parent.padding;
             if (onlyLeaves === true && parentBbox != null && parentPadding != null) {
                 rect.clipBBox = bbox;
                 rect.x = parentBbox.x + parentPadding.left;
@@ -701,7 +701,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 childrenKey: this.properties.childrenKey,
                 colorKey: this.properties.colorKey,
                 colorName: this.properties.colorName ?? this.properties.colorKey,
-                depth: node.depth ?? NaN,
+                depth: node.depth ?? Number.NaN,
                 labelKey: this.properties.labelKey,
                 secondaryLabelKey: this.properties.secondaryLabelKey,
                 sizeKey: this.properties.sizeKey,
@@ -727,10 +727,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             text.zIndex = 1;
         };
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
-        this.labelSelection.selectByClass(Text).forEach((text) => {
+        for (const text of this.labelSelection.selectByClass(Text)) {
             const datum = text.closestDatum();
             updateLabelFn(datum, text, text.tag, datum === highlightedDatum);
-        });
+        }
     }
 
     override pickNodesExactShape(point: Point): TreemapNode[] {
@@ -766,7 +766,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        const datumSize = sizeKey == null ? undefined : datum[sizeKey];
         if (datumSize != null) {
             const sizeDomain = [0, this.rootNode?.sumSize ?? 0];
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -785,7 +785,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             data.push({ label: sizeName, fallbackLabel: sizeKey!, value: content ?? formatValue(datumSize) });
         }
 
-        const datumColor = colorKey != null ? datum[colorKey] : undefined;
+        const datumColor = colorKey == null ? undefined : datum[colorKey];
         if (datumColor != null) {
             const { colorDomain } = this;
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -832,7 +832,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                title: labelKey != null ? datum[labelKey] : undefined,
+                title: labelKey == null ? undefined : datum[labelKey],
                 symbol,
                 data,
             },

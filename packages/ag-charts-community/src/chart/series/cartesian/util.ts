@@ -28,6 +28,7 @@ export function calculateSegments(
         return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const axis = segmentation.key === ChartAxisDirection.X ? xAxis : yAxis;
     const { scale, direction } = axis;
 
@@ -73,14 +74,14 @@ export function calculateSegments(
             let startPosition = scale.convert(start ?? startFallback) - offset;
             let stopPosition = scale.convert(stop ?? stopFallback) + 2 * offset;
 
-            const invalidStart = start != null && isNaN(startPosition);
-            const invalidStop = stop != null && isNaN(stopPosition);
+            const invalidStart = start != null && Number.isNaN(startPosition);
+            const invalidStop = stop != null && Number.isNaN(stopPosition);
             if (invalidStart || invalidStop) {
                 continue;
             }
 
-            if (isNaN(startPosition)) startPosition = getDefaultStart();
-            if (isNaN(stopPosition)) stopPosition = getDefaultStop();
+            if (Number.isNaN(startPosition)) startPosition = getDefaultStart();
+            if (Number.isNaN(stopPosition)) stopPosition = getDefaultStop();
 
             if (stop != null) {
                 previousDefinedStopIndex = i;

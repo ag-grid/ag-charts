@@ -45,11 +45,11 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
             }
 
             usedOptions.push(`axis.${module.optionsKey}`);
-            options.axes.forEach((axis) => {
+            for (const axis of options.axes) {
                 if (axis[module.optionsKey as keyof typeof axis]) {
                     delete axis[module.optionsKey as keyof typeof axis];
                 }
-            });
+            }
         } else if (module.type === 'series') {
             if (module.community) continue;
             if (
@@ -70,12 +70,12 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
             }
 
             usedOptions.push(`series.${module.optionsKey}`);
-            options.series.forEach((series) => {
+            for (const series of options.series) {
                 type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
                 if (series[module.optionsKey as SeriesModuleKey]) {
                     delete series[module.optionsKey as SeriesModuleKey];
                 }
-            });
+            }
         }
     }
     if (usedOptions.length && !silent) {

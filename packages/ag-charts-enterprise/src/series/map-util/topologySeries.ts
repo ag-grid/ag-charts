@@ -31,13 +31,13 @@ export abstract class TopologySeries<
     }
 
     override getSeriesDomain() {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override getSeriesRange(
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 }

@@ -123,9 +123,7 @@ let globalStatsAccumulator: StatsAccumulator | undefined;
 let statsAccumulatorConsumers = 0;
 
 function getStatsAccumulator() {
-    if (!globalStatsAccumulator) {
-        globalStatsAccumulator = new StatsAccumulator();
-    }
+    globalStatsAccumulator ??= new StatsAccumulator();
 
     return globalStatsAccumulator;
 }
@@ -415,7 +413,7 @@ function pct(rendered: number, skipped: number) {
 }
 
 function time(name: string, start: number, end?: number) {
-    const duration = end != null ? end - start : start;
+    const duration = end == null ? start : end - start;
     return `${name}: ${Math.round(duration * 100) / 100}ms`;
 }
 

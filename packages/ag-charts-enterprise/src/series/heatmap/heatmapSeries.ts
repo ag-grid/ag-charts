@@ -212,7 +212,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override createNodeData() {
@@ -257,7 +257,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const sizeFittingHeight = () => ({ width, height, meta: null });
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const xDatum = xValues[datumIndex];
             const yDatum = yValues[datumIndex];
             const x = xScale.convert(xDatum) + xOffset;
@@ -335,7 +335,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     style,
                 });
             }
-        });
+        }
 
         return {
             itemId: this.properties.yKey ?? this.id,
@@ -540,8 +540,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined =
-            fill != null
-                ? {
+            fill == null
+                ? undefined
+                : {
                       marker: {
                           shape: 'square',
                           fill: fill,
@@ -552,8 +553,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                           lineDash: [0],
                           lineDashOffset: 0,
                       },
-                  }
-                : undefined;
+                  };
 
         return this.formatTooltipWithContext(
             tooltip,

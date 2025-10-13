@@ -44,7 +44,7 @@ const Collapsible: FunctionComponent<Props> = ({
         <div className={showNotes && !isEmptyContent ? styles.isOpen : undefined}>
             <button
                 className={classNames(styles.showHideButton, isEmptyContent ? 'button-tertiary' : '')}
-                onClick={!isEmptyContent ? collapsibleHandler : undefined}
+                onClick={isEmptyContent ? undefined : collapsibleHandler}
                 {...buttonDisabledProps}
             >
                 <div>
@@ -82,7 +82,7 @@ const Collapsible: FunctionComponent<Props> = ({
                     } ${isEmptyContent ? styles.noContent : ''}`}
                 >
                     <div>{children}</div>
-                    {!hideExpander ? (
+                    {hideExpander ? null : (
                         <a
                             className={styles.showMoreLink}
                             href="#"
@@ -96,7 +96,7 @@ const Collapsible: FunctionComponent<Props> = ({
                                 <Icon name={showMore ? 'chevronUp' : 'chevronDown'} />
                             </span>
                         </a>
-                    ) : null}
+                    )}
                 </div>
             )}
         </div>

@@ -28,19 +28,19 @@ export function createAngleMotionCalculator() {
         datum: AngleObject,
         status: _ModuleSupport.NodeUpdateState
     ) => {
-        angleKeys.forEach((key) => {
+        for (const key of angleKeys) {
             const map = angles[key];
             let from = (status === 'removed' || status === 'updated' ? node : datum)[key];
             let to = (status === 'removed' ? node : datum)[key];
-            if (isNaN(to)) {
-                to = node.previousDatum?.[key] ?? NaN;
+            if (Number.isNaN(to)) {
+                to = node.previousDatum?.[key] ?? Number.NaN;
             }
             const diff = from - to;
             if (Math.abs(diff) > Math.PI) {
                 from -= Math.sign(diff) * 2 * Math.PI;
             }
             map.set(datum, { from, to });
-        });
+        }
     };
     const getAngles = (datum: AngleObject, fromToKey: FromToKey) => {
         return {
@@ -59,10 +59,14 @@ export function fixRadialColumnAnimationStatus(
     status: _ModuleSupport.NodeUpdateState
 ) {
     if (status === 'updated') {
-        if (node.previousDatum == null || isNaN(node.previousDatum.startAngle) || isNaN(node.previousDatum.endAngle)) {
+        if (
+            node.previousDatum == null ||
+            Number.isNaN(node.previousDatum.startAngle) ||
+            Number.isNaN(node.previousDatum.endAngle)
+        ) {
             return 'added';
         }
-        if (isNaN(datum.startAngle) || isNaN(datum.endAngle)) {
+        if (Number.isNaN(datum.startAngle) || Number.isNaN(datum.endAngle)) {
             return 'removed';
         }
     }
@@ -136,9 +140,9 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
             axisInnerRadius = node.axisInnerRadius;
             axisOuterRadius = node.axisOuterRadius;
         } else {
-            innerRadius = isNaN(datum.innerRadius) ? axisZeroRadius : datum.innerRadius;
-            outerRadius = isNaN(datum.outerRadius) ? axisZeroRadius : datum.outerRadius;
-            columnWidth = isNaN(datum.columnWidth) ? node.columnWidth : datum.columnWidth;
+            innerRadius = Number.isNaN(datum.innerRadius) ? axisZeroRadius : datum.innerRadius;
+            outerRadius = Number.isNaN(datum.outerRadius) ? axisZeroRadius : datum.outerRadius;
+            columnWidth = Number.isNaN(datum.columnWidth) ? node.columnWidth : datum.columnWidth;
             axisInnerRadius = datum.axisInnerRadius;
             axisOuterRadius = datum.axisOuterRadius;
         }

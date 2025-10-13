@@ -39,15 +39,17 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: LegendDataMemento | undefined) {
-        memento?.forEach((datum) => {
-            const { seriesId, data } = this.getRestoredData(datum) ?? {};
+        if (memento) {
+            for (const datum of memento) {
+                const { seriesId, data } = this.getRestoredData(datum) ?? {};
 
-            if (!seriesId || !data) {
-                return;
+                if (!seriesId || !data) {
+                    continue;
+                }
+
+                this.updateData(seriesId, data);
             }
-
-            this.updateData(seriesId, data);
-        });
+        }
 
         this.update();
     }
@@ -119,13 +121,13 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
 
     public toggleItem(enabled: boolean, seriesId: string, itemId?: any, legendItemName?: string) {
         if (legendItemName) {
-            this.getData().forEach((datum) => {
+            for (const datum of this.getData()) {
                 const newData = (this.legendDataMap.get(datum.seriesId) ?? []).map((d) =>
                     d.legendItemName === legendItemName ? { ...d, enabled } : d
                 );
 
                 this.updateData(datum.seriesId, newData);
-            });
+            }
             return;
         }
 

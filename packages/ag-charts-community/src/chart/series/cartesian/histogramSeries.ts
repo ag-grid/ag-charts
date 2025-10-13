@@ -152,7 +152,7 @@ export class HistogramSeries extends CartesianSeries<
 
     private calculatePrecision(step: number): number {
         let precision = 10;
-        if (isFinite(step) && step > 0) {
+        if (Number.isFinite(step) && step > 0) {
             while (step < 1) {
                 precision *= 10;
                 step *= 10;
@@ -256,10 +256,10 @@ export class HistogramSeries extends CartesianSeries<
         const processedData = p as any as GroupedData<any>;
 
         const groups = new Map<string, { group: DataGroup; groupIndex: number }>();
-        processedData.groups.forEach((group, groupIndex) => {
+        for (const [groupIndex, group] of processedData.groups.entries()) {
             const domain = group.keys;
             groups.set(createDatumId(...domain), { group, groupIndex });
-        });
+        }
 
         this.calculatedBins = calculatedBinDomains.map((domain): CalculatedBin => {
             const g = groups.get(createDatumId(...domain));
@@ -280,11 +280,11 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override xCoordinateRange(): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override yCoordinateRange(): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
@@ -304,13 +304,13 @@ export class HistogramSeries extends CartesianSeries<
 
     override getSeriesRange(_direction: ChartAxisDirection, [r0, r1]: [any, any]): [number, number] {
         const { dataModel, processedData } = this;
-        if (!dataModel || processedData?.type !== 'grouped') return [NaN, NaN];
+        if (!dataModel || processedData?.type !== 'grouped') return [Number.NaN, Number.NaN];
 
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
 
         const yMin = 0;
         let yMax = -Infinity;
-        processedData.groups.forEach(({ keys, aggregation }) => {
+        for (const { keys, aggregation } of processedData.groups) {
             const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
             const [xDomainMin, xDomainMax] = keys;
 
@@ -320,9 +320,9 @@ export class HistogramSeries extends CartesianSeries<
                 const total = negativeAgg + positiveAgg;
                 yMax = Math.max(yMax, total);
             }
-        });
+        }
 
-        if (yMin > yMax) return [NaN, NaN];
+        if (yMin > yMax) return [Number.NaN, Number.NaN];
 
         return [yMin, yMax];
     }
@@ -360,7 +360,7 @@ export class HistogramSeries extends CartesianSeries<
             return context;
         }
 
-        this.calculatedBins.forEach(({ domain, datum, groupIndex, frequency, total }) => {
+        for (const { domain, datum, groupIndex, frequency, total } of this.calculatedBins) {
             const [xDomainMin, xDomainMax] = domain;
             const xMinPx = xScale.convert(xDomainMin);
             const xMaxPx = xScale.convert(xDomainMax);
@@ -421,7 +421,7 @@ export class HistogramSeries extends CartesianSeries<
                 label: selectionDatumLabel,
                 crisp: true,
             });
-        });
+        }
 
         // AG-11323 Sort bins from left-to-right for intuitive keyboard navigation.
         nodeData.sort((a, b) => a.x - b.x);

@@ -48,13 +48,13 @@ export abstract class PolarAxis<
         const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
 
-        (this.crossLines as PolarCrossLine[]).forEach((crossLine) => {
+        for (const crossLine of this.crossLines as PolarCrossLine[]) {
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.Angle : ChartAxisDirection.Radius;
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
             crossLine.calculateLayout?.(crosslinesVisible, this.reverse);
-        });
+        }
     }
 
     override updatePosition(): void {

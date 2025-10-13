@@ -115,23 +115,23 @@ export function aggregationRangeFittingPoints(
         const smallestKeyInterval = opts?.smallestKeyInterval;
         const xNeedsValueOf = opts?.xNeedsValueOf ?? true;
         const smallestPixelInterval =
-            smallestKeyInterval != null
-                ? smallestKeyInterval / (d1 - d0)
-                : estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf);
+            smallestKeyInterval == null
+                ? estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf)
+                : smallestKeyInterval / (d1 - d0);
         return nextPowerOf2(Math.trunc(1 / smallestPixelInterval)) >> 3;
     } else {
         let power = Math.ceil(Math.log2(xValues.length)) - 1;
         // This cap represents ~500MB for a Float64Array with 4 values per point (or half that for an Int32Array)
         // This is usually a temporary array, so actual resource usage is much lower
         power = Math.min(Math.max(power, 0), 24);
-        return (2 ** power) | 0;
+        return Math.trunc(2 ** power);
     }
 }
 
 export function aggregationDomain(scale: ScaleType, domain: any[]): [number, number] {
     switch (scale) {
         case 'category':
-            return [NaN, NaN];
+            return [Number.NaN, Number.NaN];
         case 'number':
         case 'time':
         case 'ordinal-time':
@@ -164,7 +164,7 @@ export function aggregationXRatioForXValue(xValue: any, d0: number, d1: number, 
 }
 
 export function aggregationIndexForXRatio(xRatio: number, maxRange: number) {
-    return (Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN) | 0;
+    return Math.trunc(Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN);
 }
 
 export function createAggregationIndices(
@@ -190,7 +190,7 @@ export function createAggregationIndices(
     // NOTE: This function has been aggressively optimized for performance over readability, please
     // take care not to undo optimizations when making changes here.
     const indexData = new Int32Array(maxRange * AGGREGATION_SPAN).fill(-1);
-    const valueData = new Float64Array(maxRange * AGGREGATION_SPAN).fill(NaN);
+    const valueData = new Float64Array(maxRange * AGGREGATION_SPAN).fill(Number.NaN);
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
 
@@ -201,13 +201,13 @@ export function createAggregationIndices(
     // Cache for current bucket to reduce array access overhead
     let lastAggIndex = -1;
     let cachedXMinIndex = -1;
-    let cachedXMinValue = NaN;
+    let cachedXMinValue = Number.NaN;
     let cachedXMaxIndex = -1;
-    let cachedXMaxValue = NaN;
+    let cachedXMaxValue = Number.NaN;
     let cachedYMinIndex = -1;
-    let cachedYMinValue = NaN;
+    let cachedYMinValue = Number.NaN;
     let cachedYMaxIndex = -1;
-    let cachedYMaxValue = NaN;
+    let cachedYMaxValue = Number.NaN;
 
     const flushCache = (aggIndex: number) => {
         // NOTE: Access order makes a performance difference here - do not change.
@@ -251,11 +251,11 @@ export function createAggregationIndices(
         let yMax: number;
         let yMin: number;
         if (yNeedsValueOf) {
-            yMax = yMaxValue != null ? yMaxValue.valueOf() : NaN;
-            yMin = yMinValue != null ? yMinValue.valueOf() : NaN;
+            yMax = yMaxValue == null ? Number.NaN : yMaxValue.valueOf();
+            yMin = yMinValue == null ? Number.NaN : yMinValue.valueOf();
         } else {
-            yMax = yMaxValue ?? NaN;
-            yMin = yMinValue ?? NaN;
+            yMax = yMaxValue ?? Number.NaN;
+            yMin = yMinValue ?? Number.NaN;
         }
 
         // Early continue for positive check
@@ -273,7 +273,7 @@ export function createAggregationIndices(
             xRatio = datumIndex * invDomainCount;
         }
 
-        const aggIndex = (Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN) | 0;
+        const aggIndex = Math.trunc(Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN);
 
         // Load cache when switching buckets
         if (aggIndex !== lastAggIndex) {
@@ -337,14 +337,14 @@ export function compactAggregationIndices(
     maxRange: number,
     { inPlace = false } = {}
 ) {
-    const nextMaxRange = (maxRange / 2) | 0;
-    const nextIndexData = !inPlace ? new Int32Array(nextMaxRange * AGGREGATION_SPAN) : indexData;
-    const nextValueData = !inPlace ? new Float64Array(nextMaxRange * AGGREGATION_SPAN) : valueData;
+    const nextMaxRange = Math.trunc(maxRange / 2);
+    const nextIndexData = inPlace ? indexData : new Int32Array(nextMaxRange * AGGREGATION_SPAN);
+    const nextValueData = inPlace ? valueData : new Float64Array(nextMaxRange * AGGREGATION_SPAN);
 
     for (let i = 0; i < nextMaxRange; i += 1) {
-        const aggIndex = (i * AGGREGATION_SPAN) | 0;
-        const index0 = (aggIndex * 2) | 0;
-        const index1 = (index0 + AGGREGATION_SPAN) | 0;
+        const aggIndex = Math.trunc(i * AGGREGATION_SPAN);
+        const index0 = Math.trunc(aggIndex * 2);
+        const index1 = Math.trunc(index0 + AGGREGATION_SPAN);
 
         const index1Unset = indexData[index1 + AGGREGATION_INDEX_X_MIN] === -1;
 

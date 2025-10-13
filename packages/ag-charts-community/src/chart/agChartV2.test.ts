@@ -43,7 +43,7 @@ describe('AgChartV2', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        document.body.removeChild(container);
+        container.remove();
     });
 
     const compare = async () => {
@@ -112,7 +112,9 @@ describe('AgChartV2', () => {
                 ...opts,
                 series: series?.map((s) => ({ ...s, grouped: idx === 0, stacked: idx !== 0 })),
             }));
-            exampleCycle.forEach((opts) => prepareTestOptions(opts));
+            for (const opts of exampleCycle) {
+                prepareTestOptions(opts);
+            }
             const snapshots: any[] = [];
 
             // Create initial chart instance.
@@ -163,7 +165,9 @@ describe('AgChartV2', () => {
                 ...opts,
                 axes: axes?.map((a) => adjustPosition(a, idx)),
             }));
-            exampleCycle.forEach((opts) => prepareTestOptions(opts));
+            for (const opts of exampleCycle) {
+                prepareTestOptions(opts);
+            }
 
             // Create initial chart instance.
             chart = AgCharts.create(exampleCycle[0]);

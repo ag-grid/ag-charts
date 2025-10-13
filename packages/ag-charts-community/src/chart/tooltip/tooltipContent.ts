@@ -46,7 +46,7 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
     for (const item of content) {
         if (item.type === 'structured') {
             const { heading } = item;
-            const insertionTarget = heading != null ? groupedContents.get(heading) : undefined;
+            const insertionTarget = heading == null ? undefined : groupedContents.get(heading);
             const groupedItem: GroupedTooltipContent = { type: 'structured', heading, items: [item] };
             if (insertionTarget == null) {
                 groupedContents.set(heading!, groupedItem);
@@ -65,20 +65,24 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
     const content = aggregateTooltipContent(ungroupedContent);
     const ariaLabel: string[] = [];
 
-    content.forEach((c) => {
-        if (c.type === 'raw') return '';
+    for (const c of content) {
+        if (c.type === 'raw') {
+            continue;
+        }
         if (c.heading != null) {
             ariaLabel.push(toPlainText(c.heading));
         }
-        c.items.forEach((i) => {
+        for (const i of c.items) {
             if (i.title != null) {
                 ariaLabel.push(toPlainText(i.title));
             }
-            i.data?.forEach((datum) => {
-                ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
-            });
-        });
-    });
+            if (i.data) {
+                for (const datum of i.data) {
+                    ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+                }
+            }
+        }
+    }
 
     return ariaLabel.join('; ');
 }
@@ -124,11 +128,12 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
         html += ' ';
     }
 
-    content.data?.forEach((datum) => {
-        html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
-        html += ' ';
-    });
-
+    if (content.data) {
+        for (const datum of content.data) {
+            html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
+            html += ' ';
+        }
+    }
     return html;
 }
 
@@ -177,10 +182,12 @@ function tooltipContentHtml(
             html += dataHtml(undefined, compactTitle, false);
         }
 
-        singleItem.data?.forEach((datum) => {
-            html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
-            html += ' ';
-        });
+        if (singleItem.data) {
+            for (const datum of singleItem.data) {
+                html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
+                html += ' ';
+            }
+        }
     } else {
         // Full rendering
         if (content.heading != null) {
@@ -188,9 +195,9 @@ function tooltipContentHtml(
             html += ' ';
         }
 
-        content.items.forEach((item) => {
+        for (const item of content.items) {
             html += tooltipRowContentHtml(item);
-        });
+        }
     }
 
     if (html.length === 0) return;

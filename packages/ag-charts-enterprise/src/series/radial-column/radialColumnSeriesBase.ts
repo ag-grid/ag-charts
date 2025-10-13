@@ -397,7 +397,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected getColumnWidth(_startAngle: number, _endAngle: number) {
-        return NaN;
+        return Number.NaN;
     }
 
     update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {

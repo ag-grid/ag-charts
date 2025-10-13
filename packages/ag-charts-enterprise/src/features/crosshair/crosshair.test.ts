@@ -342,7 +342,7 @@ describe('Crosshair', () => {
             { month: 'Jul', subscriptions: 300, services: 255, products: 100 },
             { month: 'Aug', subscriptions: 270, services: 305, products: 210 },
             { month: 'Sep', subscriptions: 260, services: 280, products: 250 },
-            { month: 'Oct', subscriptions: 385, services: 250, products: NaN },
+            { month: 'Oct', subscriptions: 385, services: 250, products: Number.NaN },
             { month: 'Nov', subscriptions: 320, services: 265, products: 215 },
             { month: 'Dec', subscriptions: 330, services: 255, products: 220 },
         ];

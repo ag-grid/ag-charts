@@ -277,9 +277,9 @@ export class AgChartInstanceProxy implements AgChartProxy {
         cloneProxy.chart?.ctx.legendManager.clearData();
         cloneProxy.chart?.ctx.legendManager.update(chart.ctx.legendManager.getData());
 
-        chart.series.forEach((series, index) => {
+        for (const [index, series] of chart.series.entries()) {
             cloneProxy.chart!.series[index].visible = series.visible; // sync series visibility
-        });
+        }
 
         // Sync legend pagination
         const legendPages = [];

@@ -471,7 +471,7 @@ function OpeningBrackets({
     }
 
     return (
-        <span className={styles.punctuation} onClick={!isOpen ? onClick : undefined}>
+        <span className={styles.punctuation} onClick={isOpen ? undefined : onClick}>
             {bracketString}
         </span>
     );

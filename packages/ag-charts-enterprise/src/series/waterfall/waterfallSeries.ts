@@ -131,12 +131,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return result;
         }, new Map());
 
-        data?.data.forEach((datum, i) => {
+        for (const [i, datum] of data?.data.entries() ?? []) {
             dataWithTotals.push(datum);
             // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
             // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
-            totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
-        });
+            const totalsAtIndex = totalsMap.get(i);
+            if (totalsAtIndex) {
+                for (const total of totalsAtIndex) {
+                    dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel });
+                }
+            }
+        }
 
         const extraProps = [];
 
@@ -228,7 +233,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override createNodeData() {
@@ -323,7 +328,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, yKey, xName, yName } = this.properties;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const [datumIndex, datum] of rawData.entries()) {
             const datumType = totalTypeValues[datumIndex];
 
             const isSubtotal = this.isSubtotal(datumType);
@@ -331,7 +336,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const isTotalOrSubtotal = isTotal || isSubtotal;
 
             const xDatum = xValues[datumIndex];
-            if (xDatum == null) return;
+            if (xDatum == null) continue;
 
             const x = Math.round(xScale.convert(xDatum));
 
@@ -459,7 +464,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             context.nodeData.push(nodeDatum);
             context.labelData.push(nodeDatum);
-        });
+        }
 
         const connectorLinesEnabled = this.properties.line.enabled;
         if (yCurrValues != null && connectorLinesEnabled) {
@@ -498,11 +503,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return;
         }
 
-        itemTypes.forEach((type) => {
+        for (const type of itemTypes) {
             if (type === 'total' || type === 'subtotal') {
                 seriesItemTypes.add('total');
             }
-        });
+        }
     }
 
     private isSubtotal(datumType: AgWaterfallSeriesItemType | undefined) {
@@ -775,7 +780,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { showInLegend } = this.properties;
 
-        seriesItemTypes.forEach((item) => {
+        for (const item of seriesItemTypes) {
             const { name } = this.getItemConfig(item);
             legendData.push({
                 legendType: 'category',
@@ -788,7 +793,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 hideInLegend: !showInLegend,
                 isFixed: true,
             });
-        });
+        }
 
         return legendData;
     }
@@ -854,14 +859,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             onUpdate(pointX) {
                 linePath.clear(true);
 
-                pointData.forEach((point, index) => {
+                for (const [index, point] of pointData.entries()) {
                     const x = scale(pointX, startX, endX, startX, point.x);
                     const x2 = scale(pointX, startX, endX, startX, point.x2);
                     if (index !== 0) {
                         linePath.lineTo(x, point.y);
                     }
                     linePath.moveTo(x2, point.y2);
-                });
+                }
 
                 lineNode.checkPathDirty();
             },
@@ -906,14 +911,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             onUpdate(pointY) {
                 linePath.clear(true);
 
-                pointData.forEach((point, index) => {
+                for (const [index, point] of pointData.entries()) {
                     const y = scale(pointY, startY, endY, startY, point.y);
                     const y2 = scale(pointY, startY, endY, startY, point.y2);
                     if (index !== 0) {
                         linePath.lineTo(point.x, y);
                     }
                     linePath.moveTo(point.x2, y2);
-                });
+                }
 
                 lineNode.checkPathDirty();
             },
@@ -952,12 +957,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         if (!pointData) {
             return;
         }
-        pointData.forEach((point, index) => {
+        for (const [index, point] of pointData.entries()) {
             if (index !== 0) {
                 linePath.lineTo(point.x, point.y);
             }
             linePath.moveTo(point.x2, point.y2);
-        });
+        }
 
         lineNode.checkPathDirty();
     }

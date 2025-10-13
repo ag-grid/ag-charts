@@ -14,18 +14,18 @@ const DELTA = 0.5;
 export class SpringAnimation {
     readonly events = new EventEmitter<{ update: SpringAnimationUpdateEvent }>();
 
-    private x1 = NaN;
-    private y1 = NaN;
-    public x = NaN;
-    public y = NaN;
+    private x1 = Number.NaN;
+    private y1 = Number.NaN;
+    public x = Number.NaN;
+    public y = Number.NaN;
     private vx = 0;
     private vy = 0;
-    private t0 = NaN;
+    private t0 = Number.NaN;
     private animationFrameHandle: number | undefined = undefined;
 
     reset() {
-        this.x = NaN;
-        this.y = NaN;
+        this.x = Number.NaN;
+        this.y = Number.NaN;
 
         if (this.animationFrameHandle != null) {
             cancelAnimationFrame(this.animationFrameHandle);

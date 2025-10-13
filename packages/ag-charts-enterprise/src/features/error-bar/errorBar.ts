@@ -78,7 +78,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             series.events.on('data-processed', (e) => this.onDataProcessed(e)),
             series.events.on('data-update', (e) => this.onDataUpdate(e)),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
-            () => annotationGroup.removeChild(this.groupNode),
+            () => this.groupNode.remove(),
             () => annotationSelections.delete(this.selection)
         );
     }

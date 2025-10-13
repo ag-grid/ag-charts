@@ -414,7 +414,7 @@ export abstract class OhlcSeriesBase<
 
                 if (openIndex === -1) continue;
 
-                const midDatumIndex = ((openIndex + closeIndex) / 2) | 0;
+                const midDatumIndex = Math.trunc((openIndex + closeIndex) / 2);
 
                 const xValue = xValues[midDatumIndex];
                 if (xValue == null) continue;
