@@ -1,10 +1,10 @@
 import type {
     AgMarkerShape,
+    AgRangeAreaSeriesItemStylerParams,
     AgRangeAreaSeriesItemType,
     AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
-    AgRangeAreaSeriesOptionsKeys,
     AgRangeAreaSeriesTooltipRendererParams,
     AgSeriesMarkerOptions,
     AgSeriesMarkerStyle,
@@ -35,11 +35,15 @@ const {
     Property,
     DropShadow,
     Label,
-    Deprecated,
 } = _ModuleSupport;
 
 type RangeAreaSeriesItemOptions = NonNullable<AgRangeAreaSeriesOptions['item']>;
 type RangeAreaSeriesLineOptions = NonNullable<RangeAreaSeriesItemOptions[AgRangeAreaSeriesItemType]>;
+
+export type RangeAreaSeriesParams = Pick<
+    AgRangeAreaSeriesItemStylerParams<unknown, unknown>,
+    'xKey' | 'yLowKey' | 'yHighKey' | 'itemId'
+>;
 
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {
     @Property
@@ -77,7 +81,7 @@ class RangeAreaLineStyle extends BaseProperties<RangeAreaSeriesLineOptions> {
     lineDashOffset: number = 0;
 
     @Property
-    readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys>();
+    readonly marker = new SeriesMarker<RangeAreaSeriesParams>();
 }
 
 class RangeAreaItemProperties extends BaseProperties<RangeAreaSeriesItemOptions> {
@@ -88,40 +92,38 @@ class RangeAreaItemProperties extends BaseProperties<RangeAreaSeriesItemOptions>
     high = new RangeAreaLineStyle();
 }
 
-const DeprecatedMessage = (alt: string) => `Use item.low.${alt} and item.high.${alt} instead`;
-
-class DeprecatedRangeAreaMarker extends BaseProperties<AgSeriesMarkerOptions<unknown, unknown, unknown>> {
-    @Deprecated(DeprecatedMessage('marker.enabled'))
+class SharedRangeAreaMarker extends BaseProperties<AgSeriesMarkerOptions<unknown, unknown, unknown>> {
+    @Property
     enabled?: boolean;
 
-    @Deprecated(DeprecatedMessage('marker.shape'))
+    @Property
     shape?: AgMarkerShape;
 
-    @Deprecated(DeprecatedMessage('marker.size'))
+    @Property
     size?: number;
 
-    @Deprecated(DeprecatedMessage('marker.fill'))
+    @Property
     fill?: InternalAgColorType;
 
-    @Deprecated(DeprecatedMessage('marker.fillOpacity'))
+    @Property
     fillOpacity?: number;
 
-    @Deprecated(DeprecatedMessage('marker.stroke'))
+    @Property
     stroke?: string;
 
-    @Deprecated(DeprecatedMessage('marker.strokeWidth'))
+    @Property
     strokeWidth?: number;
 
-    @Deprecated(DeprecatedMessage('marker.strokeOpacity'))
+    @Property
     strokeOpacity?: number;
 
-    @Deprecated(DeprecatedMessage('marker.lineDash'))
+    @Property
     lineDash?: number[];
 
-    @Deprecated(DeprecatedMessage('marker.lineDashOffset'))
+    @Property
     lineDashOffset?: number;
 
-    @Deprecated(DeprecatedMessage('marker.itemStyler'))
+    @Property
     itemStyler?: AgSeriesMarkerOptions<unknown, unknown, unknown>['itemStyler'];
 }
 
@@ -153,19 +155,19 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @Property
     fillOpacity: number = 1;
 
-    @Deprecated(DeprecatedMessage('stroke'))
+    @Property
     stroke?: string;
 
-    @Deprecated(DeprecatedMessage('strokeWidth'))
+    @Property
     strokeWidth?: number;
 
-    @Deprecated(DeprecatedMessage('strokeOpacity'))
+    @Property
     strokeOpacity?: number;
 
-    @Deprecated(DeprecatedMessage('lineDash'))
+    @Property
     lineDash?: number[];
 
-    @Deprecated(DeprecatedMessage('lineDashOffset'))
+    @Property
     lineDashOffset?: number;
 
     @Property
@@ -184,7 +186,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     readonly shadow = new DropShadow().set({ enabled: false });
 
     @Property
-    readonly marker = new DeprecatedRangeAreaMarker();
+    readonly marker = new SharedRangeAreaMarker();
 
     @Property
     readonly label = new RangeAreaSeriesLabel();

@@ -4,22 +4,100 @@ import type { NonNullablePath } from 'ag-charts-core';
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
 const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemOptions]> = {
-    stroke: { $palette: 'stroke' },
-    strokeWidth: 1,
+    lineDash: {
+        $path: '/series/$index/lineDash',
+    },
+    lineDashOffset: {
+        $path: '/series/$index/lineDashOffset',
+    },
+    stroke: {
+        $path: ['/series/$index/stroke', { $palette: 'stroke' }],
+    },
+    strokeOpacity: {
+        $path: '/series/$index/strokeOpacity',
+    },
+    strokeWidth: {
+        $path: ['/series/$index/strokeWidth', 1],
+    },
     marker: {
-        enabled: false,
-        fill: {
-            $applySwitch: [
-                { $path: 'type' },
-                { $palette: 'fill' },
-                ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+        enabled: {
+            $isUserOption: [
+                '/series/$index/marker',
+                {
+                    $path: ['/series/$index/marker/enabled', true],
+                },
+                false,
             ],
         },
-        stroke: { $palette: 'stroke' },
-        size: 6,
-        strokeWidth: 2,
+
+        fill: {
+            $isUserOption: [
+                '/series/$index/marker/fill',
+                {
+                    $if: [
+                        {
+                            $or: [
+                                { $isGradient: { $path: '/series/$index/marker/fill' } },
+                                { $isImage: { $path: '/series/$index/marker/fill' } },
+                                { $isPattern: { $path: '/series/$index/marker/fill' } },
+                            ],
+                        },
+                        {
+                            $merge: [
+                                { $path: '/series/$index/marker/fill' },
+                                {
+                                    $applySwitch: [
+                                        { $path: 'type' },
+                                        undefined, // default case shouldn't be hit because of $if
+                                        ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            $isUserOption: [
+                                '/series/$index/marker/fill',
+                                { $path: '/series/$index/marker/fill' },
+                                { $palette: 'fill' },
+                            ],
+                        },
+                    ],
+                },
+
+                {
+                    $applySwitch: [
+                        { $path: 'type' },
+                        { $palette: 'fill' },
+                        ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                    ],
+                },
+            ],
+        },
+        lineDash: {
+            $path: '/series/$index/marker/lineDash',
+        },
+        lineDashOffset: {
+            $path: '/series/$index/marker/lineDashOffset',
+        },
+        shape: {
+            $path: '/series/$index/marker/shape',
+        },
+        size: {
+            $path: ['/series/$index/marker/size', 6],
+        },
+        stroke: {
+            $path: ['/series/$index/marker/stroke', { $palette: 'stroke' }],
+        },
+        strokeOpacity: {
+            $path: '/series/$index/marker/strokeOpacity',
+        },
+        strokeWidth: {
+            $path: ['/series/$index/marker/strokeWidth', 2],
+        },
     },
 };
 
