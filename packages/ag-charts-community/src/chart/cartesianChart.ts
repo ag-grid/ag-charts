@@ -15,6 +15,7 @@ import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
+import type { LayoutContext } from './layout/layoutManager';
 import type { SeriesArea } from './series-area/seriesArea';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
@@ -111,18 +112,18 @@ export class CartesianChart extends Chart {
         }
     }
 
-    private lastLayoutWidth = NaN;
-    private lastLayoutHeight = NaN;
-    protected performLayout(layoutBox: BBox) {
+    private lastLayoutWidth = Number.NaN;
+    private lastLayoutHeight = Number.NaN;
+    protected performLayout(ctx: LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
-        const { clipSeries, seriesRect, visible } = this.updateAxes(layoutBox);
+        const { clipSeries, seriesRect, visible } = this.updateAxes(ctx.layoutBox);
 
         this.seriesRoot.visible = visible;
         this.seriesRect = seriesRect;
-        this.animationRect = layoutBox;
+        this.animationRect = ctx.layoutBox;
 
         const { x, y } = seriesRect;
-        if (layoutBox.width !== this.lastLayoutWidth || layoutBox.height !== this.lastLayoutHeight) {
+        if (ctx.width !== this.lastLayoutWidth || ctx.height !== this.lastLayoutHeight) {
             // For initial rendering, don't animate.
             for (const group of [seriesRoot, annotationRoot]) {
                 group.translationX = Math.floor(x);
@@ -142,8 +143,8 @@ export class CartesianChart extends Chart {
             );
         }
 
-        this.lastLayoutWidth = layoutBox.width;
-        this.lastLayoutHeight = layoutBox.height;
+        this.lastLayoutWidth = ctx.width;
+        this.lastLayoutHeight = ctx.height;
 
         const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
         const seriesPaddedRect = seriesRect.clone().grow(seriesArea.getPadding());
@@ -166,7 +167,7 @@ export class CartesianChart extends Chart {
             this.setRootClipRects(clipRect);
         }
 
-        this.ctx.layoutManager.emitLayoutComplete(layoutBox, {
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
             axes: this.axes.map((axis) => axis.getLayoutState()),
             series: {
                 visible,

@@ -97,7 +97,7 @@ export class Navigator extends AbstractModuleInstance {
         }
     }
 
-    protected onLayoutStart(layoutBox: _ModuleSupport.BBox) {
+    protected onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
         if (this.enabled) {
             const navigatorTotalHeight = this.height + this.spacing;
             layoutBox.shrink(navigatorTotalHeight, 'bottom');

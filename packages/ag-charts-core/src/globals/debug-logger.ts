@@ -76,7 +76,7 @@ export function Time(name: string, opts: DebugTimingOptions = {}) {
 
             if (logResult) logMessage.result = result;
             if (logArgs) logMessage.args = args;
-            if (logStack) logMessage.stack = new Error().stack;
+            if (logStack) logMessage.stack = new Error('Stack trace for timing debug').stack;
             if (logData) logMessage.logData = logData(this);
 
             log(name, logMessage);

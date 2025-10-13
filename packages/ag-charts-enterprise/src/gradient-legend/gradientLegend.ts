@@ -134,7 +134,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         scene.appendChild(this.legendGroup);
     }
 
-    private onStartLayout(layoutBox: _ModuleSupport.BBox) {
+    private onStartLayout({ layoutBox }: _ModuleSupport.LayoutContext) {
         const [data] = this.data;
 
         if (!this.enabled || !data?.enabled || data.legendType !== 'gradient') {

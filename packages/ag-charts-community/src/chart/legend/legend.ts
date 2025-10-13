@@ -53,7 +53,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
-import { LayoutElement } from '../layout/layoutManager';
+import { type LayoutContext, LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
 import { applyShapeStyle, getShapeStyle } from '../series/shapeUtil';
@@ -264,7 +264,7 @@ export class Legend extends BaseProperties {
         }
     })
     @Property
-    enabled: boolean = true;
+    enabled: boolean = false;
 
     @Property
     position: AgChartLegendPosition = 'bottom';
@@ -1197,19 +1197,17 @@ export class Legend extends BaseProperties {
         this.domProxy.onLocaleChanged(this.ctx.localeManager, this.itemSelection, this);
     }
 
-    private positionLegend(layoutBox: BBox) {
-        const oldPages = this.positionLegendScene(layoutBox);
+    private positionLegend(ctx: LayoutContext) {
+        const oldPages = this.positionLegendScene(ctx);
         this.positionLegendDOM(oldPages);
     }
-    private positionLegendScene(layoutBox: BBox) {
+    private positionLegendScene(ctx: LayoutContext) {
         if (!this.enabled || !this.data.length) return;
 
         const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
-        const placementBox =
-            floating && (layoutBox.x !== 0 || layoutBox.y !== 0)
-                ? new BBox(0, 0, this.ctx.scene.width, this.ctx.scene.height)
-                : layoutBox;
-        const { x, y, width, height } = placementBox;
+        // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
+        const layoutBox = floating ? new BBox(0, 0, ctx.width, ctx.height) : ctx.layoutBox;
+        const { x, y, width, height } = layoutBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
 
         const { oldPages } = this.calcLayout(legendWidth, legendHeight);
@@ -1267,7 +1265,7 @@ export class Legend extends BaseProperties {
 
             if (!floating) {
                 let shrinkAmount: number;
-                let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
+                let shrinkDirection: NonNullable<Parameters<BBox['shrink']>[1]>;
                 switch (placement) {
                     case 'top':
                     case 'top-right':

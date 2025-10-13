@@ -5,6 +5,7 @@ import type { LayoutCompleteEvent } from '../core/eventsHub';
 import type { BBox } from '../scene/bbox';
 import { Property } from '../util/properties';
 import { Caption } from './caption';
+import type { LayoutContext } from './layout/layoutManager';
 
 export class ChartCaptions {
     @Property
@@ -16,7 +17,7 @@ export class ChartCaptions {
     @Property
     readonly footnote = new Caption();
 
-    positionCaptions(layoutBox: BBox) {
+    positionCaptions({ layoutBox }: LayoutContext) {
         const { title, subtitle, footnote } = this;
         const maxHeight = layoutBox.height / 10; // Limit to 10% of layout initial height
 

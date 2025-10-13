@@ -65,7 +65,7 @@ import { DataSet } from './data/dataSet';
 import type { ChartType } from './factory/expectedModules';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
-import { LayoutElement } from './layout/layoutManager';
+import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
@@ -360,9 +360,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
-            ctx.layoutManager.registerElement(LayoutElement.Caption, (layoutBox) => {
-                layoutBox.shrink(this.padding.toJson());
-                this.chartCaptions.positionCaptions(layoutBox);
+            ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
+                e.layoutBox.shrink(this.padding.toJson());
+                this.chartCaptions.positionCaptions(e);
             }),
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
@@ -1119,9 +1119,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if (this.mode !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
-            const seriesMarkerFills: {
-                [key: string]: Map<TextOrSegments, AgColorType | undefined>;
-            } = {};
+            const seriesMarkerFills: { [key: string]: Map<TextOrSegments, AgColorType | undefined> } = {};
             const seriesTypeMap = new Map(this.series.map((s) => [s.id, s.type]));
 
             for (const {
@@ -1163,7 +1161,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
-    protected abstract performLayout(ctx: BBox): Promise<void> | void;
+    protected abstract performLayout(ctx: LayoutContext): Promise<void> | void;
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;
@@ -1291,7 +1289,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
 
-        const modulesChanged = this.applyModules(newOpts);
+        const modulesChanged = this.applyModules();
 
         const skip = [
             'type',
@@ -1551,14 +1549,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private applyModules(options: AgChartOptions) {
+    private applyModules() {
         const { type: chartType } = this.constructor as any;
 
         let modulesChanged = false;
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-            const isConfigured = options[module.name as keyof AgChartOptions] != null;
-            const shouldBeEnabled = isConfigured && (!module.chartType || module.chartType === chartType);
-
+            const shouldBeEnabled = !module.chartType || module.chartType === chartType;
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
             if (shouldBeEnabled) {

@@ -278,7 +278,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         }
     }
 
-    private startPerformLayout(layoutBox: _ModuleSupport.BBox) {
+    private startPerformLayout({ layoutBox }: _ModuleSupport.LayoutContext) {
         this.labelGroup.translationX = 0;
         this.labelGroup.translationY = 0;
 

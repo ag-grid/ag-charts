@@ -39,7 +39,7 @@ export class Ranges extends AbstractModuleInstance {
         this.toolbar.destroy();
     }
 
-    private onLayoutStart(layoutBox: _ModuleSupport.BBox) {
+    private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
         const { buttons, ctx, enabled, toolbar, verticalSpacing } = this;
 
         if (!enabled || !ctx.zoomManager.isZoomEnabled()) {

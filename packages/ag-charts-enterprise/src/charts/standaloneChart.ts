@@ -10,10 +10,10 @@ export class StandaloneChart extends Chart {
         return 'standalone' as const;
     }
 
-    protected performLayout(layoutBox: _ModuleSupport.BBox) {
+    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
         const seriesArea = this.modulesManager.getModule('seriesArea') as _ModuleSupport.SeriesArea;
-        const seriesRect = layoutBox.clone().shrink(seriesArea.getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -25,8 +25,8 @@ export class StandaloneChart extends Chart {
 
         seriesRoot.visible = this.series[0].visible;
 
-        this.ctx.layoutManager.emitLayoutComplete(layoutBox, {
-            series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+            series: { visible: true, rect: seriesRect, paddedRect: ctx.layoutBox },
         });
     }
 

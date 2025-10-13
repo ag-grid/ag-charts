@@ -48,11 +48,11 @@ export class TopologyChart extends Chart {
         }
     }
 
-    protected performLayout(layoutBox: _ModuleSupport.BBox) {
+    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
 
         const seriesAreaModule: any = this.modulesManager.getModule('seriesArea');
-        const seriesRect = layoutBox.clone().shrink(seriesAreaModule.getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(seriesAreaModule.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -113,8 +113,8 @@ export class TopologyChart extends Chart {
             group.setClipRect(seriesRect.clone());
         }
 
-        this.ctx.layoutManager.emitLayoutComplete(layoutBox, {
-            series: { visible: seriesVisible, rect: seriesRect, paddedRect: layoutBox },
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+            series: { visible: seriesVisible, rect: seriesRect, paddedRect: ctx.layoutBox },
         });
     }
 }

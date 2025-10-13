@@ -39,10 +39,10 @@ export class ChartToolbar extends AbstractModuleInstance {
         );
     }
 
-    private onLayoutStart(layoutBox: _ModuleSupport.BBox) {
+    private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.updateButton();
-        this.toolbar.layout(layoutBox);
+        this.toolbar.layout(ctx.layoutBox);
     }
 
     private onButtonPressed({ event, buttonBounds, buttonWidget }: _ModuleSupport.ToolbarEventMap['button-pressed']) {

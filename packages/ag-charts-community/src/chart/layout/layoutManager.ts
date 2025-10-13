@@ -3,6 +3,12 @@ import type { EventListener } from 'ag-charts-core';
 import type { AxisLayout, EventsHub } from '../../core/eventsHub';
 import { BBox } from '../../scene/bbox';
 
+export interface LayoutContext {
+    width: number;
+    height: number;
+    layoutBox: BBox;
+}
+
 export interface LayoutState {
     axes?: AxisLayout[];
     clipSeries?: boolean;
@@ -19,11 +25,11 @@ export enum LayoutElement {
 }
 
 export class LayoutManager {
-    private readonly elements = new Map<LayoutElement, Set<EventListener<BBox>>>();
+    private readonly elements = new Map<LayoutElement, Set<EventListener<LayoutContext>>>();
 
     constructor(private readonly eventsHub: EventsHub) {}
 
-    registerElement(element: LayoutElement, listener: EventListener<BBox>) {
+    registerElement(element: LayoutElement, listener: EventListener<LayoutContext>) {
         if (this.elements.has(element)) {
             this.elements.get(element)!.add(listener);
         } else {
@@ -32,8 +38,8 @@ export class LayoutManager {
         return () => this.elements.get(element)?.delete(listener);
     }
 
-    createContext(width: number, height: number): BBox {
-        const context = new BBox(0, 0, width, height);
+    createContext(width: number, height: number): LayoutContext {
+        const context = { width, height, layoutBox: new BBox(0, 0, width, height) };
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
             const listeners = this.elements.get(element);
@@ -46,8 +52,7 @@ export class LayoutManager {
         return context;
     }
 
-    emitLayoutComplete(layoutBox: BBox, options: LayoutState) {
-        const { width, height } = layoutBox;
+    emitLayoutComplete({ width, height }: LayoutContext, options: LayoutState) {
         this.eventsHub.emit('layout:complete', {
             axes: options.axes ?? [],
             chart: { width, height },

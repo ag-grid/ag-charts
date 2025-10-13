@@ -10,6 +10,8 @@ import { StandaloneChartModule } from './charts/standaloneChartModule';
 import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnimationModule } from './features/animation/animationModule';
 import { BackgroundModule } from './features/background/backgroundModule';
+import { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
+import { ContextMenuModule } from './features/context-menu/contextMenuModule';
 import { CrosshairModule } from './features/crosshair/crosshairModule';
 import { DataSourceModule } from './features/data-source/dataSourceModule';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
@@ -83,6 +85,9 @@ export {
     MapShapeBackgroundSeriesModule,
     CrosshairModule,
     AnimationModule,
+    BackgroundModule,
+    BandHighlightModule,
+    ContextMenuModule,
     DataSourceModule,
     ErrorBarsModule,
     ForegroundModule,
@@ -105,6 +110,8 @@ export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     CrosshairModule,
     AnimationModule,
     BackgroundModule,
+    BandHighlightModule,
+    ContextMenuModule,
     DataSourceModule,
     ErrorBarsModule,
     ForegroundModule,
@@ -125,6 +132,7 @@ export const AllPolarEnterpriseModules: ModuleDefinition[] = [
     RadialColumnSeriesModule,
     AnimationModule,
     BackgroundModule,
+    ContextMenuModule,
     DataSourceModule,
     ForegroundModule,
     GradientLegendModule,
@@ -141,6 +149,7 @@ export const AllStandaloneEnterpriseModules: ModuleDefinition[] = [
     SankeySeriesModule,
     AnimationModule,
     BackgroundModule,
+    ContextMenuModule,
     DataSourceModule,
     ForegroundModule,
     GradientLegendModule,
@@ -155,6 +164,7 @@ export const AllTopologyEnterpriseModules: ModuleDefinition[] = [
     MapShapeBackgroundSeriesModule,
     AnimationModule,
     BackgroundModule,
+    ContextMenuModule,
     DataSourceModule,
     ForegroundModule,
     GradientLegendModule,
