@@ -2696,9 +2696,7 @@ export class DataModel<
         bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
         preScanDomainStats: Map<IDataDomain, ReturnType<BandedDomain['getStats']>>
     ) {
-        if (!processedData.optimizations) {
-            processedData.optimizations = {};
-        }
+        processedData.optimizations ??= {};
 
         const keyDefs: Array<{
             property: string;

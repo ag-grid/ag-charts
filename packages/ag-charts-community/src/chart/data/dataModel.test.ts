@@ -111,14 +111,14 @@ const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number
 /**
  * JSON replacer for serializing Maps and Sets
  */
-function jsonReplacer(_key: string, value: any): any {
-    if (value instanceof Map) {
-        return { __type: 'Map', value: Array.from(value.entries()) };
+function jsonReplacer(_key: string, val: any): any {
+    if (val instanceof Map) {
+        return { __type: 'Map', value: Array.from(val.entries()) };
     }
-    if (value instanceof Set) {
-        return { __type: 'Set', value: Array.from(value) };
+    if (val instanceof Set) {
+        return { __type: 'Set', value: Array.from(val) };
     }
-    return value;
+    return val;
 }
 
 /**

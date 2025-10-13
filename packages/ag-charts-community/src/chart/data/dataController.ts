@@ -390,7 +390,7 @@ export class DataController {
     }
 
     /** JSON replacer for serializing non-JSON-serializable objects like Map and Set */
-    private static jsonReplacer(_key: string, value: any): any {
+    private static jsonReplacer(this: void, _key: string, value: any): any {
         if (value instanceof Map) {
             return { __type: 'Map', value: Array.from(value.entries()) };
         }
