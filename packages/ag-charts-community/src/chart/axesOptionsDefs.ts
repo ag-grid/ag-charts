@@ -222,7 +222,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
 > = {
     ...commonAxisOptionsDefs,
     crossAt: {
-        value: or(number, date, string, arrayOf(string)),
+        value: required(or(number, date, string, arrayOf(string))),
         sticky: boolean,
     },
     keys: arrayOf(string),
