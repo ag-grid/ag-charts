@@ -8,9 +8,11 @@ import {
 
 import { type DatumType, getData } from './data';
 
-type ItemStyle = Pick<
-    AgRangeAreaSeriesThemeableOptions,
-    'marker' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset'
+type ItemStyle = Partial<
+    Pick<
+        AgRangeAreaSeriesThemeableOptions,
+        'marker' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset'
+    >
 >;
 
 const series0Style: ItemStyle = {
