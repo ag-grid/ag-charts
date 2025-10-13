@@ -1,5 +1,5 @@
-import type { AgDataSourceOptions } from 'ag-charts-community';
 import { type PluginModuleDefinition, callback } from 'ag-charts-core';
+import type { AgDataSourceOptions } from 'ag-charts-types';
 
 import { DataSource } from './dataSource';
 

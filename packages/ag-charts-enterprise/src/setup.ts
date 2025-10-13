@@ -14,13 +14,10 @@ export function setupEnterpriseModules() {
     //     AngleNumberAxisModule,
     //     AnimationModule,
     //     AnnotationsModule,
-    //     BackgroundModule,
-    //     ForegroundModule,
     //     ChartToolbarModule,
     //     ContextMenuModule,
     //     CrosshairModule,
     //     BandHighlightModule,
-    //     DataSourceModule,
     //     ErrorBarsModule,
     //     LinearGaugeModule,
     //     NavigatorModule,
@@ -32,8 +29,6 @@ export function setupEnterpriseModules() {
     //     RadiusNumberAxisModule,
     //     RangesModule,
     //     SharedToolbarModule,
-    //     SyncModule,
-    //     ZoomModule
     // );
 
     _ModuleSupport.enterpriseModule.isEnterprise = true;

@@ -6,7 +6,7 @@ import type { ChartLegend, ChartLegendType } from './legend/legendDatum';
 export class ModulesManager extends ModuleMap<PluginModuleInstance> {
     *legends(): Generator<{ legendType: ChartLegendType; legend: ChartLegend }> {
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-            if (module.name.startsWith('legend')) {
+            if (module.name === 'legend' || module.name === 'gradientLegend') {
                 yield {
                     legendType: module.name === 'legend' ? 'category' : 'gradient',
                     legend: this.getModule(module.name) as ChartLegend,

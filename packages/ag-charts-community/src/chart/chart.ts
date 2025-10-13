@@ -1057,7 +1057,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const dataController = new DataController(this.mode, this.suppressFieldDotNotation);
         const seriesPromises = this.series.map((s) => s.processData(dataController));
-        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
+        const modulePromises = this.modulesManager.mapModules((m) => m?.processData?.(dataController));
         this._cachedData = dataController.execute(this._cachedData);
         this.updateSplits('🏭');
         await Promise.all([...seriesPromises, ...modulePromises]);

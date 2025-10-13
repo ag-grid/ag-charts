@@ -657,7 +657,9 @@ export class ChartTheme {
                 for (const axisModule of ModuleRegistry.listModulesByType(ModuleType.Axis)) {
                     axes[axisModule.name] = mergeDefaults(
                         axes[axisModule.name],
-                        getAxisThemeTemplate(axisModule.name),
+                        !axisModule.chartType || axisModule.chartType === chartType
+                            ? getAxisThemeTemplate(axisModule.name)
+                            : null,
                         (ChartTheme.axisDefault as any)[axisModule.name]
                     );
                 }

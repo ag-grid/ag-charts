@@ -11,9 +11,13 @@ import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnimationModule } from './features/animation/animationModule';
 import { BackgroundModule } from './features/background/backgroundModule';
 import { CrosshairModule } from './features/crosshair/crosshairModule';
+import { DataSourceModule } from './features/data-source/dataSourceModule';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
+import { ForegroundModule } from './features/foreground/foregroundModule';
 import { AnnotationsModule, InitialStateModule, NavigatorModule } from './features/sync/pluginModules';
+import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/zoomModule';
+import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
 import { BoxPlotSeriesModule } from './series/box-plot';
 import { CandlestickSeriesModule } from './series/candlestick';
 import { ChordSeriesModule } from './series/chord';
@@ -79,7 +83,11 @@ export {
     MapShapeBackgroundSeriesModule,
     CrosshairModule,
     AnimationModule,
+    DataSourceModule,
     ErrorBarsModule,
+    ForegroundModule,
+    GradientLegendModule,
+    SyncModule,
     ZoomModule,
 };
 
@@ -97,7 +105,11 @@ export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     CrosshairModule,
     AnimationModule,
     BackgroundModule,
+    DataSourceModule,
     ErrorBarsModule,
+    ForegroundModule,
+    GradientLegendModule,
+    SyncModule,
     ZoomModule,
 ];
 
@@ -111,8 +123,11 @@ export const AllPolarEnterpriseModules: ModuleDefinition[] = [
     RadarLineSeriesModule,
     RadialBarSeriesModule,
     RadialColumnSeriesModule,
-    BackgroundModule,
     AnimationModule,
+    BackgroundModule,
+    DataSourceModule,
+    ForegroundModule,
+    GradientLegendModule,
 ];
 
 export const AllStandaloneEnterpriseModules: ModuleDefinition[] = [
@@ -124,8 +139,11 @@ export const AllStandaloneEnterpriseModules: ModuleDefinition[] = [
     TreemapSeriesModule,
     ChordSeriesModule,
     SankeySeriesModule,
-    BackgroundModule,
     AnimationModule,
+    BackgroundModule,
+    DataSourceModule,
+    ForegroundModule,
+    GradientLegendModule,
 ];
 
 export const AllTopologyEnterpriseModules: ModuleDefinition[] = [
@@ -135,8 +153,11 @@ export const AllTopologyEnterpriseModules: ModuleDefinition[] = [
     MapMarkerSeriesModule,
     MapShapeSeriesModule,
     MapShapeBackgroundSeriesModule,
-    BackgroundModule,
     AnimationModule,
+    BackgroundModule,
+    DataSourceModule,
+    ForegroundModule,
+    GradientLegendModule,
     ZoomModule,
 ];
 
