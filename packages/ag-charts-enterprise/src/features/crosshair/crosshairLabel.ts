@@ -95,8 +95,8 @@ export class CrosshairLabel extends CrosshairLabelProperties {
         this.element = domManager.addChild('canvas-overlay', `crosshair-label-${this.id}`);
         this.element.classList.add(DEFAULT_LABEL_CLASS);
         setAttribute(this.element, 'aria-hidden', true);
-        this.element.setAttribute('data-key', key);
-        this.element.setAttribute('data-axis-id', axisId);
+        this.element.dataset.key = key;
+        this.element.dataset.axisId = axisId;
     }
 
     show(meta: Point) {

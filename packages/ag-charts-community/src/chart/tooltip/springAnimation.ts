@@ -67,7 +67,7 @@ export class SpringAnimation {
         this.t0 = t1;
 
         const stepT = 1e-3;
-        const iterations = Math.ceil(dt / (stepT * 1e3)) | 0;
+        const iterations = Math.trunc(Math.ceil(dt / (stepT * 1e3)));
 
         let { x, y, vx, vy } = this;
         for (let i = 0; i < iterations; i += 1) {

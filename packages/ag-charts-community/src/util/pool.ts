@@ -1,6 +1,6 @@
 import { Debug } from './debug';
 
-const CLEANUP_TIMEOUT_MS = 1_000;
+const CLEANUP_TIMEOUT_MS = 1000;
 
 export class Pool<T, P> {
     private static readonly pools = new Map<string, Pool<any, any>>();

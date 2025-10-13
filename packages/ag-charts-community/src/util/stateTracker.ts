@@ -11,7 +11,7 @@ export class StateTracker<T, K = string> extends Map<K, T> {
 
     override set(key: K, value?: T) {
         this.delete(key); // removed even if re-set to make sure we're last
-        if (typeof value !== 'undefined') {
+        if (value !== undefined) {
             super.set(key, value);
         }
         delete this.cachedState;

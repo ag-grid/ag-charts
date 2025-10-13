@@ -217,7 +217,7 @@ export abstract class Widget<
     }
 
     removeChild(child: TChildWidget) {
-        const i = this.children.findIndex((value) => value === child);
+        const i = this.children.indexOf(child);
         this.children.splice(i, 1);
         this.removeChildFromDOM(child);
         this.onChildRemoved(child);

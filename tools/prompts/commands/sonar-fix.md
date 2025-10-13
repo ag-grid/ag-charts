@@ -36,26 +36,220 @@ Per-issue-type guides are available in `tools/prompts/sonar-fix/` directory:
 -   **Individual guides** - Detailed fix patterns, examples, and AG Charts context for each rule type
 -   Guides are automatically created/updated using the SonarCloud API when new rule types are encountered
 
+## Issue Cache System
+
+To ensure accurate reporting and progress tracking, all SonarCloud issues are downloaded and cached locally.
+
+**Cache Location:** `node_modules/.cache/sonar-issues/`
+
+**Cache Structure:**
+
+```
+node_modules/.cache/sonar-issues/
+├── raw/
+│   ├── issues-latest.json              # Combined all issues (JSON)
+│   └── page-{N}.json                   # Individual API pages (temporary)
+├── processed/
+│   ├── issues-all.tsv                  # All issues (tab-separated, human-readable)
+│   ├── issues-by-rule.json            # Grouped by rule type
+│   └── issues-by-severity.json        # Grouped by severity
+├── progress/
+│   ├── {branch-name}.json             # Progress tracking per branch
+│   └── session-{timestamp}.log        # Session logs
+└── metadata.json                       # Cache metadata (fetch time, branch, count)
+```
+
+**Cache Freshness:** Cache is considered stale after 1 hour and will be automatically refreshed.
+
 ## Instructions for AI Agent
+
+### Phase -1: Ensure Fresh Issue Cache (ALL MODES)
+
+**This phase MUST run before any other operations (both Report and Fix modes).**
+
+1. **Check if cache exists and is fresh:**
+
+    ```bash
+    # Check cache freshness (less than 1 hour old)
+    if [ -f node_modules/.cache/sonar-issues/metadata.json ]; then
+        fetch_time=$(jq -r '.fetchedAt' node_modules/.cache/sonar-issues/metadata.json)
+        now=$(date -u +%s)
+        # Convert ISO timestamp to epoch (cross-platform)
+        fetch_ts=$(date -d "$fetch_time" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$fetch_time" +%s)
+        age=$((now - fetch_ts))
+
+        if [ $age -lt 3600 ]; then
+            echo "✓ Cache is fresh (${age}s old)"
+            exit 0  # Cache is fresh, skip download
+        else
+            echo "⚠ Cache is stale (${age}s old), refreshing..."
+        fi
+    else
+        echo "⚠ No cache found, downloading all issues..."
+    fi
+    ```
+
+2. **Create cache directories:**
+
+    ```bash
+    mkdir -p node_modules/.cache/sonar-issues/{raw,processed,progress}
+    ```
+
+3. **Download ALL issues with pagination:**
+
+    The SonarCloud API returns max 500 issues per page. With ~500+ total issues, we need multiple pages.
+
+    ```bash
+    # Download all pages (max 500 items per page)
+    echo "Downloading SonarCloud issues..."
+    for page in 1 2 3 4 5; do
+        echo "  Fetching page $page..."
+        curl -sf "https://sonarcloud.io/api/issues/search?s=FILE_LINE&issueStatuses=OPEN%2CCONFIRMED&ps=500&p=$page&componentKeys=ag-charts-community-latest&organization=ag-grid&additionalFields=_all&impactSeverities=HIGH%2CMEDIUM%2CLOW%2CINFO" \
+            > "node_modules/.cache/sonar-issues/raw/page-$page.json"
+
+        # Check if this page has data
+        issues_count=$(jq -r '.issues | length' "node_modules/.cache/sonar-issues/raw/page-$page.json" 2>/dev/null || echo "0")
+        if [ "$issues_count" = "0" ]; then
+            rm -f "node_modules/.cache/sonar-issues/raw/page-$page.json"
+            echo "  Page $page empty, stopping pagination."
+            break
+        fi
+        echo "  Page $page: $issues_count issues"
+    done
+    ```
+
+4. **Combine all pages into single JSON:**
+
+    ```bash
+    echo "Combining pages..."
+    jq -s '{
+        total: (.[0].paging.total // 0),
+        fetchedAt: (now | todate),
+        pageCount: length,
+        issues: ([.[].issues[]] | unique_by(.key))
+    }' node_modules/.cache/sonar-issues/raw/page-*.json \
+        > node_modules/.cache/sonar-issues/raw/issues-latest.json
+
+    # Cleanup temporary page files
+    rm -f node_modules/.cache/sonar-issues/raw/page-*.json
+
+    actual_count=$(jq '.issues | length' node_modules/.cache/sonar-issues/raw/issues-latest.json)
+    echo "✓ Downloaded $actual_count issues"
+    ```
+
+5. **Create human-readable TSV:**
+
+    ```bash
+    echo "Creating TSV export..."
+    jq -r '
+        ["key", "rule", "severity", "file", "line", "message", "effort"] as $headers |
+        ($headers | @tsv),
+        (.issues[] | [
+            .key,
+            .rule,
+            (.impacts[0].severity // "INFO"),
+            (.component | sub("^[^:]+:"; "")),
+            (.line // 0),
+            .message,
+            (.effort // "5min")
+        ] | @tsv)
+    ' node_modules/.cache/sonar-issues/raw/issues-latest.json \
+        > node_modules/.cache/sonar-issues/processed/issues-all.tsv
+
+    echo "✓ Created TSV at: node_modules/.cache/sonar-issues/processed/issues-all.tsv"
+    ```
+
+6. **Save metadata:**
+
+    ```bash
+    echo "Saving metadata..."
+    jq -n \
+        --arg fetchedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --arg branch "$(git branch --show-current)" \
+        --argjson totalIssues "$(jq '.total' node_modules/.cache/sonar-issues/raw/issues-latest.json)" \
+        --argjson actualIssues "$(jq '.issues | length' node_modules/.cache/sonar-issues/raw/issues-latest.json)" \
+        '{
+            fetchedAt: $fetchedAt,
+            branch: $branch,
+            totalIssues: $totalIssues,
+            actualIssues: $actualIssues,
+            component: "ag-charts-community-latest"
+        }' > node_modules/.cache/sonar-issues/metadata.json
+
+    echo "✓ Cache updated successfully"
+    ```
+
+7. **Report cache status:**
+
+    ```bash
+    jq -r '"
+    Cache Status:
+      Fetched: \(.fetchedAt)
+      Branch: \(.branch)
+      Total Issues: \(.actualIssues)
+      Cache Location: node_modules/.cache/sonar-issues/
+    "' node_modules/.cache/sonar-issues/metadata.json
+    ```
 
 ### When Invoked WITHOUT Arguments (Report Mode)
 
-1. **Fetch issues from SonarCloud API:**
+**Prerequisites:** Phase -1 must have run successfully and cache must exist.
 
-    Use the WebFetch tool to retrieve issues:
+1. **Load issues from cache:**
 
+    Read the cached JSON file (NOT WebFetch):
+
+    ```bash
+    # Verify cache exists
+    if [ ! -f node_modules/.cache/sonar-issues/raw/issues-latest.json ]; then
+        echo "❌ Cache not found. Phase -1 may have failed."
+        exit 1
+    fi
+
+    # Show cache metadata
+    cat node_modules/.cache/sonar-issues/metadata.json
     ```
-    URL: https://sonarcloud.io/api/issues/search?s=FILE_LINE&issueStatuses=OPEN%2CCONFIRMED&ps=100&facets=impactSoftwareQualities%2CimpactSeverities&componentKeys=ag-charts-community-latest&organization=ag-grid&additionalFields=_all&impactSeverities=HIGH%2CMEDIUM%2CLOW%2CINFO
 
-    Prompt: "Parse this SonarCloud issues response and extract:
-    1. Total count of issues
-    2. Breakdown by severity (HIGH, MEDIUM, LOW, INFO)
-    3. Group issues by rule type (e.g., typescript:S3776, typescript:S7728)
-    4. For each rule, show: count, total effort estimate, example message
-    5. Return as structured markdown tables"
+2. **Parse JSON directly for accurate counts:**
+
+    Use jq to get exact numbers (NOT LLM summarization):
+
+    ```bash
+    # Total issues
+    total=$(jq '.issues | length' node_modules/.cache/sonar-issues/raw/issues-latest.json)
+    echo "Total Issues: $total"
+
+    # Breakdown by severity
+    jq -r '
+        .issues | group_by(.impacts[0].severity // "INFO") |
+        map({
+            severity: (.[0].impacts[0].severity // "INFO"),
+            count: length
+        }) | sort_by(.severity) |
+        ["Severity", "Count"],
+        (["--------", "-----"]),
+        (.[] | [.severity, .count]) |
+        @tsv
+    ' node_modules/.cache/sonar-issues/raw/issues-latest.json
+
+    # Breakdown by rule type
+    jq -r '
+        .issues | group_by(.rule) |
+        map({
+            rule: .[0].rule,
+            count: length,
+            severity: (.[0].impacts[0].severity // "INFO"),
+            example: (.[0].message // ""),
+            effort: (.[0].effort // "5min")
+        }) | sort_by(-.count) |
+        ["Rule", "Count", "Severity", "Effort", "Example"],
+        (["----", "-----", "--------", "------", "-------"]),
+        (.[] | [.rule, .count, .severity, .effort, .example]) |
+        @tsv
+    ' node_modules/.cache/sonar-issues/raw/issues-latest.json | head -20
     ```
 
-2. **Analyze and categorize issues:**
+3. **Analyze and categorize issues:**
 
     Group issues by complexity tiers:
 
@@ -81,7 +275,7 @@ Per-issue-type guides are available in `tools/prompts/sonar-fix/` directory:
         - Architectural refactors
         - May require significant code restructuring
 
-3. **Generate formatted report:**
+4. **Generate formatted report:**
 
     ```markdown
     ## SonarCloud Issues Report
@@ -123,7 +317,7 @@ Per-issue-type guides are available in `tools/prompts/sonar-fix/` directory:
     **To begin fixing:** `/sonar-fix HIGH 30`
     ```
 
-4. **Include helpful context:**
+5. **Include helpful context:**
 
     - Note which issues are in test files vs source files
     - Highlight any issues in recently modified files
@@ -184,6 +378,39 @@ Per-issue-type guides are available in `tools/prompts/sonar-fix/` directory:
     ## AG Charts Context
 
     {Project-specific notes - can be added incrementally}
+
+    ### Important Exceptions
+
+    ⚠️ **If this rule has known exceptions in the AG Charts codebase, document them here.**
+
+    Use this section to list patterns that match the rule but are intentionally used and MUST NOT be changed.
+
+    Format:
+
+    -   **Pattern description**: Explain why this is an exception
+    -   **Example location**: File patterns or specific locations
+    -   **Rationale**: Why the exception is necessary
+
+    Example:
+    ```
+
+    ### Important Exceptions
+
+    Accesses to `globalThis.window` and `globalThis.document` are intentionally
+    checked with `typeof` to ensure they are defined - this is VERY IMPORTANT for
+    the proper functioning of the codebase, DO NOT FIX IN THESE FILES as it will
+    break server-side rendering support in Astro.
+
+    **Affected patterns:**
+
+    - `typeof globalThis.window !== 'undefined'`
+    - `typeof globalThis.document !== 'undefined'`
+
+    **Rationale:** These global objects may not exist in SSR environments, and
+    direct access would throw ReferenceError.
+
+    ```
+
     ```
 
     c. **Save to:** `tools/prompts/sonar-fix/{rule-number}-{description}.md`
@@ -194,47 +421,175 @@ Per-issue-type guides are available in `tools/prompts/sonar-fix/` directory:
 
     When processing issues in Phase 3, read the appropriate guide to inform your fixes.
 
-#### Phase 1: Parse Arguments and Fetch Issues
+#### Phase 1: Load from Cache and Verify Issues
+
+**Prerequisites:** Phase -1 must have run successfully.
 
 1. **Parse command arguments:**
 
     ```
     Argument 1: Severity filter
-    - HIGH → impactSeverities=HIGH
-    - MEDIUM → impactSeverities=MEDIUM
-    - LOW → impactSeverities=LOW
-    - INFO → impactSeverities=INFO
-    - HIGH,MEDIUM → impactSeverities=HIGH%2CMEDIUM
-    - ALL → impactSeverities=HIGH%2CMEDIUM%2CLOW%2CINFO
+    - HIGH
+    - MEDIUM
+    - LOW
+    - INFO
+    - HIGH,MEDIUM (comma-separated)
+    - ALL
 
     Argument 2: Limit (default: 50)
-    - Maximum number of issues to fix in this session
+    - Maximum number of issues to attempt fixing in this session
     ```
 
-2. **Fetch filtered issues:**
+2. **Load and filter issues from cache:**
 
+    Use jq to filter by severity (NOT WebFetch):
+
+    ```bash
+    # Get current branch for progress tracking
+    current_branch=$(git branch --show-current)
+    echo "Working on branch: $current_branch"
+
+    # Parse severity filter (example: "HIGH" or "HIGH,MEDIUM")
+    severity_filter="<SEVERITY_FILTER>"  # From command argument
+    limit=50  # From command argument or default
+
+    # Build jq filter for severity
+    if [ "$severity_filter" = "ALL" ]; then
+        severity_jq_filter='true'
+    else
+        # Convert "HIGH,MEDIUM" to jq filter: (.impacts[0].severity == "HIGH" or .impacts[0].severity == "MEDIUM")
+        severity_list=$(echo "$severity_filter" | tr ',' '\n')
+        severity_jq_filter=$(echo "$severity_list" | awk '{print "(.impacts[0].severity == \"" $1 "\")"}' | paste -sd ' or ' -)
+    fi
+
+    # Filter issues by severity and limit
+    jq --argjson limit "$limit" "
+        .issues |
+        map(select($severity_jq_filter)) |
+        sort_by(.impacts[0].severity, .rule, .component, .line) |
+        limit($limit; .[])
+    " node_modules/.cache/sonar-issues/raw/issues-latest.json \
+        > node_modules/.cache/sonar-issues/processed/filtered-issues.json
+
+    filtered_count=$(jq '. | length' node_modules/.cache/sonar-issues/processed/filtered-issues.json)
+    echo "Filtered to $filtered_count issues (severity: $severity_filter, limit: $limit)"
     ```
-    URL: https://sonarcloud.io/api/issues/search?s=FILE_LINE&issueStatuses=OPEN%2CCONFIRMED&ps=100&facets=impactSoftwareQualities%2CimpactSeverities&componentKeys=ag-charts-community-latest&organization=ag-grid&additionalFields=_all&impactSeverities=<SEVERITY_FILTER>
 
-    Prompt: "Extract all issues as a structured list with:
-    - key: Issue unique identifier
-    - rule: Rule ID (e.g., typescript:S7728)
-    - component: Full file path (strip 'ag-charts-community-latest:' prefix)
-    - line: Line number
-    - message: Issue description
-    - effort: Estimated fix time
-    Return as parseable format (JSON or markdown table)"
+3. **Verify issues still exist in current code (branch-aware checking):**
+
+    Before planning fixes, check if issues are already resolved:
+
+    ```bash
+    echo "Verifying issues still exist in current code..."
+
+    # Create/load progress file for this branch
+    progress_file="node_modules/.cache/sonar-issues/progress/$current_branch.json"
+    if [ ! -f "$progress_file" ]; then
+        echo '{"branch": "'$current_branch'", "sessions": [], "verified": {}}' > "$progress_file"
+    fi
+
+    # For each issue, check if it still exists
+    jq -c '.[]' node_modules/.cache/sonar-issues/processed/filtered-issues.json | while read -r issue; do
+        key=$(echo "$issue" | jq -r '.key')
+        file=$(echo "$issue" | jq -r '.component | sub("^[^:]+:"; "")')
+        line=$(echo "$issue" | jq -r '.line')
+        rule=$(echo "$issue" | jq -r '.rule')
+
+        # Check if file exists
+        if [ ! -f "$file" ]; then
+            # Mark as file-not-found
+            jq --arg key "$key" --arg status "file-not-found" \
+                '.verified[$key] = {status: $status, checkedAt: (now | todate)}' \
+                "$progress_file" > "$progress_file.tmp" && mv "$progress_file.tmp" "$progress_file"
+            continue
+        fi
+
+        # Read the file at the issue line (±3 lines context)
+        # This is a simple check - the actual fix verification will be more thorough
+        context=$(sed -n "$((line-3)),$((line+3))p" "$file" 2>/dev/null || echo "")
+
+        if [ -z "$context" ]; then
+            # Line doesn't exist (file may have changed)
+            jq --arg key "$key" --arg status "line-not-found" \
+                '.verified[$key] = {status: $status, checkedAt: (now | todate)}' \
+                "$progress_file" > "$progress_file.tmp" && mv "$progress_file.tmp" "$progress_file"
+        else
+            # File and line exist - mark as pending verification
+            jq --arg key "$key" --arg status "pending" --arg file "$file" --argjson line "$line" \
+                '.verified[$key] = {status: $status, file: $file, line: $line, checkedAt: (now | todate)}' \
+                "$progress_file" > "$progress_file.tmp" && mv "$progress_file.tmp" "$progress_file"
+        fi
+    done
+
+    # Count verification results
+    verified_pending=$(jq '[.verified[] | select(.status == "pending")] | length' "$progress_file")
+    verified_not_found=$(jq '[.verified[] | select(.status == "file-not-found" or .status == "line-not-found")] | length' "$progress_file")
+
+    echo "Verification complete:"
+    echo "  - Still exist: $verified_pending"
+    echo "  - Already fixed/not found: $verified_not_found"
     ```
 
-    **Important:** If response has `paging.total > 100`, fetch additional pages by adding `&p=2`, `&p=3`, etc.
+4. **Filter to only issues that still exist:**
 
-3. **Filter and prioritize:**
+    ```bash
+    # Update filtered-issues.json to only include issues that still exist
+    jq --slurpfile progress <(cat "$progress_file") '
+        [.[] | select($progress[0].verified[.key].status == "pending")]
+    ' node_modules/.cache/sonar-issues/processed/filtered-issues.json \
+        > node_modules/.cache/sonar-issues/processed/verified-issues.json
 
-    - Apply the limit (default 50 issues)
-    - Exclude test files if they dominate the list (configurable based on user preference)
-    - Exclude generated files (common patterns: `*.generated.ts`, files with generation comments)
-    - Group remaining issues by rule type for batch processing
-    - Sort by complexity tier (Tier 1 → Tier 2 → Tier 3)
+    actual_count=$(jq '. | length' node_modules/.cache/sonar-issues/processed/verified-issues.json)
+    echo "Final count after verification: $actual_count issues"
+    ```
+
+5. **Filter out known exceptions (if documented):**
+
+    ```bash
+    # For each rule, check if there's a guide with documented exceptions
+    # This is an optional optimization step - sub-agents will also check
+
+    # Example: S7741 has exceptions for globalThis.window and globalThis.document
+    # Filter those out before creating batches
+
+    # Read verified-issues.json and for each rule, check tools/prompts/sonar-fix/{rule}-*.md
+    # If the guide has an "Important Exceptions" section with file patterns,
+    # filter out matching issues
+
+    # This can be done manually for known high-volume exceptions
+    # For S7741 specifically:
+    jq '[.[] | select(
+        .rule != "typescript:S7741" or
+        (.component | contains("globalThis.window") | not) and
+        (.component | contains("globalThis.document") | not)
+    )]' node_modules/.cache/sonar-issues/processed/verified-issues.json \
+        > node_modules/.cache/sonar-issues/processed/filtered-exceptions.json || \
+    cp node_modules/.cache/sonar-issues/processed/verified-issues.json \
+       node_modules/.cache/sonar-issues/processed/filtered-exceptions.json
+
+    exceptions_removed=$(($(jq '. | length' node_modules/.cache/sonar-issues/processed/verified-issues.json) - \
+                          $(jq '. | length' node_modules/.cache/sonar-issues/processed/filtered-exceptions.json)))
+
+    if [ $exceptions_removed -gt 0 ]; then
+        echo "Pre-filtered $exceptions_removed known exceptions"
+    fi
+    ```
+
+6. **Group by rule type and prioritize:**
+
+    ```bash
+    # Group issues by rule for batch processing
+    jq 'group_by(.rule) | map({
+        rule: .[0].rule,
+        count: length,
+        severity: .[0].impacts[0].severity,
+        issues: .
+    }) | sort_by(.severity, -.count)' \
+        node_modules/.cache/sonar-issues/processed/filtered-exceptions.json \
+        > node_modules/.cache/sonar-issues/processed/batched-issues.json
+
+    echo "Grouped into batches by rule type"
+    ```
 
 #### Phase 2: Present Plan to User
 
@@ -282,167 +637,216 @@ These require more careful refactoring and should be addressed separately:
 
 Wait for user confirmation before proceeding.
 
-#### Phase 3: Systematic Fixing
+#### Phase 3: Parallel Batch Execution Using Sub-Agents
 
-**For each batch:**
+**IMPORTANT:** Use parallel sub-agents for efficient execution of multiple batches.
 
-1. **Create todo list for the batch:**
+1. **Create todo list for tracking:**
 
-    Use TodoWrite to track progress:
-
-    - Batch N: Fix <rule-name> issues
-    - For each file in batch
-    - Format code
-    - Verify with lint/types
-    - Commit changes
-
-2. **Process each issue:**
-
-    a. **Read the file and locate the issue:**
-
-    ```bash
-    # Read file with context around the issue line
-    Read(<file_path>, offset=<line-5>, limit=20)
+    ```javascript
+    TodoWrite with one entry per batch:
+    - Batch 1: Fix S7767 issues (10 issues, HIGH)
+    - Batch 2: Fix S7741 issues (11 issues, LOW)
+    - ... etc
     ```
 
-    b. **Verify issue still exists:**
+2. **Launch sub-agents in parallel:**
 
-    - Code may have changed since SonarCloud scan
-    - Skip if already fixed
+    For each batch from the batched-issues.json, launch a `general-purpose` sub-agent with a comprehensive prompt.
 
-    c. **Apply rule-specific fix:**
+    **Launch up to 4-5 agents in parallel** to maximize throughput while avoiding overwhelming the system.
 
-    **Read the appropriate rule guide:**
-
-    - Guides are in `tools/prompts/sonar-fix/{rule-number}-{description}.md`
-    - Example: For rule `typescript:S7728`, read `tools/prompts/sonar-fix/S7728-use-for-of-loops.md`
-    - Use the guide's examples, AG Charts context, and fix patterns to inform your changes
-    - If no guide exists, create one following Phase 0 instructions
-
-    **Quick reference patterns are also available below:** [Rule-Specific Fix Patterns](#rule-specific-fix-patterns)
-
-    d. **Use Edit tool for precise changes:**
-
-    - Keep changes minimal and focused
-    - Preserve surrounding code style
-    - Don't make unrelated changes
-
-    e. **Mark todo as complete and move to next issue**
-
-3. **After completing all issues in batch:**
-
-    a. **Format code:**
-
-    ```bash
-    nx format
-    ```
-
-    b. **Identify affected packages:**
-
-    Parse file paths to extract package names:
-
-    - `packages/ag-charts-core/...` → `ag-charts-core`
-    - `packages/ag-charts-community/...` → `ag-charts-community`
-    - `packages/ag-charts-enterprise/...` → `ag-charts-enterprise`
-
-    c. **Verify affected packages:**
-
-    ```bash
-    # Run for each affected package
-    nx lint <package-name>
-    nx build:types <package-name>
-    ```
-
-    d. **Check results:**
-
-    - ✅ **If all pass:** Proceed to commit
-    - ❌ **If verification fails:**
-        - Review the errors
-        - Fix any issues introduced by the changes
-        - Re-run verification
-        - If unable to fix, revert the batch and report to user
-
-4. **Create commit:**
-
-    ```bash
-    git add <affected-files>
-
-    git commit -m "$(cat <<'EOF'
-    Fix SonarCloud <RULE_ID> issues
-
-    Fixed N violations of <RULE_NAME> across M files.
-
-    Changes:
-    - <Brief description of the fix pattern>
-    - <Package(s) affected>
-
-    All tests passing, no functional changes.
-
-    Rule: <RULE_ID> - <RULE_DESCRIPTION>
-    EOF
-    )"
-    ```
-
-5. **Report batch completion:**
+    **Sub-agent prompt template:**
 
     ```markdown
-    ✅ Batch N Complete: <RULE_NAME>
+    Fix all SonarCloud {RULE_ID} issues ({RULE_DESCRIPTION}).
 
-    -   Fixed: N/N issues
-    -   Files modified: M
-    -   Verification: ✅ Passed
-    -   Commit: <commit-hash>
+    **Rule Guide:** Check if a guide exists at `tools/prompts/sonar-fix/{RULE_NUMBER}-{kebab-case}.md`.
+    If not, create one using the SonarCloud API:
 
-    Remaining batches: X
+    -   URL: https://sonarcloud.io/api/rules/show?key={encoded-rule-id}&organization=ag-grid
+    -   Extract rule details, examples, and create guide following standard structure
+
+    **CRITICAL: Check for Exceptions**
+    Before fixing ANY issue, read the rule guide's "Important Exceptions" section (if present).
+    Some patterns that match the rule are intentionally used and MUST NOT be changed.
+    For each file, verify it's not covered by an exception pattern before applying the fix.
+
+    **Issues to fix ({COUNT} total):**
+    {LIST_OF_FILES_AND_LINES}
+
+    **Fix pattern:** {BRIEF_DESCRIPTION}
+
+    **Instructions:**
+
+    1. Read the rule guide and note any exceptions in the "Important Exceptions" section
+    2. Read each file and locate the issue
+    3. Verify the issue still exists (may have been fixed already)
+    4. Check if the issue matches any exception pattern - if so, SKIP IT
+    5. Apply the fix using the rule guide patterns (only for non-exception cases)
+    6. After all fixes, run: `nx format`
+    7. Verify: `nx lint {affected-packages}`
+    8. Verify: `nx build:types {affected-packages}`
+    9. Create ONE commit with message:
     ```
 
-6. **Move to next batch** and repeat
+    Fix SonarCloud {RULE_ID} issues
+
+    {Description of changes}
+
+    Fixed N violations across M files.
+
+    Affected packages:
+
+    - {package-list}
+
+    Rule: {RULE_ID} - {RULE_DESCRIPTION}
+
+    ```
+
+    Return: Commit hash and summary of fixes.
+    ```
+
+    **Example launch:**
+
+    ```javascript
+    Task(
+      subagent_type: "general-purpose",
+      description: "Fix S7767 issues (Batch 1)",
+      prompt: "Fix all SonarCloud S7767 issues (Use Math.trunc instead of | 0).\n\n**Rule Guide:** Check tools/prompts/sonar-fix/S7767-use-math-trunc.md...\n\n**Issues:** \n- file.ts:123\n- file2.ts:456\n..."
+    )
+    ```
+
+3. **Monitor sub-agent execution:**
+
+    - Mark batches as `in_progress` when agents start
+    - Mark as `completed` when agent returns with commit hash
+    - If an agent reports issues, investigate and potentially re-run
+
+4. **Handle agent results:**
+
+    As each agent completes:
+
+    a. **Verify the commit was created:**
+
+    ```bash
+    git log --oneline -1
+    ```
+
+    b. **Update todo list** to mark batch as completed
+
+    c. **Continue with remaining agents** until all complete
+
+5. **Benefits of parallel execution:**
+
+    - ✅ **Speed:** Multiple batches processed simultaneously
+    - ✅ **Isolation:** Each agent works independently on separate files
+    - ✅ **Rollback:** Each batch is a separate commit for easy revert
+    - ✅ **Scalability:** Can handle large numbers of issues efficiently
+    - ✅ **Token efficiency:** Sub-agents have fresh token budgets
+
+6. **When NOT to use parallel execution:**
+
+    - ❌ If batches affect the same files (potential conflicts)
+    - ❌ If there are < 3 batches (overhead not worth it)
+    - ❌ If user specifically requests sequential execution
+
+7. **Conflict resolution:**
+
+    If multiple agents modify the same file:
+
+    - The first agent to commit wins
+    - Subsequent agents may fail with merge conflicts
+    - Re-run failed agents after pulling latest changes
 
 #### Phase 4: Final Report
 
-After all batches complete:
+After all batches complete, generate report from progress file:
 
-```markdown
+```bash
+# Read all data from progress file
+progress_file="node_modules/.cache/sonar-issues/progress/$(git branch --show-current).json"
+
+# Extract statistics
+total_fixed=$(jq '[.verified[] | select(.status == "fixed")] | length' "$progress_file")
+total_skipped=$(jq '[.verified[] | select(.status == "skipped")] | length' "$progress_file")
+total_attempted=$((total_fixed + total_skipped))
+
+# Get session info
+session_start=$(jq -r '.sessions[-1].startedAt' "$progress_file")
+session_complete=$(jq -r '.sessions[-1].completedAt' "$progress_file")
+requested_count=$(jq '.sessions[-1].requestedCount' "$progress_file")
+
+# Calculate time taken
+# (This is approximate based on timestamps)
+
+# Get breakdown by rule
+jq -r '
+    [.verified[] | select(.status == "fixed" or .status == "skipped")] |
+    group_by(.rule // "unknown") |
+    map({
+        rule: (.[0].rule // "unknown"),
+        fixed: ([.[] | select(.status == "fixed")] | length),
+        skipped: ([.[] | select(.status == "skipped")] | length),
+        skip_reasons: ([.[] | select(.status == "skipped").reason] | unique | join(", "))
+    }) |
+    ["Rule", "Fixed", "Skipped", "Skip Reasons"],
+    (["-----", "-----", "-------", "------------"]),
+    (.[] | [.rule, .fixed, .skipped, .skip_reasons]) |
+    @tsv
+' "$progress_file"
+
+# Get commit list
+git log --oneline --since="$session_start" | head -10
+
+# Calculate remaining issues
+cache_total=$(jq '.total' node_modules/.cache/sonar-issues/raw/issues-latest.json)
+remaining=$((cache_total - total_fixed))
+
+echo "
 ## 🎉 SonarCloud Fix Session Complete
 
 ### Summary
 
--   **Total Issues Fixed:** N/M (N fixed, M skipped)
--   **Files Modified:** X files across Y packages
--   **Commits Created:** Z commits
--   **Time Taken:** ~A minutes
--   **Estimated Effort Saved:** B hours
+-   **Requested:** $requested_count issues
+-   **Actually Fixed:** $total_fixed issues
+-   **Skipped:** $total_skipped issues (already fixed, too complex, etc.)
+-   **Total Processed:** $total_attempted issues
+-   **Session Duration:** $(date -d "$session_start" +%H:%M) - $(date -d "$session_complete" +%H:%M)
 
 ### Breakdown by Rule
 
-| Rule  | Issues Fixed | Issues Skipped | Reason for Skip              |
-| ----- | ------------ | -------------- | ---------------------------- |
-| S7728 | 15           | 0              | -                            |
-| S7726 | 8            | 2              | Already fixed in latest code |
-| S3358 | 7            | 1              | Too complex, needs review    |
+$(jq -r '[.verified[] | select(.status == "fixed" or .status == "skipped")] |
+    group_by(.rule // "unknown") |
+    map({rule: (.[0].rule // "unknown"), fixed: ([.[] | select(.status == "fixed")] | length), skipped: ([.[] | select(.status == "skipped")] | length)}) |
+    "| Rule | Fixed | Skipped |",
+    "| ---- | ----- | ------- |",
+    (.[] | "| \(.rule) | \(.fixed) | \(.skipped) |")
+    ' "$progress_file")
 
 ### Commits Created
 
-1. Fix SonarCloud S7728 issues - <commit-hash>
-2. Fix SonarCloud S7726 issues - <commit-hash>
-3. Fix SonarCloud S3358 issues - <commit-hash>
+$(git log --oneline --since="$session_start" --format="- %s (%h)" | head -10)
 
 ### Remaining Issues
 
-**Still open in SonarCloud:** M issues
+**Still open in SonarCloud:** ~$remaining issues
 
--   HIGH: X issues (~Y hours)
--   MEDIUM: X issues (~Y hours)
--   Tier 3 (Complex): Z issues (~W hours)
+Progress file: $progress_file
+Cache: node_modules/.cache/sonar-issues/
 
 **Recommendations:**
 
--   Consider running `/sonar-fix HIGH` again to tackle more issues
--   Tier 3 complexity issues need dedicated refactoring effort
--   Verify changes with `nx test ag-charts-community` and `nx test ag-charts-enterprise`
+-   Run \`/sonar-fix\` again to see updated report
+-   Review progress file for detailed fix history
+-   Verify changes with \`nx test ag-charts-community\` and \`nx test ag-charts-enterprise\`
+-   Cache will auto-refresh in 1 hour
 
 **SonarCloud Link:** https://sonarcloud.io/project/issues?id=ag-charts-community-latest&issueStatuses=OPEN%2CCONFIRMED
+"
 ```
+
+**Note:** All statistics come from the progress file, ensuring accurate counts that match what was actually processed.
 
 ---
 
@@ -636,10 +1040,13 @@ packages/ag-charts-core/src/utils/validation.ts
 ### When to Skip Issues
 
 -   **Already fixed:** Issue no longer exists in current codebase
+-   **Documented exceptions:** Issue matches a pattern in the rule guide's "Important Exceptions" section
 -   **Generated code:** Files with generation markers or in generated directories
 -   **Test-specific patterns:** Some patterns are acceptable in tests
 -   **Complex refactoring needed:** Effort > 15 minutes per issue
 -   **Requires architectural changes:** Better as dedicated task
+
+**For documented exceptions:** Always add a skip reason in the progress file noting which exception pattern matched, e.g., "Skipped: matches globalThis.window exception in S7741"
 
 ### Error Recovery
 
@@ -720,51 +1127,68 @@ nx benchmark ag-charts-community -- -t "pattern"
 ## Workflow Summary
 
 ```
-┌─────────────────────────────────────┐
-│ /sonar-fix                          │
-│ (Report Mode)                       │
-└──────────────┬──────────────────────┘
+┌──────────────────────────────────────┐
+│ /sonar-fix or /sonar-fix HIGH 30    │
+└──────────────┬───────────────────────┘
                │
                ▼
-┌─────────────────────────────────────┐
-│ Fetch All Issues                    │
-│ Group by Rule & Tier                │
-│ Show Summary Report                 │
-└─────────────────────────────────────┘
-
-
-┌─────────────────────────────────────┐
-│ /sonar-fix HIGH 30                  │
-│ (Fix Mode)                          │
-└──────────────┬──────────────────────┘
+┌──────────────────────────────────────┐
+│ Phase -1: Ensure Fresh Cache         │
+│  - Check if cache exists & fresh     │
+│  - If stale/missing: Download ALL    │
+│    issues with pagination (500/page) │
+│  - Combine into JSON + TSV           │
+│  - Save metadata                     │
+└──────────────┬───────────────────────┘
                │
-               ▼
-┌─────────────────────────────────────┐
-│ Fetch Filtered Issues (HIGH, 30)   │
-│ Group by Rule & Prioritize          │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│ Present Plan → User Approval        │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│ For Each Batch:                     │
-│  1. Fix issues in batch             │
-│  2. Format code                     │
-│  3. Verify (lint + types)           │
-│  4. Commit                          │
-│  5. Report progress                 │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│ Generate Final Report               │
-│ Show stats, commits, remaining      │
-└─────────────────────────────────────┘
+               ├──────────────┬────────────────┐
+               │              │                │
+               ▼              ▼                ▼
+      [Report Mode]    [Fix Mode]     [Cache Valid]
+               │              │                │
+               ▼              ▼                └──> Continue
+┌──────────────────┐ ┌──────────────────────┐
+│ Load from cache  │ │ Load & filter cache  │
+│ Parse w/ jq      │ │ Verify issues exist  │
+│ Group by rule    │ │ Check branch status  │
+│ Calculate stats  │ │ Filter to verified   │
+│ Show report      │ │ Group by rule        │
+└──────────────────┘ └─────────┬────────────┘
+                               │
+                               ▼
+                     ┌──────────────────────┐
+                     │ Present Plan         │
+                     │ → User Approval      │
+                     └─────────┬────────────┘
+                               │
+                               ▼
+                     ┌──────────────────────┐
+                     │ For Each Batch:      │
+                     │  1. Read rule guide  │
+                     │  2. Fix issues       │
+                     │  3. Track progress   │
+                     │  4. Format code      │
+                     │  5. Verify           │
+                     │  6. Commit           │
+                     │  7. Update progress  │
+                     └─────────┬────────────┘
+                               │
+                               ▼
+                     ┌──────────────────────┐
+                     │ Generate Final Report│
+                     │  - Read progress file│
+                     │  - Show accurate stats│
+                     │  - List commits      │
+                     └──────────────────────┘
 ```
+
+**Key Differences from Previous Version:**
+
+1. **Phase -1 runs first:** Downloads all 500+ issues with proper pagination
+2. **No WebFetch in workflow:** All data comes from local cache files
+3. **Branch verification:** Checks if issues still exist before fixing
+4. **Progress tracking:** Updates progress file after each fix
+5. **Accurate reporting:** All counts from progress file, not LLM estimates
 
 ---
 

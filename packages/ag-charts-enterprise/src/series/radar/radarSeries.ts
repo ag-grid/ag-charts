@@ -529,7 +529,7 @@ export abstract class RadarSeries<
         const { x, y } = hitPoint;
         const radius = this.radius;
 
-        const distanceFromCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+        const distanceFromCenter = Math.hypot(x - cx, y - cy);
         if (distanceFromCenter > radius + this.properties.marker.size) {
             return;
         }
@@ -543,7 +543,7 @@ export abstract class RadarSeries<
                 continue;
             }
 
-            const distance = Math.sqrt((hitPoint.x - datumX - cx) ** 2 + (hitPoint.y - datumY - cy) ** 2);
+            const distance = Math.hypot(hitPoint.x - datumX - cx, hitPoint.y - datumY - cy);
             if (distance < minDistance) {
                 minDistance = distance;
                 closestDatum = datum;

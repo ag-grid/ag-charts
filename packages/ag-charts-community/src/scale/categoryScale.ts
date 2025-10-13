@@ -92,17 +92,17 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
             return { ticks, count: undefined, firstTickIndex };
         }
 
-        let step = tickCount != null && tickCount !== 0 ? (bands.length / tickCount) | 0 : 1;
+        let step = tickCount != null && tickCount !== 0 ? Math.trunc(bands.length / tickCount) : 1;
         step = previousPowerOf2(step);
 
         if (step <= 1) {
             return filterVisibleTicks(domain, false, visibleRange);
         }
 
-        tickCount = (bands.length / step) | 0;
+        tickCount = Math.trunc(bands.length / step);
 
         const span = step * tickCount;
-        const inset = previousPowerOf2(((bands.length - span) / 2) | 0);
+        const inset = previousPowerOf2(Math.trunc((bands.length - span) / 2));
 
         const vt0 = clamp(0, Math.floor((visibleRange?.[0] ?? 0) * bands.length), bands.length);
         const vt1 = clamp(0, Math.ceil((visibleRange?.[1] ?? 1) * bands.length), bands.length);

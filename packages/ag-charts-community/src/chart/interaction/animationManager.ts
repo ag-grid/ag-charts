@@ -181,7 +181,9 @@ export class AnimationManager {
 
     public skipCurrentBatch() {
         if (this.debug.check()) {
-            this.debug(`AnimationManager - skipCurrentBatch()`, { stack: new Error().stack });
+            this.debug(`AnimationManager - skipCurrentBatch()`, {
+                stack: new Error('Stack trace for animation skip tracking').stack,
+            });
         }
         this.batch.skip();
     }

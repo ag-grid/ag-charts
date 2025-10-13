@@ -8,5 +8,5 @@ export function sanitizeHtml(text: TextOrSegments): string {
 
     element ??= createElement('div');
     element.textContent = toPlainText(text);
-    return element.innerHTML.replace(/\n/g, '<br>');
+    return element.innerHTML.replaceAll('\n', '<br>');
 }

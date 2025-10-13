@@ -127,7 +127,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (direction === ChartAxisDirection.Angle) {
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData);
-            const fixedXExtent = [xExtent[0] > 0 ? 0 : xExtent[0], xExtent[1] < 0 ? 0 : xExtent[1]];
+            const fixedXExtent = [Math.min(xExtent[0], 0), Math.max(xExtent[1], 0)];
             return fixNumericExtent(fixedXExtent);
         } else {
             return dataModel.getDomain(this, 'radiusValue', 'key', processedData);

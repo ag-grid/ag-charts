@@ -248,7 +248,7 @@ export function aggregateBubbleData(
         for (let datumIndex = 0; datumIndex < sizeValues.length; datumIndex += 1) {
             const sizeValue = sizeValues[datumIndex];
             const sizeRatio = (sizeValue - sd0) / (sd1 - sd0);
-            const sizeIndex = (sizeRatio * SIZE_QUANTIZATION) | 0;
+            const sizeIndex = Math.trunc(sizeRatio * SIZE_QUANTIZATION);
             if (sizeIndex >= 0 && sizeIndex < SIZE_QUANTIZATION) {
                 sizeIndices[sizeIndex].push(datumIndex);
             }

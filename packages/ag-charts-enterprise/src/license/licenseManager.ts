@@ -75,8 +75,8 @@ export class LicenseManager {
         // when users copy the license key from a PDF extra zero width characters are sometimes copied too
         // carriage returns and line feeds are problematic too
         // all of which causes license key validation to fail - strip these out
-        let cleanedLicenseKey = licenseKey.replace(/[\u200B-\u200D\uFEFF]/g, '');
-        cleanedLicenseKey = cleanedLicenseKey.replace(/\r?\n|\r/g, '');
+        let cleanedLicenseKey = licenseKey.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
+        cleanedLicenseKey = cleanedLicenseKey.replaceAll(/\r?\n|\r/g, '');
 
         // the hash that follows the key is 32 chars long
         if (licenseKey.length <= 32) {
@@ -200,7 +200,7 @@ export class LicenseManager {
         if (!this.document) {
             return false;
         }
-        const win = this.document?.defaultView ?? typeof globalThis.window != 'undefined' ? globalThis : undefined;
+        const win = this.document?.defaultView ?? globalThis.window != undefined ? globalThis : undefined;
         if (!win) {
             return false;
         }
@@ -257,7 +257,7 @@ export class LicenseManager {
         let n: any, r: any, i: any;
         let s: any, o: any, u: any, a: any;
         let f: number = 0;
-        const e: string = input.replace(/[^A-Za-z0-9+/=]/g, '');
+        const e: string = input.replaceAll(/[^A-Za-z0-9+/=]/g, '');
         while (f < e.length) {
             s = keystr.indexOf(e.charAt(f++));
             o = keystr.indexOf(e.charAt(f++));
@@ -266,12 +266,12 @@ export class LicenseManager {
             n = (s << 2) | (o >> 4);
             r = ((o & 15) << 4) | (u >> 2);
             i = ((u & 3) << 6) | a;
-            t = t + String.fromCharCode(n);
+            t = t + String.fromCodePoint(n);
             if (u != 64) {
-                t = t + String.fromCharCode(r);
+                t = t + String.fromCodePoint(r);
             }
             if (a != 64) {
-                t = t + String.fromCharCode(i);
+                t = t + String.fromCodePoint(i);
             }
         }
         t = LicenseManager.utf8_decode(t);
@@ -279,19 +279,19 @@ export class LicenseManager {
     }
 
     private static utf8_decode(input: string): string {
-        input = input.replace(/rn/g, 'n');
+        input = input.replaceAll('rn', 'n');
         let t = '';
         for (let n = 0; n < input.length; n++) {
-            const r = input.charCodeAt(n);
+            const r = input.codePointAt(n)!;
             if (r < 128) {
-                t += String.fromCharCode(r);
+                t += String.fromCodePoint(r);
             } else if (r > 127 && r < 2048) {
-                t += String.fromCharCode((r >> 6) | 192);
-                t += String.fromCharCode((r & 63) | 128);
+                t += String.fromCodePoint((r >> 6) | 192);
+                t += String.fromCodePoint((r & 63) | 128);
             } else {
-                t += String.fromCharCode((r >> 12) | 224);
-                t += String.fromCharCode(((r >> 6) & 63) | 128);
-                t += String.fromCharCode((r & 63) | 128);
+                t += String.fromCodePoint((r >> 12) | 224);
+                t += String.fromCodePoint(((r >> 6) & 63) | 128);
+                t += String.fromCodePoint((r & 63) | 128);
             }
         }
         return t;
@@ -324,9 +324,9 @@ export class LicenseManager {
         }
 
         const isTrial = matches.filter((match) => match === 'TRIAL').length === 1;
-        const rawVersion = matches.filter((match) => match.startsWith('v'))[0];
+        const rawVersion = matches.find((match) => match.startsWith('v'));
         const version = rawVersion ? rawVersion.replace('v', '') : 'legacy';
-        const type = (LICENSE_TYPES as any)[matches.filter((match) => (LICENSE_TYPES as any)[match])[0]];
+        const type = (LICENSE_TYPES as any)[matches.find((match) => (LICENSE_TYPES as any)[match])!];
 
         return [version, isTrial, type];
     }
