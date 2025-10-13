@@ -522,6 +522,34 @@ describe('DataModel', () => {
                 expect(result.groups[2].aggregation).toEqual([[0, expect.closeTo(15)]]);
                 expect(result.groups[3].aggregation).toEqual([[0, expect.closeTo(15)]]);
             });
+
+            it('should ignore missing scoped values when aggregating', () => {
+                const raggedModel = new DataModel<any, any, true>({
+                    props: [
+                        categoryKey('key', ['left', 'right']),
+                        scopedValue('left', 'value', 'shared'),
+                        scopedValue('right', 'value', 'shared'),
+                        sum('shared'),
+                    ],
+                    groupByKeys: true,
+                });
+
+                const sources = new Map<string, DataSet<any>>([
+                    ['left', new DataSet([{ key: 'A', value: 1 }, { key: 'B', value: 2 }, { key: 'C', value: 3 }])],
+                    ['right', new DataSet([{ key: 'A', value: 10 }, { key: 'B', value: 20 }, { key: 'D', value: 40 }])],
+                ]);
+
+                const result = raggedModel.processData(sources)!;
+
+                expect(result.type).toEqual('grouped');
+                expect(result.groups.map((group) => group.keys[0])).toEqual(['A', 'B', 'C', 'D']);
+                expect(result.groups.map((group) => group.aggregation[0])).toEqual([
+                    [0, 11],
+                    [0, 22],
+                    [0, 3],
+                    [0, 40],
+                ]);
+            });
         });
     });
 

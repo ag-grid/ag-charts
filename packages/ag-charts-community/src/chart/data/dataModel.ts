@@ -2336,7 +2336,10 @@ export class DataModel<
                 for (let datumIndex = 0; datumIndex < maxDatumIndex; datumIndex++) {
                     const valuesToAgg = indices.map((columnIndex) => {
                         const relativeDatumIndex = group.datumIndices[columnIndex]?.[datumIndex];
-                        const absoluteDatumIndex = this.resolveAbsoluteIndex(groupIndex, relativeDatumIndex ?? 0);
+                        if (relativeDatumIndex == null) {
+                            return undefined as D[K];
+                        }
+                        const absoluteDatumIndex = this.resolveAbsoluteIndex(groupIndex, relativeDatumIndex);
                         return columns[columnIndex][absoluteDatumIndex] as D[K];
                     });
                     const valuesAgg = def.aggregateFunction(valuesToAgg, groupKeys);
