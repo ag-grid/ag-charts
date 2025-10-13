@@ -26,7 +26,14 @@ export interface AgRadarAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
 export interface AgRadarAreaSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgRadarAreaSeriesThemeableOptions<TDatum, TContext>,
         Omit<
-    AgBaseRadarSeriesOptions<TDatum, TContext, AgRadarAreaSeriesStyle, AgRadarAreaSeriesStylerParams<TDatum, TContext>> ,'highlight'> {
+            AgBaseRadarSeriesOptions<
+                TDatum,
+                TContext,
+                AgRadarAreaSeriesStyle,
+                AgRadarAreaSeriesStylerParams<TDatum, TContext>
+            >,
+            'highlight'
+        > {
     /** Configuration for the Radar Area Series. */
     type: 'radar-area';
 }

@@ -9,7 +9,12 @@ export interface AgRadarLineSeriesStylerParams<TDatum = DatumDefault, TContext =
     extends AgRadarSeriesStylerParams<TDatum, TContext, AgRadarLineSeriesStyle> {}
 
 export interface AgRadarLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseRadarSeriesOptions<TDatum, TContext, AgRadarLineSeriesStyle, AgRadarLineSeriesStylerParams<TDatum, TContext>> {
+    extends AgBaseRadarSeriesOptions<
+        TDatum,
+        TContext,
+        AgRadarLineSeriesStyle,
+        AgRadarLineSeriesStylerParams<TDatum, TContext>
+    > {
     /** Configuration for the Radar Line Series. */
     type: 'radar-line';
     /** Function used to return formatting for entire series, based on the given parameters.*/
