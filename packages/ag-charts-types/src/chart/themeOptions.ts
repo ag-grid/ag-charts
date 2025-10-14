@@ -22,8 +22,7 @@ import type { AgDonutSeriesThemeableOptions } from '../series/polar/donutOptions
 import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
 import type { AgPieSeriesThemeableOptions } from '../series/polar/pieOptions';
 import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAreaOptions';
-import type { AgRadarLineSeriesStyle } from '../series/polar/radarLineOptions';
-import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
+import type { AgRadarLineSeriesThemeableOptions } from '../series/polar/radarLineOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
 import type { AgChordSeriesThemeableOptions } from '../series/standalone/chordOptions';
@@ -187,7 +186,7 @@ export interface AgPieSeriesThemeOverrides<TDatum = DatumDefault, TContext = Con
 
 export interface AgRadarLineSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBasePolarThemeOptions<TDatum, TContext> {
-    series?: AgRadarSeriesThemeableOptions<TDatum, TContext, AgRadarLineSeriesStyle>;
+    series?: AgRadarLineSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRadarAreaSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
