@@ -640,10 +640,11 @@ export class ChartTheme {
             const result: Record<string, { series?: object; axes?: object }> = {};
             const chartTypeDefaults = mergeDefaults(
                 { axes: {} },
-                // TODO validate chart defaults contain plugins
-                // ...legendRegistry.getThemeTemplates(),
                 this.getChartDefaults(),
-                ModuleRegistry.getChartModule(chartType)?.themeTemplate
+                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
+                ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
+                    [p.name]: p.themeTemplate,
+                }))
             );
 
             for (const seriesType of seriesTypes) {

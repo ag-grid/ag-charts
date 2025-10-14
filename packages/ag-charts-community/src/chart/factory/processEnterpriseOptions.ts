@@ -1,17 +1,20 @@
-import { Logger, ModuleRegistry, isArray } from 'ag-charts-core';
+import { Logger, ModuleRegistry, ModuleType, isArray } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { ExpectedModules } from './expectedModules';
 
-export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
+export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
+    chartType: string,
+    options: T,
+    silent?: boolean
+) {
     let usedOptions: string[] = [];
-    const optsType = options?.series?.[0]?.type;
-    const isGaugeChart = (optsType as string) === 'linear-gauge' || (optsType as string) === 'radial-gauge';
-    const optionsChartType = optsType ? ModuleRegistry.getSeriesModule(optsType)?.chartType : null;
+    const optsType: string | undefined = options?.series?.[0]?.type;
+    const isGaugeChart = optsType === 'linear-gauge' || optsType === 'radial-gauge';
 
     for (const module of ExpectedModules) {
         if (!module.enterprise || module.removable === false) continue;
-        if (optionsChartType && module.chartType && optionsChartType !== module.chartType) continue;
+        if (chartType && module.chartType && chartType !== module.chartType) continue;
 
         switch (module.type) {
             case 'chart':
@@ -96,5 +99,13 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
                 `See: ${enterpriseReferenceUrl}`,
             ].join('\n')
         );
+    }
+}
+
+export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>(chartType: string, options: T) {
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+        if (module.enterprise && module.chartType && module.chartType !== chartType) {
+            delete options[module.name as keyof AgChartOptions];
+        }
     }
 }

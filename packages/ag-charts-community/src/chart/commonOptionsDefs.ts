@@ -451,14 +451,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             yOffset: number,
         },
     },
-    animation: {
-        enabled: boolean,
-        duration: positiveNumber,
-    },
-    contextMenu: {
-        enabled: boolean,
-        items: contextMenuItemsArray,
-    },
+    animation: defined,
+    contextMenu: defined,
     context: () => true,
     dataSource: {
         getData: callback,

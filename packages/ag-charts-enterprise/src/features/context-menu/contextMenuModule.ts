@@ -1,5 +1,5 @@
 import { type AgContextMenuOptions, _ModuleSupport } from 'ag-charts-community';
-import { type PluginModuleDefinition, boolean } from 'ag-charts-core';
+import { type PluginModuleDefinition, boolean, undocumented } from 'ag-charts-core';
 
 import { ContextMenu } from './contextMenu';
 
@@ -19,3 +19,6 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions> = {
 
     create: (ctx) => new ContextMenu(ctx),
 };
+
+// @ts-expect-error undocumented option
+ContextMenuModule.options.darkTheme = undocumented(boolean);
