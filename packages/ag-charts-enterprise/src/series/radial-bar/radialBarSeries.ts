@@ -272,7 +272,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const angleDomain = this.getSeriesDomain(ChartAxisDirection.Angle);
 
-        const { angleKey, radiusKey, angleName, radiusName, label } = this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,
@@ -287,7 +287,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 'angle',
                 angleDomain,
                 label,
-                { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName }
+                { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName, legendItemName }
             );
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
@@ -501,7 +501,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
+        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
         const nodeDatum = this.nodeData?.[datumIndex];
@@ -537,6 +537,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 angleName,
                 radiusKey,
                 radiusName,
+                legendItemName,
                 ...format,
             }
         );
@@ -580,7 +581,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const { id: seriesId, visible } = this;
 
-        const { angleKey, angleName, showInLegend } = this.properties;
+        const { angleKey, angleName, legendItemName, showInLegend } = this.properties;
 
         return [
             {
@@ -590,7 +591,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 seriesId,
                 enabled: visible,
                 label: {
-                    text: angleName ?? angleKey,
+                    text: legendItemName ?? angleName ?? angleKey,
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,

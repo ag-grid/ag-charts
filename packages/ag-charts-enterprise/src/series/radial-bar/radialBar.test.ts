@@ -18,6 +18,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -696,5 +697,20 @@ describe('RadialBarSeries', () => {
             await chart.updateDelta({ data: DATA2 });
             await compare();
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareEnterpriseTestOptions,
+            chartOptions: {
+                data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
+                series: [
+                    { type: 'radial-bar', radiusKey: 'x', angleKey: 's1', angleName: 'series 1' },
+                    { type: 'radial-bar', radiusKey: 'x', angleKey: 's2', angleName: 'series 2' },
+                    { type: 'radial-bar', radiusKey: 'x', angleKey: 's3', angleName: 'series 3' },
+                ],
+            },
+        });
+        await compare();
     });
 });
