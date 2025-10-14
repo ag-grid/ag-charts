@@ -831,9 +831,9 @@ describe('ScatterSeries', () => {
             prepare: prepareTestOptions,
             chartOptions: {
                 data: [
-                    { He_V: 0.5, He_P: 95, Ne_V: 0.5, Ne_P: 90, Ar_V: 0.5, Ar_P: 80 },
-                    { He_V: 1.0, He_P: 81, Ne_V: 1.0, Ne_P: 80, Ar_V: 1.0, Ar_P: 60 },
-                    { He_V: 1.5, He_P: 68, Ne_V: 1.5, Ne_P: 70, Ar_V: 1.5, Ar_P: 40 },
+                    { He_V: 10, He_P: 95, Ne_V: 10, Ne_P: 90, Ar_V: 10, Ar_P: 80 },
+                    { He_V: 15, He_P: 81, Ne_V: 15, Ne_P: 80, Ar_V: 15, Ar_P: 60 },
+                    { He_V: 20, He_P: 68, Ne_V: 20, Ne_P: 70, Ar_V: 20, Ar_P: 40 },
                 ],
                 series: [
                     { type: 'scatter', xKey: 'He_V', yKey: 'He_P', yName: 'Helium' },
