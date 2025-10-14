@@ -143,12 +143,11 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         }
 
         const { colorRange } = this.normalizeColorArrays(data);
-
+        const { strokeWidth, padding } = this.getContainerStyles();
         const gradientRectBBox = this.updateGradientRect(layoutBox, colorRange);
         const axisBBox = this.updateAxis(data, gradientRectBBox) ?? new BBox(0, 0, 0, 0);
-
         const legendBBox = BBox.merge([gradientRectBBox, axisBBox]);
-        const { strokeWidth, padding } = this.getContainerStyles();
+
         legendBBox.grow(padding).grow(strokeWidth);
 
         const { left, top } = this.getMeasurements(layoutBox, legendBBox);
@@ -190,8 +189,8 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
     private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorRange: string[]) {
         const { gradientRect, gradient } = this;
         const { preferredLength, thickness } = gradient;
-
         const gradientRectBBox = new BBox(0, 0, 0, 0);
+        const colorCount = Math.max(colorRange.length - 1, 1);
 
         let angle: number;
         if (this.isVertical()) {
@@ -214,7 +213,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
             gradient: 'linear',
             colorSpace: 'oklch',
             colorStops: colorRange.map((color, i) => ({
-                stop: i / (colorRange.length - 1),
+                stop: i / colorCount,
                 color,
             })),
             rotation: angle,

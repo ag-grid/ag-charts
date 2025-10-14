@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-export-from */
 import { GaugePresetModule, PriceVolumePresetModule } from 'ag-charts-community/modules';
 import { type ModuleDefinition } from 'ag-charts-core';
 
@@ -16,7 +17,8 @@ import { CrosshairModule } from './features/crosshair/crosshairModule';
 import { DataSourceModule } from './features/data-source/dataSourceModule';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { ForegroundModule } from './features/foreground/foregroundModule';
-import { AnnotationsModule, InitialStateModule, NavigatorModule } from './features/sync/pluginModules';
+import { NavigatorModule } from './features/navigator/navigatorModule';
+import { AnnotationsModule, InitialStateModule } from './features/sync/pluginModules';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/zoomModule';
 import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
@@ -116,6 +118,7 @@ export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     ErrorBarsModule,
     ForegroundModule,
     GradientLegendModule,
+    NavigatorModule,
     SyncModule,
     ZoomModule,
 ];
@@ -183,6 +186,5 @@ export const AllEnterpriseModules: ModuleDefinition[] = [
 
     // Plugins, WIP
     AnnotationsModule,
-    NavigatorModule,
     InitialStateModule,
 ];

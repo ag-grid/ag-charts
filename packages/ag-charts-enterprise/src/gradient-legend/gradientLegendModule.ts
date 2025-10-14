@@ -87,5 +87,9 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
         },
     },
 
-    create: (ctx) => new GradientLegend(ctx),
+    create: (ctx) => {
+        const moduleInstance = new GradientLegend(ctx);
+        moduleInstance.attachLegend(ctx.scene);
+        return moduleInstance;
+    },
 };

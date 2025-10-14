@@ -6,7 +6,6 @@ import { Crosshair } from './crosshair';
 export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
     type: 'axis:plugin',
     name: 'crosshair',
-    chartType: 'cartesian',
     enterprise: true,
 
     themeTemplate: {
