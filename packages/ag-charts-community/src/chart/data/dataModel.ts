@@ -1193,7 +1193,7 @@ export class DataModel<
         // Recompute invalidKeyCount
         if (processedData.invalidKeyCount) {
             for (const [scope, invalidKeys] of processedData.invalidKeys ?? new Map()) {
-                const count = invalidKeys.filter((invalid: boolean) => invalid).length;
+                const count = invalidKeys.filter(Boolean).length;
                 processedData.invalidKeyCount.set(scope, count);
             }
         }

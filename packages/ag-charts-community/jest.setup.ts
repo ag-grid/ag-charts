@@ -1,8 +1,8 @@
 import { expect } from '@jest/globals';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
+import { URL } from 'node:url';
+import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
-import { URL } from 'url';
-import { TextDecoder, TextEncoder } from 'util';
 
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
