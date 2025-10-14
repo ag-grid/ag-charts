@@ -94,8 +94,13 @@ export {
     ErrorBarsModule,
     ForegroundModule,
     GradientLegendModule,
+    NavigatorModule,
     SyncModule,
     ZoomModule,
+    PriceVolumePresetModule,
+    GaugePresetModule,
+    AnnotationsModule,
+    InitialStateModule,
 };
 
 export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
@@ -109,11 +114,11 @@ export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
     WaterfallSeriesModule,
-    CrosshairModule,
     AnimationModule,
     BackgroundModule,
     BandHighlightModule,
     ContextMenuModule,
+    CrosshairModule,
     DataSourceModule,
     ErrorBarsModule,
     ForegroundModule,

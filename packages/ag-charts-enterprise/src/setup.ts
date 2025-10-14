@@ -10,23 +10,16 @@ export function setupEnterpriseModules() {
     ModuleRegistry.registerMany(AllEnterpriseModules, VERSION);
 
     // _ModuleSupport.moduleRegistry.register(
-    //     AngleCategoryAxisModule,
-    //     AngleNumberAxisModule,
-    //     AnimationModule,
     //     AnnotationsModule,
     //     ChartToolbarModule,
     //     ContextMenuModule,
     //     CrosshairModule,
-    //     BandHighlightModule,
     //     ErrorBarsModule,
     //     LinearGaugeModule,
-    //     NavigatorModule,
     //     StatusBarModule,
     //     GradientLegendModule,
     //     OrdinalTimeAxisModule,
-    //     RadiusCategoryAxisModule,
     //     RadialGaugeModule,
-    //     RadiusNumberAxisModule,
     //     RangesModule,
     //     SharedToolbarModule,
     // );

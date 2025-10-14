@@ -12,6 +12,7 @@ import {
     groupBy,
     isFiniteNumber,
     pause,
+    roundTo,
     toPlainText,
 } from 'ag-charts-core';
 import type {
@@ -787,7 +788,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {
             chart: this,
-            durationMs: Math.round((end - splits['start']) * 100) / 100,
+            durationMs: roundTo(end - splits['start']),
             count,
             performUpdateType: ChartUpdateType[performUpdateType],
         });

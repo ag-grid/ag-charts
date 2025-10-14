@@ -222,7 +222,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
         const state = proxy.getState();
 
-        const isEnterprise = ModuleRegistry.hasEnterpriseModules();
         const processedOverrides: Partial<AgChartOptions> = {
             ...chart.chartOptions.processedOverrides,
             container: document.createElement('div'),
@@ -235,7 +234,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
         const userOptions = chart.getOptions();
 
-        if (isEnterprise) {
+        if (ModuleRegistry.hasEnterpriseModules()) {
             // Disable enterprise features that may interfere with image generation.
             processedOverrides.animation = { enabled: false };
 
