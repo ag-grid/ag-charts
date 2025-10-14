@@ -21,6 +21,7 @@ import {
 } from '../../test/data';
 import * as examples from '../../test/examples';
 import { MockBarStyler, newFreezableMock } from '../../test/freezableMock';
+import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -1891,5 +1892,20 @@ describe('BarSeries', () => {
             await hoverAction(135, 330)(chart);
             await compare();
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareTestOptions,
+            chartOptions: {
+                data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 's1', yName: 'series 1' },
+                    { type: 'bar', xKey: 'x', yKey: 's2', yName: 'series 2' },
+                    { type: 'bar', xKey: 'x', yKey: 's3', yName: 'series 3' },
+                ],
+            },
+        });
+        await compare();
     });
 });
