@@ -16,6 +16,7 @@ import type {
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
 import { MockBubbleStyler, newFreezableMock } from '../../test/freezableMock';
+import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -884,5 +885,24 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareTestOptions,
+            chartOptions: {
+                data: [
+                    { He_V: 0.5, He_P: 95, He_m: 2, Ne_V: 0.5, Ne_P: 90, Ne_m: 10.0, Ar_V: 0.5, Ar_P: 80, Ar_m: 18.0 },
+                    { He_V: 1.0, He_P: 81, He_m: 2, Ne_V: 1.0, Ne_P: 80, Ne_m: 10.0, Ar_V: 1.0, Ar_P: 60, Ar_m: 18.0 },
+                    { He_V: 1.5, He_P: 68, He_m: 2, Ne_V: 1.5, Ne_P: 70, Ne_m: 10.0, Ar_V: 1.5, Ar_P: 40, Ar_m: 18.0 },
+                ],
+                series: [
+                    { type: 'bubble', xKey: 'He_V', yKey: 'He_P', sizeKey: 'He_m', maxSize: 20, yName: 'Helium' },
+                    { type: 'bubble', xKey: 'Ne_V', yKey: 'Ne_P', sizeKey: 'Ne_m', maxSize: 20, yName: 'Neon' },
+                    { type: 'bubble', xKey: 'Ar_V', yKey: 'Ar_P', sizeKey: 'Ar_m', maxSize: 20, yName: 'Argon' },
+                ],
+            },
+        });
+        await compare();
     });
 });
