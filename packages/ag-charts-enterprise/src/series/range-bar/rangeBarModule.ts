@@ -17,5 +17,5 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: RANGE_BAR_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new RangeBarSeries(ctx),
+    create: (ctx) => new RangeBarSeries(ctx),
 };
