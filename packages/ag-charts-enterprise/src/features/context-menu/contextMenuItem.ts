@@ -22,7 +22,7 @@ function appendItem(
 ): ContextMenuItem | undefined {
     let mustShow: boolean = true;
     if (item.type === 'separator') {
-        const last: ContextMenuItem | undefined = result.at(result.length - 1);
+        const last: ContextMenuItem | undefined = result.at(-1);
         mustShow = last !== undefined && last.type !== 'separator';
     }
 
