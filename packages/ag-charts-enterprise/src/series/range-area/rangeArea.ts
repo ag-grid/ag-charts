@@ -450,7 +450,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datum: any;
         series: RangeAreaSeries;
     }): RangeAreaLabelDatum {
-        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, label } = this.properties;
+        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         const { placement } = label;
         const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
@@ -479,7 +479,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 'y',
                 yDomain,
                 label,
-                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName }
+                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName }
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
@@ -701,6 +701,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             yLowName: this.properties.yLowName ?? this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
             yHighName: this.properties.yHighName ?? this.properties.yHighKey,
+            legendItemName: this.properties.legendItemName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
@@ -884,6 +885,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 xKey,
                 yHighKey,
                 yHighName,
+                legendItemName,
                 ...format,
             }
         );
@@ -922,8 +924,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const { id: seriesId, visible } = this;
 
-        const { yLowKey, yHighKey, yName, yLowName, yHighName, showInLegend } = this.properties;
-        const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const { yLowKey, yHighKey, yName, yLowName, yHighName, legendItemName, showInLegend } = this.properties;
+        const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
         return [
             {

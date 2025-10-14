@@ -6,3 +6,4 @@ export * from './chart/test/examples';
 export * from './chart/series/test/examples';
 export * from './chart/test/findTarget';
 export * from './chart/test/freezableMock';
+export * from './chart/test/legendItemName';
