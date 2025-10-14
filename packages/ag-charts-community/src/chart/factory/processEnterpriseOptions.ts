@@ -1,4 +1,4 @@
-import { Logger, ModuleRegistry, ModuleType, isArray } from 'ag-charts-core';
+import { Logger, ModuleRegistry, isArray } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { ExpectedModules } from './expectedModules';
@@ -96,21 +96,5 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
                 `See: ${enterpriseReferenceUrl}`,
             ].join('\n')
         );
-    }
-}
-
-export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T) {
-    const integratedMode = 'mode' in options && options.mode === 'integrated';
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-        const moduleOptions = options[module.name as keyof AgChartOptions] as { enabled?: boolean };
-        const isPresentAndDisabled = moduleOptions != null && moduleOptions.enabled === false;
-        const removable =
-            !('removable' in module) ||
-            module.removable === true ||
-            (module.removable === 'standalone-only' && !integratedMode);
-
-        if (isPresentAndDisabled && removable) {
-            delete options[module.name as keyof AgChartOptions];
-        }
     }
 }

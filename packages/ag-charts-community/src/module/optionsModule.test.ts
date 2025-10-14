@@ -2111,8 +2111,8 @@ describe('ChartOptions', () => {
             expect(preparedOptions.tooltip?.enabled).toBe(false);
             expect(preparedOptions.tooltip?.range).toBe(theme.config.line.tooltip.range);
 
-            // AG-13304 - Disabled modules should not have any options object.
-            expect(preparedOptions.legend).toBeUndefined();
+            // Disabled modules now keep their options object.
+            expect(preparedOptions.legend).not.toBeUndefined();
         });
 
         it('should intrinsically enable nested crossline options', () => {

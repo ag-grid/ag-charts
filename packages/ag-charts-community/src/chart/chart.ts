@@ -1462,7 +1462,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             (seriesStatus === 'updated' &&
                 (options.series?.length !== oldOpts.series?.length ||
                     !options.series?.every((s, i) => s.type === oldOpts.series?.[i].type)));
-        const legendRemoved = oldOpts.legend != null && options.legend == null;
+        const legendRemoved =
+            oldOpts.legend != null &&
+            oldOpts.legend.enabled !== false &&
+            (options.legend == null || options.legend.enabled === false);
 
         return seriesChanged || legendRemoved;
     }

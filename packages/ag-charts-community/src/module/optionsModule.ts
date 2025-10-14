@@ -28,7 +28,7 @@ import {
     type SeriesType,
 } from 'ag-charts-types';
 
-import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
+import { removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { getChartTheme } from '../chart/mapping/themes';
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
@@ -273,10 +273,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(options);
-        }
-
         const activeTheme = getChartTheme(options.theme);
 
         // TODO: Remove as this is only required to pass the series validation, it is handled by the OptionsGraph.
@@ -321,7 +317,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
-        removeUnusedEnterpriseOptions(processedOptions);
         if (!enterpriseModule.isEnterprise) {
             removeUsedEnterpriseOptions(processedOptions, true);
         }
