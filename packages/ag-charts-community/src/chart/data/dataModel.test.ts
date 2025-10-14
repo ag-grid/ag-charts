@@ -190,6 +190,154 @@ function extractGroupValues(data: GroupedData<unknown>, groupIndex?: number) {
     return result;
 }
 
+/**
+ * Shared helper to verify domain values match expected min/max
+ */
+function verifyDomain(
+    data: any,
+    expected: {
+        keys?: number[][];
+        values?: number[][];
+        count?: number;
+    }
+) {
+    if (expected.keys) {
+        expect(data.domain.keys).toEqual(expected.keys);
+    }
+    if (expected.values) {
+        expect(data.domain.values).toEqual(expected.values);
+    }
+    if (expected.count !== undefined) {
+        expect(data.input.count).toBe(expected.count);
+    }
+}
+
+/**
+ * Shared helper to create a basic scrolling test scenario
+ */
+function createScrollingTestScenario(config: {
+    dataSize: number;
+    minDataSizeForBanding: number;
+    targetBandCount: number;
+}) {
+    const dataModel = new DataModel<any, any>({
+        props: [rangeKey('x'), value('y')],
+        domainBandingConfig: bandingConfig(config.minDataSizeForBanding, config.targetBandCount),
+    });
+
+    const initialData = Array.from({ length: config.dataSize }, (_, i) => ({
+        x: i,
+        y: i * 10,
+    }));
+    const dataSet = new DataSet(initialData);
+    const sources = basicDataSet(initialData).set('test', dataSet);
+    const processedData = dataModel.processData(sources);
+
+    return { dataModel, dataSet, sources, processedData, initialData };
+}
+
+/**
+ * Shared helper to perform scrolling transaction and verify
+ */
+function performScrollingTransaction(
+    scenario: ReturnType<typeof createScrollingTestScenario>,
+    removeCount: number,
+    appendStartIndex: number
+) {
+    const { dataSet } = scenario;
+    const currentData = dataSet.data;
+
+    const toRemove = currentData.slice(0, removeCount);
+    const toAppend = Array.from({ length: removeCount }, (_, i) => ({
+        x: appendStartIndex + i,
+        y: (appendStartIndex + i) * 10,
+    }));
+
+    dataSet.addTransaction({
+        remove: toRemove,
+        append: toAppend,
+    });
+
+    return { toRemove, toAppend };
+}
+
+/**
+ * Shared helper to verify banding optimization metadata
+ */
+function verifyBandingOptimization(
+    data: any,
+    expected: {
+        shouldHaveBanding: boolean;
+        maxScanRatio?: number;
+        minDirtyBands?: number;
+        maxDirtyBands?: number;
+        totalBands?: number;
+    }
+) {
+    const metadata = data.optimizations;
+
+    if (expected.shouldHaveBanding) {
+        expect(metadata?.domainBanding).toBeDefined();
+        expect(metadata!.domainBanding!.keyDefs).toBeDefined();
+        expect(metadata!.domainBanding!.valueDefs).toBeDefined();
+
+        // Verify key domain banding
+        const keyDefStats = metadata!.domainBanding!.keyDefs[0].stats;
+        expect(keyDefStats).toBeDefined();
+        expect(keyDefStats!.totalBands).toBeGreaterThan(1);
+
+        if (expected.totalBands !== undefined) {
+            expect(keyDefStats!.totalBands).toBe(expected.totalBands);
+        }
+
+        if (expected.maxScanRatio !== undefined) {
+            expect(keyDefStats!.scanRatio).toBeLessThan(expected.maxScanRatio);
+            expect(keyDefStats!.scanRatio).toBeGreaterThan(0);
+        }
+
+        if (expected.maxDirtyBands !== undefined) {
+            expect(keyDefStats!.dirtyBands).toBeLessThanOrEqual(expected.maxDirtyBands);
+        }
+
+        if (expected.minDirtyBands !== undefined) {
+            expect(keyDefStats!.dirtyBands).toBeGreaterThanOrEqual(expected.minDirtyBands);
+        }
+
+        // Verify value domain banding
+        const valueDefStats = metadata!.domainBanding!.valueDefs[0].stats;
+        expect(valueDefStats).toBeDefined();
+        expect(valueDefStats!.totalBands).toBeGreaterThan(1);
+
+        if (expected.totalBands !== undefined) {
+            expect(valueDefStats!.totalBands).toBe(expected.totalBands);
+        }
+
+        if (expected.maxScanRatio !== undefined) {
+            expect(valueDefStats!.scanRatio).toBeLessThan(expected.maxScanRatio);
+            expect(valueDefStats!.scanRatio).toBeGreaterThan(0);
+        }
+
+        if (expected.maxDirtyBands !== undefined) {
+            expect(valueDefStats!.dirtyBands).toBeLessThanOrEqual(expected.maxDirtyBands);
+        }
+
+        if (expected.minDirtyBands !== undefined) {
+            expect(valueDefStats!.dirtyBands).toBeGreaterThanOrEqual(expected.minDirtyBands);
+        }
+    }
+}
+
+/**
+ * Helper to create a standard banding config
+ */
+function bandingConfig(minDataSizeForBanding: number, targetBandCount: number) {
+    return {
+        minDataSizeForBanding,
+        targetBandCount,
+        enableBanding: true,
+    };
+}
+
 function mutilatedBrowserData() {
     const datumKeys = ['ie', 'chrome', 'firefox', 'safari'] as const;
     const rawData = DATA_BROWSER_MARKET_SHARE.map((v) => ({ ...v }));
@@ -535,8 +683,22 @@ describe('DataModel', () => {
                 });
 
                 const sources = new Map<string, DataSet<any>>([
-                    ['left', new DataSet([{ key: 'A', value: 1 }, { key: 'B', value: 2 }, { key: 'C', value: 3 }])],
-                    ['right', new DataSet([{ key: 'A', value: 10 }, { key: 'B', value: 20 }, { key: 'D', value: 40 }])],
+                    [
+                        'left',
+                        new DataSet([
+                            { key: 'A', value: 1 },
+                            { key: 'B', value: 2 },
+                            { key: 'C', value: 3 },
+                        ]),
+                    ],
+                    [
+                        'right',
+                        new DataSet([
+                            { key: 'A', value: 10 },
+                            { key: 'B', value: 20 },
+                            { key: 'D', value: 40 },
+                        ]),
+                    ],
                 ]);
 
                 const result = raggedModel.processData(sources)!;
@@ -2584,11 +2746,7 @@ describe('DataModel', () => {
                 // Create a data model with banding enabled for datasets > 100 items
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 100, // Lower threshold for testing
-                        targetBandCount: 5,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(100, 5), // Lower threshold for testing
                 });
 
                 // Create large initial dataset
@@ -2602,8 +2760,10 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Initial domain should be correct
-                expect(processedData!.domain.keys).toEqual([[0, 199]]);
-                expect(processedData!.domain.values).toEqual([[0, 1990]]);
+                verifyDomain(processedData!, {
+                    keys: [[0, 199]],
+                    values: [[0, 1990]],
+                });
 
                 // Append more data
                 const appendData = [
@@ -2677,11 +2837,7 @@ describe('DataModel', () => {
             it('should correctly update domain with mixed insert/remove operations', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 50,
-                        targetBandCount: 4,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(50, 4),
                 });
 
                 // Create dataset with gaps
@@ -2723,11 +2879,7 @@ describe('DataModel', () => {
             it('should correctly recalculate domain when removing boundary values', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 50,
-                        targetBandCount: 3,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(50, 3),
                 });
 
                 // Dataset with clear boundaries
@@ -2916,52 +3068,47 @@ describe('DataModel', () => {
         });
 
         describe('scrolling data operations with banding', () => {
-            it('should correctly update domain when scrolling data (remove from start, append at end)', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
+            // Parameterized test for basic scrolling scenarios
+            it.each([
+                {
+                    description: 'single item scroll',
+                    dataSize: 1200,
+                    removeCount: 1,
+                    targetBandCount: 5,
+                    expectedDomain: { keys: [[1, 1200]], values: [[10, 12000]] },
+                },
+                {
+                    description: '10 items scroll',
+                    dataSize: 1200,
+                    removeCount: 10,
+                    targetBandCount: 10,
+                    expectedDomain: { keys: [[10, 1209]], values: [[100, 12090]] },
+                },
+            ])(
+                'should correctly update domain when scrolling ($description)',
+                ({ dataSize, removeCount, targetBandCount, expectedDomain }) => {
+                    const scenario = createScrollingTestScenario({
+                        dataSize,
                         minDataSizeForBanding: 100,
-                        targetBandCount: 10,
-                        enableBanding: true,
-                    },
-                });
+                        targetBandCount,
+                    });
 
-                // Create dataset with 1200 items (will create bands for optimization)
-                const initialData = Array.from({ length: 1200 }, (_, i) => ({
-                    x: i,
-                    y: i * 10,
-                }));
-                const dataSet = new DataSet(initialData);
-                const sources = basicDataSet(initialData).set('test', dataSet);
+                    // Verify initial domain
+                    verifyDomain(scenario.processedData!, {
+                        keys: [[0, dataSize - 1]],
+                        values: [[0, (dataSize - 1) * 10]],
+                    });
 
-                const processedData = dataModel.processData(sources);
+                    // Perform scrolling transaction
+                    performScrollingTransaction(scenario, removeCount, dataSize);
 
-                // Initial domain
-                expect(processedData!.domain.keys).toEqual([[0, 1199]]);
-                expect(processedData!.domain.values).toEqual([[0, 11990]]);
+                    const reprocessed = scenario.dataModel.reprocessData(scenario.processedData!);
+                    verifyReprocessMatchesBaseline(scenario.dataModel, reprocessed, scenario.sources);
 
-                // Simulate scrolling: remove 10 from start, append 10 at end
-                // This tests a common real-time data scenario where old data is removed and new data is appended
-                const toRemove = initialData.slice(0, 10);
-                const toAppend = Array.from({ length: 10 }, (_, i) => ({
-                    x: 1200 + i,
-                    y: (1200 + i) * 10,
-                }));
-                dataSet.addTransaction({
-                    remove: toRemove,
-                    append: toAppend,
-                });
-
-                const reprocessed = dataModel.reprocessData(processedData!);
-                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                // Domain should shift to new range correctly with banding optimization
-                expect(reprocessed.domain.keys).toEqual([[10, 1209]]);
-                expect(reprocessed.domain.values).toEqual([[100, 12090]]);
-
-                // Verify data count is maintained
-                expect(reprocessed.input.count).toBe(1200);
-            });
+                    // Verify domain shifted correctly
+                    verifyDomain(reprocessed, { ...expectedDomain, count: dataSize });
+                }
+            );
 
             it('should correctly shift and resize bands during scrolling (detailed band verification)', () => {
                 const dataModel = new DataModel<any, any>({
@@ -3043,28 +3190,11 @@ describe('DataModel', () => {
                 // In a scrolling scenario with 1200 items and 12 bands:
                 // - Only 2 bands should be dirty (band 0 shrunk, band 11 extended)
                 // - That's 2/12 = 16.7% of bands scanned, not 100%
-                const metadata = reprocessed2.optimizations;
-                expect(metadata?.domainBanding).toBeDefined();
-                expect(metadata!.domainBanding!.keyDefs).toBeDefined();
-                expect(metadata!.domainBanding!.valueDefs).toBeDefined();
-
-                // Verify key domain banding efficiency
-                const keyDefStats = metadata!.domainBanding!.keyDefs[0].stats;
-                expect(keyDefStats).toBeDefined();
-                expect(keyDefStats!.totalBands).toBeGreaterThan(1); // Should have multiple bands
-                expect(keyDefStats!.dirtyBands).toBeLessThan(keyDefStats!.totalBands); // Not all bands dirty
-                expect(keyDefStats!.dirtyBands).toBeLessThanOrEqual(5); // At most ~40% of bands
-                expect(keyDefStats!.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
-                expect(keyDefStats!.scanRatio).toBeGreaterThan(0); // But more than 0%
-
-                // Verify value domain banding efficiency
-                const valueDefStats = metadata!.domainBanding!.valueDefs[0].stats;
-                expect(valueDefStats).toBeDefined();
-                expect(valueDefStats!.totalBands).toBeGreaterThan(1); // Should have multiple bands
-                expect(valueDefStats!.dirtyBands).toBeLessThan(valueDefStats!.totalBands); // Not all bands dirty
-                expect(valueDefStats!.dirtyBands).toBeLessThanOrEqual(5); // At most ~40% of bands
-                expect(valueDefStats!.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
-                expect(valueDefStats!.scanRatio).toBeGreaterThan(0); // But more than 0%
+                verifyBandingOptimization(reprocessed2, {
+                    shouldHaveBanding: true,
+                    maxDirtyBands: 5, // At most ~40% of bands
+                    maxScanRatio: 0.5, // Less than 50% data scanned
+                });
             });
 
             it('should handle multiple scrolling operations efficiently', () => {
@@ -3115,18 +3245,10 @@ describe('DataModel', () => {
                     // CRITICAL: Verify optimization is working after first iteration
                     // (first iteration initializes banding, so all bands are dirty)
                     if (iteration > 0) {
-                        const metadata = processedData.optimizations;
-                        expect(metadata?.domainBanding).toBeDefined();
-
-                        const keyDefStats = metadata!.domainBanding!.keyDefs[0].stats;
-                        expect(keyDefStats).toBeDefined();
-                        expect(keyDefStats!.dirtyBands).toBeLessThan(keyDefStats!.totalBands); // Not all bands dirty
-                        expect(keyDefStats!.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
-
-                        const valueDefStats = metadata!.domainBanding!.valueDefs[0].stats;
-                        expect(valueDefStats).toBeDefined();
-                        expect(valueDefStats!.dirtyBands).toBeLessThan(valueDefStats!.totalBands); // Not all bands dirty
-                        expect(valueDefStats!.scanRatio).toBeLessThan(0.5); // Less than 50% data scanned
+                        verifyBandingOptimization(processedData, {
+                            shouldHaveBanding: true,
+                            maxScanRatio: 0.5, // Less than 50% data scanned
+                        });
                     }
                 }
 
