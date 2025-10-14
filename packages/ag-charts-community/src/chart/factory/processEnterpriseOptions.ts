@@ -108,4 +108,22 @@ export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>
             delete options[module.name as keyof AgChartOptions];
         }
     }
+    if ('axes' in options && isArray(options.axes)) {
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+            if (module.enterprise && module.chartType && module.chartType !== chartType) {
+                for (const axis of options.axes) {
+                    delete axis[module.name as keyof typeof axis];
+                }
+            }
+        }
+    }
+    if ('series' in options && isArray(options.series)) {
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+            if (module.enterprise && module.chartType && module.chartType !== chartType) {
+                for (const series of options.series) {
+                    delete series[module.name as Exclude<keyof typeof series, 'type'>];
+                }
+            }
+        }
+    }
 }
