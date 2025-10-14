@@ -191,7 +191,7 @@ export abstract class RadarSeries<
 
         if (!processedData || !dataModel) return;
 
-        const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName, marker, label } = this.properties;
         const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
         const radiusScale = this.axes[ChartAxisDirection.Radius]?.scale;
 
@@ -228,7 +228,7 @@ export abstract class RadarSeries<
                     'radius',
                     radiusDomain,
                     label,
-                    { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName }
+                    { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName, legendItemName }
                 );
 
                 if (labelText) {
@@ -427,7 +427,7 @@ export abstract class RadarSeries<
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName, radiusKey, radiusName, tooltip, marker } = properties;
+        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip, marker } = properties;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
 
@@ -464,6 +464,7 @@ export abstract class RadarSeries<
                 radiusKey,
                 angleName,
                 radiusName,
+                legendItemName,
                 ...(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
             }
         );
@@ -506,7 +507,7 @@ export abstract class RadarSeries<
             visible,
         } = this;
 
-        const { radiusKey, radiusName, showInLegend } = this.properties;
+        const { radiusKey, radiusName, legendItemName, showInLegend } = this.properties;
 
         return [
             {
@@ -516,7 +517,7 @@ export abstract class RadarSeries<
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: radiusKey }),
                 label: {
-                    text: radiusName ?? radiusKey,
+                    text: legendItemName ?? radiusName ?? radiusKey,
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
