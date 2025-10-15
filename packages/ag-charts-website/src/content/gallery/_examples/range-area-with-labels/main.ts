@@ -30,16 +30,8 @@ const options: AgCartesianChartOptions = {
             'range-area': {
                 series: {
                     fillOpacity: 0.35,
-                    item: {
-                        low: {
-                            strokeWidth: 2,
-                            strokeOpacity: 0.8,
-                        },
-                        high: {
-                            strokeWidth: 2,
-                            strokeOpacity: 0.8,
-                        },
-                    },
+                    strokeWidth: 2,
+                    strokeOpacity: 0.8,
                     label: {
                         enabled: true,
                     },

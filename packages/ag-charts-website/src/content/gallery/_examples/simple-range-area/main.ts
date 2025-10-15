@@ -27,25 +27,14 @@ const options: AgCartesianChartOptions = {
             yHighKey: 'magnitudeHigh',
             yLowName: 'Minimum Magnitude',
             yHighName: 'Maximum Magnitude',
+            strokeWidth: 2,
             fillOpacity: 0.5,
             interpolation: {
                 type: 'smooth',
             },
-            item: {
-                low: {
-                    strokeWidth: 2,
-                    marker: {
-                        enabled: true,
-                        size: 6,
-                    },
-                },
-                high: {
-                    strokeWidth: 2,
-                    marker: {
-                        enabled: true,
-                        size: 6,
-                    },
-                },
+            marker: {
+                enabled: true,
+                size: 6,
             },
         },
     ],
