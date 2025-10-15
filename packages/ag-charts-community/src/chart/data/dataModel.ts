@@ -870,7 +870,7 @@ export class DataModel<
         }
 
         this.commitPendingTransactions(processedData);
-        const { processValue } = this.initDataDomainProcessor(false);
+        const { processValue } = this.initDataDomainProcessor('skip');
         const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
 
         this.updateBandsForChanges(processedData, scopeChanges);
@@ -1788,7 +1788,7 @@ export class DataModel<
     }
 
     private extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
-        const { dataDomain, processValue, allScopesHaveSameDefs } = this.initDataDomainProcessor(true);
+        const { dataDomain, processValue, allScopesHaveSameDefs } = this.initDataDomainProcessor('extend');
 
         const { keys: keyDefs, values: valueDefs } = this;
 
@@ -2489,7 +2489,7 @@ export class DataModel<
         }
     }
 
-    private initDataDomainProcessor(extendDomains: boolean) {
+    private initDataDomainProcessor(domainMode: 'extend' | 'skip') {
         const { keys: keyDefs, values: valueDefs } = this;
 
         const scopes = new Set<string>();
@@ -2600,7 +2600,7 @@ export class DataModel<
                 value = processor(value, idx);
             }
 
-            if (extendDomains) {
+            if (domainMode === 'extend') {
                 dataDomain.get(def)?.extend(value);
             }
             reusableResult.value = value;

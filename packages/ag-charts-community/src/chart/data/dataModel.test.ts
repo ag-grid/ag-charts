@@ -2151,7 +2151,7 @@ describe('DataModel', () => {
                 expect(reprocessed.partialValidDataCount).toBeGreaterThan(0);
 
                 // Verify domains
-                // Key domain includes all valid keys (1, 2, 3), even though items 1 and 2 have invalid values
+                // Key domain includes all valid keys (1, 2, 3), even though items with keys 2 and 3 have invalid y values
                 // This matches processData() behavior where each property domain is independent
                 expect(reprocessed.domain.keys).toEqual([[1, 3]]);
                 // Value domain only includes valid values (only item 0 with y=10 is fully valid)
@@ -2348,26 +2348,33 @@ describe('DataModel', () => {
             });
 
             it('should not support grouped data with groupsUnique=false', () => {
+                // Create a scenario where groupsUnique=false by using multiple scopes
+                // that share group keys (this prevents the batch merging optimization)
                 const dataModel = new DataModel<any, any, true>({
-                    props: [rangeKey('x'), value('y')],
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
                     groupByKeys: true,
                     groupByFn: () => () => ['shared-group'], // Force all data into one group
                 });
 
-                const sources = basicDataSet([
-                    { x: 1, y: 10 },
-                    { x: 2, y: 20 },
+                const dataSet1 = new DataSet([{ category: 'A', value1: 10 }]);
+                const dataSet2 = new DataSet([{ category: 'A', value2: 20 }]);
+                const sources = new Map<string, DataSet<any>>([
+                    ['scope1', dataSet1],
+                    ['scope2', dataSet2],
                 ]);
                 const processedData = dataModel.processData(sources);
 
-                // With batch merging optimization, this now has groupsUnique=true
-                // which enables reprocessing support
+                // Multiple scopes prevent batch merging, so groupsUnique=false
                 expect(processedData!.type).toBe('grouped');
-                expect(processedData!.groupsUnique).toBe(true);
-                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+                expect(processedData!.groupsUnique).toBe(false);
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
             });
 
-            it('should support data with aggregates', () => {
+            it('should not support data with aggregates', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y', 'group1'), sum('group1')],
                 });
@@ -2499,11 +2506,7 @@ describe('DataModel', () => {
                         scopedValue('scope2', 'value2'),
                     ],
                     groupByKeys: true,
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 50,
-                        targetBandCount: 5,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(50, 5),
                 });
 
                 // Create initial data with 100 items (above threshold to enable banding)
@@ -2683,11 +2686,7 @@ describe('DataModel', () => {
                         actualAccumulateGroup('stack', 'normal'),
                     ],
                     groupByKeys: true,
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 50,
-                        targetBandCount: 5,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(50, 5),
                 });
 
                 // Create larger dataset to enable banding
@@ -2789,11 +2788,7 @@ describe('DataModel', () => {
             it('should correctly update domain when prepending to large dataset', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 100,
-                        targetBandCount: 5,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(100, 5),
                 });
 
                 // Create large initial dataset starting from 10
@@ -2915,11 +2910,7 @@ describe('DataModel', () => {
             it('should handle removing all values from a band', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 20,
-                        targetBandCount: 4, // Should create ~5 items per band for 20 items
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(20, 4),
                 });
 
                 // Small dataset that will be banded
@@ -2950,11 +2941,7 @@ describe('DataModel', () => {
             it('should rebalance bands when data size changes significantly', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 5, // Lower for testing
-                        targetBandCount: 3,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(5, 3),
                 });
 
                 // Start with dataset just above banding threshold
@@ -3030,11 +3017,7 @@ describe('DataModel', () => {
             it('should handle transition from non-banded to banded mode', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 100,
-                        targetBandCount: 5,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(100, 5),
                 });
 
                 // Start below banding threshold
@@ -3113,11 +3096,7 @@ describe('DataModel', () => {
             it('should correctly shift and resize bands during scrolling (detailed band verification)', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 100,
-                        targetBandCount: 10,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(100, 10),
                 });
 
                 // Create dataset with 1200 items
@@ -3200,11 +3179,7 @@ describe('DataModel', () => {
             it('should handle multiple scrolling operations efficiently', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 100,
-                        targetBandCount: 10,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(100, 10),
                 });
 
                 let currentData = Array.from({ length: 1200 }, (_, i) => ({
@@ -3262,11 +3237,7 @@ describe('DataModel', () => {
                 // This test specifically verifies the fix for the bug where considerRebalancing()
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 100, // Lower threshold to enable banding with 1200 items
-                        targetBandCount: 5,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(100, 5),
                 });
 
                 // Create dataset with 1200 items (above threshold to enable banding)
@@ -3312,11 +3283,7 @@ describe('DataModel', () => {
                 // With 1200 items and 5 bands, scrolling should only dirty 2 bands (first and last)
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('time'), value('value')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 100,
-                        targetBandCount: 5,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(100, 5),
                 });
 
                 // Create dataset with 1200 items (will create 5 bands of 240 items each)
@@ -3400,11 +3367,7 @@ describe('DataModel', () => {
             it('should not use banding for category domains', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [categoryKey('category'), value('value')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 10, // Low threshold
-                        targetBandCount: 5,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(10, 5),
                 });
 
                 // Large dataset with categories
@@ -3436,11 +3399,7 @@ describe('DataModel', () => {
             it('should efficiently handle append-heavy workloads', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('timestamp'), value('value')],
-                    domainBandingConfig: {
-                        minDataSizeForBanding: 100,
-                        targetBandCount: 10,
-                        enableBanding: true,
-                    },
+                    domainBandingConfig: bandingConfig(100, 10),
                 });
 
                 // Simulate time-series data
