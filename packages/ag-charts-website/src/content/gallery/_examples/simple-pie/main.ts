@@ -36,7 +36,18 @@ const options: AgPolarChartOptions = {
                 formatter: ({ datum, angleKey }) => {
                     const value = datum[angleKey] as number;
                     const percentage = ((value / totalRevenue) * 100).toFixed(1);
-                    return parseFloat(percentage) >= 5 ? `${percentage}%` : '';
+                    if (parseFloat(percentage) < 5) return '';
+                    return [
+                        {
+                            text: percentage,
+                            fontSize: 18,
+                            fontWeight: 'bold',
+                        },
+                        {
+                            text: '%',
+                            fontSize: 12,
+                        },
+                    ];
                 },
             },
             strokeWidth: 1,

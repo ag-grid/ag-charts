@@ -44,6 +44,36 @@ In the above example:
 -   The `title`, `subtitle` and `footnote` use text segments to vary font options within the text.
 -   The top level font options within each element are used for all text segments, unless overridden.
 
+### Label Formatters with Multi-Style Text
+
+Series labels and axes labels also support multiple font styles when using formatters.
+
+Instead of returning a string, formatters can return an array of `TextSegment` objects, where each segment contains a `text` property and associated font style overrides.
+
+{% chartExampleRunner title="Multi-Style Label Formatters" name="label-formatters" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [{
+        type: 'bar',
+        label: {
+            formatter: ({ value }) => [
+                { text: value.toString(), fontSize: 18, fontWeight: 'bold', color: 'white' },
+                { text: '\nunits', fontSize: 11, color: 'rgba(255, 255, 255, 0.8)' },
+            ],
+        },
+    }],
+}
+```
+
+In the above example:
+
+-   The label formatter returns an array of `TextSegment` objects instead of a string.
+-   The first segment shows the value in large, bold, white text.
+-   The second segment displays "units" in smaller, semi-transparent text.
+-   Each text segment can have independent font styling (size, weight, color, style, family).
+-   Newline characters (`\n`) separate segments across multiple lines.
+
 ## Font Theme Parameters
 
 The font options for the whole chart can be set once, by using [theme parameters](./themes/#parameters).
