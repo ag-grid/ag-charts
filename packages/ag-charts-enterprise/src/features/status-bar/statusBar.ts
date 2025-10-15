@@ -4,15 +4,15 @@ import { cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 const { ZIndexMap, LayoutElement, Property, BaseProperties, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
 
 enum LabelConfiguration {
-    Open = 1 << 1,
-    Close = 1 << 2,
-    Low = 1 << 3,
-    High = 1 << 4,
-    Volume = 1 << 5,
-    UnlabelledClose = 1 << 6,
-    NeutralClose = 1 << 7,
-    NeutralHigh = 1 << 8,
-    NeutralLow = 1 << 9,
+    Open = 2, // 1 << 1
+    Close = 4, // 1 << 2
+    Low = 8, // 1 << 3
+    High = 16, // 1 << 4
+    Volume = 32, // 1 << 5
+    UnlabelledClose = 64, // 1 << 6
+    NeutralClose = 128, // 1 << 7
+    NeutralHigh = 256, // 1 << 8
+    NeutralLow = 512, // 1 << 9
 }
 
 const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = {

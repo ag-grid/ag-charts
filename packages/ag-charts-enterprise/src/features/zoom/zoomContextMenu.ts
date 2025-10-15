@@ -29,14 +29,12 @@ export class ZoomContextMenu {
     public registerActions(enabled: boolean | undefined) {
         const { contextMenuRegistry } = this;
 
-        if (enabled) {
-            contextMenuRegistry.setVisible('zoom-to-cursor', true);
-            contextMenuRegistry.setVisible('pan-to-cursor', true);
-            contextMenuRegistry.setVisible('reset-zoom', true);
-        } else {
-            contextMenuRegistry.setVisible('zoom-to-cursor', false);
-            contextMenuRegistry.setVisible('pan-to-cursor', false);
-            contextMenuRegistry.setVisible('reset-zoom', false);
+        const action = enabled ? 'show' : 'hide';
+        contextMenuRegistry.toggle('zoom-to-cursor', action);
+        contextMenuRegistry.toggle('pan-to-cursor', action);
+        contextMenuRegistry.toggle('reset-zoom', action);
+
+        if (!enabled) {
             return;
         }
 
@@ -61,9 +59,9 @@ export class ZoomContextMenu {
 
         return () => {
             removeListener();
-            contextMenuRegistry.setVisible('zoom-to-cursor', false);
-            contextMenuRegistry.setVisible('pan-to-cursor', false);
-            contextMenuRegistry.setVisible('reset-zoom', false);
+            contextMenuRegistry.toggle('zoom-to-cursor', 'hide');
+            contextMenuRegistry.toggle('pan-to-cursor', 'hide');
+            contextMenuRegistry.toggle('reset-zoom', 'hide');
         };
     }
 

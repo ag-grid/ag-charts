@@ -30,7 +30,7 @@ Shows summary of open SonarCloud issues with counts by severity and rule type.
 
 ## Rule Guide Library
 
-Per-issue-type guides are available in `tools/prompts/sonar-fix/` directory:
+Per-issue-type guides are available in `tools/prompts/commands/sonar-fix/guides/` directory:
 
 -   **README.md** - Index of all available guides
 -   **Individual guides** - Detailed fix patterns, examples, and AG Charts context for each rule type
@@ -99,12 +99,15 @@ node_modules/.cache/sonar-issues/
 
     The SonarCloud API returns max 500 issues per page. With ~500+ total issues, we need multiple pages.
 
+    **IMPORTANT:** Only fetch OPEN issues (not CONFIRMED, ACCEPTED, FALSE_POSITIVE, etc.) to ensure accurate counts.
+
     ```bash
     # Download all pages (max 500 items per page)
+    # NOTE: Only fetching OPEN status (not CONFIRMED, ACCEPTED, FALSE_POSITIVE)
     echo "Downloading SonarCloud issues..."
     for page in 1 2 3 4 5; do
         echo "  Fetching page $page..."
-        curl -sf "https://sonarcloud.io/api/issues/search?s=FILE_LINE&issueStatuses=OPEN%2CCONFIRMED&ps=500&p=$page&componentKeys=ag-charts-community-latest&organization=ag-grid&additionalFields=_all&impactSeverities=HIGH%2CMEDIUM%2CLOW%2CINFO" \
+        curl -sf "https://sonarcloud.io/api/issues/search?s=FILE_LINE&issueStatuses=OPEN&ps=500&p=$page&componentKeys=ag-charts-community-latest&organization=ag-grid&additionalFields=_all&impactSeverities=HIGH%2CMEDIUM%2CLOW%2CINFO" \
             > "node_modules/.cache/sonar-issues/raw/page-$page.json"
 
         # Check if this page has data
@@ -334,7 +337,7 @@ node_modules/.cache/sonar-issues/
 
 1. **Check for existing guides:**
 
-    Rule guides are located in `tools/prompts/sonar-fix/` directory.
+    Rule guides are located in `tools/prompts/commands/sonar-fix/guides/` directory.
 
     Each guide follows the naming pattern: `{rule-number}-{kebab-case-description}.md`
 
@@ -413,9 +416,9 @@ node_modules/.cache/sonar-issues/
 
     ```
 
-    c. **Save to:** `tools/prompts/sonar-fix/{rule-number}-{description}.md`
+    c. **Save to:** `tools/prompts/commands/sonar-fix/guides/{rule-number}-{description}.md`
 
-    d. **Update README.md:** Add entry to the appropriate tier table in `tools/prompts/sonar-fix/README.md`
+    d. **Update README.md:** Add entry to the appropriate tier table in `tools/prompts/commands/sonar-fix/guides/README.md`
 
 3. **Reference during fixing:**
 
@@ -552,7 +555,7 @@ node_modules/.cache/sonar-issues/
     # Example: S7741 has exceptions for globalThis.window and globalThis.document
     # Filter those out before creating batches
 
-    # Read verified-issues.json and for each rule, check tools/prompts/sonar-fix/{rule}-*.md
+    # Read verified-issues.json and for each rule, check tools/prompts/commands/sonar-fix/guides/{rule}-*.md
     # If the guide has an "Important Exceptions" section with file patterns,
     # filter out matching issues
 
@@ -637,6 +640,178 @@ These require more careful refactoring and should be addressed separately:
 
 Wait for user confirmation before proceeding.
 
+#### Phase 2.5: Identify Issues for SonarCloud Feedback
+
+**After user approves the fix plan, check if any issues should be marked in SonarCloud:**
+
+1. **Analyze issues for feedback candidates:**
+
+    Issues that should be marked in SonarCloud rather than fixed:
+
+    - **False Positives:** Static analysis incorrectly flagged valid code
+    - **Won't Fix (Accepted):** Valid issues but intentionally not fixing now
+    - **Exceptions:** Issues that match documented exception patterns
+
+2. **Generate feedback proposal:**
+
+    ```markdown
+    ## SonarCloud Feedback Proposal
+
+    The following issues should be marked in SonarCloud with explanatory comments:
+
+    ### False Positives (N issues)
+
+    **Rule:** typescript:S7763 (prefer export-from)
+    **Count:** 55 issues
+    **Reason:** False positive - modules are used locally in array declarations
+    **Example locations:**
+
+    -   packages/ag-charts-community/src/main-modules.ts (16 issues)
+    -   packages/ag-charts-enterprise/src/main-modules.ts (39 issues)
+
+    **Action:** Mark as FALSE_POSITIVE with comment:
+    ```
+
+    AG-16097: False positive - these modules are used locally in array declarations
+    (e.g., `export const DEFAULT_CARTESIAN_CHART_MODULES = [CartesianChartModule, ...]`),
+    not just re-exported. Static analysis does not recognize this pattern.
+
+    ```
+
+    ### Accepted Technical Debt (N issues)
+
+    **Rule:** typescript:S1134 (FIXME comments)
+    **Count:** 7 issues
+    **Reason:** Legitimate technical debt items
+    **Example locations:**
+    - packages/ag-charts-core/src/chart/legend/legendEvent.ts:32
+    - packages/ag-charts-core/src/chart/legend/legendManager.ts:8
+
+    **Action:** Mark as ACCEPTED with comment:
+    ```
+
+    AG-16097: Accepted - these FIXME comments represent legitimate technical debt
+    or blocked work. 3 reference AG-16068 (existing ticket), others document real
+    issues requiring investigation.
+
+    ```
+
+    ---
+
+    **Do you want to apply this feedback to SonarCloud?** (yes/no)
+
+    - **yes** - Will mark these issues in SonarCloud with explanatory comments
+    - **no** - Skip feedback step and proceed directly to code fixes
+    ```
+
+3. **Wait for user approval:**
+
+    If user approves ("yes"), proceed to Phase 2.6.
+
+    If user declines ("no"), skip to Phase 3.
+
+#### Phase 2.6: Apply SonarCloud Feedback
+
+**Only runs if user approved feedback in Phase 2.5.**
+
+1. **Generate feedback configuration:**
+
+    Create a JSON file with feedback details using specific issue keys (NOT rule patterns):
+
+    ```bash
+    # First, fetch specific issue keys for the rules you want to mark
+    SONAR_PROJECT=ag-charts-community-latest npx tsx tools/prompts/commands/sonar-fix/scripts/fetch-issue-keys.ts \
+        typescript:S7763 typescript:S1134 > /tmp/issue-keys.json
+
+    # Then create config with explicit issue keys (safer than rule-based marking)
+    cat > node_modules/.cache/sonar-issues/feedback-config.json <<'EOF'
+    {
+      "batches": [
+        {
+          "name": "S7763 False Positives",
+          "issueKeys": ["AZlyINco-RX8W3KQpDew", "AZlyIOPE-RX8W3KQpDlh", "..."],
+          "transition": "falsepositive",
+          "comment": "AG-16097: False positive - these modules are used locally in array declarations (e.g., `export const DEFAULT_CARTESIAN_CHART_MODULES = [CartesianChartModule, ...]`), not just re-exported. Static analysis does not recognize this pattern."
+        },
+        {
+          "name": "S1134 Technical Debt",
+          "issueKeys": ["AZmp9wCvSTSzM_9DH9_M", "AZmp9v2TSTSzM_9DH9_J", "..."],
+          "transition": "accept",
+          "comment": "AG-16097: Accepted - these FIXME comments represent legitimate technical debt or blocked work. 3 reference AG-16068 (existing ticket), others document real issues requiring investigation."
+        }
+      ]
+    }
+    EOF
+
+    # NOTE: Replace the "..." with actual issue keys from fetch-issue-keys.ts output
+    # This ensures only verified issues are marked, not all issues matching a rule
+    ```
+
+2. **Execute feedback script:**
+
+    ```bash
+    # Ensure SONAR_TOKEN is set
+    if [ -z "$SONAR_TOKEN" ]; then
+        echo "⚠️  SONAR_TOKEN not set. Skipping SonarCloud feedback."
+        echo "   To enable: export SONAR_TOKEN=<your-token>"
+        echo "   Generate token at: https://sonarcloud.io/account/security"
+    else
+        echo "Applying feedback to SonarCloud..."
+        # IMPORTANT: Use mark-specific-issues.ts for safety - it only marks explicitly verified issue keys
+        SONAR_PROJECT=ag-charts-community-latest npx tsx tools/prompts/commands/sonar-fix/scripts/mark-specific-issues.ts \
+            --config node_modules/.cache/sonar-issues/feedback-config.json
+
+        echo "✓ Feedback applied successfully"
+        echo "  These issues are now marked in SonarCloud and won't appear in future scans"
+    fi
+    ```
+
+3. **Update cache after feedback:**
+
+    After marking issues, remove them from the working set:
+
+    ```bash
+    # Get list of marked issue keys (not rules - we're using specific keys now)
+    marked_keys=$(jq -r '.batches[].issueKeys[]' node_modules/.cache/sonar-issues/feedback-config.json)
+
+    # Filter marked issues from verified-issues.json by their specific issue keys
+    jq --argjson keys "$(echo $marked_keys | jq -R 'split(" ")')" '
+        [.[] | select(.key as $k | $keys | index($k) | not)]
+    ' node_modules/.cache/sonar-issues/processed/verified-issues.json \
+        > node_modules/.cache/sonar-issues/processed/verified-issues-after-feedback.json
+
+    # Update batched-issues.json as well
+    jq --argjson keys "$(echo $marked_keys | jq -R 'split(" ")')" '
+        map({
+            rule: .rule,
+            count: .count,
+            severity: .severity,
+            issues: [.issues[] | select(.key as $k | $keys | index($k) | not)]
+        }) | map(select(.issues | length > 0))
+    ' node_modules/.cache/sonar-issues/processed/batched-issues.json \
+        > node_modules/.cache/sonar-issues/processed/batched-issues-after-feedback.json
+
+    remaining=$(jq '. | length' node_modules/.cache/sonar-issues/processed/verified-issues-after-feedback.json)
+    echo "Remaining issues to fix: $remaining"
+    ```
+
+4. **Report feedback results:**
+
+    ```markdown
+    ## SonarCloud Feedback Applied
+
+    **Marked N issues across M rules:**
+
+    -   False Positives: X issues
+    -   Accepted: Y issues
+
+    These issues will no longer appear in future SonarCloud scans.
+
+    **Remaining issues to fix:** Z issues
+
+    Proceeding with code fixes...
+    ```
+
 #### Phase 3: Parallel Batch Execution Using Sub-Agents
 
 **IMPORTANT:** Use parallel sub-agents for efficient execution of multiple batches.
@@ -661,7 +836,7 @@ Wait for user confirmation before proceeding.
     ```markdown
     Fix all SonarCloud {RULE_ID} issues ({RULE_DESCRIPTION}).
 
-    **Rule Guide:** Check if a guide exists at `tools/prompts/sonar-fix/{RULE_NUMBER}-{kebab-case}.md`.
+    **Rule Guide:** Check if a guide exists at `tools/prompts/commands/sonar-fix/guides/{RULE_NUMBER}-{kebab-case}.md`.
     If not, create one using the SonarCloud API:
 
     -   URL: https://sonarcloud.io/api/rules/show?key={encoded-rule-id}&organization=ag-grid
@@ -713,7 +888,7 @@ Wait for user confirmation before proceeding.
     Task(
       subagent_type: "general-purpose",
       description: "Fix S7767 issues (Batch 1)",
-      prompt: "Fix all SonarCloud S7767 issues (Use Math.trunc instead of | 0).\n\n**Rule Guide:** Check tools/prompts/sonar-fix/S7767-use-math-trunc.md...\n\n**Issues:** \n- file.ts:123\n- file2.ts:456\n..."
+      prompt: "Fix all SonarCloud S7767 issues (Use Math.trunc instead of | 0).\n\n**Rule Guide:** Check tools/prompts/commands/sonar-fix/guides/S7767-use-math-trunc.md...\n\n**Issues:** \n- file.ts:123\n- file2.ts:456\n..."
     )
     ```
 

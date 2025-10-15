@@ -169,14 +169,15 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     initialValue: Infinity,
     reducer: () => {
         let prevX = Number.NaN;
-        return (smallestSoFar = Infinity, keys) => {
+        return (smallestSoFar, keys) => {
             const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
-            if (!Number.isNaN(interval) && interval > 0 && interval < smallestSoFar) {
+            const currentSmallest = smallestSoFar ?? Infinity;
+            if (!Number.isNaN(interval) && interval > 0 && interval < currentSmallest) {
                 return interval;
             }
-            return smallestSoFar;
+            return currentSmallest;
         };
     },
 };
@@ -187,15 +188,16 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     initialValue: -Infinity,
     reducer: () => {
         let prevX = Number.NaN;
-        return (largestSoFar = -Infinity, keys) => {
+        return (largestSoFar, keys) => {
             const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
 
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
-            if (!Number.isNaN(interval) && interval > 0 && interval > largestSoFar) {
+            const currentLargest = largestSoFar ?? -Infinity;
+            if (!Number.isNaN(interval) && interval > 0 && interval > currentLargest) {
                 return interval;
             }
-            return largestSoFar;
+            return currentLargest;
         };
     },
 };

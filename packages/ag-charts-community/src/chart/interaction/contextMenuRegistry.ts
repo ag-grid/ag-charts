@@ -11,9 +11,9 @@ export class ContextMenuRegistry {
     private readonly hiddenActions: Set<string> = new Set();
 
     constructor(private readonly eventsHub: EventsHub) {
-        this.setVisible('zoom-to-cursor', false);
-        this.setVisible('pan-to-cursor', false);
-        this.setVisible('reset-zoom', false);
+        this.toggle('zoom-to-cursor', 'hide');
+        this.toggle('pan-to-cursor', 'hide');
+        this.toggle('reset-zoom', 'hide');
     }
 
     public static check<T extends AgContextMenuItemShowOn>(
@@ -54,11 +54,15 @@ export class ContextMenuRegistry {
         return !this.hiddenActions.has(id);
     }
 
-    public setVisible(id: AgContextMenuItemLiteral, visible: boolean) {
-        if (visible) {
-            this.hiddenActions.delete(id);
-        } else {
-            this.hiddenActions.add(id);
+    public toggle(id: AgContextMenuItemLiteral, action?: 'show' | 'hide') {
+        action ??= this.isVisible(id) ? 'hide' : 'show';
+        switch (action) {
+            case 'show':
+                this.hiddenActions.delete(id);
+                break;
+            case 'hide':
+                this.hiddenActions.add(id);
+                break;
         }
     }
 }

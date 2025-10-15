@@ -62,9 +62,11 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
 
         patchListeners(propsOptions?.legend?.listeners);
         patchListeners(propsOptions?.listeners);
-        propsOptions.series?.forEach((series: any) => {
-            patchListeners(series.listeners);
-        });
+        if (propsOptions.series) {
+            for (const series of propsOptions.series) {
+                patchListeners(series.listeners);
+            }
+        }
 
         if (propsOptions.container) {
             return propsOptions;
