@@ -69,7 +69,7 @@ type Column = {
     index: number;
     nodes: ((NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum> & { weight: number }) | GhostNodeGraphEntry)[];
     size: number;
-    readonly x: number;
+    x: number;
 };
 
 export class SankeySeries extends FlowProportionSeries<
@@ -118,6 +118,7 @@ export class SankeySeries extends FlowProportionSeries<
             labelKey,
             label: { spacing: labelSpacing },
             node: { spacing: nodeSpacing, width: nodeWidth, alignment },
+            fillWidth,
         } = this.properties;
 
         const createNode = (node: FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
@@ -145,16 +146,10 @@ export class SankeySeries extends FlowProportionSeries<
         } = this.getNodeGraph(createNode, createLink, { includeCircularReferences: false });
         const nodeGraph = baseNodeGraph as Map<string, EnhancedNodeGraphEntry>;
 
-        const inset = this.isLabelEnabled()
-            ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1))
-            : 0;
-        const columnWidth = (seriesRectWidth - nodeWidth - 2 * inset) / (maxPathLength - 1);
-
         // Initialise columns
         const columns: Column[] = [];
         for (let index = 0; index < maxPathLength; index += 1) {
-            const x = inset + index * columnWidth;
-            columns.push({ index, size: 0, nodes: [], x });
+            columns.push({ index, size: 0, nodes: [], x: 0 });
         }
 
         // Assign nodes to columns
@@ -199,7 +194,6 @@ export class SankeySeries extends FlowProportionSeries<
                 }
             }
 
-            node.x = column.x;
             node.size = size;
 
             const { label } = this.properties;
@@ -220,6 +214,45 @@ export class SankeySeries extends FlowProportionSeries<
             column.size += size;
 
             graphNode.columnIndex = column.index;
+        }
+
+        // Calculate the widths of labels on the leading and trailing columns and inset the columns accordingly
+        const measurer = cachedTextMeasurer(this.properties.label);
+
+        const defaultInset =
+            fillWidth == null && this.isLabelEnabled()
+                ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1))
+                : 0;
+
+        let columnLabelInsetBefore = defaultInset;
+        let columnLabelInsetAfter = defaultInset;
+
+        if (fillWidth === false && this.isLabelEnabled()) {
+            const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
+                const node = n as EnhancedNodeGraphEntry;
+                if (node.datum.label == null || node.datum.label === '') return acc;
+                const text = wrapText(node.datum.label, {
+                    maxWidth: (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing,
+                    maxHeight: node.datum.height,
+                    font: this.properties.label,
+                    textWrap: 'never',
+                });
+                const { width } = measurer.measureLines(text);
+                return Math.max(acc, width);
+            };
+            columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
+            columnLabelInsetAfter = nodeWidth + columns[columns.length - 1].nodes.reduce(reduceLabelWidthFn, 0);
+        }
+
+        const columnWidth =
+            (seriesRectWidth - nodeWidth - columnLabelInsetBefore - columnLabelInsetAfter) / (maxPathLength - 1);
+
+        for (let index = 0; index < columns.length; index++) {
+            const column = columns[index];
+            column.x = columnLabelInsetBefore + index * columnWidth;
+            for (const graphNode of column.nodes) {
+                (graphNode.datum as SankeyNodeDatum).x = column.x;
+            }
         }
 
         for (const graphNode of nodeGraph.values()) {
@@ -375,7 +408,6 @@ export class SankeySeries extends FlowProportionSeries<
         const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
         const { fontSize } = this.properties.label;
-        const measurer = cachedTextMeasurer(this.properties.label);
 
         // Create nodeData with midpoints and create the labels
         for (const [index, column] of columns.entries()) {
@@ -397,7 +429,7 @@ export class SankeySeries extends FlowProportionSeries<
 
                 if (node.label == null) continue;
 
-                const x = leading ? node.x - labelSpacing : node.x + node.width + labelSpacing;
+                let x = !fillWidth && leading ? node.x - labelSpacing : node.x + node.width + labelSpacing;
                 const y = node.y + node.height / 2;
                 let text: string | undefined;
                 if (!leading && !trailing) {
@@ -422,7 +454,7 @@ export class SankeySeries extends FlowProportionSeries<
                     });
                 }
                 if (text == null || text === '') {
-                    const labelInset = leading || trailing ? labelSpacing : labelSpacing * 2;
+                    const labelInset = !fillWidth && (leading || trailing) ? labelSpacing : labelSpacing * 2;
                     text = wrapText(node.label, {
                         maxWidth: columnWidth - labelInset,
                         maxHeight: node.height,
@@ -432,12 +464,16 @@ export class SankeySeries extends FlowProportionSeries<
                 }
                 if (text === '') continue;
 
-                const { height } = measurer.measureLines(text);
+                const { height, width } = measurer.measureLines(text);
                 const y0 = y - height / 2;
                 const y1 = y + height / 2;
 
+                if (fillWidth && trailing) {
+                    x = node.x - labelSpacing - width;
+                }
+
                 if (y0 >= bottom) {
-                    labelData.push({ x, y, leading, text, size: node.size });
+                    labelData.push({ x, y, leading: !fillWidth && leading, text, size: node.size });
                     bottom = y1;
                 }
             }

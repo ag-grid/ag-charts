@@ -585,6 +585,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
+    fillWidth: boolean,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
 };
