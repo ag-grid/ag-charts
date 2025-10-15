@@ -335,7 +335,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             (enableAxisDragging || enableAxisScrolling) &&
             !event.consumed &&
             !this.activeAxis &&
-            (dragState === DragState.None || this.activeAxis != null) &&
+            dragState === DragState.None &&
             this.domProxy.hasOverlappingAxes()
         );
     }
