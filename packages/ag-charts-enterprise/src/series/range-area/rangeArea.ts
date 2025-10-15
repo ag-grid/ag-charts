@@ -491,6 +491,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return low.marker.isDirty() || high.marker.isDirty();
     }
 
+    protected override strokewidthChange() {
+        const itemStrokeWidthChange = (lowOrHigh: AgRangeAreaSeriesItemType): boolean => {
+            const unhighlightedStrokeWidth = this.properties.item[lowOrHigh].strokeWidth ?? 0;
+            const highlightedSeriesStrokeWidth =
+                this.properties.highlight.highlightedSeries.item?.[lowOrHigh]?.strokeWidth ?? unhighlightedStrokeWidth;
+            const highlightedItemStrokeWidth =
+                this.properties.highlight.highlightedItem.item?.[lowOrHigh]?.strokeWidth ?? unhighlightedStrokeWidth;
+            return (
+                unhighlightedStrokeWidth > highlightedItemStrokeWidth ||
+                highlightedSeriesStrokeWidth > highlightedItemStrokeWidth
+            );
+        };
+
+        return itemStrokeWidthChange('low') || itemStrokeWidthChange('high');
+    }
+
     protected override updatePathNodes(opts: {
         paths: _ModuleSupport.SegmentedPath[];
         visible: boolean;
