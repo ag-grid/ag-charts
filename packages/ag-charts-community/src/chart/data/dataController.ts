@@ -1,4 +1,4 @@
-import { Debug, getWindow } from 'ag-charts-core';
+import { Debug, Logger, getWindow } from 'ag-charts-core';
 
 import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
