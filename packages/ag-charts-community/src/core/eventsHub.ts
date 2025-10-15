@@ -11,6 +11,20 @@ import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEven
 
 export type EventsHub = EventEmitter<EventsHubMap>;
 
+export interface SeriesAreaHoverEvent {
+    readonly x: number;
+    readonly y: number;
+    readonly consumed: boolean;
+    readonly sourceEvent: Event;
+}
+
+export interface SeriesAreaClickEvent {
+    readonly x: number;
+    readonly y: number;
+    readonly consumed: boolean;
+    readonly sourceEvent: Event;
+}
+
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
     'annotations:restore': AnnotationsRestoreEvent;
@@ -32,6 +46,8 @@ export interface EventsHubMap {
     'locale:change': null;
     'series:focus-change': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
+    'series-area:hover': SeriesAreaHoverEvent;
+    'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
     'zoom:change': ZoomChangeEvent;

@@ -372,7 +372,13 @@ export class CartesianChart extends Chart {
         const perpendicularAxis = axis.direction === ChartAxisDirection.X ? primaryYAxis : primaryXAxis;
         if (!perpendicularAxis) return { crossPosition: undefined, visible: true };
 
-        const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false });
+        const {
+            scale: { domain, bandwidth },
+            range,
+        } = perpendicularAxis;
+        const halfBandwidth = (bandwidth ?? 0) / 2;
+
+        const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false }) + halfBandwidth;
 
         if (perpendicularAxis.inRange(crossPosition)) return { crossPosition, visible: true };
 
@@ -380,7 +386,6 @@ export class CartesianChart extends Chart {
             return { crossPosition: undefined, visible: false };
         }
 
-        const { domain, range } = perpendicularAxis.scale;
         const clampedPosition = Number.isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
 
         return { crossPosition: clampedPosition, visible: true };
@@ -394,7 +399,19 @@ export class CartesianChart extends Chart {
         visible: boolean
     ): void {
         const hasCrosshair = axis.getModuleMap().getModule<{ enabled?: boolean }>('crosshair')?.enabled === true;
-        if (hasCrosshair) return;
+        const annotations = this.ctx.annotationManager.createMemento();
+        const hasLineAnnotation = annotations.some((annotation) => {
+            switch (annotation.type) {
+                case 'vertical-line':
+                    return axis.direction === ChartAxisDirection.X;
+                case 'horizontal-line':
+                    return axis.direction === ChartAxisDirection.Y;
+                default:
+                    return false;
+            }
+        });
+
+        if (hasCrosshair || hasLineAnnotation) return;
 
         const currentWidth = axisWidths.get(axis.id) ?? 0;
         const adjustedWidth = visible
