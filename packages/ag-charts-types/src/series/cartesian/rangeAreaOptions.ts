@@ -98,7 +98,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     extends FillOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers (low & high) used in the series.  */
-    marker?: AgSeriesMarkerStyle;
+    marker?: AgRangeAreaMarker<TDatum, TContext>;
     /** The colour for the stroke (low & high). */
     stroke?: CssColor;
     /** The width of the stroke (low & high) in pixels. */
