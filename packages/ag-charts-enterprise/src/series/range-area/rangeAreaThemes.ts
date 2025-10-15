@@ -29,7 +29,6 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
                 false,
             ],
         },
-
         fill: {
             $isUserOption: [
                 '/series/$index/marker/fill',
@@ -76,6 +75,9 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
                     ],
                 },
             ],
+        },
+        fillOpacity: {
+            $path: '/series/$index/marker/fillOpacity',
         },
         lineDash: {
             $path: '/series/$index/marker/lineDash',
