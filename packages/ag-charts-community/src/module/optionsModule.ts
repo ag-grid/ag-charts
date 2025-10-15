@@ -131,14 +131,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             baseChartOptions = currentUserOptions;
             this.specialOverrides = baseChartOptions.specialOverrides;
 
-            if (deltaOptions == null) {
-                // No diff case - null means diff was a no-op.
-                deltaOptions = jsonDiff(
-                    baseChartOptions.userOptions as T,
-                    newUserOptions,
-                    ChartOptions.JSON_DIFF_OPTS
-                ) as DeepPartial<T>;
-            }
+            // No diff case - null means diff was a no-op.
+            deltaOptions ??= jsonDiff(
+                baseChartOptions.userOptions as T,
+                newUserOptions,
+                ChartOptions.JSON_DIFF_OPTS
+            ) as DeepPartial<T>;
 
             this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
                 ...ChartOptions.OPTIONS_CLONE_OPTS_SLOW,
@@ -339,7 +337,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private validatePluginOptions(options: T) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
-            if (pluginKey in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)) {
+            if (
+                pluginKey in options &&
+                pluginDef.options != null &&
+                (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)
+            ) {
                 const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
                 for (const error of invalid) {
                     Logger.warn(error);
@@ -378,6 +380,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 Logger.warn(
                     `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
+                continue;
+            }
+
+            if (seriesDef.options == null) {
+                validatedSeriesOptions.push(seriesOptions);
                 continue;
             }
 
@@ -458,18 +465,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private processSeriesOptions(options: T) {
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
-            series.type ??= 'line'; // TODO remove this behaviour
-
             const seriesDef = ModuleRegistry.getSeriesModule(series.type);
-            const visibleDefined = Boolean(seriesDef?.options.visible);
+            const visibleDefined = Boolean(seriesDef?.options?.visible);
 
-            const seriesOptions = mergeDefaults(
-                this.getSeriesGroupingOptions(series),
-                series,
-                visibleDefined && { visible: true }
-            );
-
-            return seriesOptions;
+            return mergeDefaults(this.getSeriesGroupingOptions(series), series, visibleDefined && { visible: true });
         });
 
         options.series = this.setSeriesGroupingOptions(processedSeries ?? []);

@@ -11,7 +11,7 @@ export class DataSource extends AbstractModuleInstance {
         },
     })
     @Property
-    public enabled = false;
+    public enabled = true;
 
     @ActionOnSet<DataSource>({
         newValue(getData) {

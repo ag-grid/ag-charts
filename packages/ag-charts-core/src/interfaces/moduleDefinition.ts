@@ -129,8 +129,6 @@ export interface SeriesModuleDefinition<TOptions>
 export interface PluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Plugin, TOptions> {
     readonly chartType?: string;
 
-    options: OptionsDefs<TOptions>;
-
     patchContext?(this: void, ctx: any): void;
 }
 

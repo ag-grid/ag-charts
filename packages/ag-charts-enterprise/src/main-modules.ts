@@ -12,12 +12,15 @@ import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnimationModule } from './features/animation/animationModule';
 import { BackgroundModule } from './features/background/backgroundModule';
 import { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
+import { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
 import { ContextMenuModule } from './features/context-menu/contextMenuModule';
 import { CrosshairModule } from './features/crosshair/crosshairModule';
 import { DataSourceModule } from './features/data-source/dataSourceModule';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { ForegroundModule } from './features/foreground/foregroundModule';
 import { NavigatorModule } from './features/navigator/navigatorModule';
+import { RangesModule } from './features/ranges/rangesModule';
+import { StatusBarModule } from './features/status-bar/statusBarModule';
 import { AnnotationsModule, InitialStateModule } from './features/sync/pluginModules';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/zoomModule';
@@ -89,12 +92,15 @@ export {
     AnimationModule,
     BackgroundModule,
     BandHighlightModule,
+    ChartToolbarModule,
     ContextMenuModule,
     DataSourceModule,
     ErrorBarsModule,
     ForegroundModule,
     GradientLegendModule,
     NavigatorModule,
+    RangesModule,
+    StatusBarModule,
     SyncModule,
     ZoomModule,
     PriceVolumePresetModule,
@@ -117,6 +123,7 @@ export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     AnimationModule,
     BackgroundModule,
     BandHighlightModule,
+    ChartToolbarModule,
     ContextMenuModule,
     CrosshairModule,
     DataSourceModule,
@@ -124,6 +131,8 @@ export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     ForegroundModule,
     GradientLegendModule,
     NavigatorModule,
+    RangesModule,
+    StatusBarModule,
     SyncModule,
     ZoomModule,
 ];

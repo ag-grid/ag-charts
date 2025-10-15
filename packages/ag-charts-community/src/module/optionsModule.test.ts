@@ -1631,7 +1631,6 @@ describe('ChartOptions', () => {
                         type: 'series',
                         name: seriesType,
                         chartType: 'cartesian',
-                        options: {},
                         stackable,
                         groupable,
                         stackedByDefault,

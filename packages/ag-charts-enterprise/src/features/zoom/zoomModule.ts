@@ -7,6 +7,7 @@ import {
     positiveNumber,
     ratio,
     string,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -89,3 +90,10 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
 
     create: (ctx) => new Zoom(ctx),
 };
+
+// @ts-expect-error undocumented option
+ZoomModule.options.enableIndependentAxes = undocumented(boolean);
+// @ts-expect-error undocumented option
+ZoomModule.options.buttons.anchorPointX = undocumented(zoomAnchorPoint);
+// @ts-expect-error undocumented option
+ZoomModule.options.buttons.anchorPointY = undocumented(zoomAnchorPoint);
