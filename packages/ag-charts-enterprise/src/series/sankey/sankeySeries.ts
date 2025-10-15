@@ -219,10 +219,15 @@ export class SankeySeries extends FlowProportionSeries<
         // Calculate the widths of labels on the leading and trailing columns and inset the columns accordingly
         const measurer = cachedTextMeasurer(this.properties.label);
 
-        let columnLabelInsetBefore = 0;
-        let columnLabelInsetAfter = 0;
+        const defaultInset =
+            fillWidth == null && this.isLabelEnabled()
+                ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1))
+                : 0;
 
-        if (!fillWidth && this.isLabelEnabled()) {
+        let columnLabelInsetBefore = defaultInset;
+        let columnLabelInsetAfter = defaultInset;
+
+        if (fillWidth === false && this.isLabelEnabled()) {
             const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
                 const node = n as EnhancedNodeGraphEntry;
                 if (node.datum.label == null || node.datum.label === '') return acc;
