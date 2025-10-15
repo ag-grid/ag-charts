@@ -84,9 +84,9 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
     /**
      * Sorting method of the nodes.
      *
-     * Default: `'weight'`
+     * Default: `'auto'`
      */
-    sort?: 'data' | 'a-z' | 'z-a' | 'weight';
+    sort?: 'data' | 'ascending' | 'descending' | 'auto';
     /** Function used to return formatting for individual nodes, based on the given parameters.*/
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum, TContext>, AgSankeySeriesNodeStyle>;
 }

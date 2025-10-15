@@ -575,7 +575,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         spacing: positiveNumber,
         alignment: union('left', 'center', 'right', 'justify'),
         verticalAlignment: union('top', 'bottom', 'center'),
-        sort: union('data', 'a-z', 'z-a', 'weight'),
+        sort: union('data', 'ascending', 'descending', 'auto'),
         itemStyler: callbackDefs<AgSankeySeriesNodeStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,

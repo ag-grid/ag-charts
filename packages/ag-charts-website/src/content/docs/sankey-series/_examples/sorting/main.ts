@@ -49,7 +49,7 @@ const options: AgFlowProportionChartOptions = {
             sizeName: 'Total (USD millions)',
             node: {
                 alignment: 'center',
-                sort: 'weight',
+                sort: 'auto',
             },
         },
     ],
@@ -62,17 +62,17 @@ function sortData() {
     chart.update(options);
 }
 
-function sortAZ() {
-    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'a-z';
+function sortAscending() {
+    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'ascending';
     chart.update(options);
 }
 
-function sortZA() {
-    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'z-a';
+function sortDescending() {
+    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'descending';
     chart.update(options);
 }
 
-function sortWeight() {
-    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'weight';
+function sortAuto() {
+    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'auto';
     chart.update(options);
 }

@@ -98,7 +98,7 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     verticalAlignment: 'top' | 'bottom' | 'center' = 'center';
 
     @Property
-    sort: 'data' | 'a-z' | 'z-a' | 'weight' = 'weight';
+    sort: 'data' | 'ascending' | 'descending' | 'auto' = 'auto';
 
     @Property
     fill: InternalAgColorType | undefined = undefined;
