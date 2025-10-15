@@ -6,13 +6,25 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 -   **Main constraint:** Community and enterprise runtime bundles stay dependency-free beyond AG Charts code.
 -   **Default branch:** Target `latest`; follow release/JIRA naming conventions below for topic branches.
--   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`nx dev`) and build health (see [Build Watch Status Monitoring](#build-watch-status-monitoring)).
+-   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`nx dev`) and build health (see [Development Server Guide](tools/prompts/guides/dev-server.md)).
 -   **Formatting:** Run `nx format` from the repo root before proposing commits.
 -   **Typechecking:** Run `nx build:types <package>` from the repo root before proposing commits.
 -   **Linting:** Run `nx lint <package>` from the repo root before proposing commits.
 -   **Baseline verification:** Expect to run `nx test ag-charts-community`, `nx test ag-charts-enterprise`, and `nx e2e ag-charts-website` after meaningful chart changes.
--   **Test verification patterns:** When writing or modifying tests, review similar tests to ensure consistent verification patterns (e.g., if similar tests verify domains, your tests should too).
+-   **Test verification patterns:** When writing or modifying tests, review similar tests to ensure consistent verification patterns (see [Testing Guide](tools/prompts/guides/testing.md)).
 -   **Context docs:** Skim `tools/prompts/technology-stack.md` for stack or architectural decisions before introducing new patterns.
+
+## Specialized Guides
+
+For detailed information on specific topics, consult these guides:
+
+-   **[Testing Guide](tools/prompts/guides/testing.md)** - Testing strategies, best practices, and philosophy
+-   **[Examples Guide](tools/prompts/guides/examples.md)** - Working with examples, validation, and path mappings
+-   **[JIRA Guide](tools/prompts/guides/jira.md)** - JIRA ticket search and creation guidelines
+-   **[Code Quality Guide](tools/prompts/guides/code-quality.md)** - Code bloat avoidance, comments, and review practices
+-   **[Development Server Guide](tools/prompts/guides/dev-server.md)** - Dev server setup and build watch monitoring
+-   **[Benchmarks Guide](tools/prompts/guides/benchmarks.md)** - Running and creating performance benchmarks
+-   **[Releases Guide](tools/prompts/guides/releases.md)** - Release conventions and guidelines
 
 ## Project Overview
 
@@ -27,7 +39,7 @@ For detailed information about preferred technologies and architectural constrai
 ## Repository Conventions
 
 -   The main branch of this repo is `latest`
--   Release branch names are of the form `b12.0.0`
+-   Release branch names are of the form `b12.0.0` (see [Releases Guide](tools/prompts/guides/releases.md))
 -   JIRA-related branch should be named of the form `ag-12345/${kebabCaseChangeSummary}`
 
 ## Essential Commands
@@ -85,31 +97,26 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 
 ## Development Workflow
 
-### Testing Strategy
+### Testing
+
+For comprehensive testing information, see [Testing Guide](tools/prompts/guides/testing.md).
+
+Key testing tools:
 
 -   **Unit tests**: Jest with jsdom environment and image snapshots
 -   **E2E tests**: Playwright for website interaction testing
 -   **Benchmarks**: Performance regression testing with memory profiling
 -   **Visual regression**: Canvas rendering snapshot comparisons
 
-### Testing Best Practices
-
--   **Test real implementations, not helpers**: Avoid creating test helper functions that duplicate production logic. Instead, test the actual implementation through its public API (e.g., using `DataSet` to test data operations rather than a helper function that reimplements the logic).
--   **Look for existing patterns first**: Before writing new tests, review similar existing tests to maintain consistency in:
-    -   Verification patterns (e.g., if similar tests verify domains, yours should too)
-    -   Test structure and organization
-    -   Assertion styles and completeness
--   **Test completeness checklist**:
-    -   Do similar tests verify more properties that this one should also verify?
-    -   Are all important outputs verified (data, keys, columns, domains, metadata, etc.)?
-    -   Does this test exercise the real code path users will hit?
--   **Naming clarity**: Variable and parameter names should clearly convey intent, especially for boolean flags (e.g., `columnNeedValueOf` is clearer than `columnValueTypes` for a boolean array).
-
 ### Code Quality
 
--   **ESLint**: Comprehensive setup with TypeScript rules, SonarJS, and custom AG Charts rules
--   **TypeScript**: Strict type checking with multiple tsconfig files for different build targets
--   **Nx**: Advanced caching and task orchestration for optimal build performance
+For code quality guidelines, see [Code Quality Guide](tools/prompts/guides/code-quality.md).
+
+Essential practices:
+
+-   Run `nx format` before committing
+-   Self-review your changes before proposing commits
+-   Ensure tests exercise real implementations, not test helpers
 
 ## Common Development Tasks
 
@@ -124,10 +131,10 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
     1. Modify the relevant `.mdoc` under `packages/ag-charts-website/src/content/docs/`.
     2. Update `packages/ag-charts-website/src/content/docs-nav/nav.json` if navigation changes.
     3. For significant doc changes, sanity-check with `nx e2e ag-charts-website`.
--   **Example-only change**
+-   **Example-only change** (see [Examples Guide](tools/prompts/guides/examples.md))
     1. Edit the example files (`index.html`, `main.ts`, optional `styles.css`/`data.ts`).
     2. Mirror updates in the sibling `index.mdoc` docs page.
-    3. Run the relevant generation/typecheck command plus `nx validate-examples` (see [Example Validation + Building](#example-validation--building)).
+    3. Run the relevant generation/typecheck command plus `nx validate-examples`.
 
 ### Adding New Chart Types
 
@@ -136,31 +143,19 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
 -   Extend TypeScript definitions in `packages/ag-charts-types/`.
 -   Document the feature within `packages/ag-charts-website/` (including examples when appropriate).
 
-### Performance Considerations
+### Working with Examples
+
+For detailed example guidelines, see [Examples Guide](tools/prompts/guides/examples.md).
+
+### Performance and Benchmarks
+
+For benchmark guidelines, see [Benchmarks Guide](tools/prompts/guides/benchmarks.md).
+
+Key points:
 
 -   Use `nx benchmark` to check performance impact on hotspots.
 -   Focus on canvas rendering efficiency and memory churn.
 -   Enable `AG_BENCHMARK_DEBUG=1` locally for detailed memory output.
-
-### Benchmarks
-
--   Benchmark suites live in `packages/ag-charts-{community,enterprise}/benchmarks/`.
--   Visual snapshots run by default; set `BENCHMARK_SOFT_FAIL=1` in CI to skip them.
--   Enterprise benchmarks re-export community utilities via `packages/ag-charts-enterprise/benchmarks/benchmark.ts`.
-
-#### Running Benchmarks
-
--   `nx benchmark ag-charts-community -- -t "initial load"` runs all "initial load" cases for community.
--   `nx benchmark ag-charts-enterprise -- -t "initial load"` does the same for enterprise.
--   Filtering is by test name pattern (xargs prevents targeting individual files).
-
-#### Creating New Benchmarks
-
-1. Create benchmark test file in `packages/ag-charts-{community,enterprise}/benchmarks/${name}.test.ts` using `setupBenchmark()` and `benchmark()` utilities.
-2. Create or copy the example to `packages/ag-charts-website/src/content/docs/benchmarks/_examples/${exampleName}/`.
-3. Add `/* @ag-options-extract */` and `/* @ag-options-end */` comments around the options object in the example's `main.ts`.
-4. Add example dependency to `benchmark.dependsOn` array in the package's `project.json`: `ag-charts-website-benchmarks_${exampleName}_main.ts:generate-example`.
-5. Run `nx benchmark ag-charts-{community,enterprise} -- -t "test pattern"` to verify.
 
 ## Technical Requirements
 
@@ -175,166 +170,10 @@ Core dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-loc
     -   Use `nx generate-examples ag-charts-website` to exercise example generation
     -   Use `nx generate-thumbnails ag-charts-website` to exercise thumbnail generation
 
-## Development Best Practices
+## JIRA Tickets
 
--   Make sure to run `nx format` on any changes to ensure consistent formatting before commit.
--   Prefer running `nx format` in the root of the repo to format changes, as there are config nuances that aren't taken into account when directly running tooling in more specific places.
--   **Self-review before committing**:
-    -   Read through your changes as if you were the reviewer
-    -   Check for consistency with similar existing code patterns
-    -   For test changes, verify completeness by comparing with related tests in the same file
-    -   Ensure naming clearly conveys intent (especially for boolean/flag variables)
-
-### Code Quality Guidelines
-
-#### Avoid Code Bloat
-
--   **No redundant computed values**: Store only base data, compute derived properties via functions/getters
--   **No dead code**: Remove unused methods, parameters, or properties
--   **Extract duplication**: If the same logic appears twice, extract it to a helper function
--   **Simplify conditionals**: Consolidate repeated if/else branches, use early returns
--   **Serialize cleanly**: Add `toJSON()` methods to classes to avoid exposing internal structure in snapshots
-
-#### Test Philosophy
-
--   **Test behavior, not implementation**: Focus on what the code does, not how it does it
--   **Use parameterized tests**: Consolidate similar test cases with `test.each()`
--   **Avoid brittle assertions**: Don't assert exact array indices or internal state unless necessary
--   **Keep tests focused**: One behavior per test, clear test names
--   **Simplify test helpers**: Prefer simple operation counters over complex tracking mechanisms
-
-#### Comment Guidelines
-
--   **Explain WHY, not WHAT**: Code should be self-documenting; comments explain reasoning
--   **Keep OPTIMIZATION comments**: These explain performance trade-offs and design decisions
--   **Concise JSDoc**: Simple getters/setters don't need JSDoc; complex methods do
--   **Remove obvious comments**: Don't restate what the code clearly shows
--   **Trust good naming**: Well-named variables and methods reduce need for comments
--   **Examples in JSDoc**: Complex methods benefit from usage examples in documentation
-
-## Code Review Guidelines
-
--   When reviewing a PR, don't comment on lines not changed in the PR itself; we have tech-debt but can't fix it all at once.
--   **For test changes**:
-    -   Ensure tests exercise real implementations, not test-only helper functions
-    -   Verify consistency: if similar tests check X, all related tests should check X
-    -   Look for opportunities to improve test coverage without adding redundancy
--   See `tools/prompts/pr-review.md` for detailed PR review instructions.
-
-## JIRA Ticket Search Guidelines
-
--   When searching for JIRA tickets using the MCP server `atlassian`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
--   When searching for JIRA tickets that need review, we're usually interested in tickets with a status of `Needs Review`.
+For JIRA ticket guidelines, see [JIRA Guide](tools/prompts/guides/jira.md).
 
 ## Documentation Resources
 
 -   AG Charts architecture overview: https://docs.ag-grid.com/architecture/charts/ag-charts-overview (entry point to deeper design references).
-
-## Production URLs
-
--   The production base URLs for the Astro site is https://www.ag-grid.com/
-
-## Staging URLs
-
--   The staging base URLs for the Astro site is https://charts-staging.ag-grid.com/
-    -   NOTE: That the `/charts` path prefix is not used for paths on the staging site.
-
-## Development Server Notes
-
-### Astro Dev Server Checklist
-
--   Prefer the shared HTTPS server on port 4600 when available.
--   When using the Puppeteer MCP tool, pass `allowDangerous: true`, run headless, and include `--ignore-certificate-errors` to handle the self-signed cert.
--   Start a local watcher with `nx dev` whenever you need live rebuilds across packages and the website.
--   `packages/ag-charts-website/src/content/gallery/data.json` owns gallery example metadata.
--   `packages/ag-charts-website/src/content/docs-nav/nav.json` owns docs navigation structure.
--   Docs map from `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc` to `/charts/javascript/${pageName}/`.
-
-### Build Watch Status Monitoring
-
-The `nx dev` watch script (`external/ag-shared/scripts/watch/watch.js`) maintains a status file at `node_modules/.cache/ag-watch-status.json` for monitoring build state.
-
-**Check this file to**:
-
--   Ensure no builds are in progress before starting operations (status != `BUILDING`)
--   Monitor build health via `recentBuilds` array and `targetHistory` stats
--   Track build progress after file changes
-
-**Key fields**:
-
--   `status`: `STARTING` | `RUNNING` | `BUILDING` | `IDLE` | `STOPPED`
--   `currentBuild`: Active build details (only when `BUILDING`)
--   `recentBuilds`: Last 10 builds with status/duration/errors
--   `targetHistory`: Per-target success/failure counts
-
-**Usage**:
-
-```bash
-# Wait for idle before operations
-while [ "$(jq -r '.status' node_modules/.cache/ag-watch-status.json 2>/dev/null)" = "BUILDING" ]; do
-  sleep 2
-done
-
-# Start watch if needed
-node external/ag-shared/scripts/watch/watch.js charts &
-```
-
-## Examples
-
-### Repo to dev server paths
-
--   Note that example paths are mapped from repo paths:
-    -   `packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/index.html` => `/charts/gallery/examples/${exampleName}`
-    -   `packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html` => `/charts/vanilla/${pageName}/examples/${exampleName}`
-
-### Example Guidelines
-
--   When adding examples, make sure to also update the Markdoc page relating to the example (index.mdoc adjacent to the enclosing `_examples/` folder).
--   Never add inline documentation to examples.
--   `-test` page examples are for internal testing and don't typically need much documentation.
--   Any other examples should be documented in the related `index.mdoc` file which should be a sibling of the enclosing parent folder `_examples`.
--   Examples have a `index.html` which is just a HTML snippet, not a full HTML document.
-    -   Do not include <script> or other tags to load resources.
-    -   `main.ts` is automatically included at runtime.
-    -   Trivial xxample:
-        ```html
-        <div id="myChart"></div>
-        ```
-    -   Complex example:
-        ```html
-        <div class="controls-row">
-            <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
-            <select id="methodSelect" onchange="updateMethod(this.value)">
-                <option value="updateDelta">updateDelta()</option>
-                <option value="applyTransaction">applyTransaction()</option>
-            </select>
-            <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
-        </div>
-        <div id="myChart"></div>
-        ```
--   Styles for examples should be put into an adjacent `styles.css` file which will automatically be included at runtime.
-    -   Styles in `external/ag-website-shared/src/components/example-runner/styles/example-controls.css` are applied automatically, and should be favoured for presenting controls in examples.
--   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
--   If a TData type is useful for the example, `data.ts` should also declare this.
--   For deeper architectural context, see [Documentation Resources](#documentation-resources).
-
-### Example Validation + Building
-
--   **Gallery example** (`packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/`)
-    -   `nx run ag-charts-website-gallery_${exampleName}_main.ts:generate`
-    -   `nx run ag-charts-website-gallery_${exampleName}_main.ts:typecheck`
--   **Docs example** (`packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/`)
-    -   `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:generate`
-    -   `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:typecheck`
--   **All examples**
-    -   `nx validate-examples` (batch typecheck; much faster than individual targets).
--   **Ad-hoc or `-test` examples**
-    -   Add `// @ag-skip-fws` to `main.ts` to skip framework variant generation.
-
-## Releases
-
--   Releases are typically monthly for minor releases, and 6-monthly for major releases (typically in June and December).
--   Patch releases are typically only for critical bug fixes, at most weekly.
--   Minor releases cannot have breaking changes, we must hold these back for major releases.
-    -   Deprecations are allowed, but must be clearly marked as deprecated and still work as before.
-    -   Deprecated features/options are typically immediately removed from public website documentation to discourage use.
