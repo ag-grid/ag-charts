@@ -1,11 +1,18 @@
 // @ag-skip-fws
-import { AgChartOptions, AgCharts, AgRangeAreaSeriesThemeableOptions } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AgRangeAreaSeriesItemStylerParams,
+    AgRangeAreaSeriesThemeableOptions,
+} from 'ag-charts-enterprise';
 
 import { type DatumType, getData } from './data';
 
-type ItemStyle = Pick<
-    AgRangeAreaSeriesThemeableOptions,
-    'marker' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset'
+type ItemStyle = Partial<
+    Pick<
+        AgRangeAreaSeriesThemeableOptions,
+        'marker' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset'
+    >
 >;
 
 const series0Style: ItemStyle = {
@@ -50,6 +57,24 @@ const series4Style: ItemStyle = {
         shape: 'square',
     },
 };
+const series5Style: ItemStyle = {
+    marker: {
+        enabled: false,
+        size: 50,
+        shape: 'heart',
+    },
+};
+const series6Style: ItemStyle = {
+    marker: {
+        itemStyler: (p: AgRangeAreaSeriesItemStylerParams<DatumType, unknown>) => {
+            if (p.itemId === 'low') {
+                return { size: 18, shape: 'heart' };
+            } else {
+                return { size: 18, shape: 'plus' };
+            }
+        },
+    },
+};
 
 let options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -70,7 +95,10 @@ function toggleLowHigh(lowHigh: boolean): void {
         ...safeAs<{ container?: HTMLElement | null }>(options),
         animation: { enabled: false },
         data: getData(),
-        legend: { item: { line: { length: 50 } } },
+        legend: {
+            item: { line: { length: 50 } },
+            position: 'left',
+        },
         series: [
             {
                 type: 'range-area',
@@ -114,6 +142,22 @@ function toggleLowHigh(lowHigh: boolean): void {
                 yLowKey: 'e_low',
                 yHighKey: 'e_high',
                 ...(lowHigh ? lowAndHigh(series4Style) : series4Style),
+            },
+            {
+                type: 'range-area',
+                xKey: 'month',
+                yName: 'F',
+                yLowKey: 'f_low',
+                yHighKey: 'f_high',
+                ...(lowHigh ? lowAndHigh(series5Style) : series5Style),
+            },
+            {
+                type: 'range-area',
+                xKey: 'month',
+                yName: 'G',
+                yLowKey: 'g_low',
+                yHighKey: 'g_high',
+                ...(lowHigh ? lowAndHigh(series6Style) : series6Style),
             },
         ],
     } satisfies AgChartOptions<DatumType>);

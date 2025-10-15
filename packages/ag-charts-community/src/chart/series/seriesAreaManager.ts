@@ -1,7 +1,13 @@
 import { type Point, clamp, createId } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
-import type { HighlightChangeEvent, HighlightNodeDatum, LayoutCompleteEvent } from '../../core/eventsHub';
+import type {
+    HighlightChangeEvent,
+    HighlightNodeDatum,
+    LayoutCompleteEvent,
+    SeriesAreaClickEvent,
+    SeriesAreaHoverEvent,
+} from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
 import { BBox } from '../../scene/bbox';
@@ -436,9 +442,11 @@ export class SeriesAreaManager extends BaseManager {
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
+        let pick: PickedNodes | undefined;
         if (this.isState(InteractionState.Default)) {
             const { currentX: x, currentY: y } = event;
-            const matches = this.pickNodes({ x, y }, 'event')?.matches;
+            pick = this.pickNodes({ x, y }, 'event');
+            const matches = pick?.matches;
             const found = matches?.[0];
             if (
                 found?.series.hasEventListener('seriesNodeClick') ||
@@ -450,6 +458,9 @@ export class SeriesAreaManager extends BaseManager {
                 this.chart.ctx.domManager.updateCursor(this.id);
             }
         }
+
+        const consumed = Boolean(pick?.matches.length);
+        this.emitSeriesAreaHoverEvent(event, consumed);
     }
 
     private onClick(event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent, current: Widget) {
@@ -483,13 +494,25 @@ export class SeriesAreaManager extends BaseManager {
 
         this.onHoverLikeEvent(event, current);
 
-        // Do not run chartOptions click handlers if an annotation is selected.
-        if (!this.isState(InteractionState.Default)) return;
+        const isSeriesWidget = current === this.chart.ctx.widgets.seriesWidget;
 
-        if (current == this.chart.ctx.widgets.seriesWidget && this.checkSeriesNodeClick(event)) {
-            this.update(ChartUpdateType.SERIES_UPDATE);
-            event.sourceEvent.preventDefault();
+        // Do not run chartOptions click handlers if an annotation is selected.
+        if (!this.isState(InteractionState.Default)) {
+            if (isSeriesWidget) {
+                this.emitSeriesAreaClickEvent(event, false);
+            }
             return;
+        }
+
+        if (isSeriesWidget) {
+            const consumed = Boolean(this.checkSeriesNodeClick(event));
+            if (consumed) {
+                this.emitSeriesAreaClickEvent(event, true);
+                this.update(ChartUpdateType.SERIES_UPDATE);
+                event.sourceEvent.preventDefault();
+                return;
+            }
+            this.emitSeriesAreaClickEvent(event, false);
         }
 
         // Fallback to Chart-level event dispatch.
@@ -497,6 +520,46 @@ export class SeriesAreaManager extends BaseManager {
             | AgChartClickEvent
             | AgChartDoubleClickEvent;
         this.chart.fireEvent(newEvent);
+    }
+
+    private emitSeriesAreaHoverEvent(event: HoverLikeEvent, consumed: boolean): void {
+        const coords = this.toCanvasCoordinates(event.currentX, event.currentY);
+        if (coords == null) return;
+
+        const payload: SeriesAreaHoverEvent = {
+            x: coords.x,
+            y: coords.y,
+            consumed,
+            sourceEvent: event.sourceEvent,
+        };
+
+        this.chart.ctx.eventsHub.emit('series-area:hover', payload);
+    }
+
+    private emitSeriesAreaClickEvent(
+        event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent,
+        consumed: boolean
+    ): void {
+        if (!('currentX' in event)) return;
+
+        const coords = this.toCanvasCoordinates(event.currentX, event.currentY);
+        if (coords == null) return;
+
+        const payload: SeriesAreaClickEvent = {
+            x: coords.x,
+            y: coords.y,
+            consumed,
+            sourceEvent: event.sourceEvent,
+        };
+
+        this.chart.ctx.eventsHub.emit('series-area:click', payload);
+    }
+
+    private toCanvasCoordinates(x: number, y: number) {
+        const offsetX = this.hoverRect?.x ?? this.seriesRect?.x ?? 0;
+        const offsetY = this.hoverRect?.y ?? this.seriesRect?.y ?? 0;
+
+        return { x: x + offsetX, y: y + offsetY };
     }
 
     private onFocus(): void {

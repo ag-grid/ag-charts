@@ -42,6 +42,8 @@ export interface AgRadialSeriesOptionsNames {
     angleName?: string;
     /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     radiusName?: string;
+    /** The text to display in the legend for this series. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export type AgRadialSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &

@@ -559,6 +559,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     label: {
         ...seriesLabelOptionsDefs,
         spacing: positiveNumber,
+        placement: union('left', 'right', 'center'),
     },
     link: {
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
@@ -575,7 +576,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         spacing: positiveNumber,
         alignment: union('left', 'center', 'right', 'justify'),
         verticalAlignment: union('top', 'bottom', 'center'),
-        sort: union('data', 'a-z', 'z-a', 'weight'),
+        sort: union('data', 'ascending', 'descending', 'auto'),
         itemStyler: callbackDefs<AgSankeySeriesNodeStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
@@ -585,6 +586,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
+    fillWidth: boolean,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
 };

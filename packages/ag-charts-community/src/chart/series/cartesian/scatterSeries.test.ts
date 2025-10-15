@@ -15,6 +15,7 @@ import type {
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
 import { MockScatterStyler, newFreezableMock } from '../../test/freezableMock';
+import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -823,5 +824,24 @@ describe('ScatterSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareTestOptions,
+            chartOptions: {
+                data: [
+                    { He_V: 10, He_P: 95, Ne_V: 10, Ne_P: 90, Ar_V: 10, Ar_P: 80 },
+                    { He_V: 15, He_P: 81, Ne_V: 15, Ne_P: 80, Ar_V: 15, Ar_P: 60 },
+                    { He_V: 20, He_P: 68, Ne_V: 20, Ne_P: 70, Ar_V: 20, Ar_P: 40 },
+                ],
+                series: [
+                    { type: 'scatter', xKey: 'He_V', yKey: 'He_P', yName: 'Helium' },
+                    { type: 'scatter', xKey: 'Ne_V', yKey: 'Ne_P', yName: 'Neon' },
+                    { type: 'scatter', xKey: 'Ar_V', yKey: 'Ar_P', yName: 'Argon' },
+                ],
+            },
+        });
+        await compare();
     });
 });

@@ -43,6 +43,8 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
+    /** Set to `true` to expand the sankey to the full width and place the first and last column of labels inside. */
+    fillWidth?: boolean;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
@@ -51,6 +53,8 @@ export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>, TContext> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
+    /** Placement of a label relative to its node. */
+    placement?: 'left' | 'right' | 'center';
 }
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -82,9 +86,9 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
     /**
      * Sorting method of the nodes.
      *
-     * Default: `'weight'`
+     * Default: `'auto'`
      */
-    sort?: 'data' | 'a-z' | 'z-a' | 'weight';
+    sort?: 'data' | 'ascending' | 'descending' | 'auto';
     /** Function used to return formatting for individual nodes, based on the given parameters.*/
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum, TContext>, AgSankeySeriesNodeStyle>;
 }

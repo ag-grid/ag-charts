@@ -450,7 +450,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datum: any;
         series: RangeAreaSeries;
     }): RangeAreaLabelDatum {
-        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, label } = this.properties;
+        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         const { placement } = label;
         const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
@@ -479,7 +479,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 'y',
                 yDomain,
                 label,
-                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName }
+                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName }
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
@@ -489,6 +489,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override isPathOrSelectionDirty(): boolean {
         const { low, high } = this.properties.item;
         return low.marker.isDirty() || high.marker.isDirty();
+    }
+
+    protected override strokewidthChange() {
+        const itemStrokeWidthChange = (lowOrHigh: AgRangeAreaSeriesItemType): boolean => {
+            const unhighlightedStrokeWidth = this.properties.item[lowOrHigh].strokeWidth ?? 0;
+            const highlightedSeriesStrokeWidth =
+                this.properties.highlight.highlightedSeries.item?.[lowOrHigh]?.strokeWidth ?? unhighlightedStrokeWidth;
+            const highlightedItemStrokeWidth =
+                this.properties.highlight.highlightedItem.item?.[lowOrHigh]?.strokeWidth ?? unhighlightedStrokeWidth;
+            return (
+                unhighlightedStrokeWidth > highlightedItemStrokeWidth ||
+                highlightedSeriesStrokeWidth > highlightedItemStrokeWidth
+            );
+        };
+
+        return itemStrokeWidthChange('low') || itemStrokeWidthChange('high');
     }
 
     protected override updatePathNodes(opts: {
@@ -701,6 +717,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             yLowName: this.properties.yLowName ?? this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
             yHighName: this.properties.yHighName ?? this.properties.yHighKey,
+            legendItemName: this.properties.legendItemName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
@@ -884,6 +901,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 xKey,
                 yHighKey,
                 yHighName,
+                legendItemName,
                 ...format,
             }
         );
@@ -922,8 +940,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const { id: seriesId, visible } = this;
 
-        const { yLowKey, yHighKey, yName, yLowName, yHighName, showInLegend } = this.properties;
-        const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const { yLowKey, yHighKey, yName, yLowName, yHighName, legendItemName, showInLegend } = this.properties;
+        const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
         return [
             {

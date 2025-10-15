@@ -45,6 +45,9 @@ export class RadarSeriesProperties<
     radiusName?: string;
 
     @Property
+    legendItemName?: string;
+
+    @Property
     stroke: string = 'black';
 
     @Property

@@ -21,6 +21,11 @@ export interface AgRadarSeriesThemeableOptions<
     TDatum = DatumDefault,
     TContext = ContextDefault,
     TStyle extends AgRadarSeriesStyle = AgRadarSeriesStyle,
+    TStylerParams extends AgRadarSeriesStylerParams<TDatum, TContext, TStyle> = AgRadarSeriesStylerParams<
+        TDatum,
+        TContext,
+        TStyle
+    >,
 > extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions<TDatum, TContext> {
@@ -33,7 +38,7 @@ export interface AgRadarSeriesThemeableOptions<
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
     /** Function used to return formatting for entire series, based on the given parameters.*/
-    styler?: Styler<AgRadarSeriesStylerParams<TDatum, TContext, TStyle>, TStyle>;
+    styler?: Styler<TStylerParams, TStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgRadarHighlightStyleOptions<TStyle>>;
 }
@@ -47,10 +52,15 @@ export interface AgBaseRadarSeriesOptions<
     TDatum = DatumDefault,
     TContext = ContextDefault,
     TStyle extends AgRadarSeriesStyle = AgRadarSeriesStyle,
+    TStylerParams extends AgRadarSeriesStylerParams<TDatum, TContext, TStyle> = AgRadarSeriesStylerParams<
+        TDatum,
+        TContext,
+        TStyle
+    >,
 > extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
-        AgRadarSeriesThemeableOptions<TDatum, TContext, TStyle> {
+        AgRadarSeriesThemeableOptions<TDatum, TContext, TStyle, TStylerParams> {
     type: 'radar-line' | 'radar-area';
 }
 

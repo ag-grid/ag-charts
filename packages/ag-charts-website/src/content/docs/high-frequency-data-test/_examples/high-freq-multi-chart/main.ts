@@ -2,6 +2,7 @@
 // @ag-skip-container-check
 import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+const chartCount = 10;
 const refreshRateInMilliseconds = 50;
 const millisecondsOfData = 30 * 1000;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 12, 0, 0);
@@ -212,7 +213,7 @@ function toggleUpdates() {
 // Make functions globally accessible for HTML event handlers
 (window as any).toggleUpdates = toggleUpdates;
 
-for (let i = 1; i <= 10; i++) {
+for (let i = 1; i <= chartCount; i++) {
     const [options, chart] = createChart(i);
     charts.push([options, chart, i]);
 }

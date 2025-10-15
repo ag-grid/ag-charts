@@ -107,6 +107,8 @@ export interface AgBubbleSeriesOptionsNames {
     sizeName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
+    /** The text to display in the legend for this series. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export interface AgBubbleSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

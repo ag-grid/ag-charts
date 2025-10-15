@@ -15,7 +15,7 @@ interface ChartAxisLike {
 }
 
 export type DatumIndexType = number | object | undefined;
-export type ItemIdType = number | string | never;
+export type ItemIdType = number | string;
 
 export type SeriesNodeEventTypes =
     | 'nodeContextMenuAction'

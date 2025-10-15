@@ -108,7 +108,7 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
     } else if ('listswitch' === type) {
         return new SwitchWidget();
     } else {
-        throw Error('AG Charts - error allocating meta');
+        throw new Error('AG Charts - error allocating meta');
     }
 }
 

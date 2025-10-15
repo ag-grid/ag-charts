@@ -857,8 +857,9 @@ export class Legend extends BaseProperties {
     }
 
     private updateContextMenu() {
-        this.ctx.contextMenuRegistry.setVisible('toggle-series-visibility', this.toggleSeries);
-        this.ctx.contextMenuRegistry.setVisible('toggle-other-series', this.toggleSeries);
+        const action = this.toggleSeries ? 'show' : 'hide';
+        this.ctx.contextMenuRegistry.toggle('toggle-series-visibility', action);
+        this.ctx.contextMenuRegistry.toggle('toggle-other-series', action);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -981,7 +982,8 @@ export class Legend extends BaseProperties {
         const toggleOtherSeriesVisible =
             this.ctx.chartService.series.length > 1 &&
             this.ctx.chartService.series[0]?.getLegendData('category')[0]?.hideToggleOtherSeries !== true;
-        this.ctx.contextMenuRegistry.setVisible('toggle-other-series', toggleOtherSeriesVisible);
+        const action = toggleOtherSeriesVisible ? 'show' : 'hide';
+        this.ctx.contextMenuRegistry.toggle('toggle-other-series', action);
 
         const { offsetX, offsetY } = sourceEvent;
         const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);

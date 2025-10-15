@@ -38,21 +38,10 @@ const options: AgCartesianChartOptions = {
             interpolation: {
                 type: 'step',
             },
-            item: {
-                low: {
-                    marker: {
-                        size: 0,
-                        shape: 'square',
-                        strokeWidth: 1,
-                    },
-                },
-                high: {
-                    marker: {
-                        size: 0,
-                        shape: 'square',
-                        strokeWidth: 1,
-                    },
-                },
+            marker: {
+                size: 0,
+                shape: 'square',
+                strokeWidth: 1,
             },
         },
         {

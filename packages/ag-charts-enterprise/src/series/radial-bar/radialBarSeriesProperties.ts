@@ -26,6 +26,9 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     radiusName?: string;
 
     @Property
+    legendItemName?: string;
+
+    @Property
     fill: InternalAgColorType = 'black';
 
     @Property

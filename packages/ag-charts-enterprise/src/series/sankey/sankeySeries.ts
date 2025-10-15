@@ -69,7 +69,7 @@ type Column = {
     index: number;
     nodes: ((NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum> & { weight: number }) | GhostNodeGraphEntry)[];
     size: number;
-    readonly x: number;
+    x: number;
 };
 
 export class SankeySeries extends FlowProportionSeries<
@@ -116,8 +116,9 @@ export class SankeySeries extends FlowProportionSeries<
             toKey,
             sizeKey,
             labelKey,
-            label: { spacing: labelSpacing },
+            label: { spacing: labelSpacing, placement: labelPlacement },
             node: { spacing: nodeSpacing, width: nodeWidth, alignment },
+            fillWidth,
         } = this.properties;
 
         const createNode = (node: FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
@@ -145,16 +146,10 @@ export class SankeySeries extends FlowProportionSeries<
         } = this.getNodeGraph(createNode, createLink, { includeCircularReferences: false });
         const nodeGraph = baseNodeGraph as Map<string, EnhancedNodeGraphEntry>;
 
-        const inset = this.isLabelEnabled()
-            ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1))
-            : 0;
-        const columnWidth = (seriesRectWidth - nodeWidth - 2 * inset) / (maxPathLength - 1);
-
         // Initialise columns
         const columns: Column[] = [];
         for (let index = 0; index < maxPathLength; index += 1) {
-            const x = inset + index * columnWidth;
-            columns.push({ index, size: 0, nodes: [], x });
+            columns.push({ index, size: 0, nodes: [], x: 0 });
         }
 
         // Assign nodes to columns
@@ -199,7 +194,6 @@ export class SankeySeries extends FlowProportionSeries<
                 }
             }
 
-            node.x = column.x;
             node.size = size;
 
             const { label } = this.properties;
@@ -220,6 +214,52 @@ export class SankeySeries extends FlowProportionSeries<
             column.size += size;
 
             graphNode.columnIndex = column.index;
+        }
+
+        // Calculate the widths of labels on the leading and trailing columns and inset the columns accordingly
+        const measurer = cachedTextMeasurer(this.properties.label);
+
+        const defaultInset =
+            fillWidth == null && this.isLabelEnabled()
+                ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1))
+                : 0;
+
+        let columnLabelInsetBefore = defaultInset;
+        let columnLabelInsetAfter = defaultInset;
+
+        if (fillWidth === false && this.isLabelEnabled()) {
+            const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
+                const node = n as EnhancedNodeGraphEntry;
+                if (node.datum.label == null || node.datum.label === '') return acc;
+                let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
+                if (labelPlacement === 'center') maxWidth /= 2;
+                const text = wrapText(node.datum.label, {
+                    maxWidth,
+                    maxHeight: node.datum.height,
+                    font: this.properties.label,
+                    textWrap: 'never',
+                });
+                let { width } = measurer.measureLines(text);
+                if (labelPlacement === 'center') width /= 2;
+                return Math.max(acc, width);
+            };
+            if (labelPlacement !== 'right') {
+                columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
+            }
+            if (labelPlacement !== 'left') {
+                columnLabelInsetAfter = nodeWidth + columns[columns.length - 1].nodes.reduce(reduceLabelWidthFn, 0);
+            }
+        }
+
+        const columnWidth =
+            (seriesRectWidth - nodeWidth - columnLabelInsetBefore - columnLabelInsetAfter) / (maxPathLength - 1);
+
+        for (let index = 0; index < columns.length; index++) {
+            const column = columns[index];
+            column.x = columnLabelInsetBefore + index * columnWidth;
+            for (const graphNode of column.nodes) {
+                (graphNode.datum as SankeyNodeDatum).x = column.x;
+            }
         }
 
         for (const graphNode of nodeGraph.values()) {
@@ -375,7 +415,6 @@ export class SankeySeries extends FlowProportionSeries<
         const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
         const { fontSize } = this.properties.label;
-        const measurer = cachedTextMeasurer(this.properties.label);
 
         // Create nodeData with midpoints and create the labels
         for (const [index, column] of columns.entries()) {
@@ -397,7 +436,6 @@ export class SankeySeries extends FlowProportionSeries<
 
                 if (node.label == null) continue;
 
-                const x = leading ? node.x - labelSpacing : node.x + node.width + labelSpacing;
                 const y = node.y + node.height / 2;
                 let text: string | undefined;
                 if (!leading && !trailing) {
@@ -422,7 +460,7 @@ export class SankeySeries extends FlowProportionSeries<
                     });
                 }
                 if (text == null || text === '') {
-                    const labelInset = leading || trailing ? labelSpacing : labelSpacing * 2;
+                    const labelInset = !fillWidth && (leading || trailing) ? labelSpacing : labelSpacing * 2;
                     text = wrapText(node.label, {
                         maxWidth: columnWidth - labelInset,
                         maxHeight: node.height,
@@ -436,8 +474,26 @@ export class SankeySeries extends FlowProportionSeries<
                 const y0 = y - height / 2;
                 const y1 = y + height / 2;
 
+                let x = node.x + node.width + labelSpacing;
+                let textAlign: 'left' | 'right' | 'center' = 'left';
+
+                let placement = labelPlacement;
+                if (leading && !fillWidth && labelPlacement == null) {
+                    placement = 'left';
+                }
+                if (leading && fillWidth) placement = 'right';
+                if (trailing && fillWidth) placement = 'left';
+
+                if (placement === 'left') {
+                    x = node.x - labelSpacing;
+                    textAlign = 'right';
+                } else if (placement === 'center') {
+                    x = node.x + node.width / 2;
+                    textAlign = 'center';
+                }
+
                 if (y0 >= bottom) {
-                    labelData.push({ x, y, leading, text, size: node.size });
+                    labelData.push({ x, y, textAlign, text, size: node.size });
                     bottom = y1;
                 }
             }
@@ -467,9 +523,9 @@ export class SankeySeries extends FlowProportionSeries<
     private sortNodes(a: EnhancedNodeGraphEntry, b: EnhancedNodeGraphEntry, opts?: { invertColumnSort: boolean }) {
         const { properties } = this;
 
-        if (properties.node.sort === 'a-z') {
+        if (properties.node.sort === 'ascending') {
             return (a.datum.label ?? '').localeCompare(b.datum.label ?? '');
-        } else if (properties.node.sort === 'z-a') {
+        } else if (properties.node.sort === 'descending') {
             return (b.datum.label ?? '').localeCompare(a.datum.label ?? '');
         } else if (properties.node.sort === 'data') {
             return 0;
@@ -506,7 +562,7 @@ export class SankeySeries extends FlowProportionSeries<
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, datum) => {
-            const { x, y, leading, text } = datum;
+            const { x, y, textAlign, text } = datum;
             const params: AgSankeySeriesLabelFormatterParams = datum;
             const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
@@ -519,7 +575,7 @@ export class SankeySeries extends FlowProportionSeries<
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
-            label.textAlign = leading ? 'right' : 'left';
+            label.textAlign = textAlign;
             label.textBaseline = 'middle';
             label.setBoxing(style);
         });

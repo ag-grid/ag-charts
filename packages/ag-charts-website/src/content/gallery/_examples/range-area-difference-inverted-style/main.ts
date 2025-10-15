@@ -17,20 +17,12 @@ const options: AgCartesianChartOptions = {
             yLowName: 'Target',
             yHighName: 'Actual',
             fill: 'green',
+            strokeWidth: 2,
             fillOpacity: 0.4,
             invertedStyle: {
                 fill: 'red',
             },
-            item: {
-                low: {
-                    strokeWidth: 2,
-                    stroke: 'grey',
-                },
-                high: {
-                    strokeWidth: 2,
-                    stroke: 'grey',
-                },
-            },
+            stroke: 'grey',
         },
     ],
     axes: [

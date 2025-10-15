@@ -1,5 +1,6 @@
 import { Debug, getWindow } from 'ag-charts-core';
 
+import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
 import { type CachedData, canReuseCachedData } from './caching';
 import {
@@ -147,7 +148,45 @@ export class DataController {
             const changeDescription = dataSets.get(dataSet);
             if (processedData && changeDescription && dataModel.isReprocessingSupported(processedData)) {
                 this.debug('DataController.execute() - reprocessing data', processedData, dataSet);
+
+                // Run incremental update
                 dataModel.reprocessData(processedData, dataSets);
+
+                // DEBUG: Compare incremental update with full reprocess baseline
+                if (Debug.check('data-model:reprocess-diff')) {
+                    const baselineModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
+                    const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
+                    const baselineData = baselineModel.processData(sources);
+
+                    // Serialize both results for comparison (handles Maps, Sets, etc.)
+                    const reprocessedJson = JSON.parse(JSON.stringify(processedData, DataController.jsonReplacer));
+                    const baselineJson = JSON.parse(JSON.stringify(baselineData, DataController.jsonReplacer));
+
+                    // Remove metadata keys that will always differ (timing, optimization metadata)
+                    delete reprocessedJson.time;
+                    delete reprocessedJson.optimizations;
+                    delete baselineJson.time;
+                    delete baselineJson.optimizations;
+
+                    const diff = jsonDiff(baselineJson, reprocessedJson);
+
+                    if (diff) {
+                        Logger.log('⚠️ DATA-MODEL REPROCESS DIFF DETECTED ⚠️');
+                        Logger.log('Difference between incremental update and full reprocess:');
+                        Logger.log('');
+                        Logger.log('BASELINE (full reprocess):');
+                        Logger.log(JSON.stringify(baselineJson, null, 2));
+                        Logger.log('');
+                        Logger.log('REPROCESSED (incremental update):');
+                        Logger.log(JSON.stringify(reprocessedJson, null, 2));
+                        Logger.log('');
+                        Logger.log('DIFF (what changed):');
+                        Logger.log(JSON.stringify(diff, null, 2));
+                    } else {
+                        Logger.log('✅ Data-model reprocess matches baseline (no diff)');
+                    }
+                }
+
                 resolveResult(dataModel, processedData);
                 continue;
             }
@@ -347,5 +386,16 @@ export class DataController {
         }
 
         return false;
+    }
+
+    /** JSON replacer for serializing non-JSON-serializable objects like Map and Set */
+    private static jsonReplacer(this: void, _key: string, value: any): any {
+        if (value instanceof Map) {
+            return { __type: 'Map', value: Array.from(value.entries()) };
+        }
+        if (value instanceof Set) {
+            return { __type: 'Set', value: Array.from(value) };
+        }
+        return value;
     }
 }

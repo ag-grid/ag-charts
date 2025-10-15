@@ -130,7 +130,6 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             return groupAccumulativeValueProperty(
                 key,
                 'normal',
-                'current',
                 {
                     id: `${id}-${type}`,
                     groupId: `errorGroup-${groupIndex}-${type}`,

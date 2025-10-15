@@ -5,7 +5,6 @@ import {
     type AgChartOptions,
     AgCharts,
     AgRangeAreaSeriesLabelPlacement,
-    AgRangeAreaSeriesOptions,
     AgRangeAreaSeriesStyle,
     AgRangeAreaSeriesStylerParams,
     AgSeriesMarkerStyle,
@@ -20,9 +19,9 @@ import {
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { NonNullablePath } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -390,27 +389,21 @@ describe('RangeAreaSeries', () => {
                     xKey: 'x',
                     yHighKey: 'fHi',
                     yLowKey: 'fLo',
-                    item: lowAndHigh({
-                        marker: { shape: 'cross', enabled: false }, // should draw a circle
-                    }),
+                    marker: { shape: 'cross', enabled: false }, // should draw a circle
                 },
                 {
                     type: 'range-area',
                     xKey: 'x',
                     yHighKey: 'gHi',
                     yLowKey: 'gLo',
-                    item: lowAndHigh({
-                        marker: { shape: 'triangle', enabled: true },
-                    }),
+                    marker: { shape: 'triangle', enabled: true },
                 },
                 {
                     type: 'range-area',
                     xKey: 'x',
                     yHighKey: 'kHi',
                     yLowKey: 'kLo',
-                    item: lowAndHigh({
-                        marker: { shape: 'circle', enabled: true },
-                    }),
+                    marker: { shape: 'circle', enabled: true },
                 },
             ],
         };
@@ -1297,17 +1290,6 @@ describe('RangeAreaSeries', () => {
     describe('AG-15773 itemStyler itemId', () => {
         it('should render high and low markers differently', async () => {
             type D = { month: string; low: number; high: number };
-            type F = NonNullablePath<AgRangeAreaSeriesOptions<D>, 'item', 'low' | 'high', 'marker', 'itemStyler'>;
-            const itemStyler: F = (params) => {
-                switch (params.itemId) {
-                    case 'high':
-                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
-                    case 'low':
-                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
-                    default:
-                        return {};
-                }
-            };
             const options: AgChartOptions<D> = {
                 data: [
                     { month: 'January', low: 1200, high: 1500 },
@@ -1330,17 +1312,42 @@ describe('RangeAreaSeries', () => {
                         xKey: 'month',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        item: lowAndHigh({
-                            marker: {
-                                size: 25,
-                                itemStyler,
+                        marker: {
+                            size: 25,
+                            itemStyler: (params) => {
+                                switch (params.itemId) {
+                                    case 'high':
+                                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
+                                    case 'low':
+                                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
+                                    default:
+                                        return {};
+                                }
                             },
-                        }),
+                        },
                     },
                 ],
             };
             chart = AgCharts.create(prepareEnterpriseTestOptions(options));
             await compare();
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareEnterpriseTestOptions,
+            chartOptions: {
+                data: [
+                    { x: 'West', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
+                    { x: 'East', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
+                ],
+                series: [
+                    { type: 'range-area', xKey: 'x', yLowKey: 's1L', yHighKey: 's1H', yName: 'series 1' },
+                    { type: 'range-area', xKey: 'x', yLowKey: 's2L', yHighKey: 's2H', yName: 'series 2' },
+                    { type: 'range-area', xKey: 'x', yLowKey: 's3L', yHighKey: 's3H', yName: 'series 3' },
+                ],
+            },
+        });
+        await compare();
     });
 });

@@ -91,6 +91,10 @@ describe('Overlay', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
+    "AG Charts - invalid value of type [undefined] for [LineSeries-1,LineSeries-2 / xKey] ignored:",
+    "[undefined]",
+  ],
+  [
     "AG Charts - the key 'x' was not found in any data element for LineSeries-1.",
   ],
   [

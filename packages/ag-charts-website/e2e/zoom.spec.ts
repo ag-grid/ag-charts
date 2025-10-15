@@ -7,6 +7,7 @@ import {
     locateCanvas,
     setupIntrinsicAssertions,
     toExamplePageUrl,
+    waitForAllChartUpdates,
 } from './util';
 
 test.describe('zoom', () => {
@@ -112,6 +113,44 @@ test.describe('zoom', () => {
         await dragCanvas(page, midPoint, { x: midPoint.x + 50, y: midPoint.y });
         await expect(page.locator(xAxisLabel)).not.toBeVisible();
         await expect(page.locator(yAxisLabel)).not.toBeVisible();
+    });
+
+    test('axis overlap hover keeps highlighting active', async ({ page }) => {
+        const { url } = toExamplePageUrl('zoom-test', 'e2e-zoom-axis-overlap', 'vanilla');
+
+        await gotoExample(page, url);
+
+        const { canvas, width, height } = await locateCanvas(page);
+
+        const axisCentre = { x: Math.round(width / 2) + 10, y: Math.round(height / 2) + 45 };
+        await canvas.hover({ position: axisCentre });
+        await waitForAllChartUpdates(page);
+        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-hover-highlight.png', { animations: 'disabled' });
+
+        await dragCanvas(page, axisCentre, { x: 10, y: axisCentre.y });
+        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-does-not-drag-with-highlight.png', {
+            animations: 'disabled',
+        });
+
+        const axisHoverNoHighlight = {
+            x: Math.round(width / 2) - 25,
+            y: Math.round(height / 2) + 45,
+        };
+        await canvas.hover({ position: axisHoverNoHighlight });
+        await waitForAllChartUpdates(page);
+        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-hover-no-highlight.png', {
+            animations: 'disabled',
+        });
+
+        await canvas.hover({ position: axisHoverNoHighlight });
+        await dragCanvas(page, axisHoverNoHighlight, {
+            x: axisHoverNoHighlight.x - 50,
+            y: axisHoverNoHighlight.y + 10,
+        });
+        await waitForAllChartUpdates(page);
+        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-does-drag-without-highlight.png', {
+            animations: 'disabled',
+        });
     });
 
     test('AG-13166 zoom keynav focus-visible', async ({ page }) => {

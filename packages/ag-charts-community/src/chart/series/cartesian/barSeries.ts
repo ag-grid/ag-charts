@@ -203,7 +203,6 @@ export class BarSeries extends AbstractBarSeries<
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
-                    'current',
                     {
                         id: `yValue-end`,
                         rangeId: `yValue-range`,
@@ -218,7 +217,6 @@ export class BarSeries extends AbstractBarSeries<
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'trailing',
-                    'current',
                     {
                         id: `yValue-start`,
                         invalidValue: null,
@@ -664,7 +662,8 @@ export class BarSeries extends AbstractBarSeries<
                 const datumIndices = group.datumIndices[columnIndex];
                 if (datumIndices == null) continue;
 
-                for (const datumIndex of datumIndices) {
+                for (const relativeDatumIndex of datumIndices) {
+                    const datumIndex = groupIndex + relativeDatumIndex;
                     const x = xPosition(datumIndex);
                     if (invalidData?.[datumIndex] === true) continue;
 

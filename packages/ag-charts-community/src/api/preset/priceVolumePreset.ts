@@ -260,6 +260,7 @@ export function priceVolume(
                     'range-area': {
                         series: {
                             fillOpacity: 0.3,
+                            strokeWidth: 2,
                             ...inlineSwitch(chartType, {
                                 hlc: {
                                     fill: {
@@ -269,33 +270,12 @@ export function priceVolume(
                                             { $palette: 'down.fill' },
                                         ],
                                     },
-                                    item: {
-                                        low: {
-                                            stroke: {
-                                                $if: [
-                                                    { $eq: [{ $value: '$index' }, 1] },
-                                                    { $palette: 'up.stroke' },
-                                                    { $palette: 'down.stroke' },
-                                                ],
-                                            },
-                                            strokeWidth: 2,
-                                        },
-                                        high: {
-                                            stroke: {
-                                                $if: [
-                                                    { $eq: [{ $value: '$index' }, 1] },
-                                                    { $palette: 'up.stroke' },
-                                                    { $palette: 'down.stroke' },
-                                                ],
-                                            },
-                                            strokeWidth: 2,
-                                        },
-                                    },
-                                },
-                                default: {
-                                    item: {
-                                        low: { strokeWidth: 2 },
-                                        high: { strokeWidth: 2 },
+                                    stroke: {
+                                        $if: [
+                                            { $eq: [{ $value: '$index' }, 1] },
+                                            { $palette: 'up.stroke' },
+                                            { $palette: 'down.stroke' },
+                                        ],
                                     },
                                 },
                             }),

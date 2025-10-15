@@ -366,6 +366,7 @@ export class BubbleSeries extends CartesianSeries<
             sizeName,
             labelName,
             label,
+            legendItemName,
             marker,
             maxRenderedItems,
         } = this.properties;
@@ -457,7 +458,19 @@ export class BubbleSeries extends CartesianSeries<
                     labelTextProperty,
                     labelTextDomain,
                     label,
-                    { value: labelTextValue, datum, xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName }
+                    {
+                        value: labelTextValue,
+                        datum,
+                        xKey,
+                        yKey,
+                        sizeKey,
+                        labelKey,
+                        xName,
+                        yName,
+                        sizeName,
+                        labelName,
+                        legendItemName,
+                    }
                 );
                 let { width, height } = isArray(labelText)
                     ? measureTextSegments(labelText, label)
@@ -766,7 +779,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private makeLabelFormatterParams(): AgBubbleSeriesLabelFormatterParams {
-        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName } = this.properties;
+        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, legendItemName } = this.properties;
         return {
             xKey,
             xName,
@@ -776,6 +789,7 @@ export class BubbleSeries extends CartesianSeries<
             sizeName,
             labelKey,
             labelName,
+            legendItemName,
         } satisfies RequireOptional<AgBubbleSeriesLabelFormatterParams>;
     }
 
@@ -884,6 +898,7 @@ export class BubbleSeries extends CartesianSeries<
                 sizeName,
                 labelKey,
                 labelName,
+                legendItemName,
                 ...(activeStyle as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
@@ -915,7 +930,7 @@ export class BubbleSeries extends CartesianSeries<
             visible,
         } = this;
 
-        const { yKey: itemId, yName, title, showInLegend } = this.properties;
+        const { yKey: itemId, yName, legendItemName, title, showInLegend } = this.properties;
 
         return [
             {
@@ -925,7 +940,7 @@ export class BubbleSeries extends CartesianSeries<
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? itemId,
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,

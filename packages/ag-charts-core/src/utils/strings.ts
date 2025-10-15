@@ -66,7 +66,7 @@ export function stringifyValue(value: unknown, maxLength = Infinity): string {
 export function countLines(text: string): number {
     let count = 1;
     for (let i = 0; i < text.length; i++) {
-        if (text.charCodeAt(i) === 10) {
+        if (text.codePointAt(i) === 10) {
             count++;
         }
     }
@@ -116,7 +116,7 @@ export function levenshteinDistance(a: string, b: string): number {
  */
 export function kebabCase(a: string) {
     // Lowercase all matches and add a `-` if the match is a standalone uppercase character (not the 0th offset).
-    return a.replace(KEBAB_CASE_REGEX, (match, offset) => (offset > 0 ? '-' : '') + match.toLowerCase());
+    return a.replaceAll(KEBAB_CASE_REGEX, (match, offset) => (offset > 0 ? '-' : '') + match.toLowerCase());
 }
 
 // Find sequences of uppercase characters that are not followed by a lowercase character OR standalone uppercase

@@ -31,6 +31,11 @@ import {
 
 const { ActionOnSet, ChartAxisDirection, ChartUpdateType, Property, InteractionState, ProxyProperty } = _ModuleSupport;
 
+type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
+type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
+
+type AxisHit = { axisId: string; direction: _ModuleSupport.ChartAxisDirection };
+
 const round = (value: number) => roundTo(value, 10);
 
 const CURSOR_ID = 'zoom-cursor';
@@ -183,6 +188,8 @@ export class Zoom extends AbstractModuleInstance {
     private readonly twoFingers = new ZoomTwoFingers();
     private readonly domProxy: ZoomDOMProxy;
 
+    private activeAxis?: AxisHit;
+
     @ProxyProperty('panner.deceleration')
     @Property
     public deceleration: number | 'off' | 'short' | 'long' = 'short';
@@ -235,6 +242,8 @@ export class Zoom extends AbstractModuleInstance {
         }
         this.cleanup.register(
             ctx.scene.attachNode(selectionRect),
+            ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHoverEvent(event)),
+            ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClickEvent(event)),
             ctx.eventsHub.on('series:keynav-zoom', (event) => this.onNavZoom(event)),
             ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             ctx.widgets.seriesWidget.addListener('touchstart', (event, current) => this.onTouchStart(event, current)),
@@ -294,6 +303,86 @@ export class Zoom extends AbstractModuleInstance {
         this.resetZoom();
     }
 
+    private onSeriesAreaHoverEvent(event: SeriesAreaHoverEvent) {
+        if (!this.shouldHandleAxisHover(event)) {
+            this.clearHoveredAxis();
+            return;
+        }
+
+        const axis = this.domProxy.pickAxisAtPoint(event.x, event.y);
+        if (axis) {
+            this.domProxy.setHoveredAxis(axis.axisId);
+            this.ctx.domManager.updateCursor(CURSOR_ID, this.domProxy.getCursor(axis.direction));
+        } else {
+            this.clearHoveredAxis();
+        }
+    }
+
+    private onSeriesAreaClickEvent(event: SeriesAreaClickEvent) {
+        if (!this.shouldHandleAxisClick(event)) return;
+
+        const axis = this.domProxy.pickAxisAtPoint(event.x, event.y);
+        if (axis && event.sourceEvent?.type === 'dblclick') {
+            this.onAxisDoubleClick(axis.axisId);
+        }
+    }
+
+    private shouldHandleAxisHover(event: SeriesAreaHoverEvent): boolean {
+        const { enabled, enableAxisDragging, enableAxisScrolling, dragState } = this;
+
+        return (
+            enabled &&
+            (enableAxisDragging || enableAxisScrolling) &&
+            !event.consumed &&
+            !this.activeAxis &&
+            dragState === DragState.None &&
+            this.domProxy.hasOverlappingAxes()
+        );
+    }
+
+    private shouldHandleAxisClick(event: SeriesAreaClickEvent): boolean {
+        const { enabled, enableAxisDragging, enableAxisScrolling, enableDoubleClickToReset } = this;
+
+        return (
+            enabled &&
+            !this.activeAxis &&
+            !event.consumed &&
+            (enableAxisDragging || enableAxisScrolling || enableDoubleClickToReset)
+        );
+    }
+
+    private clearHoveredAxis() {
+        if (this.activeAxis) return;
+        this.domProxy.clearHoveredAxis();
+        if (this.dragState === DragState.None) {
+            this.ctx.domManager.updateCursor(CURSOR_ID);
+        }
+    }
+
+    private tryBeginAxisDelegation(event: _Widget.DragWidgetEvent<'drag-start'>): boolean {
+        const hoveredAxis = this.domProxy.getHoveredAxis();
+
+        if (!this.enabled || !this.enableAxisDragging || !hoveredAxis) {
+            return false;
+        }
+
+        if (!this.domProxy.beginDelegatedAxisDrag(hoveredAxis.axisId)) {
+            return false;
+        }
+
+        this.activeAxis = hoveredAxis;
+        this.onAxisDragStart(hoveredAxis.direction);
+
+        const cursor = this.dragState === DragState.Pan ? 'grabbing' : this.domProxy.getCursor(hoveredAxis.direction);
+        this.ctx.domManager.updateCursor(CURSOR_ID, cursor);
+
+        if (event.device === 'touch') {
+            event.sourceEvent.preventDefault();
+        }
+
+        return true;
+    }
+
     private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
         const {
             enabled,
@@ -312,6 +401,10 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         this.panner.stopInteractions();
+
+        if (this.tryBeginAxisDelegation(event)) {
+            return;
+        }
 
         // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
@@ -341,6 +434,11 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { interactionManager, tooltipManager, updateService },
         } = this;
 
+        if (this.activeAxis) {
+            this.onAxisDragMove(this.activeAxis.axisId, this.activeAxis.direction, event);
+            return;
+        }
+
         if (!enabled || !paddedRect || !this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
             return;
         }
@@ -369,35 +467,49 @@ export class Zoom extends AbstractModuleInstance {
 
     private onSeriesAreaDragEnd() {
         const {
-            dragState,
-            enabled,
-            panner,
-            selector,
-            ctx: { domManager, interactionManager, tooltipManager },
+            ctx: { interactionManager },
         } = this;
+
+        if (this.activeAxis) {
+            this.handleAxisDragEnd();
+            return;
+        }
 
         interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
-        // Stop single clicks from triggering drag end and resetting the zoom
-        if (!enabled || dragState === DragState.None) return;
+        if (!this.enabled || this.dragState === DragState.None) return;
 
-        switch (dragState) {
+        this.handleRegularDragEnd();
+        this.resetDragState();
+    }
+
+    private handleAxisDragEnd(): void {
+        this.onAxisDragEnd();
+        this.domProxy.endDelegatedAxisDrag(this.activeAxis!.axisId);
+        this.activeAxis = undefined;
+        this.clearHoveredAxis();
+    }
+
+    private handleRegularDragEnd(): void {
+        const { panner, selector } = this;
+
+        switch (this.dragState) {
             case DragState.Pan:
                 panner.stop();
                 break;
-
-            case DragState.Select: {
-                if (!selector.didUpdate()) break;
-                const zoom = this.getZoom();
-                const newZoom = selector.stop(this.seriesRect, this.paddedRect, zoom);
-                this.updateZoom(newZoom);
+            case DragState.Select:
+                if (selector.didUpdate()) {
+                    const newZoom = selector.stop(this.seriesRect, this.paddedRect, this.getZoom());
+                    this.updateZoom(newZoom);
+                }
                 break;
-            }
         }
+    }
 
+    private resetDragState(): void {
         this.dragState = DragState.None;
-        domManager.updateCursor(CURSOR_ID);
-        tooltipManager.removeTooltip(TOOLTIP_ID);
+        this.ctx.domManager.updateCursor(CURSOR_ID);
+        this.ctx.tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 
     private onAxisDoubleClick(id: string) {
@@ -664,7 +776,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        this.domProxy.update(this.enableAxisDragging, this.enableAxisScrolling, this.ctx);
+        this.domProxy.update(this.enableAxisDragging, this.enableAxisScrolling, this.ctx, event.series.rect);
 
         if (!this.enabled) return;
 

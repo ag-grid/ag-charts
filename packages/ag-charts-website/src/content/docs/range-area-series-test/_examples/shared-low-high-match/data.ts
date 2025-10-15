@@ -10,6 +10,10 @@ export type DatumType = {
     d_high: number;
     e_low: number;
     e_high: number;
+    f_low: number;
+    f_high: number;
+    g_low: number;
+    g_high: number;
 };
 
 export function getData(): DatumType[] {
@@ -26,6 +30,10 @@ export function getData(): DatumType[] {
             d_high: 3000,
             e_low: 3450,
             e_high: 3800,
+            f_low: 1600,
+            f_high: 1800,
+            g_low: 700,
+            g_high: 800,
         },
         {
             month: 'February',
@@ -39,6 +47,10 @@ export function getData(): DatumType[] {
             d_high: 3200,
             e_low: 3450,
             e_high: 3800,
+            f_low: 1800,
+            f_high: 2000,
+            g_low: 500,
+            g_high: 700,
         },
         {
             month: 'March',
@@ -52,6 +64,10 @@ export function getData(): DatumType[] {
             d_high: 3250,
             e_low: 3450,
             e_high: 3800,
+            f_low: 1100,
+            f_high: 2830,
+            g_low: 400,
+            g_high: 800,
         },
     ];
 }

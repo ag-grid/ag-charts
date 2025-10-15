@@ -108,6 +108,10 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
     private dataSize: number = 0;
     private fullDomainCache: T[] | null = null;
     private readonly isDiscrete: boolean;
+    // Tracks when band structure has gaps due to removals and needs rebalancing.
+    // Set to true when removing data creates non-contiguous bands.
+    // Prevents unnecessary rebalancing when bands are still valid.
+    private needsReinitialization: boolean = false;
 
     constructor(domainFactory: () => IDataDomain<T>, config: BandedDomainConfig = {}, isDiscrete: boolean = false) {
         this.domainFactory = domainFactory;
@@ -126,6 +130,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
     initializeBands(dataSize: number): void {
         this.dataSize = dataSize;
         this.fullDomainCache = null;
+        this.needsReinitialization = false;
 
         // Don't use banding for small datasets or if disabled
         if (!this.config.enableBanding || dataSize < this.config.minDataSizeForBanding) {
@@ -191,13 +196,17 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         this.fullDomainCache = null;
 
         // Adjust band indices for insertions
-        for (const band of this.bands) {
+        for (let i = 0; i < this.bands.length; i++) {
+            const band = this.bands[i];
+            const isLastBand = i === this.bands.length - 1;
+
             if (insertIndex <= band.startIndex) {
                 // Insertion before this band - shift both indices
                 band.startIndex += insertCount;
                 band.endIndex += insertCount;
-            } else if (insertIndex < band.endIndex) {
-                // Insertion within this band - extend end index and mark dirty
+            } else if (insertIndex < band.endIndex || (insertIndex === band.endIndex && isLastBand)) {
+                // Insertion within this band, or at the exact end of the last band (for appending)
+                // Extend end index and mark dirty so it gets rescanned
                 band.endIndex += insertCount;
                 band.isDirty = true;
             }
@@ -210,25 +219,15 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
 
     /**
      * Handles removal of data by adjusting band indices.
-     * Returns true if a full rescan is needed (boundary value removed).
      */
-    handleRemoval(removeIndex: number, removeCount: number, removedValues?: T[]): boolean {
+    handleRemoval(removeIndex: number, removeCount: number): void {
         this.dataSize -= removeCount;
         this.fullDomainCache = null;
 
-        // For continuous domains, check if boundary values are being removed
-        if (!this.isDiscrete && removedValues && this.bands.length > 0) {
-            const currentDomain = this.getDomain();
-            if (currentDomain.length === 2) {
-                for (const value of removedValues) {
-                    if (value === currentDomain[0] || value === currentDomain[1]) {
-                        // Boundary value removed - need full rescan
-                        this.markAllBandsDirty();
-                        return true; // Early exit on first boundary match
-                    }
-                }
-            }
-        }
+        // Note: We no longer check if boundary values are being removed and mark all bands dirty.
+        // The affected bands (those containing the removed data) will be marked dirty below,
+        // and rescanning them will correctly update the domain. This preserves the banding
+        // optimization even when removing min/max values (common in scrolling scenarios).
 
         // Adjust band indices for removals
         for (const band of this.bands) {
@@ -255,8 +254,40 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         // Remove empty bands
         this.bands = this.bands.filter((band) => band.endIndex > band.startIndex);
 
+        // Check if bands need normalization or reinitialization
+        // Bands must form a contiguous range starting at 0
+        // Skip for single-band setups (small datasets) as they don't need rebalancing
+        let needsNormalization = false;
+
+        if (this.bands.length > 1) {
+            // Check if first band doesn't start at 0
+            if (this.bands[0].startIndex !== 0) {
+                needsNormalization = true;
+            }
+
+            // Check for gaps between bands
+            for (let i = 1; i < this.bands.length; i++) {
+                if (this.bands[i].startIndex !== this.bands[i - 1].endIndex) {
+                    // Gap detected - bands are not contiguous
+                    // This requires full reinitialization
+                    this.needsReinitialization = true;
+                    break;
+                }
+            }
+        }
+
+        // Normalize bands if needed (shift to start at 0)
+        // Note: Normalization just adjusts indices - band domains remain valid
+        if (needsNormalization && !this.needsReinitialization) {
+            const offset = this.bands[0].startIndex;
+            for (const band of this.bands) {
+                band.startIndex -= offset;
+                band.endIndex -= offset;
+            }
+            // Don't set needsReinitialization - normalization preserves band domains
+        }
+
         this.considerRebalancing();
-        return false;
     }
 
     /**
@@ -273,6 +304,12 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
      * Considers whether bands should be rebalanced based on current distribution.
      */
     private considerRebalancing(): void {
+        // Only rebalance if needsReinitialization flag is set (bands are broken/have gaps)
+        // Don't automatically rebalance just because data size changed
+        if (!this.needsReinitialization) {
+            return;
+        }
+
         // Skip rebalancing for small datasets
         if (this.dataSize < this.config.minDataSizeForBanding) {
             if (this.bands.length > 1) {
@@ -298,7 +335,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
     }
 
     private getTargetBandCount(dataSize: number): number {
-        return Math.min(this.config.targetBandCount, Math.ceil(dataSize / 100));
+        return Math.max(this.config.targetBandCount, Math.ceil(dataSize / 1000));
     }
 
     /**
@@ -409,6 +446,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
         dirtyBandCount: number;
         averageBandSize: number;
         dataSize: number;
+        needsReinitialization: boolean;
     } {
         const dirtyCount = this.bands.filter((b) => b.isDirty).length;
         const totalSize = this.bands.reduce((sum, b) => sum + (b.endIndex - b.startIndex), 0);
@@ -418,6 +456,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
             dirtyBandCount: dirtyCount,
             averageBandSize: this.bands.length > 0 ? totalSize / this.bands.length : 0,
             dataSize: this.dataSize,
+            needsReinitialization: this.needsReinitialization,
         };
     }
 }

@@ -23,6 +23,7 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     yName: string,
     yLowName: string,
     yHighName: string,
+    legendItemName: string,
     segmentation: shapeSegmentation,
 };
 

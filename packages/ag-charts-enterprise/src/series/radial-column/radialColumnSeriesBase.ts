@@ -179,7 +179,6 @@ export abstract class RadialColumnSeriesBase<
                 ...groupAccumulativeValueProperty(
                     radiusKey,
                     'normal',
-                    'current',
                     {
                         id: `radiusValue-end`,
                         rangeId: `radiusValue-range`,
@@ -193,7 +192,6 @@ export abstract class RadialColumnSeriesBase<
                 ...groupAccumulativeValueProperty(
                     radiusKey,
                     'trailing',
-                    'current',
                     {
                         id: `radiusValue-start`,
                         invalidValue: null,
@@ -284,7 +282,7 @@ export abstract class RadialColumnSeriesBase<
 
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
-        const { angleKey, radiusKey, angleName, radiusName, label } = this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
 
         const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius);
 
@@ -301,7 +299,7 @@ export abstract class RadialColumnSeriesBase<
                 'radius',
                 radiusDomain,
                 label,
-                { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName }
+                { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName, legendItemName }
             );
 
             if (labelText) {
@@ -514,7 +512,7 @@ export abstract class RadialColumnSeriesBase<
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
+        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
         const nodeDatum = this.nodeData?.[datumIndex];
@@ -549,6 +547,7 @@ export abstract class RadialColumnSeriesBase<
                 angleName,
                 radiusKey,
                 radiusName,
+                legendItemName,
                 ...format,
             }
         );
@@ -592,7 +591,7 @@ export abstract class RadialColumnSeriesBase<
 
         const { id: seriesId, visible } = this;
 
-        const { radiusKey, radiusName, showInLegend } = this.properties;
+        const { radiusKey, radiusName, legendItemName, showInLegend } = this.properties;
 
         return [
             {
@@ -602,7 +601,7 @@ export abstract class RadialColumnSeriesBase<
                 seriesId,
                 enabled: visible,
                 label: {
-                    text: radiusName ?? radiusKey,
+                    text: legendItemName ?? radiusName ?? radiusKey,
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
