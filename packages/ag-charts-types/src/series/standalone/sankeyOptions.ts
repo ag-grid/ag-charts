@@ -53,6 +53,8 @@ export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>, TContext> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
+    /** Placement of a label relative to its node. */
+    placement?: 'left' | 'right' | 'center';
 }
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}

@@ -559,6 +559,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     label: {
         ...seriesLabelOptionsDefs,
         spacing: positiveNumber,
+        placement: union('left', 'right', 'center'),
     },
     link: {
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({

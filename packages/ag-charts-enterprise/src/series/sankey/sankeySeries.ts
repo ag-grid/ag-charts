@@ -116,7 +116,7 @@ export class SankeySeries extends FlowProportionSeries<
             toKey,
             sizeKey,
             labelKey,
-            label: { spacing: labelSpacing },
+            label: { spacing: labelSpacing, placement: labelPlacement },
             node: { spacing: nodeSpacing, width: nodeWidth, alignment },
             fillWidth,
         } = this.properties;
@@ -231,17 +231,24 @@ export class SankeySeries extends FlowProportionSeries<
             const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
                 const node = n as EnhancedNodeGraphEntry;
                 if (node.datum.label == null || node.datum.label === '') return acc;
+                let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
+                if (labelPlacement === 'center') maxWidth /= 2;
                 const text = wrapText(node.datum.label, {
-                    maxWidth: (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing,
+                    maxWidth,
                     maxHeight: node.datum.height,
                     font: this.properties.label,
                     textWrap: 'never',
                 });
-                const { width } = measurer.measureLines(text);
+                let { width } = measurer.measureLines(text);
+                if (labelPlacement === 'center') width /= 2;
                 return Math.max(acc, width);
             };
-            columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
-            columnLabelInsetAfter = nodeWidth + columns[columns.length - 1].nodes.reduce(reduceLabelWidthFn, 0);
+            if (labelPlacement !== 'right') {
+                columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
+            }
+            if (labelPlacement !== 'left') {
+                columnLabelInsetAfter = nodeWidth + columns[columns.length - 1].nodes.reduce(reduceLabelWidthFn, 0);
+            }
         }
 
         const columnWidth =
@@ -429,7 +436,6 @@ export class SankeySeries extends FlowProportionSeries<
 
                 if (node.label == null) continue;
 
-                let x = !fillWidth && leading ? node.x - labelSpacing : node.x + node.width + labelSpacing;
                 const y = node.y + node.height / 2;
                 let text: string | undefined;
                 if (!leading && !trailing) {
@@ -464,16 +470,30 @@ export class SankeySeries extends FlowProportionSeries<
                 }
                 if (text === '') continue;
 
-                const { height, width } = measurer.measureLines(text);
+                const { height } = measurer.measureLines(text);
                 const y0 = y - height / 2;
                 const y1 = y + height / 2;
 
-                if (fillWidth && trailing) {
-                    x = node.x - labelSpacing - width;
+                let x = node.x + node.width + labelSpacing;
+                let textAlign: 'left' | 'right' | 'center' = 'left';
+
+                let placement = labelPlacement;
+                if (leading && !fillWidth && labelPlacement == null) {
+                    placement = 'left';
+                }
+                if (leading && fillWidth) placement = 'right';
+                if (trailing && fillWidth) placement = 'left';
+
+                if (placement === 'left') {
+                    x = node.x - labelSpacing;
+                    textAlign = 'right';
+                } else if (placement === 'center') {
+                    x = node.x + node.width / 2;
+                    textAlign = 'center';
                 }
 
                 if (y0 >= bottom) {
-                    labelData.push({ x, y, leading: !fillWidth && leading, text, size: node.size });
+                    labelData.push({ x, y, textAlign, text, size: node.size });
                     bottom = y1;
                 }
             }
@@ -542,7 +562,7 @@ export class SankeySeries extends FlowProportionSeries<
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((label, datum) => {
-            const { x, y, leading, text } = datum;
+            const { x, y, textAlign, text } = datum;
             const params: AgSankeySeriesLabelFormatterParams = datum;
             const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
@@ -555,7 +575,7 @@ export class SankeySeries extends FlowProportionSeries<
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
-            label.textAlign = leading ? 'right' : 'left';
+            label.textAlign = textAlign;
             label.textBaseline = 'middle';
             label.setBoxing(style);
         });

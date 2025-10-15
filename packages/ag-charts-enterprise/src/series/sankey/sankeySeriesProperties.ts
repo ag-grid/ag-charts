@@ -48,7 +48,7 @@ export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
 export interface SankeyNodeLabelDatum {
     x: number;
     y: number;
-    leading: boolean;
+    textAlign: 'left' | 'right' | 'center';
     text: string;
     size: number;
 }
@@ -56,6 +56,9 @@ export interface SankeyNodeLabelDatum {
 class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
     @Property
     spacing: number = 1;
+
+    @Property
+    placement: 'left' | 'right' | 'center' | undefined = undefined;
 }
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
