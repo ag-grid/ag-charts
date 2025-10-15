@@ -356,17 +356,20 @@ export class SankeySeries extends FlowProportionSeries<
 
         // Layout the nodes in their columns
         for (const column of columns) {
-            const nodesHeight = seriesRectHeight * column.size * sizeScale;
+            const columnNodesHeight = seriesRectHeight * column.size * sizeScale;
 
             let y = 0;
             if (this.properties.node.verticalAlignment === 'bottom') {
-                y = seriesRectHeight - (nodesHeight + nodeSpacing * (column.nodes.length - 1));
+                y = seriesRectHeight - (columnNodesHeight + nodeSpacing * (column.nodes.length - 1));
             } else if (this.properties.node.verticalAlignment === 'center') {
-                y = (seriesRectHeight - (nodesHeight + nodeSpacing * (column.nodes.length - 1))) / 2;
+                y = (seriesRectHeight - (columnNodesHeight + nodeSpacing * (column.nodes.length - 1))) / 2;
             }
 
             for (const node of column.nodes) {
-                const height = seriesRectHeight * node.datum.size * sizeScale;
+                const height = Math.max(
+                    this.properties.minSize * Math.max(node.linksBefore.length, node.linksAfter.length),
+                    seriesRectHeight * node.datum.size * sizeScale
+                );
                 node.datum.y = y;
                 node.datum.height = height;
                 y += height + nodeSpacing;
@@ -390,7 +393,7 @@ export class SankeySeries extends FlowProportionSeries<
             );
             for (const { link } of linksBefore) {
                 link.y2 = y2;
-                y2 += link.size * seriesRectHeight * sizeScale;
+                y2 += Math.max(this.properties.minSize, link.size * seriesRectHeight * sizeScale);
             }
 
             let y1 = datum.y;
@@ -401,7 +404,7 @@ export class SankeySeries extends FlowProportionSeries<
             );
             for (const { link } of linksAfter) {
                 link.y1 = y1;
-                y1 += link.size * seriesRectHeight * sizeScale;
+                y1 += Math.max(this.properties.minSize, link.size * seriesRectHeight * sizeScale);
             }
         }
 
@@ -502,7 +505,7 @@ export class SankeySeries extends FlowProportionSeries<
         // Create the links nodeData
         for (const link of links) {
             const { fromNode, toNode, size } = link;
-            link.height = seriesRectHeight * size * sizeScale;
+            link.height = Math.max(this.properties.minSize, seriesRectHeight * size * sizeScale);
             link.x1 = fromNode.x + nodeWidth;
             link.x2 = toNode.x;
             link.midPoint = {
