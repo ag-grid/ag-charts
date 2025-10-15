@@ -22,6 +22,7 @@ import {
     setupMockConsole,
     spyOnAnimationManager,
     tapAction,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -757,5 +758,20 @@ describe('NightingaleSeries', () => {
                 });
             });
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareEnterpriseTestOptions,
+            chartOptions: {
+                data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
+                series: [
+                    { type: 'nightingale', angleKey: 'x', radiusKey: 's1', radiusName: 'series 1' },
+                    { type: 'nightingale', angleKey: 'x', radiusKey: 's2', radiusName: 'series 2' },
+                    { type: 'nightingale', angleKey: 'x', radiusKey: 's3', radiusName: 'series 3' },
+                ],
+            },
+        });
+        await compare();
     });
 });

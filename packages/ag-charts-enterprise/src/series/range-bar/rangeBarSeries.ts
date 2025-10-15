@@ -455,8 +455,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datum: any;
         series: RangeBarSeries;
     }): RangeBarNodeLabelDatum[] {
-        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, label } = this.properties;
-        const labelParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName };
+        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName, label } = this.properties;
+        const labelParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
 
         const { placement } = label;
         const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
@@ -719,6 +719,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             yLowName: this.properties.yLowName ?? this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
             yHighName: this.properties.yHighName ?? this.properties.yHighKey,
+            legendItemName: this.properties.legendItemName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
@@ -762,6 +763,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 yHighKey,
                 yLowName,
                 yHighName,
+                legendItemName,
                 ...format,
             }
         );
@@ -793,8 +795,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { id: seriesId, visible } = this;
 
-        const { yName, yLowName, yHighName, yLowKey, yHighKey, showInLegend } = this.properties;
-        const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const { yName, yLowName, yHighName, yLowKey, yHighKey, legendItemName, showInLegend } = this.properties;
+        const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
 
         return [

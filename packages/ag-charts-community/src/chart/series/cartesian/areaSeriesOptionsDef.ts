@@ -61,6 +61,7 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     yKey: required(string),
     xName: string,
     yName: string,
+    legendItemName: string,
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,

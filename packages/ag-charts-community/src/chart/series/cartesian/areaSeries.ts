@@ -735,6 +735,7 @@ export class AreaSeries extends CartesianSeries<
             yFilterKey,
             yKey,
             yName,
+            legendItemName,
             marker,
             label,
             fill: seriesFill,
@@ -850,7 +851,7 @@ export class AreaSeries extends CartesianSeries<
                     'y',
                     yDomain,
                     label,
-                    { value: yDatum, datum: seriesDatum, xKey, yKey, xName, yName }
+                    { value: yDatum, datum: seriesDatum, xKey, yKey, xName, yName, legendItemName }
                 );
 
                 labelData.push({
@@ -1171,8 +1172,8 @@ export class AreaSeries extends CartesianSeries<
     }
 
     private makeLabelFormatterParams(): AgAreaSeriesLabelFormatterParams {
-        const { xKey, xName, yKey, yName } = this.properties;
-        return { xKey, xName, yKey, yName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
+        const { xKey, xName, yKey, yName, legendItemName } = this.properties;
+        return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

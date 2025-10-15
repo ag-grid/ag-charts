@@ -17,6 +17,7 @@ import {
     newFreezableMock,
     setupMockCanvas,
     spyOnAnimationManager,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { roundTo } from 'ag-charts-core';
@@ -1449,5 +1450,23 @@ describe('RangeBarSeries', () => {
             const imageData = extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareEnterpriseTestOptions,
+            chartOptions: {
+                data: [
+                    { x: 'West', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
+                    { x: 'East', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
+                ],
+                series: [
+                    { type: 'range-bar', xKey: 'x', yLowKey: 's1L', yHighKey: 's1H', yName: 'series 1' },
+                    { type: 'range-bar', xKey: 'x', yLowKey: 's2L', yHighKey: 's2H', yName: 'series 2' },
+                    { type: 'range-bar', xKey: 'x', yLowKey: 's3L', yHighKey: 's3H', yName: 'series 3' },
+                ],
+            },
+        });
+        await compare();
     });
 });

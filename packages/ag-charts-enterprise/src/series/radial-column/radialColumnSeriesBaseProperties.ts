@@ -26,6 +26,9 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     radiusName?: string;
 
     @Property
+    legendItemName?: string;
+
+    @Property
     fill: InternalAgColorType = 'black';
 
     @Property

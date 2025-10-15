@@ -11,6 +11,7 @@ export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions
     radiusKey: required(string),
     angleName: string,
     radiusName: string,
+    legendItemName: string,
     grouped: boolean,
     stacked: boolean,
     stackGroup: string,
