@@ -65,9 +65,9 @@ export const sonarjsConfig = [
             'sonarjs/no-misused-promises': 0,
 
             // Unicorn rules, as referenced from the SonarCloud documentation.
-            'unicorn/prefer-export-from': 1,
-            'unicorn/prefer-math-trunc': 1,
-            'unicorn/prefer-at': 1,
+            'unicorn/prefer-export-from': 2,
+            'unicorn/prefer-math-trunc': 2,
+            'unicorn/prefer-at': 2,
             'unicorn/prefer-number-properties': 2,
             'unicorn/no-array-for-each': 2,
             'unicorn/prefer-dom-node-remove': 2,
@@ -130,7 +130,7 @@ export default [
         },
         rules: {
             'no-lonely-if': 2,
-            'unicorn/no-negated-condition': 1,
+            'unicorn/no-negated-condition': 2,
             'no-nested-ternary': 2,
             'no-unneeded-ternary': 2,
             'no-eval': 2,
@@ -140,7 +140,7 @@ export default [
             'aglint/change-detection': 2,
             '@typescript-eslint/no-explicit-any': 0,
             '@typescript-eslint/consistent-type-imports': 0,
-            '@typescript-eslint/no-redundant-type-constituents': 1,
+            '@typescript-eslint/no-redundant-type-constituents': 2,
             '@typescript-eslint/no-floating-promises': 2,
             '@typescript-eslint/no-implied-eval': 2,
             '@typescript-eslint/no-shadow': 2,
@@ -148,7 +148,7 @@ export default [
             '@typescript-eslint/prefer-nullish-coalescing': 2,
             '@typescript-eslint/prefer-optional-chain': 2,
             '@typescript-eslint/prefer-readonly': 2,
-            '@typescript-eslint/prefer-ts-expect-error': 1,
+            '@typescript-eslint/prefer-ts-expect-error': 2,
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
             '@typescript-eslint/no-for-in-array': 2,
             '@typescript-eslint/restrict-template-expressions': [
