@@ -111,18 +111,20 @@ The `invertedStyle` property allows specifying a fill for areas where the `yHigh
 
 {% chartExampleRunner title="Range Area Inverted Style" name="range-area-inverted-style" type="generated" /%}
 
-```js
-series: [
-    {
-        type: 'range-area',
-        xKey: 'quarter',
-        yLowKey: 'projected',
-        yHighKey: 'actual',
-        invertedStyle: {
-            fill: 'red',
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'range-area',
+            xKey: 'quarter',
+            yLowKey: 'projected',
+            yHighKey: 'actual',
+            invertedStyle: {
+                fill: 'red',
+            },
         },
-    },
-];
+    ],
+}
 ```
 
 In this configuration:
@@ -139,47 +141,49 @@ low values of the data. These can be customised using the `item.high` and
 
 {% chartExampleRunner title="High & Low Styling" name="high-low-styler" type="generated" /%}
 
-```js
-series: [
-    {
-        // ...
+```ts format="snippet"
+{
+    series: [
+        {
+            // ...
 
-        // Shared high/low styling options:
-        strokeWidth: 2,
-        marker: {
-            size: 12,
-            fill: '#cccccc',
-            itemStyler: (params: AgRangeAreaSeriesItemStylerParams<DataType, unknown>) => {
-                // Highlight datum styling options:
-                if (params.highlightState === 'highlighted-item') {
-                    if (params.itemId === 'high') {
-                        return { fill: '#53c653' };
+            // Shared high/low styling options:
+            strokeWidth: 2,
+            marker: {
+                size: 12,
+                fill: '#cccccc',
+                itemStyler: (params: AgRangeAreaSeriesItemStylerParams<DataType, unknown>) => {
+                    // Highlight datum styling options:
+                    if (params.highlightState === 'highlighted-item') {
+                        if (params.itemId === 'high') {
+                            return { fill: '#53c653' };
+                        }
+                        if (params.itemId === 'low') {
+                            return { fill: '#ff3333' };
+                        }
                     }
-                    if (params.itemId === 'low') {
-                        return { fill: '#ff3333' };
-                    }
-                }
-                return {};
+                    return {};
+                },
             },
-        },
 
-        // Distinguished high/low styling options:
-        item: {
-            high: {
-                stroke: '#39ac39',
-                marker: {
+            // Distinguished high/low styling options:
+            item: {
+                high: {
                     stroke: '#39ac39',
+                    marker: {
+                        stroke: '#39ac39',
+                    },
                 },
-            },
-            low: {
-                stroke: '#e60000',
-                marker: {
+                low: {
                     stroke: '#e60000',
+                    marker: {
+                        stroke: '#e60000',
+                    },
                 },
             },
         },
-    },
-],
+    ],
+}
 ```
 
 In this configuration:
