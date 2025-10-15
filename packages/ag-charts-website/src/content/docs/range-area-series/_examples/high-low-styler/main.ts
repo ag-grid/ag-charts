@@ -18,21 +18,25 @@ const options: AgCartesianChartOptions<DataType> = {
                 type: 'gradient',
                 colorStops: [{ color: '#cccccc00', stop: 0 }, { color: '#cccccc80' }],
             },
+
+            // Shared high/low styling options:
+            strokeWidth: 2,
+            marker: {
+                fill: '#cccccc',
+            },
+
+            // Distinguished high/low styling options:
             item: {
                 high: {
                     stroke: '#39ac39',
-                    strokeWidth: 2,
                     marker: {
-                        fill: '#39ac39',
-                        fillOpacity: 1,
+                        stroke: '#39ac39',
                     },
                 },
                 low: {
                     stroke: '#e60000',
-                    strokeWidth: 2,
                     marker: {
-                        fill: '#e60000',
-                        fillOpacity: 1,
+                        stroke: '#e60000',
                     },
                 },
             },

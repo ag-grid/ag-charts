@@ -137,6 +137,36 @@ Placeholder Text.
 
 {% chartExampleRunner title="High & Low Styling" name="high-low-styler" type="generated" /%}
 
+```js
+series: [
+    {
+        // ...
+
+        // Shared high/low styling options:
+        strokeWidth: 2,
+        marker: {
+            fill: '#cccccc',
+        },
+
+        // Distinguished high/low styling options:
+        item: {
+            high: {
+                stroke: '#39ac39',
+                marker: {
+                    stroke: '#39ac39',
+                },
+            },
+            low: {
+                stroke: '#e60000',
+                marker: {
+                    stroke: '#e60000',
+                },
+            },
+        },
+    },
+],
+```
+
 ## API Reference
 
 {% tabs %}
