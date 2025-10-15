@@ -1,5 +1,5 @@
-import type { AgAnnotationsOptions } from 'ag-charts-community';
-import { type PluginModuleDefinition, boolean, defined } from 'ag-charts-core';
+import { type AgAnnotationsOptions, _ModuleSupport } from 'ag-charts-community';
+import { type PluginModuleDefinition } from 'ag-charts-core';
 
 import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
 import { Annotations } from './annotations';
@@ -11,12 +11,7 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions> = {
     chartType: 'cartesian',
     enterprise: true,
 
-    options: {
-        enabled: boolean,
-        axesButtons: defined,
-        toolbar: defined,
-        optionsToolbar: defined,
-    },
+    options: _ModuleSupport.annotationOptionsDef,
     themeTemplate: annotationsTheme,
 
     create: (ctx) => new Annotations(ctx),

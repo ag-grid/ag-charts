@@ -21,14 +21,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
-import {
-    PALETTE_DOWN_FILL,
-    PALETTE_DOWN_STROKE,
-    PALETTE_NEUTRAL_FILL,
-    PALETTE_NEUTRAL_STROKE,
-    PALETTE_UP_FILL,
-    PALETTE_UP_STROKE,
-} from '../../chart/themes/symbols';
 import { SAFE_STROKE_FILL_OPERATION } from '../../chart/themes/util';
 import { mergeDefaults } from '../../util/object';
 import { annotationsTheme } from './priceVolumePresetTheme';
@@ -268,10 +260,55 @@ export function priceVolume(
                     'range-area': {
                         series: {
                             fillOpacity: 0.3,
-                            item: {
-                                low: { strokeWidth: 2 },
-                                high: { strokeWidth: 2 },
-                            },
+                            ...inlineSwitch(chartType, {
+                                hlc: {
+                                    fill: {
+                                        $if: [
+                                            { $eq: [{ $value: '$index' }, 1] },
+                                            { $palette: 'up.fill' },
+                                            { $palette: 'down.fill' },
+                                        ],
+                                    },
+                                    item: {
+                                        low: {
+                                            stroke: {
+                                                $if: [
+                                                    { $eq: [{ $value: '$index' }, 1] },
+                                                    { $palette: 'up.stroke' },
+                                                    { $palette: 'down.stroke' },
+                                                ],
+                                            },
+                                            strokeWidth: 2,
+                                        },
+                                        high: {
+                                            stroke: {
+                                                $if: [
+                                                    { $eq: [{ $value: '$index' }, 1] },
+                                                    { $palette: 'up.stroke' },
+                                                    { $palette: 'down.stroke' },
+                                                ],
+                                            },
+                                            strokeWidth: 2,
+                                        },
+                                    },
+                                },
+                                default: {
+                                    item: {
+                                        low: { strokeWidth: 2 },
+                                        high: { strokeWidth: 2 },
+                                    },
+                                },
+                            }),
+                        },
+                    },
+                    'range-bar': {
+                        series: {
+                            ...inlineSwitch(chartType, {
+                                'high-low': {
+                                    fill: { $palette: 'neutral.fill' },
+                                    stroke: { $palette: 'neutral.stroke' },
+                                },
+                            }),
                         },
                     },
                 },
@@ -450,11 +487,6 @@ function createPriceSeriesHLC(
             xKey,
             yHighKey: highKey,
             yLowKey: closeKey,
-            fill: PALETTE_UP_FILL,
-            item: {
-                low: { stroke: PALETTE_UP_STROKE },
-                high: { stroke: PALETTE_UP_STROKE },
-            },
         } satisfies AgRangeAreaSeriesOptions,
         {
             type: RANGE_AREA_TYPE,
@@ -464,11 +496,6 @@ function createPriceSeriesHLC(
             xKey,
             yHighKey: closeKey,
             yLowKey: lowKey,
-            fill: PALETTE_DOWN_FILL,
-            item: {
-                low: { stroke: PALETTE_DOWN_STROKE },
-                high: { stroke: PALETTE_DOWN_STROKE },
-            },
         } satisfies AgRangeAreaSeriesOptions,
         {
             type: 'line',
@@ -486,11 +513,7 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             xKey,
             yHighKey: highKey,
             yLowKey: lowKey,
-            fill: PALETTE_NEUTRAL_FILL,
-            stroke: PALETTE_NEUTRAL_STROKE,
-            tooltip: {
-                range: 'nearest',
-            },
+            tooltip: { range: 'nearest' },
             // @ts-expect-error undocumented option
             focusPriority: 0,
         } satisfies AgRangeBarSeriesOptions,

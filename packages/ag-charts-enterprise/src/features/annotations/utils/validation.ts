@@ -1,40 +1,10 @@
-import { type Direction, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
 import { getGroupingValue } from './scale';
 
 const { ContinuousScale } = _ModuleSupport;
-
-export function validateDatumLine(
-    context: AnnotationContext,
-    datum: { start: Point; end: Point },
-    options: { overflowContinuous: boolean } = { overflowContinuous: false },
-    warningPrefix?: string
-) {
-    let valid = true;
-
-    valid &&= validateDatumPoint(context, datum.start, options, warningPrefix && `${warningPrefix}[start] `);
-    valid &&= validateDatumPoint(context, datum.end, options, warningPrefix && `${warningPrefix}[end] `);
-
-    return valid;
-}
-
-export function validateDatumValue(
-    context: AnnotationContext,
-    datum: { value?: Point['x' | 'y']; direction?: Direction },
-    warningPrefix?: string
-) {
-    const axis = datum.direction === 'horizontal' ? context.yAxis : context.xAxis;
-    const valid = validateDatumPointDirection(datum.value, axis);
-
-    if (!valid && warningPrefix) {
-        const value = getGroupingValue(datum.value);
-        Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${value}]]`);
-    }
-
-    return valid;
-}
 
 export function validateDatumPoint(
     context: AnnotationContext,
@@ -78,8 +48,4 @@ function validateDatumPointDirection(d: any, context: AnnotationAxisContext) {
         return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates
-}
-
-export function isPoint(point: Point | undefined): point is Point {
-    return point?.x != null && point?.y != null;
 }

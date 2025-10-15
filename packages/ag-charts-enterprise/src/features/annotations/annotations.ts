@@ -44,6 +44,7 @@ const {
     Vec2,
     Selection,
     BBox,
+    ObserveChanges,
 } = _ModuleSupport;
 
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
@@ -57,9 +58,6 @@ type AnnotationAxis = {
 
 export class Annotations extends AbstractModuleInstance {
     @Property
-    public enabled: boolean = true;
-
-    @Property
     public readonly toolbar = new AnnotationsToolbar(this.ctx);
 
     @Property
@@ -71,6 +69,14 @@ export class Annotations extends AbstractModuleInstance {
 
     @Property
     public axesButtons = new AxesButtons();
+
+    @Property
+    @ObserveChanges<Annotations>((target, value) => {
+        target.toolbar.enabled = value;
+        target.optionsToolbar.enabled = value;
+        target.axesButtons.enabled = value;
+    })
+    public enabled: boolean = true;
 
     @Property
     public snap: boolean = false;
@@ -716,6 +722,8 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        if (!this.enabled) return;
+
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
 
@@ -781,6 +789,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private onPreRender() {
+        if (!this.enabled) return;
         this.updateAnnotations();
         this.state.transition('render');
     }

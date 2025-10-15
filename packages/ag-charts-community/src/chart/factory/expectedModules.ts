@@ -91,7 +91,6 @@ export const ExpectedModules: ModulePlaceholder[] = [
 
     { type: 'series:plugin', name: 'errorBar', chartType: 'cartesian', enterprise: true },
 
-    // { type: 'context', contextKey: 'sharedToolbar', chartTypes: ['cartesian'] },
     { type: 'preset', name: 'gauge-preset', chartType: 'standalone', enterprise: true },
     { type: 'preset', name: 'price-volume', chartType: 'cartesian', enterprise: true },
 ];
