@@ -1865,6 +1865,7 @@ describe('BarSeries', () => {
                         xKey: 'quarter',
                         yKey: 'sales',
                         yName: 'Sales',
+                        fill: 'cyan',
                         highlight,
                     },
                     {
