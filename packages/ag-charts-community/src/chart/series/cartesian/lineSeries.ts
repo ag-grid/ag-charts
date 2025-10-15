@@ -189,7 +189,6 @@ export class LineSeries extends CartesianSeries<
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
-                    'current',
                     { id: `yValueCumulative`, ...common, groupId: idMap.marker },
                     yScaleType
                 )
