@@ -467,9 +467,9 @@ export class SankeySeries extends FlowProportionSeries<
     private sortNodes(a: EnhancedNodeGraphEntry, b: EnhancedNodeGraphEntry, opts?: { invertColumnSort: boolean }) {
         const { properties } = this;
 
-        if (properties.node.sort === 'a-z') {
+        if (properties.node.sort === 'ascending') {
             return (a.datum.label ?? '').localeCompare(b.datum.label ?? '');
-        } else if (properties.node.sort === 'z-a') {
+        } else if (properties.node.sort === 'descending') {
             return (b.datum.label ?? '').localeCompare(a.datum.label ?? '');
         } else if (properties.node.sort === 'data') {
             return 0;
