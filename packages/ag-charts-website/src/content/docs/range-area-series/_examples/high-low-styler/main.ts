@@ -16,7 +16,7 @@ const options: AgCartesianChartOptions<DataType> = {
             yHighKey: 'high',
             fill: {
                 type: 'gradient',
-                colorStops: [{ color: '#cccccc00', stop: 0 }, { color: '#cccccc80' }],
+                colorStops: [{ color: '#8ADAF100', stop: 0 }, { color: '#8ADAF1cc' }],
             },
 
             // Shared high/low styling options:

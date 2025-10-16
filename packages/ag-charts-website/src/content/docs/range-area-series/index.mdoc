@@ -133,15 +133,16 @@ In this configuration:
 -   The `invertedStyle.fill` of red is used where `high < low`.
 -   The `invertedStyle` object supports `fill` and `fillOpacity`.
 
-### High & Low Styling
+### High and Low Styling
 
 By default, the Line and Marker styling options are applied to both the high and
-low values of the data. These can be customised using the `item.high` and
-`item.low` overrides:
+low values of the data.
+
+Use the `item.high` and `item.low` properties to apply specific overrides.
 
 {% chartExampleRunner title="High & Low Styling" name="high-low-styler" type="generated" /%}
 
-```ts format="snippet"
+```js format="snippet"
 {
     series: [
         {
@@ -152,7 +153,7 @@ low values of the data. These can be customised using the `item.high` and
             marker: {
                 size: 12,
                 fill: '#cccccc',
-                itemStyler: (params: AgRangeAreaSeriesItemStylerParams<DataType, unknown>) => {
+                itemStyler: (params) => {
                     // Highlight datum styling options:
                     if (params.highlightState === 'highlighted-item') {
                         if (params.itemId === 'high') {
@@ -166,7 +167,7 @@ low values of the data. These can be customised using the `item.high` and
                 },
             },
 
-            // Distinguished high/low styling options:
+            // Differentiated high/low styling options
             item: {
                 high: {
                     stroke: '#39ac39',
@@ -188,12 +189,13 @@ low values of the data. These can be customised using the `item.high` and
 
 In this configuration:
 
--   The Line `strokeWidth` is set to 2 everywhere.
--   The `stroke` for high Line is set to a greenish color.
--   The `stroke` for low Line is set to a reddish color.
--   All Markers are set a `size` of 12 to a gray `fill`.
--   An `itemStyler` is used to override highlighted Marker `fill`, but using
-    different fill values for the high and low Markers.
+-   The `strokeWidth` is set to 2 on all lines.
+-   All Markers are set a `size` of 12 with a gray `fill`.
+-   The `stroke` for high line is set to a greenish colour.
+-   The `stroke` for low Line is set to a reddish colour.
+-   An [itemStyler](./stylers/#item-stylers) is used to override the `fill` of
+    [highlighted Markers](./series-highlighting/#stylers), using different fill values for the
+    `high` and `low` Markers.
 
 ## API Reference
 

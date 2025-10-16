@@ -5,7 +5,7 @@
         "highlights": [
             {
                 "text": "Axes Crossing Point",
-                "path": "./axes-types"
+                "path": "./axes-position"
             },
             {
                 "text": "Sankey Layout Options",
@@ -13,11 +13,11 @@
             },
             {
                 "text": "Difference Area Chart",
-                "path": "./range-area-series/#customisation"
+                "path": "./range-area-series/#inverted-style"
             },
             {
                 "text": "Multi Style Labels",
-                "path": "./fonts/#multi-style-text-elements"
+                "path": "./fonts/#label-formatters-with-multi-style-text"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-12-3"
