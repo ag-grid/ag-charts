@@ -11,4 +11,5 @@ export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = 
     radiusKey: required(string),
     angleName: string,
     radiusName: string,
+    legendItemName: string,
 };

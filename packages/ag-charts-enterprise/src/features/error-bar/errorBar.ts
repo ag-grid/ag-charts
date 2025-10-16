@@ -128,7 +128,6 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             return groupAccumulativeValueProperty(
                 key,
                 'normal',
-                'current',
                 {
                     id: `${id}-${type}`,
                     groupId: `errorGroup-${groupIndex}-${type}`,

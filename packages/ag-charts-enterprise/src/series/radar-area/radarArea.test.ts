@@ -17,6 +17,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { NonNullablePath } from 'ag-charts-core';
@@ -693,5 +694,24 @@ describe('RadarAreaSeries', () => {
                 });
             });
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareEnterpriseTestOptions,
+            chartOptions: {
+                data: [
+                    { x: 0, s1: 100, s2: 200, s3: 300 },
+                    { x: 1, s1: 100, s2: 200, s3: 300 },
+                    { x: 3, s1: 100, s2: 200, s3: 300 },
+                ],
+                series: [
+                    { type: 'radar-area', angleKey: 'x', radiusKey: 's1', radiusName: 'series 1' },
+                    { type: 'radar-area', angleKey: 'x', radiusKey: 's2', radiusName: 'series 2' },
+                    { type: 'radar-area', angleKey: 'x', radiusKey: 's3', radiusName: 'series 3' },
+                ],
+            },
+        });
+        await compare();
     });
 });

@@ -21,17 +21,8 @@ const options: AgChartOptions = {
             xName: 'Date',
             yLowKey: 'low',
             yHighKey: 'high',
-            item: {
-                low: {
-                    marker: {
-                        size: 7,
-                    },
-                },
-                high: {
-                    marker: {
-                        size: 7,
-                    },
-                },
+            marker: {
+                size: 7,
             },
             label: {
                 padding: 17,

@@ -29,6 +29,7 @@ import {
 } from '../../test/data';
 import * as examples from '../../test/examples';
 import { MockAreaStyler, newFreezableMock } from '../../test/freezableMock';
+import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase, ChartTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -2092,5 +2093,23 @@ describe('AreaSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+    });
+
+    test('AG-15743 legendItemName', async () => {
+        chart = await testLegendItemName({
+            prepare: prepareTestOptions,
+            chartOptions: {
+                data: [
+                    { x: 'Start', s1: 0, s2: 0, s3: 0 },
+                    { x: 'End', s1: 100, s2: 200, s3: 300 },
+                ],
+                series: [
+                    { type: 'area', xKey: 'x', yKey: 's1', yName: 'series 1' },
+                    { type: 'area', xKey: 'x', yKey: 's2', yName: 'series 2' },
+                    { type: 'area', xKey: 'x', yKey: 's3', yName: 'series 3' },
+                ],
+            },
+        });
+        await compare();
     });
 });

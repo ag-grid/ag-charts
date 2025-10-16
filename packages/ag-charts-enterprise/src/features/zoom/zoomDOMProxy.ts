@@ -3,6 +3,8 @@ import { type BaseStyleTypeMap, boxEmpty } from 'ag-charts-core';
 
 const { ChartAxisDirection } = _ModuleSupport;
 
+type AxisHit = { axisId: string; direction: _ModuleSupport.ChartAxisDirection };
+
 type AxesHandlers = {
     onAxisDragStart: (direction: _ModuleSupport.ChartAxisDirection) => void;
     onAxisDragMove: (
@@ -23,11 +25,16 @@ type ProxyAxis = {
     axisId: string;
     direction: _ModuleSupport.ChartAxisDirection;
     div: _Widget.NativeWidget<HTMLDivElement>;
+    bounds?: _ModuleSupport.BBox;
 };
 
 export class ZoomDOMProxy {
     private axes: ProxyAxis[] = [];
     private cursor: BaseStyleTypeMap['cursor'] | undefined;
+    private readonly overlappingAxisIds = new Set<string>();
+    private hoveredAxisId: string | undefined;
+    private activeAxisId: string | undefined;
+    private seriesRect: _ModuleSupport.BBox | undefined;
 
     constructor(private readonly axesHandlers: AxesHandlers) {}
 
@@ -37,7 +44,14 @@ export class ZoomDOMProxy {
         }
     }
 
-    update(enableAxisDragging: boolean, enableAxisScrolling: boolean, ctx: _ModuleSupport.ModuleContext) {
+    update(
+        enableAxisDragging: boolean,
+        enableAxisScrolling: boolean,
+        ctx: _ModuleSupport.ModuleContext,
+        seriesRect?: _ModuleSupport.BBox
+    ) {
+        this.seriesRect = seriesRect;
+
         for (const ax of this.axes) {
             ax.div.setHidden(!enableAxisDragging && !enableAxisScrolling);
         }
@@ -51,6 +65,9 @@ export class ZoomDOMProxy {
             this.axes = this.axes.filter((entry) => {
                 if (removed.includes(entry.axisId)) {
                     entry.div.destroy();
+                    this.overlappingAxisIds.delete(entry.axisId);
+                    if (this.hoveredAxisId === entry.axisId) this.hoveredAxisId = undefined;
+                    if (this.activeAxisId === entry.axisId) this.activeAxisId = undefined;
                     return false;
                 }
                 return true;
@@ -66,10 +83,15 @@ export class ZoomDOMProxy {
             const axisCtx = axesCtx.find((ac) => ac.axisId === axis.axisId)!;
             const bbox = axisCtx.getCanvasBounds();
             axis.div.setHidden(boxEmpty(bbox));
-            if (bbox !== undefined) {
+            if (bbox == undefined) {
+                axis.bounds = undefined;
+            } else {
                 axis.div.setBounds(bbox);
+                axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
         }
+
+        this.updateOverlappingAxisPointerEvents(enableAxisDragging, enableAxisScrolling);
     }
 
     setAxisCursor(cursor: BaseStyleTypeMap['cursor'] | undefined) {
@@ -86,7 +108,86 @@ export class ZoomDOMProxy {
         }
     }
 
-    private getCursor(direction: _ModuleSupport.ChartAxisDirection) {
+    private updateOverlappingAxisPointerEvents(enableAxisDragging: boolean, enableAxisScrolling: boolean) {
+        this.overlappingAxisIds.clear();
+        const shouldEnableInteraction = (enableAxisDragging || enableAxisScrolling) && this.seriesRect;
+
+        for (const axis of this.axes) {
+            if (!shouldEnableInteraction) {
+                axis.div.setPointerEvents(undefined);
+                continue;
+            }
+
+            const isOverlapping = Boolean(axis.bounds?.collidesBBox(this.seriesRect!));
+
+            if (isOverlapping) {
+                this.overlappingAxisIds.add(axis.axisId);
+                axis.div.setPointerEvents('none');
+            } else {
+                axis.div.setPointerEvents(undefined);
+            }
+        }
+
+        this.cleanupAxisState();
+    }
+
+    private cleanupAxisState(): void {
+        if (this.hoveredAxisId && !this.overlappingAxisIds.has(this.hoveredAxisId)) {
+            this.hoveredAxisId = undefined;
+        }
+        if (this.activeAxisId && !this.overlappingAxisIds.has(this.activeAxisId)) {
+            this.activeAxisId = undefined;
+        }
+    }
+
+    public pickAxisAtPoint(x: number, y: number): AxisHit | undefined {
+        for (const axis of this.axes) {
+            if (!this.overlappingAxisIds.has(axis.axisId)) continue;
+            if (axis.bounds?.containsPoint(x, y)) {
+                return { axisId: axis.axisId, direction: axis.direction };
+            }
+        }
+        return undefined;
+    }
+
+    public setHoveredAxis(axisId: string): void {
+        if (this.overlappingAxisIds.has(axisId)) {
+            this.hoveredAxisId = axisId;
+        }
+    }
+
+    public clearHoveredAxis(): void {
+        if (!this.activeAxisId) {
+            this.hoveredAxisId = undefined;
+        }
+    }
+
+    public beginDelegatedAxisDrag(axisId: string): boolean {
+        if (!this.overlappingAxisIds.has(axisId)) return false;
+
+        this.activeAxisId = axisId;
+        this.hoveredAxisId = undefined;
+        return true;
+    }
+
+    public endDelegatedAxisDrag(axisId: string): void {
+        if (this.activeAxisId === axisId) {
+            this.activeAxisId = undefined;
+        }
+        this.hoveredAxisId = undefined;
+    }
+
+    public hasOverlappingAxes(): boolean {
+        return this.overlappingAxisIds.size > 0;
+    }
+
+    public getHoveredAxis(): AxisHit | undefined {
+        if (!this.hoveredAxisId) return undefined;
+        const axis = this.axes.find((a) => a.axisId === this.hoveredAxisId);
+        return axis ? { axisId: axis.axisId, direction: axis.direction } : undefined;
+    }
+
+    public getCursor(direction: _ModuleSupport.ChartAxisDirection) {
         if (this.cursor) return this.cursor;
         return direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize';
     }
@@ -104,10 +205,15 @@ export class ZoomDOMProxy {
             if (e.device === 'touch') {
                 e.sourceEvent.preventDefault();
             }
+            this.activeAxisId = axisId;
             handlers.onAxisDragStart(direction);
         });
         div.addListener('drag-move', (event) => handlers.onAxisDragMove(axisId, direction, event));
-        div.addListener('drag-end', handlers.onAxisDragEnd);
+        div.addListener('drag-end', () => {
+            this.activeAxisId = undefined;
+            this.hoveredAxisId = undefined;
+            handlers.onAxisDragEnd();
+        });
         div.addListener('dblclick', () => handlers.onAxisDoubleClick(axisId, direction));
         div.addListener('wheel', (event) => handlers.onAxisWheel(axisId, direction, event));
         return { axisId, div, direction };

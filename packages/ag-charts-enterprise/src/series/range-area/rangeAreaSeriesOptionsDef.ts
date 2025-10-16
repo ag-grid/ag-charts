@@ -24,6 +24,7 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     yName: string,
     yLowName: string,
     yHighName: string,
+    legendItemName: string,
     segmentation: shapeSegmentation,
     invertedStyle: {
         enabled: boolean,

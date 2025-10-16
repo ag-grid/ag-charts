@@ -243,19 +243,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const {
-            xKey,
-            yLowKey,
-            yHighKey,
-            connectMissingData,
-            interpolation,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-        } = this.properties;
-        const marker = this.properties.item[DEFAULT_ITEM].marker;
+        const { xKey, yLowKey, yHighKey, connectMissingData, interpolation, fill, fillOpacity, item } = this.properties;
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -278,6 +266,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined = spanPoints.at(-1);
             if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
                 const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
+                    const { size } = item[id].marker;
                     markerData.push({
                         index: datumIndex,
                         series: this,
@@ -312,7 +301,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 const x = xPosition(datumIndex);
                 const yHighCoordinate = yScale.convert(yHighValue);
                 const yLowCoordinate = yScale.convert(yLowValue);
-                const { size } = marker;
 
                 appendMarker('high', yHighValue, yHighCoordinate);
                 appendMarker('low', yLowValue, yLowCoordinate);
@@ -408,6 +396,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             );
         }
 
+        const getLowOrHighMarkerStyles = (lowOrHigh: 'low' | 'high') => {
+            const line = item[lowOrHigh];
+            const { stroke, strokeWidth, strokeOpacity } = line;
+            const inheritedStyles = { fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
+            return getMarkerStyles(this, line, line.marker, inheritedStyles);
+        };
+
         const context: RangeAreaContext = {
             itemId: `${yLowKey}-${yHighKey}`,
             labelData,
@@ -417,13 +412,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: getMarkerStyles(this, this.properties.item[DEFAULT_ITEM], marker, {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            }),
+            styles: {
+                low: getLowOrHighMarkerStyles('low'),
+                high: getLowOrHighMarkerStyles('high'),
+            },
             segments,
             intersectionSegments,
         };
@@ -450,7 +442,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datum: any;
         series: RangeAreaSeries;
     }): RangeAreaLabelDatum {
-        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, label } = this.properties;
+        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         const { placement } = label;
         const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
@@ -479,7 +471,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 'y',
                 yDomain,
                 label,
-                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName }
+                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName }
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
@@ -489,6 +481,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override isPathOrSelectionDirty(): boolean {
         const { low, high } = this.properties.item;
         return low.marker.isDirty() || high.marker.isDirty();
+    }
+
+    protected override strokewidthChange() {
+        const itemStrokeWidthChange = (lowOrHigh: AgRangeAreaSeriesItemType): boolean => {
+            const unhighlightedStrokeWidth = this.properties.item[lowOrHigh].strokeWidth ?? 0;
+            const highlightedSeriesStrokeWidth =
+                this.properties.highlight.highlightedSeries.item?.[lowOrHigh]?.strokeWidth ?? unhighlightedStrokeWidth;
+            const highlightedItemStrokeWidth =
+                this.properties.highlight.highlightedItem.item?.[lowOrHigh]?.strokeWidth ?? unhighlightedStrokeWidth;
+            return (
+                unhighlightedStrokeWidth > highlightedItemStrokeWidth ||
+                highlightedSeriesStrokeWidth > highlightedItemStrokeWidth
+            );
+        };
+
+        return itemStrokeWidthChange('low') || itemStrokeWidthChange('high');
     }
 
     protected override updatePathNodes(opts: {
@@ -667,9 +675,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
+            const { itemId } = datum;
             const style =
                 datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+                contextNodeData.styles[itemId][this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
 
@@ -701,6 +710,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             yLowName: this.properties.yLowName ?? this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
             yHighName: this.properties.yHighName ?? this.properties.yHighKey,
+            legendItemName: this.properties.legendItemName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
@@ -884,6 +894,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 xKey,
                 yHighKey,
                 yHighName,
+                legendItemName,
                 ...format,
             }
         );
@@ -922,8 +933,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const { id: seriesId, visible } = this;
 
-        const { yLowKey, yHighKey, yName, yLowName, yHighName, showInLegend } = this.properties;
-        const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const { yLowKey, yHighKey, yName, yLowName, yHighName, legendItemName, showInLegend } = this.properties;
+        const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
         return [
             {

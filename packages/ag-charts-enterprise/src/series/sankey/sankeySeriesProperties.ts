@@ -48,7 +48,7 @@ export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
 export interface SankeyNodeLabelDatum {
     x: number;
     y: number;
-    leading: boolean;
+    textAlign: 'left' | 'right' | 'center';
     text: string;
     size: number;
 }
@@ -56,6 +56,12 @@ export interface SankeyNodeLabelDatum {
 class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
     @Property
     spacing: number = 1;
+
+    @Property
+    placement: 'left' | 'right' | 'center' | undefined = undefined;
+
+    @Property
+    edgePlacement: 'inside' | 'outside' | undefined = undefined;
 }
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
@@ -89,6 +95,9 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     spacing: number = 1;
 
     @Property
+    minSpacing: number = 0;
+
+    @Property
     width: number = 1;
 
     @Property
@@ -98,7 +107,7 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     verticalAlignment: 'top' | 'bottom' | 'center' = 'center';
 
     @Property
-    sort: 'data' | 'a-z' | 'z-a' | 'weight' = 'weight';
+    sort: 'data' | 'ascending' | 'descending' | 'auto' = 'auto';
 
     @Property
     fill: InternalAgColorType | undefined = undefined;
@@ -182,6 +191,9 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Property
     readonly node = new SankeySeriesNodeProperties();
+
+    @Property
+    minSize: number = 1;
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<DatumDefault>>();

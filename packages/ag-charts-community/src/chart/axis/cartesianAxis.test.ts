@@ -41,6 +41,82 @@ const TIME_DATA = [
     { date: new Date('2024-01-04T00:00:00Z'), value: 6 },
 ];
 
+const GROUPED_CATEGORY_DATA = [
+    {
+        location: ['Europe', 'United Kingdom', 'London'],
+        gold: 27,
+        silver: 23,
+        bronze: 17,
+    },
+    {
+        location: ['Europe', 'United Kingdom', 'Manchester'],
+        gold: 12,
+        silver: 8,
+        bronze: 10,
+    },
+    {
+        location: ['Europe', 'Germany', 'Berlin'],
+        gold: 17,
+        silver: 10,
+        bronze: 15,
+    },
+    {
+        location: ['Asia', 'China', 'Beijing'],
+        gold: 38,
+        silver: 32,
+        bronze: 18,
+    },
+    {
+        location: ['Asia', 'China', 'Shanghai'],
+        gold: 20,
+        silver: 15,
+        bronze: 12,
+    },
+    { location: ['Asia', 'Japan', 'Tokyo'], gold: 27, silver: 14, bronze: 17 },
+    {
+        location: ['North America', 'United States', 'Los Angeles'],
+        gold: 46,
+        silver: 37,
+        bronze: 38,
+    },
+    {
+        location: ['North America', 'United States', 'New York'],
+        gold: 30,
+        silver: 28,
+        bronze: 25,
+    },
+    {
+        location: ['North America', 'Canada', 'Toronto'],
+        gold: 8,
+        silver: 6,
+        bronze: 10,
+    },
+    {
+        location: ['South America', 'Brazil', 'Rio de Janeiro'],
+        gold: 7,
+        silver: 6,
+        bronze: 6,
+    },
+    {
+        location: ['Africa', 'South Africa', 'Cape Town'],
+        gold: 4,
+        silver: 4,
+        bronze: 6,
+    },
+    {
+        location: ['Oceania', 'Australia', 'Sydney'],
+        gold: 17,
+        silver: 7,
+        bronze: 22,
+    },
+    {
+        location: ['Oceania', 'New Zealand', 'Auckland'],
+        gold: 10,
+        silver: 5,
+        bronze: 8,
+    },
+];
+
 type OptionsFactory = () => AgCartesianChartOptions;
 
 type Scenario = {
@@ -291,6 +367,35 @@ const validScenarios: Scenario[] = [
                     type: 'bar',
                     xKey: 'category',
                     yKey: 'value',
+                },
+            ],
+        }),
+    },
+    {
+        name: 'grouped-category-cross-at-array-value',
+        optionsFactory: () => ({
+            data: GROUPED_CATEGORY_DATA,
+            theme: THEME,
+            axes: [
+                {
+                    type: 'grouped-category',
+                    position: 'bottom',
+                    depthOptions: [{}, { label: { fontWeight: 'bold' } }, { label: { fontSize: 10 } }],
+                    crossAt: { value: 40 },
+                },
+                {
+                    type: 'number',
+                    position: 'left',
+                    crossAt: { value: ['North America', 'United States', 'New York'] },
+                },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'location',
+                    xName: 'Location',
+                    yKey: 'gold',
+                    yName: 'Gold',
                 },
             ],
         }),

@@ -101,8 +101,16 @@ The order of the nodes can be customised using the `sort` property on `node`.
 There are three values supported:
 
 -   `data` sorts nodes in the same order as they first appear in the `data` array.
--   `a-z` and `z-a` sort nodes alphanumerically by their displayed labels.
--   `weight` sorts nodes to reduce overlapping links and produce a cleaner layout.
+-   `ascending` and `descending` sort nodes alphanumerically by their displayed labels.
+-   `auto` sorts nodes to reduce overlapping links and produce a cleaner layout.
+
+## Label Placement
+
+Labels can be placed to the left, right or centred over nodes using the `placement` property on `label`.
+
+Use the `edgePlacement` property on `label` to place the labels for the first and last nodes on the inside or outside.
+
+{% chartExampleRunner title="Label Placement" name="label-placement" type="generated" /%}
 
 ## Customisation
 

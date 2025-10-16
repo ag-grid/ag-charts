@@ -91,6 +91,10 @@ describe('PieSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
+    "AG Charts - invalid value of type [undefined] for [PieSeries-1 / calloutLabelKey] ignored:",
+    "[undefined]",
+  ],
+  [
     "AG Charts - no value was found for the key 'dog' on 3 data elements",
   ],
   [

@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgRangeAreaSeriesItemStylerParams } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -18,21 +18,38 @@ const options: AgCartesianChartOptions<DataType> = {
                 type: 'gradient',
                 colorStops: [{ color: '#cccccc00', stop: 0 }, { color: '#cccccc80' }],
             },
+
+            // Shared high/low styling options:
+            strokeWidth: 2,
+            marker: {
+                size: 12,
+                fill: '#cccccc',
+                itemStyler: (params: AgRangeAreaSeriesItemStylerParams<DataType, unknown>) => {
+                    // Highlight datum styling options:
+                    if (params.highlightState === 'highlighted-item') {
+                        if (params.itemId === 'high') {
+                            return { fill: '#53c653' };
+                        }
+                        if (params.itemId === 'low') {
+                            return { fill: '#ff3333' };
+                        }
+                    }
+                    return {};
+                },
+            },
+
+            // Distinguished high/low styling options:
             item: {
                 high: {
                     stroke: '#39ac39',
-                    strokeWidth: 2,
                     marker: {
-                        fill: '#39ac39',
-                        fillOpacity: 1,
+                        stroke: '#39ac39',
                     },
                 },
                 low: {
                     stroke: '#e60000',
-                    strokeWidth: 2,
                     marker: {
-                        fill: '#e60000',
-                        fillOpacity: 1,
+                        stroke: '#e60000',
                     },
                 },
             },

@@ -109,6 +109,8 @@ export interface AgRangeBarSeriesOptionsNames {
     yLowName?: string;
     /** A human-readable description of the y-high-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yHighName?: string;
+    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export interface AgRangeBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
