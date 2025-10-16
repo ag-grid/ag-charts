@@ -16,6 +16,7 @@ import { LineSeriesModule } from './chart/series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
 import { DonutSeriesModule } from './chart/series/polar/donutSeriesModule';
 import { PieSeriesModule } from './chart/series/polar/pieSeriesModule';
+import { LocaleModule } from './locale/localeModule';
 import {
     CategoryAxisModule,
     GroupedCategoryAxisModule,
@@ -47,6 +48,7 @@ export {
     SeriesAreaModule,
     BackgroundModule,
     LegendModule,
+    LocaleModule,
 
     // Enterprise presets
     PriceVolumePresetModule,
@@ -70,6 +72,7 @@ export const AllCartesianCommunityModules: ModuleDefinition[] = [
     SeriesAreaModule,
     BackgroundModule,
     LegendModule,
+    LocaleModule,
 ];
 
 export const AllPolarCommunityModules: ModuleDefinition[] = [
@@ -79,6 +82,7 @@ export const AllPolarCommunityModules: ModuleDefinition[] = [
     SeriesAreaModule,
     BackgroundModule,
     LegendModule,
+    LocaleModule,
 ];
 
 export const AllCommunityModules: ModuleDefinition[] = [
