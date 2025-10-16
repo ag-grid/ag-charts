@@ -89,6 +89,9 @@ export async function testLegendItemName(testOptions: TestLegendItemNameOptions)
         });
 
         test('compare', async () => {
+            b0.click();
+            await waitForChartStability(chart);
+
             await testOptions.compare();
         });
     });
