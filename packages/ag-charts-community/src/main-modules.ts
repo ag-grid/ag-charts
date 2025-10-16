@@ -1,6 +1,4 @@
 // Entry point to implement and test our tree-shaking abilities
-
-/* eslint-disable unicorn/prefer-export-from */
 import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
 import { CartesianChartModule } from './chart/cartesianChartModule';
 import { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
@@ -24,6 +22,7 @@ import {
 
 export { ModuleRegistry } from 'ag-charts-core';
 
+/* eslint-disable unicorn/prefer-export-from */
 export {
     CartesianChartModule,
     NumberAxisModule,

@@ -39,6 +39,7 @@ const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
 const DOMAIN_RANGES = Symbol('domain-ranges');
 const DOMAIN_BANDS = Symbol('domain-bands');
 
+// eslint-disable-next-line sonarjs/redundant-type-aliases
 type ScopeId = string;
 
 type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };

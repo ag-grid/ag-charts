@@ -1,6 +1,4 @@
 // Entry point to implement and test our tree-shaking abilities
-
-/* eslint-disable unicorn/prefer-export-from */
 import { _ModuleSupport } from 'ag-charts-community';
 
 import {
@@ -42,6 +40,7 @@ import { WaterfallSeriesModule } from './series/waterfall';
 
 export const ModuleRegistry = _ModuleSupport.ModuleRegistry;
 
+/* eslint-disable unicorn/prefer-export-from */
 export {
     OrdinalTimeAxisModule,
     AngleNumberAxisModule,

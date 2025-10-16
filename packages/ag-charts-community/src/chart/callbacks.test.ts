@@ -334,6 +334,7 @@ describe('AG-13024 API context - overlays', () => {
     setupMockConsole();
     setupMockCanvas();
 
+    // eslint-disable-next-line sonarjs/redundant-type-aliases
     type TDatum = undefined;
     type TContext = { name: string };
     type TMock = MockOverlayRenderer<TDatum, TContext>;
