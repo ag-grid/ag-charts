@@ -58,6 +58,145 @@ Example paths are mapped from repo paths:
 -   Use `nx generate-examples ag-charts-website` to exercise example generation
 -   Use `nx generate-thumbnails ag-charts-website` to exercise thumbnail generation
 
+## Reading External Examples (Plnkr, CodePen, etc.)
+
+When implementing features or updating gallery examples based on external code examples (Plnkr, CodePen, etc.), follow this approach to extract code:
+
+### Primary Method: Using Plnkr API
+
+The most efficient way to extract Plnkr code is through their JSON API:
+
+1. **Extract the Plunk ID from the URL**:
+
+    - From `https://plnkr.co/edit/95LNJoaB0eYqh6DU?open=main.js` → ID is `95LNJoaB0eYqh6DU`
+    - From `https://embed.plnkr.co/plunk/mWWciY` → ID is `mWWciY`
+
+2. **Fetch the plunk data via API**:
+
+    ```
+    https://api.plnkr.co/plunks/{plunkId}
+    ```
+
+    This returns JSON with all file contents in the `files` object.
+
+3. **Extract file contents programmatically**:
+
+    - The response includes a `files` object with keys like `main.js`, `index.html`, `styles.css`, `data.ts`
+    - Each file has a `content` property with the full source code
+    - Raw files are also accessible at `//run.plnkr.co/plunks/{plunkId}/{filename}`
+
+4. **Example API response structure**:
+    ```json
+    {
+      "id": "95LNJoaB0eYqh6DU",
+      "files": {
+        "main.js": {
+          "content": "const { AgCharts } = agCharts;\n...",
+          "filename": "main.js",
+          "raw_url": "//run.plnkr.co/plunks/95LNJoaB0eYqh6DU/main.js"
+        },
+        "index.html": { ... }
+      },
+      "description": "Example description",
+      "tags": ["ag-grid", "ag-charts", "example"]
+    }
+    ```
+
+### Practical Usage Examples
+
+#### Using WebFetch tool (for AI agents):
+
+```
+WebFetch url="https://api.plnkr.co/plunks/95LNJoaB0eYqh6DU"
+        prompt="Extract the main.js and data.ts file contents from this plunk"
+```
+
+#### Using fetch in code:
+
+```typescript
+async function extractPlunkCode(plunkId: string) {
+    const response = await fetch(`https://api.plnkr.co/plunks/${plunkId}`);
+    const data = await response.json();
+
+    return {
+        mainJs: data.files['main.js']?.content,
+        dataTs: data.files['data.ts']?.content,
+        indexHtml: data.files['index.html']?.content,
+        styles: data.files['styles.css']?.content,
+    };
+}
+```
+
+#### Direct raw file access:
+
+```
+// For direct file access without API:
+https://run.plnkr.co/plunks/95LNJoaB0eYqh6DU/main.js
+https://run.plnkr.co/plunks/95LNJoaB0eYqh6DU/data.ts
+```
+
+### Fallback Method: Manual Extraction
+
+If the API is unavailable or access fails, use this fallback approach:
+
+1. **Navigate to the Plnkr URL** and take a screenshot to capture the editor view
+2. **Use page text extraction** to parse the visible code:
+    - Use browser automation (e.g., `puppeteer_evaluate`) to extract text content
+    - Look for file content in the DOM or use `document.body.innerText`
+3. **Copy the visible code manually from the screenshot** if extraction fails:
+    - Read the line numbers and code visually from the screenshot
+    - Type it into your implementation
+4. **Verify against original example** by comparing:
+    - Data structure (fields, types, values)
+    - Formatter patterns (especially for multi-font text segments)
+    - Label positioning (offset values, placement options)
+
+### Key Pattern Example: Multi-Font Text Segments
+
+When copying label formatter patterns, ensure you preserve:
+
+```typescript
+// Original Plnkr pattern:
+calloutLabel: {
+  formatter: ({ datum }) => [
+    { text: datum.value.toString(), fontSize: 20, color: 'purple', fontWeight: 'bold' },
+    { text: '\n' + datum.label, fontSize: 10, color: 'grey' },
+  ],
+}
+
+// In your example, maintain this structure:
+// - Array of text segment objects (not a string)
+// - Each segment has: text, fontSize, color, fontWeight properties
+// - Use '\n' for line breaks between segments
+```
+
+### Gallery Example Updates
+
+When updating gallery examples from external references:
+
+1. Identify what feature is being showcased (e.g., "multi-font labels")
+2. Update relevant gallery example `main.ts` with the formatter pattern
+3. If data source changes, update `data.ts` to match the reference example
+4. Validate with `nx validate-examples` before committing
+5. Test locally via `nx dev` to verify visual appearance
+
+### Best Practices for External Code Extraction
+
+1. **Always try the API first**: The JSON API is more reliable than manual extraction
+2. **Preserve exact formatting**: When copying formatter functions, maintain the exact structure including array syntax for text segments
+3. **Check for dependencies**: Some plunks may reference external libraries - verify these in `index.html`
+4. **Validate data types**: Ensure numeric values aren't accidentally converted to strings
+5. **Test the extracted code**: Always run the extracted code locally to verify it works as expected
+6. **Document the source**: Include a comment with the original Plnkr URL for future reference
+
+### Common Plnkr URL Patterns
+
+-   Edit view: `https://plnkr.co/edit/{plunkId}`
+-   Embed view: `https://embed.plnkr.co/plunk/{plunkId}`
+-   Preview: `https://embed.plnkr.co/{plunkId}/preview`
+-   API endpoint: `https://api.plnkr.co/plunks/{plunkId}`
+-   Raw file: `https://run.plnkr.co/plunks/{plunkId}/{filename}`
+
 ## Quick Playbook: Example-only Change
 
 1. Edit the example files (`index.html`, `main.ts`, optional `styles.css`/`data.ts`)
