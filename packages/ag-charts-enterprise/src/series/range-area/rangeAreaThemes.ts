@@ -110,6 +110,24 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             ],
         },
         fillOpacity: 0.7,
+        stroke: { $palette: 'stroke' },
+        strokeWidth: 1,
+        marker: {
+            enabled: false,
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ],
+            },
+            shape: 'circle',
+            stroke: { $palette: 'stroke' },
+            size: 6,
+            strokeWidth: 2,
+        },
         nodeClickRange: 'nearest',
         item: {
             low: RANGE_AREA_ITEM,
