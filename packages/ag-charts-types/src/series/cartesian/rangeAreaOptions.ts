@@ -87,11 +87,26 @@ export interface AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext> extends
     marker?: AgRangeAreaMarker<TDatum, TContext>;
 }
 
+export interface AgRangeAreaSeriesItemMarker<TDatum, TContext>
+    extends Omit<AgSeriesMarkerOptions<TDatum, never, TContext>, 'itemStyler'> {}
+
+// statically assert that AgRangeAreaSeriesItemMarker matches AgRangeAreaMarker with `itemStyler` omitted.
+type AreExact<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+true satisfies AreExact<
+    AgRangeAreaSeriesItemMarker<unknown, unknown>,
+    Omit<AgRangeAreaMarker<unknown, unknown>, 'itemStyler'>
+>;
+
+export interface AgRangeAreaSeriesItemLineThemeableOptions<TDatum, TContext> extends StrokeOptions, LineDashOptions {
+    /** Styling configuration for the markers used in the series.  */
+    marker?: AgRangeAreaSeriesItemMarker<TDatum, TContext>;
+}
+
 export interface AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext> {
     /** Configuration for the `yLowKey` line. */
-    low?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
+    low?: AgRangeAreaSeriesItemLineThemeableOptions<TDatum, TContext>;
     /** Configuration for `yHighKey` line. */
-    high?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
+    high?: AgRangeAreaSeriesItemLineThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>

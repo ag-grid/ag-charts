@@ -100,9 +100,6 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         strokeWidth: {
             $path: ['/series/$index/marker/strokeWidth', 2],
         },
-        itemStyler: {
-            $path: '/series/$index/marker/itemStyler',
-        },
     },
 };
 
