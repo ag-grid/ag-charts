@@ -92,6 +92,9 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     spacing: number = 1;
 
     @Property
+    minSpacing: number = 0;
+
+    @Property
     width: number = 1;
 
     @Property

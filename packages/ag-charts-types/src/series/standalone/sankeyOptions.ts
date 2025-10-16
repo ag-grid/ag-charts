@@ -69,9 +69,23 @@ export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> ex
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesNodeStyle {
-    /** Minimum spacing between the nodes. */
+    /**
+     * Spacing between the nodes.
+     *
+     * Default: `20`
+     */
     spacing?: PixelSize;
-    /** Width of the nodes. */
+    /**
+     * Minimum spacing between the nodes when the series area is reduced in height.
+     *
+     * Default: `0`
+     */
+    minSpacing?: PixelSize;
+    /**
+     * Width of the nodes.
+     *
+     * Default: `1`
+     */
     width?: PixelSize;
     /**
      * Alignment of the nodes.
