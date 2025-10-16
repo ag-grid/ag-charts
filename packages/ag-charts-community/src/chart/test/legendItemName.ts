@@ -75,7 +75,7 @@ export async function testLegendItemName(testOptions: TestLegendItemNameOptions)
             expect(a11yButtons.length).toBe(3);
         });
 
-        test('a11y text', async () => {
+        test('a11y aria-checked', async () => {
             expect(b0.getAttribute('aria-checked')).toBe('true');
             expect(b1.getAttribute('aria-checked')).toBe('true');
             expect(b2.getAttribute('aria-checked')).toBe('true');

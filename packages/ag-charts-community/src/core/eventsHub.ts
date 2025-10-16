@@ -41,6 +41,7 @@ export interface EventsHubMap {
     'highlight:change': HighlightChangeEvent;
     'layout:complete': LayoutCompleteEvent;
     'legend:change': LegendChangeEvent;
+    'legend:change-partial': LegendChangePartialEvent;
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
@@ -86,6 +87,11 @@ export interface LayoutCompleteEvent {
 
 export interface LegendChangeEvent {
     legendData?: CategoryLegendDatum[];
+}
+
+export interface LegendChangePartialEvent {
+    seriesId: string;
+    legendData: CategoryLegendDatum[];
 }
 
 export interface LegendItemClickEvent {

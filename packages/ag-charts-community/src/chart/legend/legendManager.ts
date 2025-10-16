@@ -112,6 +112,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     public updateData(seriesId: string, data: CategoryLegendDatum[] = []) {
+        this.eventsHub.emit('legend:change-partial', { seriesId, legendData: data });
         this.legendDataMap.set(seriesId, data);
     }
 
