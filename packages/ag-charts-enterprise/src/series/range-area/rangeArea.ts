@@ -613,7 +613,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { processedData, axes, properties } = this;
 
         type LowHighRules = { [K in 'low' | 'high']: { marker: { enabled: boolean } } };
-        const { low, high }: LowHighRules = properties.styler ? this.getStylerMarkerOptions().item : properties.item;
+        const rules: LowHighRules = properties.styler ? this.getStylerMarkerOptions().item : properties.item;
+        const { low, high } = rules;
 
         const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, {
             enabled: low.marker.enabled || high.marker.enabled,
@@ -623,7 +624,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             datumSelection.clear();
             datumSelection.cleanup();
         }
-        return datumSelection.update(markersEnabled ? nodeData : []);
+
+        let resolvedNodeData: typeof nodeData;
+        if (!markersEnabled) {
+            // No marker whatsoever.
+            resolvedNodeData = [];
+        } else {
+            if (low.marker.enabled && high.marker.enabled) {
+                // All marker enables
+                resolvedNodeData = nodeData;
+            } else {
+                // Markers only on 1 line (filter out the nodeDatums that we need).
+                resolvedNodeData = [];
+                for (const datum of nodeData) {
+                    if (rules[datum.itemId].marker.enabled) {
+                        resolvedNodeData.push(datum);
+                    }
+                }
+            }
+        }
+        return datumSelection.update(resolvedNodeData);
     }
 
     protected override updateDatumStyles({
