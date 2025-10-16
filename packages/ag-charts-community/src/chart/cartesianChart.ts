@@ -399,19 +399,23 @@ export class CartesianChart extends Chart {
         visible: boolean
     ): void {
         const hasCrosshair = axis.getModuleMap().getModule<{ enabled?: boolean }>('crosshair')?.enabled === true;
-        const annotations = this.ctx.annotationManager.createMemento();
-        const hasLineAnnotation = annotations.some((annotation) => {
-            switch (annotation.type) {
-                case 'vertical-line':
-                    return axis.direction === ChartAxisDirection.X;
-                case 'horizontal-line':
-                    return axis.direction === ChartAxisDirection.Y;
-                default:
-                    return false;
-            }
-        });
+        const annotationsEnabled =
+            this.modulesManager.getModule<{ enabled?: boolean }>('annotations')?.enabled === true;
+        const initialAnnotations = this.ctx.annotationManager.createMemento();
+        const hasAnnotations =
+            annotationsEnabled ||
+            initialAnnotations.some((annotation) => {
+                switch (annotation.type) {
+                    case 'vertical-line':
+                        return axis.direction === ChartAxisDirection.X;
+                    case 'horizontal-line':
+                        return axis.direction === ChartAxisDirection.Y;
+                    default:
+                        return false;
+                }
+            });
 
-        if (hasCrosshair || hasLineAnnotation) return;
+        if (hasCrosshair || hasAnnotations) return;
 
         const currentWidth = axisWidths.get(axis.id) ?? 0;
         const adjustedWidth = visible

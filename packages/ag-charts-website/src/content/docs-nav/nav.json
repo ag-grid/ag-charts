@@ -97,6 +97,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Axis Position",
+                            "path": "axes-position"
+                        },
+                        {
+                            "type": "item",
                             "title": "Axis Labels",
                             "path": "axes-labels"
                         },
