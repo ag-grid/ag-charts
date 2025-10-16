@@ -1,5 +1,6 @@
 import {
     type OptionsDefs,
+    and,
     arrayOf,
     barHighlightOptionsDef,
     boolean,
@@ -8,6 +9,7 @@ import {
     colorUnion,
     fillOptionsDef,
     highlightOptionsDef,
+    lessThanOrEqual,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesHighlightOptionsDef,
@@ -574,6 +576,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     node: {
         width: positiveNumber,
         spacing: positiveNumber,
+        minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),
         alignment: union('left', 'center', 'right', 'justify'),
         verticalAlignment: union('top', 'bottom', 'center'),
         sort: union('data', 'ascending', 'descending', 'auto'),

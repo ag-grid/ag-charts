@@ -117,7 +117,7 @@ export class SankeySeries extends FlowProportionSeries<
             sizeKey,
             labelKey,
             label: { spacing: labelSpacing, placement: labelPlacement },
-            node: { spacing: nodeSpacing, width: nodeWidth, alignment },
+            node: { width: nodeWidth, alignment },
             fillWidth,
         } = this.properties;
 
@@ -306,11 +306,6 @@ export class SankeySeries extends FlowProportionSeries<
             }
         }
 
-        const sizeScale = columns.reduce((acc, { size, nodes }) => {
-            const columnSizeScale = (1 - (nodes.length - 1) * (nodeSpacing / seriesRectHeight)) / size;
-            return Math.min(acc, columnSizeScale);
-        }, Infinity);
-
         // Weight the columns into powers of 10 so that columns with fewer and larger nodes have more influence on each
         // node's weight.
         const sortedColumns = columns.toSorted((a, b) => {
@@ -354,6 +349,27 @@ export class SankeySeries extends FlowProportionSeries<
             column.nodes.sort((a, b) => this.sortNodes(a as EnhancedNodeGraphEntry, b as EnhancedNodeGraphEntry));
         }
 
+        // Get the spacing between nodes, reduced as necessary to fit into the series area
+        const getSizeScale = (spacing: number) => {
+            return columns.reduce((acc, { size, nodes }) => {
+                const columnSizeScale = (1 - (nodes.length - 1) * (spacing / seriesRectHeight)) / size;
+                return Math.min(acc, columnSizeScale);
+            }, Infinity);
+        };
+
+        let nodeSpacing = this.properties.node.spacing;
+        let sizeScale = getSizeScale(nodeSpacing);
+        while (sizeScale < 0 && nodeSpacing > this.properties.node.minSpacing) {
+            nodeSpacing -= 1;
+            sizeScale = getSizeScale(nodeSpacing);
+        }
+
+        if (sizeScale < 0) {
+            Logger.warnOnce(
+                'There was insufficient space to display the Sankey Series. Reduce the node spacing, or provide a larger container.'
+            );
+        }
+
         // Layout the nodes in their columns
         for (const column of columns) {
             const columnNodesHeight = seriesRectHeight * column.size * sizeScale;
@@ -381,12 +397,8 @@ export class SankeySeries extends FlowProportionSeries<
             }
         }
 
-        let hasNegativeNodeHeight = false;
-
         // Sort links by weight and position their y-coordinates
         for (const { datum, linksBefore, linksAfter } of nodeGraph.values()) {
-            hasNegativeNodeHeight ||= datum.height < 0;
-
             let y2 = datum.y;
             linksBefore.sort((a, b) =>
                 this.sortNodes(a.node as EnhancedNodeGraphEntry, b.node as EnhancedNodeGraphEntry)
@@ -406,13 +418,6 @@ export class SankeySeries extends FlowProportionSeries<
                 link.y1 = y1;
                 y1 += Math.max(this.properties.minSize, link.size * seriesRectHeight * sizeScale);
             }
-        }
-
-        if (hasNegativeNodeHeight) {
-            Logger.warnOnce(
-                'There was insufficient space to display the Sankey Series. Reduce the node spacing, or provide a larger container.'
-            );
-            return;
         }
 
         const nodeData: SankeyDatum[] = [];
