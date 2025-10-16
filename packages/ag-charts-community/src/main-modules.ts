@@ -1,4 +1,6 @@
 // Entry point to implement and test our tree-shaking abilities
+
+/* eslint-disable unicorn/prefer-export-from */
 import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
 import { CartesianChartModule } from './chart/cartesianChartModule';
 import { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
@@ -21,6 +23,25 @@ import {
 } from './module/axisModules';
 
 export { ModuleRegistry } from 'ag-charts-core';
+
+export {
+    CartesianChartModule,
+    NumberAxisModule,
+    LogAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    CategoryAxisModule,
+    GroupedCategoryAxisModule,
+    NewAreaSeriesModule,
+    NewBarSeriesModule,
+    NewBubbleSeriesModule,
+    NewHistogramSeriesModule,
+    NewLineSeriesModule,
+    NewScatterSeriesModule,
+    PolarChartModule,
+    NewDonutSeriesModule,
+    NewPieSeriesModule,
+};
 
 export const AllCartesianCommunityModules = [
     CartesianChartModule,
@@ -53,22 +74,3 @@ export const AllCommunityModules = [
     GaugePresetModule,
     SparklinePresetModule,
 ];
-
-export { CartesianChartModule } from './chart/cartesianChartModule';
-export {
-    NumberAxisModule,
-    LogAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
-    CategoryAxisModule,
-    GroupedCategoryAxisModule,
-} from './module/axisModules';
-export { NewAreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
-export { NewBarSeriesModule } from './chart/series/cartesian/barSeriesModule';
-export { NewBubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
-export { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';
-export { NewLineSeriesModule } from './chart/series/cartesian/lineSeriesModule';
-export { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
-export { PolarChartModule } from './chart/polarChartModule';
-export { NewDonutSeriesModule } from './chart/series/polar/donutSeriesModule';
-export { NewPieSeriesModule } from './chart/series/polar/pieSeriesModule';
