@@ -399,19 +399,21 @@ export class CartesianChart extends Chart {
         seriesRect: BBox,
         visible: boolean
     ): void {
-        const crosshairModule = axis.getModuleMap().getModule('crosshair') as { enabled: boolean };
+        const crosshairModule = axis.getModuleMap().getModule('crosshair') as { enabled: boolean } | undefined;
         if (crosshairModule?.enabled) return;
 
-        const annotations = this.ctx.annotationManager.createMemento();
-        const hasLineAnnotation = annotations.some((annotation) => {
-            switch (annotation.type) {
-                case 'vertical-line':
-                    return axis.direction === ChartAxisDirection.X;
-                case 'horizontal-line':
-                    return axis.direction === ChartAxisDirection.Y;
-            }
-        });
-        if (hasLineAnnotation) return;
+        const annotationsModule = this.modulesManager.getModule('annotations') as { enabled: boolean } | undefined
+        const hasAnnotations =
+            annotationsModule?.enabled === true ||
+            this.ctx.annotationManager.createMemento().some((annotation) => {
+                switch (annotation.type) {
+                    case 'vertical-line':
+                        return axis.direction === ChartAxisDirection.X;
+                    case 'horizontal-line':
+                        return axis.direction === ChartAxisDirection.Y;
+                }
+            });
+        if (hasAnnotations) return;
 
         const currentWidth = axisWidths.get(axis.id) ?? 0;
         const adjustedWidth = visible

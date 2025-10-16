@@ -161,6 +161,41 @@ describe('SankeySeries', () => {
         });
     });
 
+    describe('label placement', () => {
+        const placementOptions = {
+            default: { label: { placement: undefined, edgePlacement: undefined } },
+            left: { label: { placement: 'left' as const, edgePlacement: undefined } },
+            right: { label: { placement: 'right' as const, edgePlacement: undefined } },
+            center: { label: { placement: 'center' as const, edgePlacement: undefined } },
+            inside: { label: { placement: 'right' as const, edgePlacement: 'inside' as const } },
+            outside: { label: { placement: 'right' as const, edgePlacement: 'outside' as const } },
+        };
+
+        it.each(Object.entries(placementOptions))('%s', async (_placement, defaultOptions) => {
+            const options: AgStandaloneChartOptions = {
+                data: [
+                    { from: 'one', to: 'two', size: 10 },
+                    { from: 'two', to: 'three', size: 10 },
+                ],
+                series: [
+                    {
+                        ...defaultOptions,
+                        type: 'sankey',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'size',
+                        link: { strokeWidth: 1 },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     describe('Series Highlighting', () => {
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options,

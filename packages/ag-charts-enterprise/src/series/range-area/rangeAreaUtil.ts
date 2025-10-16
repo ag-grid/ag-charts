@@ -45,7 +45,10 @@ export interface RangeAreaContext
     fillData: RangeAreaFillPathDatum;
     highStrokeData: RangeAreaStrokePathDatum;
     lowStrokeData: RangeAreaStrokePathDatum;
-    styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    styles: {
+        low: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+        high: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    };
     intersectionSegments?: _ModuleSupport.Segment[];
 }
 

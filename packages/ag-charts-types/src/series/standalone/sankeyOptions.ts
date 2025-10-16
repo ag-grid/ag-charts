@@ -43,8 +43,8 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
-    /** Set to `true` to expand the sankey to the full width and place the first and last column of labels inside. */
-    fillWidth?: boolean;
+    /** Minimum size of nodes and links. */
+    minSize?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
@@ -55,6 +55,8 @@ export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
     spacing?: PixelSize;
     /** Placement of a label relative to its node. */
     placement?: 'left' | 'right' | 'center';
+    /** Placement of an edge label relative to its node. */
+    edgePlacement?: 'inside' | 'outside';
 }
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -67,9 +69,23 @@ export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> ex
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesNodeStyle {
-    /** Minimum spacing between the nodes. */
+    /**
+     * Spacing between the nodes.
+     *
+     * Default: `20`
+     */
     spacing?: PixelSize;
-    /** Width of the nodes. */
+    /**
+     * Minimum spacing between the nodes when the series area is reduced in height.
+     *
+     * Default: `0`
+     */
+    minSpacing?: PixelSize;
+    /**
+     * Width of the nodes.
+     *
+     * Default: `1`
+     */
     width?: PixelSize;
     /**
      * Alignment of the nodes.

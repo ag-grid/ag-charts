@@ -73,6 +73,7 @@ const options: AgFlowProportionChartOptions = {
                 fill: 'white',
                 color: 'black',
                 fillOpacity: 0.6,
+                edgePlacement: 'outside',
             },
             tooltip: {
                 renderer: ({ datum }: AgSankeySeriesTooltipRendererParams<any, any>) => {

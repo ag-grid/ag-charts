@@ -28,6 +28,9 @@ const options: AgChartOptions = {
             toKey: 'to',
             sizeKey: 'size',
             sizeName: 'Total (GWh)',
+            label: {
+                edgePlacement: 'outside',
+            },
         },
     ],
 };

@@ -29,7 +29,15 @@ const options: AgPolarChartOptions = {
             sectorLabelKey: 'revenue',
             angleKey: 'revenue',
             calloutLabel: {
-                offset: 20,
+                minAngle: 30,
+                formatter: ({ datum }) => [
+                    {
+                        text: currencyFormatter.format(datum.revenue),
+                        fontSize: 20,
+                        color: 'black',
+                    },
+                    { text: '\n' + datum.segment, fontSize: 10, color: 'grey' },
+                ],
             },
             sectorLabel: {
                 positionOffset: 30,

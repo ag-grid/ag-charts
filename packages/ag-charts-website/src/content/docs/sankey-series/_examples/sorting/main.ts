@@ -51,6 +51,9 @@ const options: AgFlowProportionChartOptions = {
                 alignment: 'center',
                 sort: 'auto',
             },
+            label: {
+                edgePlacement: 'outside',
+            },
         },
     ],
 };

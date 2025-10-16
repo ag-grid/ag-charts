@@ -27,6 +27,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             defaultColorRange: { $palette: 'gradients' },
             defaultPatternFills: _ModuleSupport.SAFE_FILLS_OPERATION,
+            minSize: 1,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,
@@ -45,6 +46,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             },
             node: {
                 spacing: 20,
+                minSpacing: 0,
                 width: 10,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             },

@@ -104,13 +104,11 @@ There are three values supported:
 -   `ascending` and `descending` sort nodes alphanumerically by their displayed labels.
 -   `auto` sorts nodes to reduce overlapping links and produce a cleaner layout.
 
-## Labels
+## Label Placement
 
-### Placement
+Labels can be placed to the left, right or centred over nodes using the `placement` property on `label`.
 
-Labels can be placed to the left, right or centered over nodes using the `placement` property on `label`.
-
-If the `fullWidth` option is set to `true`, the labels in the first and last column are automatically placed to the right and left, respectively.
+Use the `edgePlacement` property on `label` to place the labels for the first and last nodes on the inside or outside.
 
 {% chartExampleRunner title="Label Placement" name="label-placement" type="generated" /%}
 

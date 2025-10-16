@@ -59,6 +59,9 @@ class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterPara
 
     @Property
     placement: 'left' | 'right' | 'center' | undefined = undefined;
+
+    @Property
+    edgePlacement: 'inside' | 'outside' | undefined = undefined;
 }
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
@@ -90,6 +93,9 @@ class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOption
 class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions<any>> {
     @Property
     spacing: number = 1;
+
+    @Property
+    minSpacing: number = 0;
 
     @Property
     width: number = 1;
@@ -187,7 +193,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     readonly node = new SankeySeriesNodeProperties();
 
     @Property
-    fillWidth: boolean | undefined = undefined;
+    minSize: number = 1;
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<DatumDefault>>();

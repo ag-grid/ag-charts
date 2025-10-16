@@ -1,8 +1,12 @@
 <div class="example-controls">
     <div class="controls-row">
+        <span> Placement: </span>
         <button onclick="placeLeft()"><code>'left'</code></button>
         <button onclick="placeRight()"><code>'right'</code></button>
-        <button onclick="placeCenter()"><code>'center'</code></button>
+        <button onclick="placeCenter()" class="gap-right"><code>'center'</code></button>
+        <span> Edge Placement: </span>
+        <button onclick="placeEdgeOutside()"><code>'outside'</code></button>
+        <button onclick="placeEdgeInside()"><code>'inside'</code></button>
     </div>
 </div>
 <div id="myChart"></div>

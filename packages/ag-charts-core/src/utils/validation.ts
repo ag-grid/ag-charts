@@ -481,6 +481,13 @@ export const lessThan = (otherField: string) =>
         `the value to be less than \`${otherField}\``
     );
 
+export const lessThanOrEqual = (otherField: string) =>
+    attachDescription(
+        (value, { options }) =>
+            !isComparable(value) || !isComparable(options[otherField]) || value <= options[otherField],
+        `the value to be less than or equal to \`${otherField}\``
+    );
+
 export const greaterThan = (otherField: string) =>
     attachDescription(
         (value, { options }) =>

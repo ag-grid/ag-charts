@@ -38,6 +38,9 @@ const options: AgChartOptions = {
             node: {
                 alignment: 'center',
             },
+            label: {
+                edgePlacement: 'inside',
+            },
         },
     ],
 };

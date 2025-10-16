@@ -30,6 +30,9 @@ const options: AgFlowProportionChartOptions = {
             node: {
                 verticalAlignment: 'center',
             },
+            label: {
+                edgePlacement: 'outside',
+            },
         },
     ],
 };

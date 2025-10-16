@@ -1,5 +1,6 @@
 import {
     type OptionsDefs,
+    and,
     arrayOf,
     barHighlightOptionsDef,
     boolean,
@@ -8,6 +9,7 @@ import {
     colorUnion,
     fillOptionsDef,
     highlightOptionsDef,
+    lessThanOrEqual,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesHighlightOptionsDef,
@@ -560,6 +562,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...seriesLabelOptionsDefs,
         spacing: positiveNumber,
         placement: union('left', 'right', 'center'),
+        edgePlacement: union('inside', 'outside'),
     },
     link: {
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
@@ -574,6 +577,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     node: {
         width: positiveNumber,
         spacing: positiveNumber,
+        minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),
         alignment: union('left', 'center', 'right', 'justify'),
         verticalAlignment: union('top', 'bottom', 'center'),
         sort: union('data', 'ascending', 'descending', 'auto'),
@@ -586,7 +590,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    fillWidth: boolean,
+    minSize: positiveNumber,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
 };

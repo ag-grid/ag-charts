@@ -243,19 +243,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const {
-            xKey,
-            yLowKey,
-            yHighKey,
-            connectMissingData,
-            interpolation,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-        } = this.properties;
-        const marker = this.properties.item[DEFAULT_ITEM].marker;
+        const { xKey, yLowKey, yHighKey, connectMissingData, interpolation, fill, fillOpacity, item } = this.properties;
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -278,6 +266,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined = spanPoints.at(-1);
             if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
                 const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
+                    const { size } = item[id].marker;
                     markerData.push({
                         index: datumIndex,
                         series: this,
@@ -312,7 +301,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 const x = xPosition(datumIndex);
                 const yHighCoordinate = yScale.convert(yHighValue);
                 const yLowCoordinate = yScale.convert(yLowValue);
-                const { size } = marker;
 
                 appendMarker('high', yHighValue, yHighCoordinate);
                 appendMarker('low', yLowValue, yLowCoordinate);
@@ -408,6 +396,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             );
         }
 
+        const getLowOrHighMarkerStyles = (lowOrHigh: 'low' | 'high') => {
+            const line = item[lowOrHigh];
+            const { stroke, strokeWidth, strokeOpacity } = line;
+            const inheritedStyles = { fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
+            return getMarkerStyles(this, line, line.marker, inheritedStyles);
+        };
+
         const context: RangeAreaContext = {
             itemId: `${yLowKey}-${yHighKey}`,
             labelData,
@@ -417,13 +412,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: getMarkerStyles(this, this.properties.item[DEFAULT_ITEM], marker, {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            }),
+            styles: {
+                low: getLowOrHighMarkerStyles('low'),
+                high: getLowOrHighMarkerStyles('high'),
+            },
             segments,
             intersectionSegments,
         };
@@ -683,9 +675,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
+            const { itemId } = datum;
             const style =
                 datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+                contextNodeData.styles[itemId][this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
 
