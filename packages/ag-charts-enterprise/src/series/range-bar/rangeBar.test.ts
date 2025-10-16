@@ -16,6 +16,7 @@ import {
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     testLegendItemName,
     waitForChartStability,
@@ -25,6 +26,7 @@ import { roundTo } from 'ag-charts-core';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RangeBarSeries', () => {
+    setupMockConsole();
     let chart: any;
     const ctx = setupMockCanvas();
 
