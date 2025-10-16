@@ -18,6 +18,7 @@ export default [
             'no-eval': 'error',
             'no-console': 'error',
             'import-x/consistent-type-specifier-style': 'off',
+            '@typescript-eslint/no-redundant-type-constituents': 'warn',
         },
     },
     {
@@ -74,11 +75,6 @@ export default [
             'no-console': 'off',
             '@typescript-eslint/no-var-requires': 'off',
         },
-    },
-    {
-        // TODO: Remove this once we can get to the bottom of the CI vs. local discrepancy
-        files: ['src/utils/pages.ts'],
-        linterOptions: { reportUnusedDisableDirectives: false },
     },
     {
         // TODO: Remove these

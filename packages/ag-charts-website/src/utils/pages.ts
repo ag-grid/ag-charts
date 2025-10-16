@@ -13,7 +13,6 @@ import {
 import { pathJoin } from './pathJoin';
 import { urlWithBaseUrl } from './urlWithBaseUrl';
 
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type DocsPage =
     | CollectionEntry<'docs'>
     | {
