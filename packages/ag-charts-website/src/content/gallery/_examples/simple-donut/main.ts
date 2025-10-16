@@ -37,7 +37,19 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'donut',
             angleKey: 'count',
-            sectorLabelKey: 'count',
+            calloutLabelKey: 'count',
+            calloutLabel: {
+                minAngle: 10,
+                formatter: ({ datum }) => [
+                    {
+                        text: datum.count.toString(),
+                        fontSize: 20,
+                        color: 'purple',
+                        fontWeight: 'bold',
+                    },
+                    { text: '\n' + datum.type, fontSize: 10, color: 'grey' },
+                ],
+            },
             innerLabels: [
                 {
                     text: numFormatter.format(total),

@@ -29,25 +29,22 @@ const options: AgPolarChartOptions = {
             sectorLabelKey: 'revenue',
             angleKey: 'revenue',
             calloutLabel: {
-                offset: 20,
+                minAngle: 30,
+                formatter: ({ datum }) => [
+                    {
+                        text: currencyFormatter.format(datum.revenue),
+                        fontSize: 20,
+                        color: 'black',
+                    },
+                    { text: '\n' + datum.segment, fontSize: 10, color: 'grey' },
+                ],
             },
             sectorLabel: {
                 positionOffset: 30,
                 formatter: ({ datum, angleKey }) => {
                     const value = datum[angleKey] as number;
                     const percentage = ((value / totalRevenue) * 100).toFixed(1);
-                    if (parseFloat(percentage) < 5) return '';
-                    return [
-                        {
-                            text: percentage,
-                            fontSize: 18,
-                            fontWeight: 'bold',
-                        },
-                        {
-                            text: '%',
-                            fontSize: 12,
-                        },
-                    ];
+                    return parseFloat(percentage) >= 5 ? `${percentage}%` : '';
                 },
             },
             strokeWidth: 1,
