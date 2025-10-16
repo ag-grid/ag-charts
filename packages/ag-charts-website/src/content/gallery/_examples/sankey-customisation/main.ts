@@ -51,6 +51,7 @@ const options: AgFlowProportionChartOptions = {
             toKey: 'to',
             sizeKey: 'value',
             sizeName: 'Energy (TWh)',
+            fillWidth: false,
             node: {
                 width: 40,
                 alignment: 'left',

@@ -47,6 +47,8 @@ const options: AgFlowProportionChartOptions = {
             toKey: 'to',
             sizeKey: 'size',
             sizeName: 'Total (USD millions)',
+            fillWidth: false,
+
             node: {
                 alignment: 'center',
                 sort: 'auto',

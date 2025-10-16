@@ -49,3 +49,13 @@ function placeCenter() {
     (options.series![0] as AgSankeySeriesOptions).label!.placement = 'center';
     chart.update(options);
 }
+
+function enableFillWidth() {
+    (options.series![0] as AgSankeySeriesOptions).fillWidth = true;
+    chart.update(options);
+}
+
+function disableFillWidth() {
+    (options.series![0] as AgSankeySeriesOptions).fillWidth = false;
+    chart.update(options);
+}

@@ -34,11 +34,11 @@ export interface AgRangeAreaSeriesLineStyle extends StrokeOptions, LineDashOptio
 }
 
 export interface AgRangeAreaSeriesStyle extends FillOptions {
-    /** Configuration used for the range area series low & high lines. */
+    /** Configuration used for the range area series low and high lines. */
     item?: {
-        /** Configuration for the bottom line (defined by the `yLowKey`). */
+        /** Configuration for the `yLowKey` line. */
         low?: AgRangeAreaSeriesLineStyle;
-        /** Configuration for the top line (defined by the `yHighKey`). */
+        /** Configuration for the `yHighKey` line. */
         high?: AgRangeAreaSeriesLineStyle;
     };
 }
@@ -50,7 +50,7 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, T
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
-    /** The Id to distinguish the type of datum. This can be `up` or `down`. */
+    /** The Id to distinguish the type of datum. This can be `high` or `low`. */
     itemId: AgRangeAreaSeriesItemType;
 }
 
@@ -59,7 +59,7 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
         DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum>,
         ContextCallbackParams<TContext>,
         Required<AgSeriesMarkerStyle> {
-    /** The Id to distinguish the type of datum. This can be `up` or `down`. */
+    /** The Id to distinguish the type of datum. This can be `high` or `low`. */
     itemId: AgRangeAreaSeriesItemType;
 }
 
@@ -88,28 +88,28 @@ export interface AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext> extends
 }
 
 export interface AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext> {
-    /** Configuration for the bottom line (defined by the `yLowKey`). */
+    /** Configuration for the `yLowKey` line. */
     low?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
-    /** Configuration for the top line (defined by the `yHighKey`). */
+    /** Configuration for `yHighKey` line. */
     high?: AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends FillOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
-    /** Configuration for the markers (low & high) used in the series.  */
-    marker?: AgRangeAreaMarker<TDatum, TContext>;
-    /** The colour for the stroke (low & high). */
+    /** Configuration for the markers used in the series.  */
+    marker?: AgSeriesMarkerStyle;
+    /** The colour for the stroke. */
     stroke?: CssColor;
-    /** The width of the stroke (low & high) in pixels. */
+    /** The width of the stroke in pixels. */
     strokeWidth?: PixelSize;
-    /** The opacity of the stroke (low & high) colour. */
+    /** The opacity of the stroke colour. */
     strokeOpacity?: Opacity;
-    /** An array specifying the length in pixels of alternating dashes and gaps for the stroke (low & high). */
+    /** An array specifying the length in pixels of alternating dashes and gaps for the stroke. */
     lineDash?: PixelSize[];
-    /** The initial offset of the dashed line (low & high) in pixels. */
+    /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
-    /** Configuration used for distinct styling of the low & high lines. */
+    /** Configuration used for distinct styling of the low and high lines. */
     item?: AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
@@ -129,7 +129,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
-    /** Style options for the area when the yHigh value is lower than the yLow value, when the area is inverted. */
+    /** Style options for the fill of areas where the `yHigh` line is below the `yLow` line. */
     invertedStyle?: AgRangeAreaSeriesInvertedStyle;
 }
 

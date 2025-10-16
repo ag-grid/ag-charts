@@ -35,6 +35,7 @@ const options: AgChartOptions = {
             toKey: 'to',
             sizeKey: 'usd',
             sizeName: 'USD (billions)',
+            fillWidth: true,
             node: {
                 alignment: 'center',
             },
