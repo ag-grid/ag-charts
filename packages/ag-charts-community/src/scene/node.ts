@@ -373,7 +373,11 @@ export abstract class Node<TDatum = unknown> {
                 if (sources.length > 1) {
                     Logger.logGroup(
                         `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`,
-                        () => sources.forEach((source) => Logger.log(source))
+                        () => {
+                            for (const source of sources) {
+                                Logger.log(source);
+                            }
+                        }
                     );
                 }
             }
