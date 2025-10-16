@@ -59,6 +59,9 @@ class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterPara
 
     @Property
     placement: 'left' | 'right' | 'center' | undefined = undefined;
+
+    @Property
+    edgePlacement: 'inside' | 'outside' | undefined = undefined;
 }
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
@@ -188,9 +191,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Property
     readonly node = new SankeySeriesNodeProperties();
-
-    @Property
-    fillWidth: boolean | undefined = undefined;
 
     @Property
     minSize: number = 1;
