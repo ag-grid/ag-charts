@@ -22,6 +22,7 @@ import {
 
 export { ModuleRegistry } from 'ag-charts-core';
 
+/* eslint-disable unicorn/prefer-export-from */
 export {
     CartesianChartModule,
     NumberAxisModule,

@@ -40,6 +40,7 @@ import { WaterfallSeriesModule } from './series/waterfall';
 
 export const ModuleRegistry = _ModuleSupport.ModuleRegistry;
 
+/* eslint-disable unicorn/prefer-export-from */
 export {
     OrdinalTimeAxisModule,
     AngleNumberAxisModule,
