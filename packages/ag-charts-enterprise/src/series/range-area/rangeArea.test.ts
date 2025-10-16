@@ -1331,6 +1331,78 @@ describe('RangeAreaSeries', () => {
             chart = AgCharts.create(prepareEnterpriseTestOptions(options));
             await compare();
         });
+
+        test('marker enabled', async () => {
+            type Ks = 'a' | 'A' | 'b' | 'B' | 'c' | 'C' | 'd' | 'D' | 'e' | 'E' | 'f' | 'F' | 'g' | 'G';
+            type D = { x: string } & { [K in Ks]: number };
+            const data: D[] = [
+                { x: 'West', a: 1, A: 2, b: 3, B: 4, c: 5, C: 6, d: 7, D: 8, e: 9, E: 10, f: 11, F: 12, g: 13, G: 14 },
+                { x: 'East', a: 1, A: 2, b: 3, B: 4, c: 5, C: 6, d: 7, D: 8, e: 9, E: 10, f: 11, F: 12, g: 13, G: 14 },
+            ];
+            const opts: AgChartOptions<D> = {
+                data,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'a',
+                        yHighKey: 'A',
+                        yName: 'default',
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'b',
+                        yHighKey: 'B',
+                        yName: 'high markers only',
+                        item: { high: { marker: { enabled: true } } },
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'c',
+                        yHighKey: 'C',
+                        yName: 'low markers only',
+                        item: { low: { marker: { enabled: true } } },
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'd',
+                        yHighKey: 'D',
+                        yName: 'both (implied)',
+                        marker: {},
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'e',
+                        yHighKey: 'E',
+                        yName: 'both (explicit)',
+                        marker: { enabled: true },
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'f',
+                        yHighKey: 'F',
+                        yName: 'none (explicit)',
+                        marker: { enabled: false },
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'g',
+                        yHighKey: 'G',
+                        yName: 'override off',
+                        marker: { enabled: true },
+                        item: { low: { marker: { enabled: false } } },
+                    },
+                ],
+            };
+            chart = AgCharts.create(prepareEnterpriseTestOptions(opts));
+            await compare();
+        });
     });
 
     test('AG-15743 legendItemName', async () => {
