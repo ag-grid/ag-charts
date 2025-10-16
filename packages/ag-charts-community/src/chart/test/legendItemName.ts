@@ -51,6 +51,9 @@ export async function testLegendItemName(testOptions: TestLegendItemNameOptions)
 
     describe('duplicates', () => {
         let chart: AgChartInstance;
+        let b0: HTMLButtonElement;
+        let b1: HTMLButtonElement;
+        let b2: HTMLButtonElement;
 
         beforeEach(async () => {
             const chartOptions = deepClone(testOptions.chartOptions);
@@ -64,15 +67,16 @@ export async function testLegendItemName(testOptions: TestLegendItemNameOptions)
             expectWarningMessages([
                 `AG Charts - legend item '1' has multiple fill colors, this may cause unexpected behaviour.`,
             ]);
-        });
 
-        test('click', async () => {
             const a11yButtons = Array.from(document.querySelectorAll('.ag-charts-proxy-legend-toolbar button'));
-            const b0 = castButton(a11yButtons[0]);
-            const b1 = castButton(a11yButtons[1]);
-            const b2 = castButton(a11yButtons[2]);
+            b0 = castButton(a11yButtons[0]);
+            b1 = castButton(a11yButtons[1]);
+            b2 = castButton(a11yButtons[2]);
             expect(a11yButtons.length).toBe(3);
 
+        });
+
+        test('a11y text', async () => {
             expect(b0.getAttribute('aria-checked')).toBe('true');
             expect(b1.getAttribute('aria-checked')).toBe('true');
             expect(b2.getAttribute('aria-checked')).toBe('true');
@@ -83,6 +87,10 @@ export async function testLegendItemName(testOptions: TestLegendItemNameOptions)
             expect(b0.getAttribute('aria-checked')).toBe('false');
             expect(b1.getAttribute('aria-checked')).toBe('false');
             expect(b2.getAttribute('aria-checked')).toBe('true');
+        });
+
+        test('compare', async () => {
+            await testOptions.compare();
         });
     });
 }
