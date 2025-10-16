@@ -21,13 +21,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
     },
     marker: {
         enabled: {
-            $isUserOption: [
-                '/series/$index/marker',
-                {
-                    $path: ['/series/$index/marker/enabled', true],
-                },
-                false,
-            ],
+            $path: '/series/$index/marker/enabled',
         },
         fill: {
             $isUserOption: [
