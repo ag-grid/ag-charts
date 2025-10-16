@@ -1,6 +1,7 @@
 import {
     type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
+    type AgRangeAreaSeriesLineStyle,
     type AgRangeAreaSeriesOptions,
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
@@ -58,8 +59,6 @@ const {
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
 
-const DEFAULT_ITEM = 'low';
-
 type ResolvedLineStyleMixin = {
     marker?: {
         enabled?: boolean;
@@ -72,7 +71,7 @@ type ResolvedStyleMixin = {
     };
 };
 type PartialStylerResult = AgRangeAreaSeriesStyle & { opacity?: number };
-type StylerResult = DeepRequired<PartialStylerResult, 'fill'>;
+type StylerResult = DeepRequired<PartialStylerResult, 'fill'> & { topLevel: Required<AgRangeAreaSeriesLineStyle> };
 type StylerMarkerOptionsResult = DeepRequired<ResolvedStyleMixin>;
 
 class RangeAreaSeriesNodeEvent<
@@ -783,6 +782,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fill: stylerResult.fill ?? fill,
             fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
             opacity: 1,
+            topLevel: {
+                lineDash: this.properties.lineDash,
+                lineDashOffset: this.properties.lineDashOffset,
+                marker: this.properties.marker,
+                stroke: this.properties.stroke,
+                strokeOpacity: this.properties.strokeOpacity,
+                strokeWidth: this.properties.strokeWidth,
+            },
             item: {
                 low: makeItemResult('low'),
                 high: makeItemResult('high'),
@@ -901,8 +908,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, item } = this.getStyle(false);
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item[DEFAULT_ITEM];
+        const { fill, topLevel } = this.getStyle(false);
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = topLevel;
 
         const markerStyle = {
             shape: marker.shape,
