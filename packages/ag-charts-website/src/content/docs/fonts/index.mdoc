@@ -54,15 +54,17 @@ Instead of returning a string, formatters can return an array of `TextSegment` o
 
 ```js format="snippet"
 {
-    series: [{
-        type: 'bar',
-        label: {
-            formatter: ({ value }) => [
-                { text: value.toString(), fontSize: 18, fontWeight: 'bold', color: 'white' },
-                { text: '\nunits', fontSize: 11, color: 'rgba(255, 255, 255, 0.8)' },
-            ],
+    series: [
+        {
+            type: 'bar',
+            label: {
+                formatter: ({ value }) => [
+                    { text: value.toString(), fontSize: 18, fontWeight: 'bold', color: 'white' },
+                    { text: '\nunits', fontSize: 11, color: 'rgba(255, 255, 255, 0.8)' },
+                ],
+            },
         },
-    }],
+    ],
 }
 ```
 
