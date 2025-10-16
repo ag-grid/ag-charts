@@ -25,8 +25,6 @@ const localConfiguration: Configuration = {
         'ag-charts-react': `${localPrefix}/ag-charts-react`,
         'ag-charts-angular': `${localPrefix}/ag-charts-angular`,
         'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
-        'ag-charts-community/modules': `${localPrefix}/ag-charts-community`,
-        'ag-charts-enterprise/modules': `${localPrefix}/ag-charts-enterprise`,
     },
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
@@ -42,8 +40,6 @@ const buildAndArchivesConfiguration: Configuration = {
         'ag-charts-react': `${localPrefix}/ag-charts-react`,
         'ag-charts-angular': `${localPrefix}/ag-charts-angular`,
         'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
-        'ag-charts-community/modules': `${localPrefix}/ag-charts-community`,
-        'ag-charts-enterprise/modules': `${localPrefix}/ag-charts-enterprise`,
     },
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
