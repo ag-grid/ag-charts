@@ -562,6 +562,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...seriesLabelOptionsDefs,
         spacing: positiveNumber,
         placement: union('left', 'right', 'center'),
+        edgePlacement: union('inside', 'outside'),
     },
     link: {
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
@@ -589,7 +590,6 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    fillWidth: boolean,
     minSize: positiveNumber,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,

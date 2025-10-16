@@ -51,7 +51,6 @@ const options: AgFlowProportionChartOptions = {
             toKey: 'to',
             sizeKey: 'value',
             sizeName: 'Energy (TWh)',
-            fillWidth: false,
             node: {
                 width: 40,
                 alignment: 'left',
@@ -74,6 +73,7 @@ const options: AgFlowProportionChartOptions = {
                 fill: 'white',
                 color: 'black',
                 fillOpacity: 0.6,
+                edgePlacement: 'outside',
             },
             tooltip: {
                 renderer: ({ datum }: AgSankeySeriesTooltipRendererParams<any, any>) => {

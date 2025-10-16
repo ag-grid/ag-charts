@@ -28,11 +28,13 @@ const options: AgChartOptions = {
             toKey: 'to',
             sizeKey: 'size',
             sizeName: 'Total (GWh)',
-            fillWidth: false,
             node: {
                 fill: '#34495e',
                 stroke: '#2c3e50',
                 strokeWidth: 2,
+            },
+            label: {
+                edgePlacement: 'outside',
             },
         },
     ],

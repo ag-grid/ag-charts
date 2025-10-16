@@ -43,8 +43,6 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
-    /** Set to `true` to expand the sankey to the full width and place the labels for the first and last nodes inside. */
-    fillWidth?: boolean;
     /** Minimum size of nodes and links. */
     minSize?: PixelSize;
     /** Series-specific tooltip configuration. */
@@ -57,6 +55,8 @@ export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
     spacing?: PixelSize;
     /** Placement of a label relative to its node. */
     placement?: 'left' | 'right' | 'center';
+    /** Placement of an edge label relative to its node. */
+    edgePlacement?: 'inside' | 'outside';
 }
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}

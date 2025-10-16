@@ -116,9 +116,8 @@ export class SankeySeries extends FlowProportionSeries<
             toKey,
             sizeKey,
             labelKey,
-            label: { spacing: labelSpacing, placement: labelPlacement },
+            label: { spacing: labelSpacing, placement: labelPlacement, edgePlacement: edgeLabelPlacement },
             node: { width: nodeWidth, alignment },
-            fillWidth,
         } = this.properties;
 
         const createNode = (node: FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
@@ -219,34 +218,27 @@ export class SankeySeries extends FlowProportionSeries<
         // Calculate the widths of labels on the leading and trailing columns and inset the columns accordingly
         const measurer = cachedTextMeasurer(this.properties.label);
 
-        const defaultInset =
-            fillWidth == null && this.isLabelEnabled()
-                ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1))
-                : 0;
+        let columnLabelInsetBefore = 0;
+        let columnLabelInsetAfter = 0;
 
-        let columnLabelInsetBefore = defaultInset;
-        let columnLabelInsetAfter = defaultInset;
-
-        if (fillWidth === false && this.isLabelEnabled()) {
-            const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
-                const node = n as EnhancedNodeGraphEntry;
-                if (node.datum.label == null || node.datum.label === '') return acc;
-                let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
-                if (labelPlacement === 'center') maxWidth /= 2;
-                const text = wrapText(node.datum.label, {
-                    maxWidth,
-                    maxHeight: node.datum.height,
-                    font: this.properties.label,
-                    textWrap: 'never',
-                });
-                let { width } = measurer.measureLines(text);
-                if (labelPlacement === 'center') width /= 2;
-                return Math.max(acc, width);
-            };
-            if (labelPlacement !== 'right') {
+        if (this.isLabelEnabled()) {
+            if (edgeLabelPlacement == null) {
+                columnLabelInsetBefore = (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1));
+                columnLabelInsetAfter = columnLabelInsetBefore;
+            } else if (edgeLabelPlacement === 'outside') {
+                const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
+                    const node = n as EnhancedNodeGraphEntry;
+                    if (node.datum.label == null || node.datum.label === '') return acc;
+                    const text = wrapText(node.datum.label, {
+                        maxWidth: (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing,
+                        maxHeight: node.datum.height,
+                        font: this.properties.label,
+                        textWrap: 'never',
+                    });
+                    const { width } = measurer.measureLines(text);
+                    return Math.max(acc, width);
+                };
                 columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
-            }
-            if (labelPlacement !== 'left') {
                 columnLabelInsetAfter = nodeWidth + columns[columns.length - 1].nodes.reduce(reduceLabelWidthFn, 0);
             }
         }
@@ -468,7 +460,8 @@ export class SankeySeries extends FlowProportionSeries<
                     });
                 }
                 if (text == null || text === '') {
-                    const labelInset = !fillWidth && (leading || trailing) ? labelSpacing : labelSpacing * 2;
+                    const labelInset =
+                        edgeLabelPlacement == null && (leading || trailing) ? labelSpacing : labelSpacing * 2;
                     text = wrapText(node.label, {
                         maxWidth: columnWidth - labelInset,
                         maxHeight: node.height,
@@ -486,11 +479,18 @@ export class SankeySeries extends FlowProportionSeries<
                 let textAlign: 'left' | 'right' | 'center' = 'left';
 
                 let placement = labelPlacement;
-                if (leading && !fillWidth && labelPlacement == null) {
+
+                if (leading && edgeLabelPlacement == null && labelPlacement == null) {
                     placement = 'left';
                 }
-                if (leading && fillWidth) placement = 'right';
-                if (trailing && fillWidth) placement = 'left';
+
+                if (edgeLabelPlacement === 'outside') {
+                    if (leading) placement = 'left';
+                    if (trailing) placement = 'right';
+                } else if (edgeLabelPlacement === 'inside') {
+                    if (leading) placement = 'right';
+                    if (trailing) placement = 'left';
+                }
 
                 if (placement === 'left') {
                     x = node.x - labelSpacing;
