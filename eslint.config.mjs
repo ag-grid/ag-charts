@@ -51,10 +51,10 @@ export const sonarjsConfig = [
             'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
             'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
             'sonarjs/function-return-type': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/no-selector-parameter': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/redundant-type-aliases': env !== 'nx-task' ? 1 : 0,
 
             // We don't really care about these.
-            'sonarjs/no-selector-parameter': 0,
-            'sonarjs/redundant-type-aliases': 0,
             'sonarjs/new-cap': 0,
 
             // Duplicates @typescript-eslint
@@ -149,6 +149,7 @@ export default [
             '@typescript-eslint/prefer-optional-chain': 2,
             '@typescript-eslint/prefer-readonly': 2,
             '@typescript-eslint/prefer-ts-expect-error': 2,
+            '@typescript-eslint/prefer-literal-enum-member': ['error', { allowBitwiseExpressions: true }],
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
             '@typescript-eslint/no-for-in-array': 2,
             '@typescript-eslint/restrict-template-expressions': [
