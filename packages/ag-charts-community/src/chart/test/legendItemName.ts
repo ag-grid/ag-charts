@@ -2,7 +2,7 @@ import { Caster } from 'ag-charts-test';
 import { type AgChartInstance, type AgChartOptions } from 'ag-charts-types';
 
 import { deepClone } from '../../util/json';
-import { expectWarningMessages, waitForChartStability } from './utils';
+import { expectWarningMessages, resetMockConsole, waitForChartStability } from './utils';
 
 type TSeries = {
     legendItemName?: string;
@@ -57,6 +57,7 @@ export async function testLegendItemName(testOptions: TestLegendItemNameOptions)
             chartOptions.series[0].legendItemName = '1';
             chartOptions.series[1].legendItemName = '1';
 
+            resetMockConsole();
             chart = testOptions.create(chartOptions);
             await waitForChartStability(chart);
 
