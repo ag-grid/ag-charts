@@ -40,6 +40,14 @@
                 main: './main.ts',
                 defaultExtension: 'ts',
             },
+            'ag-charts-community/modules': {
+                main: './dist/package/main-modules.cjs.js',
+                defaultExtension: 'js',
+            },
+            'ag-charts-enterprise/modules': {
+                main: './dist/package/main-modules.cjs.js',
+                defaultExtension: 'js',
+            },
         },
     });
 })(this);

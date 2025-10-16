@@ -66,12 +66,20 @@
                 main: './fesm2022/ag-charts-angular.mjs',
                 defaultExtension: 'mjs',
             },
+            'ag-charts-community/modules': {
+                main: './dist/package/main-modules.cjs.js',
+                defaultExtension: 'js',
+            },
             'ag-charts-community': {
                 main: './dist/package/main.cjs.js',
                 defaultExtension: 'js',
             },
             'ag-charts-core': {
                 main: './dist/package/main.cjs.js',
+                defaultExtension: 'js',
+            },
+            'ag-charts-enterprise/modules': {
+                main: './dist/package/main-modules.cjs.js',
                 defaultExtension: 'js',
             },
             'ag-charts-enterprise': {
