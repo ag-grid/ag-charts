@@ -402,7 +402,7 @@ export class CartesianChart extends Chart {
         const crosshairModule = axis.getModuleMap().getModule('crosshair') as { enabled: boolean } | undefined;
         if (crosshairModule?.enabled) return;
 
-        const annotationsModule = this.modulesManager.getModule('annotations') as { enabled: boolean } | undefined
+        const annotationsModule = this.modulesManager.getModule('annotations') as { enabled: boolean } | undefined;
         const hasAnnotations =
             annotationsModule?.enabled === true ||
             this.ctx.annotationManager.createMemento().some((annotation) => {
