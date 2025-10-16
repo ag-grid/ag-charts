@@ -73,7 +73,6 @@ export async function testLegendItemName(testOptions: TestLegendItemNameOptions)
             b1 = castButton(a11yButtons[1]);
             b2 = castButton(a11yButtons[2]);
             expect(a11yButtons.length).toBe(3);
-
         });
 
         test('a11y text', async () => {
