@@ -1131,8 +1131,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override hasItemStylers(): boolean {
         return (
             this.properties.styler != null ||
-            this.properties.item.low.marker.itemStyler != null ||
-            this.properties.item.high.marker.itemStyler != null ||
+            this.properties.marker.itemStyler != null ||
             this.properties.label.itemStyler != null
         );
     }
