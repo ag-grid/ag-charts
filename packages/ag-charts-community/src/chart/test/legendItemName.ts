@@ -17,7 +17,7 @@ function castButton(a: unknown): HTMLButtonElement {
     return new Caster(a).cast(HTMLButtonElement).value;
 }
 
-export async function testLegendItemName(testOptions: TestLegendItemNameOptions) {
+export function testLegendItemName(testOptions: TestLegendItemNameOptions) {
     beforeEach(() => {
         expect(testOptions.chartOptions.series.length).toBe(3);
     });
