@@ -31,6 +31,66 @@ Perform a comprehensive documentation review for all docs pages that have been m
 2. Pages containing modified examples
 3. Pages referencing modified public APIs
 
+## Critical Requirements
+
+**READ THIS FIRST - MANDATORY EXECUTION RULES:**
+
+### Rule 1: Use SlashCommand Tool for ALL Reviews
+
+**MANDATORY:** When executing documentation reviews (Step 8), you MUST:
+
+-   ✅ **USE**: `SlashCommand` tool with command `/docs-review [page-path]`
+-   ❌ **DO NOT**: Create custom review prompts for sub-agents
+-   ❌ **DO NOT**: Perform reviews manually
+-   ❌ **DO NOT**: Implement alternative review methods
+
+**Why:** The `/docs-review` command follows a standardized three-phase process with specific output formats and quality checks. Custom implementations bypass this standard.
+
+**Verification:** After each review, confirm these files exist:
+
+-   `packages/ag-charts-website/src/content/docs/[page]/technical-review-plan.md`
+-   `packages/ag-charts-website/src/content/docs/[page]/reports/technical-review-report.md`
+
+### Rule 2: One Page Per Sub-Agent - NO BATCHING
+
+**MANDATORY:** When spawning sub-agents (Step 8), you MUST:
+
+-   ✅ **SPAWN**: One sub-agent per documentation page
+-   ❌ **DO NOT**: Batch multiple pages into one sub-agent
+-   ❌ **DO NOT**: Ask one sub-agent to review 10, 20, or any N>1 pages
+-   ❌ **DO NOT**: Create "batches" for efficiency
+
+**Why:** Batching causes:
+
+1. Inconsistent review depth (later pages get less attention)
+2. Context overflow and token exhaustion
+3. Non-standard report locations and formats
+4. Inability to track per-page completion
+
+**Correct Pattern:**
+
+```
+Task 1: Review page-name-1 → /docs-review page-name-1
+Task 2: Review page-name-2 → /docs-review page-name-2
+Task 3: Review page-name-3 → /docs-review page-name-3
+```
+
+**Incorrect Pattern:**
+
+```
+Task 1: Review pages 1-20 → DO NOT DO THIS
+```
+
+### Rule 3: Parallel Execution for Efficiency
+
+**RECOMMENDED:** Launch sub-agents in parallel:
+
+-   ✅ **USE**: Single message with multiple Task tool calls
+-   ✅ **LAUNCH**: 10-20 agents concurrently (one per page)
+-   ✅ **MONITOR**: Wait for all agents to complete before aggregating
+
+**Example:** For 50 pages, launch in 3 waves of ~17 agents each.
+
 ## Workflow
 
 ### Step 1: Identify Previous Release Branch
@@ -571,17 +631,96 @@ done
 
 ### Step 8: Execute Documentation Reviews
 
-For each documentation page in the **filtered task list**:
+**CRITICAL REQUIREMENTS:**
 
-1. **Execute the docs-review command** for the page:
+1. **ONE PAGE PER SUB-AGENT - NO BATCHING**
+2. **MUST USE SlashCommand TOOL - NO CUSTOM IMPLEMENTATIONS**
 
-    ```
-    /docs-review packages/ag-charts-website/src/content/docs/[page-name]/index.mdoc
-    ```
+#### Execution Pattern
 
-2. **Track completion** by marking tasks as complete in the list
+For each documentation page in the **filtered task list**, spawn a dedicated sub-agent that:
 
-3. **Collect reports** from each review for final aggregation
+1. **Reviews exactly ONE page** (no batching allowed)
+2. **Uses the SlashCommand tool** to invoke `/docs-review`
+3. **Validates the review outputs** (plan file and report file)
+
+#### Sub-Agent Prompt Template
+
+Each sub-agent must receive this strict prompt:
+
+```
+You are reviewing the [PAGE_NAME] documentation page for AG Charts release from [PREVIOUS_BRANCH] to [CURRENT_BRANCH].
+
+STRICT REQUIREMENTS:
+
+1. MANDATORY: Use SlashCommand tool to invoke /docs-review
+   - Execute: SlashCommand with command "/docs-review packages/ag-charts-website/src/content/docs/[PAGE_NAME]/index.mdoc"
+   - DO NOT create custom review implementations
+   - DO NOT perform manual reviews
+   - DO NOT skip the SlashCommand tool
+
+2. Single Page Only
+   - Review ONLY: [PAGE_NAME]
+   - DO NOT review multiple pages
+   - DO NOT batch reviews
+
+3. Verify Outputs
+   - After /docs-review completes, confirm these files exist:
+     * packages/ag-charts-website/src/content/docs/[PAGE_NAME]/technical-review-plan.md
+     * packages/ag-charts-website/src/content/docs/[PAGE_NAME]/reports/technical-review-report.md
+   - If files are missing, report failure
+
+4. Return Summary
+   - Report review status (PASSED / ISSUES FOUND / FAILED)
+   - List critical issues if any found
+   - Confirm SlashCommand was used
+
+Execute the review now.
+```
+
+#### Parallel Execution Strategy
+
+Launch all sub-agents in parallel for maximum efficiency:
+
+1. **Read the filtered task list** to get all pages requiring review
+2. **Create one Task per page** in a single message (multiple tool calls)
+3. **Monitor completion** of all agents
+4. **Validate outputs** from each agent
+
+#### Implementation Example
+
+```bash
+# Read filtered task list
+PAGES=$(grep "^- \[ \]" reports/release-docs-review-${PREVIOUS_BRANCH}-${CURRENT_BRANCH}-filtered.md | \
+        grep -oP '\*\*\K[^*]+' | head -10)
+
+# For each page, spawn a dedicated agent
+# (In practice, you'll use multiple Task tool calls in one message)
+```
+
+#### Validation After Execution
+
+After all agents complete, verify:
+
+1. ✅ Each agent used SlashCommand tool (check agent outputs)
+2. ✅ Each page has a review plan file generated
+3. ✅ Each page has a review report file generated
+4. ✅ No agent reviewed multiple pages (batching violation)
+
+**If validation fails:**
+
+-   Identify which pages were not properly reviewed
+-   Identify which agents didn't use SlashCommand
+-   Re-launch failed agents with corrected strict prompts
+
+#### Handling Large Page Counts
+
+For releases with many pages (e.g., 50+):
+
+1. **Launch in waves** if needed (e.g., 20 agents at a time)
+2. **Prioritize by risk score** (Critical → High → Medium → Low)
+3. **Monitor token usage** across agents
+4. **Wait for wave completion** before launching next wave
 
 **Note**: Use the filtered list by default. Only review skipped pages if:
 
@@ -746,12 +885,32 @@ Format:
 
 ## Execution Tips
 
+### Mandatory Practices
+
 -   **Always run the filtering step (Step 6)** before creating task lists - it typically saves 20-40% of review effort
--   Use parallel execution when possible for independent page reviews
--   Cache git diff results for repeated queries (stored in `/tmp/diff-stats.txt` and `/tmp/categorized-docs.txt`)
--   Consider using the Task tool with specialized agents for efficiency
--   Monitor progress and provide regular status updates for long-running reviews
--   If example changes are found (Step 3), validate that example code runs correctly before reviewing docs
+-   **ONE PAGE PER SUB-AGENT** - Never batch multiple pages into a single agent
+-   **USE SlashCommand TOOL** - Always invoke `/docs-review` via SlashCommand, never create custom review implementations
+-   **Validate outputs** - After reviews, confirm plan and report files exist at standard locations
+
+### Performance Optimization
+
+-   **Launch agents in parallel** - Use single message with multiple Task tool calls for maximum efficiency
+-   **Batch API calls, not reviews** - Launch 10-20 agents concurrently, but each reviews only ONE page
+-   **Monitor completion** - Track which agents finish and which pages remain
+-   **Cache git operations** - Store diff results in `/tmp/diff-stats.txt` and `/tmp/categorized-docs.txt`
+
+### Quality Assurance
+
+-   **Verify SlashCommand usage** - Check agent outputs confirm they used SlashCommand tool
+-   **Validate standard outputs** - Ensure review plan and report files are in correct locations
+-   **Check for batching violations** - Confirm no agent reviewed multiple pages
+-   **Example validation** - If Step 3 found example changes, verify examples run correctly before reviewing docs
+
+### Progress Tracking
+
+-   **Provide status updates** - Report completion progress for long-running reviews (e.g., "35/77 pages reviewed")
+-   **Identify failures early** - If agents don't use SlashCommand or output goes to wrong location, stop and fix
+-   **Wave-based execution** - For 50+ pages, review in waves of 15-20 agents each
 
 ## Benefits of Filtering
 
