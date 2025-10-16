@@ -66,6 +66,7 @@ NOTE: These are only intended for agentic tools that don't support custom slash 
 -   `/spruce-example` - execute `tools/prompts/commands/spruce-example.md` on specified example.
 -   `/pr-review` - execute `tools/prompts/commands/pr-review.md` on specified PR.
 -   `/release-options-review` - execute `tools/prompts/commands/release-options-review.md` on specified release options.
+-   `/release-docs-review` - execute `tools/prompts/commands/release-docs-review.md` to review all documentation changes between releases.
 -   `/docs-review` - execute `tools/prompts/commands/docs-review.md` on specified docs.
 -   `/sonar-fix` - execute `tools/prompts/commands/sonar-fix.md` to review and fix SonarCloud issues.
 
