@@ -1,0 +1,53 @@
+---
+title: 'Axis Position'
+description: 'Control where each axis is rendered in an AG Charts cartesian chart and how axes cross with crossAt.'
+---
+
+Axes attach to the chart edges to provide scale and labels for series. Each cartesian axis can render on the `top`, `bottom`, `left`, or `right` edge depending on its orientation.
+
+## Axis Placement
+
+The axis `position` property controls where the axis is rendered. By default, horizontal axes appear at the bottom of the chart and vertical axes appear on the left.
+
+```js format="snippet"
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+    ],
+}
+```
+
+Axes with matching direction can share an edge. This allows, for example, a pair of y-axes on either side of the chart or two x-axes both on the top.
+
+Secondary axes adopt their own configured `position`. If no position is supplied they default to the opposite side of the primary axis. See [Secondary Axes](./axes-secondary/) for more detail on pairing.
+
+{% chartExampleRunner title="Axis Positions" name="axis-position-basic" type="generated" /%}
+
+## CrossAt
+
+The `crossAt` option allows an axis to intersect a perpendicular axis at a specific axis value instead of the default chart edge. This is useful for centring the chart origin or aligning axes to highlight particular thresholds.
+
+```js format="snippet"
+{
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            crossAt: { value: 0 },
+        },
+    ],
+}
+```
+
+Specify `crossAt.value` to use a precise point from the opposing axis domain. When the target value leaves the visible range, by default the axis locks to the closest in range position. Set `sticky: false` to remove the axis when it is outside of the perpendicular axis' domain.
+
+When using `crossAt`, ensure the target value falls within the axis domain so the axes can intersect within the visible chart area.
+
+{% chartExampleRunner title="CrossAt" name="axis-cross-at" type="generated" /%}
