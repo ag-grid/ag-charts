@@ -602,7 +602,6 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    minSize: positiveNumber,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
 };

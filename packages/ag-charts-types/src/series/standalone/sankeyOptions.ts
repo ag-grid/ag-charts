@@ -43,8 +43,6 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
-    /** Minimum size of nodes and links. */
-    minSize?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }

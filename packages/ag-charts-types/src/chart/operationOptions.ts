@@ -103,7 +103,9 @@ type LogicOperation =
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy
     | { $not: AnyLeaf } // Target vertex that is truthy
-    | { $switch: (AnyLeaf | object)[] }; // Conditional value | Default value if no case matches | ...One to many cases of [match | match[], value if matched]
+    | { $switch: (AnyLeaf | object)[] } // Conditional value | Default value if no case matches | ...One to many cases of [match | match[], value if matched]
+    | { $greaterThan: [Leaf<number>, Leaf<number>] }
+    | { $lessThan: [Leaf<number>, Leaf<number>] };
 
 type NumericOperation =
     | { $even: Leaf<number> } // Number
