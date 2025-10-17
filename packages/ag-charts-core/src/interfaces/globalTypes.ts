@@ -55,6 +55,12 @@ export type IsAny<T> = 0 extends 1 & T ? true : false;
 
 export type AreExact<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 
+export type ConstructorReturnType<T extends abstract new (...args: any) => any> = T extends abstract new (
+    ...args: any
+) => infer P
+    ? P
+    : never;
+
 type NN<T> = NonNullable<T>;
 /**
  * Helper macro for nested NonNullable key accessors.

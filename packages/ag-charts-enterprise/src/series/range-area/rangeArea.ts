@@ -8,7 +8,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DeepRequired, Point, RequireOptional } from 'ag-charts-core';
+import type { AreExact, ConstructorReturnType, DeepRequired, Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
@@ -94,14 +94,19 @@ interface RangeAreaSpanPointDatum {
     low: _ModuleSupport.LineSpanPointDatum;
 }
 
-export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
+const BaseSeries = _ModuleSupport.CartesianSeries<
     _ModuleSupport.Marker,
     AgRangeAreaSeriesOptions,
     RangeAreaProperties,
     RangeAreaMarkerDatum,
     RangeAreaLabelDatum,
     RangeAreaContext
-> {
+>;
+type BaseSeries = ConstructorReturnType<typeof BaseSeries>;
+
+type GetMarkerStyleArg<I extends number> = Parameters<BaseSeries['getMarkerStyle']>[I];
+
+export class RangeAreaSeries extends BaseSeries {
     static readonly className = 'RangeAreaSeries';
     static readonly type = 'range-area' as const;
 
@@ -1114,6 +1119,24 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             undefined,
             stylerStyle
         );
+    }
+
+    public override getMarkerStyle<TParams>(
+        marker: _ModuleSupport.SeriesMarker<TParams>,
+        datum: GetMarkerStyleArg<1>,
+        params?: TParams,
+        opts?: GetMarkerStyleArg<3>,
+        defaultOverrideStyle?: GetMarkerStyleArg<4>,
+        inheritedStyle?: GetMarkerStyleArg<5>
+    ): ReturnType<BaseSeries['getMarkerStyle']> {
+        type P1 = Parameters<RangeAreaSeries['getMarkerStyle']>;
+        type P2 = Parameters<BaseSeries['getMarkerStyle']>;
+        true satisfies AreExact<P1, P2>; // break compilation if override/base function signatures do not match.
+
+        // Override the item.(low|high).marker.itemStyler callback property:
+        // It is internal only (hidden from API), so is not set automatically like other properties.
+        marker.itemStyler = this.properties.marker.itemStyler;
+        return super.getMarkerStyle(marker, datum, params, opts, defaultOverrideStyle, inheritedStyle);
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
