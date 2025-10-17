@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/prefer-export-from */
 import { type ModuleDefinition } from 'ag-charts-core';
 
 import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
