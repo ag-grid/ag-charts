@@ -38,17 +38,25 @@ const options: AgChartOptions<DataType> = {
             type: 'donut',
             angleKey: 'count',
             calloutLabelKey: 'count',
+            sectorLabelKey: 'count',
             calloutLabel: {
                 minAngle: 10,
                 formatter: ({ datum }) => [
                     {
-                        text: datum.count.toString(),
+                        text: numFormatter.format(datum.count),
                         fontSize: 20,
                         color: 'purple',
                         fontWeight: 'bold',
                     },
                     { text: '\n' + datum.type, fontSize: 10, color: 'grey' },
                 ],
+            },
+            sectorLabel: {
+                formatter: ({ datum, angleKey }) => {
+                    const value = datum[angleKey] as number;
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${percentage}%`;
+                },
             },
             innerLabels: [
                 {
@@ -77,29 +85,10 @@ const options: AgChartOptions<DataType> = {
                     };
                 },
             },
-            legendItemKey: 'type',
         },
     ],
-    formatter: (params) => (typeof params.value === 'number' ? numFormatter.format(params.value) : undefined),
     legend: {
-        position: 'right',
-        item: {
-            paddingX: 16,
-            paddingY: 8,
-            marker: {
-                size: 12,
-            },
-            label: {
-                formatter: ({ value }) => {
-                    const item = sortedData.find((d) => d.type === value);
-                    if (item) {
-                        const percentage = ((item.count / total) * 100).toFixed(1);
-                        return `${value} (${percentage}%)`;
-                    }
-                    return value;
-                },
-            },
-        },
+        enabled: false,
     },
     animation: {
         enabled: true,
