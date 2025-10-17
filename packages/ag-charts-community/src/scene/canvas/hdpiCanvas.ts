@@ -52,6 +52,7 @@ export class HdpiCanvas {
         debugContext(this.context);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents -- OffscreenCanvasRenderingContext2D is intentionally `any` for Angular 13+ compatibility (AG-6969)
     drawImage(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, dx = 0, dy = 0) {
         return context.drawImage(this.context.canvas, dx, dy);
     }

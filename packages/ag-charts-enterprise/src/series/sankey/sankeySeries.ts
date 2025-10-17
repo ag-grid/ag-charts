@@ -239,7 +239,7 @@ export class SankeySeries extends FlowProportionSeries<
                     return Math.max(acc, width);
                 };
                 columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
-                columnLabelInsetAfter = nodeWidth + columns[columns.length - 1].nodes.reduce(reduceLabelWidthFn, 0);
+                columnLabelInsetAfter = nodeWidth + columns.at(-1)!.nodes.reduce(reduceLabelWidthFn, 0);
             }
         }
 

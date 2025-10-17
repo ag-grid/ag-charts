@@ -54,6 +54,7 @@ import { WaterfallSeriesModule } from './series/waterfall';
 
 export { ModuleRegistry } from 'ag-charts-core';
 
+/* eslint-disable unicorn/prefer-export-from */
 export {
     OrdinalTimeAxisModule,
     AngleNumberAxisModule,

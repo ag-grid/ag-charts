@@ -18,6 +18,7 @@ export default [
             'no-eval': 'error',
             'no-console': 'error',
             'import-x/consistent-type-specifier-style': 'off',
+            '@typescript-eslint/no-redundant-type-constituents': 'warn',
         },
     },
     {

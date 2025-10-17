@@ -79,11 +79,10 @@ const snippetStrategy: WrapStrategy = {
             // Look for statement keywords after any decorator and its closing parens/braces
             const hasStatementAfterDecorator =
                 /^\s*(const|let|var|import|export|function|class|interface|type)\s/m.test(codeWithoutComments);
-            if (!hasStatementAfterDecorator) {
-                // Decorator without statement - continue processing
-            } else {
+            if (hasStatementAfterDecorator) {
                 return code;
             }
+            // Decorator without statement - continue processing
         }
 
         // For code without decorators, check if it starts with a statement keyword
@@ -211,11 +210,10 @@ const snippetStrategy: WrapStrategy = {
         if (hasDecorator) {
             const hasStatementAfterDecorator =
                 /^\s*(const|let|var|import|export|function|class|interface|type)\s/m.test(codeWithoutComments);
-            if (!hasStatementAfterDecorator) {
-                // Decorator without statement - continue processing
-            } else {
+            if (hasStatementAfterDecorator) {
                 return formatted;
             }
+            // Decorator without statement - continue processing
         }
 
         // For code without decorators, check if it starts with a statement keyword

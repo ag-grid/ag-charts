@@ -62,6 +62,7 @@ const DOMAIN_BANDS = Symbol('domain-bands');
 // datum has relative offset 0 from its group start position.
 const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 
+// eslint-disable-next-line sonarjs/redundant-type-aliases
 type ScopeId = string;
 
 type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
