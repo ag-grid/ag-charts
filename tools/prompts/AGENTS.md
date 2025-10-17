@@ -23,6 +23,7 @@ For detailed information on specific topics, consult these guides:
 -   **[Examples Guide](tools/prompts/guides/examples.md)** - Working with examples, validation, and path mappings
 -   **[JIRA Guide](tools/prompts/guides/jira.md)** - JIRA ticket search and creation guidelines
 -   **[Code Quality Guide](tools/prompts/guides/code-quality.md)** - Code bloat avoidance, comments, and review practices
+-   **[Default Values Guide](tools/prompts/guides/defaults.md)** - Understanding the three-tier default system and theme configuration
 -   **[Development Server Guide](tools/prompts/guides/dev-server.md)** - Dev server setup and build watch monitoring
 -   **[Benchmarks Guide](tools/prompts/guides/benchmarks.md)** - Running and creating performance benchmarks
 -   **[Releases Guide](tools/prompts/guides/releases.md)** - Release conventions and guidelines
