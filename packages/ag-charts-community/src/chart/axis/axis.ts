@@ -330,7 +330,7 @@ export abstract class Axis<
         const datum: LabelNodeDatum | undefined = node?.datum;
         const { textUntruncated: title = undefined } = datum ?? {};
 
-        if (title != null) {
+        if (title) {
             this.moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },
