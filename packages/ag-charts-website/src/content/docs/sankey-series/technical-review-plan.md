@@ -1,269 +1,195 @@
 # Technical Review Plan: Sankey Series Documentation
 
-## Page Analysis Summary
+**Review Mode**: Full Mode (MCP Puppeteer + Task tool available)
+**Documentation Page**: `packages/ag-charts-website/src/content/docs/sankey-series/index.mdoc`
+**Live Dev URL**: `https://localhost:4600/charts/javascript/sankey-series/`
 
-### Chart Types/Features Covered
+## Files Discovered
 
--   Sankey diagram visualization for showing movement/change between items
--   Node and link based visualization
--   Circular loop prevention mechanism
--   Node alignment options (left, right, center, justify)
--   Node styling customization
--   Link styling customization
+### TypeScript Definitions
 
-### Key APIs and Configuration Options Documented
+-   `packages/ag-charts-types/src/series/standalone/sankeyOptions.ts` - Main API definitions
+    -   `AgSankeySeriesOptions` interface
+    -   `AgSankeySeriesLabelOptions` interface
+    -   `AgSankeySeriesLinkOptions` interface
+    -   `AgSankeySeriesNodeOptions` interface
 
-1. **Core Series Properties**:
+### Implementation Files
 
-    - `type: 'sankey'` - Series type identifier
-    - `fromKey` - Defines start node of each link
-    - `toKey` - Defines end node of each link
-    - `sizeKey` - Defines size of each link
+-   `packages/ag-charts-enterprise/src/series/sankey/sankeySeries.ts` - Main series implementation
+-   `packages/ag-charts-enterprise/src/series/sankey/sankeySeriesProperties.ts` - Property definitions with @Property decorators
+
+### Example Files
+
+1. **simple-sankey** (`_examples/simple-sankey/`)
+
+    - Demonstrates: Basic sankey configuration
+    - Key config: `fromKey`, `toKey`, `sizeKey`, `sizeName`, `label.edgePlacement: 'outside'`
+    - Expected: UK Power Generation data visualization
 
-2. **Node Configuration**:
+2. **alignment** (`_examples/alignment/`)
 
-    - `node.alignment` - Horizontal placement with 4 options (left, right, center, justify)
-    - `node.fill` - Node fill color
-    - `node.stroke` - Node stroke color
-    - `node.strokeWidth` - Node stroke width
+    - Demonstrates: Horizontal node alignment options
+    - Key config: `node.alignment` with 'left', 'right', 'center', 'justify'
+    - Expected: Interactive buttons to change alignment
 
-3. **Link Configuration**:
-    - `link.fill` - Link fill color
-    - `link.fillOpacity` - Link fill transparency
-    - `link.stroke` - Link stroke color
-    - `link.strokeWidth` - Link stroke width
-    - `link.strokeOpacity` - Link stroke transparency
+3. **vertical-alignment** (`_examples/vertical-alignment/`)
 
-### Examples Referenced and Their Purposes
+    - Demonstrates: Vertical node alignment options
+    - Key config: `node.verticalAlignment` with 'top', 'bottom', 'center'
+    - Expected: Interactive buttons to change vertical alignment
+
+4. **sorting** (`_examples/sorting/`)
+
+    - Demonstrates: Node sorting methods
+    - Key config: `node.sort` with 'data', 'ascending', 'descending', 'auto'
+    - Expected: Interactive buttons to change sorting
 
-1. **simple-sankey**: Demonstrates basic sankey series setup with minimal configuration
-2. **alignment**: Shows the four different node alignment options in action
-3. **node-style**: Demonstrates customizing node appearance (fill, stroke, strokeWidth)
-4. **link-style**: Shows link styling options (fill, fillOpacity, stroke, strokeWidth, strokeOpacity)
+5. **label-placement** (`_examples/label-placement/`)
+
+    - Demonstrates: Label placement relative to nodes
+    - Key config: `label.placement` ('left', 'right', 'center'), `label.edgePlacement` ('inside', 'outside')
+    - Expected: Interactive buttons to change placement
+
+6. **node-style** (`_examples/node-style/`)
 
-### Interactive Features Described
+    - Demonstrates: Node styling options
+    - Key config: `node.fill`, `node.stroke`, `node.strokeWidth`
+    - Expected: Styled nodes with custom colors
 
--   Visual flow representation between nodes
--   Implied hover interactions (typical for AG Charts)
--   Tooltips (expected but not explicitly documented)
+7. **link-style** (`_examples/link-style/`)
+    - Demonstrates: Link styling options
+    - Key config: `link.fill`, `link.fillOpacity`, `link.stroke`, `link.strokeWidth`, `link.strokeOpacity`
+    - Expected: Styled links with custom colors and opacity
 
-## Validation Targets
+## Validation Tasks
 
-### Specific TypeScript Interfaces to Verify
+### Phase 1: Technical Accuracy
 
--   `AgSankeySeriesOptions` in `/packages/ag-charts-types/src/series/standalone/sankeyOptions.ts`
--   Related node and link configuration interfaces
--   Verify all documented properties exist with correct types
--   Check for additional properties not documented
-
-### Implementation Files to Check
-
--   Main sankey series implementation in community/enterprise packages
--   Node rendering and alignment logic
--   Link rendering logic
--   Circular loop detection and removal implementation
--   Default values for all configurable properties
-
-### Examples to Test with Expected Behaviors
-
-#### 1. simple-sankey Example
-
-**Documentation Claims**:
-
--   Creates basic sankey diagram with fromKey, toKey, and sizeKey
--   Shows flow between nodes based on size values
-
-**Expected Behaviors to Validate**:
-
--   Chart renders with nodes and links
--   Links connect from source to target nodes correctly
--   Link widths correspond to size values
--   Default styling is applied
--   No circular loops present
--   Tooltips show on hover (if implemented)
--   Console is error-free
-
-#### 2. alignment Example
-
-**Documentation Claims**:
-
--   Demonstrates all 4 alignment options: left, right, center, justify
--   justify pushes last nodes to the right while others go left
-
-**Expected Behaviors to Validate**:
-
--   Visual demonstration of each alignment type
--   Left alignment: nodes positioned far left
--   Right alignment: nodes positioned far right
--   Center alignment: nodes centered
--   Justify alignment: initial nodes left, final nodes right
--   Interactive switching between alignments (if implemented)
--   Proper node positioning for complex multi-level flows
-
-#### 3. node-style Example
-
-**Documentation Claims**:
-
--   Customizes node appearance with fill (#34495e), stroke (#2c3e50), strokeWidth (2)
-
-**Expected Behaviors to Validate**:
-
--   Nodes render with specified fill color
--   Nodes have visible stroke with correct color
--   Stroke width is visibly 2px
--   Styling applies to all nodes uniformly
--   Hover states maintain custom styling (if applicable)
-
-#### 4. link-style Example
-
-**Documentation Claims**:
-
--   Customizes link appearance with:
-    -   fill (#34495e)
-    -   fillOpacity (0.25)
-    -   stroke (#2c3e50)
-    -   strokeWidth (1)
-    -   strokeOpacity (0.25)
-
-**Expected Behaviors to Validate**:
-
--   Links render with specified fill color at 25% opacity
--   Links have visible stroke with correct color at 25% opacity
--   Stroke width is visibly 1px
--   Transparency values are correctly applied
--   All links receive consistent styling
-
-### User Interactions to Validate
-
-1. **Hover Interactions**:
-
-    - Hover over nodes - expect highlighting and tooltips
-    - Hover over links - expect highlighting and flow information
-    - Hover over empty chart areas - no unexpected behavior
-
-2. **Keyboard Navigation**:
-
-    - Tab navigation through interactive elements
-    - Focus indicators on nodes/links
-    - Keyboard accessibility for tooltips
-
-3. **Edge Cases**:
-    - Chart behavior with very large datasets
-    - Handling of zero/negative size values
-    - Behavior with missing data (null/undefined values)
-    - Window resize responsiveness
-    - Mobile touch interactions
-
-### Visual States to Screenshot and Analyze
-
-1. **Default States**:
-
-    - Each example in default rendering state
-    - Full chart view showing all nodes and links
-
-2. **Interactive States**:
-
-    - Hover states on nodes
-    - Hover states on links
-    - Tooltip appearance and positioning
-    - Focus states for keyboard navigation
-
-3. **Alignment Variations**:
-
-    - Screenshot each alignment option clearly
-    - Complex flow patterns with each alignment
-
-4. **Responsive States**:
-    - Desktop view
-    - Tablet view
-    - Mobile view
-    - Charts after window resize
-
-### Interactive Features Requiring Before/After Visual Comparison
-
-1. Node hover effects (before hover vs during hover)
-2. Link hover effects (before hover vs during hover)
-3. Tooltip appearance (no tooltip vs tooltip shown)
-4. Focus state transitions for keyboard navigation
-5. Any animation effects during interactions
-
-### Chart Elements That Should Be Interactive
-
-Based on typical AG Charts behavior and sankey diagram conventions:
-
-1. **Nodes**: Should be hoverable with tooltips showing node information
-2. **Links**: Should be hoverable with tooltips showing flow details (from, to, size)
-3. **Legend**: If present, should allow series toggling
-4. **Chart canvas**: Should respond to standard AG Charts interactions
-
-### Expected Tooltip Content and Highlighting Behaviors
-
-1. **Node Tooltips**: Should display node name/label and aggregated flow values
-2. **Link Tooltips**: Should show source, target, and flow size/value
-3. **Highlighting**: Related nodes and links should highlight on hover
-4. **Visual Feedback**: Clear hover states with color/opacity changes
-
-## Known Exceptions
-
--   No documented exceptions found in `technical-review-exceptions.md`
--   Any discovered exceptions during review should be documented
-
-## Execution Plan
-
-### Priority 1: Core API Validation
-
-1. Verify `AgSankeySeriesOptions` interface matches documentation
-2. Check all documented properties exist with correct types
-3. Validate default values in implementation
-4. Confirm circular loop detection works as documented
-
-### Priority 2: Example Functionality Testing
-
-1. Test simple-sankey example:
-    - Delegate to example-tester with basic sankey expectations
-    - Screenshot default state
-    - Test hover interactions and tooltips
-2. Test alignment example:
-    - Delegate to example-tester with alignment validation focus
-    - Screenshot each alignment option
-    - Verify justify behavior specifically
-3. Test node-style example:
-    - Delegate to example-tester with styling validation
-    - Screenshot custom node styling
-    - Verify colors and stroke width
-4. Test link-style example:
-    - Delegate to example-tester with link styling focus
-    - Screenshot semi-transparent links
-    - Verify opacity values render correctly
-
-### Priority 3: Interactive Feature Validation
-
-1. Comprehensive hover testing across all examples
-2. Keyboard navigation testing
-3. Responsive behavior validation
-4. Edge case testing with data variations
-
-### Priority 4: Documentation Completeness
-
-1. Check for missing configuration options
-2. Verify all features have examples
-3. Assess clarity of explanations
-4. Identify gaps in coverage
-
-### Success Criteria
-
--   All documented APIs exist and work as described
--   Examples demonstrate claimed features correctly
--   Interactive behaviors match AG Charts standards
--   No console errors or warnings
--   Visual rendering matches documentation
--   Charts are accessible and responsive
-
-### Estimated Complexity
-
--   High complexity due to:
-    -   Complex graph visualization logic
-    -   Multiple customization options
-    -   Interactive flow visualization
-    -   Alignment algorithm verification
-    -   Visual validation of semi-transparent elements
+-   [ ] Verify all API references match TypeScript definitions in `sankeyOptions.ts`
+-   [ ] Cross-check default values against `@Property` decorators in `sankeySeriesProperties.ts`
+-   [ ] Validate property paths and option structures in code snippets
+-   [ ] Verify alignment options: 'left', 'right', 'center', 'justify'
+-   [ ] Verify verticalAlignment options: 'top', 'bottom', 'center'
+-   [ ] Verify sort options: 'data', 'ascending', 'descending', 'auto'
+-   [ ] Verify label placement options: 'left', 'right', 'center'
+-   [ ] Verify edgePlacement options: 'inside', 'outside'
+-   [ ] Check node style properties: fill, stroke, strokeWidth
+-   [ ] Check link style properties: fill, fillOpacity, stroke, strokeWidth, strokeOpacity
+-   [ ] Validate `minSize` property documentation
+-   [ ] Validate `node.spacing` and `node.minSpacing` properties
+-   [ ] Validate `node.width` property
+-   [ ] Validate `label.spacing` property
+
+### Phase 2: Example Testing (delegate to example-tester agent)
+
+For each example:
+
+-   [ ] **simple-sankey**: Verify basic configuration and data rendering
+-   [ ] **alignment**: Test all 4 alignment modes ('left', 'right', 'center', 'justify')
+-   [ ] **vertical-alignment**: Test all 3 vertical alignment modes ('top', 'bottom', 'center')
+-   [ ] **sorting**: Test all 4 sorting modes ('data', 'ascending', 'descending', 'auto')
+-   [ ] **label-placement**: Test placement and edgePlacement combinations
+-   [ ] **node-style**: Verify custom node styling renders correctly
+-   [ ] **link-style**: Verify custom link styling renders correctly
+
+### Phase 3: Visual & Interaction Testing
+
+-   [ ] Navigate to `https://localhost:4600/charts/javascript/sankey-series/`
+-   [ ] Capture screenshot: overall page layout
+-   [ ] Test interactive features in alignment example
+-   [ ] Test interactive features in vertical-alignment example
+-   [ ] Test interactive features in sorting example
+-   [ ] Test interactive features in label-placement example
+-   [ ] Verify tooltips display correctly on hover
+-   [ ] Check for console errors
+-   [ ] Verify responsive layout
+
+### Phase 4: Content Quality
+
+-   [ ] Check completeness of feature coverage
+-   [ ] Verify all properties mentioned in TypeScript definitions are documented
+-   [ ] Check for missing documentation on:
+    -   `minSize` property
+    -   `node.spacing` property
+    -   `node.minSpacing` property
+    -   `node.width` property (documented default vs actual default)
+    -   `node.alignment` property (documented default vs actual default)
+    -   `node.verticalAlignment` property (documented default)
+    -   `node.sort` property (documented default)
+    -   `label.spacing` property
+    -   `itemStyler` properties for nodes and links
+    -   Circular loop handling (warning is present)
+-   [ ] Identify gaps between implementation and documentation
+
+## API Surface from Documentation
+
+### Series-Level Properties
+
+-   `type: 'sankey'`
+-   `fromKey: string` - start node key
+-   `toKey: string` - end node key
+-   `sizeKey: string` - link size key
+-   `sizeName: string` - human-readable size name (optional)
+
+### Node Options (`node`)
+
+-   `alignment: 'left' | 'right' | 'center' | 'justify'`
+-   `verticalAlignment: 'top' | 'bottom' | 'center'`
+-   `sort: 'data' | 'ascending' | 'descending' | 'auto'`
+-   `fill: CssColor`
+-   `stroke: CssColor`
+-   `strokeWidth: number`
+
+### Link Options (`link`)
+
+-   `fill: CssColor`
+-   `fillOpacity: number`
+-   `stroke: CssColor`
+-   `strokeWidth: number`
+-   `strokeOpacity: number`
+
+### Label Options (`label`)
+
+-   `placement: 'left' | 'right' | 'center'`
+-   `edgePlacement: 'inside' | 'outside'`
+
+## Expected Default Values (from TypeScript definitions)
+
+From `sankeyOptions.ts`:
+
+-   `node.spacing`: 20 (comment in TypeScript)
+-   `node.minSpacing`: 0 (comment in TypeScript)
+-   `node.width`: 1 (comment in TypeScript)
+-   `node.alignment`: 'center' (comment in TypeScript)
+-   `node.verticalAlignment`: 'center' (comment in TypeScript)
+-   `node.sort`: 'auto' (comment in TypeScript)
+
+From `sankeySeriesProperties.ts` @Property decorators:
+
+-   `label.spacing`: 1 (line 58)
+-   `label.placement`: undefined (line 61)
+-   `label.edgePlacement`: undefined (line 64)
+-   `link.fillOpacity`: 1 (line 72)
+-   `link.strokeOpacity`: 1 (line 78)
+-   `link.strokeWidth`: 1 (line 81)
+-   `link.lineDash`: [0] (line 84)
+-   `link.lineDashOffset`: 0 (line 87)
+-   `node.spacing`: 1 (line 95)
+-   `node.minSpacing`: 0 (line 98)
+-   `node.width`: 1 (line 101)
+-   `node.alignment`: 'justify' (line 104)
+-   `node.verticalAlignment`: 'center' (line 107)
+-   `node.sort`: 'auto' (line 110)
+-   `node.fillOpacity`: 1 (line 116)
+-   `node.strokeOpacity`: 1 (line 122)
+-   `node.strokeWidth`: 1 (line 125)
+-   `node.lineDash`: [0] (line 128)
+-   `node.lineDashOffset`: 0 (line 131)
+-   `minSize`: 1 (line 196)
+
+## Discrepancies to Investigate
+
+1. **node.spacing default**: TypeScript comment says 20, @Property decorator says 1
+2. **node.alignment default**: TypeScript comment says 'center', @Property decorator says 'justify'
+3. Documentation does not mention default values - need to determine correct defaults
