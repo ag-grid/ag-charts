@@ -47,7 +47,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
                 spacing: 10,
             },
             node: {
-                spacing: 20,
+                spacing: { $if: [{ $greaterThan: [{ $path: './minSpacing' }, 20] }, { $path: './minSpacing' }, 20] },
                 minSpacing: 0,
                 width: 10,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
