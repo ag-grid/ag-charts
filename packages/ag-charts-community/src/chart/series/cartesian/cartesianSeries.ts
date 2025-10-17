@@ -198,7 +198,7 @@ export abstract class CartesianSeries<
         CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
     >;
 
-    protected constructor({
+    constructor({
         pathsPerSeries = ['path'],
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,

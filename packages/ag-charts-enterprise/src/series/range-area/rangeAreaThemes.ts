@@ -94,11 +94,6 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         strokeWidth: {
             $path: ['/series/$index/marker/strokeWidth', 2],
         },
-        // @ts-expect-error Internal Property (hidden from contract);
-        // setting this internally allows RangeAreaSeries to use the base Series.getMarkerStyle method
-        itemStyler: {
-            $path: '/series/$index/marker/itemStyler',
-        },
     },
 };
 
