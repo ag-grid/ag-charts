@@ -312,7 +312,8 @@ export abstract class Axis<
             this.initCrossLine(crossLine);
         }
         this.cleanup.register(
-            this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e))
+            this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
+            this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering())
         );
     }
 
@@ -336,7 +337,13 @@ export abstract class Axis<
                 [{ type: 'structured', title }]
             );
             this.isHovering = true;
-        } else if (this.isHovering) {
+        } else {
+            this.endHovering();
+        }
+    }
+
+    private endHovering() {
+        if (this.isHovering) {
             this.moduleCtx.tooltipManager.removeTooltip(this.id);
             this.isHovering = false;
         }
