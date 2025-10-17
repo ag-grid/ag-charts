@@ -233,7 +233,7 @@ export class SankeySeries extends FlowProportionSeries<
                     const node = n as EnhancedNodeGraphEntry;
                     if (node.datum.label == null || node.datum.label === '') return acc;
                     let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
-                    if (labelPlacement === 'center') maxWidth /= 2;
+                    if (labelPlacement === 'center' && edgeLabelPlacement == null) maxWidth /= 2;
                     const text = wrapText(node.datum.label, {
                         maxWidth,
                         maxHeight: node.datum.height,
@@ -241,7 +241,7 @@ export class SankeySeries extends FlowProportionSeries<
                         textWrap: 'never',
                     });
                     let { width } = measurer.measureLines(text);
-                    if (labelPlacement === 'center') width /= 2;
+                    if (labelPlacement === 'center' && edgeLabelPlacement == null) width /= 2;
                     return Math.max(acc, width);
                 };
                 if (labelPlacement !== 'right' || edgeLabelPlacement === 'outside') {

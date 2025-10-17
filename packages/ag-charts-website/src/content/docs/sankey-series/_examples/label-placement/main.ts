@@ -28,6 +28,7 @@ const options: AgFlowProportionChartOptions = {
             sizeKey: 'size',
             sizeName: 'Total (USD millions)',
             label: {
+                placement: 'right',
                 edgePlacement: 'outside',
             },
         },
