@@ -60,3 +60,8 @@ function placeEdgeOutside() {
     (options.series![0] as AgSankeySeriesOptions).label!.edgePlacement = 'outside';
     chart.update(options);
 }
+
+function placeEdgeDefault() {
+    (options.series![0] as AgSankeySeriesOptions).label!.edgePlacement = undefined;
+    chart.update(options);
+}
