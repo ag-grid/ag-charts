@@ -228,7 +228,7 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} --exclude='*,!ag-charts-website'
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
 
     test:
         runs-on: ubuntu-24.04
