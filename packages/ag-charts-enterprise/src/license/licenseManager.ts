@@ -15,7 +15,7 @@ const LICENSE_TYPES = {
 const LICENSING_HELP_URL = 'https://www.ag-grid.com/charts/licensing/';
 
 export class LicenseManager {
-    private static readonly RELEASE_INFORMATION: string = 'MTc1NzQ4ODExNDMxNQ==';
+    private static readonly RELEASE_INFORMATION: string = 'MTc2MDcxNjc3MTQxMQ==';
     private static licenseKey?: string;
     private static gridContext: boolean = false;
     private watermarkMessage: string | undefined = undefined;
