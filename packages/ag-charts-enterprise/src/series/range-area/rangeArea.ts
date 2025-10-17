@@ -1133,6 +1133,8 @@ export class RangeAreaSeries extends BaseSeries {
         type P2 = Parameters<BaseSeries['getMarkerStyle']>;
         true satisfies AreExact<P1, P2>; // break compilation if override/base function signatures do not match.
 
+        // Override the item.(low|high).marker.itemStyler callback property:
+        // It is internal only (hidden from API), so is not set automatically like other properties.
         marker.itemStyler = this.properties.marker.itemStyler;
         return super.getMarkerStyle(marker, datum, params, opts, defaultOverrideStyle, inheritedStyle);
     }
