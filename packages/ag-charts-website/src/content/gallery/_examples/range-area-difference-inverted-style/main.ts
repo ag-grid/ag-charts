@@ -21,6 +21,10 @@ const options: AgCartesianChartOptions = {
             yHighName: 'Renewables',
             fillOpacity: 0.2,
             strokeWidth: 2,
+            marker: {
+                fill: 'white',
+                size: 0,
+            },
             invertedStyle: {
                 fillOpacity: 0.8,
             },
@@ -28,13 +32,10 @@ const options: AgCartesianChartOptions = {
                 high: {
                     lineDash: [4, 6],
                 },
-            },
-            marker: {
-                fill: 'white',
-                itemStyler: ({ itemId }) => {
-                    return {
-                        size: itemId === 'high' ? 0 : 8,
-                    };
+                low: {
+                    marker: {
+                        size: 8,
+                    },
                 },
             },
             tooltip: {
