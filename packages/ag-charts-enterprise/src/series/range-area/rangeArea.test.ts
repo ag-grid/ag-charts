@@ -922,10 +922,12 @@ describe('RangeAreaSeries', () => {
                                 yLowKey: 'gain_low',
                                 yHighKey: 'gain_high',
                                 fill: 'lime', // ignored
+                                marker: {
+                                    itemStyler,
+                                },
                                 item: lowAndHigh({
                                     marker: {
                                         size: 15,
-                                        itemStyler,
                                     },
                                 }),
                                 styler: styler.frozen,
@@ -938,13 +940,15 @@ describe('RangeAreaSeries', () => {
                                 yLowKey: 'loss_low',
                                 yHighKey: 'loss_high',
                                 fill: 'olive', // ignored
+                                marker: {
+                                    itemStyler,
+                                },
                                 item: lowAndHigh({
                                     stroke: 'navy', // not ignored
                                     strokeWidth: 7, // not ignored
                                     marker: {
                                         fill: 'lime', // ignored
                                         fillOpacity: 0.5, // not ignored
-                                        itemStyler,
                                     },
                                 }),
                                 styler: styler.frozen,

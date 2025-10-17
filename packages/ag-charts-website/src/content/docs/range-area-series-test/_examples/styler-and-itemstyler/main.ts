@@ -64,10 +64,12 @@ const options: AgCartesianChartOptions<DatumType> = {
             yLowKey: 'gain_low',
             yHighKey: 'gain_high',
             fill: 'lime', // ignored
+            marker: {
+                itemStyler,
+            },
             ...lowAndHigh({
                 marker: {
                     size: 15,
-                    itemStyler,
                 },
             }),
             styler,
@@ -80,13 +82,15 @@ const options: AgCartesianChartOptions<DatumType> = {
             yLowKey: 'loss_low',
             yHighKey: 'loss_high',
             fill: 'olive', // ignored
+            marker: {
+                itemStyler,
+            },
             ...lowAndHigh({
                 stroke: 'navy', // not ignored
                 strokeWidth: 7, // not ignored
                 marker: {
                     fill: 'lime', // ignored
                     fillOpacity: 0.5, // not ignored
-                    itemStyler,
                 },
             }),
             styler,
