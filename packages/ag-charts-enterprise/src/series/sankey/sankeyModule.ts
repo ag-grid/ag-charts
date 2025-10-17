@@ -30,7 +30,6 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             defaultColorRange: { $palette: 'gradients' },
             defaultPatternFills: _ModuleSupport.SAFE_FILLS_OPERATION,
-            minSize: 1,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,
