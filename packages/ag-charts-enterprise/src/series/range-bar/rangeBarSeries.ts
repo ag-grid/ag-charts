@@ -808,6 +808,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];

@@ -699,9 +699,10 @@ describe('RadialBarSeries', () => {
         });
     });
 
-    test('AG-15743 legendItemName', async () => {
-        chart = await testLegendItemName({
-            prepare: prepareEnterpriseTestOptions,
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            compare,
             chartOptions: {
                 data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
                 series: [
@@ -711,6 +712,5 @@ describe('RadialBarSeries', () => {
                 ],
             },
         });
-        await compare();
     });
 });

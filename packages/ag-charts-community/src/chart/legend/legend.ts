@@ -32,7 +32,7 @@ import type {
     PixelSize,
 } from 'ag-charts-types';
 
-import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
+import type { HighlightNodeDatum, LegendChangeEvent, LegendChangePartialEvent } from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -333,6 +333,7 @@ export class Legend extends BaseProperties {
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
         this.cleanup.register(
             ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
+            ctx.eventsHub.on('legend:change-partial', this.onLegendDataChangePartial.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.eventsHub.on('locale:change', () => this.onLocaleChanged()),
             () => delete items['toggle-series-visibility'].action,
@@ -348,6 +349,17 @@ export class Legend extends BaseProperties {
     private onLegendDataChange({ legendData = [] }: LegendChangeEvent) {
         if (!this.enabled) return;
         this.data = legendData.filter((datum) => !datum.hideInLegend);
+    }
+
+    private onLegendDataChangePartial(event: LegendChangePartialEvent) {
+        this.itemSelection.each(({ proxyButton }, { itemId }) => {
+            if (proxyButton == null) return;
+            for (const eventElem of event.legendData) {
+                if (eventElem.itemId === itemId) {
+                    proxyButton.setChecked(eventElem.enabled);
+                }
+            }
+        });
     }
 
     public destroy() {

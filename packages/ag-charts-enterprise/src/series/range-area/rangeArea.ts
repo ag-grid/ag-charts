@@ -1,6 +1,7 @@
 import {
     type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
+    type AgRangeAreaSeriesLineStyle,
     type AgRangeAreaSeriesOptions,
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
@@ -58,8 +59,6 @@ const {
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
 
-const DEFAULT_ITEM = 'low';
-
 type ResolvedLineStyleMixin = {
     marker?: {
         enabled?: boolean;
@@ -72,7 +71,7 @@ type ResolvedStyleMixin = {
     };
 };
 type PartialStylerResult = AgRangeAreaSeriesStyle & { opacity?: number };
-type StylerResult = DeepRequired<PartialStylerResult, 'fill'>;
+type StylerResult = DeepRequired<PartialStylerResult, 'fill'> & { topLevel: Required<AgRangeAreaSeriesLineStyle> };
 type StylerMarkerOptionsResult = DeepRequired<ResolvedStyleMixin>;
 
 class RangeAreaSeriesNodeEvent<
@@ -614,7 +613,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { processedData, axes, properties } = this;
 
         type LowHighRules = { [K in 'low' | 'high']: { marker: { enabled: boolean } } };
-        const { low, high }: LowHighRules = properties.styler ? this.getStylerMarkerOptions().item : properties.item;
+        const rules: LowHighRules = properties.styler ? this.getStylerMarkerOptions().item : properties.item;
+        const { low, high } = rules;
 
         const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, {
             enabled: low.marker.enabled || high.marker.enabled,
@@ -624,7 +624,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             datumSelection.clear();
             datumSelection.cleanup();
         }
-        return datumSelection.update(markersEnabled ? nodeData : []);
+
+        let resolvedNodeData: typeof nodeData;
+        if (markersEnabled) {
+            if (low.marker.enabled && high.marker.enabled) {
+                // All marker enables
+                resolvedNodeData = nodeData;
+            } else {
+                // Markers only on 1 line (filter out the nodeDatums that we need).
+                resolvedNodeData = [];
+                for (const datum of nodeData) {
+                    if (rules[datum.itemId].marker.enabled) {
+                        resolvedNodeData.push(datum);
+                    }
+                }
+            }
+        } else {
+            // No marker whatsoever.
+            resolvedNodeData = [];
+        }
+        return datumSelection.update(resolvedNodeData);
     }
 
     protected override updateDatumStyles({
@@ -783,6 +802,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fill: stylerResult.fill ?? fill,
             fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
             opacity: 1,
+            topLevel: {
+                lineDash: this.properties.lineDash,
+                lineDashOffset: this.properties.lineDashOffset,
+                marker: this.properties.marker,
+                stroke: this.properties.stroke,
+                strokeOpacity: this.properties.strokeOpacity,
+                strokeWidth: this.properties.strokeWidth,
+            },
             item: {
                 low: makeItemResult('low'),
                 high: makeItemResult('high'),
@@ -901,8 +928,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, item } = this.getStyle(false);
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item[DEFAULT_ITEM];
+        const { fill, topLevel } = this.getStyle(false);
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = topLevel;
 
         const markerStyle = {
             shape: marker.shape,
@@ -945,6 +972,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];
@@ -1104,8 +1132,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override hasItemStylers(): boolean {
         return (
             this.properties.styler != null ||
-            this.properties.item.low.marker.itemStyler != null ||
-            this.properties.item.high.marker.itemStyler != null ||
+            this.properties.marker.itemStyler != null ||
             this.properties.label.itemStyler != null
         );
     }

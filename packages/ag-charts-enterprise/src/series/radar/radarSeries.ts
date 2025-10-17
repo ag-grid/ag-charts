@@ -520,6 +520,7 @@ export abstract class RadarSeries<
                     text: legendItemName ?? radiusName ?? radiusKey,
                 },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];

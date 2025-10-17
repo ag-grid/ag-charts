@@ -604,6 +604,7 @@ export abstract class RadialColumnSeriesBase<
                     text: legendItemName ?? radiusName ?? radiusKey,
                 },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];

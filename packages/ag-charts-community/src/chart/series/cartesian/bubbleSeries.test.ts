@@ -887,9 +887,10 @@ describe('BubbleSeries', () => {
         });
     });
 
-    test('AG-15743 legendItemName', async () => {
-        chart = await testLegendItemName({
-            prepare: prepareTestOptions,
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            compare,
             chartOptions: {
                 data: [
                     { He_V: 10, He_P: 95, He_m: 2, Ne_V: 10, Ne_P: 90, Ne_m: 10, Ar_V: 10, Ar_P: 80, Ar_m: 18 },
@@ -903,6 +904,5 @@ describe('BubbleSeries', () => {
                 ],
             },
         });
-        await compare();
     });
 });

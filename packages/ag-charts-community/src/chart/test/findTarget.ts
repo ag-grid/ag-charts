@@ -1,10 +1,9 @@
 import { boxContains } from 'ag-charts-core';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, ClassTypePair, type MockEvent, makeMockEvent } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, type MockEvent, makeMockEvent } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
 import { Node } from '../../scene/node';
-import { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { ListWidget } from '../../widget/listWidget';
@@ -18,25 +17,6 @@ import { Legend } from '../legend/legend';
 import { LegendDOMProxy } from '../legend/legendDOMProxy';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
-
-const CAST_INFO = {
-    Array: new ClassTypePair<unknown[], typeof Array>(Array),
-
-    BBox: new ClassTypePair<BBox, typeof BBox>(BBox),
-    TranslatableGroup: new ClassTypePair<TranslatableGroup, typeof TranslatableGroup>(TranslatableGroup),
-    Scene: new ClassTypePair<Scene, typeof Scene>(Scene),
-    Node: new ClassTypePair<Node, typeof Node>(Node),
-
-    Legend: new ClassTypePair<Legend, typeof Legend>(Legend),
-    LegendDOMProxy: new ClassTypePair<LegendDOMProxy, typeof LegendDOMProxy>(LegendDOMProxy),
-    SeriesAreaManager: new ClassTypePair<SeriesAreaManager, typeof SeriesAreaManager>(SeriesAreaManager),
-
-    ToolbarWidget: new ClassTypePair<ToolbarWidget, typeof ToolbarWidget>(ToolbarWidget),
-    SliderWidget: new ClassTypePair<SliderWidget, typeof SliderWidget>(SliderWidget),
-    ListWidget: new ClassTypePair<ListWidget, typeof ListWidget>(ListWidget),
-    NativeWidget: new ClassTypePair<NativeWidget, typeof NativeWidget>(NativeWidget),
-    WidgetSet: new ClassTypePair<WidgetSet, typeof WidgetSet>(WidgetSet),
-} as const;
 
 function initBoundingClientRect(widgets: WidgetSet) {
     // getBoundingClientRect doesn't work correctly in node.js, but it's used in some parts of ag-charts.
@@ -89,14 +69,14 @@ function findLegendTarget(legendModule: unknown, clientX: number, clientY: numbe
     if (legendModule === undefined) return undefined;
 
     const legend = new Caster(legendModule)
-        .cast(CAST_INFO.Legend)
+        .cast(Legend)
         .findProperty('group')
-        .castProperty('group', CAST_INFO.TranslatableGroup).value;
+        .castProperty('group', TranslatableGroup).value;
     const legendDOMProxy = new Caster(legendModule)
         .accessProperty('domProxy')
-        .cast(CAST_INFO.LegendDOMProxy)
+        .cast(LegendDOMProxy)
         .findProperty('itemList')
-        .castProperty('itemList', CAST_INFO.ListWidget).value;
+        .castProperty('itemList', ListWidget).value;
 
     if (!isClickable(legendDOMProxy.itemList)) return undefined;
 
@@ -118,17 +98,17 @@ function findNavigatorTarget(navigatorModule: unknown, clientX: number, clientY:
     const navigator = caster
         .findBoolean('enabled')
         .findProperty('minHandle')
-        .castProperty('minHandle', CAST_INFO.Node)
+        .castProperty('minHandle', Node)
         .findProperty('maxHandle')
-        .castProperty('maxHandle', CAST_INFO.Node)
+        .castProperty('maxHandle', Node)
         .findProperty('mask')
-        .castProperty('mask', CAST_INFO.Node).value;
+        .castProperty('mask', Node).value;
     const domProxy = caster
         .accessProperty('domProxy')
         .findProperty('toolbar')
-        .castProperty('toolbar', CAST_INFO.ToolbarWidget)
+        .castProperty('toolbar', ToolbarWidget)
         .findProperty('sliders')
-        .castPropertyArray('sliders', CAST_INFO.SliderWidget).value;
+        .castPropertyArray('sliders', SliderWidget).value;
 
     if (!navigator.enabled) return undefined;
 
@@ -161,9 +141,9 @@ function findZoomTarget(zoomModule: unknown, clientX: number, clientY: number): 
         const domProxy = caster
             .accessProperty('domProxy')
             .findProperty('axes')
-            .castProperty('axes', CAST_INFO.Array)
+            .castProperty('axes', Array)
             .findArrayElementProperties('axes', 'div')
-            .castArrayElementProperties('axes', 'div', CAST_INFO.NativeWidget).value;
+            .castArrayElementProperties('axes', 'div', NativeWidget).value;
 
         for (const axis of domProxy.axes) {
             const bbox = axis.div.getBounds();
@@ -182,9 +162,9 @@ function findZoomTarget(zoomModule: unknown, clientX: number, clientY: number): 
 function findSeriesAreaTarget(chart: unknown, widgets: WidgetSet, clientX: number, clientY: number): MockEvent {
     const seriesRect = new Caster(chart)
         .accessProperty('seriesAreaManager')
-        .cast(CAST_INFO.SeriesAreaManager)
+        .cast(SeriesAreaManager)
         .findProperty('seriesRect')
-        .castProperty('seriesRect', CAST_INFO.BBox).value.seriesRect;
+        .castProperty('seriesRect', BBox).value.seriesRect;
     const { seriesWidget, containerWidget } = widgets;
 
     const inSeriesRect = seriesRect?.containsPoint(clientX, clientY);
@@ -196,7 +176,7 @@ function findSeriesAreaTarget(chart: unknown, widgets: WidgetSet, clientX: numbe
 }
 
 export function findChartTarget(chart: Chart, clientX: number, clientY: number): MockEvent {
-    const widgets = new Caster(chart).accessProperty('ctx').accessProperty('widgets').cast(CAST_INFO.WidgetSet).value;
+    const widgets = new Caster(chart).accessProperty('ctx').accessProperty('widgets').cast(WidgetSet).value;
     initBoundingClientRect(widgets);
 
     const getModule = (s: string) => chart.modulesManager.getModule(s);

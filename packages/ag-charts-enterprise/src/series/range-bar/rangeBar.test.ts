@@ -16,6 +16,7 @@ import {
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     testLegendItemName,
     waitForChartStability,
@@ -25,6 +26,7 @@ import { roundTo } from 'ag-charts-core';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RangeBarSeries', () => {
+    setupMockConsole();
     let chart: any;
     const ctx = setupMockCanvas();
 
@@ -1452,9 +1454,10 @@ describe('RangeBarSeries', () => {
         });
     });
 
-    test('AG-15743 legendItemName', async () => {
-        chart = await testLegendItemName({
-            prepare: prepareEnterpriseTestOptions,
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            compare,
             chartOptions: {
                 data: [
                     { x: 'West', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
@@ -1467,6 +1470,5 @@ describe('RangeBarSeries', () => {
                 ],
             },
         });
-        await compare();
     });
 });
