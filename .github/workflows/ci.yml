@@ -76,26 +76,23 @@ jobs:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
 
-            - name: nx build
+            - name: nx build and generate cacheable examples
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx run-many -t build --exclude tag:skip-gha-cache,all --parallel=3
+                  yarn nx run-many -t build,generate-example --exclude tag:skip-gha-cache,all
 
             - name: Build tests
-              run: yarn nx run-many -t generate-test-files --parallel=3
+              run: yarn nx run-many -t generate-test-files
 
-            - name: Build cacheable examples
+            - name: Build non-cacheable examples
               run: |
-                  # Build all cacheable examples
-                  yarn nx run-many -t generate-example --exclude tag:skip-gha-cache --parallel=3
-
                   # Get all non-benchmark non-Nx-cacheable examples for e2e tests
                   yarn nx graph --file=/tmp/graph.json
                   e2e_cacheable=$(jq -r '[.graph.nodes | to_entries[] | select(.value.data.tags | contains(["skip-gha-cache"]) and contains(["type:generated-example"])) | .key] | map(select(contains("benchmarks") | not)) | join(",")' /tmp/graph.json)
 
                   # Build all non-Nx-cacheable examples for e2e tests
-                  yarn nx run-many -t generate-example -p ${e2e_cacheable} --parallel=3 --excludeTaskDependencies --skip-nx-cache
+                  yarn nx run-many -t generate-example -p ${e2e_cacheable} --excludeTaskDependencies --skip-nx-cache
 
             - name: Calculate test matrices
               id: matrix
@@ -182,13 +179,13 @@ jobs:
             - name: nx lint
               id: lint
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
 
             - name: nx build
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all,ag-charts-website
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude all,ag-charts-website
 
             - name: nx generate
               id: generate
@@ -197,7 +194,7 @@ jobs:
 
             - name: nx run-many -t validate-examples
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --parallel=3 --exclude all
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --exclude all
 
     website_build:
         runs-on: ubuntu-24.04
