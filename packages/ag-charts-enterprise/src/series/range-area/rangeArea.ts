@@ -626,10 +626,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
 
         let resolvedNodeData: typeof nodeData;
-        if (!markersEnabled) {
-            // No marker whatsoever.
-            resolvedNodeData = [];
-        } else {
+        if (markersEnabled) {
             if (low.marker.enabled && high.marker.enabled) {
                 // All marker enables
                 resolvedNodeData = nodeData;
@@ -642,6 +639,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     }
                 }
             }
+        } else {
+            // No marker whatsoever.
+            resolvedNodeData = [];
         }
         return datumSelection.update(resolvedNodeData);
     }
