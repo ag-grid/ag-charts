@@ -156,19 +156,19 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     fillOpacity: number = 1;
 
     @Property
-    stroke?: string;
+    stroke: string = '#99CCFF';
 
     @Property
-    strokeWidth?: number;
+    strokeWidth: number = 1;
 
     @Property
-    strokeOpacity?: number;
+    strokeOpacity: number = 1;
 
     @Property
-    lineDash?: number[];
+    lineDash: number[] = [0];
 
     @Property
-    lineDashOffset?: number;
+    lineDashOffset: number = 0;
 
     @Property
     interpolation: _ModuleSupport.InterpolationProperties = new InterpolationProperties();

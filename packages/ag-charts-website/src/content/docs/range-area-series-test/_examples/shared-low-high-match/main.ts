@@ -64,7 +64,7 @@ const series5Style: ItemStyle = {
         shape: 'heart',
     },
 };
-const series6Style: ItemStyle = {
+const series6Style_shared: ItemStyle = {
     marker: {
         itemStyler: (p: AgRangeAreaSeriesItemStylerParams<DatumType, unknown>) => {
             if (p.itemId === 'low') {
@@ -72,6 +72,22 @@ const series6Style: ItemStyle = {
             } else {
                 return { size: 18, shape: 'plus' };
             }
+        },
+    },
+};
+const series6Style_lowhigh: Pick<AgRangeAreaSeriesThemeableOptions, 'item'> = {
+    item: {
+        low: {
+            marker: {
+                size: 18,
+                shape: 'heart',
+            },
+        },
+        high: {
+            marker: {
+                size: 18,
+                shape: 'plus',
+            },
         },
     },
 };
@@ -96,8 +112,7 @@ function toggleLowHigh(lowHigh: boolean): void {
         animation: { enabled: false },
         data: getData(),
         legend: {
-            item: { line: { length: 50 } },
-            position: 'left',
+            enabled: false,
         },
         series: [
             {
@@ -157,7 +172,7 @@ function toggleLowHigh(lowHigh: boolean): void {
                 yName: 'G',
                 yLowKey: 'g_low',
                 yHighKey: 'g_high',
-                ...(lowHigh ? lowAndHigh(series6Style) : series6Style),
+                ...(lowHigh ? series6Style_lowhigh : series6Style_shared),
             },
         ],
     } satisfies AgChartOptions<DatumType>);

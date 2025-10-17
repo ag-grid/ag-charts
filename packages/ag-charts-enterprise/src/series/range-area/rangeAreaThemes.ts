@@ -21,13 +21,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
     },
     marker: {
         enabled: {
-            $isUserOption: [
-                '/series/$index/marker',
-                {
-                    $path: ['/series/$index/marker/enabled', true],
-                },
-                false,
-            ],
+            $path: '/series/$index/marker/enabled',
         },
         fill: {
             $isUserOption: [
@@ -100,6 +94,8 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         strokeWidth: {
             $path: ['/series/$index/marker/strokeWidth', 2],
         },
+        // @ts-expect-error Internal Property (hidden from contract);
+        // setting this internally allows RangeAreaSeries to use the base Series.getMarkerStyle method
         itemStyler: {
             $path: '/series/$index/marker/itemStyler',
         },
@@ -119,6 +115,24 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             ],
         },
         fillOpacity: 0.7,
+        stroke: { $palette: 'stroke' },
+        strokeWidth: 1,
+        marker: {
+            enabled: false,
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ],
+            },
+            shape: 'circle',
+            stroke: { $palette: 'stroke' },
+            size: 6,
+            strokeWidth: 2,
+        },
         nodeClickRange: 'nearest',
         item: {
             low: RANGE_AREA_ITEM,
