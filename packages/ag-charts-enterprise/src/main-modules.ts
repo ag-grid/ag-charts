@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/prefer-export-from */
 import { GaugePresetModule, PriceVolumePresetModule } from 'ag-charts-community/modules';
 import { type ModuleDefinition } from 'ag-charts-core';
 
