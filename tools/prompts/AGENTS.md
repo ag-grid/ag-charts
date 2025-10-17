@@ -4,6 +4,7 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 ## Must-Know Checklist
 
+-   **Yarn and Nx based repo:** Use Yarn for package management and Nx for build and test orchestration.
 -   **Main constraint:** Community and enterprise runtime bundles stay dependency-free beyond AG Charts code.
 -   **Default branch:** Target `latest`; follow release/JIRA naming conventions below for topic branches.
 -   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`nx dev`) and build health (see [Development Server Guide](tools/prompts/guides/dev-server.md)).
