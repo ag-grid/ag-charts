@@ -21,6 +21,7 @@ export { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeri
 export { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
 export * from './chart/series/cartesian/util';
 export * from './chart/cartesianUtil';
+export { CartesianCrossLine } from './chart/crossline/cartesianCrossLine';
 
 export * from './util/angle';
 export * from './util/border';
