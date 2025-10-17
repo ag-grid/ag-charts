@@ -4,6 +4,7 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 ## Must-Know Checklist
 
+-   **Yarn and Nx based repo:** Use Yarn for package management and Nx for build and test orchestration.
 -   **Main constraint:** Community and enterprise runtime bundles stay dependency-free beyond AG Charts code.
 -   **Default branch:** Target `latest`; follow release/JIRA naming conventions below for topic branches.
 -   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`nx dev`) and build health (see [Development Server Guide](tools/prompts/guides/dev-server.md)).
@@ -66,6 +67,7 @@ NOTE: These are only intended for agentic tools that don't support custom slash 
 -   `/spruce-example` - execute `tools/prompts/commands/spruce-example.md` on specified example.
 -   `/pr-review` - execute `tools/prompts/commands/pr-review.md` on specified PR.
 -   `/release-options-review` - execute `tools/prompts/commands/release-options-review.md` on specified release options.
+-   `/release-docs-review` - execute `tools/prompts/commands/release-docs-review.md` to review all documentation changes between releases.
 -   `/docs-review` - execute `tools/prompts/commands/docs-review.md` on specified docs.
 -   `/sonar-fix` - execute `tools/prompts/commands/sonar-fix.md` to review and fix SonarCloud issues.
 
