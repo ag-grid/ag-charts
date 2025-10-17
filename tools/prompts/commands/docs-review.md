@@ -93,6 +93,7 @@ For each API/interface mentioned in docs:
 | -------------------------------------------- | ----------------------------------------------------------------------------------- |
 | Series type: `${type}` (e.g., "bar", "line") | `packages/ag-charts-{community,enterprise}/src/series/cartesian/${type}/*Series.ts` |
 | Series type: pie/donut                       | `packages/ag-charts-community/src/series/polar/pie/*Series.ts`                      |
+| Series/feature module with theme defaults    | `packages/ag-charts-{community,enterprise}/src/**/*Module.ts`                       |
 | Axis feature                                 | `packages/ag-charts-community/src/axes/**/*.ts`                                     |
 | Legend feature                               | `packages/ag-charts-community/src/chart/legend/*.ts`                                |
 | Annotation feature                           | `packages/ag-charts-enterprise/src/features/annotations/**/*.ts`                    |
@@ -116,13 +117,14 @@ Document all discovered files and create validation tasks:
 
 1. **List TypeScript definitions to verify** (with full paths from Step 1C)
 2. **List implementation files to cross-check** (with full paths from Step 1D)
-3. **List examples to test** with:
+3. **List module files to check for theme template defaults** (with full paths from Step 1D)
+4. **List examples to test** with:
     - Example name and path
     - What the docs claim it demonstrates
     - Key configurations mentioned in docs
     - Expected behaviors described
-4. **List interactive features** to test (mode-dependent)
-5. **List visual states** to capture (full mode only)
+5. **List interactive features** to test (mode-dependent)
+6. **List visual states** to capture (full mode only)
 
 **Output**: Write `packages/ag-charts-website/src/content/docs/${pageName}/technical-review-plan.md`
 
@@ -134,14 +136,20 @@ Document all discovered files and create validation tasks:
 
 2. **Technical Accuracy Review** (always performed in all modes):
 
+    > **⚠️ Default Value Verification**: When checking defaults, always verify against the three-tier hierarchy: `@Property` decorator < theme template < user config. Theme templates in `*Module.ts` files override decorator defaults and represent actual runtime behavior. See [Default Values Guide](../guides/defaults.md) for complete details.
+
     - Verify APIs against TypeScript definitions in `packages/ag-charts-types/src/`
     - Check implementations in `packages/ag-charts-community/src/` and `packages/ag-charts-enterprise/src/`
-    - Validate default values (`@Property` decorators)
+    - Validate default values using the correct hierarchy:
+        1. **First**: Check `*Module.ts` theme template (actual runtime default)
+        2. **Fallback**: Check `@Property` decorator (only if not in theme)
+        3. **Verify**: TypeScript comments match the actual runtime default
     - Verify code snippets work correctly
     - Document findings with:
         - Status indicators: `[CRITICAL]`, `[WARNING]`, or `[PASSED]`
         - Specific file:line locations
         - Code examples showing incorrect vs correct
+        - For defaults: Show all three layers (decorator / theme / docs)
 
 3. **Example Testing** (mode-dependent, see Mode Adaptations table):
 
@@ -241,10 +249,12 @@ Structure each finding as:
 Example:
 
 ```
-[CRITICAL] **API Mismatch** at `index.mdoc:45`
-- Docs claim: `enabled: false` (default)
-- Actual: `enabled: true` per `@Property` decorator in `Properties.ts:123`
-- Fix: Update documentation to reflect true default
+[CRITICAL] **Default Value Mismatch** at `index.mdoc:45`
+- Docs claim: `spacing: 10` (default)
+- @Property decorator: `spacing: number = 1` (Properties.ts:95)
+- Theme template: `spacing: 20` (Module.ts:51) ✅ Actual runtime default
+- TypeScript comment: `spacing: 10` (Options.ts:74) ❌ Stale
+- Fix: Update documentation and TypeScript comment to reflect runtime default of 20
 ```
 
 ### 5. Example Consistency Issues
@@ -301,8 +311,9 @@ Overall assessment including:
     -   Applies to: label, marker, tooltip, legend, axes
     -   Exception: theme.overrides requires explicit `enabled`
 -   **Common Pitfalls**:
-    -   Verify default values against `@Property` decorators
+    -   Verify default values against theme templates first, not just `@Property` decorators
     -   Don't assume similar chart types (pie/donut) behave identically
+    -   Check module files (`*Module.ts`) for actual runtime defaults before documenting
 
 ## Tool Usage by Phase
 
