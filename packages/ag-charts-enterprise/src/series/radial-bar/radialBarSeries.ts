@@ -592,6 +592,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                     text: legendItemName ?? angleName ?? angleKey,
                 },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];

@@ -1595,9 +1595,10 @@ describe('LineSeries', () => {
         });
     });
 
-    test('AG-15743 legendItemName', async () => {
-        chart = await testLegendItemName({
-            prepare: prepareTestOptions,
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            compare,
             chartOptions: {
                 data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
                 series: [
@@ -1607,6 +1608,5 @@ describe('LineSeries', () => {
                 ],
             },
         });
-        await compare();
     });
 });

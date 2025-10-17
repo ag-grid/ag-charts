@@ -943,6 +943,7 @@ export class BubbleSeries extends CartesianSeries<
                     text: legendItemName ?? title ?? yName ?? itemId,
                 },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];

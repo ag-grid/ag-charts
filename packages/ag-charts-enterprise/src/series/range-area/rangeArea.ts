@@ -972,6 +972,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];
