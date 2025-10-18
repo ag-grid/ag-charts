@@ -52,8 +52,8 @@ const DEFAULT_OPTIONS = {
     batchSize: 5,
     summaryBatchSize: 10,
     skipScreenshots: false,
-    planningModel: 'opus',
-    executionModel: 'sonnet',
+    planningModel: 'sonnet',
+    executionModel: 'haiku',
     summaryModel: 'sonnet',
     resume: false,
     resumePhase: PHASES.PLANNING,
@@ -585,6 +585,7 @@ async function runClaudeCode(prompt, model, pageName, phase, options) {
 
             if (code === 0) {
                 resolve(stdout);
+                return;
             }
 
             const quotaError = hasQuotaError(stderr, stdout);
@@ -1476,12 +1477,12 @@ function parseArgs() {
         })
         .option('planning-model', {
             type: 'string',
-            default: 'opus',
+            default: 'sonnet',
             describe: 'Model to use for Phase 1 planning',
         })
         .option('execution-model', {
             type: 'string',
-            default: 'sonnet',
+            default: 'haiku',
             describe: 'Model to use for Phase 2 execution',
         })
         .option('summary-model', {
