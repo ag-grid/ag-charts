@@ -139,6 +139,22 @@ function setup_agents() {
     done
 }
 
+function setup_skills() {
+    local target_dir=$1
+
+    mkdir -p $target_dir
+    for skill_dir in tools/prompts/skills/*/; do
+        if [[ -d "$skill_dir" ]]; then
+            local skill_name=$(basename "$skill_dir")
+            # Remove existing symlink or directory if it exists
+            if [[ -L "$target_dir/$skill_name" || -d "$target_dir/$skill_name" ]]; then
+                rm -rf "$target_dir/$skill_name"
+            fi
+            ln -sf "../../$skill_dir" "$target_dir/$skill_name"
+        fi
+    done
+}
+
 function setup_instructions() {
     local target_file=$1
 
@@ -361,6 +377,7 @@ fi
 if (command -v claude >/dev/null 2>&1) ; then
     setup_commands .claude/commands
     setup_agents .claude/agents
+    setup_skills .claude/skills
     setup_instructions CLAUDE.md
     setup_mcp .mcp.json
 fi
