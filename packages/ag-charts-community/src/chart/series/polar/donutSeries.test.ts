@@ -894,37 +894,10 @@ describe('DonutSeries', () => {
             expect(legendData.length).toBe(20);
 
             // The critical fix: verify all legend items have defined fill/stroke colors
-            // Before the fix, items 10-19 would have undefined fills/strokes
+            // Before the fix (without modulo), fills[datumIndex] with datumIndex >= 10
+            // would return undefined, causing legend markers on page 2+ to have no colors
+            // After the fix (with modulo), colors cycle: fills[modulus(datumIndex, fills.length)]
             for (let i = 0; i < legendData.length; i++) {
-                const item = legendData[i];
-                const fill = item.symbol.marker.fill;
-                const stroke = item.symbol.marker.stroke;
-
-                // This is the key assertion - fill and stroke must not be undefined
-                expect(fill).toBeDefined();
-                expect(fill).not.toBeNull();
-                expect(stroke).toBeDefined();
-                expect(stroke).not.toBeNull();
-
-                // Additionally verify they are string colors (not undefined would pass with any truthy value)
-                if (typeof fill === 'string') {
-                    expect(fill).toMatch(/^#[0-9a-f]{6}$/i);
-                }
-                if (typeof stroke === 'string') {
-                    expect(stroke).toMatch(/^#[0-9a-f]{6}$/i);
-                }
-            }
-
-            // The key verification: all items should have valid, defined colors
-            // Before the fix (without modulo in getItemStyle), attempting to access
-            // fills[datumIndex] and strokes[datumIndex] with datumIndex >= array.length
-            // would return undefined, causing legend markers to have no colors
-            //
-            // After the fix (with modulo), all items get valid colors by cycling through
-            // the available colors: fills[modulus(datumIndex, fills.length)]
-            //
-            // This test verifies the fix by ensuring all 20 legend items have defined colors
-            for (let i = 0; i < 20; i++) {
                 const item = legendData[i];
                 const fill = item.symbol.marker.fill;
                 const stroke = item.symbol.marker.stroke;
@@ -935,12 +908,12 @@ describe('DonutSeries', () => {
                 expect(stroke).toBeDefined();
                 expect(stroke).not.toBeNull();
 
-                // Verify they are actual color strings
+                // Verify they are valid hex color strings
                 if (typeof fill === 'string') {
-                    expect(fill.length).toBeGreaterThan(0);
+                    expect(fill).toMatch(/^#[0-9a-f]{6}$/i);
                 }
                 if (typeof stroke === 'string') {
-                    expect(stroke.length).toBeGreaterThan(0);
+                    expect(stroke).toMatch(/^#[0-9a-f]{6}$/i);
                 }
             }
         });
