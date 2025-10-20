@@ -857,6 +857,118 @@ describe('PieSeries', () => {
         });
     });
 
+    // CRT-971 - Legend items should have colors when there are more segments than defined colors
+    describe('CRT-971 legend color cycling with pagination', () => {
+        it('should display colors for all legend items when segments exceed color array length', async () => {
+            // Create 20 data points - more than the default 10 colors
+            const data = Array.from({ length: 20 }, (_, i) => ({
+                name: `Item ${i + 1}`,
+                value: 10 + i, // Use deterministic values
+            }));
+
+            const opts: AgPolarChartOptions = prepareTestOptions({
+                data,
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'value',
+                        calloutLabelKey: 'name',
+                        // Explicitly set only 10 fills to test color cycling
+                        fills: [
+                            '#5090dc',
+                            '#ffa03a',
+                            '#459d55',
+                            '#34bfe1',
+                            '#e1cc00',
+                            '#9669cb',
+                            '#b5b5b5',
+                            '#bd5aa7',
+                            '#8a6224',
+                            '#ef5452',
+                        ],
+                        strokes: [
+                            '#2b5c95',
+                            '#cc6f10',
+                            '#1e652e',
+                            '#18859e',
+                            '#a69400',
+                            '#603c88',
+                            '#575757',
+                            '#7d2f6d',
+                            '#4f3508',
+                            '#a82529',
+                        ],
+                    },
+                ],
+                legend: {
+                    enabled: true,
+                    maxHeight: 60, // Constrain height to force pagination
+                },
+            });
+
+            chart = await createChart(opts);
+            await waitForChartStability(chart);
+
+            // Access the series directly to get legend data
+            const series = deproxy(chart).series[0];
+            const legendData = series.getLegendData('category');
+
+            // Verify all legend items have fill colors defined
+            expect(legendData.length).toBe(20);
+
+            // The critical fix: verify all legend items have defined fill/stroke colors
+            // Before the fix, items 10-19 would have undefined fills/strokes
+            for (let i = 0; i < legendData.length; i++) {
+                const item = legendData[i];
+                const fill = item.symbol.marker.fill;
+                const stroke = item.symbol.marker.stroke;
+
+                // This is the key assertion - fill and stroke must not be undefined
+                expect(fill).toBeDefined();
+                expect(fill).not.toBeNull();
+                expect(stroke).toBeDefined();
+                expect(stroke).not.toBeNull();
+
+                // Additionally verify they are string colors (not undefined would pass with any truthy value)
+                if (typeof fill === 'string') {
+                    expect(fill).toMatch(/^#[0-9a-f]{6}$/i);
+                }
+                if (typeof stroke === 'string') {
+                    expect(stroke).toMatch(/^#[0-9a-f]{6}$/i);
+                }
+            }
+
+            // The key verification: all items should have valid, defined colors
+            // Before the fix (without modulo in getItemStyle), attempting to access
+            // fills[datumIndex] and strokes[datumIndex] with datumIndex >= array.length
+            // would return undefined, causing legend markers to have no colors
+            //
+            // After the fix (with modulo), all items get valid colors by cycling through
+            // the available colors: fills[modulus(datumIndex, fills.length)]
+            //
+            // This test verifies the fix by ensuring all 20 legend items have defined colors
+            for (let i = 0; i < 20; i++) {
+                const item = legendData[i];
+                const fill = item.symbol.marker.fill;
+                const stroke = item.symbol.marker.stroke;
+
+                // Critical assertion: no undefined colors
+                expect(fill).toBeDefined();
+                expect(fill).not.toBeNull();
+                expect(stroke).toBeDefined();
+                expect(stroke).not.toBeNull();
+
+                // Verify they are actual color strings
+                if (typeof fill === 'string') {
+                    expect(fill.length).toBeGreaterThan(0);
+                }
+                if (typeof stroke === 'string') {
+                    expect(stroke.length).toBeGreaterThan(0);
+                }
+            }
+        });
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
