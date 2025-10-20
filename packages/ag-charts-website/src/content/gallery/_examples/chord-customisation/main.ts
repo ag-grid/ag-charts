@@ -24,7 +24,6 @@ const options: AgChartOptions = {
         { from: 'LAX', to: 'LHR', passengers: 1645002 },
     ],
     tooltip: {
-        enabled: true,
         position: {
             anchorTo: 'pointer',
             placement: ['right', 'left', 'top', 'bottom'],
@@ -68,7 +67,6 @@ const options: AgChartOptions = {
                     return {
                         data: [
                             { label: 'Route', value: `${datum.from} → ${datum.to}` },
-                            passengers,
                             { label: 'Traffic', value: `${(size / 1e6).toFixed(2)}M passengers/year` },
                         ],
                     };
