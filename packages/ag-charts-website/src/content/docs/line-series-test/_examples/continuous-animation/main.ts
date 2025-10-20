@@ -2,20 +2,86 @@ import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-ent
 
 import { DataType, getData } from './data';
 
-const series: NonNullable<AgChartOptions['series']> = [
+const allSeries: NonNullable<AgChartOptions['series']> = [
     {
         type: 'line',
         xKey: 'date',
-        yKey: 'petrol',
+        yKey: 'value1',
         marker: {},
         label: {},
+        stacked: true,
     },
     {
         type: 'line',
         xKey: 'date',
-        yKey: 'diesel',
+        yKey: 'value2',
         marker: {},
         label: {},
+        stacked: true,
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value3',
+        marker: {},
+        label: {},
+        stacked: true,
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value4',
+        marker: {},
+        label: {},
+        stacked: true,
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value5',
+        marker: {},
+        label: {},
+        stacked: true,
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value6',
+        marker: {},
+        label: {},
+        stacked: true,
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value7',
+        marker: {},
+        label: {},
+        stacked: true,
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value8',
+        marker: {},
+        label: {},
+        stacked: true,
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value9',
+        marker: {},
+        label: {},
+        stacked: true,
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'value10',
+        marker: {},
+        label: {},
+        stacked: true,
     },
 ];
 const options: AgCartesianChartOptions<DataType> = {
@@ -25,7 +91,7 @@ const options: AgCartesianChartOptions<DataType> = {
     },
     legend: {},
     data: getData(),
-    series,
+    series: allSeries.slice(0, 2),
     axes: [
         {
             position: 'bottom',
@@ -44,12 +110,32 @@ const options: AgCartesianChartOptions<DataType> = {
 const chart = AgCharts.create(options);
 
 function genDataPoint(ref: Date | DataType, offsetDays: number): DataType {
-    const { date, petrol = 120, diesel = 125 } = ref instanceof Date ? { date: ref } : ref;
+    const {
+        date,
+        value1 = 120,
+        value2 = 125,
+        value3 = 130,
+        value4 = 118,
+        value5 = 122,
+        value6 = 127,
+        value7 = 119,
+        value8 = 124,
+        value9 = 129,
+        value10 = 121,
+    } = ref instanceof Date ? { date: ref } : ref;
 
     return {
         date: new Date(date.getTime() + offsetDays * 3600 * 24 * 1000),
-        petrol: petrol + Math.random() * 4 - 2,
-        diesel: diesel + Math.random() * 4 - 2,
+        value1: value1 + Math.random() * 4 - 2,
+        value2: value2 + Math.random() * 4 - 2,
+        value3: value3 + Math.random() * 4 - 2,
+        value4: value4 + Math.random() * 4 - 2,
+        value5: value5 + Math.random() * 4 - 2,
+        value6: value6 + Math.random() * 4 - 2,
+        value7: value7 + Math.random() * 4 - 2,
+        value8: value8 + Math.random() * 4 - 2,
+        value9: value9 + Math.random() * 4 - 2,
+        value10: value10 + Math.random() * 4 - 2,
     };
 }
 
@@ -67,7 +153,11 @@ function actionReset() {
 }
 
 function actionAddSeries() {
-    options.series = [...options.series!, series[options.series!.length % series.length]] as any;
+    const currentCount = options.series!.length;
+    if (currentCount >= 10) {
+        return; // Limit to 10 series (matching available data keys)
+    }
+    options.series = [...options.series!, allSeries[currentCount]] as any;
     chart.update(options);
 }
 
@@ -149,8 +239,16 @@ function actionAddDouble() {
 function actionUpdatePoints() {
     options.data = (options.data ?? []).map((d: DataType) => ({
         ...d,
-        petrol: d.petrol + Math.random() * 4 - 2,
-        diesel: d.diesel + Math.random() * 4 - 2,
+        value1: d.value1 + Math.random() * 4 - 2,
+        value2: d.value2 + Math.random() * 4 - 2,
+        value3: d.value3 + Math.random() * 4 - 2,
+        value4: d.value4 + Math.random() * 4 - 2,
+        value5: d.value5 + Math.random() * 4 - 2,
+        value6: d.value6 + Math.random() * 4 - 2,
+        value7: d.value7 + Math.random() * 4 - 2,
+        value8: d.value8 + Math.random() * 4 - 2,
+        value9: d.value9 + Math.random() * 4 - 2,
+        value10: d.value10 + Math.random() * 4 - 2,
     }));
     chart.update(options);
 }
@@ -160,8 +258,16 @@ function actionUpdatePointUndefined() {
         (d: DataType) =>
             ({
                 ...d,
-                petrol: Math.random() > 0.9 ? undefined : d.petrol,
-                diesel: Math.random() > 0.9 ? undefined : d.diesel,
+                value1: Math.random() > 0.9 ? undefined : d.value1,
+                value2: Math.random() > 0.9 ? undefined : d.value2,
+                value3: Math.random() > 0.9 ? undefined : d.value3,
+                value4: Math.random() > 0.9 ? undefined : d.value4,
+                value5: Math.random() > 0.9 ? undefined : d.value5,
+                value6: Math.random() > 0.9 ? undefined : d.value6,
+                value7: Math.random() > 0.9 ? undefined : d.value7,
+                value8: Math.random() > 0.9 ? undefined : d.value8,
+                value9: Math.random() > 0.9 ? undefined : d.value9,
+                value10: Math.random() > 0.9 ? undefined : d.value10,
             }) as DataType
     );
     chart.update(options);

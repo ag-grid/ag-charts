@@ -3,11 +3,11 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { DataType, getData } from './data';
 
 const data = getData();
-const series: NonNullable<AgChartOptions<DataType>['series']> = [
+const allSeries: NonNullable<AgChartOptions<DataType>['series']> = [
     {
         type: 'area',
         xKey: 'date',
-        yKey: 'petrol',
+        yKey: 'value1',
         marker: {},
         label: {},
         strokeWidth: 5,
@@ -16,7 +16,79 @@ const series: NonNullable<AgChartOptions<DataType>['series']> = [
     {
         type: 'area',
         xKey: 'date',
-        yKey: 'diesel',
+        yKey: 'value2',
+        marker: {},
+        label: {},
+        strokeWidth: 5,
+        stacked: true,
+    },
+    {
+        type: 'area',
+        xKey: 'date',
+        yKey: 'value3',
+        marker: {},
+        label: {},
+        strokeWidth: 5,
+        stacked: true,
+    },
+    {
+        type: 'area',
+        xKey: 'date',
+        yKey: 'value4',
+        marker: {},
+        label: {},
+        strokeWidth: 5,
+        stacked: true,
+    },
+    {
+        type: 'area',
+        xKey: 'date',
+        yKey: 'value5',
+        marker: {},
+        label: {},
+        strokeWidth: 5,
+        stacked: true,
+    },
+    {
+        type: 'area',
+        xKey: 'date',
+        yKey: 'value6',
+        marker: {},
+        label: {},
+        strokeWidth: 5,
+        stacked: true,
+    },
+    {
+        type: 'area',
+        xKey: 'date',
+        yKey: 'value7',
+        marker: {},
+        label: {},
+        strokeWidth: 5,
+        stacked: true,
+    },
+    {
+        type: 'area',
+        xKey: 'date',
+        yKey: 'value8',
+        marker: {},
+        label: {},
+        strokeWidth: 5,
+        stacked: true,
+    },
+    {
+        type: 'area',
+        xKey: 'date',
+        yKey: 'value9',
+        marker: {},
+        label: {},
+        strokeWidth: 5,
+        stacked: true,
+    },
+    {
+        type: 'area',
+        xKey: 'date',
+        yKey: 'value10',
         marker: {},
         label: {},
         strokeWidth: 5,
@@ -29,7 +101,7 @@ const options: AgChartOptions<DataType> = {
         enabled: true,
     },
     data,
-    series,
+    series: allSeries.slice(0, 2),
     axes: [
         {
             type: 'time',
@@ -51,13 +123,33 @@ const options: AgChartOptions<DataType> = {
 
 const chart = AgCharts.create(options as AgChartOptions<DataType>);
 
-function genDataPoint(ref: Date | { date: Date; petrol: number; diesel: number }, offsetDays: number) {
-    const { date, petrol = 120, diesel = 125 } = ref instanceof Date ? { date: ref } : ref;
+function genDataPoint(ref: Date | DataType, offsetDays: number) {
+    const {
+        date,
+        value1 = 120,
+        value2 = 125,
+        value3 = 130,
+        value4 = 118,
+        value5 = 122,
+        value6 = 127,
+        value7 = 119,
+        value8 = 124,
+        value9 = 129,
+        value10 = 121,
+    } = ref instanceof Date ? { date: ref } : ref;
 
     return {
         date: new Date(date.getTime() + offsetDays * 3600 * 24 * 1000),
-        petrol: petrol + Math.random() * 4 - 2,
-        diesel: diesel + Math.random() * 4 - 2,
+        value1: value1 + Math.random() * 4 - 2,
+        value2: value2 + Math.random() * 4 - 2,
+        value3: value3 + Math.random() * 4 - 2,
+        value4: value4 + Math.random() * 4 - 2,
+        value5: value5 + Math.random() * 4 - 2,
+        value6: value6 + Math.random() * 4 - 2,
+        value7: value7 + Math.random() * 4 - 2,
+        value8: value8 + Math.random() * 4 - 2,
+        value9: value9 + Math.random() * 4 - 2,
+        value10: value10 + Math.random() * 4 - 2,
     };
 }
 
@@ -75,7 +167,11 @@ function actionReset() {
 }
 
 function actionAddSeries() {
-    options.series = [...options.series!, series[options.series!.length % series.length]] as any;
+    const currentCount = options.series!.length;
+    if (currentCount >= 10) {
+        return; // Limit to 10 series (matching available data keys)
+    }
+    options.series = [...options.series!, allSeries[currentCount]] as any;
     chart.update(options);
 }
 
@@ -162,8 +258,16 @@ function actionAddDouble() {
 function actionUpdatePoints() {
     options.data = (options.data ?? []).map((d: any) => ({
         ...d,
-        petrol: d.petrol ? d.petrol + Math.random() * 40 - 20 : d.petrol,
-        diesel: d.diesel ? d.diesel + Math.random() * 40 - 20 : d.diesel,
+        value1: d.value1 ? d.value1 + Math.random() * 40 - 20 : d.value1,
+        value2: d.value2 ? d.value2 + Math.random() * 40 - 20 : d.value2,
+        value3: d.value3 ? d.value3 + Math.random() * 40 - 20 : d.value3,
+        value4: d.value4 ? d.value4 + Math.random() * 40 - 20 : d.value4,
+        value5: d.value5 ? d.value5 + Math.random() * 40 - 20 : d.value5,
+        value6: d.value6 ? d.value6 + Math.random() * 40 - 20 : d.value6,
+        value7: d.value7 ? d.value7 + Math.random() * 40 - 20 : d.value7,
+        value8: d.value8 ? d.value8 + Math.random() * 40 - 20 : d.value8,
+        value9: d.value9 ? d.value9 + Math.random() * 40 - 20 : d.value9,
+        value10: d.value10 ? d.value10 + Math.random() * 40 - 20 : d.value10,
     }));
     chart.update(options);
 }
@@ -171,8 +275,16 @@ function actionUpdatePoints() {
 function actionUpdatePointUndefined() {
     options.data = (options.data ?? []).map((d: any, idx: number) => ({
         ...d,
-        petrol: idx % 15 == 0 ? undefined : d.petrol,
-        diesel: idx % 20 == 0 ? undefined : d.diesel,
+        value1: idx % 15 == 0 ? undefined : d.value1,
+        value2: idx % 17 == 0 ? undefined : d.value2,
+        value3: idx % 19 == 0 ? undefined : d.value3,
+        value4: idx % 21 == 0 ? undefined : d.value4,
+        value5: idx % 23 == 0 ? undefined : d.value5,
+        value6: idx % 25 == 0 ? undefined : d.value6,
+        value7: idx % 27 == 0 ? undefined : d.value7,
+        value8: idx % 29 == 0 ? undefined : d.value8,
+        value9: idx % 31 == 0 ? undefined : d.value9,
+        value10: idx % 33 == 0 ? undefined : d.value10,
     }));
     chart.update(options);
 }
@@ -180,8 +292,16 @@ function actionUpdatePointUndefined() {
 function actionUpdatePointDefined() {
     options.data = (options.data ?? []).map((d: any) => ({
         ...d,
-        petrol: d.petrol ?? 100 + Math.random() * 40 - 20,
-        diesel: d.diesel ?? 100 + Math.random() * 40 - 20,
+        value1: d.value1 ?? 100 + Math.random() * 40 - 20,
+        value2: d.value2 ?? 100 + Math.random() * 40 - 20,
+        value3: d.value3 ?? 100 + Math.random() * 40 - 20,
+        value4: d.value4 ?? 100 + Math.random() * 40 - 20,
+        value5: d.value5 ?? 100 + Math.random() * 40 - 20,
+        value6: d.value6 ?? 100 + Math.random() * 40 - 20,
+        value7: d.value7 ?? 100 + Math.random() * 40 - 20,
+        value8: d.value8 ?? 100 + Math.random() * 40 - 20,
+        value9: d.value9 ?? 100 + Math.random() * 40 - 20,
+        value10: d.value10 ?? 100 + Math.random() * 40 - 20,
     }));
     chart.update(options);
 }
