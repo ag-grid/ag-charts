@@ -34,7 +34,10 @@ const options: AgCartesianChartOptions<DataType> = {
                     const inches = Math.floor(height % 12);
                     return {
                         title: datum.team,
-                        content: `Height: ${feet}'${inches}"\nWeight: ${weight} lbs`,
+                        data: [
+                            { label: 'Height:', value: `${feet}' ${inches}` },
+                            { label: 'Weight:', value: `${weight} lbs` },
+                        ],
                     };
                 },
             },
