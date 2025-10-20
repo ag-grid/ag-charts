@@ -1,4 +1,5 @@
 import {
+    type LocaleString,
     Logger,
     buildDateFormatter,
     createNumberFormatter,
@@ -56,7 +57,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     );
     formatter: FormatterConfiguration<any> | undefined = undefined;
 
-    constructor(public readonly locale: string) {
+    constructor(public readonly locale: LocaleString) {
         super();
     }
 
@@ -76,7 +77,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     }
 
     static getFormatter(
-        locale: string,
+        locale: LocaleString,
         type: 'number' | 'date' | 'category',
         specifier: string | Partial<Record<AgTimeIntervalUnit, string>>,
         unit?: AgTimeIntervalUnit,

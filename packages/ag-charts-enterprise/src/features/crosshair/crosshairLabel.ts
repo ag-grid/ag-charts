@@ -7,7 +7,7 @@ import type {
     FormatterParams,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, createId, setAttribute } from 'ag-charts-core';
+import { type LocaleString, type Point, createId, setAttribute } from 'ag-charts-core';
 
 const { FormatManager, BaseProperties, Property } = _ModuleSupport;
 
@@ -44,7 +44,7 @@ export class CrosshairLabelProperties
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
-        locale: string,
+        locale: LocaleString,
         callWithContext: (
             formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => string | undefined,
             params: AgCrosshairLabelFormatterParams<ContextDefault>

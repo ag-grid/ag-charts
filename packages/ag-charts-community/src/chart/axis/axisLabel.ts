@@ -1,4 +1,4 @@
-import { isArray } from 'ag-charts-core';
+import { type LocaleString, isArray } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -161,7 +161,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         'long:none': undefined,
     };
     formatValue(
-        locale: string,
+        locale: LocaleString,
         callWithContext: (
             formatter: (params: AgAxisLabelFormatterParams) => TextOrSegments | undefined,
             params: AgAxisLabelFormatterParams

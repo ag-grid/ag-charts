@@ -1,6 +1,7 @@
 import {
     type BoxBounds,
     type ITextMeasurer,
+    type LocaleString,
     type WrapOptions,
     boxCollides,
     buildDateFormatter,
@@ -46,7 +47,7 @@ import { NiceMode, type TickDatum } from './axisUtil';
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
 export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum> {
-    locale: string;
+    locale: LocaleString;
     label: ChartAxisLabel;
     scale: TScale;
     domain: TDatum[];
@@ -444,7 +445,7 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
 }
 
 export function timeIntervalMaxLabelSize(
-    locale: string,
+    locale: LocaleString,
     label: ChartAxisLabel,
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],

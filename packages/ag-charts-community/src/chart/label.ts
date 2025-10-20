@@ -1,4 +1,4 @@
-import { type RequireOptional, isArray } from 'ag-charts-core';
+import { type LocaleString, type RequireOptional, isArray } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -86,7 +86,7 @@ export class Label<TParams = never, TDatum = any>
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
-        locale: string,
+        locale: LocaleString,
         formatWithContext: ContextFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>,
         type: 'number' | 'date' | 'category',
         value: any,

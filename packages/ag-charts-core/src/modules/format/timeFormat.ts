@@ -124,9 +124,9 @@ function pad(value: number, size: number, padChar: string) {
     return `${padChar.repeat(size - output.length)}${output}`;
 }
 
-export function buildDateFormatter(locale: string, formatString: string): FormattingFn {
-    if (locale !== 'en-US') throw new Error(`unsupported locale ${locale}`);
+export type LocaleString = 'en-US';
 
+export function buildDateFormatter(locale: 'en-US', formatString: string): FormattingFn {
     const formatParts: (LiteralString | [FormattingFn, PaddingString])[] = [];
 
     while (formatString.length > 0) {
