@@ -124,7 +124,9 @@ function pad(value: number, size: number, padChar: string) {
     return `${padChar.repeat(size - output.length)}${output}`;
 }
 
-export function buildDateFormatter(formatString: string): FormattingFn {
+export function buildDateFormatter(locale: string, formatString: string): FormattingFn {
+    if (locale !== 'en-US') throw new Error(`unsupported locale ${locale}`);
+
     const formatParts: (LiteralString | [FormattingFn, PaddingString])[] = [];
 
     while (formatString.length > 0) {
@@ -148,7 +150,7 @@ export function buildDateFormatter(formatString: string): FormattingFn {
         if (typeof maybeFormatter === 'function') {
             formatParts.push([maybeFormatter, maybePad]);
         } else if (typeof maybeFormatter === 'string') {
-            const formatter = buildDateFormatter(maybeFormatter);
+            const formatter = buildDateFormatter(locale, maybeFormatter);
             formatParts.push([formatter, maybePad]);
         } else {
             formatParts.push(`${maybePad ?? ''}${maybeFormatterSpecifier}`);

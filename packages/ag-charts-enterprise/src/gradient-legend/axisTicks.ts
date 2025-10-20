@@ -162,7 +162,12 @@ export class AxisTicks {
             };
 
             return (
-                this.label.formatValue((fn, params) => formatWithContext(ctx, fn, params), formatParams, index) ??
+                this.label.formatValue(
+                    formatManager.locale,
+                    (fn, params) => formatWithContext(ctx, fn, params),
+                    formatParams,
+                    index
+                ) ??
                 formatManager.format((fn, params) => formatWithContext(ctx, fn, params), formatParams) ??
                 formatManager.defaultFormat(formatParams)
             );

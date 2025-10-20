@@ -534,6 +534,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const {
             tickData: { ticks: tickData },
         } = generateTicks({
+            locale: this.ctx.formatManager.locale,
             scale,
             label: this.properties.scale.label,
             interval: this.properties.scale.interval,

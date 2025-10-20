@@ -52,7 +52,7 @@ describe('Date/Time Formatting', () => {
 
     describe('buildDateFormatter', () => {
         it.each(cases)('%s', (_, format, expected, date = DEFAULT_DATE) => {
-            const formatter = buildDateFormatter(format);
+            const formatter = buildDateFormatter('en-US', format);
             expect(formatter(date)).toStrictEqual(expected);
         });
     });

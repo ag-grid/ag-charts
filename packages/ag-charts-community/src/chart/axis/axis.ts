@@ -793,8 +793,9 @@ export abstract class Axis<
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
 
+            const locale = formatManager.locale;
             return (
-                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, truncateDate }) ??
+                currentLabel.formatValue(locale, f, formatParams, index, { specifier, dateStyle, truncateDate }) ??
                 formatManager.format(f, formatParams, options) ??
                 formatManager.defaultFormat(formatParams, options)
             );
@@ -889,10 +890,11 @@ export abstract class Axis<
         const { type, value } = formatParams;
 
         const f = this.createCallWithContext(contextProvider);
+        const { locale } = formatManager;
         const result =
-            label?.formatValue(f, type, value, params ?? formatParams) ??
+            label?.formatValue(locale, f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams) ??
-            this.label.formatValue(f, formatParams, Number.NaN) ??
+            this.label.formatValue(locale, f, formatParams, Number.NaN) ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);

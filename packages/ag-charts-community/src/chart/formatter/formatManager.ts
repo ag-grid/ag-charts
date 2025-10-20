@@ -39,6 +39,8 @@ interface FormatParams {
 }
 
 export class FormatManager extends Listeners<'format-changed', () => void> {
+    static readonly FALLBACK_LOCALE = 'en-US';
+
     private readonly formats = new Map<string, ((value: any, _params?: any) => string) | undefined>();
     private readonly dateFormatter = simpleMemorize2(
         (
@@ -49,10 +51,14 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
             truncateDate: FormatParams['truncateDate']
         ) => {
             const mergedFormatter = FormatManager.mergeSpecifiers(propertyFormatter, specifier) ?? defaultTimeFormats;
-            return FormatManager.getFormatter('date', mergedFormatter, unit, style, { truncateDate });
+            return FormatManager.getFormatter(this.locale, 'date', mergedFormatter, unit, style, { truncateDate });
         }
     );
     formatter: FormatterConfiguration<any> | undefined = undefined;
+
+    constructor(public readonly locale: string) {
+        super();
+    }
 
     static mergeSpecifiers(a: Specifier | undefined, ...specifiers: Array<Specifier>): Specifier;
     static mergeSpecifiers(a: Specifier, ...specifiers: Array<Specifier | undefined>): Specifier;
@@ -70,6 +76,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     }
 
     static getFormatter(
+        locale: string,
         type: 'number' | 'date' | 'category',
         specifier: string | Partial<Record<AgTimeIntervalUnit, string>>,
         unit?: AgTimeIntervalUnit,
@@ -89,7 +96,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                     ? specifier?.[unit] ?? defaultTimeFormats[unit]
                     : deriveTimeSpecifier(specifier, unit, truncateDate);
 
-            return buildDateFormatter(fullFormat) as (value: any) => string;
+            return buildDateFormatter(locale, fullFormat) as (value: any) => string;
         }
 
         switch (type) {
@@ -99,7 +106,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                 return createNumberFormatter(options);
             }
             case 'date':
-                return buildDateFormatter(specifier) as (value: any) => string;
+                return buildDateFormatter(locale, specifier) as (value: any) => string;
             case 'category':
                 return (value) => specifier.replace('%s', String(value));
         }
@@ -145,7 +152,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
 
         let valueFormatter = this.formats.get(valueSpecifier);
         if (valueFormatter == null) {
-            valueFormatter = FormatManager.getFormatter(params.type, valueSpecifier);
+            valueFormatter = FormatManager.getFormatter(FormatManager.FALLBACK_LOCALE, params.type, valueSpecifier);
             this.formats.set(valueSpecifier, valueFormatter);
         }
         return valueFormatter?.(params.value, params.type === 'number' ? params.fractionDigits : undefined);

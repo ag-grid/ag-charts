@@ -158,7 +158,9 @@ export abstract class RadiusAxis<
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         const { range, reverse, defaultTickMinSpacing } = this;
+        const { locale } = this.moduleCtx.formatManager;
         const tickGenerationResult = generateTicks({
+            locale,
             scale: this.scale,
             label: this.label,
             interval: this.interval,

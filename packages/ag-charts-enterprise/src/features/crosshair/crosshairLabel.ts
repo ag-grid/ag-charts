@@ -44,6 +44,7 @@ export class CrosshairLabelProperties
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
+        locale: string,
         callWithContext: (
             formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => string | undefined,
             params: AgCrosshairLabelFormatterParams<ContextDefault>
@@ -69,7 +70,7 @@ export class CrosshairLabelProperties
                 cachedFormatter = {
                     type,
                     format,
-                    formatter: FormatManager.getFormatter(type, format),
+                    formatter: FormatManager.getFormatter(locale, type, format),
                 };
                 this._cachedFormatter = cachedFormatter;
             }

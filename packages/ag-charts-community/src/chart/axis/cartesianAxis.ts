@@ -251,7 +251,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { label, primaryLabel, scale, range, interval, reverse, defaultTickMinSpacing, minimumTimeGranularity } =
             this;
 
+        const { locale } = this.moduleCtx.formatManager;
         const tickGenerationResult = generateTicks({
+            locale,
             label,
             scale,
             interval,

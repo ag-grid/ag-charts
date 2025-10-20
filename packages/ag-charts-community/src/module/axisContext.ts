@@ -12,6 +12,7 @@ export type ContextFormatter<Params> = (
 
 export interface AxisFormattableLabel<FormatParams extends object, Params extends object = FormatParams> {
     formatValue(
+        locale: string,
         formatInContext: ContextFormatter<FormatParams>,
         type: 'number' | 'date' | 'category',
         value: any,

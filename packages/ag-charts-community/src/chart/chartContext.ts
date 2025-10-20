@@ -45,7 +45,7 @@ export class ChartContext implements ModuleContext {
 
     readonly callbackCache = new CallbackCache();
     readonly highlightManager = new HighlightManager(this.eventsHub);
-    readonly formatManager = new FormatManager();
+    readonly formatManager = new FormatManager(FormatManager.FALLBACK_LOCALE);
     readonly layoutManager = new LayoutManager(this.eventsHub);
     readonly localeManager = new LocaleManager(this.eventsHub);
     readonly seriesStateManager = new SeriesStateManager();

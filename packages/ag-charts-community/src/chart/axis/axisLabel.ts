@@ -161,6 +161,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         'long:none': undefined,
     };
     formatValue(
+        locale: string,
         callWithContext: (
             formatter: (params: AgAxisLabelFormatterParams) => TextOrSegments | undefined,
             params: AgAxisLabelFormatterParams
@@ -200,7 +201,9 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
                     type,
                     mergedFormat,
                     unit,
-                    formatter: FormatManager.getFormatter(type, mergedFormat, unit, dateStyle, { truncateDate }),
+                    formatter: FormatManager.getFormatter(locale, type, mergedFormat, unit, dateStyle, {
+                        truncateDate,
+                    }),
                 };
 
                 this._formatters[cacheKey] = valueFormatter;

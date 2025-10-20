@@ -46,6 +46,7 @@ import { NiceMode, type TickDatum } from './axisUtil';
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
 export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum> {
+    locale: string;
     label: ChartAxisLabel;
     scale: TScale;
     domain: TDatum[];
@@ -443,6 +444,7 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
 }
 
 export function timeIntervalMaxLabelSize(
+    locale: string,
     label: ChartAxisLabel,
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
@@ -455,10 +457,10 @@ export function timeIntervalMaxLabelSize(
         return { width: 0, height: 0 };
     }
 
-    const labelFormatter = buildDateFormatter(specifier);
+    const labelFormatter = buildDateFormatter(locale, specifier);
     const hierarchy = timeInterval ? intervalHierarchy(timeInterval) : undefined;
     const primarySpecifier = labelSpecifier(primaryLabel?.format, hierarchy);
-    const primaryLabelFormatter = primarySpecifier ? buildDateFormatter(primarySpecifier) : labelFormatter;
+    const primaryLabelFormatter = primarySpecifier ? buildDateFormatter(locale, primarySpecifier) : labelFormatter;
 
     const d0 = new Date(domain[0]);
     const d1 = new Date(domain.at(-1)!);

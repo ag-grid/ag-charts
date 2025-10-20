@@ -995,7 +995,7 @@ export abstract class Series<
         const formatInContext = this.callWithContext.bind(this);
 
         const format = (formatParams: FormatterParams<any>) =>
-            label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
+            label.formatValue(formatManager.locale, formatInContext, formatParams.type, formatParams.value, params) ??
             formatManager.format(formatInContext, formatParams) ??
             String(value);
 

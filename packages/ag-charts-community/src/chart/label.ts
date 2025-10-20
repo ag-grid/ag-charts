@@ -86,6 +86,7 @@ export class Label<TParams = never, TDatum = any>
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
+        locale: string,
         formatWithContext: ContextFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>,
         type: 'number' | 'date' | 'category',
         value: any,
@@ -104,7 +105,7 @@ export class Label<TParams = never, TDatum = any>
                 cachedFormatter = {
                     type,
                     format,
-                    formatter: FormatManager.getFormatter(type, format),
+                    formatter: FormatManager.getFormatter(locale, type, format),
                 };
                 this._cachedFormatter = cachedFormatter;
             }

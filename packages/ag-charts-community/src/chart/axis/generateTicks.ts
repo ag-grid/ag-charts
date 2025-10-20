@@ -406,8 +406,9 @@ function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<T
     if (timeInterval == null) return [];
 
     const spacing = ticksSpacing(ticks);
-    const { label, labelOffset, primaryLabel, domain } = options;
+    const { locale, label, labelOffset, primaryLabel, domain } = options;
     const { width, height } = timeIntervalMaxLabelSize(
+        locale,
         label,
         primaryLabel,
         niceDomain ?? domain,
