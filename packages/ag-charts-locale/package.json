@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-locale",
-  "version": "12.3.0-beta.20251020",
+  "version": "12.3.0-beta.20251020.1437",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
   "module": "./dist/package/main.esm.mjs",
