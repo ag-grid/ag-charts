@@ -828,7 +828,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             this.getDatumId.bind(this),
             contextData,
             previousContextData,
-            this.processedData
+            this.processedData,
+            this.processedDataUpdated
         );
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);

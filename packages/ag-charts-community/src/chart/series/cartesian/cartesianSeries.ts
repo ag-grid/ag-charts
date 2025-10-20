@@ -402,6 +402,7 @@ export abstract class CartesianSeries<
             this.animationState.transition('resize', animationData);
         }
         this.animationState.transition('update', animationData);
+        this.processedDataUpdated = false;
     }
 
     public createStackContext(): TStackContext | undefined {

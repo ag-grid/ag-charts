@@ -308,6 +308,7 @@ export abstract class Series<
 
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
+    protected processedDataUpdated = true;
 
     protected readonly moduleMap: SeriesModuleMap = new ModuleMap();
 
@@ -351,6 +352,7 @@ export abstract class Series<
 
     protected onDataChange() {
         this.nodeDataRefresh = true;
+        this.processedDataUpdated = true;
         this._pickNodeCache.clear();
     }
 
