@@ -84,7 +84,7 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
         }
     }
 
-    return ariaLabel.join('; ');
+    return ariaLabel.filter((s) => s !== '').join('; ');
 }
 
 function dataHtml(label: string | undefined, value: string, inline: boolean) {
