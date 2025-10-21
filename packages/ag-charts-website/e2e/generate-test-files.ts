@@ -110,7 +110,7 @@ function generateTestFile(category: TestCategory, outputDir: string): void {
 // Generated at: ${new Date().toISOString()}
 // Test count: ${category.estimatedTestCount}
 
-import { convertPageUrls, createTestCase } from '../examples-util';
+import { convertPageUrls, createTestCase, triggerExampleTooltips } from '../examples-util';
 // import { contextTest } from '../context-manager';
 import { test as contextTest } from '../fixture';
 import { EXAMPLE_OPTIONS } from '../example-options';
@@ -135,7 +135,7 @@ ${category.examples.map((ex) => `        { path: '${ex.path}', affected: ${ex.af
                 contextTest.skip(!affected, 'unaffected example');
 
                 contextTest.describe(\`Example \${pagePath}: \${example}\${affected ? '' : ' (!!!SKIPPED!!!)'}\`, () => {
-                    createTestCase(testFn as any, opts, config);
+                    createTestCase(testFn as any, opts, config, undefined, triggerExampleTooltips);
                 });
             });
         }
