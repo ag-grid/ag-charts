@@ -75,9 +75,12 @@ test.describe('localisation', () => {
             legendItem2: string;
             instructions: string;
         };
+
+        const NBS = '\u00A0'; // NO-BREAK SPACE
+        const NNBS = '\u202F'; // NARROW NO-BREAK SPACE
         const expectedAriaLabelText: Record<LocaleString, TextExpectations> = {
             'fr-FR': {
-                swapChain: 'janv.; Revenu; 250 000 $US; Croissance; 10,0 %',
+                swapChain: `janv.; Revenu; 250${NNBS}000${NBS}$US; Croissance; 10,0${NBS}%`,
                 legendItem1: 'Revenu, Élément de légende 1 sur 2',
                 legendItem2: 'Croissance, Élément de légende 2 sur 2',
                 instructions: 'Appuyez sur Espace ou Entrée pour basculer la visibilité',
