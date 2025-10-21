@@ -1092,7 +1092,8 @@ export class BarSeries extends AbstractBarSeries<
             this.getDatumId.bind(this),
             data.contextData,
             previousContextData,
-            this.processedData
+            this.processedData,
+            this.processedDataUpdated
         );
 
         const mode = previousContextData == null ? 'fade' : 'normal';

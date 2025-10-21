@@ -61,13 +61,6 @@ const options: AgChartOptions = {
             },
         },
     ],
-    tooltip: {
-        enabled: true,
-        mode: 'shared',
-        position: {
-            placement: ['right', 'left', 'top', 'bottom'],
-        },
-    },
     formatter: {
         angle: ({ value }) => `$${value}M`,
     },

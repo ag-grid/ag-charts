@@ -1035,10 +1035,10 @@ export class RangeAreaSeries extends BaseSeries {
     ) {
         const { animationManager } = this.ctx;
         const { datumSelection, labelSelection, contextData, paths, previousContextData } = animationData;
-        const [fill, stroke] = paths;
+        const [fill, lowStroke, highStroke] = paths;
 
         // Handling initially hidden series case gracefully.
-        if (fill == null && stroke == null) return;
+        if (fill == null && lowStroke == null && highStroke == null) return;
 
         this.resetDatumAnimation(animationData);
         this.resetLabelAnimation(animationData);
@@ -1058,7 +1058,8 @@ export class RangeAreaSeries extends BaseSeries {
 
             markerFadeInAnimation(this, animationManager, 'added', datumSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
-            pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
+            pathFadeInAnimation(this, 'low_stroke_path_properties', animationManager, 'add', lowStroke);
+            pathFadeInAnimation(this, 'high_stroke_path_properties', animationManager, 'add', highStroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
             return;
         }
@@ -1077,7 +1078,8 @@ export class RangeAreaSeries extends BaseSeries {
         }
 
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
-        fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
+        fromToMotion(this.id, 'low_stroke_path_properties', animationManager, [lowStroke], fns.stroke.pathProperties);
+        fromToMotion(this.id, 'high_stroke_path_properties', animationManager, [highStroke], fns.stroke.pathProperties);
 
         if (fns.status === 'added') {
             this.updateAreaPaths(paths, contextData);
@@ -1085,7 +1087,8 @@ export class RangeAreaSeries extends BaseSeries {
             this.updateAreaPaths(paths, previousContextData);
         } else {
             pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
-            pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
+            pathMotion(this.id, 'low_stroke_path_update', animationManager, [lowStroke], fns.stroke.path);
+            pathMotion(this.id, 'high_stroke_path_update', animationManager, [highStroke], fns.stroke.path);
         }
 
         if (fns.hasMotion) {

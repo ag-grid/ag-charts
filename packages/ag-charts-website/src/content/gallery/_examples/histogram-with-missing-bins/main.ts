@@ -45,7 +45,7 @@ const options: AgChartOptions = {
 
                     return {
                         title: `${binStart} - ${binEnd} in³`,
-                        content: `Average MPG: ${meanValue.toFixed(1)}`,
+                        data: [{ label: 'Frequency', value: `${meanValue.toFixed(1)} vehicles` }],
                     };
                 },
             },

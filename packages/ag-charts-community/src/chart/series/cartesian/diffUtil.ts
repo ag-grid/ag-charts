@@ -1,4 +1,4 @@
-import type { ProcessedData } from '../../data/dataModel';
+import type { ProcessedData, ProcessedOutputDiff } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { type Scaling, areScalingEqual } from './scaling';
 
@@ -8,11 +8,23 @@ export function calculateDataDiff<N extends CartesianSeriesNodeDatum>(
     getDatumId: (datum: N) => string,
     contextNodeData: CartesianSeriesNodeDataContext<N, any>,
     previousContextNodeData?: CartesianSeriesNodeDataContext<N, any>,
-    processedData?: ProcessedData<unknown>
-) {
+    processedData?: ProcessedData<unknown>,
+    processedDataUpdated?: boolean
+): ProcessedOutputDiff | undefined {
     let dataDiff = processedData?.reduced?.diff?.[seriesId];
     if (dataDiff?.changed) {
         return dataDiff;
+    }
+
+    if (!processedDataUpdated) {
+        // CRT-965: Treat domain update (with no data-reprocessing) as a data diff no-op.
+        return {
+            changed: false,
+            added: new Set(),
+            updated: new Set(),
+            removed: new Set(),
+            moved: new Set(),
+        };
     }
 
     const scalingChanged = hasScalingChanged(contextNodeData, previousContextNodeData);

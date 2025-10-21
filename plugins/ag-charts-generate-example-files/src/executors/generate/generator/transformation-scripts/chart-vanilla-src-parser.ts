@@ -57,7 +57,11 @@ export function parser({
 }
 
 export function internalParser(js, html, exampleSettings: ExampleSettings, dirPath) {
-    const domTree = cheerio.load(html, null, false);
+    const HR_PLACEHOLDER = '__AG_EXAMPLE_HR__';
+    const hrPlaceholderRegex = new RegExp(HR_PLACEHOLDER, 'g');
+    const htmlWithPlaceholders = html.replace(/<hr\s*\/?\s*>/gi, HR_PLACEHOLDER);
+
+    const domTree = cheerio.load(htmlWithPlaceholders, null, false);
     domTree('style').remove();
 
     const domEventHandlers = extractEventHandlers(domTree, recognizedDomEvents);
@@ -249,7 +253,7 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
 
     tsBindings.placeholders = placeholders;
     tsBindings.chartAttributes = chartAttributes;
-    tsBindings.template = domTree.html();
+    tsBindings.template = domTree.html()?.replace(hrPlaceholderRegex, '<hr />');
     tsBindings.imports = extractImportStatements(tsTree);
     tsBindings.optionsTypeInfo = extractTypeInfoForVariable(tsTree, 'options');
     tsBindings.usesChartApi = usesChartApi(tsTree);
