@@ -8,7 +8,6 @@ import {
     AG_CHARTS_LOCALE_PL_PL,
     AG_CHARTS_LOCALE_TR_TR,
     AG_CHARTS_LOCALE_ZH_CN,
-    AG_CHARTS_LOCALE_ZH_TW,
 } from 'ag-charts-locale';
 
 import { type LocaleContext, type LocaleString, makeLocaleContext } from './context';
