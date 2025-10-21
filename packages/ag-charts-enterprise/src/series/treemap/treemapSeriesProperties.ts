@@ -138,10 +138,6 @@ class TreemapSeriesTileHighlightStyle extends BaseProperties {
 }
 
 class TreemapSeriesHighlightStyle extends HighlightStyle {
-    constructor() {
-        super(false);
-    }
-
     @Property
     readonly group = new TreemapSeriesGroupHighlightStyle();
 

@@ -38,9 +38,6 @@ export interface AgChartPaddingOptions {
     left?: PixelSize;
 }
 
-/** @deprecated v12.1.0 Use `Padding` or `PaddingOptions` instead. */
-export interface AgSeriesAreaPaddingOptions extends PaddingOptions {}
-
 export interface AgSeriesAreaOptions {
     /** The border around the series area. */
     border?: BorderOptions;

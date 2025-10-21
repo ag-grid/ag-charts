@@ -13,10 +13,6 @@ import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel'
 const { HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip, Property } = _ModuleSupport;
 
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
-    constructor() {
-        super(false);
-    }
-
     @Property
     fill?: string;
 

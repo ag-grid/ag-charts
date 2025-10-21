@@ -23,8 +23,6 @@ export interface AgBaseGaugeThemeableOptions<TContext = ContextDefault> {
     cursor?: string;
     /** Context object to use in callbacks. */
     context?: TContext;
-    /** @deprecated Configuration for marker and series highlighting when a series or legend item is hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;
     /** Range from a node that a click triggers the listener. */

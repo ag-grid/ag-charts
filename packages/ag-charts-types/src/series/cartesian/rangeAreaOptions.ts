@@ -128,8 +128,6 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     item?: AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
-    /** @deprecated Configuration for the range series items when they are hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
     label?: AgRangeAreaSeriesLabelOptions<TDatum, AgRangeAreaSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the shadow used behind the series items. */
