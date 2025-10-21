@@ -3,39 +3,68 @@ import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'French Language',
-    },
-    subtitle: {
-        text: 'Hover zoom buttons for tooltips, right click to show context menu',
-    },
     data: [
-        { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
-        { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302000 },
-        { month: 'May', avgTemp: 16.2, iceCreamSales: 800000 },
-        { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254000 },
-        { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950000 },
-        { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
+        { month: new Date(2025, 0, 1), income: 250000, growth: 1.1 },
+        { month: new Date(2025, 1, 1), income: 300000, growth: 1.2 },
+        { month: new Date(2025, 2, 1), income: 450000, growth: 1.5 },
+        { month: new Date(2025, 3, 1), income: 600000, growth: 1.33 },
+        { month: new Date(2025, 4, 1), income: 720000, growth: 1.2 },
+        { month: new Date(2025, 5, 1), income: 680000, growth: -0.06 },
     ],
     series: [
         {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'income',
+            yName: 'Revenu',
+            grouped: false,
+        },
+        {
             type: 'line',
             xKey: 'month',
-            yKey: 'iceCreamSales',
-            yName: 'Ice Cream Sales',
+            yKey: 'growth',
+            yName: 'Croissance (%)',
+            yAxisKey: 'rightAxis',
+            strokeWidth: 3,
+            marker: { enabled: true },
         },
     ],
-    contextMenu: {
-        enabled: true,
-    },
-    zoom: {
-        enabled: true,
-    },
-    legend: {
-        enabled: true,
-    },
+    axes: [
+        {
+            type: 'time',
+            position: 'bottom',
+            title: { text: 'Mois' },
+            label: {
+                formatter: params =>
+                    new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(params.value),
+            },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            keys: ['income'],
+            title: { text: 'Revenu (€)' },
+            label: {
+                formatter: params =>
+                    params.value.toLocaleString('fr-FR', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
+            },
+        },
+        {
+            type: 'number',
+            position: 'right',
+            keys: ['growth'],
+            title: { text: 'Croissance (%)' },
+            label: {
+                formatter: params =>
+                    new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 1 }).format(params.value / 100),
+            },
+        },
+    ],
+    legend: { enabled: true },
+    zoom: { enabled: true },
+    contextMenu: { enabled: true },
     locale: {
-        localeText: AG_CHARTS_LOCALE_FR_FR,
+        localeText: AG_CHARTS_LOCALE_FR_FR
     },
 };
 
