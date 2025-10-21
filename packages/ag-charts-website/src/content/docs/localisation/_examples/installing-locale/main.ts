@@ -98,7 +98,7 @@ const options: AgCartesianChartOptions<DatumType, LocaleContext> & { series: { y
             position: 'bottom',
             title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].month },
             label: {
-                formatter: (params) => params.context.formatMonth(params.value),
+                formatter: (params) => params.context?.formatMonth(params.value),
             },
         },
         {
@@ -107,7 +107,7 @@ const options: AgCartesianChartOptions<DatumType, LocaleContext> & { series: { y
             keys: ['income'],
             title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].income },
             label: {
-                formatter: (params) => params.context.formatUSD(params.value),
+                formatter: (params) => params.context?.formatUSD(params.value),
             },
         },
         {
@@ -116,7 +116,7 @@ const options: AgCartesianChartOptions<DatumType, LocaleContext> & { series: { y
             keys: ['growth'],
             title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].growth },
             label: {
-                formatter: (params) => params.context.formatPercent(params.value),
+                formatter: (params) => params.context?.formatPercent(params.value),
             },
         },
     ],
@@ -134,9 +134,9 @@ function updateLocale(locale: LocaleString) {
     options.context = makeLocaleContext(locale);
     options.series[0]!.yName = EXAMPLE_TEXT[locale].income;
     options.series[1]!.yName = EXAMPLE_TEXT[locale].growth;
-    options.axes[0]!.title!.text = EXAMPLE_TEXT[locale].month;
-    options.axes[1]!.title!.text = EXAMPLE_TEXT[locale].income;
-    options.axes[2]!.title!.text = EXAMPLE_TEXT[locale].growth;
+    options.axes![0]!.title!.text = EXAMPLE_TEXT[locale].month;
+    options.axes![1]!.title!.text = EXAMPLE_TEXT[locale].income;
+    options.axes![2]!.title!.text = EXAMPLE_TEXT[locale].growth;
     options.locale!.localeText = EXAMPLE_TEXT[locale].localeText;
     chart.update(options);
 }
