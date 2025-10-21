@@ -690,8 +690,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     ) {
         const { fills, strokes, itemStyler } = this.properties;
 
-        const defaultStroke = strokes[datumIndex];
-        const defaultFill = fills[datumIndex];
+        const defaultStroke = strokes[modulus(datumIndex, strokes.length)];
+        const defaultFill = fills[modulus(datumIndex, fills.length)];
         const {
             fill,
             fillOpacity,
