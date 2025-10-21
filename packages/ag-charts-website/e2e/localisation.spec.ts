@@ -54,7 +54,9 @@ test.describe('localisation', () => {
         }
 
         async function interrupt() {
+            // Interrupt the animation and force a focus-swapchain update
             await page.mouse.click(400, 300);
+            await page.keyboard.press('ArrowRight');
             await page.keyboard.press('ArrowLeft');
         }
 
@@ -101,6 +103,7 @@ test.describe('localisation', () => {
         expect(instructionsText).toEqual(expectedAriaLabelText['fr-FR'].instructions);
 
         await page.selectOption('#mySelect', 'en-US');
+        await interrupt();
         [swapChainText, button1Text, button2Text, instructionsText] = await readAriaText();
         expect(swapChainText).toEqual(expectedAriaLabelText['en-US'].swapChain);
         expect(button1Text).toEqual(expectedAriaLabelText['en-US'].legendItem1);
