@@ -1,4 +1,4 @@
-type LocaleString = 'fr-FR';
+export type LocaleString = 'fr-FR' | 'en-IN' | 'pl-PL' | 'ar-EG' | 'fa-IR' | 'tr-TR' | 'zh-CN' | 'zh-TW' | 'he-IL';
 
 export interface LocaleContext {
     locale: LocaleString;
@@ -26,10 +26,14 @@ export function makeLocaleContext(locale: LocaleString): LocaleContext {
             minimumFractionDigits: 1,
         });
     }
+    function updateHTMLElement(locale: LocaleString) {
+        document.getElementById('myChart')!.lang = locale;
+    }
 
     let usdFormatter = newUSDFormatter(locale);
     let monthFormatter = newMonthFormatter(locale);
     let percentFormatter = newPercentFormatter(locale);
+    updateHTMLElement(locale);
 
     const self: LocaleContext = {
         set locale(newLocale: LocaleString) {
@@ -37,6 +41,7 @@ export function makeLocaleContext(locale: LocaleString): LocaleContext {
             usdFormatter = newUSDFormatter(locale);
             monthFormatter = newMonthFormatter(locale);
             percentFormatter = newPercentFormatter(locale);
+            updateHTMLElement(locale);
         },
         get locale(): LocaleString {
             return locale;
