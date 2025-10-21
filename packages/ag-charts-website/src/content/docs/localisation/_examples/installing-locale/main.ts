@@ -1,5 +1,15 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { AG_CHARTS_LOCALE_AR_EG, AG_CHARTS_LOCALE_EN_US, AG_CHARTS_LOCALE_FA_IR, AG_CHARTS_LOCALE_FR_FR, AG_CHARTS_LOCALE_HE_IL, AG_CHARTS_LOCALE_PL_PL, AG_CHARTS_LOCALE_TR_TR, AG_CHARTS_LOCALE_ZH_CN, AG_CHARTS_LOCALE_ZH_TW } from 'ag-charts-locale';
+import {
+    AG_CHARTS_LOCALE_AR_EG,
+    AG_CHARTS_LOCALE_EN_US,
+    AG_CHARTS_LOCALE_FA_IR,
+    AG_CHARTS_LOCALE_FR_FR,
+    AG_CHARTS_LOCALE_HE_IL,
+    AG_CHARTS_LOCALE_PL_PL,
+    AG_CHARTS_LOCALE_TR_TR,
+    AG_CHARTS_LOCALE_ZH_CN,
+    AG_CHARTS_LOCALE_ZH_TW,
+} from 'ag-charts-locale';
 
 import { type LocaleContext, type LocaleString, makeLocaleContext } from './context';
 import { type DatumType, getData } from './data';
