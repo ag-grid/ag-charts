@@ -95,7 +95,7 @@ const options: AgChartOptions<DatumType, LocaleContext> = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'category',
             position: 'bottom',
             title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].month },
             label: {
