@@ -30,6 +30,38 @@ series: [
 ]
 ```
 
+## 🧠 Conditional Overrides with Theme Operators (Post b12.2.0)
+
+_Apply: 5 minutes, Impact: MEDIUM_
+
+```typescript
+theme: {
+    palette: {
+        fills: [
+            {
+                $if: {
+                    $greaterThan: [{ $path: ['yValue'] }, 1_000_000],
+                },
+                $then: { $path: ['palette/accents/0'] },
+            },
+            {
+                $if: {
+                    $lessThan: [{ $path: ['yValue'] }, 10_000],
+                },
+                $then: { $path: ['palette/accents/1'] },
+            },
+            { $path: ['palette/fills/0'] },
+        ],
+    },
+}
+```
+
+### Why this matters
+
+-   `$greaterThan`/`$lessThan` let you branch palette logic without bespoke item stylers.
+-   Works anywhere `$if` expressions are supported (palette entries, overrides, highlight blocks).
+-   Keep thresholds data-driven so gallery examples remain reusable.
+
 ### ❌ AVOID: Repeating Config
 
 ```typescript
@@ -201,6 +233,15 @@ formatter: {
     y: (params) => `$${params.value.toLocaleString()}`,
     x: (params) => params.value.toFixed(1),
     label: (params) => `${params.value}%`,
+}
+
+// Need richer text? Return segments via RichFormatter-compatible callbacks
+formatter: {
+    y: ({ value }) => [
+        { text: value >= 0 ? '+' : '', fontWeight: 'bold' },
+        { text: value.toFixed(1) },
+        { text: ' %', opacity: 0.6 },
+    ],
 }
 ```
 

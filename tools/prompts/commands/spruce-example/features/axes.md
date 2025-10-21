@@ -159,6 +159,67 @@ axes: [
 -   **Context-aware styling**: Different styles for different value ranges
 -   **Replaces**: Complex DOM manipulation or custom label rendering
 
+## 🪄 Rich Text Axis Labels (Post b12.2.0)
+
+_Apply: 6 minutes, Impact: HIGH_
+
+```typescript
+axes: [
+    {
+        type: 'time',
+        position: 'bottom',
+        label: {
+            formatter: ({ value }) => [
+                { text: value.toLocaleString('en-US', { month: 'short' }) },
+                { text: ` ${value.getFullYear()}`, opacity: 0.6 },
+            ],
+        },
+        title: {
+            formatter: ({ defaultValue }) => [
+                { text: defaultValue, fontWeight: 'bold' },
+                { text: ' (local time)', opacity: 0.7 },
+            ],
+        },
+    },
+];
+```
+
+### Why this matters
+
+-   Return `TextOrSegments` arrays to combine emphasis and supporting text without HTML overlays.
+-   Works for axis labels, axis titles, navigator mini-chart labels, captions, and series label callbacks.
+-   Keep styling subtle—use opacity or font weight tweaks rather than manual colors to preserve theme contrast.
+
+## ✚ Axis Cross Positioning (Post b12.2.0)
+
+_Apply: 5 minutes, Impact: MEDIUM_
+
+```typescript
+axes: [
+    {
+        type: 'number',
+        position: 'left',
+        crossAt: {
+            value: 0,
+            sticky: true, // Keep the horizontal axis locked to domain 0
+        },
+    },
+    {
+        type: 'time',
+        position: 'bottom',
+        crossAt: {
+            value: new Date('2025-01-01'),
+        },
+    },
+];
+```
+
+### When to use crossAt
+
+-   Quadrant or centre-origin charts where axes should intersect at a specific domain value.
+-   Mixed-scale dashboards that require aligning axes to meaningful thresholds (e.g. baseline zero).
+-   Sticky origins remove the need for manual padding tweaks when data updates.
+
 ## 📐 Snug Data Fitting with `nice: false`
 
 _Apply: 2 minutes, Impact: Medium_

@@ -157,6 +157,40 @@ legend: {
 }
 ```
 
+### 🏷️ Shared Legend Items (Post b12.2.0)
+
+_Apply: 4 minutes, Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'range-area',
+        xKey: 'month',
+        yLowKey: 'low',
+        yHighKey: 'high',
+        legendItemName: 'Projected Range',
+    },
+    {
+        type: 'line',
+        xKey: 'month',
+        yKey: 'forecast',
+        legendItemName: 'Projected Range', // Shares toggle with the range band
+    },
+];
+
+listeners: {
+    legendItemClick: ({ itemId, legendItemName, enabled }) => {
+        console.log(`Legend '${legendItemName}' toggled`, { itemId, enabled });
+    },
+};
+```
+
+### Why this matters
+
+-   Coordinate multiple visual encodings (band + line) under a single legend toggle.
+-   `legendItemName` now flows through legend events, making cross-chart sync trivial.
+-   Avoid duplicate legend rows by grouping related series logically.
+
 ## 🎨 Legend Styling Best Practices
 
 ### Shape and Size Optimization
