@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     AG_CHARTS_LOCALE_AR_EG,
     AG_CHARTS_LOCALE_EN_US,
@@ -71,7 +71,7 @@ const EXAMPLE_TEXT: { [K in LocaleString]: ExampleText } = {
 };
 const INITIAL_LOCALE = 'fr-FR';
 
-const options: AgChartOptions<DatumType, LocaleContext> = {
+const options: AgCartesianChartOptions<DatumType, LocaleContext> & { series: { yName?: string }[] } = {
     context: makeLocaleContext(INITIAL_LOCALE),
     container: document.getElementById('myChart'),
     data: getData(),
@@ -131,7 +131,7 @@ const options: AgChartOptions<DatumType, LocaleContext> = {
 const chart = AgCharts.create(options);
 
 function updateLocale(locale: LocaleString) {
-    options.context.locale = locale;
+    options.context = makeLocaleContext(locale);
     options.series[0]!.yName = EXAMPLE_TEXT[locale].income;
     options.series[1]!.yName = EXAMPLE_TEXT[locale].growth;
     options.axes[0]!.title!.text = EXAMPLE_TEXT[locale].month;

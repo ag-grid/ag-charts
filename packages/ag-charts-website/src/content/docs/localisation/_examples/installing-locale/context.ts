@@ -1,48 +1,29 @@
 export type LocaleString = 'fr-FR' | 'en-IN' | 'pl-PL' | 'ar-EG' | 'fa-IR' | 'tr-TR' | 'zh-CN' | 'he-IL';
 
 export interface LocaleContext {
-    locale: LocaleString;
+    get locale(): LocaleString;
     formatUSD(value: number): string;
     formatMonth(value: Date): string;
     formatPercent(value: number): string;
 }
 
 export function makeLocaleContext(locale: LocaleString): LocaleContext {
-    function newUSDFormatter(locale: LocaleString) {
-        return new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency: 'USD',
-            maximumFractionDigits: 0,
-        });
-    }
-    function newMonthFormatter(locale: LocaleString) {
-        return new Intl.DateTimeFormat(locale, {
-            month: 'short',
-        });
-    }
-    function newPercentFormatter(locale: LocaleString) {
-        return new Intl.NumberFormat(locale, {
-            style: 'percent',
-            minimumFractionDigits: 1,
-        });
-    }
-    function updateDocumentLang(locale: LocaleString) {
-        document.documentElement.lang = locale;
-    }
+    const usdFormatter = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+    });
+    const monthFormatter = new Intl.DateTimeFormat(locale, {
+        month: 'short',
+    });
+    const percentFormatter = new Intl.NumberFormat(locale, {
+        style: 'percent',
+        minimumFractionDigits: 1,
+    });
 
-    let usdFormatter = newUSDFormatter(locale);
-    let monthFormatter = newMonthFormatter(locale);
-    let percentFormatter = newPercentFormatter(locale);
-    updateDocumentLang(locale);
+    document.documentElement.lang = locale;
 
     const self: LocaleContext = {
-        set locale(newLocale: LocaleString) {
-            locale = newLocale;
-            usdFormatter = newUSDFormatter(locale);
-            monthFormatter = newMonthFormatter(locale);
-            percentFormatter = newPercentFormatter(locale);
-            updateDocumentLang(locale);
-        },
         get locale(): LocaleString {
             return locale;
         },
