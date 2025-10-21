@@ -29,6 +29,7 @@ export * from './util/callbackCache';
 export * from './util/date';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
 export * from './util/dom';
+export * from './util/deprecation';
 export * from './util/extent';
 export * from './util/format.util';
 export * from './util/json';
