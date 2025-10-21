@@ -30,18 +30,21 @@ const options: AgChartOptions<DatumType> = {
             position: 'bottom',
             title: { text: 'Mois' },
             label: {
-                formatter: params =>
-                    new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(params.value),
+                formatter: (params) => new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(params.value),
             },
         },
         {
             type: 'number',
             position: 'left',
             keys: ['income'],
-            title: { text: 'Revenu (€)' },
+            title: { text: 'Revenu' },
             label: {
-                formatter: params =>
-                    params.value.toLocaleString('fr-FR', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
+                formatter: (params) =>
+                    params.value.toLocaleString('fr-FR', {
+                        style: 'currency',
+                        currency: 'USD',
+                        maximumFractionDigits: 0,
+                    }),
             },
         },
         {
@@ -50,8 +53,10 @@ const options: AgChartOptions<DatumType> = {
             keys: ['growth'],
             title: { text: 'Croissance (%)' },
             label: {
-                formatter: params =>
-                    new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 1 }).format(params.value / 100),
+                formatter: (params) =>
+                    new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 1 }).format(
+                        params.value / 100
+                    ),
             },
         },
     ],
@@ -59,7 +64,7 @@ const options: AgChartOptions<DatumType> = {
     zoom: { enabled: true },
     contextMenu: { enabled: true },
     locale: {
-        localeText: AG_CHARTS_LOCALE_FR_FR
+        localeText: AG_CHARTS_LOCALE_FR_FR,
     },
 };
 
