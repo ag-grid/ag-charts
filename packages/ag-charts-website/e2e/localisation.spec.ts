@@ -23,6 +23,12 @@ test.describe('localisation', () => {
             return [elems.nth(0), elems.nth(1)];
         }
 
+        async function getLegendInstructions() {
+            const elems = page.locator('.ag-charts-proxy-legend-toolbar > p');
+            await expect(elems).toHaveCount(1);
+            return elems.nth(0);
+        }
+
         async function readAriaText() {
             const labelledBy1 = await announcer1.getAttribute('aria-labelledby');
             const labelledBy2 = await announcer2.getAttribute('aria-labelledby');
@@ -43,7 +49,8 @@ test.describe('localisation', () => {
             const swapChainText = await targetLabel.textContent();
             const button1Text = await button1.textContent();
             const button2Text = await button2.textContent();
-            return [swapChainText, button1Text, button2Text];
+            const instructionsText = await (await getLegendInstructions()).textContent();
+            return [swapChainText, button1Text, button2Text, instructionsText];
         }
 
         async function interrupt() {
@@ -59,36 +66,42 @@ test.describe('localisation', () => {
         let swapChainText;
         let button1Text;
         let button2Text;
+        let instructionsText;
 
         type LocaleString = 'fr-FR' | 'en-US';
         type TextExpectations = {
             swapChain: string;
             legendItem1: string;
             legendItem2: string;
+            instructions: string;
         };
         const expectedAriaLabelText: Record<LocaleString, TextExpectations> = {
             'fr-FR': {
                 swapChain: 'janv.; Revenu; 250 000 $US; Croissance; 10,0 %',
                 legendItem1: 'Revenu, Élément de légende 1 sur 2',
                 legendItem2: 'Croissance, Élément de légende 2 sur 2',
+                instructions: 'Appuyez sur Espace ou Entrée pour basculer la visibilité',
             },
             'en-US': {
                 swapChain: 'Jan; Income; $250,000; Growth; 10.0%',
                 legendItem1: 'Income, Legend item 1 of 2',
                 legendItem2: 'Growth, Legend item 1 of 2',
+                instructions: 'Press Space or Enter to toggle visibility',
             },
         };
 
         await interrupt();
-        [swapChainText, button1Text, button2Text] = await readAriaText();
+        [swapChainText, button1Text, button2Text, instructionsText] = await readAriaText();
         expect(swapChainText).toEqual(expectedAriaLabelText['fr-FR'].swapChain);
         expect(button1Text).toEqual(expectedAriaLabelText['fr-FR'].legendItem1);
         expect(button2Text).toEqual(expectedAriaLabelText['fr-FR'].legendItem2);
+        expect(instructionsText).toEqual(expectedAriaLabelText['fr-FR'].instructions);
 
         await page.selectOption('#mySelect', 'en-US');
-        [swapChainText, button1Text, button2Text] = await readAriaText();
+        [swapChainText, button1Text, button2Text, instructionsText] = await readAriaText();
         expect(swapChainText).toEqual(expectedAriaLabelText['en-US'].swapChain);
         expect(button1Text).toEqual(expectedAriaLabelText['en-US'].legendItem1);
         expect(button2Text).toEqual(expectedAriaLabelText['en-US'].legendItem2);
+        expect(instructionsText).toEqual(expectedAriaLabelText['en-US'].instructions);
     });
 });
