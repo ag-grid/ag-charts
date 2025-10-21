@@ -21,7 +21,6 @@ const options: AgChartOptions<DatumType, LocaleContext> = {
             xKey: 'month',
             yKey: 'growth',
             yName: 'Croissance (%)',
-            yAxisKey: 'rightAxis',
             strokeWidth: 3,
             marker: { enabled: true },
         },
