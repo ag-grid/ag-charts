@@ -23,7 +23,7 @@ export function makeLocaleContext(locale: LocaleString): LocaleContext {
 
     document.documentElement.lang = locale;
 
-    const self: LocaleContext = {
+    return {
         get locale(): LocaleString {
             return locale;
         },
@@ -37,6 +37,4 @@ export function makeLocaleContext(locale: LocaleString): LocaleContext {
             return percentFormatter.format(value);
         },
     };
-
-    return self;
 }
