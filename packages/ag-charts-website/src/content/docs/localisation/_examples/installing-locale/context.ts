@@ -26,14 +26,14 @@ export function makeLocaleContext(locale: LocaleString): LocaleContext {
             minimumFractionDigits: 1,
         });
     }
-    function updateHTMLElement(locale: LocaleString) {
-        document.getElementById('myChart')!.lang = locale;
+    function updateDocumentLang(locale: LocaleString) {
+        document.documentElement.lang = locale;
     }
 
     let usdFormatter = newUSDFormatter(locale);
     let monthFormatter = newMonthFormatter(locale);
     let percentFormatter = newPercentFormatter(locale);
-    updateHTMLElement(locale);
+    updateDocumentLang(locale);
 
     const self: LocaleContext = {
         set locale(newLocale: LocaleString) {
@@ -41,7 +41,7 @@ export function makeLocaleContext(locale: LocaleString): LocaleContext {
             usdFormatter = newUSDFormatter(locale);
             monthFormatter = newMonthFormatter(locale);
             percentFormatter = newPercentFormatter(locale);
-            updateHTMLElement(locale);
+            updateDocumentLang(locale);
         },
         get locale(): LocaleString {
             return locale;
