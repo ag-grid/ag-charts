@@ -37,6 +37,7 @@ import type {
     AgColorType,
     AgDataTransaction,
     AgInitialStateLegendOptions,
+    AgLocaleOptions,
     AgMiniChartSeriesOptions,
     FormatterConfiguration,
     SeriesOptionsTypes,
@@ -623,6 +624,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private apiUpdate = false;
+    private pendingLocaleText?: AgLocaleOptions['localeText'];
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateSkipAnimations: boolean = false;
     private readonly _performUpdateNotify = new AsyncAwaitQueue();
@@ -758,6 +760,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 await this.processData();
                 this.seriesAreaManager.dataChanged();
+                if (this.pendingLocaleText) {
+                    this.modulesManager.getModule<any>('locale').localeText = this.pendingLocaleText;
+                    this.pendingLocaleText = undefined;
+                }
+
                 this.updateSplits('📊');
             // fallthrough
 
@@ -1424,8 +1431,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             }
         }
         if (deltaOptions.locale?.localeText) {
-            const localeModule: any = this.modulesManager.getModule('locale');
-            localeModule.localeText = deltaOptions.locale?.localeText;
+            this.pendingLocaleText = deltaOptions.locale?.localeText;
         }
 
         this.chartOptions = newChartOptions;
