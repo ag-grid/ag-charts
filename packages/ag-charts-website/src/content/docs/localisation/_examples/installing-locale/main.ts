@@ -26,6 +26,12 @@ const EXAMPLE_TEXT: { [K in LocaleString]: ExampleText } = {
         growth: 'Croissance',
         month: 'Mois',
     },
+    'en-US': {
+        localeText: AG_CHARTS_LOCALE_EN_US,
+        income: 'Income',
+        growth: 'Growth',
+        month: 'Month',
+    },
     'en-IN': {
         localeText: AG_CHARTS_LOCALE_EN_US,
         income: 'Income',

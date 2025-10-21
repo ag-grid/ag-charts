@@ -1,4 +1,4 @@
-export type LocaleString = 'fr-FR' | 'en-IN' | 'pl-PL' | 'ar-EG' | 'fa-IR' | 'tr-TR' | 'zh-CN' | 'he-IL';
+export type LocaleString = 'fr-FR' | 'en-US' | 'en-IN' | 'pl-PL' | 'ar-EG' | 'fa-IR' | 'tr-TR' | 'zh-CN' | 'he-IL';
 
 export interface LocaleContext {
     get locale(): LocaleString;
