@@ -41,6 +41,9 @@ env:
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
     AG_E2E_SHARD_COUNT: 16
 
+permissions:
+    contents: read
+
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' && github.ref != 'refs/heads/next' }}

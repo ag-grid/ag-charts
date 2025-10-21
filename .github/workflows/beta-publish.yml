@@ -14,6 +14,9 @@ env:
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: true
     DEPLOYMENT_APP_ID: 957224
 
+permissions:
+    contents: read
+
 jobs:
     bump_version_and_tag:
         runs-on: ubuntu-24.04
