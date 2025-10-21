@@ -45,6 +45,55 @@ function* iterLegendMarkerLabels(myChart: Chart) {
     }
 }
 
+// CRT-971 test constants
+const CRT_971_TEST_FILLS = [
+    '#5090dc',
+    '#ffa03a',
+    '#459d55',
+    '#34bfe1',
+    '#e1cc00',
+    '#9669cb',
+    '#b5b5b5',
+    '#bd5aa7',
+    '#8a6224',
+    '#ef5452',
+];
+
+const CRT_971_TEST_STROKES = [
+    '#2b5c95',
+    '#cc6f10',
+    '#1e652e',
+    '#18859e',
+    '#a69400',
+    '#603c88',
+    '#575757',
+    '#7d2f6d',
+    '#4f3508',
+    '#a82529',
+];
+
+function verifyLegendColorsAreDefined(legendData: any[], expectedCount: number) {
+    expect(legendData.length).toBe(expectedCount);
+
+    for (let i = 0; i < legendData.length; i++) {
+        const item = legendData[i];
+        const fill = item.symbol.marker.fill;
+        const stroke = item.symbol.marker.stroke;
+
+        expect(fill).toBeDefined();
+        expect(fill).not.toBeNull();
+        expect(stroke).toBeDefined();
+        expect(stroke).not.toBeNull();
+
+        if (typeof fill === 'string') {
+            expect(fill).toMatch(/^#[0-9a-f]{6}$/i);
+        }
+        if (typeof stroke === 'string') {
+            expect(stroke).toMatch(/^#[0-9a-f]{6}$/i);
+        }
+    }
+}
+
 describe('PieSeries', () => {
     setupMockConsole();
 
@@ -857,13 +906,11 @@ describe('PieSeries', () => {
         });
     });
 
-    // CRT-971 - Legend items should have colors when there are more segments than defined colors
     describe('CRT-971 legend color cycling with pagination', () => {
         it('should display colors for all legend items when segments exceed color array length', async () => {
-            // Create 20 data points - more than the default 10 colors
             const data = Array.from({ length: 20 }, (_, i) => ({
                 name: `Item ${i + 1}`,
-                value: 10 + i, // Use deterministic values
+                value: 10 + i,
             }));
 
             const opts: AgPolarChartOptions = prepareTestOptions({
@@ -873,31 +920,8 @@ describe('PieSeries', () => {
                         type: 'pie',
                         angleKey: 'value',
                         calloutLabelKey: 'name',
-                        // Explicitly set only 10 fills to test color cycling
-                        fills: [
-                            '#5090dc',
-                            '#ffa03a',
-                            '#459d55',
-                            '#34bfe1',
-                            '#e1cc00',
-                            '#9669cb',
-                            '#b5b5b5',
-                            '#bd5aa7',
-                            '#8a6224',
-                            '#ef5452',
-                        ],
-                        strokes: [
-                            '#2b5c95',
-                            '#cc6f10',
-                            '#1e652e',
-                            '#18859e',
-                            '#a69400',
-                            '#603c88',
-                            '#575757',
-                            '#7d2f6d',
-                            '#4f3508',
-                            '#a82529',
-                        ],
+                        fills: CRT_971_TEST_FILLS,
+                        strokes: CRT_971_TEST_STROKES,
                     },
                 ],
                 legend: {
@@ -910,36 +934,11 @@ describe('PieSeries', () => {
             await waitForChartStability(chart);
             await compare();
 
-            // Access the series directly to get legend data
             const series = deproxy(chart).series[0];
             const legendData = series.getLegendData('category');
 
-            // Verify all legend items have fill colors defined
-            expect(legendData.length).toBe(20);
-
-            // The critical fix: verify all legend items have defined fill/stroke colors
-            // Before the fix (without modulo), fills[datumIndex] with datumIndex >= 10
-            // would return undefined, causing legend markers on page 2+ to have no colors
-            // After the fix (with modulo), colors cycle: fills[modulus(datumIndex, fills.length)]
-            for (let i = 0; i < legendData.length; i++) {
-                const item = legendData[i];
-                const fill = item.symbol.marker.fill;
-                const stroke = item.symbol.marker.stroke;
-
-                // Critical assertion: no undefined colors
-                expect(fill).toBeDefined();
-                expect(fill).not.toBeNull();
-                expect(stroke).toBeDefined();
-                expect(stroke).not.toBeNull();
-
-                // Verify they are valid hex color strings
-                if (typeof fill === 'string') {
-                    expect(fill).toMatch(/^#[0-9a-f]{6}$/i);
-                }
-                if (typeof stroke === 'string') {
-                    expect(stroke).toMatch(/^#[0-9a-f]{6}$/i);
-                }
-            }
+            // Verify colors cycle correctly when segments exceed color array length
+            verifyLegendColorsAreDefined(legendData, 20);
         });
     });
 
