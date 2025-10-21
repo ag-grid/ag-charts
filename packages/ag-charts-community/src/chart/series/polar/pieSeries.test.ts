@@ -908,6 +908,7 @@ describe('PieSeries', () => {
 
             chart = await createChart(opts);
             await waitForChartStability(chart);
+            await compare();
 
             // Access the series directly to get legend data
             const series = deproxy(chart).series[0];
