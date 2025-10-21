@@ -1,16 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 
-const options: AgChartOptions = {
+import { type DatumType, getData } from './data';
+
+const options: AgChartOptions<DatumType> = {
     container: document.getElementById('myChart'),
-    data: [
-        { month: new Date(2025, 0, 1), income: 250000, growth: 1.1 },
-        { month: new Date(2025, 1, 1), income: 300000, growth: 1.2 },
-        { month: new Date(2025, 2, 1), income: 450000, growth: 1.5 },
-        { month: new Date(2025, 3, 1), income: 600000, growth: 1.33 },
-        { month: new Date(2025, 4, 1), income: 720000, growth: 1.2 },
-        { month: new Date(2025, 5, 1), income: 680000, growth: -0.06 },
-    ],
+    data: getData(),
     series: [
         {
             type: 'bar',
