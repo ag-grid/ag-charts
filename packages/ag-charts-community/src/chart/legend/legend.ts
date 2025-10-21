@@ -225,6 +225,7 @@ export class Legend extends BaseProperties {
     private _data: CategoryLegendDatum[] = [];
     set data(value: CategoryLegendDatum[]) {
         if (objectsEqual(value, this._data)) return;
+        this.updateItemSelection(value);
         this.domProxy.onDataUpdate(this._data, value);
         this._data = value;
         this.updateGroupVisibility();
@@ -389,6 +390,14 @@ export class Legend extends BaseProperties {
         this.group.visible = this.enabled && this.visible && this.data.length > 0;
     }
 
+    private updateItemSelection(newData: CategoryLegendDatum[]) {
+        const data = [...newData];
+        if (this.reverseOrder) {
+            data.reverse();
+        }
+        this.itemSelection.update(data);
+    }
+
     private isInteractive(): boolean {
         const {
             toggleSeries,
@@ -435,12 +444,6 @@ export class Legend extends BaseProperties {
             maxWidth,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
         } = this.item;
-        const data = [...this.data];
-        if (this.reverseOrder) {
-            data.reverse();
-        }
-        this.itemSelection.update(data);
-
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
 
