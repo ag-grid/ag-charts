@@ -1,5 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Time Axis Examples should prioritise parentLevel.tick over tick 1`] = `
+{
+  "height": 30.798828125,
+  "width": 722,
+  "x": 58,
+  "y": 487,
+}
+`;
+
 exports[`Time Axis Examples when zooming for should render as expected as zoom [0, 1] 1`] = `
 {
   "height": 24.798828125,

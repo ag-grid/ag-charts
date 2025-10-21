@@ -172,4 +172,28 @@ describe('Time Axis Examples', () => {
             await compare();
         });
     });
+
+    it('should prioritise parentLevel.tick over tick', async () => {
+        chart = AgCharts.create(
+            prepareEnterpriseTestOptions({
+                ...TIME_AXIS_EXAMPLE,
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.5 } } },
+                axes: [
+                    {
+                        ...TIME_AXIS_EXAMPLE.axes![0],
+                        parentLevel: {
+                            tick: {
+                                enabled: false,
+                            },
+                        },
+                        tick: {
+                            enabled: true,
+                        },
+                    },
+                    TIME_AXIS_EXAMPLE.axes![1],
+                ],
+            })
+        );
+        await axisCompare();
+    });
 });
