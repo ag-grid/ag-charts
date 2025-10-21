@@ -1,9 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 
+import { type LocaleContext, makeLocaleContext } from './context';
 import { type DatumType, getData } from './data';
 
-const options: AgChartOptions<DatumType> = {
+const options: AgChartOptions<DatumType, LocaleContext> = {
+    context: makeLocaleContext('fr-FR'),
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
@@ -30,7 +32,7 @@ const options: AgChartOptions<DatumType> = {
             position: 'bottom',
             title: { text: 'Mois' },
             label: {
-                formatter: (params) => new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(params.value),
+                formatter: (params) => params.context.formatMonth(params.value),
             },
         },
         {
@@ -39,12 +41,7 @@ const options: AgChartOptions<DatumType> = {
             keys: ['income'],
             title: { text: 'Revenu' },
             label: {
-                formatter: (params) =>
-                    params.value.toLocaleString('fr-FR', {
-                        style: 'currency',
-                        currency: 'USD',
-                        maximumFractionDigits: 0,
-                    }),
+                formatter: (params) => params.context.formatUSD(params.value),
             },
         },
         {
@@ -53,10 +50,7 @@ const options: AgChartOptions<DatumType> = {
             keys: ['growth'],
             title: { text: 'Croissance (%)' },
             label: {
-                formatter: (params) =>
-                    new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 1 }).format(
-                        params.value / 100
-                    ),
+                formatter: (params) => params.context.formatPercent(params.value),
             },
         },
     ],
