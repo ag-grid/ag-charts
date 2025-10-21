@@ -10,7 +10,7 @@ type ExampleText = {
     growth: string;
     month: string;
 };
-const EXAMLE_TEXT: { [K in LocaleString]: ExampleText } = {
+const EXAMPLE_TEXT: { [K in LocaleString]: ExampleText } = {
     'fr-FR': {
         localeText: AG_CHARTS_LOCALE_FR_FR,
         income: 'Revenu',
@@ -71,14 +71,14 @@ const options: AgChartOptions<DatumType, LocaleContext> = {
             type: 'bar',
             xKey: 'month',
             yKey: 'income',
-            yName: EXAMLE_TEXT[INITIAL_LOCALE].income,
+            yName: EXAMPLE_TEXT[INITIAL_LOCALE].income,
             grouped: false,
         },
         {
             type: 'line',
             xKey: 'month',
             yKey: 'growth',
-            yName: EXAMLE_TEXT[INITIAL_LOCALE].growth,
+            yName: EXAMPLE_TEXT[INITIAL_LOCALE].growth,
             strokeWidth: 3,
             marker: { enabled: true },
         },
@@ -87,7 +87,7 @@ const options: AgChartOptions<DatumType, LocaleContext> = {
         {
             type: 'time',
             position: 'bottom',
-            title: { text: EXAMLE_TEXT[INITIAL_LOCALE].month },
+            title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].month },
             label: {
                 formatter: (params) => params.context.formatMonth(params.value),
             },
@@ -96,7 +96,7 @@ const options: AgChartOptions<DatumType, LocaleContext> = {
             type: 'number',
             position: 'left',
             keys: ['income'],
-            title: { text: EXAMLE_TEXT[INITIAL_LOCALE].income },
+            title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].income },
             label: {
                 formatter: (params) => params.context.formatUSD(params.value),
             },
@@ -105,7 +105,7 @@ const options: AgChartOptions<DatumType, LocaleContext> = {
             type: 'number',
             position: 'right',
             keys: ['growth'],
-            title: { text: EXAMLE_TEXT[INITIAL_LOCALE].growth },
+            title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].growth },
             label: {
                 formatter: (params) => params.context.formatPercent(params.value),
             },
@@ -115,7 +115,7 @@ const options: AgChartOptions<DatumType, LocaleContext> = {
     zoom: { enabled: true },
     contextMenu: { enabled: true },
     locale: {
-        localeText: EXAMLE_TEXT[INITIAL_LOCALE].localeText,
+        localeText: EXAMPLE_TEXT[INITIAL_LOCALE].localeText,
     },
 };
 
@@ -123,11 +123,11 @@ const chart = AgCharts.create(options);
 
 function updateLocale(locale: LocaleString) {
     options.context.locale = locale;
-    options.series[0]!.yName = EXAMLE_TEXT[locale].income;
-    options.series[1]!.yName = EXAMLE_TEXT[locale].growth;
-    options.axes[0]!.title!.text = EXAMLE_TEXT[locale].month;
-    options.axes[1]!.title!.text = EXAMLE_TEXT[locale].income;
-    options.axes[2]!.title!.text = EXAMLE_TEXT[locale].growth;
-    options.locale!.localeText = EXAMLE_TEXT[locale].localeText;
+    options.series[0]!.yName = EXAMPLE_TEXT[locale].income;
+    options.series[1]!.yName = EXAMPLE_TEXT[locale].growth;
+    options.axes[0]!.title!.text = EXAMPLE_TEXT[locale].month;
+    options.axes[1]!.title!.text = EXAMPLE_TEXT[locale].income;
+    options.axes[2]!.title!.text = EXAMPLE_TEXT[locale].growth;
+    options.locale!.localeText = EXAMPLE_TEXT[locale].localeText;
     chart.update(options);
 }
