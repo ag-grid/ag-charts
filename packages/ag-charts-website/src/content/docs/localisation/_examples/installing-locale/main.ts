@@ -10,8 +10,10 @@ import {
     AG_CHARTS_LOCALE_ZH_CN,
 } from 'ag-charts-locale';
 
-import { type LocaleContext, type LocaleString, makeLocaleContext } from './context';
-import { type DatumType, getData } from './data';
+import { makeLocaleContext } from './context';
+import type { LocaleContext, LocaleString } from './context';
+import { getData } from './data';
+import type { DatumType } from './data';
 
 type ExampleText = {
     localeText: Record<string, string>;
