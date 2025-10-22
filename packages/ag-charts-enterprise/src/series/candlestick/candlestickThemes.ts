@@ -44,7 +44,12 @@ export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: _ModuleSupport.mergeDefaults(
+            {
+                highlightedItem: { strokeWidth: 3 },
+            },
+            multiSeriesHighlightStyle()
+        ),
     },
     animation: { enabled: false },
     axes: {

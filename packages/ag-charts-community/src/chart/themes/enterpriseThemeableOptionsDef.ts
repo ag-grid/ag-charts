@@ -606,7 +606,6 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
-    // TODO Remove in next major version
     highlightStyle: {
         label: {
             color: color,

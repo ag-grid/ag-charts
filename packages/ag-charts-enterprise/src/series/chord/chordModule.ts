@@ -22,12 +22,12 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
-            highlightStyle: {
-                series: {
-                    dimOpacity: 0.2,
+            highlight: _ModuleSupport.mergeDefaults(
+                {
+                    unhighlightedItem: { opacity: 0.2 },
                 },
-            },
-            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+                _ModuleSupport.singleSeriesHighlightStyle()
+            ),
             label: {
                 ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 fontFamily: { $ref: 'fontFamily' },

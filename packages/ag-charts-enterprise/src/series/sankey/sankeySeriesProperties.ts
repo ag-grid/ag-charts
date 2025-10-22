@@ -195,9 +195,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @Property
     readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<DatumDefault>>();
 
-    @Property
-    readonly highlightStyle = new _ModuleSupport.HighlightStyle();
-
     getStyle(
         isLink: boolean,
         fills: InternalAgColorType[],

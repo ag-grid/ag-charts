@@ -335,34 +335,20 @@ export function getSequentialColors(colors: { [key: string]: string }) {
 }
 
 const ITEM_HIGHLIGHT_BASE_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
-    stroke: { $path: ['../../highlightStyle/item/stroke', `rgba(0, 0, 0, 0.4)`] },
-    strokeWidth: { $path: ['../../highlightStyle/item/strokeWidth', 2] },
-    strokeOpacity: { $path: ['../../highlightStyle/item/strokeOpacity', undefined] },
-    opacity: {
-        $path: [
-            '../../highlightStyle/item/opacity',
-            {
-                $if: [{ $eq: [{ $path: ['/highlight/drawingMode', undefined] }, 'cutout'] }, 0.67, 1],
-            },
-        ],
-    },
+    stroke: `rgba(0, 0, 0, 0.4)`,
+    strokeWidth: 2,
+    opacity: { $if: [{ $eq: [{ $path: ['/highlight/drawingMode', undefined] }, 'cutout'] }, 0.67, 1] },
 };
 
 const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
     ...ITEM_HIGHLIGHT_BASE_STYLE,
     fill: {
-        $path: [
-            '../../highlightStyle/item/fill',
-            {
-                $if: [
-                    { $eq: [{ $path: ['/highlight/drawingMode', undefined] }, 'cutout'] },
-                    undefined,
-                    `rgba(255,255,255, 0.33)`,
-                ],
-            },
+        $if: [
+            { $eq: [{ $path: ['/highlight/drawingMode', undefined] }, 'cutout'] },
+            undefined,
+            `rgba(255,255,255, 0.33)`,
         ],
     },
-    fillOpacity: { $path: ['../../highlightStyle/item/fillOpacity', undefined] },
 };
 
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
@@ -393,29 +379,13 @@ export function multiSeriesHighlightStyle(
     return {
         enabled: true,
         highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
-        unhighlightedItem: {
-            strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
-        },
-        highlightedSeries: {
-            strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
-        },
-        unhighlightedSeries: {
-            opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
-        },
     };
 }
 
 export function singleSeriesHighlightStyle(
     hasFill: boolean = true
 ): WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> {
-    return {
-        enabled: true,
-        highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
-        unhighlightedItem: {
-            strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
-            opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
-        },
-    };
+    return multiSeriesHighlightStyle(hasFill);
 }
 
 export const LEGEND_CONTAINER_THEME: any = {

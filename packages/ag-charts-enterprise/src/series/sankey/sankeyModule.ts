@@ -30,14 +30,12 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             defaultColorRange: { $palette: 'gradients' },
             defaultPatternFills: _ModuleSupport.SAFE_FILLS_OPERATION,
-            highlightStyle: {
-                series: {
-                    dimOpacity: 0.2,
+            highlight: _ModuleSupport.mergeDefaults(
+                {
+                    unhighlightedItem: { opacity: 0.2 },
                 },
-            },
-            highlight: {
-                ..._ModuleSupport.singleSeriesHighlightStyle(),
-            },
+                _ModuleSupport.singleSeriesHighlightStyle()
+            ),
             label: {
                 ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 fontFamily: { $ref: 'fontFamily' },

@@ -104,9 +104,6 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     lineDashOffset: number = 0;
 
     @Property
-    readonly highlightStyle = new _ModuleSupport.HighlightStyle();
-
-    @Property
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
 
     getStyle(fills: InternalAgColorType[], strokes: string[], index: number): Required<AgChordSeriesNodeStyle> {
