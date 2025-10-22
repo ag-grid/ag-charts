@@ -1,5 +1,5 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { BorderOptions, Padding, PaddingOptions, TextOrSegments } from '../series/cartesian/commonOptions';
+import type { BorderOptions, Padding, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';

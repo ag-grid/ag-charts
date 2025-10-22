@@ -15,7 +15,6 @@ import type {
     AgBaseSeriesThemeableOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
-    AgSeriesHighlightStyle,
 } from '../../series/seriesOptions';
 
 export interface AgBaseGaugeThemeableOptions<TContext = ContextDefault> {

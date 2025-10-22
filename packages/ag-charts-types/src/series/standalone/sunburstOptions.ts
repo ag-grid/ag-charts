@@ -114,4 +114,4 @@ export interface AgSunburstSeriesLabelFormatterParams<_TDatum = DatumDefault>
 }
 
 /** The formatted style of a Sunburst sector. */
-export type AgSunburstSeriesStyle = FillOptions & StrokeOptions;
+export interface AgSunburstSeriesStyle extends FillOptions, StrokeOptions {}

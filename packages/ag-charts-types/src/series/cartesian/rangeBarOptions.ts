@@ -12,7 +12,6 @@ import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesHighlightStyle,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';

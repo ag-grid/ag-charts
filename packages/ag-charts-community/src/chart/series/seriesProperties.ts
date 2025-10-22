@@ -1,7 +1,6 @@
 import {
     type ColorSpace,
     type InternalAgColorType,
-    Logger,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,

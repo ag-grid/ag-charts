@@ -15,7 +15,6 @@ import type {
     AgBaseSeriesOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesHighlightStyle,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';

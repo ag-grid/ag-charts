@@ -41,9 +41,6 @@ export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'
             up: itemTheme('up'),
             down: itemTheme('down'),
         },
-        highlightStyle: {
-            item: { strokeWidth: 3 },
-        },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
