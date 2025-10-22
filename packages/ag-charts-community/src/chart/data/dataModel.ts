@@ -13,30 +13,62 @@ import type { DataChangeDescription, DataSet } from './dataSet';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
 
-export interface ScopeProvider {
-    id: string;
-}
+// Export all types from dataModelTypes
+export * from './dataModelTypes';
 
-export interface DataGroup {
-    keys: any[];
-    datumIndices: readonly (readonly number[])[];
-    aggregation: any[][];
-    validScopes: Set<ScopeId>;
-}
+// Import types for internal use
+import type {
+    ScopeProvider,
+    DataGroup,
+    UngroupedDataItem,
+    ScopeId,
+    ProcessedValue,
+    SortOrderEntry,
+    ProcessedValueEntry,
+    GroupDatumIteratorOutput,
+    InsertionCacheValue,
+    InsertionCache,
+    ColumnBatch,
+    MergedColumnBatch,
+    CommonMetadata,
+    UngroupedData,
+    GroupedData,
+    ProcessedOutputDiff,
+    ProcessedDataDef,
+    ProcessedData,
+    OptimizationMetadata,
+    DatumPropertyType,
+    MissMap,
+    GroupingFn,
+    GroupByFn,
+    DataModelOptions,
+    PropertyDefinition,
+    ProcessorFn,
+    PropertyId,
+    Scoped,
+    PropertyIdentifiers,
+    PropertySelectors,
+    DatumPropertyDefinition,
+    InternalDefinition,
+    InternalDatumPropertyDefinition,
+    AggregatePropertyDefinition,
+    GroupValueAdjustFn,
+    GroupValueProcessorDefinition,
+    PropertyValueAdjustFn,
+    PropertyValueProcessorDefinition,
+    ReducerOutputTypes,
+    ReducerOutputKeys,
+    ReducerOutputPropertyDefinition,
+    ProcessorOutputPropertyDefinition,
+} from './dataModelTypes';
 
-export interface UngroupedDataItem<I, D, V> {
-    index: I;
-    keys: any[];
-    values: V;
-    aggValues?: [number, number][];
-    datum: D;
-    validScopes?: Set<string>;
-}
-
-const KEY_SORT_ORDERS = Symbol('key-sort-orders');
-const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
-const DOMAIN_RANGES = Symbol('domain-ranges');
-const DOMAIN_BANDS = Symbol('domain-bands');
+import {
+    KEY_SORT_ORDERS,
+    COLUMN_SORT_ORDERS,
+    DOMAIN_RANGES,
+    DOMAIN_BANDS,
+    SHARED_ZERO_INDICES,
+} from './dataModelTypes';
 
 /**
  * DATA MODEL OPTIMIZATIONS:
