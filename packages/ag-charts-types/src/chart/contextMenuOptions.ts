@@ -126,6 +126,8 @@ export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, 
     extends Omit<AgChartLegendContextMenuEvent<TContext>, GetItemsParamsOmissions> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'legend-item';
+    /** Whether the series of this legend item is visible or hidden. */
+    visible: boolean;
 }
 
 export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault> =

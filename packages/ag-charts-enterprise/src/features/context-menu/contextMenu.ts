@@ -165,14 +165,14 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
             case 'legend-item':
                 if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
-                const { itemId, seriesId, label } = this.pickedLegendItem;
+                const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
                 const text = toPlainText(label.text);
 
                 if (typeof itemId !== 'string') {
                     throw new Error(`unexpected itemId type: [${typeof itemId}] (expected [string])`);
                 }
 
-                return { showOn, context, itemId, seriesId, text };
+                return { showOn, context, itemId, seriesId, text, visible: enabled };
 
             default:
                 return showOn satisfies never; // unreachable
