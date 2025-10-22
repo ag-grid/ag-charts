@@ -4,11 +4,31 @@
 
 **You MUST use both Puppeteer screenshots and PREVis evaluation to visually analyze each example.**
 
+## Screenshot Handoff to Sub-Agents
+
+**CRITICAL:** Sub-agents start with fresh context and don't automatically inherit screenshots unless properly handed off.
+
+**Correct Pattern for PREVis Evaluation:**
+
+1. Main agent takes screenshot with Puppeteer (screenshot appears visually in your conversation)
+2. Launch **previs-evaluator** agent (NOT data-viz-designer - it lacks Puppeteer tools)
+3. In the Task prompt, explicitly state:
+    - "Screenshot is already provided in the conversation above"
+    - "DO NOT navigate to the URL or capture new screenshots"
+    - "Analyze the visualization shown in the screenshot"
+    - Include the example name for context
+
+**Why previs-evaluator instead of data-viz-designer?**
+
+-   previs-evaluator lacks Puppeteer tools → cannot accidentally recapture screenshots
+-   Specialized for PREVis methodology → more focused analysis
+-   data-viz-designer is for design/dataset guidance, not quality evaluation
+
 ## Initial Assessment (BEFORE changes)
 
 1. **Navigate to the example**: Use the Puppeteer tool to visit `https://localhost:4600/charts/gallery/examples/{exampleName}`
-2. **Take screenshot**: Capture the current visual state of the chart
-3. **Run PREVis evaluation**: Ask the data-viz-designer agent to evaluate the screenshot for visual quality
+2. **Take screenshot**: Capture the current visual state of the chart (it will be visible in your conversation)
+3. **Run PREVis evaluation**: Launch the **previs-evaluator** agent to evaluate the screenshot for visual quality
 4. **Analyze visually**: Base your improvements on what you see and the PREVis feedback
 
 ### Puppeteer Configuration for Dev Server
@@ -26,8 +46,8 @@ await puppeteer_navigate({
 
 ## Validation (AFTER changes)
 
-1. **Take new screenshot**: Capture the updated state with Puppeteer
-2. **Run PREVis evaluation**: Ask the data-viz-designer agent to evaluate the new screenshot
+1. **Take new screenshot**: Capture the updated state with Puppeteer (it will be visible in your conversation)
+2. **Run PREVis evaluation**: Launch the **previs-evaluator** agent to evaluate the new screenshot (following the handoff pattern above)
 3. **Compare before/after**: Verify improvements are visible and appropriate
 4. **Check for regressions**: Ensure changes improved the visualization without breaking anything
 
@@ -35,8 +55,8 @@ await puppeteer_navigate({
 
 ### Before Making Any Changes:
 
--   [ ] Screenshot taken with Puppeteer (current state documented)
--   [ ] PREVis evaluation requested from data-viz-designer agent on the screenshot
+-   [ ] Screenshot taken with Puppeteer (current state documented and visible in conversation)
+-   [ ] PREVis evaluation requested from **previs-evaluator** agent on the screenshot
 -   [ ] Chart type and data structure identified (do not change these)
 -   [ ] If 'simple-\*' example: Confirmed NOT adding more series/data (keep it simple!)
 -   [ ] Current features cataloged (what's already implemented)
@@ -55,8 +75,8 @@ await puppeteer_navigate({
 
 ### After Changes:
 
--   [ ] New screenshot taken with Puppeteer (verify improvements)
--   [ ] PREVis evaluation requested from data-viz-designer agent on the new screenshot
+-   [ ] New screenshot taken with Puppeteer (verify improvements - visible in conversation)
+-   [ ] PREVis evaluation requested from **previs-evaluator** agent on the new screenshot
 -   [ ] **✅ PREVis SCORE VERIFICATION**:
     -   [ ] PREVis score is at least as good as baseline (NO regression)
     -   [ ] No new visual issues identified by PREVis

@@ -70,3 +70,4 @@ vitest.config.*.timestamp*
 /.mcp.json
 /.vscode/mcp.json
 .tmp
+/.cursor/
