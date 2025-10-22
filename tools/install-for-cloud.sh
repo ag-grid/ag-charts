@@ -5,6 +5,15 @@ if [ "$CLAUDE_CODE_REMOTE" != "true" ]; then
   exit 0
 fi
 
+function install_nx() {
+    echo "Installing nx globally"
+
+    # Install Nx globally with the version from package.json
+    NX_VERSION=$(node -p "require('./package.json').devDependencies.nx")
+    echo "Installing nx@${NX_VERSION} globally"
+    yarn global add nx@${NX_VERSION}
+}
+
 function install_yarn() {
     echo "Installing yarn@1 && initial dependencies"
     cat >.yarnrc <<EOF
@@ -30,4 +39,5 @@ if [ -d node_modules ]; then
     install_dependencies
 else
     install_yarn
+    install_nx
 fi
