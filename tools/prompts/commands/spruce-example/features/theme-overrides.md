@@ -202,6 +202,15 @@ formatter: {
     x: (params) => params.value.toFixed(1),
     label: (params) => `${params.value}%`,
 }
+
+// Need richer text? Return segments via RichFormatter-compatible callbacks
+formatter: {
+    y: ({ value }) => [
+        { text: value >= 0 ? '+' : '', fontWeight: 'bold' },
+        { text: value.toFixed(1) },
+        { text: ' %', opacity: 0.6 },
+    ],
+}
 ```
 
 ## 📏 Significant Figures Guidelines
