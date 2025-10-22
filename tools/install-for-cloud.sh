@@ -22,7 +22,7 @@ fi
 # Ensure we're in the project directory
 if [ ! -f package.json ]; then
     log_error "package.json not found in current directory"
-    exit 1
+    exit 2
 fi
 
 # Function to install nx globally
@@ -32,20 +32,20 @@ install_nx() {
     # Check if node is available
     if ! command -v node &> /dev/null; then
         log_error "node is not available"
-        return 1
+        return 2
     fi
 
     # Install Nx globally with the version from package.json
     local nx_version
     nx_version=$(node -p "require('./package.json').devDependencies.nx" 2>/dev/null) || {
         log_error "Failed to extract nx version from package.json"
-        return 1
+        return 2
     }
 
     log_info "Installing nx@${nx_version} globally"
     if ! yarn global add "nx@${nx_version}"; then
         log_error "Failed to install nx globally"
-        return 1
+        return 2
     fi
 
     log_info "Successfully installed nx@${nx_version}"
@@ -65,7 +65,7 @@ EOF
     # Install yarn v1 globally
     if ! npm i -g --force yarn@1; then
         log_error "Failed to install yarn@1 globally"
-        return 1
+        return 2
     fi
 
     log_info "yarn@1 installed successfully"
@@ -74,7 +74,7 @@ EOF
     log_info "Installing project dependencies"
     if ! yarn install --ci; then
         log_error "Failed to install project dependencies"
-        return 1
+        return 2
     fi
 
     log_info "Project dependencies installed successfully"
@@ -90,13 +90,13 @@ install_dependencies() {
         log_info "Dependencies already installed and valid, running postinstall"
         if ! yarn postinstall; then
             log_error "postinstall script failed"
-            return 1
+            return 2
         fi
     else
         log_info "Installing/updating dependencies"
         if ! yarn install --ci; then
             log_error "Failed to install dependencies"
-            return 1
+            return 2
         fi
         log_info "Dependencies installed successfully"
     fi
@@ -111,15 +111,15 @@ main() {
     if [ -d node_modules ]; then
         log_info "node_modules directory exists, checking dependencies"
         if ! install_dependencies; then
-            exit 1
+            exit 2
         fi
     else
         log_info "node_modules directory not found, performing fresh install"
         if ! install_yarn; then
-            exit 1
+            exit 2
         fi
         if ! install_nx; then
-            exit 1
+            exit 2
         fi
     fi
 
