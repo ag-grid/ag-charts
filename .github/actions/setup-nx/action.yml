@@ -51,6 +51,23 @@ runs:
           shell: bash
           run: echo "$GITHUB_CONTEXT"
 
+        - name: Set Nx parallelization
+          shell: bash
+          run: |
+              if [ -z "${NX_PARALLEL}" ]; then
+                # Get CPU count in a cross-platform way
+                if command -v nproc >/dev/null 2>&1; then
+                  CPUS=$(nproc)
+                else
+                  # macOS fallback
+                  CPUS=$(sysctl -n hw.logicalcpu)
+                fi
+                echo "NX_PARALLEL=${CPUS}" >> $GITHUB_ENV
+                echo "Setting NX_PARALLEL to ${CPUS}"
+              else
+                echo "NX_PARALLEL already set to ${NX_PARALLEL}, skipping"
+              fi
+
         - name: Nx Affected SHA Setup
           id: nx_config
           shell: bash
