@@ -14,12 +14,12 @@ log_error() {
 }
 
 # Check if running in Claude Code remote environment
-if [ "$CLAUDE_CODE_REMOTE" != "true" ]; then
+if [ "${CLAUDE_CODE_REMOTE:-false}" != "true" ]; then
     log_info "Not a remote session, skipping install"
     exit 0
 fi
 
-if [ "$AG_CLOUD_INSTALL" == "0" ]; then
+if [ "${AG_CLOUD_INSTALL:-1}" == "0" ]; then
     log_info "Disabled by AG_CLOUD_INSTALL env-var, skipping install"
     exit 0
 fi
