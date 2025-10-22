@@ -77,39 +77,6 @@ await chart.applyTransaction(transaction);
 
 _Why_: Append, prepend, or remove data without rebuilding the chart—perfect for live dashboards.
 
-### 🧠 Theme Condition Operators
-
-_New Mar 2025 • Apply: 4 minutes • Impact: MEDIUM_
-
-```typescript
-theme: {
-    overrides: {
-        cartesian: {
-            axes: {
-                number: {
-                    label: {
-                        formatter: ({ value }) => value.toLocaleString(),
-                    },
-                },
-            },
-        },
-    },
-    palette: {
-        fills: [
-            {
-                $if: {
-                    $greaterThan: [{ $path: ['yValue'] }, 1_000_000],
-                },
-                $then: { $path: ['palette/accents/0'] },
-            },
-            { $path: ['palette/fills/0'] },
-        ],
-    },
-},
-```
-
-_Result_: Use `$greaterThan`/`$lessThan` to branch theme logic instead of bespoke item stylers.
-
 ### 🪄 Rich Text Formatters Everywhere
 
 _New Mar 2025 • Apply: 5 minutes • Impact: HIGH_
