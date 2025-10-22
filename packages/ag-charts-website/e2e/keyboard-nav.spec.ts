@@ -477,4 +477,31 @@ test.describe('keyboard-nav', () => {
         await expect(page.getByText('Previous Legend Page')).toHaveAttribute('aria-disabled', 'false');
         await expect(page.getByText('Next Legend Page')).toHaveAttribute('aria-disabled', 'true');
     });
+
+    test('CRT-969 short aria labels', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('background-image', 'background-image', 'vanilla').url);
+
+        const elems = page.locator('.ag-charts-series-area [id]');
+        await expect(elems).toHaveCount(2);
+        const label1 = elems.nth(0);
+        const label2 = elems.nth(1);
+
+        await page.mouse.click(400, 300);
+        await expect(label1).toHaveText('56.9');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label2).toHaveText('22.5');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label1).toHaveText('6.8');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label2).toHaveText('8.5');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label1).toHaveText('2.6');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label2).toHaveText('1.9');
+    });
 });
