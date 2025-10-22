@@ -113,7 +113,7 @@ export abstract class AbstractBarSeries<
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
-        const xAxis = this.axes[this.getCategoryDirection()]!;
+        const xAxis = this.getCategoryAxis()!;
         const xScale = xAxis.scale;
         const bandWidth = this.getBandwidth(xAxis, 0) ?? 0;
         const barOffset = ContinuousScale.is(xScale) ? bandWidth * -0.5 : 0;
@@ -122,7 +122,7 @@ export abstract class AbstractBarSeries<
     }
 
     override yCoordinateRange(yValues: any[]): [number, number] {
-        const yAxis = this.axes[this.getBarDirection()]!;
+        const yAxis = this.getValueAxis()!;
         const yScale = yAxis.scale;
         const ys = yValues.map((yValue) => yScale.convert(yValue));
         if (ys.length === 1) {

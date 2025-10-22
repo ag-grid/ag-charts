@@ -781,7 +781,21 @@ export abstract class CartesianSeries<
         visibleRange: [any, any],
         indices?: number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
-    ): [number, number] {
+    ): [number, number];
+    visibleRangeIndices(
+        axisKey: string,
+        visibleRange: [any, any],
+        indices?: number[],
+        sortOrderParams?: { sortOrder: 1 | -1 },
+        side?: 'outer' | 'inner'
+    ): [number | undefined, number | undefined];
+    visibleRangeIndices(
+        axisKey: string,
+        visibleRange: [any, any],
+        indices?: number[],
+        sortOrderParams?: { sortOrder: 1 | -1 },
+        side: 'outer' | 'inner' = 'inner'
+    ): [number | undefined, number | undefined] {
         let sortOrder: 1 | -1;
         if (sortOrderParams == null) {
             const { processedData, dataModel } = this;
@@ -800,8 +814,13 @@ export abstract class CartesianSeries<
             (topIndex) => {
                 const datumIndex = indices?.[topIndex] ?? topIndex;
                 return this.xCoordinateRange(xValues[datumIndex], pixelSize, datumIndex);
-            }
+            },
+            side
         );
+
+        if (start == null || end == null) {
+            return [start, end];
+        }
 
         return start < end ? [start, end] : [end, start];
     }
@@ -972,10 +991,21 @@ export abstract class CartesianSeries<
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return Infinity;
 
+        const shouldFlipXY = this.shouldFlipXY();
+
+        const crossVisibleRange = shouldFlipXY ? yVisibleRange ?? [0, 1] : xVisibleRange;
+        const axisVisibleRange = shouldFlipXY ? xVisibleRange : yVisibleRange ?? [0, 1];
+
+        if (yVisibleRange == null) {
+            // Fast path if we only need to look at the cross axis
+            const crossVisibleItems = this.countCrossAxisVisibleItems(crossAxisKey, crossVisibleRange);
+            if (crossVisibleItems != null) {
+                return crossVisibleItems;
+            }
+        }
+
         const crossValues = this.keysOrValues(crossAxisKey);
         const allAxisValues = axisKeys.map((axisKey) => dataModel.resolveColumnById(this, axisKey, processedData));
-
-        const shouldFlipXY = this.shouldFlipXY();
 
         // The provided visible ranges `[xy]VisibleRange` are relative to the unzoomed axis ranges `[xy]Axis.range`.
         // `[xy]Axis.visibleRange` are relative to the zoomed scale ranges `[xy]Axis.scale.range`.
@@ -983,39 +1013,6 @@ export abstract class CartesianSeries<
         // position in pixels that the visible range ratio covers.
         const crossAxis = shouldFlipXY ? this.axes[ChartAxisDirection.Y]! : this.axes[ChartAxisDirection.X]!;
         const axis = shouldFlipXY ? this.axes[ChartAxisDirection.X]! : this.axes[ChartAxisDirection.Y]!;
-
-        const crossVisibleRange = shouldFlipXY ? yVisibleRange ?? [0, 1] : xVisibleRange;
-        const axisVisibleRange = shouldFlipXY ? xVisibleRange : yVisibleRange ?? [0, 1];
-
-        if (yVisibleRange == null) {
-            const sortOrder = this.sortOrder(crossAxisKey);
-            if (sortOrder != null) {
-                // Fast path if we only need to look at the x axis
-                const crossScale = crossAxis.scale;
-                const crossScaleRange = crossScale.range;
-                crossScale.range = [0, 1];
-
-                const xValues = this.keysOrValues(crossAxisKey);
-
-                let [r0, r1] = this.visibleRangeIndices(crossAxisKey, crossVisibleRange, undefined, { sortOrder });
-                r1 -= 1;
-
-                // @todo(AG-7083) - figure out how to determine this
-                const pixelSize = 0;
-                if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < crossVisibleRange[0]) {
-                    r0 += 1;
-                }
-                if (this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > crossVisibleRange[1]) {
-                    r1 -= 1;
-                }
-
-                const xItemsVisible = Math.abs(r1 - r0) + 1;
-
-                crossScale.range = crossScaleRange;
-
-                return xItemsVisible;
-            }
-        }
 
         const convert = (d: number[], r: number[], v: number) => {
             return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
@@ -1051,6 +1048,40 @@ export abstract class CartesianSeries<
             }
             return cross0 >= crossMin && cross1 <= crossMax && axis0 >= axisMin && axis1 <= axisMax;
         });
+    }
+
+    private countCrossAxisVisibleItems(crossAxisKey: string, crossVisibleRange: [any, any]): number | undefined {
+        const crossAxis = this.shouldFlipXY() ? this.axes[ChartAxisDirection.Y]! : this.axes[ChartAxisDirection.X]!;
+
+        const crossScale = crossAxis.scale;
+        const crossScaleRange = crossScale.range;
+        crossScale.range = [0, 1];
+
+        const xValues = this.keysOrValues(crossAxisKey);
+
+        const sortOrder = this.sortOrder(crossAxisKey);
+        if (sortOrder == null) return;
+
+        let [r0, r1] = this.visibleRangeIndices(crossAxisKey, crossVisibleRange, undefined, { sortOrder }, 'outer');
+
+        if (r0 == null || r1 == null) {
+            return 0;
+        }
+
+        r1 -= 1;
+
+        // @todo(AG-7083) - figure out how to determine this
+        const pixelSize = 0;
+        if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < crossVisibleRange[0]) {
+            r0 += 1;
+        }
+        if (this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > crossVisibleRange[1]) {
+            r1 -= 1;
+        }
+
+        crossScale.range = crossScaleRange;
+
+        return Math.abs(r1 - r0) + 1;
     }
 
     // @todo(AG-13777) - Remove this function.
