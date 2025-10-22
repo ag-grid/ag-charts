@@ -1,7 +1,6 @@
 import type {
     AgContextMenuGetItemsCallback,
     AgContextMenuGetItemsParams,
-    AgContextMenuGetItemsParamsSeriesArea,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
     AgContextMenuItemShowOn,
