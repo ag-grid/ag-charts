@@ -60,17 +60,6 @@ export async function triggerExampleTooltips(page: Page) {
             tooltipVisible = await isTooltipVisible(wrapper);
         }
 
-        if (!tooltipVisible) {
-            await wrapper.hover();
-            await waitForAllChartUpdates(page);
-            tooltipVisible = await isTooltipVisible(wrapper);
-        }
-
-        if (tooltipVisible) {
-            await page.keyboard.press('Escape');
-        }
-
-        await page.mouse.move(0, 0);
         await waitForAllChartUpdates(page);
     }
 }

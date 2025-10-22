@@ -146,7 +146,6 @@ const options: AgTopologyChartOptions<DataType> = {
             anchorTo: 'pointer',
             placement: ['top', 'bottom', 'right', 'left'],
         },
-        delay: 100,
     },
 };
 

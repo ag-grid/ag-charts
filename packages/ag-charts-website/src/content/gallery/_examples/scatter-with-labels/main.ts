@@ -158,7 +158,6 @@ const options: AgCartesianChartOptions<NameData> = {
     },
     tooltip: {
         enabled: true,
-        delay: 100,
         position: {
             anchorTo: 'pointer',
         },
