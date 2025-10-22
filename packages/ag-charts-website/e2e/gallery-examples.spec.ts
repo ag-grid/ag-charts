@@ -1,4 +1,4 @@
-import { ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
+import { ExampleOverrides, convertPageUrls, createTestCase, triggerExampleTooltips } from './examples-util';
 import { expect, test } from './fixture';
 import { getExamples, setupIntrinsicAssertions } from './util';
 
@@ -53,6 +53,7 @@ test.describe('gallery examples', () => {
 
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
                     createTestCase(testFn as any, opts, config, async (page) => {
+                        await triggerExampleTooltips(page);
                         if (opts.randomData) return;
 
                         await expect(page).toHaveScreenshot(`gallery-${opts.example}.png`);
