@@ -269,11 +269,6 @@ export class Zoom extends AbstractModuleInstance {
     private onEnabledChange(enabled: boolean) {
         this.ctx.zoomManager.setZoomModuleEnabled(enabled);
 
-        // Toggle toolbar visibility alongside module state.
-        if (this.buttons) {
-            this.buttons.enabled = enabled;
-        }
-
         // The constructor may not yet have been called, so `contextMenu` may be undefined.
         if (this.contextMenu) {
             this.destroyContextMenuActions?.();

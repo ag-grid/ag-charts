@@ -9,21 +9,6 @@ import styles from './styles.css';
 export function setupEnterpriseModules() {
     ModuleRegistry.registerMany(AllEnterpriseModules, VERSION);
 
-    // _ModuleSupport.moduleRegistry.register(
-    //     AnnotationsModule,
-    //     ChartToolbarModule,
-    //     ContextMenuModule,
-    //     CrosshairModule,
-    //     ErrorBarsModule,
-    //     LinearGaugeModule,
-    //     StatusBarModule,
-    //     GradientLegendModule,
-    //     OrdinalTimeAxisModule,
-    //     RadialGaugeModule,
-    //     RangesModule,
-    //     SharedToolbarModule,
-    // );
-
     _ModuleSupport.enterpriseModule.isEnterprise = true;
     _ModuleSupport.enterpriseModule.styles = styles;
     _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>

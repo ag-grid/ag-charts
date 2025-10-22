@@ -95,7 +95,10 @@ export const ExpectedModules: ModulePlaceholder[] = [
     { type: 'preset', name: 'price-volume', chartType: 'cartesian', enterprise: true },
 ];
 
+const SeriesExpectedChartType = new Map<string, ChartType>(
+    ExpectedModules.filter((m) => m.type === 'series').map((m) => [m.name, m.chartType!])
+);
+
 export function getSeriesExpectedChartType(seriesName: string): string | undefined {
-    const series = ExpectedModules.find((m) => m.type === 'series' && m.name === seriesName);
-    return series?.chartType;
+    return SeriesExpectedChartType.get(seriesName);
 }

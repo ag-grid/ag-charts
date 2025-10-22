@@ -1,4 +1,4 @@
-import { type ModuleDefinition, ModuleRegistry } from 'ag-charts-core';
+import { Logger, type ModuleDefinition, ModuleRegistry, joinFormatted } from 'ag-charts-core';
 
 import { ExpectedModules } from './expectedModules';
 
@@ -11,12 +11,12 @@ export function setupModules() {
         }
     }
 
-    // if (ModuleRegistry.hasEnterpriseModules()) {
-    //     const expectedButUnused = getUnusedExpectedModules();
-    //     if (expectedButUnused.size > 0) {
-    //         Logger.errorOnce('Enterprise modules expected but not registered: ', joinFormatted([...expectedButUnused]));
-    //     }
-    // }
+    if (ModuleRegistry.hasEnterpriseModules()) {
+        const expectedButUnused = getUnusedExpectedModules();
+        if (expectedButUnused.size > 0) {
+            Logger.errorOnce('Enterprise modules expected but not registered: ', joinFormatted([...expectedButUnused]));
+        }
+    }
 
     function verifyIfModuleExpected(module: ModuleDefinition) {
         if (!module.enterprise) {
@@ -31,13 +31,13 @@ export function setupModules() {
         return false;
     }
 
-    // function getUnusedExpectedModules() {
-    //     const unusedExpectedModules = new Set<string>();
-    //     for (const s of ExpectedModules) {
-    //         if (s.enterprise && !verifiedModules.has(s.name)) {
-    //             unusedExpectedModules.add(s.name);
-    //         }
-    //     }
-    //     return unusedExpectedModules;
-    // }
+    function getUnusedExpectedModules() {
+        const unusedExpectedModules = new Set<string>();
+        for (const s of ExpectedModules) {
+            if (s.enterprise && !verifiedModules.has(s.name)) {
+                unusedExpectedModules.add(s.name);
+            }
+        }
+        return unusedExpectedModules;
+    }
 }
