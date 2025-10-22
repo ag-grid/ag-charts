@@ -19,6 +19,11 @@ if [ "$CLAUDE_CODE_REMOTE" != "true" ]; then
     exit 0
 fi
 
+if [ "$AG_CLOUD_INSTALL" == "0" ]; then
+    log_info "Disabled by AG_CLOUD_INSTALL env-var, skipping install"
+    exit 0
+fi
+
 # Ensure we're in the project directory
 if [ ! -f package.json ]; then
     log_error "package.json not found in current directory"
