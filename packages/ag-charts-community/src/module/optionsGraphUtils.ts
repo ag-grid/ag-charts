@@ -131,20 +131,22 @@ export function setPathSafe(object: PlainObject, path: (string | number)[], valu
 }
 
 const DIGITS_ONLY_REGEX = /^\d+$/;
-export function getPathLastIndexIndex(pathArray: Array<string>) {
+export function getPathLastIndexIndex(pathArray: Array<string>, offset: number = 0) {
+    let count = 0;
     // Manual loop from end is faster than findLastIndex + Number conversion
     for (let i = pathArray.length - 1; i >= 0; i--) {
         const part = pathArray[i];
         // Regex test for digits-only is faster than Number() + Number.isNaN()
         if (DIGITS_ONLY_REGEX.test(part)) {
-            return i;
+            count++;
+            if (count > offset) return i;
         }
     }
     return -1;
 }
 
-export function getPathLastIndex(pathArray: Array<string>) {
-    const indexIndex = getPathLastIndexIndex(pathArray);
+export function getPathLastIndex(pathArray: Array<string>, offset: number = 0) {
+    const indexIndex = getPathLastIndexIndex(pathArray, offset);
     return Number(pathArray[indexIndex]);
 }
 

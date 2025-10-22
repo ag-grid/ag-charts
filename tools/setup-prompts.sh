@@ -371,9 +371,10 @@ if (command -v gemini >/dev/null 2>&1) ; then
     setup_mcp .gemini/settings.json
 fi
 
-if (command -v cursor-agent >/dev/null 2>&1) ; then
+if (command -v cursor >/dev/null 2>&1) ; then
+    setup_commands .cursor/commands md link
     setup_instructions AGENTS.md
-    setup_mcp .mcp.json
+    setup_mcp .cursor/mcp.json
 fi
 
 if (command -v codex >/dev/null 2>&1) ; then

@@ -12,6 +12,7 @@ import {
     constrainZoom,
     definedZoomState,
     dx,
+    isMaxZoom,
     isZoomEqual,
     scaleZoom,
     scaleZoomAxisWithAnchor,
@@ -60,7 +61,9 @@ export class ZoomToolbar extends BaseProperties {
     @ActionOnSet<ZoomToolbar>({
         changeValue(visible: ZoomButtonsVisible, oldValue: any) {
             if (oldValue == null) return;
-            this.toggleVisibility(visible === 'always');
+            const always = visible === 'always';
+            const zoomed = visible === 'zoomed' && this.previousZoom != null && !isMaxZoom(this.previousZoom);
+            this.toggleVisibility(always || zoomed);
         },
     })
     public visible: ZoomButtonsVisible = 'hover';
@@ -123,9 +126,9 @@ export class ZoomToolbar extends BaseProperties {
         this.cleanup.flush();
     }
 
-    public toggleVisibleZoomed(isMaxZoom: boolean) {
+    public toggleVisibleZoomed(maxZoom: boolean) {
         if (this.visible !== 'zoomed') return;
-        this.toggleVisibility(!isMaxZoom);
+        this.toggleVisibility(!maxZoom);
     }
 
     private teardown() {

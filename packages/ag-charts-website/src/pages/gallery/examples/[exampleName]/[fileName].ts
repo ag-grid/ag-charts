@@ -45,10 +45,9 @@ export async function GET({ params }: { params: Params }) {
     const file = files ? files[fileName] : undefined;
     const body = file ?? createErrorBody({ availableFiles: files });
 
-    const response = new Response(body, {
+    return new Response(body, {
         headers: {
             'Content-Type': fileNameToMimeType(fileName),
         },
     });
-    return response;
 }

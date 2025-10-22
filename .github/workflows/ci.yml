@@ -106,7 +106,7 @@ jobs:
                     count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)
                   fi
 
-                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 3 --ratio 1 --zero ${count})
+                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 6 --ratio 1 --zero ${count})
                   echo "test_matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "test_count=${count}" >> $GITHUB_OUTPUT
                   echo "Test matrix determined to be: ${matrix}"
@@ -188,7 +188,7 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all,ag-charts-website
 
             - name: nx generate
               id: generate
@@ -198,6 +198,37 @@ jobs:
             - name: nx run-many -t validate-examples
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --parallel=3 --exclude all
+
+    website_build:
+        runs-on: ubuntu-24.04
+        name: Website Build
+        needs: init
+        outputs:
+            build: ${{ steps.build.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx build ag-charts-website
+              id: build
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: |
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
 
     test:
         runs-on: ubuntu-24.04
@@ -374,7 +405,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
-        needs: [init, build_lint, test, e2e, sonarqube, fw_pkg_test]
+        needs: [init, build_lint, website_build, test, e2e, sonarqube, fw_pkg_test]
         if: cancelled() != true
         steps:
             - name: Checkout
@@ -427,6 +458,8 @@ jobs:
                   if [[ "${{steps.snapshot-notify.outputs.updated}}"  == 'true' ]] ; then
                     WORKFLOW_STATUS="failure"
                   elif [[ "${{ needs.build_lint.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.website_build.result }}" == "failure" ]] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.init.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
@@ -486,6 +519,7 @@ jobs:
                       Build: ${{ needs.build_lint.outputs.build == 'success' && '✅' || needs.build_lint.outputs.build == 'failure' && '❌' || 'NA' }}
                       Lint: ${{ needs.build_lint.outputs.lint == 'success' && '✅' || needs.build_lint.outputs.lint == 'failure' && '❌' || 'NA' }}
                       Format: ${{ needs.build_lint.outputs.format == 'success' && '✅' || needs.build_lint.outputs.format == 'failure' && '❌' || 'NA' }}
+                      Website: ${{ needs.website_build.outputs.build == 'success' && '✅' || needs.website_build.outputs.build == 'failure' && '❌' || 'NA' }}
                       Test: ${{ needs.test.result == 'success' && '✅' || needs.test.result == 'failure' && '❌' || 'NA' }}
                       E2E: ${{ needs.e2e.result == 'success' && '✅' || needs.e2e.result == 'failure' && '❌' || 'NA' }}
                       FW Pkg: ${{ needs.fw_pkg_test.result == 'success' && '✅' || needs.fw_pkg_test.result == 'failure' && '❌' || 'NA' }}

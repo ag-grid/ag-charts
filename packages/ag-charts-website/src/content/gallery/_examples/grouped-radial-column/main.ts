@@ -45,12 +45,6 @@ const options: AgPolarChartOptions = {
             radiusName: 'Services',
         },
     ],
-    tooltip: {
-        mode: 'shared',
-        position: {
-            placement: ['right', 'left', 'top', 'bottom'],
-        },
-    },
     axes: [
         {
             type: 'radius-number',
@@ -66,7 +60,6 @@ const options: AgPolarChartOptions = {
         },
     ],
     legend: {
-        enabled: true,
         spacing: 40,
         item: {
             marker: {

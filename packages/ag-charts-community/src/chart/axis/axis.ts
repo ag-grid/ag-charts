@@ -308,7 +308,8 @@ export abstract class Axis<
             this.initCrossLine(crossLine);
         }
         this.cleanup.register(
-            this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e))
+            this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
+            this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering())
         );
     }
 
@@ -325,14 +326,20 @@ export abstract class Axis<
         const datum: LabelNodeDatum | undefined = node?.datum;
         const { textUntruncated: title = undefined } = datum ?? {};
 
-        if (title != null) {
+        if (title) {
             this.moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },
                 [{ type: 'structured', title }]
             );
             this.isHovering = true;
-        } else if (this.isHovering) {
+        } else {
+            this.endHovering();
+        }
+    }
+
+    private endHovering() {
+        if (this.isHovering) {
             this.moduleCtx.tooltipManager.removeTooltip(this.id);
             this.isHovering = false;
         }

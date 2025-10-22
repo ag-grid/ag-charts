@@ -197,7 +197,7 @@ export abstract class CartesianSeries<
         CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
     >;
 
-    protected constructor({
+    constructor({
         pathsPerSeries = ['path'],
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,
@@ -399,6 +399,7 @@ export abstract class CartesianSeries<
             this.animationState.transition('resize', animationData);
         }
         this.animationState.transition('update', animationData);
+        this.processedDataUpdated = false;
     }
 
     public createStackContext(): TStackContext | undefined {

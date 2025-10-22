@@ -35,6 +35,60 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line'] }),
     },
+    MINI_CHART_WITH_CROSSLINES: {
+        options: {
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
+                },
+            ],
+            navigator: {
+                miniChart: {},
+            },
+            axes: [
+                {
+                    type: 'number',
+                    position: 'left',
+                    crossLines: [
+                        {
+                            type: 'range',
+                            range: [3, 7],
+                            fill: 'blue',
+                            fillOpacity: 0.2,
+                        },
+                        {
+                            type: 'line',
+                            value: 5,
+                            stroke: 'green',
+                            strokeWidth: 2,
+                        },
+                    ],
+                },
+                {
+                    type: 'category',
+                    position: 'bottom',
+                    crossLines: [
+                        {
+                            type: 'line',
+                            value: 5,
+                            stroke: 'red',
+                            strokeWidth: 2,
+                        },
+                        {
+                            type: 'range',
+                            range: [3, 7],
+                            fill: 'yellow',
+                            fillOpacity: 0.2,
+                        },
+                    ],
+                },
+            ],
+        },
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line'] }),
+    },
     LINE_AREA_SERIES: {
         options: {
             series: [

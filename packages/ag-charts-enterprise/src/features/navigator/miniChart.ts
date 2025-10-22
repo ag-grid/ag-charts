@@ -308,6 +308,15 @@ export class MiniChart extends AbstractModuleInstance {
                 axis.resetAnimation('initial');
             }
 
+            if (axis.crossLines) {
+                for (const crossLine of axis.crossLines) {
+                    if (crossLine instanceof _ModuleSupport.CartesianCrossLine) {
+                        crossLine.position = axis.position ?? 'top';
+                        crossLine.label.parallel ??= axis.label?.parallel;
+                    }
+                }
+            }
+
             axis.calculateLayout();
             axis.update();
         }

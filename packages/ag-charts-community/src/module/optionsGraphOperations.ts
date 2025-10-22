@@ -1040,6 +1040,10 @@ function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         return getPathLastIndex(pathArray);
     }
 
+    if (value === '$parentIndex') {
+        return getPathLastIndex(pathArray, 1);
+    }
+
     if (value === '$1') {
         return graph.resolveValue$1(pathArray);
     }

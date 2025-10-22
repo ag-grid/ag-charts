@@ -105,7 +105,7 @@ const options: AgChartOptions = {
 
                     return {
                         title: `${datum.country}`,
-                        content: [
+                        data: [
                             { label: 'GDP per Capita', value: gdpFormatted },
                             {
                                 label: 'Regional Avg',

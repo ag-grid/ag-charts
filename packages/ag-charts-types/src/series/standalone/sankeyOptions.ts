@@ -43,8 +43,6 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
-    /** Minimum size of nodes and links. */
-    minSize?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
@@ -90,7 +88,7 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
     /**
      * Alignment of the nodes.
      *
-     * Default: `'center'`
+     * Default: `'justify'`
      */
     alignment?: 'left' | 'right' | 'center' | 'justify';
     /**

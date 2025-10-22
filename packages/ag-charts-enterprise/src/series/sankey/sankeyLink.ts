@@ -96,9 +96,8 @@ export class SankeyLink<D = any> extends Path<D> {
         const innerArc = getArcValues(start, end, 0);
         const outerArc = getArcValues(start, end, height);
 
-        // Fallback to a normal curve if the width is less than the link height and there is not enough space to draw
-        // the consistent-width arcs
-        if (Math.abs(x2 - x1) < height) {
+        // Fallback to a normal curve if there is not enough space to draw the consistent-width arcs
+        if (innerArc.radius < height) {
             path.cubicCurveTo((start.x + end.x) / 2, start.y, (start.x + end.x) / 2, end.y, end.x, end.y);
             return;
         }

@@ -20,17 +20,17 @@ const options: AgPolarChartOptions = {
             fillOpacity: 0.2,
             strokeWidth: 2,
             marker: {
-                enabled: true,
                 size: 8,
                 strokeWidth: 2,
             },
             highlight: {
                 highlightedSeries: {
                     strokeWidth: 3,
-                    fillOpacity: 0.4,
+                    fillOpacity: 1,
                 },
                 highlightedItem: {
                     strokeWidth: 3,
+                    fillOpacity: 1,
                 },
             },
             tooltip: {

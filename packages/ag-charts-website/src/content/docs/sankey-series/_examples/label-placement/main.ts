@@ -28,6 +28,7 @@ const options: AgFlowProportionChartOptions = {
             sizeKey: 'size',
             sizeName: 'Total (USD millions)',
             label: {
+                placement: 'right',
                 edgePlacement: 'outside',
             },
         },
@@ -58,5 +59,10 @@ function placeEdgeInside() {
 
 function placeEdgeOutside() {
     (options.series![0] as AgSankeySeriesOptions).label!.edgePlacement = 'outside';
+    chart.update(options);
+}
+
+function placeEdgeDefault() {
+    (options.series![0] as AgSankeySeriesOptions).label!.edgePlacement = undefined;
     chart.update(options);
 }

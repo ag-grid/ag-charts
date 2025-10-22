@@ -8,7 +8,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DeepRequired, Point, RequireOptional } from 'ag-charts-core';
+import type { AreExact, ConstructorReturnType, DeepRequired, Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
@@ -94,14 +94,19 @@ interface RangeAreaSpanPointDatum {
     low: _ModuleSupport.LineSpanPointDatum;
 }
 
-export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
+const BaseSeries = _ModuleSupport.CartesianSeries<
     _ModuleSupport.Marker,
     AgRangeAreaSeriesOptions,
     RangeAreaProperties,
     RangeAreaMarkerDatum,
     RangeAreaLabelDatum,
     RangeAreaContext
-> {
+>;
+type BaseSeries = ConstructorReturnType<typeof BaseSeries>;
+
+type GetMarkerStyleArg<I extends number> = Parameters<BaseSeries['getMarkerStyle']>[I];
+
+export class RangeAreaSeries extends BaseSeries {
     static readonly className = 'RangeAreaSeries';
     static readonly type = 'range-area' as const;
 
@@ -1030,10 +1035,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     ) {
         const { animationManager } = this.ctx;
         const { datumSelection, labelSelection, contextData, paths, previousContextData } = animationData;
-        const [fill, stroke] = paths;
+        const [fill, lowStroke, highStroke] = paths;
 
         // Handling initially hidden series case gracefully.
-        if (fill == null && stroke == null) return;
+        if (fill == null && lowStroke == null && highStroke == null) return;
 
         this.resetDatumAnimation(animationData);
         this.resetLabelAnimation(animationData);
@@ -1053,7 +1058,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
             markerFadeInAnimation(this, animationManager, 'added', datumSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
-            pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
+            pathFadeInAnimation(this, 'low_stroke_path_properties', animationManager, 'add', lowStroke);
+            pathFadeInAnimation(this, 'high_stroke_path_properties', animationManager, 'add', highStroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
             return;
         }
@@ -1072,7 +1078,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
 
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
-        fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
+        fromToMotion(this.id, 'low_stroke_path_properties', animationManager, [lowStroke], fns.stroke.pathProperties);
+        fromToMotion(this.id, 'high_stroke_path_properties', animationManager, [highStroke], fns.stroke.pathProperties);
 
         if (fns.status === 'added') {
             this.updateAreaPaths(paths, contextData);
@@ -1080,7 +1087,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             this.updateAreaPaths(paths, previousContextData);
         } else {
             pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
-            pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
+            pathMotion(this.id, 'low_stroke_path_update', animationManager, [lowStroke], fns.stroke.path);
+            pathMotion(this.id, 'high_stroke_path_update', animationManager, [highStroke], fns.stroke.path);
         }
 
         if (fns.hasMotion) {
@@ -1114,6 +1122,24 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             undefined,
             stylerStyle
         );
+    }
+
+    public override getMarkerStyle<TParams>(
+        marker: _ModuleSupport.SeriesMarker<TParams>,
+        datum: GetMarkerStyleArg<1>,
+        params?: TParams,
+        opts?: GetMarkerStyleArg<3>,
+        defaultOverrideStyle?: GetMarkerStyleArg<4>,
+        inheritedStyle?: GetMarkerStyleArg<5>
+    ): ReturnType<BaseSeries['getMarkerStyle']> {
+        type P1 = Parameters<RangeAreaSeries['getMarkerStyle']>;
+        type P2 = Parameters<BaseSeries['getMarkerStyle']>;
+        true satisfies AreExact<P1, P2>; // break compilation if override/base function signatures do not match.
+
+        // Override the item.(low|high).marker.itemStyler callback property:
+        // It is internal only (hidden from API), so is not set automatically like other properties.
+        marker.itemStyler = this.properties.marker.itemStyler;
+        return super.getMarkerStyle(marker, datum, params, opts, defaultOverrideStyle, inheritedStyle);
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

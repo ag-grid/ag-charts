@@ -55,6 +55,7 @@ import {
     type AgRadialBarSeriesThemeableOptions,
     type AgRadialColumnSeriesThemeableOptions,
     type AgRadialSeriesStyle,
+    type AgRangeAreaSeriesItemLineThemeableOptions,
     type AgRangeAreaSeriesLineStyle,
     type AgRangeAreaSeriesLineThemeableOptions,
     type AgRangeAreaSeriesStyle,
@@ -487,6 +488,17 @@ const rangeAreaSeriesLineThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesLineT
     ...lineDashOptionsDef,
 };
 
+const rangeAreaSeriesItemLineThemeableOptionsDef: OptionsDefs<
+    AgRangeAreaSeriesItemLineThemeableOptions<unknown, unknown>
+> = {
+    marker: {
+        enabled: boolean,
+        ...markerStyleOptionsDefs,
+    },
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
 const rangeAreaSeriesLineStyleDef: OptionsDefs<AgRangeAreaSeriesLineStyle> = {
     marker: markerStyleOptionsDefs,
     ...strokeOptionsDef,
@@ -506,10 +518,10 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
-    ...rangeAreaSeriesLineThemeableOptionsDef, // deprecated
+    ...rangeAreaSeriesLineThemeableOptionsDef,
     item: {
-        low: { ...rangeAreaSeriesLineThemeableOptionsDef },
-        high: { ...rangeAreaSeriesLineThemeableOptionsDef },
+        low: { ...rangeAreaSeriesItemLineThemeableOptionsDef },
+        high: { ...rangeAreaSeriesItemLineThemeableOptionsDef },
     },
     styler: callbackDefs<AgRangeAreaSeriesStyle>({
         ...fillOptionsDef,
@@ -590,7 +602,6 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    minSize: positiveNumber,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
 };
