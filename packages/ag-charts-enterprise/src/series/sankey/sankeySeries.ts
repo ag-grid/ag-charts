@@ -7,7 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, cachedTextMeasurer, calcLineHeight, toPlainText, wrapText } from 'ag-charts-core';
+import { Logger, TextMeasurer, cachedTextMeasurer, calcLineHeight, toPlainText, wrapText } from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -106,28 +106,78 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     override createNodeData() {
-        const {
-            id: seriesId,
-            _nodeDataDependencies: { seriesRectWidth, seriesRectHeight } = { seriesRectWidth: 0, seriesRectHeight: 0 },
-        } = this;
+        const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
+        const nodeWidth = this.properties.node.width;
 
+        // Create the base node graph. This is only a graph of nodes and links and does not include any columns.
         const {
-            fromKey,
-            toKey,
-            sizeKey,
-            labelKey,
-            label: { spacing: labelSpacing, placement: labelPlacement, edgePlacement: edgeLabelPlacement },
-            node: { width: nodeWidth, alignment },
-        } = this.properties;
+            nodeGraph: baseNodeGraph,
+            links,
+            maxPathLength,
+        } = this.getNodeGraph(this.createNode.bind(this, nodeWidth), this.createLink, {
+            includeCircularReferences: false,
+        });
+        const nodeGraph = baseNodeGraph as Map<string, EnhancedNodeGraphEntry>;
 
-        const createNode = (node: FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
+        if (nodeGraph.size === 0) return;
+
+        const columns = this.initialiseColumns(maxPathLength);
+        this.assignNodesToColumns(nodeGraph, columns, maxPathLength);
+
+        const measurer = cachedTextMeasurer(this.properties.label);
+        const { columnLabelInsetBefore, columnLabelInsetAfter } = this.getColumnLabelInsets(
+            columns,
+            measurer,
+            maxPathLength
+        );
+        const columnWidth =
+            (seriesRectWidth - nodeWidth - columnLabelInsetBefore - columnLabelInsetAfter) / (maxPathLength - 1);
+
+        this.positionNodesInColumnsX(columns, columnWidth, columnLabelInsetBefore);
+        this.createGhostNodesAndColumnDiffs(nodeGraph, columns);
+        this.weightNodes(columns);
+
+        // Minimum visual height of nodes and links. Though they continue to be rendered in the correct positions as if
+        // they were their calculated heights.
+        const minSize = 1;
+
+        const { sizeScale, nodeSpacing } = this.getScaleAndSpacing(columns, minSize);
+
+        if (sizeScale < 0) {
+            Logger.warnOnce(
+                'There was insufficient space to display the Sankey Series. Reduce [node.spacing], [node.minSpacing], or provide a larger container.'
+            );
+            return;
+        }
+
+        this.positionNodesInColumnsY(columns, minSize, sizeScale, nodeSpacing);
+        this.sortAndPositionLinks(nodeGraph, sizeScale);
+
+        const nodeData: SankeyDatum[] = [];
+        const labelData: SankeyNodeLabelDatum[] = [];
+
+        this.createNodesNodeData(nodeData, nodeGraph, columns, columnWidth, measurer, labelData);
+        this.createLinksNodeData(nodeData, links, minSize, sizeScale);
+
+        return {
+            itemId: this.id,
+            nodeData,
+            labelData,
+        };
+    }
+
+    private createNode(nodeWidth: number, node: FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum>) {
+        return {
             ...node,
             x: Number.NaN,
             y: Number.NaN,
             width: nodeWidth,
             height: Number.NaN,
-        });
-        const createLink = (link: FlowProportionLinkDatum<SankeyNodeDatum, SankeyLinkDatum>) => ({
+        };
+    }
+
+    private createLink(this: void, link: FlowProportionLinkDatum<SankeyNodeDatum, SankeyLinkDatum>) {
+        return {
             ...link,
             x1: Number.NaN,
             x2: Number.NaN,
@@ -135,27 +185,26 @@ export class SankeySeries extends FlowProportionSeries<
             y2: Number.NaN,
             height: Number.NaN,
             elbows: [],
-        });
+        };
+    }
 
-        // Create the base node graph. This is only a graph of nodes and links and does not include any columns.
-        const {
-            nodeGraph: baseNodeGraph,
-            links,
-            maxPathLength,
-        } = this.getNodeGraph(createNode, createLink, { includeCircularReferences: false });
-        const nodeGraph = baseNodeGraph as Map<string, EnhancedNodeGraphEntry>;
-
-        if (nodeGraph.size === 0) return;
-
-        // Initialise columns
+    private initialiseColumns(maxPathLength: number) {
         const columns: Column[] = [];
         for (let index = 0; index < maxPathLength; index += 1) {
             columns.push({ index, size: 0, nodes: [], x: 0 });
         }
+        return columns;
+    }
 
-        // Assign nodes to columns
+    private assignNodesToColumns(
+        nodeGraph: Map<string, EnhancedNodeGraphEntry>,
+        columns: Column[],
+        maxPathLength: number
+    ) {
+        const { fromKey, toKey, sizeKey, labelKey } = this.properties;
+
         for (const graphNode of nodeGraph.values()) {
-            const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
+            const { datum: node, linksBefore, linksAfter } = graphNode;
             const size = Math.max(
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0),
                 linksAfter.reduce((acc, { link }) => acc + link.size, 0)
@@ -166,34 +215,7 @@ export class SankeySeries extends FlowProportionSeries<
                 continue;
             }
 
-            let column: Column;
-            switch (alignment) {
-                case 'left':
-                    column = columns[maxPathLengthBefore];
-                    break;
-                case 'right':
-                    column = columns[maxPathLength - 1 - maxPathLengthAfter];
-                    break;
-                case 'center': {
-                    if (linksBefore.length !== 0) {
-                        column = columns[maxPathLengthBefore];
-                    } else if (linksAfter.length === 0) {
-                        column = columns[0];
-                    } else {
-                        const columnIndex =
-                            linksAfter.reduce(
-                                (acc, link) => Math.min(acc, link.node.maxPathLengthBefore),
-                                maxPathLength
-                            ) - 1;
-                        column = columns[columnIndex];
-                    }
-                    break;
-                }
-                case 'justify': {
-                    column = linksAfter.length === 0 ? columns[maxPathLength - 1] : columns[maxPathLengthBefore];
-                    break;
-                }
-            }
+            const column = this.getNodeColumn(columns, graphNode, maxPathLength);
 
             node.size = size;
 
@@ -216,9 +238,53 @@ export class SankeySeries extends FlowProportionSeries<
 
             graphNode.columnIndex = column.index;
         }
+    }
 
-        // Calculate the widths of labels on the leading and trailing columns and inset the columns accordingly
-        const measurer = cachedTextMeasurer(this.properties.label);
+    private getNodeColumn(columns: Column[], graphNode: EnhancedNodeGraphEntry, maxPathLength: number) {
+        const {
+            node: { alignment },
+        } = this.properties;
+
+        const { linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
+
+        let column: Column;
+
+        switch (alignment) {
+            case 'left':
+                column = columns[maxPathLengthBefore];
+                break;
+            case 'right':
+                column = columns[maxPathLength - 1 - maxPathLengthAfter];
+                break;
+            case 'center': {
+                if (linksBefore.length !== 0) {
+                    column = columns[maxPathLengthBefore];
+                } else if (linksAfter.length === 0) {
+                    column = columns[0];
+                } else {
+                    const columnIndex =
+                        linksAfter.reduce((acc, link) => Math.min(acc, link.node.maxPathLengthBefore), maxPathLength) -
+                        1;
+                    column = columns[columnIndex];
+                }
+                break;
+            }
+            case 'justify': {
+                column = linksAfter.length === 0 ? columns[maxPathLength - 1] : columns[maxPathLengthBefore];
+                break;
+            }
+        }
+
+        return column;
+    }
+
+    private getColumnLabelInsets(columns: Column[], measurer: TextMeasurer, maxPathLength: number) {
+        const {
+            label: { spacing: labelSpacing, placement: labelPlacement, edgePlacement: edgeLabelPlacement },
+            node: { width: nodeWidth },
+        } = this.properties;
+
+        const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
 
         let columnLabelInsetBefore = 0;
         let columnLabelInsetAfter = 0;
@@ -255,9 +321,10 @@ export class SankeySeries extends FlowProportionSeries<
             }
         }
 
-        const columnWidth =
-            (seriesRectWidth - nodeWidth - columnLabelInsetBefore - columnLabelInsetAfter) / (maxPathLength - 1);
+        return { columnLabelInsetBefore, columnLabelInsetAfter };
+    }
 
+    private positionNodesInColumnsX(columns: Column[], columnWidth: number, columnLabelInsetBefore: number) {
         for (let index = 0; index < columns.length; index++) {
             const column = columns[index];
             column.x = columnLabelInsetBefore + index * columnWidth;
@@ -265,7 +332,9 @@ export class SankeySeries extends FlowProportionSeries<
                 (graphNode.datum as SankeyNodeDatum).x = column.x;
             }
         }
+    }
 
+    private createGhostNodesAndColumnDiffs(nodeGraph: Map<string, EnhancedNodeGraphEntry>, columns: Column[]) {
         for (const graphNode of nodeGraph.values()) {
             graphNode.weight = 0;
 
@@ -283,33 +352,38 @@ export class SankeySeries extends FlowProportionSeries<
             }
             graphNode.closestColumnDiff = closestColumnDiff;
 
-            // Add ghost nodes into spaces within columns through which the link must pass, to reduce crossovers
-            for (const link of graphNode.linksAfter) {
-                const node = link.node as EnhancedNodeGraphEntry;
+            this.createNodeGhostNodes(graphNode, columns, closestColumnDiff);
+        }
+    }
 
-                if (node.columnIndex <= graphNode.columnIndex) continue;
+    private createNodeGhostNodes(graphNode: EnhancedNodeGraphEntry, columns: Column[], closestColumnDiff: number) {
+        // Add ghost nodes into spaces within columns through which the link must pass, to reduce crossovers
+        for (const link of graphNode.linksAfter) {
+            const node = link.node as EnhancedNodeGraphEntry;
+            if (node.columnIndex <= graphNode.columnIndex) continue;
 
-                for (let i = node.columnIndex - 1; i > graphNode.columnIndex; i--) {
-                    const size = link.link.size;
-                    const ghostNode: GhostNodeGraphEntry = {
-                        ghost: true,
-                        datum: { ...graphNode.datum, size, y: 0, height: 0 },
-                        weight: 0,
-                        linksBefore: [{ node: { columnIndex: i - 1, datum: { size } } }],
-                        linksAfter: [{ node: { columnIndex: i + 1, datum: { size } } }],
-                        link: link.link,
-                        columnIndex: graphNode.columnIndex,
-                        size: graphNode.datum.size,
-                        closestColumnDiff,
-                        fromNode: { y: node.datum.y },
-                        toNode: { y: 0 },
-                    };
-                    columns[i].size += size;
-                    columns[i].nodes.push(ghostNode);
-                }
+            for (let i = node.columnIndex - 1; i > graphNode.columnIndex; i--) {
+                const size = link.link.size;
+                const ghostNode: GhostNodeGraphEntry = {
+                    ghost: true,
+                    datum: { ...graphNode.datum, size, y: 0, height: 0 },
+                    weight: 0,
+                    linksBefore: [{ node: { columnIndex: i - 1, datum: { size } } }],
+                    linksAfter: [{ node: { columnIndex: i + 1, datum: { size } } }],
+                    link: link.link,
+                    columnIndex: graphNode.columnIndex,
+                    size: graphNode.datum.size,
+                    closestColumnDiff,
+                    fromNode: { y: node.datum.y },
+                    toNode: { y: 0 },
+                };
+                columns[i].size += size;
+                columns[i].nodes.push(ghostNode);
             }
         }
+    }
 
+    private weightNodes(columns: Column[]) {
         // Weight the columns into powers of 10 so that columns with fewer and larger nodes have more influence on each
         // node's weight.
         const sortedColumns = columns.toSorted((a, b) => {
@@ -352,10 +426,10 @@ export class SankeySeries extends FlowProportionSeries<
 
             column.nodes.sort((a, b) => this.sortNodes(a as EnhancedNodeGraphEntry, b as EnhancedNodeGraphEntry));
         }
+    }
 
-        // Minimum visual height of nodes and links. Though they continue to be rendered in the correct positions as if
-        // they were their calculated heights.
-        const minSize = 1;
+    private getScaleAndSpacing(columns: Column[], minSize: number) {
+        const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
 
         // Get the spacing between nodes, reduced as necessary to fit into the series area
         const getSizeScale = (spacing: number) => {
@@ -374,14 +448,12 @@ export class SankeySeries extends FlowProportionSeries<
             sizeScale = getSizeScale(nodeSpacing);
         }
 
-        if (sizeScale < 0) {
-            Logger.warnOnce(
-                'There was insufficient space to display the Sankey Series. Reduce [node.spacing], [node.minSpacing], or provide a larger container.'
-            );
-            return;
-        }
+        return { nodeSpacing, sizeScale };
+    }
 
-        // Layout the nodes in their columns
+    private positionNodesInColumnsY(columns: Column[], minSize: number, sizeScale: number, nodeSpacing: number) {
+        const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
+
         for (const column of columns) {
             let columnNodesHeight = 0;
             for (const node of column.nodes) {
@@ -408,8 +480,11 @@ export class SankeySeries extends FlowProportionSeries<
                 }
             }
         }
+    }
 
-        // Sort links by weight and position their y-coordinates
+    private sortAndPositionLinks(nodeGraph: Map<string, EnhancedNodeGraphEntry>, sizeScale: number) {
+        const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
+
         for (const { datum, linksBefore, linksAfter } of nodeGraph.values()) {
             let y2 = datum.y;
             linksBefore.sort((a, b) =>
@@ -431,12 +506,16 @@ export class SankeySeries extends FlowProportionSeries<
                 y1 += link.size * seriesRectHeight * sizeScale;
             }
         }
+    }
 
-        const nodeData: SankeyDatum[] = [];
-        const labelData: SankeyNodeLabelDatum[] = [];
-        const { fontSize } = this.properties.label;
-
-        // Create nodeData with midpoints and create the labels
+    private createNodesNodeData(
+        nodeData: SankeyDatum[],
+        nodeGraph: Map<string, EnhancedNodeGraphEntry>,
+        columns: Column[],
+        columnWidth: number,
+        measurer: TextMeasurer,
+        labelData: SankeyNodeLabelDatum[]
+    ) {
         for (const [index, column] of columns.entries()) {
             const leading = index === 0;
             const trailing = index === columns.length - 1;
@@ -454,80 +533,126 @@ export class SankeySeries extends FlowProportionSeries<
                 };
                 nodeData.push(node);
 
-                if (node.label == null) continue;
-
-                const y = node.y + node.height / 2;
-                let text: string | undefined;
-                if (!leading && !trailing) {
-                    const lineHeight = calcLineHeight(fontSize);
-                    const y1 = y - lineHeight;
-                    const y2 = y + lineHeight;
-                    let maxX = seriesRectWidth;
-                    for (const { datum } of nodeGraph.values()) {
-                        const intersectsLabel =
-                            datum.x > node.x && Math.max(datum.y, y1) <= Math.min(datum.y + datum.height, y2);
-                        if (intersectsLabel) {
-                            maxX = Math.min(maxX, datum.x - labelSpacing);
-                        }
-                    }
-                    const maxWidth = maxX - node.x - 2 * labelSpacing;
-                    text = wrapText(node.label, {
-                        maxWidth,
-                        maxHeight: node.height,
-                        font: this.properties.label,
-                        textWrap: 'never',
-                        overflow: 'hide',
-                    });
-                }
-                if (text == null || text === '') {
-                    const labelInset =
-                        edgeLabelPlacement == null && (leading || trailing) ? labelSpacing : labelSpacing * 2;
-                    text = wrapText(node.label, {
-                        maxWidth: columnWidth - labelInset,
-                        maxHeight: node.height,
-                        font: this.properties.label,
-                        textWrap: 'never',
-                    });
-                }
-                if (text === '') continue;
-
-                const { height } = measurer.measureLines(text);
-                const y0 = y - height / 2;
-                const y1 = y + height / 2;
-
-                let x = node.x + node.width + labelSpacing;
-                let textAlign: 'left' | 'right' | 'center' = 'left';
-
-                let placement = labelPlacement;
-
-                if (leading && edgeLabelPlacement == null && labelPlacement == null) {
-                    placement = 'left';
-                }
-
-                if (edgeLabelPlacement === 'outside') {
-                    if (leading) placement = 'left';
-                    if (trailing) placement = 'right';
-                } else if (edgeLabelPlacement === 'inside') {
-                    if (leading) placement = 'right';
-                    if (trailing) placement = 'left';
-                }
-
-                if (placement === 'left') {
-                    x = node.x - labelSpacing;
-                    textAlign = 'right';
-                } else if (placement === 'center') {
-                    x = node.x + node.width / 2;
-                    textAlign = 'center';
-                }
-
-                if (y0 >= bottom) {
-                    labelData.push({ x, y, textAlign, text, size: node.size });
-                    bottom = y1;
-                }
+                bottom = this.createNodeLabelData(
+                    nodeGraph,
+                    columnWidth,
+                    measurer,
+                    labelData,
+                    node,
+                    leading,
+                    trailing,
+                    bottom
+                );
             }
         }
+    }
 
-        // Create the links nodeData
+    private createNodeLabelData(
+        nodeGraph: Map<string, EnhancedNodeGraphEntry>,
+        columnWidth: number,
+        measurer: TextMeasurer,
+        labelData: SankeyNodeLabelDatum[],
+        node: SankeyNodeDatum,
+        leading: boolean,
+        trailing: boolean,
+        bottom: number
+    ) {
+        if (node.label == null) return bottom;
+
+        const {
+            label: { spacing: labelSpacing, edgePlacement: edgeLabelPlacement, fontSize },
+        } = this.properties;
+
+        const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
+
+        const y = node.y + node.height / 2;
+        let text: string | undefined;
+
+        if (!leading && !trailing) {
+            const lineHeight = calcLineHeight(fontSize);
+            const y1 = y - lineHeight;
+            const y2 = y + lineHeight;
+            let maxX = seriesRectWidth;
+            for (const { datum } of nodeGraph.values()) {
+                const intersectsLabel =
+                    datum.x > node.x && Math.max(datum.y, y1) <= Math.min(datum.y + datum.height, y2);
+                if (intersectsLabel) {
+                    maxX = Math.min(maxX, datum.x - labelSpacing);
+                }
+            }
+            const maxWidth = maxX - node.x - 2 * labelSpacing;
+            text = wrapText(node.label, {
+                maxWidth,
+                maxHeight: node.height,
+                font: this.properties.label,
+                textWrap: 'never',
+                overflow: 'hide',
+            });
+        }
+
+        if (text == null || text === '') {
+            const labelInset = edgeLabelPlacement == null && (leading || trailing) ? labelSpacing : labelSpacing * 2;
+            text = wrapText(node.label, {
+                maxWidth: columnWidth - labelInset,
+                maxHeight: node.height,
+                font: this.properties.label,
+                textWrap: 'never',
+            });
+        }
+
+        if (text === '') return bottom;
+
+        const { height } = measurer.measureLines(text);
+        const y0 = y - height / 2;
+        const y1 = y + height / 2;
+
+        const { x, textAlign } = this.getNodeLabelPlacement(node, leading, trailing);
+
+        if (y0 >= bottom) {
+            labelData.push({ x, y, textAlign, text, size: node.size });
+            bottom = y1;
+        }
+
+        return bottom;
+    }
+
+    private getNodeLabelPlacement(node: SankeyNodeDatum, leading: boolean, trailing: boolean) {
+        const {
+            label: { spacing: labelSpacing, placement: labelPlacement, edgePlacement: edgeLabelPlacement },
+        } = this.properties;
+
+        let x = node.x + node.width + labelSpacing;
+        let textAlign: 'left' | 'right' | 'center' = 'left';
+
+        let placement = labelPlacement;
+
+        if (leading && edgeLabelPlacement == null && labelPlacement == null) {
+            placement = 'left';
+        }
+
+        if (edgeLabelPlacement === 'outside') {
+            if (leading) placement = 'left';
+            if (trailing) placement = 'right';
+        } else if (edgeLabelPlacement === 'inside') {
+            if (leading) placement = 'right';
+            if (trailing) placement = 'left';
+        }
+
+        if (placement === 'left') {
+            x = node.x - labelSpacing;
+            textAlign = 'right';
+        } else if (placement === 'center') {
+            x = node.x + node.width / 2;
+            textAlign = 'center';
+        }
+
+        return { x, textAlign };
+    }
+
+    private createLinksNodeData(nodeData: SankeyDatum[], links: SankeyLinkDatum[], minSize: number, sizeScale: number) {
+        const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
+        const nodeWidth = this.properties.node.width;
+
         for (const link of links) {
             const { fromNode, toNode, size } = link;
             link.height = Math.max(minSize, seriesRectHeight * size * sizeScale);
@@ -540,12 +665,6 @@ export class SankeySeries extends FlowProportionSeries<
 
             nodeData.push(link);
         }
-
-        return {
-            itemId: seriesId,
-            nodeData,
-            labelData,
-        };
     }
 
     private sortNodes(a: EnhancedNodeGraphEntry, b: EnhancedNodeGraphEntry, opts?: { invertColumnSort: boolean }) {
