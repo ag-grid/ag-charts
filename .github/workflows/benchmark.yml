@@ -25,6 +25,9 @@ env:
     NX_BRANCH: ${{ github.ref }}
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
+permissions:
+    contents: read
+
 jobs:
     # Check permissions for issue_comment events
     check-permissions:

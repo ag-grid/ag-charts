@@ -4,11 +4,16 @@ on:
         types:
             - closed
 
+permissions:
+    contents: read
+
 jobs:
     cleanup:
         runs-on: ubuntu-24.04
         env:
             SNAPSHOT_BRANCH: 'gha/snapshots-${{ github.head_ref }}'
+        permissions:
+            contents: write
         steps:
             - name: Check out code
               uses: actions/checkout@v4
