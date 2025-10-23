@@ -126,6 +126,14 @@
       "options": {
         "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-enterprise/package"]
       }
+    },
+    "validate-size": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "size-limit"
+      }
     }
   },
   "tags": ["package"],
