@@ -1,5 +1,4 @@
-import type { Scale } from 'ag-charts-core';
-import { Debug, type Point, findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
+import { Debug, type Point, type Scale, findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
 import type { AgDrawingMode, AgSeriesSegmentation } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';

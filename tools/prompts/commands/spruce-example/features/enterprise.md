@@ -135,7 +135,14 @@ const chart = AgCharts.createFinancialChart({
 
     // Built-in features
     navigator: true, // Time range selection
-    rangeButtons: true, // 1D, 5D, 1M, 3M, 6M, 1Y, ALL
+    ranges: {
+        buttons: [
+            '1W',
+            '1M',
+            { type: 'fixed', count: 90, label: '90D' },
+            { type: 'callback', label: 'YTD', callback: ({ setRange }) => setRange('yearToDate') },
+        ],
+    },
     statusBar: true, // Shows OHLC values
     volume: true, // Volume chart below main chart
 
@@ -144,6 +151,8 @@ const chart = AgCharts.createFinancialChart({
     // ✅ Note: Financial charts automatically position price axis on right (industry standard)
 });
 ```
+
+_Tip_: Tailor `ranges.buttons` to match analyst workflows (earnings windows, YTD, custom callbacks) instead of relying on the default presets.
 
 ## 📊 Advanced Annotations
 
@@ -389,6 +398,7 @@ _Apply: 12 minutes, Impact: VERY HIGH for flow visualization_ ⭐⭐ **EXCELLENT
 series: [
     {
         type: 'sankey',
+        sort: 'descending',
         fromKey: 'source',
         toKey: 'target',
         sizeKey: 'value',
@@ -397,9 +407,13 @@ series: [
         node: {
             width: 20,
             spacing: 30,
+            minSpacing: 12,
             alignment: 'justify', // 'left', 'right', 'center', 'justify'
+            verticalAlignment: 'center',
             label: {
                 enabled: true,
+                placement: 'right',
+                edgePlacement: 'outside',
                 // Don't set fontSize or color
             },
         },
@@ -416,6 +430,7 @@ series: [
                     },
                 },
             },
+            itemStyler: ({ size }) => (size > 1_000 ? { strokeWidth: 2 } : {}),
         },
 
         // Tooltips

@@ -2,7 +2,132 @@
 
 Track the latest AG Charts capabilities to ensure gallery examples showcase cutting-edge features.
 
-## 🆕 Recently Added Features (b12.2.0 - January 2025)
+## 🆕 Recently Added Features (Post b12.2.0)
+
+### ⚡ Quick Date/Price Measurement Overlay
+
+_New Mar 2025 • Apply: 6 minutes • Impact: HIGH_ ⭐ **RECOMMENDED for financial timelines**
+
+```typescript
+annotations: {
+    enabled: true,
+},
+initialState: {
+    annotations: [
+        {
+            type: 'quick-date-price-range',
+            start: { x: new Date('2025-01-06'), y: 98 },
+            end: { x: new Date('2025-01-15'), y: 112 },
+            text: { label: 'January rally' },
+            up: {
+                statistics: {
+                    fillOpacity: 0.3, // Theme handles colors
+                },
+            },
+            down: {
+                statistics: {
+                    fillOpacity: 0.15,
+                },
+            },
+        },
+    ],
+},
+```
+
+_Highlights_: Instant measurement of both price and time deltas with theme-aware styling and directional `up`/`down` overrides.
+
+### 🎯 Highlight Drawing Modes
+
+_New Mar 2025 • Apply: 2 minutes • Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'close',
+        highlight: {
+            drawingMode: 'cutout', // or 'overlay' (default)
+            highlightedItem: {
+                strokeWidth: 3,
+            },
+        },
+    },
+];
+```
+
+_Use when_: You want hover states to punch through dense fills (`'cutout'`) or sit on top (`'overlay'`).
+
+### 🔁 Lightweight Data Transactions
+
+_New Mar 2025 • Apply: 3 minutes • Impact: MEDIUM_
+
+```typescript
+import type { AgDataTransaction } from 'ag-charts-types';
+
+const newBars = getLatestRows();
+
+const transaction: AgDataTransaction<(typeof newBars)[number]> = {
+    append: newBars,
+    remove: [{ quarter: '2022 Q1' }],
+};
+
+await chart.applyTransaction(transaction);
+```
+
+_Why_: Append, prepend, or remove data without rebuilding the chart—perfect for live dashboards.
+
+### 🪄 Rich Text Formatters Everywhere
+
+_New Mar 2025 • Apply: 5 minutes • Impact: HIGH_
+
+```typescript
+formatter: {
+    y: ({ value }) => [
+        { text: value >= 0 ? '+' : '', fontWeight: 'bold' },
+        { text: value.toFixed(1) },
+        { text: ' %', opacity: 0.7 },
+    ],
+},
+axes: [
+    {
+        type: 'time',
+        position: 'bottom',
+        label: {
+            formatter: ({ value }) => [
+                { text: value.toLocaleString('en-US', { month: 'short' }) },
+                { text: ` ${value.getFullYear()}`, opacity: 0.6 },
+            ],
+        },
+    },
+];
+```
+
+_Scope_: Works for axes, labels, navigator mini-chart labels, and chart-level captions.
+
+### 🧭 Axis Cross Positioning
+
+_New Mar 2025 • Apply: 4 minutes • Impact: MEDIUM_
+
+```typescript
+axes: [
+    {
+        type: 'number',
+        position: 'left',
+        crossAt: {
+            value: 0,
+            sticky: true, // Keep origin locked to the plotted domain
+        },
+    },
+    {
+        type: 'time',
+        position: 'bottom',
+        crossAt: { value: new Date('2025-01-01') },
+    },
+];
+```
+
+_Use for_: Center-origin charts, quadrant layouts, and custom axis intersections without manual offsets.
 
 ### 📊 Series Segmentation
 
@@ -124,6 +249,199 @@ series: [
 ```
 
 _Replaces: Manual callout line customization, complex label positioning logic_
+
+### 🌊 Range Area Enhancements
+
+_New Mar 2025 • Apply: 6 minutes • Impact: HIGH_
+
+```typescript
+series: [
+    {
+        type: 'range-area',
+        xKey: 'date',
+        yLowKey: 'low',
+        yHighKey: 'high',
+        styler: ({ itemId }) => {
+            if (itemId === 'high') {
+                return { lineDash: [6, 3] };
+            }
+            return {};
+        },
+        label: {
+            enabled: true,
+            formatter: ({ itemId, value }) => `${itemId === 'high' ? 'High' : 'Low'}: ${value.toFixed(0)}`,
+        },
+        invertedStyle: {
+            fillOpacity: 0.35, // Theme picks fill color
+        },
+        highlight: {
+            series: {
+                item: {
+                    strokeWidth: 2,
+                },
+            },
+        },
+    },
+];
+```
+
+_Takeaway_: Use `styler`, `itemId` aware label callbacks, and `invertedStyle` to emphasise band flips without resorting to manual fills.
+
+### 🪵 Range Bar Styling Hooks
+
+_New Mar 2025 • Apply: 5 minutes • Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'range-bar',
+        xKey: 'task',
+        yLowKey: 'start',
+        yHighKey: 'finish',
+        direction: 'horizontal',
+        cornerRadius: 8,
+        styler: ({ highlighted }) => (highlighted ? { strokeWidth: 2 } : {}),
+        label: {
+            enabled: true,
+            placement: 'outside',
+            formatter: ({ itemId, value }) => `${itemId === 'high' ? 'Finish' : 'Start'}: ${value}`,
+        },
+    },
+];
+```
+
+_Why_: Dedicated stylers and label params replace brittle tooltip hacks for Gantt-style visuals.
+
+### 📦 Box Plot Precision Controls
+
+_New Mar 2025 • Apply: 6 minutes • Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'box-plot',
+        xKey: 'group',
+        yNameKey: 'label',
+        styler: ({ highlighted }) => (highlighted ? { strokeWidth: 3 } : {}),
+        cap: { strokeWidth: 2 },
+        whisker: { strokeWidth: 1 },
+        legendItemName: 'Distribution',
+    },
+];
+```
+
+_Benefit_: Fine-tune caps/whiskers and share legend entries across grouped series.
+
+### 📈 Histogram Themeable Options
+
+_New Mar 2025 • Apply: 4 minutes • Impact: MEDIUM_
+
+```typescript
+theme: {
+    overrides: {
+        histogram: {
+            series: {
+                areaPlot: true,
+                binCount: 20,
+                aggregation: 'sum',
+            },
+        },
+    },
+},
+```
+
+_Use_: Move bin configuration into `theme.overrides` so multiple histogram instances stay in sync.
+
+### 🧭 Radar Series Stylers
+
+_New Mar 2025 • Apply: 5 minutes • Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'radar-line',
+        angleKey: 'metric',
+        radiusKey: 'score',
+        styler: ({ highlighted }) => (highlighted ? { strokeWidth: 4 } : {}),
+        highlight: {
+            series: {
+                item: { strokeWidth: 3 },
+            },
+        },
+    },
+];
+```
+
+_Outcome_: Polar charts now share the same styler/highlight APIs as cartesian series—leverage them for interactive dashboards.
+
+### 🏷️ Legend Item Grouping
+
+_New Mar 2025 • Apply: 3 minutes • Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'range-area',
+        legendItemName: 'Projected Range',
+    },
+    {
+        type: 'line',
+        legendItemName: 'Projected Range', // Shares toggle with range area
+        showInLegend: true,
+    },
+];
+
+chart.addEventListener('legendItemClick', ({ itemId, enabled }) => {
+    console.log('Legend toggled', itemId, enabled);
+});
+```
+
+_Goal_: Synchronise multiple series under one legend toggle and react to legend events using the new name.
+
+### 🌉 Sankey Layout Controls
+
+_New Mar 2025 • Apply: 6 minutes • Impact: HIGH_
+
+```typescript
+series: [
+    {
+        type: 'sankey',
+        sort: 'descending', // 'data', 'ascending', 'descending', 'auto'
+        node: {
+            spacing: 24,
+            minSpacing: 12,
+            alignment: 'center',
+            verticalAlignment: 'center',
+            label: {
+                placement: 'right',
+                edgePlacement: 'outside',
+            },
+        },
+    },
+];
+```
+
+_Result_: Control spacing, alignment, sorting, and label placement without custom layers.
+
+### 💹 Custom Financial Range Buttons
+
+_New Mar 2025 • Apply: 4 minutes • Impact: HIGH_
+
+```typescript
+const chart = AgCharts.createFinancialChart({
+    // ...base options
+    ranges: {
+        buttons: [
+            '1W',
+            '1M',
+            { type: 'fixed', count: 90, label: '90D' },
+            { type: 'callback', label: 'YTD', callback: ({ setRange }) => setRange('yearToDate') },
+        ],
+    },
+});
+```
+
+_Best for_: Tailoring toolbars to analyst workflows (earnings windows, YTD, custom presets).
 
 ## 🆕 Recently Added Features (Past 6 Months)
 

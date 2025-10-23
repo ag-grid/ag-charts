@@ -1,7 +1,14 @@
-import { Page } from '@playwright/test';
+import { type Locator, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
+import {
+    SELECTORS,
+    gotoExample,
+    setupIntrinsicAssertions,
+    toExamplePageUrls,
+    toGalleryPageUrls,
+    waitForAllChartUpdates,
+} from './util';
 
 export type Status = 'ok' | '404';
 export type ClickOrder = 'normal' | 'reverse';
@@ -26,6 +33,44 @@ export type ExampleOverrides = {
     frameworks?: string[];
     snapshot?: boolean;
 } & Partial<ExampleCommonOptions>;
+
+export async function triggerExampleTooltips(page: Page) {
+    const wrappers = page.locator(SELECTORS.wrapper);
+    const wrapperCount = await wrappers.count();
+
+    for (let i = 0; i < wrapperCount; i++) {
+        const wrapper = wrappers.nth(i);
+        const focusTarget = wrapper.locator('[tabindex="0"]').first();
+
+        if ((await focusTarget.count()) > 0) {
+            await focusTarget.focus();
+        }
+
+        let tooltipVisible = await isTooltipVisible(wrapper);
+
+        if (!tooltipVisible) {
+            await page.keyboard.press('Tab');
+            await waitForAllChartUpdates(page);
+            tooltipVisible = await isTooltipVisible(wrapper);
+        }
+
+        if (!tooltipVisible) {
+            await page.keyboard.press('ArrowRight');
+            await waitForAllChartUpdates(page);
+            tooltipVisible = await isTooltipVisible(wrapper);
+        }
+
+        await waitForAllChartUpdates(page);
+    }
+}
+
+async function isTooltipVisible(wrapper: Locator) {
+    const tooltips = wrapper.locator(SELECTORS.tooltip);
+    if ((await tooltips.count()) === 0) {
+        return false;
+    }
+    return tooltips.first().isVisible();
+}
 
 export function convertPageUrls(
     path: string,

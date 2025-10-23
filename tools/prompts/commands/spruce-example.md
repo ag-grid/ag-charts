@@ -31,8 +31,11 @@ PROMPT_ROOT=${REPO_ROOT}/tools/prompts/commands/spruce-example
 **Complete ALL before proceeding:**
 
 -   [ ] Navigate to `https://localhost:4600/charts/gallery/examples/[example-name]` with Puppeteer
--   [ ] Take initial screenshot
--   [ ] Run PREVis evaluation via data-viz-designer agent, ensuring to provide the [example-name] and screenshot as context.
+-   [ ] Take initial screenshot (this will be visible in your conversation context)
+-   [ ] Run PREVis evaluation via **previs-evaluator** agent with this pattern:
+    -   Launch the previs-evaluator agent (NOT data-viz-designer)
+    -   In your Task prompt, state: "Perform PREVis evaluation on the AG Charts example '[example-name]' shown in the screenshot above. IMPORTANT: The screenshot is already provided in this conversation context. DO NOT attempt to navigate or capture new screenshots. Analyze the visualization shown and evaluate the six PREVis dimensions..."
+    -   The previs-evaluator agent does NOT have Puppeteer tools and expects screenshots to be provided
 -   [ ] Record baseline PREVis score: **\_**
 -   [ ] Document identified issues: **\_**
 

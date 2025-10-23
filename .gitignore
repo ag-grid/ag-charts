@@ -43,6 +43,7 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
+.yarnrc
 
 # System Files
 .DS_Store
@@ -70,3 +71,4 @@ vitest.config.*.timestamp*
 /.mcp.json
 /.vscode/mcp.json
 .tmp
+/.cursor/

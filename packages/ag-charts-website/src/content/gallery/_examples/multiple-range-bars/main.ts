@@ -52,7 +52,6 @@ const options: AgCartesianChartOptions = {
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
         },
-        delay: 100,
     },
     axes: [
         {

@@ -25,10 +25,15 @@ Automated process to generate or refresh `PREVIS.md` files for AG Charts gallery
 3. Capture current visual state
 
 **PREVis Evaluation:**
-Launch data-viz-designer agent with this prompt:
+
+IMPORTANT: Use the **previs-evaluator** agent (NOT data-viz-designer) for PREVis analysis. The previs-evaluator is specialized for quality assessment and lacks Puppeteer tools, preventing redundant screenshot capture.
+
+Launch previs-evaluator agent with this prompt:
 
 ```
-Analyze this AG Charts gallery example screenshot using PREVis methodology.
+Perform PREVis evaluation on the AG Charts gallery example '[example-name]' shown in the screenshot above.
+
+IMPORTANT: The screenshot is already provided in this conversation context. DO NOT attempt to navigate to the URL or capture new screenshots. Analyze the visualization shown.
 
 Evaluate these 6 dimensions (score 1-10 each):
 
@@ -111,7 +116,7 @@ Write the analysis results to `packages/ag-charts-website/src/content/gallery/_e
 # PREVis Analysis: [Example Name]
 
 _Generated: [Date]_
-_Analyst: data-viz-designer agent_
+_Analyst: previs-evaluator agent_
 
 ## Screenshot
 
