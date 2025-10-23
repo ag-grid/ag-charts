@@ -32,7 +32,6 @@ const options: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'bottom',
-
             crossAt: {
                 value: 0,
             },
