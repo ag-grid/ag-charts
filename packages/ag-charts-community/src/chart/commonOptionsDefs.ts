@@ -589,15 +589,6 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
         seriesNodeClick: callback,
         seriesNodeDoubleClick: callback,
     },
-    // TODO Remove in next major version
-    highlightStyle: {
-        item: { ...fillOptionsDef, ...strokeOptionsDef },
-        series: {
-            enabled: boolean,
-            dimOpacity: ratio,
-            strokeWidth: positiveNumber,
-        },
-    },
     highlight: highlightOptionsDef(shapeHighlightOptionsDef),
 };
 

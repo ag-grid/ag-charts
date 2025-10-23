@@ -1,5 +1,5 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { BorderOptions, Padding, PaddingOptions, TextOrSegments } from '../series/cartesian/commonOptions';
+import type { BorderOptions, Padding, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
@@ -37,9 +37,6 @@ export interface AgChartPaddingOptions {
     /** The number of pixels of padding at the left of the chart area. */
     left?: PixelSize;
 }
-
-/** @deprecated v12.1.0 Use `Padding` or `PaddingOptions` instead. */
-export interface AgSeriesAreaPaddingOptions extends PaddingOptions {}
 
 export interface AgSeriesAreaOptions {
     /** The border around the series area. */

@@ -3,7 +3,7 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -66,8 +66,6 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TConte
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** @deprecated Configuration for the waterfall series items when they are hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
 }
 
 export interface AgWaterfallSeriesOptionsKeys<TDatum = DatumDefault> {

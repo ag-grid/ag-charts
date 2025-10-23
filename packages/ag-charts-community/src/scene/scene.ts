@@ -71,14 +71,6 @@ export class Scene extends EventEmitter<EventMap> {
         return this.pendingSize?.[2] ?? this.canvas.pixelRatio;
     }
 
-    /** @deprecated v10.2.0 Only used by AG Grid Sparklines */
-    setContainer(value: HTMLElement) {
-        const { element } = this.canvas;
-        element.remove();
-        value.appendChild(element);
-        return this;
-    }
-
     setRoot(node: Group | null) {
         if (this.root === node) {
             return this;

@@ -75,8 +75,6 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         scale = {},
         startAngle,
         endAngle,
-        // eslint-disable-next-line sonarjs/deprecation
-        highlightStyle,
         highlight,
         segmentation,
         bar,
@@ -128,7 +126,6 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         nodeClickRange,
         tooltip: seriesTooltipOptions,
         value,
-        highlightStyle,
         highlight,
         segmentation,
         bar,
@@ -178,8 +175,6 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         scale = {},
         direction = 'vertical',
         thickness,
-        // eslint-disable-next-line sonarjs/deprecation
-        highlightStyle,
         highlight,
         segmentation,
         bar,
@@ -222,7 +217,6 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         value,
         direction,
         thickness,
-        highlightStyle,
         highlight,
         segmentation,
         bar,

@@ -1,7 +1,6 @@
 import {
     type ColorSpace,
     type InternalAgColorType,
-    Logger,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
@@ -325,10 +324,6 @@ export class FillImageDefaults
 }
 
 export class HighlightStyle extends BaseProperties {
-    constructor(public deprecated = true) {
-        super();
-    }
-
     @Property
     readonly item = new SeriesItemHighlightStyle();
 
@@ -337,13 +332,6 @@ export class HighlightStyle extends BaseProperties {
 
     @Property
     readonly text = new TextHighlightStyle();
-
-    override set(properties: object) {
-        if (this.deprecated) {
-            Logger.warnOnce('highlightStyle is deprecated, use highlight instead.');
-        }
-        return super.set(properties);
-    }
 }
 
 export abstract class SeriesProperties<T extends object> extends BaseProperties<T> {
@@ -368,9 +356,6 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
 
     @Property
     readonly highlight: HighlightProperties<T> = new HighlightProperties();
-
-    @Property
-    readonly highlightStyle = new HighlightStyle();
 
     abstract tooltip: SeriesTooltip<never>;
 

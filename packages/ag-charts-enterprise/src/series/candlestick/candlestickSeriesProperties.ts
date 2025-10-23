@@ -76,11 +76,6 @@ export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> exte
     @Property
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 
-    constructor() {
-        super();
-        this.highlightStyle.deprecated = false;
-    }
-
     getStyle(itemId: 'up' | 'down'): Required<AgCandlestickSeriesItemOptions> & { opacity: number } {
         const { fill, fillOpacity, strokeWidth, strokeOpacity, stroke, lineDash, lineDashOffset, cornerRadius, wick } =
             this.item[itemId];
