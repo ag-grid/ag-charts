@@ -3,6 +3,8 @@
 # Exit on any error, undefined variable, or pipe failure
 set -euo pipefail
 
+export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1
+
 # Helper function to log info messages to stdout
 log_info() {
     echo "[install-for-cloud] $*"
