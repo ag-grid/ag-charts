@@ -24,6 +24,12 @@ interface BarChartOptions extends Omit<AgCartesianChartOptions<DatumType>, 'seri
 const options: BarChartOptions = {
     container: document.getElementById('myChart'),
     data: getPersistentMutableData(),
+    title: {
+        text: 'Dynamic Context Menu',
+    },
+    subtitle: {
+        text: 'Right-Click on a Series Node or Legend Item',
+    },
     series: [
         { type: 'bar', xKey: 'category', yKey: 'apples', yName: 'Apples', id: 'apples', fill: '#cceeff' },
         { type: 'bar', xKey: 'category', yKey: 'oranges', yName: 'Oranges', id: 'oranges', fill: '#ffe6cc' },
