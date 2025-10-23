@@ -1,6 +1,5 @@
-import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
+import { Debug, Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
 
-import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from './dataChangeDescription';
 import {

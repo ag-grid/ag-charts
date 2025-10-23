@@ -1,8 +1,7 @@
-import { Logger, throttle } from 'ag-charts-core';
+import { Debug, Logger, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
-import { Debug } from '../../util/debug';
 import { ActionOnSet } from '../../util/proxy';
 import type { AnimationManager } from '../interaction/animationManager';
 

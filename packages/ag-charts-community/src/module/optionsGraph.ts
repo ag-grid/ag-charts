@@ -1,9 +1,8 @@
-import { AdjacencyListGraph, type PlainObject, type Vertex, isObject, isObjectLike } from 'ag-charts-core';
+import { AdjacencyListGraph, Debug, type PlainObject, type Vertex, isObject, isObjectLike } from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import type { ChartTheme } from '../chart/themes/chartTheme';
-import { Debug } from '../util/debug';
 import { simpleMemorize } from '../util/memo';
 import { pick, without } from '../util/object';
 import { type PaletteType, paletteType } from './coreModulesTypes';

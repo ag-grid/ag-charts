@@ -1,4 +1,5 @@
-import { Debug } from '../util/debug';
+import { Debug } from 'ag-charts-core';
+
 import { HdpiCanvas } from './canvas/hdpiCanvas';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 

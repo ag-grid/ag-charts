@@ -1,4 +1,4 @@
-import { type DeepPartial, ModuleRegistry } from 'ag-charts-core';
+import { Debug, type DeepPartial, ModuleRegistry } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -17,7 +17,6 @@ import { AllCommunityModules } from '../main-modules';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
-import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
 import { deepFreeze } from '../util/object';
 import { Pool } from '../util/pool';
