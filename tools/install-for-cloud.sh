@@ -4,6 +4,7 @@
 set -euo pipefail
 
 export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1
+export PUPPETEER_SKIP_DOWNLOAD=true
 
 # Helper function to log info messages to stdout
 log_info() {
