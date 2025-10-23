@@ -3,14 +3,10 @@ export type DatumType = {
     apples: number;
     oranges: number;
     pears: number;
-    marked: {
-        apples: boolean;
-        oranges: boolean;
-        pears: boolean;
-    };
+    marked: Record<string, boolean>;
 };
 
-export function getData(): DatumType[] {
+function getData(): DatumType[] {
     return [
         {
             category: 'A',
@@ -47,3 +43,10 @@ export function getData(): DatumType[] {
         },
     ];
 }
+
+export const getPersistentMutableData: () => DatumType[] = (() => {
+    const data = getData();
+    return function () {
+        return data;
+    };
+})();
