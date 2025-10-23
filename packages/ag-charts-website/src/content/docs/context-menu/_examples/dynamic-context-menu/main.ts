@@ -11,7 +11,8 @@ import { getPersistentMutableData } from './data';
 
 const markingStyle: AgBarSeriesStyle = {
     stroke: 'red',
-    strokeWidth: 3,
+    strokeWidth: 4,
+    fillOpacity: 1,
 };
 
 const DIFF_SERIES_ID = 'diff-series';
@@ -24,14 +25,16 @@ const options: BarChartOptions = {
     container: document.getElementById('myChart'),
     data: getPersistentMutableData(),
     series: [
-        { type: 'bar', xKey: 'category', yKey: 'apples', yName: 'Apples', id: 'apples' },
-        { type: 'bar', xKey: 'category', yKey: 'oranges', yName: 'Oranges', id: 'oranges' },
-        { type: 'bar', xKey: 'category', yKey: 'pears', yName: 'Pears', id: 'pears' },
+        { type: 'bar', xKey: 'category', yKey: 'apples', yName: 'Apples', id: 'apples', fill: '#cceeff' },
+        { type: 'bar', xKey: 'category', yKey: 'oranges', yName: 'Oranges', id: 'oranges', fill: '#ffe6cc' },
+        { type: 'bar', xKey: 'category', yKey: 'pears', yName: 'Pears', id: 'pears', fill: '#ddffcc' },
     ],
     theme: {
         overrides: {
             bar: {
                 series: {
+                    strokeWidth: 1,
+                    fillOpacity: 0.75,
                     itemStyler: ({ yKey, datum }) => (datum.marked[yKey] ? markingStyle : undefined),
                 },
             },
