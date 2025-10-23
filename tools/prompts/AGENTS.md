@@ -46,7 +46,8 @@ For detailed information about preferred technologies and architectural constrai
 
 ## Essential Commands
 
--   `yarn init` – install dependencies after cloning or when the Yarn lockfile changes.
+-   `yarn install` – install dependencies after cloning or when the Yarn lockfile changes.
+    -   `./tools/install-for-cloud.sh` – install dependencies and tooling in a remote environment - use this in preference to `yarn install` to ensure all global tools are installed.
 -   `nx clean` – purge all dist folders when switching branches or before packaging releases.
 -   `nx format` – format repo files; run from the project root before committing.
 -   `nx build <package>` – compile a specific package after code edits.

@@ -32,6 +32,11 @@ fi
 
 # Function to install nx globally
 install_nx() {
+    if command -v nx &> /dev/null; then
+        log_info "nx is already installed, skipping install"
+        return 0
+    fi
+
     log_info "Installing nx globally"
 
     # Check if node is available
@@ -59,13 +64,18 @@ install_nx() {
 
 # Function to install yarn and initial dependencies
 install_yarn() {
-    log_info "Installing yarn@1 and initial dependencies"
-
     # Create .yarnrc to ignore engine checks
     cat >.yarnrc <<EOF
 --install.ignore-engines true
 --run.ignore-engines true
 EOF
+
+    if command -v yarn &> /dev/null; then
+        log_info "yarn is already installed, skipping install"
+        return 0
+    fi
+
+    log_info "Installing yarn@1 and initial dependencies"
 
     # Install yarn v1 globally
     if ! npm i -g --force yarn@1; then
@@ -74,16 +84,6 @@ EOF
     fi
 
     log_info "yarn@1 installed successfully"
-
-    # Install project dependencies
-    log_info "Installing project dependencies"
-    if ! yarn install --ci; then
-        log_error "Failed to install project dependencies"
-        return 2
-    fi
-
-    log_info "Project dependencies installed successfully"
-    return 0
 }
 
 # Function to install/update dependencies when node_modules exists
@@ -124,6 +124,10 @@ main() {
             exit 2
         fi
         if ! install_nx; then
+            exit 2
+        fi
+
+        if ! install_dependencies; then
             exit 2
         fi
     fi
