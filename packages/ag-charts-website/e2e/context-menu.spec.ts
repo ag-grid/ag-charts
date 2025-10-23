@@ -99,4 +99,21 @@ test.describe('context-menu', () => {
             animations: 'disabled',
         });
     });
+
+    test('AG-16178 mouse exit and reenter', async ({ page}) => {
+        const { url } = toExamplePageUrl('context-menu', 'context-menu-actions', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.click(400, 300, { button: 'right' });
+        const sayHello = page.getByText('Say hello', { exact: true });
+
+        await sayHello.hover();
+        await expect(page).toHaveScreenshot('AG-16178-say-hello-hovered.png');
+
+        await page.mouse.move(0, 0);
+        await expect(page).toHaveScreenshot('AG-16178-say-hello-not-hovered.png');
+
+        await sayHello.hover();
+        await expect(page).toHaveScreenshot('AG-16178-say-hello-hovered.png');
+    });
 });
