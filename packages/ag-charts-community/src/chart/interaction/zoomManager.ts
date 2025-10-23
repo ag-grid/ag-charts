@@ -496,13 +496,19 @@ export class ZoomManager extends BaseManager {
         return { x: xZoom, y: yZoom };
     }
 
-    public isVisibleItemsCountAtLeast(zoom: DefinedZoomState, minVisibleItems: number): boolean {
+    public isVisibleItemsCountAtLeast(
+        zoom: DefinedZoomState,
+        minVisibleItems: number,
+        includeYVisibleRange?: boolean
+    ): boolean {
         const { autoScaleYAxis } = this;
         const boundSeries = this.getBoundSeries();
 
         const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
         const yVisibleRange: [number, number] | undefined =
-            autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted ? undefined : [zoom.y.min, zoom.y.max];
+            !includeYVisibleRange && autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted
+                ? undefined
+                : [zoom.y.min, zoom.y.max];
 
         let visibleItemsCount = 0;
 
