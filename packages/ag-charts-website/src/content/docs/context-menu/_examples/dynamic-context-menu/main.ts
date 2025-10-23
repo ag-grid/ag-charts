@@ -49,14 +49,17 @@ const options: BarChartOptions = {
     contextMenu: {
         getItems: (params): AgContextMenuItem[] | undefined => {
             const menuItems: AgContextMenuItem[] = ['download', 'separator'];
+
             if (params.showOn === 'series-node') {
+                const { xKey, yKey } = params;
+                if (!xKey || !yKey) return;
                 const data = getPersistentMutableData();
-                const pX = params.datum[params.xKey];
-                const pY = params.datum[params.yKey];
+                const pX = params.datum[xKey];
+                const pY = params.datum[yKey];
                 for (const datum of data) {
-                    if (datum[params.xKey] === pX && datum[params.yKey] === pY) {
-                        const isMarked = datum.marked[params.yKey] ?? false;
-                        const name = `"${datum.category} - ${params.yKey}"`;
+                    if (datum[xKey] === pX && datum[yKey] === pY) {
+                        const isMarked = datum.marked[yKey] ?? false;
+                        const name = `"${datum.category} - ${yKey}"`;
                         menuItems.push(
                             {
                                 type: 'action',
@@ -76,7 +79,7 @@ const options: BarChartOptions = {
                                 type: 'action',
                                 showOn: 'series-node',
                                 label: isMarked ? `Unmark ${name}` : `Mark ${name}`,
-                                action: () => updateMarking(datum, params.yKey, !isMarked),
+                                action: () => updateMarking(datum, yKey, !isMarked),
                             }
                         );
                     }
@@ -138,11 +141,16 @@ function createDiffSeries(baseSeriesId: string, compareToId: string) {
     const data = getPersistentMutableData();
     const baseSeries = options.series?.find((s) => s.id === baseSeriesId);
     const compareToSeries = options.series?.find((s) => s.id === compareToId);
-
     if (!baseSeries || !compareToSeries) return;
 
-    const baseKey = baseSeries.yKey!;
-    const compareKey = compareToSeries.yKey!;
+    const getDatumTypeYKey = (series: AgBarSeriesOptions) => {
+        const { yKey } = series;
+        if (yKey === 'apples' || yKey === 'oranges' || yKey === 'pears') return yKey;
+    };
+    const baseKey = getDatumTypeYKey(baseSeries);
+    const compareKey = getDatumTypeYKey(compareToSeries);
+    if (!baseKey || !compareKey) return;
+
     const diffData = data.map((d) => ({
         category: d.category,
         diff: d[baseKey] - d[compareKey],

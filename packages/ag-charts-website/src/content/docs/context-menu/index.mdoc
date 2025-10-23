@@ -167,14 +167,17 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
     contextMenu: {
         getItems: (params): AgContextMenuItem[] | undefined => {
             const menuItems: AgContextMenuItem[] = ['download', 'separator'];
+
             if (params.showOn === 'series-node') {
+                const { xKey, yKey } = params;
+                if (!xKey || !yKey) return;
                 const data = getPersistentMutableData();
-                const pX = params.datum[params.xKey];
-                const pY = params.datum[params.yKey];
+                const pX = params.datum[xKey];
+                const pY = params.datum[yKey];
                 for (const datum of data) {
-                    if (datum[params.xKey] === pX && datum[params.yKey] === pY) {
-                        const isMarked = datum.marked[params.yKey] ?? false;
-                        const name = `"${datum.category} - ${params.yKey}"`;
+                    if (datum[xKey] === pX && datum[yKey] === pY) {
+                        const isMarked = datum.marked[yKey] ?? false;
+                        const name = `"${datum.category} - ${yKey}"`;
                         menuItems.push(
                             {
                                 type: 'action',
@@ -194,7 +197,7 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
                                 type: 'action',
                                 showOn: 'series-node',
                                 label: isMarked ? `Unmark ${name}` : `Mark ${name}`,
-                                action: () => updateMarking(datum, params.yKey, !isMarked),
+                                action: () => updateMarking(datum, yKey, !isMarked),
                             }
                         );
                     }
