@@ -100,7 +100,7 @@ test.describe('context-menu', () => {
         });
     });
 
-    test('AG-16178 mouse exit and reenter', async ({ page}) => {
+    test('AG-16178 mouse exit and reenter', async ({ page }) => {
         const { url } = toExamplePageUrl('context-menu', 'context-menu-actions', 'vanilla');
         await gotoExample(page, url);
 
