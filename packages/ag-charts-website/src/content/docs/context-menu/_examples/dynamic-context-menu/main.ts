@@ -1,4 +1,10 @@
-import { AgBarSeriesStyle, AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgBarSeriesOptions,
+    AgBarSeriesStyle,
+    AgCartesianChartOptions,
+    AgCharts,
+    AgContextMenuItem,
+} from 'ag-charts-enterprise';
 
 import type { DatumType } from './data';
 import { getPersistentMutableData } from './data';
@@ -8,7 +14,13 @@ const markingStyle: AgBarSeriesStyle = {
     strokeWidth: 3,
 };
 
-const options: AgCartesianChartOptions<DatumType> = {
+const DIFF_SERIES_ID = 'diff-series';
+
+interface BarChartOptions extends Omit<AgCartesianChartOptions<DatumType>, 'series'> {
+    series: AgBarSeriesOptions[];
+}
+
+const options: BarChartOptions = {
     container: document.getElementById('myChart'),
     data: getPersistentMutableData(),
     series: [
@@ -26,7 +38,8 @@ const options: AgCartesianChartOptions<DatumType> = {
         },
     },
     contextMenu: {
-        getItems: (params) => {
+        getItems: (params): AgContextMenuItem[] | undefined => {
+            const menuItems: AgContextMenuItem[] = ['download', 'separator'];
             if (params.showOn === 'series-node') {
                 const data = getPersistentMutableData();
                 const pX = params.datum[params.xKey];
@@ -35,23 +48,34 @@ const options: AgCartesianChartOptions<DatumType> = {
                     if (datum[params.xKey] === pX && datum[params.yKey] === pY) {
                         const isMarked = datum.marked[params.yKey] ?? false;
                         const name = `"${datum.category} - ${params.yKey}"`;
-                        return [
-                            'download',
-                            'separator',
+                        menuItems.push(
+                            {
+                                type: 'action',
+                                showOn: 'series-node',
+                                label: 'Compare with...',
+                                items:
+                                    // Create a submenu item for each comparable series:
+                                    options.series
+                                        ?.filter((s) => s.id !== params.seriesId && s.id !== DIFF_SERIES_ID)
+                                        .map((s) => ({
+                                            type: 'action' as const,
+                                            label: s.yName ?? s.yKey,
+                                            action: () => createDiffSeries(params.seriesId!, s.id!),
+                                        })) ?? [],
+                            },
                             {
                                 type: 'action',
                                 showOn: 'series-node',
                                 label: isMarked ? `Unmark ${name}` : `Mark ${name}`,
                                 action: () => updateMarking(datum, params.yKey, !isMarked),
-                            },
-                        ];
+                            }
+                        );
                     }
                 }
             }
+
             if (params.showOn === 'legend-item') {
-                return [
-                    'download',
-                    'separator',
+                menuItems.push(
                     // Custom implementation of 'toggle-series-visibility':
                     {
                         type: 'action',
@@ -59,9 +83,21 @@ const options: AgCartesianChartOptions<DatumType> = {
                         label: params.visible ? `Hide ${params.text}` : `Show ${params.text}`,
                         action: () => updateVisibility(params.seriesId, !params.visible),
                     },
-                    'toggle-other-series',
-                ];
+                    'toggle-other-series'
+                );
             }
+
+            const hasDiffSeries = options.series?.some((s) => s.id === DIFF_SERIES_ID);
+            if (hasDiffSeries) {
+                menuItems.push('separator', {
+                    type: 'action',
+                    showOn: 'always',
+                    label: 'Remove Diff',
+                    action: removeDiffSeries,
+                });
+            }
+
+            return menuItems;
         },
     },
 };
@@ -87,4 +123,40 @@ function updateVisibility(seriesId: string, visible: boolean) {
         }
     }
     chart.updateDelta(options);
+}
+
+function createDiffSeries(baseSeriesId: string, compareToId: string) {
+    const data = getPersistentMutableData();
+    const baseSeries = options.series?.find((s) => s.id === baseSeriesId);
+    const compareToSeries = options.series?.find((s) => s.id === compareToId);
+
+    if (!baseSeries || !compareToSeries) return;
+
+    const baseKey = baseSeries.yKey!;
+    const compareKey = compareToSeries.yKey!;
+    const diffData = data.map((d) => ({
+        category: d.category,
+        diff: d[baseKey] - d[compareKey],
+    }));
+
+    removeDiffSeries();
+    options.series!.push({
+        type: 'bar',
+        id: DIFF_SERIES_ID,
+        xKey: 'category',
+        yKey: 'diff',
+        yName: `Diff (${baseKey} - ${compareKey})`,
+        data: diffData,
+        fill: 'gray',
+        stroke: 'black',
+    });
+    chart.updateDelta(options);
+}
+
+function removeDiffSeries() {
+    const before = options.series!.length;
+    options.series = options.series!.filter((s) => s.id !== DIFF_SERIES_ID);
+    if (options.series!.length !== before) {
+        chart.updateDelta(options);
+    }
 }
