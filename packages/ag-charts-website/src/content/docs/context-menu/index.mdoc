@@ -162,15 +162,14 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
 
 {% chartExampleRunner title="Dynamic Context Menu" name="dynamic-context-menu" type="generated" /%}
 
-```ts format="snippet"
+```js format="snippet"
 {
     contextMenu: {
-        getItems: (params): AgContextMenuItem[] | undefined => {
-            const menuItems: AgContextMenuItem[] = ['download', 'separator'];
+        getItems: (params) => {
+            const menuItems = ['download', 'separator'];
 
             if (params.showOn === 'series-node') {
                 const { xKey, yKey } = params;
-                if (!xKey || !yKey) return;
                 const data = getPersistentMutableData();
                 const pX = params.datum[xKey];
                 const pY = params.datum[yKey];
