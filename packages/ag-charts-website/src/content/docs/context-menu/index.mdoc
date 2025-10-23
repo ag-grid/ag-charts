@@ -187,9 +187,9 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
                                     options.series
                                         ?.filter((s) => s.id !== params.seriesId && s.id !== DIFF_SERIES_ID)
                                         .map((s) => ({
-                                            type: 'action' as const,
+                                            type: 'action',
                                             label: s.yName ?? s.yKey,
-                                            action: () => createDiffSeries(params.seriesId!, s.id!),
+                                            action: () => createDiffSeries(params.seriesId, s.id),
                                         })) ?? [],
                             },
                             {
