@@ -1,6 +1,7 @@
 import {
     AsyncAwaitQueue,
     CleanupRegistry,
+    Debug,
     Logger,
     type ModuleInstance,
     createId,
@@ -36,7 +37,6 @@ import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { callWithContext } from '../util/callbackCache';
-import { Debug } from '../util/debug';
 import { isInputPending } from '../util/dom';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Mutex } from '../util/mutex';

@@ -1,5 +1,6 @@
 import {
     type ChartModuleDefinition,
+    Debug,
     type DeepPartial,
     Logger,
     ModuleRegistry,
@@ -30,7 +31,6 @@ import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { getChartTheme } from '../chart/mapping/themes';
 import { type SeriesOptionsTypes, type SeriesType } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
-import { Debug } from '../util/debug';
 import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { deepFreeze, merge, mergeDefaults } from '../util/object';
 import { enterpriseModule } from './enterpriseModule';

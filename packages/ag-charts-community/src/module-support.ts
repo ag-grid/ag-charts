@@ -153,7 +153,7 @@ export { ChartUpdateType } from './chart/chartUpdateType';
 export { type MementoOriginator } from './api/state/memento';
 export { isDenseInterval, range, tickFormat, estimateTickCount } from './util/ticks';
 export { Color } from './util/color';
-export { Debug } from './util/debug';
+export { Debug } from 'ag-charts-core';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
 export { isGradientFill, isPatternFill, isImageFill, isGradientOrPatternFill } from './scene/util/fill';

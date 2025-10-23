@@ -1,4 +1,4 @@
-import { EventEmitter, type EventListener, Logger, getWindow } from 'ag-charts-core';
+import { Debug, EventEmitter, type EventListener, Logger, getWindow } from 'ag-charts-core';
 
 import type {
     AdditionalAnimationOptions,
@@ -8,7 +8,6 @@ import type {
     IAnimation,
 } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
-import { Debug } from '../../util/debug';
 import type { Mutex } from '../../util/mutex';
 import { AnimationBatch } from './animationBatch';
 import { InteractionManager, InteractionState } from './interactionManager';

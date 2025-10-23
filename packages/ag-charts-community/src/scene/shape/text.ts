@@ -1,5 +1,6 @@
 import {
     type BoxBounds,
+    Debug,
     type FontOptions,
     LineSplitter,
     type RequireOptional,
@@ -14,7 +15,6 @@ import {
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
 
-import { Debug } from '../../util/debug';
 import { BBox } from '../bbox';
 import { SceneRefChangeDetection } from '../changeDetectable';
 import { Group } from '../group';

@@ -1,7 +1,6 @@
-import { CleanupRegistry } from 'ag-charts-core';
+import { CleanupRegistry, Debug } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
-import { Debug } from '../../util/debug';
 import { VERSION } from '../../version';
 import type { MementoOriginator } from './memento';
 

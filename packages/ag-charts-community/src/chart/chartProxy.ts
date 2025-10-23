@@ -1,4 +1,4 @@
-import type { DeepPartial } from 'ag-charts-core';
+import { Debug, type DeepPartial } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -12,7 +12,6 @@ import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { moduleRegistry } from '../module/module';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
-import { Debug } from '../util/debug';
 import { deepClone } from '../util/json';
 import { ActionOnSet } from '../util/proxy';
 import type { Chart } from './chart';

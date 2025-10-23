@@ -43,6 +43,8 @@ export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
 
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
+export type StripCallSignature<T> = { [K in keyof T]: T[K] };
+
 export type IsUnion<T> = [T] extends [infer U]
     ? (U extends any ? (x: U) => any : never) extends (x: infer I) => any
         ? [T] extends [I]
