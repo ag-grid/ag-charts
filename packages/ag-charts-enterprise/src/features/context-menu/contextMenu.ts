@@ -336,7 +336,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             // AG-14807 Design clear hover state
             // TODO: move this logic into MenuWidget
             button.addListener('mouseleave', () => button.setFocusOverride(false));
-            button.addListener('focus', () => button.setFocusOverride(undefined));
+            button.addListener('mouseenter', () => button.setFocusOverride(undefined));
         }
     }
 
