@@ -19,6 +19,10 @@
       "default": "./dist/package/main-modules.cjs.js"
     }
   },
+  "sideEffects": [
+    "*.css",
+    "*.html"
+  ],
   "scripts": {
     "lint:prune": "npx ts-prune -p tsconfig.lib.json"
   },
