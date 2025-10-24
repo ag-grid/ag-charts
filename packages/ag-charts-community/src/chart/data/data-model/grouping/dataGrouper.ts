@@ -1,6 +1,5 @@
-import { first } from 'ag-charts-core';
+import { Debug, first } from 'ag-charts-core';
 
-import type { DebugLogger } from '../../../../util/debug';
 import type {
     ColumnBatch,
     GroupedData,
@@ -36,7 +35,7 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
     constructor(
         _keys: InternalDatumPropertyDefinition<K>[],
         _groupByFn?: (data: UngroupedData<D>) => GroupingFn<D>,
-        private readonly debug?: DebugLogger
+        private readonly debug?: Debug.DebugLogger
     ) {}
 
     /**

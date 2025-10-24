@@ -30,8 +30,9 @@ import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModel, DataPropertyDefinition, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
+import type { DataModel, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
+import type { PropertyDefinition } from '../../data/dataModelTypes';
 import {
     animationValidation,
     groupAccumulativeValueProperty,
@@ -249,7 +250,7 @@ export class AreaSeries extends CartesianSeries<
             common.forceValue = 0;
         }
 
-        const props: DataPropertyDefinition<any, any>[] = [
+        const props: PropertyDefinition<any, any>[] = [
             keyProperty(xKey, xScaleType, { id: 'xValue' }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
             ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })]),

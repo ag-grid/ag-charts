@@ -1,6 +1,5 @@
-import { Logger, first, isNegative, iterate } from 'ag-charts-core';
+import { Debug, Logger, first, isNegative, iterate } from 'ag-charts-core';
 
-import type { DebugLogger } from '../../../../util/debug';
 import type { ChartMode } from '../../../chartMode';
 import { BandedDomain, ContinuousDomain, DiscreteDomain, type IDataDomain } from '../../dataDomain';
 import type { InternalDatumPropertyDefinition, ProcessedData, ProcessedValue, ProcessorFn } from '../../dataModelTypes';
@@ -19,7 +18,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         private readonly scopeCacheManager: ScopeCacheManager<K>,
         private readonly keys: InternalDatumPropertyDefinition<K>[],
         private readonly values: InternalDatumPropertyDefinition<K>[],
-        private readonly debug: DebugLogger,
+        private readonly debug: Debug.DebugLogger,
         private readonly mode: ChartMode
     ) {}
 

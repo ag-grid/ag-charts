@@ -94,7 +94,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private getUnstackPropertyDefinition(opts: PropertyDefinitionOpts) {
-        const props: _ModuleSupport.DataPropertyDefinition<unknown>[] = [];
+        const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { xScaleType, yScaleType } = opts;
 
@@ -114,7 +114,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private getStackPropertyDefinition(opts: PropertyDefinitionOpts) {
-        const props: _ModuleSupport.DataPropertyDefinition<unknown>[] = [];
+        const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
         const { cartesianSeries } = this;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { xScaleType, yScaleType } = opts;

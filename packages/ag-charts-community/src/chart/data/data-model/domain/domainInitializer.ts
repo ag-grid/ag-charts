@@ -1,4 +1,5 @@
-import type { DebugLogger } from '../../../../util/debug';
+import { Debug } from 'ag-charts-core';
+
 import {
     BandedDomain,
     type BandedDomainConfig,
@@ -14,7 +15,7 @@ import type { InternalDatumPropertyDefinition } from '../../dataModelTypes';
  */
 export class DomainInitializer<K extends string> {
     constructor(
-        private readonly debug: DebugLogger,
+        private readonly debug: Debug.DebugLogger,
         private readonly bandingConfig?: BandedDomainConfig
     ) {}
 

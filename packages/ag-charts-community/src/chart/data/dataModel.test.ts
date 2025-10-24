@@ -16,13 +16,13 @@ import {
 import type {
     AggregatePropertyDefinition,
     DataModelOptions,
-    DataPropertyDefinition,
     GroupByFn,
     GroupedData,
     PropertyId,
     Scoped,
 } from './dataModel';
 import { DataModel, getPathComponents } from './dataModel';
+import type { PropertyDefinition } from './dataModelTypes';
 import { DataSet } from './dataSet';
 import {
     SMALLEST_KEY_INTERVAL,
@@ -70,7 +70,7 @@ const categoryValue = (property: string) => ({
     type: 'value' as const,
     valueType: 'category' as const,
 });
-const accumulatedGroupValues = (properties: string[], groupId: string): (Scoped & DataPropertyDefinition<any>)[] => [
+const accumulatedGroupValues = (properties: string[], groupId: string): (Scoped & PropertyDefinition<any>)[] => [
     ...properties.map((p) => ({ ...accumulatedGroupValue(p, groupId), scopes: ['test'] })),
     { ...actualAccumulateGroup(groupId, 'normal'), scopes: ['test'] },
 ];

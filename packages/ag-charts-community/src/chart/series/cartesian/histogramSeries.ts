@@ -24,12 +24,12 @@ import type { DataController } from '../../data/dataController';
 import type {
     AggregatePropertyDefinition,
     DataGroup,
-    DataPropertyDefinition,
     GroupByFn,
     GroupedData,
     ProcessedOutputDiff,
 } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
+import type { PropertyDefinition } from '../../data/dataModelTypes';
 import { SORT_DOMAIN_GROUPS, createDatumId, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
@@ -183,7 +183,7 @@ export class HistogramSeries extends CartesianSeries<
 
         const visibleProps = visible ? {} : { forceValue: 0 };
 
-        const props: DataPropertyDefinition<any>[] = [keyProperty(xKey, xScaleType), SORT_DOMAIN_GROUPS];
+        const props: PropertyDefinition<any>[] = [keyProperty(xKey, xScaleType), SORT_DOMAIN_GROUPS];
         if (yKey) {
             let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg', { visible });
 

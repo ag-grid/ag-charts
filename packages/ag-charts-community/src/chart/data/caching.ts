@@ -1,7 +1,8 @@
 import { arraysEqual } from 'ag-charts-core';
 
 import { objectsEqual } from '../../util/object';
-import type { DataModel, DataModelOptions, DataPropertyDefinition, UngroupedData } from './dataModel';
+import type { DataModel, DataModelOptions, UngroupedData } from './dataModel';
+import type { PropertyDefinition } from './dataModelTypes';
 import type { DataSet } from './dataSet';
 
 interface CachedDataItem<D extends object, K extends keyof D & string = keyof D & string> {
@@ -44,8 +45,8 @@ type OptionalProps = {
 };
 
 function propsEqual(
-    a: (DataPropertyDefinition<any, true> & OptionalProps)[],
-    b: (DataPropertyDefinition<any, true> & OptionalProps)[]
+    a: (PropertyDefinition<any, true> & OptionalProps)[],
+    b: (PropertyDefinition<any, true> & OptionalProps)[]
 ) {
     if (a.length !== b.length) return false;
 

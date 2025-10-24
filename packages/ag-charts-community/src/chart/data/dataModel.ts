@@ -1,6 +1,6 @@
 import { Logger, first } from 'ag-charts-core';
+import { Debug } from 'ag-charts-core';
 
-import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { Aggregator } from './data-model/aggregation/aggregator';
 import { DomainInitializer } from './data-model/domain/domainInitializer';
