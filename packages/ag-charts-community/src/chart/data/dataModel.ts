@@ -2,14 +2,9 @@ import { Logger, first, isNegative, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
-import {
-    createArray,
-    createPathAccessor,
-    datumKeys,
-    getPathComponents,
-    isScoped,
-    toKeyString,
-} from './data-model/utils/helpers';
+import { createArray, datumKeys, isScoped, toKeyString } from './data-model/utils/helpers';
+import { DataModelResolvers } from './data-model/utils/resolvers';
+import { ScopeCacheManager } from './data-model/utils/scopeCache';
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from './dataChangeDescription';
 import {
     BandedDomain,
@@ -76,6 +71,8 @@ export class DataModel<
 
     private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
     private readonly values: InternalDatumPropertyDefinition<K>[] = [];
+    private resolvers!: DataModelResolvers<D, K>;
+    private scopeCacheManager!: ScopeCacheManager<K>;
     private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition<true>)[] = [];
@@ -174,7 +171,15 @@ export class DataModel<
             }
         }
 
-        // Initialize resolvers after all properties are set up
+        // Initialize resolvers and scope cache manager after all properties are set up
+        this.resolvers = new DataModelResolvers(this.scopeCache);
+        this.scopeCacheManager = new ScopeCacheManager(
+            this.scopeCache,
+            this.keys,
+            this.values,
+            this.aggregates,
+            this.suppressFieldDotNotation
+        );
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
@@ -1273,69 +1278,15 @@ export class DataModel<
     }
 
     private processScopeCache() {
-        this.scopeCache.clear();
-        for (const def of iterate(this.keys, this.values, this.aggregates)) {
-            if (!def.idsMap) continue;
-            for (const [scope, ids] of def.idsMap) {
-                for (const id of ids) {
-                    if (!this.scopeCache.has(scope)) {
-                        this.scopeCache.set(scope, new Map([[id, def]]));
-                    } else if (this.scopeCache.get(scope)?.has(id)) {
-                        throw new Error('duplicate definition ids on the same scope are not allowed.');
-                    } else {
-                        this.scopeCache.get(scope)!.set(id, def);
-                    }
-                }
-            }
-        }
+        this.scopeCacheManager.processScopeCache();
     }
 
-    private valueGroupIdxLookup({ matchGroupIds }: PropertySelectors) {
-        const result: number[] = [];
-        for (const [index, def] of this.values.entries()) {
-            if (!matchGroupIds || (def.groupId && matchGroupIds.includes(def.groupId))) {
-                result.push(index);
-            }
-        }
-        return result;
+    private valueGroupIdxLookup(selector: PropertySelectors) {
+        return this.scopeCacheManager.valueGroupIdxLookup(selector);
     }
 
     private valueIdxLookup(scopes: string[] | undefined, prop: PropertyId<string>) {
-        const noScopesToMatch = scopes == null || scopes.length === 0;
-        const propId = typeof prop === 'string' ? prop : prop.id;
-
-        const hasMatchingScopeId = (def: InternalDatumPropertyDefinition<K>) => {
-            if (def.idsMap) {
-                for (const [scope, ids] of def.idsMap) {
-                    if (scopes?.includes(scope) && ids.has(propId)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
-
-        const result = this.values.reduce((res, def, index) => {
-            const validDefScopes =
-                def.scopes == null ||
-                (noScopesToMatch && !def.scopes.length) ||
-                def.scopes.some((s) => scopes?.includes(s));
-
-            if (validDefScopes && (def.property === propId || def.id === propId || hasMatchingScopeId(def))) {
-                res.push(index);
-            }
-            return res;
-        }, [] as number[]);
-
-        if (result.length === 0) {
-            throw new Error(
-                `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scope(s) ${JSON.stringify(
-                    scopes
-                )}`
-            );
-        }
-
-        return result;
+        return this.scopeCacheManager.valueIdxLookup(scopes, prop);
     }
 
     private extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
@@ -2349,24 +2300,7 @@ export class DataModel<
     }
 
     buildAccessors(defs: Iterable<{ property: string }>) {
-        const result = new Map<string, (d: any) => any>();
-        if (this.suppressFieldDotNotation) {
-            return result;
-        }
-
-        for (const def of defs) {
-            const isPath = def.property.includes('.') || def.property.includes('[');
-            if (!isPath) continue;
-
-            const components = getPathComponents(def.property);
-            if (components == null) {
-                Logger.warnOnce('Invalid property path [%s]', def.property);
-                continue;
-            }
-            const accessor = createPathAccessor(components);
-            result.set(def.property, accessor);
-        }
-        return result;
+        return this.scopeCacheManager.buildAccessors(defs);
     }
 }
 
