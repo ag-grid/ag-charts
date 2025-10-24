@@ -1,5 +1,5 @@
-import type { BandedDomain, BandedDomainConfig, IDataDomain } from './dataDomain';
-import type { DataChangeDescription, DataSet } from './dataSet';
+import type { BandedDomain, BandedDomainConfig } from './dataDomain';
+import type { DataSet } from './dataSet';
 import type { RangeLookup } from './rangeLookup';
 import type { SortOrder } from './sortOrder';
 
@@ -52,7 +52,6 @@ export const DOMAIN_BANDS = Symbol('domain-bands');
 // datum has relative offset 0 from its group start position.
 export const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 
-// eslint-disable-next-line sonarjs/redundant-type-aliases
 export type ScopeId = string;
 
 export type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
