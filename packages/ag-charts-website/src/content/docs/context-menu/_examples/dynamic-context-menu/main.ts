@@ -41,7 +41,7 @@ const options: BarChartOptions = {
                 series: {
                     strokeWidth: 1,
                     fillOpacity: 0.75,
-                    itemStyler: ({ yKey, datum }) => (datum.marked[yKey] ? markingStyle : undefined),
+                    itemStyler: ({ yKey, datum }) => (datum.marked?.[yKey] ? markingStyle : undefined),
                 },
             },
         },
