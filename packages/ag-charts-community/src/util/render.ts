@@ -7,11 +7,17 @@ type Callback = (params: { count: number }) => Promise<void> | void;
  * after the first schedule() call, and subsequent schedule() calls will be ignored until the
  * animation callback executes.
  */
-export function debouncedAnimationFrame(cb: Callback): { schedule(delayMs?: number): void; await(): Promise<void> } {
+export function debouncedAnimationFrame(cb: Callback): {
+    schedule(delayMs?: number): void;
+    waitForCompletion(): Promise<void>;
+} {
     return buildScheduler((innerCb, _delayMs) => getWindow().requestAnimationFrame(innerCb), cb);
 }
 
-export function debouncedCallback(cb: Callback): { schedule(delayMs?: number): void; await(): Promise<void> } {
+export function debouncedCallback(cb: Callback): {
+    schedule(delayMs?: number): void;
+    waitForCompletion(): Promise<void>;
+} {
     return buildScheduler((innerCb, delayMs = 0) => {
         if (delayMs === 0) {
             queueMicrotask(innerCb);
@@ -65,7 +71,7 @@ function buildScheduler(scheduleFn: (cb: () => void, delayMs?: number) => void, 
             }
             scheduleCount++;
         },
-        async await() {
+        async waitForCompletion() {
             if (!busy()) {
                 return;
             }

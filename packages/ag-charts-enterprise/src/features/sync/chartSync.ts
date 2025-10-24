@@ -508,7 +508,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         let count = 0;
         while (syncManager.getGroupMembers(this.groupId).some((c) => c.syncStatus === 'init')) {
             debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', this.groupId);
-            await this.domainSync.await();
+            await this.domainSync.waitForCompletion();
             count++;
         }
         if (count > 0) {
