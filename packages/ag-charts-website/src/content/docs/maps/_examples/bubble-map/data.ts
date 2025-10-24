@@ -443,14 +443,6 @@ export const asiaData = [
         name: 'Israel',
     },
     {
-        pop_est: 4685306,
-        pop_rank: 12,
-        gdp_md: 16276,
-        iso2: 'PS',
-        iso3: 'PSE',
-        name: 'Palestine',
-    },
-    {
         pop_est: 6855713,
         pop_rank: 13,
         gdp_md: 51991,

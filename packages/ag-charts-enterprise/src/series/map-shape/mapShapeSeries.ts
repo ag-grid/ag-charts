@@ -47,6 +47,12 @@ const {
 interface MapShapeNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
+interface ShapeDataValues {
+    readonly idValue: string;
+    readonly colorValue: number | undefined;
+    readonly labelValue: string | undefined;
+}
+
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
 interface LabelLayout {
@@ -337,25 +343,52 @@ export class MapShapeSeries
         };
     }
 
+    private resolveColumn<T>(
+        key: string | undefined,
+        columnId: string,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): T[] | undefined {
+        if (key == null || this.dataModel == null) return undefined;
+        return this.dataModel.resolveColumnById<T>(this, columnId, processedData);
+    }
+
+    private resolveShapeDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
+        const { colorKey, labelKey } = this.properties;
+
+        return {
+            idValues: this.dataModel!.resolveColumnById<string>(this, 'idValue', processedData),
+            featureValues: this.dataModel!.resolveColumnById<_ModuleSupport.Feature | undefined>(
+                this,
+                'featureValue',
+                processedData
+            ),
+            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
+            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
+        };
+    }
+
+    private warnMissingGeometries(missingGeometries: string[]): void {
+        if (missingGeometries.length === 0) return;
+
+        const missingGeometriesCap = 10;
+        if (missingGeometries.length > missingGeometriesCap) {
+            const excessItems = missingGeometries.length - missingGeometriesCap;
+            missingGeometries.length = missingGeometriesCap;
+            missingGeometries.push(`(+${excessItems} more)`);
+        }
+
+        Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+    }
+
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
-        const { idKey, colorKey, labelKey, label, legendItemName } = properties;
+        const { idKey, label, legendItemName } = properties;
 
         if (dataModel == null || processedData == null) return;
 
         const scaling = scale == null ? Number.NaN : (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width;
-
-        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
-        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
-            this,
-            `featureValue`,
-            processedData
-        );
-        const labelValues =
-            labelKey == null ? undefined : dataModel.resolveColumnById<string>(this, `labelValue`, processedData);
-        const colorValues =
-            colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData);
+        const columns = this.resolveShapeDataColumns(processedData);
 
         const measurer = cachedTextMeasurer(label);
 
@@ -366,25 +399,28 @@ export class MapShapeSeries
         const labelData: MapShapeNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        for (const [datumIndex, datum] of rawData.entries()) {
-            const idValue = idValues[datumIndex];
-            const colorValue: number | undefined = colorValues?.[datumIndex];
-            const labelValue: string | undefined = labelValues?.[datumIndex];
 
-            const geometry = featureValues[datumIndex]?.geometry ?? undefined;
+        for (const [datumIndex, datum] of rawData.entries()) {
+            const dataValues: ShapeDataValues = {
+                idValue: columns.idValues[datumIndex],
+                colorValue: columns.colorValues?.[datumIndex],
+                labelValue: columns.labelValues?.[datumIndex],
+            };
+
+            const geometry = columns.featureValues[datumIndex]?.geometry ?? undefined;
             if (geometry == null) {
-                missingGeometries.push(idValue);
+                missingGeometries.push(dataValues.idValue);
             }
 
             const labelLayout = this.getLabelLayout(
                 datum,
-                labelValue,
+                dataValues.labelValue,
                 measurer,
                 geometry,
-                previousLabelLayouts?.get(idValue)
+                previousLabelLayouts?.get(dataValues.idValue)
             );
             if (labelLayout != null) {
-                labelLayouts.set(idValue, labelLayout);
+                labelLayouts.set(dataValues.idValue, labelLayout);
             }
 
             const labelDatum =
@@ -400,24 +436,14 @@ export class MapShapeSeries
                 itemId: idKey,
                 datum,
                 datumIndex,
-                idValue,
-                colorValue,
-                labelValue,
+                ...dataValues,
                 projectedGeometry,
                 legendItemName,
-                style: this.getItemStyle({ datum, datumIndex, colorValue }, false),
+                style: this.getItemStyle({ datum, datumIndex, colorValue: dataValues.colorValue }, false),
             });
         }
 
-        const missingGeometriesCap = 10;
-        if (missingGeometries.length > missingGeometriesCap) {
-            const excessItems = missingGeometries.length - missingGeometriesCap;
-            missingGeometries.length = missingGeometriesCap;
-            missingGeometries.push(`(+${excessItems} more)`);
-        }
-        if (missingGeometries.length > 0) {
-            Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
-        }
+        this.warnMissingGeometries(missingGeometries);
 
         return {
             itemId: seriesId,

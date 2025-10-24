@@ -29,6 +29,5 @@ export const islandData = [
     { name: 'Skopelos', population: 4518 },
     { name: 'Skyros', population: 3052 },
     { name: 'Syros', population: 21507 },
-    { name: 'Thasos', population: 13104 },
     { name: 'Tinos', population: 8934 },
 ];
