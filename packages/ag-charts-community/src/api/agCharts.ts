@@ -13,6 +13,7 @@ import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
+import { detectChartType } from '../chart/mapping/types';
 import { AllCommunityModules } from '../main-modules';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
@@ -227,8 +228,7 @@ class AgChartsInternal {
 
         if (
             chart == null ||
-            ModuleRegistry.detectChartDefinition(chartOptions.processedOptions) !==
-                ModuleRegistry.detectChartDefinition(chart.chartOptions.processedOptions)
+            detectChartType(chartOptions.processedOptions) !== detectChartType(chart.chartOptions.processedOptions)
         ) {
             poolResult?.release(); // Undo previous obtain(), we need to use a different pool!
             poolResult = this.getPool(chartOptions.optionMetadata)?.obtain(chartOptions);
@@ -326,7 +326,8 @@ class AgChartsInternal {
 
     private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
-        const chartDef = ModuleRegistry.detectChartDefinition(options.processedOptions);
+        const chartType = detectChartType(options.processedOptions);
+        const chartDef = ModuleRegistry.getChartModule(chartType);
         return chartDef.create(options, transferableResource) as Chart;
     }
 

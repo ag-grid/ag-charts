@@ -19,7 +19,6 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
     type: 'plugin',
     name: 'zoom',
     enterprise: true,
-    // chartTypes: ['cartesian', 'topology'],
 
     options: {
         enabled: boolean,

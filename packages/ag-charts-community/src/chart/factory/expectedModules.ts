@@ -77,12 +77,7 @@ export const ExpectedModules: ModulePlaceholder[] = [
     { type: 'plugin', name: 'dataSource', enterprise: true },
     { type: 'plugin', name: 'sync', chartType: 'cartesian', enterprise: true },
     { type: 'plugin', name: 'ranges', chartType: 'cartesian', enterprise: true },
-    {
-        type: 'plugin',
-        name: 'zoom',
-        // chartTypes: ['cartesian', 'topology']
-        enterprise: true,
-    },
+    { type: 'plugin', name: 'zoom', enterprise: true },
     { type: 'plugin', name: 'gradientLegend', enterprise: true },
     { type: 'plugin', name: 'navigator', chartType: 'cartesian', enterprise: true },
 

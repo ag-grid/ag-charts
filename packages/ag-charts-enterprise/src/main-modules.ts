@@ -52,8 +52,8 @@ export { SunburstSeriesModule } from './series/sunburst';
 export { TreemapSeriesModule } from './series/treemap';
 export { WaterfallSeriesModule } from './series/waterfall';
 
-export { AllCartesianEnterpriseModules } from './enterprise-modules/cartesian';
-export { AllPolarEnterpriseModules } from './enterprise-modules/polar';
-export { AllStandaloneEnterpriseModules } from './enterprise-modules/standalone';
-export { AllTopologyEnterpriseModules } from './enterprise-modules/topology';
-export { AllEnterpriseModules } from './enterprise-modules/all';
+export { AllCartesianEnterpriseModules } from './module-bundles/cartesian';
+export { AllPolarEnterpriseModules } from './module-bundles/polar';
+export { AllStandaloneEnterpriseModules } from './module-bundles/standalone';
+export { AllTopologyEnterpriseModules } from './module-bundles/topology';
+export { AllEnterpriseModules } from './module-bundles/all';

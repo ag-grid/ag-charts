@@ -8,7 +8,6 @@ import {
     type SeriesModuleDefinition,
 } from '../interfaces/moduleDefinition';
 import {
-    detectChartDefinition,
     getAxisModule,
     getChartModule,
     getPresetModule,
@@ -35,7 +34,6 @@ const createChartModule = (
     type: ModuleType.Chart,
     name,
     options: {} as any,
-    detect: () => false,
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -156,30 +154,6 @@ describe('moduleRegistry', () => {
 
             expect(Array.from(listModulesByType(ModuleType.Series))).toEqual([series]);
             expect(Array.from(listModulesByType(ModuleType.Axis))).toEqual([axis]);
-        });
-    });
-
-    describe('detectChartDefinition', () => {
-        test('returns the first chart definition that detects matching options', () => {
-            const chartA = createChartModule('chart-a');
-            const chartB = createChartModule('chart-b', {
-                detect: (options) => (options as { type?: string }).type === 'b',
-            });
-            const chartC = createChartModule('chart-c', { detect: () => true });
-
-            register(chartA, '1.0.0');
-            register(chartB, '1.0.0');
-            register(chartC, '1.0.0');
-
-            expect(detectChartDefinition({ type: 'b' })).toBe(chartB);
-        });
-
-        test('throws when no chart can be detected', () => {
-            const chart = createChartModule('chart-a');
-
-            register(chart, '1.0.0');
-
-            expect(() => detectChartDefinition({})).toThrow(/Unknown chart type/);
         });
     });
 

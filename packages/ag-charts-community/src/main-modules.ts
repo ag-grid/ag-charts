@@ -1,98 +1,31 @@
-import { type ModuleDefinition } from 'ag-charts-core';
-
-import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
-import { BackgroundModule } from './chart/background/backgroundModule';
-import { CartesianChartModule } from './chart/cartesianChartModule';
-import { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
-import { LegendModule } from './chart/legend/legendModule';
-import { PolarChartModule } from './chart/polarChartModule';
-import { SeriesAreaModule } from './chart/series-area/seriesAreaModule';
-import { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
-import { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';
-import { BubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
-import { HistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';
-import { LineSeriesModule } from './chart/series/cartesian/lineSeriesModule';
-import { ScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
-import { DonutSeriesModule } from './chart/series/polar/donutSeriesModule';
-import { PieSeriesModule } from './chart/series/polar/pieSeriesModule';
-import { LocaleModule } from './locale/localeModule';
-import {
-    CategoryAxisModule,
-    GroupedCategoryAxisModule,
-    LogAxisModule,
-    NumberAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
-} from './module/axisModules';
-
 export { ModuleRegistry } from 'ag-charts-core';
 
-/* eslint-disable unicorn/prefer-export-from */
-export {
-    CartesianChartModule,
-    NumberAxisModule,
-    LogAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
-    CategoryAxisModule,
-    GroupedCategoryAxisModule,
-    AreaSeriesModule,
-    BarSeriesModule,
-    BubbleSeriesModule,
-    HistogramSeriesModule,
-    LineSeriesModule,
-    ScatterSeriesModule,
-    PolarChartModule,
-    DonutSeriesModule,
-    PieSeriesModule,
-    SeriesAreaModule,
-    BackgroundModule,
-    LegendModule,
-    LocaleModule,
+export { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
 
-    // Enterprise presets
-    PriceVolumePresetModule,
-    GaugePresetModule,
-};
+export { BackgroundModule } from './chart/background/backgroundModule';
+export { CartesianChartModule } from './chart/cartesianChartModule';
+export { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
+export { LegendModule } from './chart/legend/legendModule';
+export { PolarChartModule } from './chart/polarChartModule';
+export { SeriesAreaModule } from './chart/series-area/seriesAreaModule';
+export { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
+export { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';
+export { BubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
+export { HistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';
+export { LineSeriesModule } from './chart/series/cartesian/lineSeriesModule';
+export { ScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
+export { DonutSeriesModule } from './chart/series/polar/donutSeriesModule';
+export { PieSeriesModule } from './chart/series/polar/pieSeriesModule';
 
-export const AllCartesianCommunityModules: ModuleDefinition[] = [
-    CartesianChartModule,
-    NumberAxisModule,
-    LogAxisModule,
-    TimeAxisModule,
-    CategoryAxisModule,
-    GroupedCategoryAxisModule,
-    UnitTimeAxisModule,
-    AreaSeriesModule,
-    BarSeriesModule,
-    BubbleSeriesModule,
-    HistogramSeriesModule,
-    LineSeriesModule,
-    ScatterSeriesModule,
-    SeriesAreaModule,
-    BackgroundModule,
-    LegendModule,
-    LocaleModule,
-];
+export { LocaleModule } from './locale/localeModule';
 
-export const AllPolarCommunityModules: ModuleDefinition[] = [
-    PolarChartModule,
-    DonutSeriesModule,
-    PieSeriesModule,
-    SeriesAreaModule,
-    BackgroundModule,
-    LegendModule,
-    LocaleModule,
-];
+export { NumberAxisModule } from './module/axis-modules/numberAxisModule';
+export { LogAxisModule } from './module/axis-modules/logAxisModule';
+export { TimeAxisModule } from './module/axis-modules/timeAxisModule';
+export { CategoryAxisModule } from './module/axis-modules/categoryAxisModule';
+export { GroupedCategoryAxisModule } from './module/axis-modules/groupedCategoryAxisModule';
+export { UnitTimeAxisModule } from './module/axis-modules/unitTimeAxisModule';
 
-export const AllCommunityModules: ModuleDefinition[] = [
-    ...AllCartesianCommunityModules,
-    ...AllPolarCommunityModules,
-
-    // Enterprise placeholders
-    StandaloneChartModule,
-    TopologyChartModule,
-
-    // Presets
-    SparklinePresetModule,
-];
+export { AllCartesianCommunityModules } from './module-bundles/cartesian';
+export { AllPolarCommunityModules } from './module-bundles/polar';
+export { AllCommunityModules } from './module-bundles/all';

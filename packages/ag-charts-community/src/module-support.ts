@@ -5,7 +5,6 @@ export { Chart } from './chart/chart';
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export { NumberAxis } from './chart/axis/numberAxis';
-export { isAgStandaloneChartOptions, isAgTopologyChartOptions } from './chart/mapping/types';
 export { ModuleRegistry } from 'ag-charts-core';
 export * from './api/preset/gaugeOptionsDefs';
 export * from './chart/commonOptionsDefs';

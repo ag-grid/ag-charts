@@ -30,6 +30,7 @@ import {
 
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { getChartTheme } from '../chart/mapping/themes';
+import { detectChartType } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { deepFreeze, merge, mergeDefaults } from '../util/object';
@@ -281,7 +282,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Must run before chart validation to cleanup invalid types.
         this.validateSeriesOptions(options);
 
-        this.chartDef = ModuleRegistry.detectChartDefinition(options);
+        const chartType = detectChartType(options);
+
+        this.chartDef = ModuleRegistry.getChartModule(chartType);
 
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;

@@ -85,8 +85,6 @@ export interface ModuleDefinition<
 
 export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Chart, TOptions> {
     options: OptionsDefs<TOptions>;
-
-    detect(options: object): boolean;
 }
 
 export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Preset, TOptions> {

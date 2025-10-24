@@ -89,17 +89,6 @@ export function* listModulesByType<T extends ModuleType>(moduleType: T): Generat
     }
 }
 
-export function detectChartDefinition(options: object): ChartModuleDefinition<any> {
-    for (const definition of registeredModules.values()) {
-        if (isModuleType(ModuleType.Chart, definition.def) && definition.def.detect(options)) {
-            return definition.def;
-        }
-    }
-    throw new Error(
-        `AG Charts - Unknown chart type; Check options are correctly structured and series types are specified`
-    );
-}
-
 export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
     if (isModuleType(ModuleType.Axis, definition?.def)) {
@@ -107,11 +96,14 @@ export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | u
     }
 }
 
-export function getChartModule(moduleName: string): ChartModuleDefinition<any> | undefined {
+export function getChartModule(moduleName: string): ChartModuleDefinition<any> {
     const definition = registeredModules.get(moduleName);
     if (isModuleType(ModuleType.Chart, definition?.def)) {
         return definition.def;
     }
+    throw new Error(
+        `AG Charts - Unknown chart type; Check options are correctly structured and series types are specified`
+    );
 }
 
 export function getPresetModule(moduleName: string): PresetModuleDefinition<any> | undefined {
