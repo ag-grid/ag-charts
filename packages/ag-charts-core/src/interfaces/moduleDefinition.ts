@@ -53,13 +53,9 @@ export interface PropertyDefinitionOpts {
 export interface SeriesPluginModuleInstance extends ModuleInstance {
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
-    pickNodeMainAxisFirst(point: Point, majorDirection: any): PickNodeDatumResult | undefined;
-    // pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined;
-
-    getPropertyDefinitions(opts: PropertyDefinitionOpts): any[];
-    // getPropertyDefinitions(opts: PropertyDefinitionOpts): DataPropertyDefinition<unknown>[];
-    getDomain(direction: any): any[];
-    // getDomain(direction: ChartAxisDirection): any[];
+    pickNodeMainAxisFirst(point: Point, majorDirection: any /* ChartAxisDirection */): PickNodeDatumResult | undefined;
+    getPropertyDefinitions(opts: PropertyDefinitionOpts): any[] /* DataPropertyDefinition<unknown>[] */;
+    getDomain(direction: any /* ChartAxisDirection */): any[];
     getTooltipParams(): object;
 }
 
