@@ -118,12 +118,32 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
                 type Omissions = 'showOn' | 'seriesId' | 'type' | 'event' | 'context';
                 type PickedNode = Omit<AgContextMenuGetItemsParamsSeriesNode, Omissions>;
-                const { datum }: PickedNode = this.pickedNode;
+                const {
+                    datum,
+                    angleKey,
+                    calloutLabelKey,
+                    colorKey,
+                    labelKey,
+                    radiusKey,
+                    sectorLabelKey,
+                    sizeKey,
+                    xKey,
+                    yKey,
+                }: PickedNode = this.pickedNode;
                 const params: AgContextMenuGetItemsParamsSeriesNode = {
                     showOn,
                     context,
                     seriesId: this.pickedNode.series.id,
                     datum,
+                    angleKey,
+                    calloutLabelKey,
+                    colorKey,
+                    labelKey,
+                    radiusKey,
+                    sectorLabelKey,
+                    sizeKey,
+                    xKey,
+                    yKey,
                 };
                 for (const k of [
                     'angleKey',
@@ -136,8 +156,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     'xKey',
                     'yKey',
                 ] as const) {
-                    if (this.pickedNode[k] !== undefined) {
-                        params[k] = this.pickedNode[k];
+                    if (params[k] === undefined) {
+                        delete params[k];
                     }
                 }
                 return params;
