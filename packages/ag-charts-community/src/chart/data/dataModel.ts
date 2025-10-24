@@ -2,6 +2,15 @@ import { Logger, first, isNegative, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
+import { DataModelResolvers } from './data-model/utils/Resolvers';
+import {
+    createArray,
+    createPathAccessor,
+    datumKeys,
+    getPathComponents,
+    isScoped,
+    toKeyString,
+} from './data-model/utils/helpers';
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from './dataChangeDescription';
 import {
     BandedDomain,
@@ -10,14 +19,6 @@ import {
     DiscreteDomain,
     type IDataDomain,
 } from './dataDomain';
-import {
-    createArray,
-    createPathAccessor,
-    datumKeys,
-    getPathComponents,
-    isScoped,
-    toKeyString,
-} from './dataModel/utils/helpers';
 // Import types for internal use
 import type {
     AggregatePropertyDefinition,
@@ -47,7 +48,6 @@ import type {
     ReducerOutputPropertyDefinition,
     ScopeId,
     ScopeProvider,
-    SortOrderEntry,
     UngroupedData,
 } from './dataModelTypes';
 import {
@@ -58,14 +58,13 @@ import {
     SHARED_ZERO_INDICES,
 } from './dataModelTypes';
 import type { DataChangeDescription, DataSet } from './dataSet';
-import { RangeLookup } from './rangeLookup';
-import { type SortOrder, valuesSortOrder } from './sortOrder';
+import { type SortOrder } from './sortOrder';
 
 // Export all types from dataModelTypes
 export * from './dataModelTypes';
 
 // Re-export helper functions that are part of the public API
-export { fixNumericExtent, getMissCount, datumKeys, getPathComponents } from './dataModel/utils/helpers';
+export { fixNumericExtent, getMissCount, datumKeys, getPathComponents } from './data-model/utils/helpers';
 
 export class DataModel<
     D extends object,
@@ -78,6 +77,7 @@ export class DataModel<
 
     private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
     private readonly values: InternalDatumPropertyDefinition<K>[] = [];
+    private resolvers!: DataModelResolvers<D, K>;
     private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition<true>)[] = [];
@@ -175,20 +175,17 @@ export class DataModel<
                 );
             }
         }
+
+        // Initialize resolvers after all properties are set up
+        this.resolvers = new DataModelResolvers(this.scopeCache);
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        const def = this.scopeCache.get(scope.id)?.get(searchId);
-
-        if (!def) {
-            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.id}]`);
-        }
-
-        return { index: def.index, def };
+        return this.resolvers.resolveProcessedDataDefById(scope, searchId);
     }
 
     resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): number {
-        return this.resolveProcessedDataDefById(scope, searchId).index;
+        return this.resolvers.resolveProcessedDataIndexById(scope, searchId);
     }
 
     resolveKeysById<T = string>(
@@ -196,16 +193,11 @@ export class DataModel<
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>
     ): T[] {
-        const index = this.resolveProcessedDataIndexById(scope, searchId);
-        const keys = processedData.keys[index];
-        if (keys == null) {
-            throw new Error(`AG Charts - didn't find keys for [${searchId}, ${scope.id}]`);
-        }
-        return keys.get(scope.id) as T[];
+        return this.resolvers.resolveKeysById<T>(scope, searchId, processedData);
     }
 
     hasColumnById(scope: ScopeProvider, searchId: string) {
-        return this.scopeCache.get(scope.id)?.get(searchId) != null;
+        return this.resolvers.hasColumnById(scope, searchId);
     }
 
     resolveColumnById<T = any>(
@@ -213,12 +205,7 @@ export class DataModel<
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>
     ): T[] {
-        const index = this.resolveProcessedDataIndexById(scope, searchId);
-        const column = processedData.columns?.[index];
-        if (column == null) {
-            throw new Error(`AG Charts - didn't find column for [${searchId}, ${scope.id}]`);
-        }
-        return column;
+        return this.resolvers.resolveColumnById<T>(scope, searchId, processedData);
     }
 
     resolveColumnNeedsValueOf(
@@ -226,28 +213,7 @@ export class DataModel<
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>
     ): boolean {
-        const index = this.resolveProcessedDataIndexById(scope, searchId);
-        return processedData.columnNeedValueOf?.[index] ?? true;
-    }
-
-    /**
-     * Converts a relative datum index to an absolute column index.
-     *
-     * INDEXING STRATEGY:
-     * - Relative index: Offset from the start of a group (stored in datumIndices)
-     * - Absolute index: Position in the full column array
-     * - Conversion: absoluteIndex = groupIndex + relativeIndex
-     *
-     * When groupsUnique=true, relativeIndex is always 0, making this a simple
-     * identity mapping. This optimization reduces memory usage significantly
-     * for large datasets with unique keys.
-     *
-     * @param groupIndex index of the group in ProcessedData.groups
-     * @param relativeDatumIndex relative index stored in group.datumIndices
-     * @returns absolute index for accessing columns
-     */
-    private resolveAbsoluteIndex(groupIndex: number, relativeDatumIndex: number): number {
-        return groupIndex + relativeDatumIndex;
+        return this.resolvers.resolveColumnNeedsValueOf(scope, searchId, processedData);
     }
 
     /**
@@ -263,7 +229,7 @@ export class DataModel<
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
 
         for (const relativeDatumIndex of group.datumIndices[columnIndex] ?? []) {
-            const absoluteDatumIndex = this.resolveAbsoluteIndex(groupIndex, relativeDatumIndex);
+            const absoluteDatumIndex = this.resolvers.resolveAbsoluteIndex(groupIndex, relativeDatumIndex);
             yield processedData.columns[columnIndex][absoluteDatumIndex];
         }
     }
@@ -291,7 +257,7 @@ export class DataModel<
         for (const group of processedData.groups) {
             output.group = group;
             for (const relativeDatumIndex of group.datumIndices[columnIndex] ?? empty) {
-                output.datumIndex = this.resolveAbsoluteIndex(output.groupIndex, relativeDatumIndex);
+                output.datumIndex = this.resolvers.resolveAbsoluteIndex(output.groupIndex, relativeDatumIndex);
                 yield output;
             }
             output.groupIndex++;
@@ -304,8 +270,7 @@ export class DataModel<
         type: PropertyDefinition<any>['type'],
         processedData: ProcessedData<K>
     ): any[] | [number, number] | [] {
-        const domains = this.getDomainsByType(type ?? 'value', processedData);
-        return domains?.[this.resolveProcessedDataIndexById(scope, searchId)] ?? [];
+        return this.resolvers.getDomain(scope, searchId, type, processedData);
     }
 
     getDomainBetweenRange(
@@ -314,64 +279,15 @@ export class DataModel<
         [i0, i1]: [number, number],
         processedData: ProcessedData<K>
     ): [number, number] {
-        const columnIndices = searchIds.map((searchId) => this.resolveProcessedDataIndexById(scope, searchId));
-        const cacheKey = columnIndices.join(':');
-        const domainRanges = processedData[DOMAIN_RANGES];
-        let rangeLookup = domainRanges.get(cacheKey);
-        if (rangeLookup == null) {
-            const values = columnIndices.map((columnIndex) => processedData.columns[columnIndex]);
-            rangeLookup = new RangeLookup(values);
-            domainRanges.set(cacheKey, rangeLookup);
-        }
-        return rangeLookup.rangeBetween(i0, i1);
-    }
-
-    private getSortOrder(
-        values: any[],
-        index: number,
-        sortOrders: Map<number, SortOrderEntry>,
-        needsValueOf: boolean
-    ): SortOrder {
-        let sortOrder = sortOrders.get(index);
-        if (sortOrder == null) {
-            sortOrder = { sortOrder: valuesSortOrder(values, needsValueOf) };
-            sortOrders.set(index, sortOrder);
-        }
-        return sortOrder.sortOrder;
+        return this.resolvers.getDomainBetweenRange(scope, searchIds, [i0, i1], processedData);
     }
 
     getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
-        const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
-        const keys = processedData.keys[columnIndex]?.get(scope.id);
-        // Key columns typically contain dates/objects, so default to true for needsValueOf
-        return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS], true) : undefined;
+        return this.resolvers.getKeySortOrder(scope, searchId, processedData);
     }
 
     getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
-        const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
-        // Use columnNeedValueOf metadata to determine if valueOf() is needed
-        const needsValueOf = processedData.columnNeedValueOf?.[columnIndex] ?? true;
-        return this.getSortOrder(
-            processedData.columns[columnIndex],
-            columnIndex,
-            processedData[COLUMN_SORT_ORDERS],
-            needsValueOf
-        );
-    }
-
-    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
-        switch (type) {
-            case 'key':
-                return processedData.domain.keys;
-            case 'value':
-                return processedData.domain.values;
-            case 'aggregate':
-                return processedData.domain.aggValues;
-            case 'group-value-processor':
-                return processedData.domain.groups;
-            default:
-                return null;
-        }
+        return this.resolvers.getColumnSortOrder(scope, searchId, processedData);
     }
 
     processData(
@@ -1977,7 +1893,7 @@ export class DataModel<
                         if (relativeDatumIndex == null) {
                             return undefined as D[K];
                         }
-                        const absoluteDatumIndex = this.resolveAbsoluteIndex(groupIndex, relativeDatumIndex);
+                        const absoluteDatumIndex = this.resolvers.resolveAbsoluteIndex(groupIndex, relativeDatumIndex);
                         return columns[columnIndex][absoluteDatumIndex] as D[K];
                     });
                     const valuesAgg = def.aggregateFunction(valuesToAgg, groupKeys);
