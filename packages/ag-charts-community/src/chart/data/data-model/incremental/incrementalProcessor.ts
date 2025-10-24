@@ -22,6 +22,7 @@ import {
     SHARED_ZERO_INDICES,
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
+import type { DataModelContext } from '../dataModelContext';
 import { createArray, toKeyString } from '../utils/helpers';
 
 /**
@@ -36,16 +37,7 @@ import { createArray, toKeyString } from '../utils/helpers';
  * This can reduce processing time by 90%+ for small updates to large datasets
  */
 export class IncrementalProcessor<D extends object, K extends keyof D & string> {
-    constructor(
-        private readonly keys: InternalDatumPropertyDefinition<K>[],
-        private readonly values: InternalDatumPropertyDefinition<K>[],
-        private readonly aggregates: any[],
-        private readonly reducers: any[],
-        private readonly processors: any[],
-        private readonly propertyProcessors: any[],
-        private readonly groupProcessors: any[]
-        // private readonly _debug: DebugLogger
-    ) {}
+    constructor(private readonly ctx: DataModelContext<D, K>) {}
 
     /**
      * Checks if incremental reprocessing is supported for the given data configuration.
@@ -69,13 +61,13 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         }
 
         // Don't support these features yet (existing constraints)
-        if (this.aggregates.length > 0) return false;
-        if (this.reducers.length > 0) return false;
-        if (this.processors.length > 0) return false;
-        if (this.propertyProcessors.length > 0) return false;
+        if (this.ctx.aggregates.length > 0) return false;
+        if (this.ctx.reducers.length > 0) return false;
+        if (this.ctx.processors.length > 0) return false;
+        if (this.ctx.propertyProcessors.length > 0) return false;
 
         // Check if all group processors support reprocessing
-        return this.groupProcessors.every((p) => p.supportsReprocessing ?? false);
+        return this.ctx.groupProcessors.every((p) => p.supportsReprocessing ?? false);
     }
 
     /**
@@ -117,7 +109,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             this.transformGroupsArray(processedData, scopeChanges, insertionCaches);
 
             // Reapply group processors to new data if they support reprocessing
-            if (this.groupProcessors.length > 0) {
+            if (this.ctx.groupProcessors.length > 0) {
                 reprocessGroupProcessorsFn(processedData, scopeChanges);
             }
         }
@@ -302,7 +294,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     hasInvalidValue = true;
                 } else {
                     // Process all keys for this scope
-                    for (const [keyDefIndex, keyDef] of this.keys.entries()) {
+                    for (const [keyDefIndex, keyDef] of this.ctx.keys.entries()) {
                         if (!keyDef.scopes?.includes(scope)) continue;
 
                         const result = processValue(keyDef, datum, destIndex, scope);
@@ -314,7 +306,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     }
 
                     // Process all values for this scope
-                    for (const [valueDefIndex, valueDef] of this.values.entries()) {
+                    for (const [valueDefIndex, valueDef] of this.ctx.values.entries()) {
                         if (!valueDef.scopes?.includes(scope)) continue;
 
                         const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
@@ -393,7 +385,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         // which is why it doesn't use a common helper pattern.
         const processedArrays = new WeakSet<unknown[]>();
 
-        for (const [defIndex, def] of this.keys.entries()) {
+        for (const [defIndex, def] of this.ctx.keys.entries()) {
             for (const scope of def.scopes ?? []) {
                 const changeDesc = scopeChanges.get(scope);
                 if (!changeDesc) continue;
@@ -432,7 +424,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     (removedValues) => {
                         for (const value of removedValues) {
                             if (!removedMetadata.tuples[removalCursor]) {
-                                removedMetadata.tuples[removalCursor] = new Array(this.keys.length);
+                                removedMetadata.tuples[removalCursor] = new Array(this.ctx.keys.length);
                             }
 
                             removedMetadata.tuples[removalCursor][defIndex] = value;
@@ -451,7 +443,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             for (const tuple of tuples) {
                 const keyValues: any[] = [];
                 for (const [defIndex, value] of tuple.entries()) {
-                    const keyDef = this.keys[defIndex];
+                    const keyDef = this.ctx.keys[defIndex];
                     if (!keyDef.scopes?.includes(scope)) continue;
                     keyValues.push(value);
                 }
@@ -476,7 +468,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         insertionCaches: Map<ScopeId, InsertionCache>
     ): void {
         this.transformArraysWithCache(
-            this.values,
+            this.ctx.values,
             scopeChanges,
             insertionCaches,
             (defIndex) => processedData.columns[defIndex],

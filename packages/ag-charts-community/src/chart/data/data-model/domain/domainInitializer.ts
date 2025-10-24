@@ -1,23 +1,13 @@
-import { Debug } from 'ag-charts-core';
-
-import {
-    BandedDomain,
-    type BandedDomainConfig,
-    ContinuousDomain,
-    DiscreteDomain,
-    type IDataDomain,
-} from '../../dataDomain';
+import { BandedDomain, ContinuousDomain, DiscreteDomain, type IDataDomain } from '../../dataDomain';
 import type { InternalDatumPropertyDefinition } from '../../dataModelTypes';
+import type { DataModelContext } from '../dataModelContext';
 
 /**
  * Handles domain initialization and extension for the DataModel.
  * Manages both discrete and continuous domains, including banded domain optimization.
  */
 export class DomainInitializer<K extends string> {
-    constructor(
-        private readonly debug: Debug.DebugLogger,
-        private readonly bandingConfig?: BandedDomainConfig
-    ) {}
+    constructor(private readonly ctx: DataModelContext<any, K>) {}
 
     /**
      * Sets up the appropriate domain type for a property definition.
@@ -33,8 +23,8 @@ export class DomainInitializer<K extends string> {
         }
 
         let domain = bandedDomains.get(def);
-        if (!domain && this.bandingConfig?.enableBanding !== false) {
-            domain = new BandedDomain(() => new ContinuousDomain(), this.bandingConfig, false);
+        if (!domain && this.ctx.bandingConfig?.enableBanding !== false) {
+            domain = new BandedDomain(() => new ContinuousDomain(), this.ctx.bandingConfig, false);
             bandedDomains.set(def, domain);
         }
 
@@ -68,8 +58,8 @@ export class DomainInitializer<K extends string> {
         const stats = domain.getStats();
         const shouldReinit = stats.bandCount === 0 || stats.dataSize !== dataSize || stats.needsReinitialization;
 
-        if (this.debug.check() && shouldReinit && propertyName) {
-            this.debug(
+        if (this.ctx.debug.check() && shouldReinit && propertyName) {
+            this.ctx.debug(
                 `Reinitializing bands for ${propertyName}: bandCount=${stats.bandCount}, ` +
                     `dataSize=${stats.dataSize}, dataLength=${dataSize}, ` +
                     `needsReinitialization=${stats.needsReinitialization}`

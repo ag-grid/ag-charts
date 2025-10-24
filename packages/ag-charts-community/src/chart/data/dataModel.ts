@@ -1,8 +1,8 @@
-import { Logger, first } from 'ag-charts-core';
-import { Debug } from 'ag-charts-core';
+import { Debug, Logger, first } from 'ag-charts-core';
 
 import type { ChartMode } from '../chartMode';
 import { Aggregator } from './data-model/aggregation/aggregator';
+import type { DataModelContext } from './data-model/dataModelContext';
 import { DomainInitializer } from './data-model/domain/domainInitializer';
 import { DomainManager } from './data-model/domain/domainManager';
 import { DataExtractor } from './data-model/extraction/dataExtractor';
@@ -159,42 +159,31 @@ export class DataModel<
             }
         }
 
-        // Initialize resolvers and scope cache manager after all properties are set up
-        this.resolvers = new DataModelResolvers(this.scopeCache);
-        this.scopeCacheManager = new ScopeCacheManager(
-            this.scopeCache,
-            this.keys,
-            this.values,
-            this.aggregates,
-            this.suppressFieldDotNotation
-        );
-        this.domainInitializer = new DomainInitializer(this.debug, this.opts.domainBandingConfig);
-        this.domainManager = new DomainManager(
-            this.domainInitializer,
-            this.scopeCacheManager,
-            this.keys,
-            this.values,
-            this.debug,
-            this.mode
-        );
-        this.dataExtractor = new DataExtractor(this.keys, this.values, this.domainManager);
-        this.dataGrouper = new DataGrouper(this.keys, this.opts.groupByFn, this.debug);
-        this.aggregator = new Aggregator(
-            this.aggregates,
-            this.groupProcessors,
-            this.values,
-            this.scopeCacheManager,
-            this.resolvers
-        );
-        this.incrementalProcessor = new IncrementalProcessor(
-            this.keys,
-            this.values,
-            this.aggregates,
-            this.reducers,
-            this.processors,
-            this.propertyProcessors,
-            this.groupProcessors
-        );
+        // Create shared context for all subsystems
+        const ctx: DataModelContext<D, K> = {
+            keys: this.keys,
+            values: this.values,
+            aggregates: this.aggregates,
+            groupProcessors: this.groupProcessors,
+            propertyProcessors: this.propertyProcessors,
+            reducers: this.reducers,
+            processors: this.processors,
+            debug: this.debug,
+            mode: this.mode,
+            bandingConfig: this.opts.domainBandingConfig,
+            suppressFieldDotNotation: this.suppressFieldDotNotation,
+            scopeCache: this.scopeCache,
+        };
+
+        // Initialize subsystems with shared context
+        this.resolvers = new DataModelResolvers(ctx);
+        this.scopeCacheManager = new ScopeCacheManager(ctx);
+        this.domainInitializer = new DomainInitializer(ctx);
+        this.domainManager = new DomainManager(ctx, this.domainInitializer, this.scopeCacheManager);
+        this.dataExtractor = new DataExtractor(ctx, this.domainManager);
+        this.dataGrouper = new DataGrouper(ctx, this.opts.groupByFn);
+        this.aggregator = new Aggregator(ctx, this.scopeCacheManager, this.resolvers);
+        this.incrementalProcessor = new IncrementalProcessor(ctx);
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {

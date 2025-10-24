@@ -1,15 +1,8 @@
 import { first } from 'ag-charts-core';
 
 import { ContinuousDomain, DiscreteDomain } from '../../dataDomain';
-import type {
-    AggregatePropertyDefinition,
-    GroupValueProcessorDefinition,
-    GroupedData,
-    InternalDatumPropertyDefinition,
-    InternalDefinition,
-    PropertySelectors,
-    UngroupedData,
-} from '../../dataModelTypes';
+import type { GroupedData, PropertySelectors, UngroupedData } from '../../dataModelTypes';
+import type { DataModelContext } from '../dataModelContext';
 import { datumKeys } from '../utils/helpers';
 import type { DataModelResolvers } from '../utils/resolvers';
 import type { ScopeCacheManager } from '../utils/scopeCache';
@@ -28,20 +21,24 @@ import type { ScopeCacheManager } from '../utils/scopeCache';
  * - Grouped: Multiple datums in a group share aggregation results
  */
 export class Aggregator<D extends object, K extends keyof D & string> {
+    private readonly scopeCacheManager: ScopeCacheManager<K>;
+    private readonly resolvers: DataModelResolvers<D, K>;
+
     constructor(
-        private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition<false>)[],
-        private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition<false>)[],
-        private readonly values: InternalDatumPropertyDefinition<K>[],
-        private readonly scopeCacheManager: ScopeCacheManager<K>,
-        private readonly resolvers: DataModelResolvers<D, K>
-    ) {}
+        private readonly ctx: DataModelContext<D, K>,
+        scopeCacheManager: ScopeCacheManager<K>,
+        resolvers: DataModelResolvers<D, K>
+    ) {
+        this.scopeCacheManager = scopeCacheManager;
+        this.resolvers = resolvers;
+    }
 
     /**
      * Aggregates data for ungrouped datasets.
      * Each datum gets its own aggregation result.
      */
     aggregateUngroupedData(processedData: UngroupedData<any>) {
-        const domainAggValues = this.aggregates.map((): [number, number] => [Infinity, -Infinity]);
+        const domainAggValues = this.ctx.aggregates.map((): [number, number] => [Infinity, -Infinity]);
         processedData.domain.aggValues = domainAggValues;
 
         const { columns, dataSources } = processedData;
@@ -52,7 +49,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
         processedData.aggregation = rawData?.map((_, datumIndex) => {
             const aggregation: [number, number][] = [];
 
-            for (const [index, def] of this.aggregates.entries()) {
+            for (const [index, def] of this.ctx.aggregates.entries()) {
                 const indices = this.valueGroupIdxLookup(def);
                 let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
                 const valuesToAgg = indices.map((columnIndex) => columns[columnIndex][datumIndex] as D[K]);
@@ -79,12 +76,12 @@ export class Aggregator<D extends object, K extends keyof D & string> {
      * Multiple datums in a group share aggregation results.
      */
     aggregateGroupedData(processedData: GroupedData<any>) {
-        const domainAggValues = this.aggregates.map((): [number, number] => [Infinity, -Infinity]);
+        const domainAggValues = this.ctx.aggregates.map((): [number, number] => [Infinity, -Infinity]);
         processedData.domain.aggValues = domainAggValues;
 
         const { columns } = processedData;
 
-        for (const [index, def] of this.aggregates.entries()) {
+        for (const [index, def] of this.ctx.aggregates.entries()) {
             const indices = this.valueGroupIdxLookup(def);
 
             for (let groupIndex = 0; groupIndex < processedData.groups.length; groupIndex++) {
@@ -127,7 +124,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
      * Applies group value processors to adjust group values and recompute domains.
      */
     postProcessGroups(processedData: GroupedData<any>) {
-        const { groupProcessors } = this;
+        const { groupProcessors } = this.ctx;
 
         const { columnScopes, columns, invalidData } = processedData;
         for (const processor of groupProcessors) {
@@ -140,7 +137,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
             }
 
             for (const valueIndex of valueIndexes) {
-                const valueDef = this.values[valueIndex];
+                const valueDef = this.ctx.values[valueIndex];
                 const isDiscrete = valueDef.valueType === 'category';
 
                 const column = columns[valueIndex];

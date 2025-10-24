@@ -4,6 +4,7 @@ import { ContinuousDomain } from '../../dataDomain';
 import type { InternalDatumPropertyDefinition, ProcessedValue, ScopeId, UngroupedData } from '../../dataModelTypes';
 import { COLUMN_SORT_ORDERS, DOMAIN_BANDS, DOMAIN_RANGES, KEY_SORT_ORDERS } from '../../dataModelTypes';
 import type { DataSet } from '../../dataSet';
+import type { DataModelContext } from '../dataModelContext';
 import type { DomainManager } from '../domain/domainManager';
 import { createArray } from '../utils/helpers';
 
@@ -22,17 +23,20 @@ import { createArray } from '../utils/helpers';
  * - Tracks partial valid data count for optimization decisions
  */
 export class DataExtractor<D extends object, K extends keyof D & string> {
+    private readonly domainManager: DomainManager<D, K>;
+
     constructor(
-        private readonly keys: InternalDatumPropertyDefinition<K>[],
-        private readonly values: InternalDatumPropertyDefinition<K>[],
-        private readonly domainManager: DomainManager<D, K>
-    ) {}
+        private readonly ctx: DataModelContext<D, K>,
+        domainManager: DomainManager<D, K>
+    ) {
+        this.domainManager = domainManager;
+    }
 
     extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
         const { dataDomain, processValue, allScopesHaveSameDefs } =
             this.domainManager.initDataDomainProcessor('extend');
 
-        const { keys: keyDefs, values: valueDefs } = this;
+        const { keys: keyDefs, values: valueDefs } = this.ctx;
 
         const { invalidData, invalidKeys, invalidKeyCount, allKeyMappings } = this.extractKeys(
             keyDefs,
@@ -254,7 +258,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
     warnDataMissingProperties(sources: Map<string, DataSet<unknown>>) {
         if (sources.size === 0) return;
 
-        for (const def of iterate(this.keys, this.values)) {
+        for (const def of iterate(this.ctx.keys, this.ctx.values)) {
             for (const [scope, missCount] of def.missing) {
                 if (missCount < (sources.get(scope)?.data.length ?? Infinity)) continue;
                 const scopeHint = scope == null ? '' : ` for ${scope}`;

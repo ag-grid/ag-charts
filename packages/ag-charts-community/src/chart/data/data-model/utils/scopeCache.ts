@@ -1,13 +1,7 @@
 import { Logger, iterate } from 'ag-charts-core';
 
-import type {
-    AggregatePropertyDefinition,
-    InternalDatumPropertyDefinition,
-    InternalDefinition,
-    PropertyDefinition,
-    PropertyId,
-    PropertySelectors,
-} from '../../dataModelTypes';
+import type { InternalDatumPropertyDefinition, PropertyId, PropertySelectors } from '../../dataModelTypes';
+import type { DataModelContext } from '../dataModelContext';
 import { createPathAccessor, getPathComponents } from './helpers';
 
 /**
@@ -25,26 +19,20 @@ import { createPathAccessor, getPathComponents } from './helpers';
  * namespace for property IDs.
  */
 export class ScopeCacheManager<K extends string> {
-    constructor(
-        private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition<false>>>,
-        private readonly keys: InternalDatumPropertyDefinition<K>[],
-        private readonly values: InternalDatumPropertyDefinition<K>[],
-        private readonly aggregates: (AggregatePropertyDefinition<any, K> & InternalDefinition<false>)[],
-        private readonly suppressFieldDotNotation: boolean
-    ) {}
+    constructor(private readonly ctx: DataModelContext<any, K>) {}
 
     processScopeCache() {
-        this.scopeCache.clear();
-        for (const def of iterate(this.keys, this.values, this.aggregates)) {
+        this.ctx.scopeCache.clear();
+        for (const def of iterate(this.ctx.keys, this.ctx.values, this.ctx.aggregates)) {
             if (!def.idsMap) continue;
             for (const [scope, ids] of def.idsMap) {
                 for (const id of ids) {
-                    if (!this.scopeCache.has(scope)) {
-                        this.scopeCache.set(scope, new Map([[id, def]]));
-                    } else if (this.scopeCache.get(scope)?.has(id)) {
+                    if (!this.ctx.scopeCache.has(scope)) {
+                        this.ctx.scopeCache.set(scope, new Map([[id, def]]));
+                    } else if (this.ctx.scopeCache.get(scope)?.has(id)) {
                         throw new Error('duplicate definition ids on the same scope are not allowed.');
                     } else {
-                        this.scopeCache.get(scope)!.set(id, def);
+                        this.ctx.scopeCache.get(scope)!.set(id, def);
                     }
                 }
             }
@@ -53,7 +41,7 @@ export class ScopeCacheManager<K extends string> {
 
     valueGroupIdxLookup({ matchGroupIds }: PropertySelectors) {
         const result: number[] = [];
-        for (const [index, def] of this.values.entries()) {
+        for (const [index, def] of this.ctx.values.entries()) {
             if (!matchGroupIds || (def.groupId && matchGroupIds.includes(def.groupId))) {
                 result.push(index);
             }
@@ -76,7 +64,7 @@ export class ScopeCacheManager<K extends string> {
             return false;
         };
 
-        const result = this.values.reduce((res, def, index) => {
+        const result = this.ctx.values.reduce((res, def, index) => {
             const validDefScopes =
                 def.scopes == null ||
                 (noScopesToMatch && !def.scopes.length) ||
@@ -101,7 +89,7 @@ export class ScopeCacheManager<K extends string> {
 
     buildAccessors(defs: Iterable<{ property: string }>) {
         const result = new Map<string, (d: any) => any>();
-        if (this.suppressFieldDotNotation) {
+        if (this.ctx.suppressFieldDotNotation) {
             return result;
         }
 

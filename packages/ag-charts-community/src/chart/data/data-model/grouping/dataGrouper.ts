@@ -1,15 +1,15 @@
-import { Debug, first } from 'ag-charts-core';
+import { first } from 'ag-charts-core';
 
 import type {
     ColumnBatch,
     GroupedData,
     GroupingFn,
-    InternalDatumPropertyDefinition,
     MergedColumnBatch,
     ScopeId,
     UngroupedData,
 } from '../../dataModelTypes';
 import { DOMAIN_BANDS, SHARED_ZERO_INDICES } from '../../dataModelTypes';
+import type { DataModelContext } from '../dataModelContext';
 import { createArray, toKeyString } from '../utils/helpers';
 
 /**
@@ -33,9 +33,8 @@ import { createArray, toKeyString } from '../utils/helpers';
  */
 export class DataGrouper<D extends object, K extends keyof D & string> {
     constructor(
-        _keys: InternalDatumPropertyDefinition<K>[],
-        _groupByFn?: (data: UngroupedData<D>) => GroupingFn<D>,
-        private readonly debug?: Debug.DebugLogger
+        private readonly ctx: DataModelContext<D, K>,
+        _groupByFn?: (data: UngroupedData<D>) => GroupingFn<D>
     ) {}
 
     /**
@@ -90,10 +89,10 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
         const mergedBatchCount = columnBatches.length;
 
         // Track batch merging optimization if debug enabled
-        if (this.debug?.check() && !data.optimizations) {
+        if (this.ctx.debug?.check() && !data.optimizations) {
             data.optimizations = {};
         }
-        if (this.debug?.check()) {
+        if (this.ctx.debug?.check()) {
             const mergeRatio = rawBatchCount > 0 ? 1 - mergedBatchCount / rawBatchCount : 0;
             data.optimizations!.batchMerging = {
                 originalBatchCount: rawBatchCount,

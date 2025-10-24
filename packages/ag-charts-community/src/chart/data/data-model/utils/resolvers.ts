@@ -1,6 +1,5 @@
 import type {
     GroupedData,
-    InternalDefinition,
     ProcessedData,
     ProcessedDataDef,
     PropertyDefinition,
@@ -11,6 +10,7 @@ import type {
 import { COLUMN_SORT_ORDERS, DOMAIN_RANGES, KEY_SORT_ORDERS } from '../../dataModelTypes';
 import { RangeLookup } from '../../rangeLookup';
 import { type SortOrder, valuesSortOrder } from '../../sortOrder';
+import type { DataModelContext } from '../dataModelContext';
 
 /**
  * DataModelResolvers handles lookups and resolution of processed data.
@@ -27,12 +27,10 @@ import { type SortOrder, valuesSortOrder } from '../../sortOrder';
  * - Throws clear errors when definitions are not found
  */
 export class DataModelResolvers<D extends object, K extends keyof D & string> {
-    constructor(
-        private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition<false>>>
-    ) {}
+    constructor(private readonly ctx: DataModelContext<D, K>) {}
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        const def = this.scopeCache.get(scope.id)?.get(searchId);
+        const def = this.ctx.scopeCache.get(scope.id)?.get(searchId);
 
         if (!def) {
             throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.id}]`);
@@ -59,7 +57,7 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
     }
 
     hasColumnById(scope: ScopeProvider, searchId: string) {
-        return this.scopeCache.get(scope.id)?.get(searchId) != null;
+        return this.ctx.scopeCache.get(scope.id)?.get(searchId) != null;
     }
 
     resolveColumnById<T = any>(
