@@ -170,7 +170,9 @@ describe('moduleRegistry', () => {
             expect(getAxisModule('series-module')).toBeUndefined();
 
             expect(getChartModule('chart-module')).toBe(chart);
-            expect(getChartModule('axis-module')).toBeUndefined();
+            expect(() => getChartModule('axis-module')).toThrowErrorMatchingInlineSnapshot(
+                `"AG Charts - Unknown chart type; Check options are correctly structured and series types are specified"`
+            );
 
             expect(getPresetModule('preset-module')).toBe(preset);
             expect(getPresetModule('series-module')).toBeUndefined();
