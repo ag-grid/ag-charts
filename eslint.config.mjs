@@ -43,16 +43,16 @@ export const sonarjsConfig = [
         files: ['**/*.{js,ts}'],
         rules: {
             // Rules moved from sonarjs to @typescript-eslint.
-            '@typescript-eslint/no-redeclare': env !== 'nx-task' ? 1 : 0,
+            '@typescript-eslint/no-redeclare': 1,
 
-            // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
-            'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/function-return-type': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/no-selector-parameter': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/redundant-type-aliases': env !== 'nx-task' ? 1 : 0,
+            // Make these warnings only; ideally only shown in IDE and PRs - but unused rule errors happen otherwise if not enabled.
+            'sonarjs/cognitive-complexity': 1,
+            'sonarjs/no-duplicate-string': 1,
+            'sonarjs/todo-tag': 1,
+            'sonarjs/fixme-tag': 1,
+            'sonarjs/function-return-type': 1,
+            'sonarjs/no-selector-parameter': 1,
+            'sonarjs/redundant-type-aliases': 1,
 
             // We don't really care about these.
             'sonarjs/new-cap': 0,
