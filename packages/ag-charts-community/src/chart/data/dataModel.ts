@@ -2,7 +2,6 @@ import { Logger, first, isNegative, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
-import { DataModelResolvers } from './data-model/utils/Resolvers';
 import {
     createArray,
     createPathAccessor,
@@ -77,7 +76,6 @@ export class DataModel<
 
     private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
     private readonly values: InternalDatumPropertyDefinition<K>[] = [];
-    private resolvers!: DataModelResolvers<D, K>;
     private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition<true>)[] = [];
@@ -177,7 +175,6 @@ export class DataModel<
         }
 
         // Initialize resolvers after all properties are set up
-        this.resolvers = new DataModelResolvers(this.scopeCache);
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
