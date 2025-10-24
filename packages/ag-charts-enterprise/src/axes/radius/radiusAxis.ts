@@ -1,6 +1,7 @@
 import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { type Scale, isNumberEqual } from 'ag-charts-core';
+import { normalizeAngle360, toRadians } from 'ag-charts-core/utils/angle';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
@@ -8,8 +9,6 @@ const {
     ChartAxisDirection,
     ZIndexMap,
     Property,
-    normalizeAngle360,
-    toRadians,
     Caption,
     Group,
     TransformableGroup,

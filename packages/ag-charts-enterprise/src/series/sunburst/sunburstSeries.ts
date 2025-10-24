@@ -1,5 +1,6 @@
 import { type AgSunburstSeriesLabelFormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import { type InternalAgColorType, type Point, type RequireOptional, toPlainText } from 'ag-charts-core';
+import { normalizeAngle360 } from 'ag-charts-core/utils/angle';
 import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -7,7 +8,6 @@ import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
 const {
     fromToMotion,
-    normalizeAngle360,
     createDatumId,
     PointerEvents,
     Sector,

@@ -9,6 +9,8 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { AreExact, ConstructorReturnType, DeepRequired, Point, RequireOptional } from 'ag-charts-core';
+import { extent } from 'ag-charts-core/utils/extent';
+import { findMinMax } from 'ag-charts-core/utils/numberArray';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
@@ -41,12 +43,10 @@ const {
     markerFadeInAnimation,
     fromToMotion,
     pathMotion,
-    extent,
     applyShapeFillBBox,
     PointerEvents,
     Marker,
     BBox,
-    findMinMax,
     applyShapeStyle,
     processedDataIsAnimatable,
     simpleMemorize2,

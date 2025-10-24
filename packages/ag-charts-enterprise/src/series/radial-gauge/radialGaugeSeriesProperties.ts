@@ -1,5 +1,6 @@
 import { type RichFormatter, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
+import { normalizeAngle360, normalizeAngle360Inclusive, toDegrees } from 'ag-charts-core/utils/angle';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
@@ -16,7 +17,7 @@ import type {
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { getColorStops, normalizeAngle360, normalizeAngle360Inclusive, toDegrees } = _ModuleSupport;
+const { getColorStops } = _ModuleSupport;
 
 const { BaseProperties, makeSeriesTooltip, SeriesProperties, PropertiesArray, AxisLabel, Property, Label } =
     _ModuleSupport;

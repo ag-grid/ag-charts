@@ -1,8 +1,9 @@
 import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { normalisedExtentWithMetadata } from 'ag-charts-core/utils/extent';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { Property, normalisedExtentWithMetadata, LinearScale } = _ModuleSupport;
+const { Property, LinearScale } = _ModuleSupport;
 
 interface TickDatum {
     tick: any;

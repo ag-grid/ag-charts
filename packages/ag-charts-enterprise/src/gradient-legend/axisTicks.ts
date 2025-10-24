@@ -8,6 +8,7 @@ import {
     measureTextSegments,
     toPlainText,
 } from 'ag-charts-core';
+import { findMinMax, findRangeExtent } from 'ag-charts-core/utils/numberArray';
 import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
@@ -22,8 +23,6 @@ const {
     Selection,
     Text,
     createIdsGenerator,
-    findMinMax,
-    findRangeExtent,
     estimateTickCount,
 } = _ModuleSupport;
 

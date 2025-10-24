@@ -1,10 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { type Scale, entries } from 'ag-charts-core';
+import { toRadians } from 'ag-charts-core/utils/angle';
 
 import type { AnnotationContext, Point } from '../annotationTypes';
 import { convertPoint, invertCoords } from './values';
 
-const { ContinuousScale, Vec2, toRadians } = _ModuleSupport;
+const { ContinuousScale, Vec2 } = _ModuleSupport;
 
 export function snapPoint(
     offset: _ModuleSupport.Vec2,

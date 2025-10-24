@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { isNumberEqual } from 'ag-charts-core';
+import { normalizeAngle360 } from 'ag-charts-core/utils/angle';
 
 import { PolarCrossLine } from './polarCrossLine';
 
@@ -7,7 +8,6 @@ const {
     ChartAxisDirection,
     getCrossLineValue,
     validateCrossLineValue,
-    normalizeAngle360,
     Group,
     Path,
     Sector,

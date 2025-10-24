@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { type InternalAgColorType, Logger, type Point, toPlainText } from 'ag-charts-core';
+import { extent } from 'ag-charts-core/utils/extent';
 
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
@@ -148,7 +149,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const rawDomain = processedData.domain.values[colorKeyIdx].filter((v) => v != null);
-            const domain = _ModuleSupport.extent(rawDomain);
+            const domain = extent(rawDomain);
             this.colorScale.domain = domain ?? [];
             if (domain?.length && domain[0] === domain[1]) {
                 const midIndex = Math.floor(colorRange.length / 2);

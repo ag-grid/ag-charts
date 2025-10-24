@@ -7,6 +7,7 @@ import {
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
+import { angleBetween, isBetweenAngles, normalizeAngle360 } from 'ag-charts-core/utils/angle';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
 
 import {
@@ -23,9 +24,6 @@ import { ChordSeriesProperties } from './chordSeriesProperties';
 const {
     SeriesNodePickMode,
     createDatumId,
-    angleBetween,
-    normalizeAngle360,
-    isBetweenAngles,
     Sector,
     evaluateBezier,
     applyShapeStyle,

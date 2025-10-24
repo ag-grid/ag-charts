@@ -6,6 +6,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { type Point, isDefined } from 'ag-charts-core';
+import { normalizeAngle360 } from 'ag-charts-core/utils/angle';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { getItemStyle, getStyle } from '../util/radialUtil';
@@ -28,7 +29,6 @@ const {
     animationValidation,
     createDatumId,
     SeriesNodePickMode,
-    normalizeAngle360,
     CategoryScale,
     motion,
     applyShapeStyle,

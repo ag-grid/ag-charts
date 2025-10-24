@@ -8,6 +8,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import { type CallbackParam, type Point, type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
+import { extent } from 'ag-charts-core/utils/extent';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -24,7 +25,6 @@ const {
     resetMarkerFn,
     animationValidation,
     computeMarkerFocusBounds,
-    extent,
     BBox,
     Group,
     Path,

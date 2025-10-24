@@ -1,12 +1,15 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import { type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
+import { angleBetween } from 'ag-charts-core/utils/angle';
+import { normalisedExtentWithMetadata } from 'ag-charts-core/utils/extent';
+import { findMinMax } from 'ag-charts-core/utils/numberArray';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
-const { Property, angleBetween, normalisedExtentWithMetadata, findMinMax } = _ModuleSupport;
+const { Property } = _ModuleSupport;
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';
