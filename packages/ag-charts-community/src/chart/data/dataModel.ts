@@ -1,5 +1,6 @@
-import { Debug, Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
+import { Logger, first, isNegative, iterate } from 'ag-charts-core';
 
+import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from './dataChangeDescription';
 import {
@@ -9,6 +10,53 @@ import {
     DiscreteDomain,
     type IDataDomain,
 } from './dataDomain';
+import {
+    createArray,
+    createPathAccessor,
+    datumKeys,
+    getPathComponents,
+    isScoped,
+    toKeyString,
+} from './dataModel/utils/helpers';
+// Import types for internal use
+import type {
+    AggregatePropertyDefinition,
+    ColumnBatch,
+    DataGroup,
+    DataModelOptions,
+    GroupDatumIteratorOutput,
+    GroupValueProcessorDefinition,
+    GroupedData,
+    GroupingFn,
+    InsertionCache,
+    InsertionCacheValue,
+    InternalDatumPropertyDefinition,
+    InternalDefinition,
+    MergedColumnBatch,
+    ProcessedData,
+    ProcessedDataDef,
+    ProcessedOutputDiff,
+    ProcessedValue,
+    ProcessedValueEntry,
+    ProcessorFn,
+    ProcessorOutputPropertyDefinition,
+    PropertyDefinition,
+    PropertyId,
+    PropertySelectors,
+    PropertyValueProcessorDefinition,
+    ReducerOutputPropertyDefinition,
+    ScopeId,
+    ScopeProvider,
+    SortOrderEntry,
+    UngroupedData,
+} from './dataModelTypes';
+import {
+    COLUMN_SORT_ORDERS,
+    DOMAIN_BANDS,
+    DOMAIN_RANGES,
+    KEY_SORT_ORDERS,
+    SHARED_ZERO_INDICES,
+} from './dataModelTypes';
 import type { DataChangeDescription, DataSet } from './dataSet';
 import { RangeLookup } from './rangeLookup';
 import { type SortOrder, valuesSortOrder } from './sortOrder';
@@ -16,450 +64,8 @@ import { type SortOrder, valuesSortOrder } from './sortOrder';
 // Export all types from dataModelTypes
 export * from './dataModelTypes';
 
-// Import types for internal use
-import type {
-    ScopeProvider,
-    DataGroup,
-    UngroupedDataItem,
-    ScopeId,
-    ProcessedValue,
-    SortOrderEntry,
-    ProcessedValueEntry,
-    GroupDatumIteratorOutput,
-    InsertionCacheValue,
-    InsertionCache,
-    ColumnBatch,
-    MergedColumnBatch,
-    CommonMetadata,
-    UngroupedData,
-    GroupedData,
-    ProcessedOutputDiff,
-    ProcessedDataDef,
-    ProcessedData,
-    OptimizationMetadata,
-    DatumPropertyType,
-    MissMap,
-    GroupingFn,
-    GroupByFn,
-    DataModelOptions,
-    PropertyDefinition,
-    ProcessorFn,
-    PropertyId,
-    Scoped,
-    PropertyIdentifiers,
-    PropertySelectors,
-    DatumPropertyDefinition,
-    InternalDefinition,
-    InternalDatumPropertyDefinition,
-    AggregatePropertyDefinition,
-    GroupValueAdjustFn,
-    GroupValueProcessorDefinition,
-    PropertyValueAdjustFn,
-    PropertyValueProcessorDefinition,
-    ReducerOutputTypes,
-    ReducerOutputKeys,
-    ReducerOutputPropertyDefinition,
-    ProcessorOutputPropertyDefinition,
-} from './dataModelTypes';
-
-import {
-    KEY_SORT_ORDERS,
-    COLUMN_SORT_ORDERS,
-    DOMAIN_RANGES,
-    DOMAIN_BANDS,
-    SHARED_ZERO_INDICES,
-} from './dataModelTypes';
-
-/**
- * DATA MODEL OPTIMIZATIONS:
- *
- * 1. SHARED MEMORY OPTIMIZATION (groupsUnique=true):
- *    When each datum has unique keys, all groups share the same datumIndices array
- *    containing [0], since each datum's relative offset from its group is always 0.
- *
- * 2. BANDED DOMAIN PROCESSING:
- *    Large datasets are divided into bands for efficient domain calculation.
- *    Only dirty bands are recalculated during incremental updates.
- *
- * 3. BATCH MERGING:
- *    Column batches with identical characteristics (keys, invalidity) are merged
- *    to reduce processing overhead.
- *
- * 4. INCREMENTAL REPROCESSING:
- *    When supported, only changed data is reprocessed instead of full recalculation.
- */
-
-// Memory optimization: Shared frozen array for datumIndices in grouped data
-// when groupsUnique=true. All groups point to same [0] array since each
-// datum has relative offset 0 from its group start position.
-const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
-
-// eslint-disable-next-line sonarjs/redundant-type-aliases
-type ScopeId = string;
-
-type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
-type SortOrderEntry = { sortOrder: SortOrder };
-type ProcessedValueEntry = { value: any; valid: boolean };
-
-interface GroupDatumIteratorOutput {
-    group: DataGroup;
-    groupIndex: number;
-    columnIndex: number;
-    datumIndex: number;
-}
-
-type InsertionCacheValue = {
-    keys: Map<number, ProcessedValueEntry>;
-    values: Map<number, ProcessedValueEntry>;
-    hasInvalidKey: boolean;
-    hasInvalidValue: boolean;
-};
-
-type InsertionCache = Map<number, InsertionCacheValue>;
-
-type ColumnBatch = [ScopeId, number[], unknown[][], Set<ScopeId>, boolean[] | undefined, boolean[] | undefined];
-type MergedColumnBatch = [ScopeId[], number[], unknown[][], Set<ScopeId>, boolean[] | undefined, boolean[] | undefined];
-
-interface CommonMetadata<D> {
-    input: { count: number };
-    scopes: Set<ScopeId>;
-    dataSources: Map<ScopeId, DataSet<unknown>>;
-    invalidKeys: Map<ScopeId, boolean[]> | undefined;
-    invalidKeyCount: Map<ScopeId, number> | undefined;
-    invalidData: Map<ScopeId, boolean[]> | undefined;
-    keys: Map<ScopeId, unknown[]>[];
-    columns: any[][];
-    columnScopes: Set<ScopeId>[];
-    columnNeedValueOf?: boolean[]; // true if column needs valueOf() (contains Dates/objects), false for primitives
-    domain: {
-        keys: any[][];
-        values: any[][];
-        groups?: any[][];
-        aggValues?: [number, number][];
-    };
-    reduced?: {
-        diff?: Record<string, ProcessedOutputDiff>;
-        smallestKeyInterval?: number;
-        largestKeyInterval?: number;
-        sortedGroupDomain?: any[][];
-        animationValidation?: {
-            uniqueKeys: boolean;
-            orderedKeys: boolean;
-        };
-    };
-    defs: {
-        keys: (Scoped & DatumPropertyDefinition<keyof D>)[];
-        values: (Scoped & DatumPropertyDefinition<keyof D>)[];
-        allScopesHaveSameDefs: boolean;
-    };
-    partialValidDataCount: number;
-    time: number;
-    optimizations?: OptimizationMetadata;
-    [DOMAIN_RANGES]: Map<string, RangeLookup>;
-    [KEY_SORT_ORDERS]: Map<number, SortOrderEntry>;
-    [COLUMN_SORT_ORDERS]: Map<number, SortOrderEntry>;
-    [DOMAIN_BANDS]: Map<InternalDatumPropertyDefinition<any>, BandedDomain>;
-}
-
-export interface UngroupedData<D> extends CommonMetadata<D> {
-    type: 'ungrouped';
-    aggregation?: [number, number][][];
-}
-
-export interface GroupedData<D> extends CommonMetadata<D> {
-    type: 'grouped';
-    groups: DataGroup[];
-    groupsUnique: boolean;
-}
-
-export type ProcessedOutputDiff = {
-    changed: boolean;
-    added: Set<string>;
-    updated: Set<string>;
-    removed: Set<string>;
-    moved: Set<string>;
-};
-
-export interface ProcessedDataDef {
-    index: number;
-    def: DataPropertyDefinition<any>;
-}
-
-export type ProcessedData<D> = UngroupedData<D> | GroupedData<D>;
-
-/** Metadata about applied/skipped optimizations for debugging */
-export interface OptimizationMetadata {
-    /** Was reprocessing path used? */
-    reprocessing?: {
-        applied: boolean;
-        reason?: string;
-    };
-
-    /** Domain banding optimization per definition */
-    domainBanding?: {
-        keyDefs: Array<{
-            property: string;
-            applied: boolean;
-            reason?: string;
-            stats?: {
-                totalBands: number;
-                dirtyBands: number;
-                dataSize: number;
-                scanRatio: number; // 0-1, proportion of data scanned
-            };
-        }>;
-        valueDefs: Array<{
-            property: string;
-            applied: boolean;
-            reason?: string;
-            stats?: {
-                totalBands: number;
-                dirtyBands: number;
-                dataSize: number;
-                scanRatio: number;
-            };
-        }>;
-    };
-
-    /** Shared datum indices optimization (grouped data only) */
-    sharedDatumIndices?: {
-        applied: boolean;
-        sharedGroupCount: number;
-        totalGroupCount: number;
-    };
-
-    /** Batch merging optimization */
-    batchMerging?: {
-        originalBatchCount: number;
-        mergedBatchCount: number;
-        mergeRatio: number; // 0-1, higher is better
-    };
-
-    /** Overall performance metrics */
-    performance?: {
-        processingTime: number;
-        pathTaken: 'full-process' | 'reprocess';
-    };
-}
-
-export type DatumPropertyType = 'range' | 'category';
-
-function toKeyString(keys: any[]) {
-    return keys.map((key) => (isObject(key) ? JSON.stringify(key) : key)).join('-');
-}
-
-export function fixNumericExtent(extent: Array<number | Date> | null): [] | [number, number] {
-    const numberExtent = extent?.map(Number) as [number, number] | undefined;
-    return numberExtent?.every(Number.isFinite) ? numberExtent : [];
-}
-
-// AG-10337 Keep track of the number of missing values in each per-series data array.
-type MissMap = Map<string, number>;
-
-export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | undefined) {
-    return missMap?.get(scopeProvider.id) ?? 0;
-}
-
-type GroupingFn<K> = (keys: unknown[]) => K[];
-export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
-export type DataModelOptions<K, Grouped extends boolean | undefined, IsScoped extends boolean = true> = {
-    props: DataPropertyDefinition<K, IsScoped>[];
-    groupByKeys?: Grouped;
-    groupByData?: Grouped;
-    groupByFn?: GroupByFn;
-    domainBandingConfig?: BandedDomainConfig;
-};
-
-export type DataPropertyDefinition<K, IsScoped = false> =
-    | (DatumPropertyDefinition<K> & (IsScoped extends true ? Scoped : unknown))
-    | AggregatePropertyDefinition<any, any, any>
-    | (PropertyValueProcessorDefinition<any> & (IsScoped extends true ? Scoped : unknown))
-    | GroupValueProcessorDefinition<any, any>
-    | ReducerOutputPropertyDefinition<any>
-    | ProcessorOutputPropertyDefinition<any>;
-
-export type ProcessorFn = (datum: unknown, index: number) => unknown;
-export type PropertyId<K extends string> = K | { id: string };
-
-export type Scoped = {
-    /** Scope(s) a property definition belongs to (typically the defining entities unique identifier). */
-    scopes: ScopeId[];
-};
-
-function isScoped<T extends object>(obj: T): obj is T & Scoped {
-    return 'scopes' in obj && Array.isArray(obj.scopes);
-}
-
-type PropertyIdentifiers = {
-    id?: string;
-    /** Map<Scope, Set<Id>> */
-    idsMap?: Map<string, Set<string>>;
-    /** Optional group a property belongs to, for cross-scope combination. */
-    groupId?: string;
-};
-
-type PropertySelectors = {
-    /** Optional group a property belongs to, for cross-scope combination. */
-    matchGroupIds?: string[];
-};
-
-export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
-    type: 'key' | 'value';
-    valueType: DatumPropertyType;
-    property: K;
-    forceValue?: any;
-    includeProperty?: boolean;
-    invalidValue?: any;
-    missing?: MissMap;
-    missingValue?: any;
-    separateNegative?: boolean;
-    validation?: (value: any, datum: any, index: number) => boolean;
-    processor?: () => ProcessorFn;
-};
-
-type InternalDefinition<IsScoped extends boolean> = {
-    index: number;
-} & (IsScoped extends true ? Scoped : unknown);
-
-type InternalDatumPropertyDefinition<K> = DatumPropertyDefinition<K> &
-    InternalDefinition<true> & {
-        missing: MissMap;
-    };
-
-export type AggregatePropertyDefinition<D, K extends keyof D & string, R = [number, number], R2 = R> = Omit<
-    PropertyIdentifiers,
-    'scopes'
-> &
-    PropertySelectors & {
-        type: 'aggregate';
-        aggregateFunction: (values: D[K][], keys?: D[K][]) => R;
-        groupAggregateFunction?: (next?: R, acc?: R2) => R2;
-        finalFunction?: (result: R2) => [number, number];
-    };
-
-type GroupValueAdjustFn<D, K extends keyof D & string> = (
-    columns: D[K][][],
-    indexes: number[],
-    dataGroup: DataGroup,
-    groupIndex: number
-) => void;
-
-export type GroupValueProcessorDefinition<D, K extends keyof D & string> = PropertyIdentifiers &
-    PropertySelectors & {
-        type: 'group-value-processor';
-        /**
-         * Outer function called once per all data processing; inner function called once per group;
-         * innermost called once per datum.
-         */
-        adjust: () => () => GroupValueAdjustFn<D, K>;
-        /**
-         * Indicates whether this processor supports incremental reprocessing.
-         * When true, the processor can safely be reapplied to modified data without
-         * causing double-processing issues.
-         */
-        supportsReprocessing?: boolean;
-    };
-
-type PropertyValueAdjustFn<D> = (processedData: ProcessedData<D>, valueIndex: number) => void;
-
-export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
-    type: 'property-value-processor';
-    property: string;
-    adjust: () => PropertyValueAdjustFn<D>;
-};
-
-type ReducerOutputTypes = NonNullable<UngroupedData<any>['reduced']>;
-type ReducerOutputKeys = keyof ReducerOutputTypes;
-export type ReducerOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
-    type: 'reducer';
-    property: P;
-    initialValue?: ReducerOutputTypes[P];
-    reducer: () => (acc: ReducerOutputTypes[P], keys: unknown[]) => ReducerOutputTypes[P];
-};
-
-export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
-    type: 'processor';
-    property: P;
-    calculate: (data: ProcessedData<any>, previousValue: ReducerOutputTypes[P] | undefined) => ReducerOutputTypes[P];
-};
-
-function createArray<T>(length: number, value: T): T[] {
-    const out: T[] = [];
-    for (let i = 0; i < length; i += 1) {
-        out[i] = value;
-    }
-    return out;
-}
-
-export function datumKeys(keys: Array<unknown[] | undefined>, datumIndex: number): any[] | undefined {
-    const out: any = [];
-
-    for (const k of keys) {
-        const key = k?.[datumIndex];
-        if (key == null) return;
-        out.push(key);
-    }
-
-    return out;
-}
-
-export function getPathComponents(path: string) {
-    const components: string[] = [];
-    let matchIndex = 0;
-    let matchGroup: RegExpExecArray | null;
-    // eslint-disable-next-line sonarjs/regex-complexity
-    const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|(?<!\\)\\')*'|"(?:[^"]|(?<!\\)\\")*"|-?\d+)\s*\])\s*)/g;
-    /**              ^                         ^                      ^                      ^
-     *               |                         |                      |                      |
-     *                - .dotAccessor or initial property (i.e. a in "a.b")                   |
-     *                                         |                      |                      |
-     *                                          - ['single-quoted']                          |
-     *                                                                |                      |
-     *                                                                 - ["double-quoted"]   |
-     *                                                                                       |
-     *                                                                                        - [0] index properties
-     */
-    while ((matchGroup = regExp.exec(path))) {
-        if (matchGroup.index !== matchIndex) {
-            return;
-        }
-        matchIndex = matchGroup.index + matchGroup[0].length;
-        const match = matchGroup[1].trim();
-        if (match.startsWith('.')) {
-            // .property
-            components.push(match.slice(1).trim());
-        } else if (match.startsWith('[')) {
-            const accessor = match.slice(1, -1).trim();
-            if (accessor.startsWith(`'`)) {
-                // ['string-property']
-                components.push(accessor.slice(1, -1).replaceAll(/(?<!\\)\\'/g, `'`));
-            } else if (accessor.startsWith(`"`)) {
-                // ["string-property"]
-                components.push(accessor.slice(1, -1).replaceAll(/(?<!\\)\\"/g, `"`));
-            } else {
-                // ["number-property"]
-                components.push(accessor);
-            }
-        } else {
-            // thisProperty.other["properties"]['afterwards']
-            components.push(match);
-        }
-    }
-
-    if (matchIndex !== path.length) return;
-
-    return components;
-}
-
-function createPathAccessor(components: string[]) {
-    return (datum: any): any => {
-        let current = datum;
-        for (const component of components) {
-            current = current[component];
-        }
-        return current;
-    };
-}
+// Re-export helper functions that are part of the public API
+export { fixNumericExtent, getMissCount, datumKeys, getPathComponents } from './dataModel/utils/helpers';
 
 export class DataModel<
     D extends object,
@@ -467,7 +73,7 @@ export class DataModel<
     Grouped extends boolean | undefined = undefined,
 > {
     private readonly debug = Debug.create(true, 'data-model');
-    private readonly scopeCache: Map<string, Map<string, DataPropertyDefinition<any> & InternalDefinition<false>>> =
+    private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition<false>>> =
         new Map();
 
     private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
@@ -695,7 +301,7 @@ export class DataModel<
     getDomain(
         scope: ScopeProvider,
         searchId: string,
-        type: DataPropertyDefinition<any>['type'],
+        type: PropertyDefinition<any>['type'],
         processedData: ProcessedData<K>
     ): any[] | [number, number] | [] {
         const domains = this.getDomainsByType(type ?? 'value', processedData);
@@ -753,7 +359,7 @@ export class DataModel<
         );
     }
 
-    private getDomainsByType(type: DataPropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
+    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
         switch (type) {
             case 'key':
                 return processedData.domain.keys;
