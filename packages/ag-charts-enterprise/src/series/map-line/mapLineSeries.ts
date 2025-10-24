@@ -27,6 +27,13 @@ const {
 interface MapLineNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
 
+interface LineDataValues {
+    readonly idValue: string;
+    readonly colorValue: number | undefined;
+    readonly sizeValue: number | undefined;
+    readonly labelValue: string | undefined;
+}
+
 export class MapLineSeries extends TopologySeries<
     MapLineNodeDatum,
     AgMapLineSeriesOptions,
@@ -338,17 +345,19 @@ export class MapLineSeries extends TopologySeries<
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         for (const [datumIndex, datum] of rawData.entries()) {
-            const idValue = columns.idValues[datumIndex];
-            const colorValue = columns.colorValues?.[datumIndex];
-            const sizeValue = columns.sizeValues?.[datumIndex];
-            const labelValue = columns.labelValues?.[datumIndex];
+            const dataValues: LineDataValues = {
+                idValue: columns.idValues[datumIndex],
+                colorValue: columns.colorValues?.[datumIndex],
+                sizeValue: columns.sizeValues?.[datumIndex],
+                labelValue: columns.labelValues?.[datumIndex],
+            };
 
-            const projectedGeometry = projectedGeometries.get(idValue);
+            const projectedGeometry = projectedGeometries.get(dataValues.idValue);
             if (projectedGeometry == null) {
-                missingGeometries.push(idValue);
+                missingGeometries.push(dataValues.idValue);
             }
 
-            const labelDatum = this.getLabelDatum(datum, labelValue, projectedGeometry, measurer);
+            const labelDatum = this.getLabelDatum(datum, dataValues.labelValue, projectedGeometry, measurer);
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
@@ -358,13 +367,13 @@ export class MapLineSeries extends TopologySeries<
                 itemId: idKey,
                 datum,
                 datumIndex,
-                idValue,
-                labelValue,
-                colorValue,
-                sizeValue,
+                ...dataValues,
                 projectedGeometry,
                 legendItemName,
-                style: this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
+                style: this.getItemStyle(
+                    { datumIndex, datum, colorValue: dataValues.colorValue, sizeValue: dataValues.sizeValue },
+                    false
+                ),
             });
         }
 

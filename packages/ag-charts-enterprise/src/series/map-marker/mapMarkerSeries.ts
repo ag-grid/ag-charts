@@ -37,6 +37,15 @@ const {
 interface MapMarkerNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {}
 
+interface MarkerDataValues {
+    readonly idValue: string | undefined;
+    readonly lonValue: number | undefined;
+    readonly latValue: number | undefined;
+    readonly labelValue: string | undefined;
+    readonly sizeValue: number | undefined;
+    readonly colorValue: number | undefined;
+}
+
 type MapMarkerAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type MapMarkerAnimationEvent = {
     update: undefined;
@@ -403,12 +412,7 @@ export class MapMarkerSeries
         datumIndex: number,
         index: number,
         point: _ModuleSupport.SizedPoint,
-        idValue: string | undefined,
-        lonValue: number | undefined,
-        latValue: number | undefined,
-        labelValue: string | undefined,
-        sizeValue: number | undefined,
-        colorValue: number | undefined
+        dataValues: MarkerDataValues
     ): MapMarkerNodeDatum {
         return {
             series: this,
@@ -416,28 +420,23 @@ export class MapMarkerSeries
             datum,
             datumIndex,
             index,
-            idValue,
-            lonValue,
-            latValue,
-            labelValue,
-            sizeValue,
-            colorValue,
+            ...dataValues,
             point,
             midPoint: { x: point.x, y: point.y },
             legendItemName: this.properties.legendItemName,
-            style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
+            style: this.getMarkerItemStyle(
+                { datumIndex, datum, colorValue: dataValues.colorValue, sizeValue: dataValues.sizeValue },
+                false
+            ),
         };
     }
 
     private createNodeFromLatLon(
         datum: any,
         datumIndex: number,
-        idValue: string | undefined,
         lonValue: number,
         latValue: number,
-        labelValue: string | undefined,
-        sizeValue: number | undefined,
-        colorValue: number | undefined,
+        dataValues: MarkerDataValues,
         size: number,
         measurer: ITextMeasurer
     ): { node: MapMarkerNodeDatum; label: MapMarkerNodeLabelDatum | undefined } {
@@ -448,20 +447,9 @@ export class MapMarkerSeries
         const [x, y] = this.scale.convert([lonValue, latValue]);
         const point = { x, y, size };
 
-        const node = this.buildNodeDatum(
-            datum,
-            datumIndex,
-            -1,
-            point,
-            idValue,
-            lonValue,
-            latValue,
-            labelValue,
-            sizeValue,
-            colorValue
-        );
+        const node = this.buildNodeDatum(datum, datumIndex, -1, point, dataValues);
 
-        const label = this.getLabelDatum(datum, labelValue, x, y, size, measurer) ?? undefined;
+        const label = this.getLabelDatum(datum, dataValues.labelValue, x, y, size, measurer) ?? undefined;
 
         return { node, label };
     }
@@ -470,12 +458,7 @@ export class MapMarkerSeries
         datum: any,
         datumIndex: number,
         geometry: _ModuleSupport.Geometry,
-        idValue: string | undefined,
-        lonValue: number | undefined,
-        latValue: number | undefined,
-        labelValue: string | undefined,
-        sizeValue: number | undefined,
-        colorValue: number | undefined,
+        dataValues: MarkerDataValues,
         size: number,
         measurer: ITextMeasurer
     ): { nodes: MapMarkerNodeDatum[]; labels: MapMarkerNodeLabelDatum[] } {
@@ -485,21 +468,10 @@ export class MapMarkerSeries
         for (const [index, [x, y]] of markerPositions(geometry, 1).entries()) {
             const point = { x, y, size };
 
-            const node = this.buildNodeDatum(
-                datum,
-                datumIndex,
-                index,
-                point,
-                idValue,
-                lonValue,
-                latValue,
-                labelValue,
-                sizeValue,
-                colorValue
-            );
+            const node = this.buildNodeDatum(datum, datumIndex, index, point, dataValues);
             nodes.push(node);
 
-            const label = this.getLabelDatum(datum, labelValue, x, y, size, measurer);
+            const label = this.getLabelDatum(datum, dataValues.labelValue, x, y, size, measurer);
             if (label) {
                 labels.push(label);
             }
@@ -558,30 +530,30 @@ export class MapMarkerSeries
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         for (const [datumIndex, datum] of rawData.entries()) {
-            const idValue = columns.idValues?.[datumIndex];
-            const lonValue = columns.lonValues?.[datumIndex];
-            const latValue = columns.latValues?.[datumIndex];
-            const colorValue = columns.colorValues?.[datumIndex];
-            const sizeValue = columns.sizeValues?.[datumIndex];
-            const labelValue = columns.labelValues?.[datumIndex];
+            const dataValues: MarkerDataValues = {
+                idValue: columns.idValues?.[datumIndex],
+                lonValue: columns.lonValues?.[datumIndex],
+                latValue: columns.latValues?.[datumIndex],
+                colorValue: columns.colorValues?.[datumIndex],
+                sizeValue: columns.sizeValues?.[datumIndex],
+                labelValue: columns.labelValues?.[datumIndex],
+            };
 
-            const size = this.calculateMarkerSize(sizeValue);
+            const size = this.calculateMarkerSize(dataValues.sizeValue);
 
-            const projectedGeometry = idValue == null ? undefined : projectedGeometries?.get(idValue);
-            if (idValue != null && projectedGeometries != null && projectedGeometry == null) {
-                missingGeometries.push(idValue);
+            const projectedGeometry =
+                dataValues.idValue == null ? undefined : projectedGeometries?.get(dataValues.idValue);
+            if (dataValues.idValue != null && projectedGeometries != null && projectedGeometry == null) {
+                missingGeometries.push(dataValues.idValue);
             }
 
-            if (lonValue != null && latValue != null) {
+            if (dataValues.lonValue != null && dataValues.latValue != null) {
                 const result = this.createNodeFromLatLon(
                     datum,
                     datumIndex,
-                    idValue,
-                    lonValue,
-                    latValue,
-                    labelValue,
-                    sizeValue,
-                    colorValue,
+                    dataValues.lonValue,
+                    dataValues.latValue,
+                    dataValues,
                     size,
                     measurer
                 );
@@ -592,12 +564,7 @@ export class MapMarkerSeries
                     datum,
                     datumIndex,
                     projectedGeometry,
-                    idValue,
-                    lonValue,
-                    latValue,
-                    labelValue,
-                    sizeValue,
-                    colorValue,
+                    dataValues,
                     size,
                     measurer
                 );

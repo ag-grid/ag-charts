@@ -47,6 +47,12 @@ const {
 interface MapShapeNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
+interface ShapeDataValues {
+    readonly idValue: string;
+    readonly colorValue: number | undefined;
+    readonly labelValue: string | undefined;
+}
+
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
 interface LabelLayout {
@@ -395,24 +401,26 @@ export class MapShapeSeries
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         for (const [datumIndex, datum] of rawData.entries()) {
-            const idValue = columns.idValues[datumIndex];
-            const colorValue = columns.colorValues?.[datumIndex];
-            const labelValue = columns.labelValues?.[datumIndex];
+            const dataValues: ShapeDataValues = {
+                idValue: columns.idValues[datumIndex],
+                colorValue: columns.colorValues?.[datumIndex],
+                labelValue: columns.labelValues?.[datumIndex],
+            };
 
             const geometry = columns.featureValues[datumIndex]?.geometry ?? undefined;
             if (geometry == null) {
-                missingGeometries.push(idValue);
+                missingGeometries.push(dataValues.idValue);
             }
 
             const labelLayout = this.getLabelLayout(
                 datum,
-                labelValue,
+                dataValues.labelValue,
                 measurer,
                 geometry,
-                previousLabelLayouts?.get(idValue)
+                previousLabelLayouts?.get(dataValues.idValue)
             );
             if (labelLayout != null) {
-                labelLayouts.set(idValue, labelLayout);
+                labelLayouts.set(dataValues.idValue, labelLayout);
             }
 
             const labelDatum =
@@ -428,12 +436,10 @@ export class MapShapeSeries
                 itemId: idKey,
                 datum,
                 datumIndex,
-                idValue,
-                colorValue,
-                labelValue,
+                ...dataValues,
                 projectedGeometry,
                 legendItemName,
-                style: this.getItemStyle({ datum, datumIndex, colorValue }, false),
+                style: this.getItemStyle({ datum, datumIndex, colorValue: dataValues.colorValue }, false),
             });
         }
 
