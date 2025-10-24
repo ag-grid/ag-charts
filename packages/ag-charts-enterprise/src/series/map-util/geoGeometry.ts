@@ -103,50 +103,83 @@ export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.Dist
         }
     }
 
+    private shouldDrawPolygons(): boolean {
+        return (this.renderMode & GeoGeometryRenderMode.Polygons) !== 0;
+    }
+
+    private shouldDrawLines(): boolean {
+        return (this.renderMode & GeoGeometryRenderMode.Lines) !== 0;
+    }
+
+    private drawGeometryCollection(
+        geometries: _ModuleSupport.Geometry[],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        for (const g of geometries) {
+            bbox = this.drawGeometry(g, bbox);
+        }
+        return bbox;
+    }
+
+    private drawMultiPolygon(
+        coordinates: _ModuleSupport.Position[][][],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        if (!this.shouldDrawPolygons()) return bbox;
+
+        for (const polygon of coordinates) {
+            bbox = this.drawPolygon(this.path, polygon, bbox);
+        }
+        return bbox;
+    }
+
+    private drawSinglePolygon(
+        coordinates: _ModuleSupport.Position[][],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        if (!this.shouldDrawPolygons()) return bbox;
+        return this.drawPolygon(this.path, coordinates, bbox);
+    }
+
+    private drawMultiLineString(
+        coordinates: _ModuleSupport.Position[][],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        if (!this.shouldDrawLines()) return bbox;
+
+        for (const lineString of coordinates) {
+            bbox = this.drawLineString(this.strokePath, lineString, bbox, false);
+        }
+        return bbox;
+    }
+
+    private drawSingleLineString(
+        coordinates: _ModuleSupport.Position[],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        if (!this.shouldDrawLines()) return bbox;
+        return this.drawLineString(this.strokePath, coordinates, bbox, false);
+    }
+
     private drawGeometry(
         geometry: _ModuleSupport.Geometry,
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
-        const { renderMode, path, strokePath } = this;
-        const drawPolygons = (renderMode & GeoGeometryRenderMode.Polygons) !== 0;
-        const drawLines = (renderMode & GeoGeometryRenderMode.Lines) !== 0;
-
         switch (geometry.type) {
             case 'GeometryCollection':
-                for (const g of geometry.geometries) {
-                    bbox = this.drawGeometry(g, bbox);
-                }
-                break;
+                return this.drawGeometryCollection(geometry.geometries, bbox);
             case 'MultiPolygon':
-                if (drawPolygons) {
-                    for (const coordinates of geometry.coordinates) {
-                        bbox = this.drawPolygon(path, coordinates, bbox);
-                    }
-                }
-                break;
+                return this.drawMultiPolygon(geometry.coordinates, bbox);
             case 'Polygon':
-                if (drawPolygons) {
-                    bbox = this.drawPolygon(path, geometry.coordinates, bbox);
-                }
-                break;
-            case 'LineString':
-                if (drawLines) {
-                    bbox = this.drawLineString(strokePath, geometry.coordinates, bbox, false);
-                }
-                break;
+                return this.drawSinglePolygon(geometry.coordinates, bbox);
             case 'MultiLineString':
-                if (drawLines) {
-                    for (const coordinates of geometry.coordinates) {
-                        bbox = this.drawLineString(strokePath, coordinates, bbox, false);
-                    }
-                }
-                break;
+                return this.drawMultiLineString(geometry.coordinates, bbox);
+            case 'LineString':
+                return this.drawSingleLineString(geometry.coordinates, bbox);
             case 'Point':
             case 'MultiPoint':
-                break;
+                return bbox;
         }
-
-        return bbox;
     }
 
     private drawPolygon(

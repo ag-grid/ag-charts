@@ -192,16 +192,11 @@ export class MapMarkerSeries
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         if (this.data == null) return;
 
-        const { data, topology, sizeScale, colorScale } = this;
+        const { data, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } =
             this.properties;
 
-        const featureById = new Map<string, _ModuleSupport.Feature>();
-        for (const feature of topology?.features.values() ?? []) {
-            const property = feature.properties?.[topologyIdKey];
-            if (property == null) continue;
-            featureById.set(property, feature);
-        }
+        const featureById = this.buildFeatureMap(topologyIdKey);
 
         const sizeScaleType = this.sizeScale.type;
         const colorScaleType = this.colorScale.type;
@@ -354,118 +349,167 @@ export class MapMarkerSeries
         };
     }
 
-    override createNodeData() {
-        const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
-        const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label, legendItemName } = properties;
+    private resolveColumn<T>(
+        key: string | undefined,
+        columnId: string,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): T[] | undefined {
+        if (key == null || this.dataModel == null) return undefined;
+        return this.dataModel.resolveColumnById<T>(this, columnId, processedData);
+    }
 
-        if (dataModel == null || processedData == null || scale == null) return;
-
+    private resolveDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
+        const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey } = this.properties;
         const hasLatLon = latitudeKey != null && longitudeKey != null;
 
-        const idValues =
-            idKey == null ? undefined : dataModel.resolveColumnById<string>(this, `idValue`, processedData);
-        const featureValues =
-            idKey == null
-                ? undefined
-                : dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData);
-        const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
-        const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
-        const labelValues =
-            labelKey == null ? undefined : dataModel.resolveColumnById<string>(this, `labelValue`, processedData);
-        const sizeValues =
-            sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData);
-        const colorValues =
-            colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData);
+        return {
+            idValues: this.resolveColumn<string>(idKey, 'idValue', processedData),
+            featureValues: this.resolveColumn<_ModuleSupport.Feature | undefined>(idKey, 'featureValue', processedData),
+            latValues: hasLatLon ? this.resolveColumn<number>(latitudeKey, 'latValue', processedData) : undefined,
+            lonValues: hasLatLon ? this.resolveColumn<number>(longitudeKey, 'lonValue', processedData) : undefined,
+            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
+            sizeValues: this.resolveColumn<number>(sizeKey, 'sizeValue', processedData),
+            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
+        };
+    }
 
-        const markerMaxSize = properties.maxSize ?? properties.size;
-        sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
-        const measurer = cachedTextMeasurer(label);
+    private prepareProjectedGeometries(
+        idValues: string[] | undefined,
+        featureValues: (_ModuleSupport.Feature | undefined)[] | undefined,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): Map<string, _ModuleSupport.Geometry> | undefined {
+        if (idValues == null || featureValues == null || this.scale == null) return undefined;
 
-        let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
-        if (idValues != null && featureValues != null) {
-            projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-            for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
-                const id: string | undefined = idValues[datumIndex];
-                const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
-                const projectedGeometry =
-                    geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
-                if (id != null && projectedGeometry != null) {
-                    projectedGeometries.set(id, projectedGeometry);
-                }
+        const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
+        for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
+            const id = idValues[datumIndex];
+            const geometry = featureValues[datumIndex]?.geometry;
+            const projectedGeometry = geometry == null ? undefined : projectGeometry(geometry, this.scale);
+
+            if (id != null && projectedGeometry != null) {
+                projectedGeometries.set(id, projectedGeometry);
             }
         }
 
-        const nodeData: MapMarkerNodeDatum[] = [];
-        const labelData: MapMarkerNodeLabelDatum[] = [];
-        const missingGeometries: string[] = [];
-        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        for (const [datumIndex, datum] of rawData.entries()) {
-            const idValue = idValues?.[datumIndex];
-            const lonValue = lonValues?.[datumIndex];
-            const latValue = latValues?.[datumIndex];
-            const colorValue = colorValues?.[datumIndex];
-            const sizeValue = sizeValues?.[datumIndex];
-            const labelValue = labelValues?.[datumIndex];
+        return projectedGeometries;
+    }
 
-            const size = sizeValue == null ? properties.size : sizeScale.convert(sizeValue, { clamp: true });
+    private calculateMarkerSize(sizeValue: number | undefined): number {
+        return sizeValue == null ? this.properties.size : this.sizeScale.convert(sizeValue, { clamp: true });
+    }
 
-            const projectedGeometry = idValue == null ? undefined : projectedGeometries?.get(idValue);
-            if (idValue != null && projectGeometry == null) {
-                missingGeometries.push(idValue);
-            }
+    private buildNodeDatum(
+        datum: any,
+        datumIndex: number,
+        index: number,
+        point: _ModuleSupport.SizedPoint,
+        idValue: string | undefined,
+        lonValue: number | undefined,
+        latValue: number | undefined,
+        labelValue: string | undefined,
+        sizeValue: number | undefined,
+        colorValue: number | undefined
+    ): MapMarkerNodeDatum {
+        return {
+            series: this,
+            itemId: this.properties.latitudeKey,
+            datum,
+            datumIndex,
+            index,
+            idValue,
+            lonValue,
+            latValue,
+            labelValue,
+            sizeValue,
+            colorValue,
+            point,
+            midPoint: { x: point.x, y: point.y },
+            legendItemName: this.properties.legendItemName,
+            style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
+        };
+    }
 
-            if (lonValue != null && latValue != null) {
-                const [x, y] = scale.convert([lonValue, latValue]);
+    private createNodeFromLatLon(
+        datum: any,
+        datumIndex: number,
+        idValue: string | undefined,
+        lonValue: number,
+        latValue: number,
+        labelValue: string | undefined,
+        sizeValue: number | undefined,
+        colorValue: number | undefined,
+        size: number,
+        measurer: ITextMeasurer
+    ): { node: MapMarkerNodeDatum; label: MapMarkerNodeLabelDatum | undefined } {
+        if (this.scale == null) {
+            throw new Error('Scale is required for createNodeFromLatLon');
+        }
 
-                const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, measurer);
-                if (labelDatum) {
-                    labelData.push(labelDatum);
-                }
+        const [x, y] = this.scale.convert([lonValue, latValue]);
+        const point = { x, y, size };
 
-                nodeData.push({
-                    series: this,
-                    itemId: latitudeKey,
-                    datum,
-                    datumIndex,
-                    index: -1,
-                    idValue,
-                    lonValue,
-                    latValue,
-                    labelValue,
-                    sizeValue,
-                    colorValue,
-                    point: { x, y, size },
-                    midPoint: { x, y },
-                    legendItemName,
-                    style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
-                });
-            } else if (projectedGeometry != null) {
-                for (const [index, [x, y]] of markerPositions(projectedGeometry, 1).entries()) {
-                    const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, measurer);
-                    if (labelDatum) {
-                        labelData.push(labelDatum);
-                    }
+        const node = this.buildNodeDatum(
+            datum,
+            datumIndex,
+            -1,
+            point,
+            idValue,
+            lonValue,
+            latValue,
+            labelValue,
+            sizeValue,
+            colorValue
+        );
 
-                    nodeData.push({
-                        series: this,
-                        itemId: latitudeKey,
-                        datum,
-                        datumIndex,
-                        index,
-                        idValue,
-                        lonValue,
-                        latValue,
-                        labelValue,
-                        sizeValue,
-                        colorValue,
-                        point: { x, y, size },
-                        midPoint: { x, y },
-                        legendItemName,
-                        style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
-                    });
-                }
+        const label = this.getLabelDatum(datum, labelValue, x, y, size, measurer) ?? undefined;
+
+        return { node, label };
+    }
+
+    private createNodesFromGeometry(
+        datum: any,
+        datumIndex: number,
+        geometry: _ModuleSupport.Geometry,
+        idValue: string | undefined,
+        lonValue: number | undefined,
+        latValue: number | undefined,
+        labelValue: string | undefined,
+        sizeValue: number | undefined,
+        colorValue: number | undefined,
+        size: number,
+        measurer: ITextMeasurer
+    ): { nodes: MapMarkerNodeDatum[]; labels: MapMarkerNodeLabelDatum[] } {
+        const nodes: MapMarkerNodeDatum[] = [];
+        const labels: MapMarkerNodeLabelDatum[] = [];
+
+        for (const [index, [x, y]] of markerPositions(geometry, 1).entries()) {
+            const point = { x, y, size };
+
+            const node = this.buildNodeDatum(
+                datum,
+                datumIndex,
+                index,
+                point,
+                idValue,
+                lonValue,
+                latValue,
+                labelValue,
+                sizeValue,
+                colorValue
+            );
+            nodes.push(node);
+
+            const label = this.getLabelDatum(datum, labelValue, x, y, size, measurer);
+            if (label) {
+                labels.push(label);
             }
         }
+
+        return { nodes, labels };
+    }
+
+    private warnMissingGeometries(missingGeometries: string[]): void {
+        if (missingGeometries.length === 0) return;
 
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
@@ -473,9 +517,96 @@ export class MapMarkerSeries
             missingGeometries.length = missingGeometriesCap;
             missingGeometries.push(`(+${excessItems} more)`);
         }
-        if (missingGeometries.length > 0) {
-            Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+
+        Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+    }
+
+    private buildFeatureMap(topologyIdKey: string): Map<string, _ModuleSupport.Feature> {
+        const featureById = new Map<string, _ModuleSupport.Feature>();
+
+        for (const feature of this.topology?.features.values() ?? []) {
+            const property = feature.properties?.[topologyIdKey];
+            if (property != null) {
+                featureById.set(property, feature);
+            }
         }
+
+        return featureById;
+    }
+
+    override createNodeData() {
+        const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
+        const { label } = properties;
+
+        if (dataModel == null || processedData == null || scale == null) return;
+
+        const columns = this.resolveDataColumns(processedData);
+
+        const markerMaxSize = properties.maxSize ?? properties.size;
+        sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
+        const measurer = cachedTextMeasurer(label);
+
+        const projectedGeometries = this.prepareProjectedGeometries(
+            columns.idValues,
+            columns.featureValues,
+            processedData
+        );
+
+        const nodeData: MapMarkerNodeDatum[] = [];
+        const labelData: MapMarkerNodeLabelDatum[] = [];
+        const missingGeometries: string[] = [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+
+        for (const [datumIndex, datum] of rawData.entries()) {
+            const idValue = columns.idValues?.[datumIndex];
+            const lonValue = columns.lonValues?.[datumIndex];
+            const latValue = columns.latValues?.[datumIndex];
+            const colorValue = columns.colorValues?.[datumIndex];
+            const sizeValue = columns.sizeValues?.[datumIndex];
+            const labelValue = columns.labelValues?.[datumIndex];
+
+            const size = this.calculateMarkerSize(sizeValue);
+
+            const projectedGeometry = idValue == null ? undefined : projectedGeometries?.get(idValue);
+            if (idValue != null && projectedGeometries != null && projectedGeometry == null) {
+                missingGeometries.push(idValue);
+            }
+
+            if (lonValue != null && latValue != null) {
+                const result = this.createNodeFromLatLon(
+                    datum,
+                    datumIndex,
+                    idValue,
+                    lonValue,
+                    latValue,
+                    labelValue,
+                    sizeValue,
+                    colorValue,
+                    size,
+                    measurer
+                );
+                nodeData.push(result.node);
+                if (result.label) labelData.push(result.label);
+            } else if (projectedGeometry != null) {
+                const result = this.createNodesFromGeometry(
+                    datum,
+                    datumIndex,
+                    projectedGeometry,
+                    idValue,
+                    lonValue,
+                    latValue,
+                    labelValue,
+                    sizeValue,
+                    colorValue,
+                    size,
+                    measurer
+                );
+                nodeData.push(...result.nodes);
+                labelData.push(...result.labels);
+            }
+        }
+
+        this.warnMissingGeometries(missingGeometries);
 
         return {
             itemId: seriesId,

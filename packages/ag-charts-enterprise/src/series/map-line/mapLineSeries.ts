@@ -255,48 +255,93 @@ export class MapLineSeries extends TopologySeries<
         };
     }
 
-    override createNodeData() {
-        const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
-        const { idKey, sizeKey, colorKey, labelKey, label, legendItemName } = properties;
+    private resolveColumn<T>(
+        key: string | undefined,
+        columnId: string,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): T[] | undefined {
+        if (key == null || this.dataModel == null) return undefined;
+        return this.dataModel.resolveColumnById<T>(this, columnId, processedData);
+    }
 
-        if (dataModel == null || processedData == null) return;
+    private resolveLineDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
+        const { sizeKey, colorKey, labelKey } = this.properties;
 
-        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
-        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
-            this,
-            `featureValue`,
-            processedData
-        );
-        const labelValues =
-            labelKey == null ? undefined : dataModel.resolveColumnById<string>(this, `labelValue`, processedData);
-        const sizeValues =
-            sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData);
-        const colorValues =
-            colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData);
+        return {
+            idValues: this.dataModel!.resolveColumnById<string>(this, 'idValue', processedData),
+            featureValues: this.dataModel!.resolveColumnById<_ModuleSupport.Feature | undefined>(
+                this,
+                'featureValue',
+                processedData
+            ),
+            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
+            sizeValues: this.resolveColumn<number>(sizeKey, 'sizeValue', processedData),
+            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
+        };
+    }
 
-        const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
-        sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
-        const measurer = cachedTextMeasurer(label);
-
+    private prepareProjectedLineGeometries(
+        idValues: string[],
+        featureValues: (_ModuleSupport.Feature | undefined)[],
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): Map<string, _ModuleSupport.Geometry> {
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
+
         for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
-            const id: string | undefined = idValues[datumIndex];
-            const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
-            const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
+            const id = idValues[datumIndex];
+            const geometry = featureValues[datumIndex]?.geometry;
+            const projectedGeometry =
+                geometry != null && this.scale != null ? projectGeometry(geometry, this.scale) : undefined;
+
             if (id != null && projectedGeometry != null) {
                 projectedGeometries.set(id, projectedGeometry);
             }
         }
 
+        return projectedGeometries;
+    }
+
+    private warnMissingGeometries(missingGeometries: string[]): void {
+        if (missingGeometries.length === 0) return;
+
+        const missingGeometriesCap = 10;
+        if (missingGeometries.length > missingGeometriesCap) {
+            const excessItems = missingGeometries.length - missingGeometriesCap;
+            missingGeometries.length = missingGeometriesCap;
+            missingGeometries.push(`(+${excessItems} more)`);
+        }
+
+        Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+    }
+
+    override createNodeData() {
+        const { id: seriesId, dataModel, processedData, sizeScale, properties } = this;
+        const { idKey, label, legendItemName } = properties;
+
+        if (dataModel == null || processedData == null) return;
+
+        const columns = this.resolveLineDataColumns(processedData);
+
+        const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
+        sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
+        const measurer = cachedTextMeasurer(label);
+
+        const projectedGeometries = this.prepareProjectedLineGeometries(
+            columns.idValues,
+            columns.featureValues,
+            processedData
+        );
+
         const nodeData: MapLineNodeDatum[] = [];
         const labelData: MapLineNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+
         for (const [datumIndex, datum] of rawData.entries()) {
-            const idValue = idValues[datumIndex];
-            const colorValue = colorValues?.[datumIndex];
-            const sizeValue = sizeValues?.[datumIndex];
-            const labelValue = labelValues?.[datumIndex];
+            const idValue = columns.idValues[datumIndex];
+            const colorValue = columns.colorValues?.[datumIndex];
+            const sizeValue = columns.sizeValues?.[datumIndex];
+            const labelValue = columns.labelValues?.[datumIndex];
 
             const projectedGeometry = projectedGeometries.get(idValue);
             if (projectedGeometry == null) {
@@ -323,15 +368,7 @@ export class MapLineSeries extends TopologySeries<
             });
         }
 
-        const missingGeometriesCap = 10;
-        if (missingGeometries.length > missingGeometriesCap) {
-            const excessItems = missingGeometries.length - missingGeometriesCap;
-            missingGeometries.length = missingGeometriesCap;
-            missingGeometries.push(`(+${excessItems} more)`);
-        }
-        if (missingGeometries.length > 0) {
-            Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
-        }
+        this.warnMissingGeometries(missingGeometries);
 
         return {
             itemId: seriesId,
