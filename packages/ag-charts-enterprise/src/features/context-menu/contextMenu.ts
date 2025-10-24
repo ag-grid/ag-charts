@@ -26,6 +26,22 @@ type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
 
+const DATUM_KEYS = [
+    'angleKey',
+    'calloutLabelKey',
+    'colorKey',
+    'labelKey',
+    'radiusKey',
+    'sectorLabelKey',
+    'sizeKey',
+    'xKey',
+    'yKey',
+] as const satisfies readonly (keyof AgContextMenuGetItemsParamsSeriesNode)[];
+
+type PickedNode = _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> & {
+    [K in (typeof DATUM_KEYS)[number]]?: string;
+};
+
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Property
     enabled = true;
@@ -43,7 +59,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly interactionManager: _ModuleSupport.InteractionManager;
 
     // State
-    private pickedNode: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined = undefined;
+    private pickedNode: PickedNode | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;
@@ -116,48 +132,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
             case 'series-node': {
                 if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
-                type Omissions = 'showOn' | 'seriesId' | 'type' | 'event' | 'context';
-                type PickedNode = Omit<AgContextMenuGetItemsParamsSeriesNode, Omissions>;
-                const {
-                    datum,
-                    angleKey,
-                    calloutLabelKey,
-                    colorKey,
-                    labelKey,
-                    radiusKey,
-                    sectorLabelKey,
-                    sizeKey,
-                    xKey,
-                    yKey,
-                }: PickedNode = this.pickedNode;
                 const params: AgContextMenuGetItemsParamsSeriesNode = {
                     showOn,
                     context,
                     seriesId: this.pickedNode.series.id,
-                    datum,
-                    angleKey,
-                    calloutLabelKey,
-                    colorKey,
-                    labelKey,
-                    radiusKey,
-                    sectorLabelKey,
-                    sizeKey,
-                    xKey,
-                    yKey,
+                    datum: this.pickedNode.datum,
                 };
-                for (const k of [
-                    'angleKey',
-                    'calloutLabelKey',
-                    'colorKey',
-                    'labelKey',
-                    'radiusKey',
-                    'sectorLabelKey',
-                    'sizeKey',
-                    'xKey',
-                    'yKey',
-                ] as const) {
-                    if (params[k] === undefined) {
-                        delete params[k];
+
+                for (const k of DATUM_KEYS) {
+                    if (this.pickedNode[k] !== undefined) {
+                        params[k] = this.pickedNode[k];
                     }
                 }
                 return params;
