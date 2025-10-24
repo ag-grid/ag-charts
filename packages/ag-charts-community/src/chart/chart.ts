@@ -862,7 +862,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (this.width != null && this.height != null) {
             // Auto-size isn't in use in this case, don't wait for it.
         } else if (!this._lastAutoSize) {
-            const success = await this._autoSizeNotify.await(500);
+            const success = await this._autoSizeNotify.waitForCompletion(500);
 
             if (!success) {
                 // After several failed passes, continue and accept there maybe a redundant
@@ -1259,7 +1259,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 this.runningUpdateType !== ChartUpdateType.NONE ||
                 this.data.hasPendingTransactions()
             ) {
-                await this._performUpdateNotify.await();
+                await this._performUpdateNotify.waitForCompletion();
             }
 
             if (performance.now() - start > timeoutMs) {

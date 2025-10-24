@@ -5,7 +5,7 @@ export class AsyncAwaitQueue {
     private readonly queue: (() => void)[] = [];
 
     /** Await another async process to call notify(). */
-    public await(timeout = 50) {
+    public waitForCompletion(timeout = 50) {
         return new Promise<boolean>((resolve) => {
             const successFn = () => {
                 clearTimeout(timeoutHandle);
