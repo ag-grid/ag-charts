@@ -7,18 +7,6 @@ import { radarLineSeriesOptionsDef } from './radarLineSeriesOptionsDef';
 
 const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
-export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-
-    identifier: 'radar-line',
-    moduleFactory: (ctx) => new RadarLineSeries(ctx),
-    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
-    themeTemplate: RADAR_LINE_SERIES_THEME,
-};
-
 export const RadarLineSeriesModule: SeriesModuleDefinition<AgRadarLineSeriesOptions> = {
     type: 'series',
     name: 'radar-line',
@@ -26,6 +14,8 @@ export const RadarLineSeriesModule: SeriesModuleDefinition<AgRadarLineSeriesOpti
     enterprise: true,
 
     options: radarLineSeriesOptionsDef,
+    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
+    themeTemplate: RADAR_LINE_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RadarLineSeries(ctx),
 };

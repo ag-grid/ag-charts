@@ -4,21 +4,18 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { ChordSeries } from './chordSeries';
 import { chordSeriesOptionsDef } from './chordSeriesOptionsDef';
 
-export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
+export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
+    name: 'chord',
+    chartType: 'standalone',
+    enterprise: true,
     solo: true,
 
-    identifier: 'chord',
-    moduleFactory: (ctx) => new ChordSeries(ctx),
-
+    options: chordSeriesOptionsDef,
     themeTemplate: {
         series: {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            // @ts-expect-error undocumented option
             fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
@@ -53,15 +50,6 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             toggleSeries: false,
         },
     },
-};
 
-export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
-    type: 'series',
-    name: 'chord',
-    chartType: 'standalone',
-    enterprise: true,
-
-    options: chordSeriesOptionsDef,
-
-    create: (ctx: _ModuleSupport.ModuleContext) => new ChordSeries(ctx),
+    create: (ctx) => new ChordSeries(ctx),
 };

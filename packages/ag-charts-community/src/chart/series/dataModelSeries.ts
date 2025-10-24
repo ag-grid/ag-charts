@@ -1,13 +1,13 @@
+import type { Scale } from 'ag-charts-core';
 import { type Point, clamp } from 'ag-charts-core';
 
 import { ContinuousScale } from '../../scale/continuousScale';
-import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import type { Path } from '../../scene/shape/path';
 import { objectsEqual } from '../../util/object';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
-import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
+import type { DataModel, DataModelOptions, DataPropertyDefinition, ProcessedData } from '../data/dataModel';
 import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
@@ -80,7 +80,7 @@ export abstract class DataModelSeries<
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         return this.moduleMap
-            .mapModules((mod) => mod.getPropertyDefinitions(this.getScaleInformation({ xScale, yScale })))
+            .mapModules((m) => m.getPropertyDefinitions(this.getScaleInformation({ xScale, yScale })))
             .flat();
     }
 
@@ -95,7 +95,7 @@ export abstract class DataModelSeries<
         opts: DataModelOptions<K, boolean | undefined, false>
     ) {
         // Merge properties of this series with properties of all the attached series-options
-        opts.props.push(...(this.getModulePropertyDefinitions() as PropertyDefinition<K>[]));
+        opts.props.push(...(this.getModulePropertyDefinitions() as DataPropertyDefinition<K>[]));
 
         const { dataModel, processedData } = await dataController.request<D, K, G>(
             this.id,

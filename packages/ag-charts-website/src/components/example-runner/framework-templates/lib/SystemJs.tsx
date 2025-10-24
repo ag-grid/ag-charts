@@ -105,8 +105,10 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
         configuration.chartMap = {
             ...configuration.chartMap,
             'ag-charts-community': `${localPrefix}/ag-charts-community`,
+            'ag-charts-community/modules': `${localPrefix}/ag-charts-community`,
             'ag-charts-core': `${localPrefix}/ag-charts-core`,
             'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise`,
+            'ag-charts-enterprise/modules': `${localPrefix}/ag-charts-enterprise`,
             'ag-charts-types': `${localPrefix}/ag-charts-types`,
             'ag-charts-locale': `${localPrefix}/ag-charts-locale`,
         };

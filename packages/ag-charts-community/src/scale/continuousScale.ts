@@ -1,6 +1,7 @@
+import type { NormalizedDomain } from 'ag-charts-core';
+
 import { findMinMax } from '../util/number';
 import { AbstractScale } from './abstractScale';
-import type { NormalizedDomain } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> extends AbstractScale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {

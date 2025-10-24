@@ -1,6 +1,6 @@
+import type { ScaleType } from 'ag-charts-core';
 import { clamp, isFiniteNumber, isNegative } from 'ag-charts-core';
 
-import type { ScaleType } from '../../scale/scale';
 import { memo } from '../../util/memo';
 import { isContinuous, transformIntegratedCategoryValue } from '../../util/value';
 import { accumulatedValue, range, trailingAccumulatedValue } from './aggregateFunctions';

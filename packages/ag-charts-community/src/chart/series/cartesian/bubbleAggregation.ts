@@ -1,6 +1,6 @@
+import type { ScaleType } from 'ag-charts-core';
 import { clamp } from 'ag-charts-core';
 
-import type { ScaleType } from '../../../scale/scale';
 import { aggregationDomain, aggregationXRatioForXValue } from '../aggregation';
 
 const SIZE_QUANTIZATION = 3;

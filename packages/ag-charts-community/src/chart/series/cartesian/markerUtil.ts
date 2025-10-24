@@ -1,10 +1,10 @@
-import { type Point, clamp } from 'ag-charts-core';
+import type { Point, Scale } from 'ag-charts-core';
+import { clamp } from 'ag-charts-core';
 import type { AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
-import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';

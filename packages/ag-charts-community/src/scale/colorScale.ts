@@ -1,9 +1,9 @@
+import type { NormalizedDomain } from 'ag-charts-core';
 import { Logger, clamp } from 'ag-charts-core';
 
 import { Color } from '../util/color';
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
-import type { NormalizedDomain } from './scale';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
 

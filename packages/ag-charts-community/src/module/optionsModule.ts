@@ -24,12 +24,13 @@ import {
     type AgMiniChartSeriesOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
+    type SeriesOptionsTypes,
+    type SeriesType,
 } from 'ag-charts-types';
 
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { getChartTheme } from '../chart/mapping/themes';
-import { type SeriesOptionsTypes, type SeriesType } from '../chart/mapping/types';
+import { detectChartType } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { deepFreeze, merge, mergeDefaults } from '../util/object';
@@ -131,14 +132,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             baseChartOptions = currentUserOptions;
             this.specialOverrides = baseChartOptions.specialOverrides;
 
-            if (deltaOptions === undefined) {
-                // No diff case - null means diff was a no-op.
-                deltaOptions = jsonDiff(
-                    baseChartOptions.userOptions as T,
-                    newUserOptions,
-                    ChartOptions.JSON_DIFF_OPTS
-                ) as DeepPartial<T>;
-            }
+            // No diff case - null means diff was a no-op.
+            deltaOptions ??= jsonDiff(
+                baseChartOptions.userOptions as T,
+                newUserOptions,
+                ChartOptions.JSON_DIFF_OPTS
+            ) as DeepPartial<T>;
 
             this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
                 ...ChartOptions.OPTIONS_CLONE_OPTS_SLOW,
@@ -273,10 +272,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(options);
-        }
-
         const activeTheme = getChartTheme(options.theme);
 
         // TODO: Remove as this is only required to pass the series validation, it is handled by the OptionsGraph.
@@ -287,7 +282,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Must run before chart validation to cleanup invalid types.
         this.validateSeriesOptions(options);
 
-        this.chartDef = ModuleRegistry.detectChartDefinition(options);
+        const chartType = detectChartType(options);
+
+        this.chartDef = ModuleRegistry.getChartModule(chartType);
 
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
@@ -321,9 +318,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
-        removeUnusedEnterpriseOptions(processedOptions);
+        removeUnusedEnterpriseOptions(this.chartDef.name, processedOptions);
         if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(processedOptions, true);
+            removeUsedEnterpriseOptions(this.chartDef.name, processedOptions, true);
         }
 
         this.validateSeriesOptions(processedOptions);
@@ -343,7 +340,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private validatePluginOptions(options: T) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
-            if (pluginKey in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)) {
+            if (
+                pluginKey in options &&
+                pluginDef.options != null &&
+                (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)
+            ) {
                 const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
                 for (const error of invalid) {
                     Logger.warn(error);
@@ -382,6 +383,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 Logger.warn(
                     `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
+                continue;
+            }
+
+            if (seriesDef.options == null) {
+                validatedSeriesOptions.push(seriesOptions);
                 continue;
             }
 
@@ -462,18 +468,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private processSeriesOptions(options: T) {
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
-            series.type ??= 'line'; // TODO remove this behaviour
-
             const seriesDef = ModuleRegistry.getSeriesModule(series.type);
-            const visibleDefined = Boolean(seriesDef?.options.visible);
+            const visibleDefined = Boolean(seriesDef?.options?.visible);
 
-            const seriesOptions = mergeDefaults(
-                this.getSeriesGroupingOptions(series),
-                series,
-                visibleDefined && { visible: true }
-            );
-
-            return seriesOptions;
+            return mergeDefaults(this.getSeriesGroupingOptions(series), series, visibleDefined && { visible: true });
         });
 
         options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
@@ -489,9 +487,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private getSeriesGroupingOptions(series: SeriesOptionsTypes & GroupingOptions) {
-        const groupable = seriesRegistry.isGroupable(series.type);
-        const stackable = seriesRegistry.isStackable(series.type);
-        const stackedByDefault = seriesRegistry.isStackedByDefault(series.type);
+        const { groupable, stackable, stackedByDefault = false } = ModuleRegistry.getSeriesModule(series.type)!;
 
         if (series.grouped && !groupable) {
             Logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
@@ -594,18 +590,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private soloSeriesIntegrity(options: Partial<T>) {
         if (!isArray(options.series as unknown)) return;
+        const isSolo = (seriesType: string) => ModuleRegistry.getSeriesModule(seriesType)?.solo ?? false;
         const allSeries: SeriesOptionsTypes[] | undefined = options.series;
-        if (allSeries && allSeries.length > 1 && allSeries.some((series) => seriesRegistry.isSolo(series.type))) {
+        if (allSeries && allSeries.length > 1 && allSeries.some((series) => isSolo(series.type))) {
             const mainSeriesType = this.optionsType(options);
-            if (seriesRegistry.isSolo(mainSeriesType)) {
+            if (isSolo(mainSeriesType)) {
                 Logger.warn(
                     `series[0] of type '${mainSeriesType}' is incompatible with other series types. Only processing series[0]`
                 );
                 options.series = allSeries.slice(0, 1) as T['series'];
             } else {
-                const { solo, nonSolo } = groupBy(allSeries, (s) =>
-                    seriesRegistry.isSolo(s.type) ? 'solo' : 'nonSolo'
-                );
+                const { solo, nonSolo } = groupBy(allSeries, (s) => (isSolo(s.type) ? 'solo' : 'nonSolo'));
                 const rejects = unique(solo!.map((s) => s.type)).join(', ');
                 Logger.warn(`Unable to mix these series types with the lead series type: ${rejects}`);
                 options.series = nonSolo as T['series'];

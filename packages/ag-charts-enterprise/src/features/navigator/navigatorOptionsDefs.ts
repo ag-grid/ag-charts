@@ -1,4 +1,12 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    HistogramSeriesModule,
+    LineSeriesModule,
+    ScatterSeriesModule,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     array,
@@ -37,17 +45,7 @@ import { RangeAreaSeriesModule } from '../../series/range-area';
 import { RangeBarSeriesModule } from '../../series/range-bar';
 import { WaterfallSeriesModule } from '../../series/waterfall';
 
-const {
-    NewAreaSeriesModule,
-    NewBarSeriesModule,
-    NewBubbleSeriesModule,
-    NewHistogramSeriesModule,
-    NewLineSeriesModule,
-    NewScatterSeriesModule,
-    numberFormatValidator,
-    textOrSegments,
-    without,
-} = _ModuleSupport;
+const { numberFormatValidator, textOrSegments, without } = _ModuleSupport;
 
 export const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
     width: positiveNumber,
@@ -179,27 +177,24 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
         series: arrayOfDefs(
             typeUnion<Required<AgMiniChartSeriesOptions>>(
                 {
-                    area: without(NewAreaSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
-                    bar: without(NewBarSeriesModule.options, [...barIgnoredMiniChartProperties, 'type']),
+                    area: without(AreaSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
+                    bar: without(BarSeriesModule.options, [...barIgnoredMiniChartProperties, 'type']),
                     'box-plot': without(BoxPlotSeriesModule.options, [...boxPlotIngnoredMiniChartProperties, 'type']),
-                    bubble: without(NewBubbleSeriesModule.options, [...bubbleIgnoredMiniChartProperties, 'type']),
+                    bubble: without(BubbleSeriesModule.options, [...bubbleIgnoredMiniChartProperties, 'type']),
                     candlestick: without(CandlestickSeriesModule.options, [
                         ...commonIgnoredMiniChartProperties,
                         'type',
                     ]),
                     heatmap: without(HeatmapSeriesModule.options, [...heatmapIgnoredMiniChartProperties, 'type']),
-                    histogram: without(NewHistogramSeriesModule.options, [
-                        ...histogramIgnoredMiniChartProperties,
-                        'type',
-                    ]),
-                    line: without(NewLineSeriesModule.options, [...lineIgnoredMiniChartProperties, 'type']),
+                    histogram: without(HistogramSeriesModule.options, [...histogramIgnoredMiniChartProperties, 'type']),
+                    line: without(LineSeriesModule.options, [...lineIgnoredMiniChartProperties, 'type']),
                     ohlc: without(OhlcSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
                     'range-area': without(RangeAreaSeriesModule.options, [
                         ...rangeAreaIgnoredMiniChartProperties,
                         'type',
                     ]),
                     'range-bar': without(RangeBarSeriesModule.options, [...rangeBarIgnoredMiniChartProperties, 'type']),
-                    scatter: without(NewScatterSeriesModule.options, [...scatterIgnoredMiniChartProperties, 'type']),
+                    scatter: without(ScatterSeriesModule.options, [...scatterIgnoredMiniChartProperties, 'type']),
                     waterfall: without(WaterfallSeriesModule.options, [...waterfallIgnoredMiniChartProperties, 'type']),
                 },
                 'miniChart series options'

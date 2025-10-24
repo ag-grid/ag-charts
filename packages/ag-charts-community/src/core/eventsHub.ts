@@ -1,11 +1,12 @@
+import type { Scale } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
 import type { AgAnnotation, AgContextMenuItemShowOn, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
 import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
-import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
 
@@ -34,6 +35,7 @@ export interface EventsHubMap {
     'context-menu:complete': ContextMenuEvent;
     'data:load': { data: unknown[] };
     'data:error': null;
+    'data:update': DataSet | undefined;
     'data:source-change': null;
     'dom:container-change': null;
     'dom:hidden': null;

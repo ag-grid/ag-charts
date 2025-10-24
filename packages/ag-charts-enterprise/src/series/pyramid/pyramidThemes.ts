@@ -1,10 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeSymbols: { DEFAULT_SHADOW_COLOUR },
 } = _ModuleSupport;
 
-export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['themeTemplate'] = {
+export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
     series: {
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },

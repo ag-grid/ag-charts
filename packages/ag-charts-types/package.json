@@ -7,15 +7,15 @@
   "module": "./dist/package/main.esm.mjs",
   "exports": {
     ".": {
-      "import": "./dist/package/main.esm.mjs",
-      "require": "./dist/package/main.cjs.js",
       "types": "./dist/types/src/main.d.ts",
+      "require": "./dist/package/main.cjs.js",
+      "import": "./dist/package/main.esm.mjs",
       "default": "./dist/package/main.cjs.js"
     },
     "./scene": {
-      "import": "./dist/package/main-scene.esm.mjs",
-      "require": "./dist/package/main-scene.cjs.js",
       "types": "./dist/types/src/main-scene.d.ts",
+      "require": "./dist/package/main-scene.cjs.js",
+      "import": "./dist/package/main-scene.esm.mjs",
       "default": "./dist/package/main-scene.cjs.js"
     }
   },

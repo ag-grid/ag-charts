@@ -2567,6 +2567,57 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   "keyboard": {
     "enabled": true,
   },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
@@ -3935,6 +3986,57 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
   "keyboard": {
     "enabled": true,
   },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
@@ -4190,6 +4292,57 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
   },
   "keyboard": {
     "enabled": true,
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
   },
   "listeners": {},
   "minHeight": 300,
@@ -4452,6 +4605,57 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   "keyboard": {
     "enabled": true,
   },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
@@ -4694,6 +4898,57 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   },
   "keyboard": {
     "enabled": true,
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
   },
   "listeners": {},
   "minHeight": 300,
@@ -7740,6 +7995,57 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
   "keyboard": {
     "enabled": true,
   },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
@@ -10494,6 +10800,57 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
   "keyboard": {
     "enabled": true,
   },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
@@ -11323,6 +11680,57 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
   "keyboard": {
     "enabled": true,
   },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
@@ -11625,6 +12033,57 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   },
   "keyboard": {
     "enabled": true,
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "marker": {
+        "padding": 8,
+        "size": 15,
+      },
+      "paddingX": 16,
+      "paddingY": 8,
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+      },
+      "label": {
+        "color": "#181d1f",
+      },
+      "marker": {
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
   },
   "listeners": {},
   "minHeight": 300,
@@ -13595,6 +14054,26 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -13695,6 +14174,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -13735,6 +14234,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -13769,6 +14288,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-grouped",
   "groupIndex": Any<Number>,
   "stackCount": 0,
   "stackIndex": 0,
@@ -13875,6 +14414,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -13909,6 +14468,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
   "stackCount": Any<Number>,
   "stackIndex": Any<Number>,
@@ -13955,6 +14534,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -13995,6 +14594,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -14029,6 +14648,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-grouped",
   "groupIndex": Any<Number>,
   "stackCount": 0,
   "stackIndex": 0,
@@ -14129,6 +14768,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 {
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
   "stackCount": Any<Number>,
   "stackIndex": Any<Number>,

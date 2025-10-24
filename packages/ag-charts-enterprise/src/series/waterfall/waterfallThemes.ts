@@ -1,4 +1,5 @@
 import { type AgWaterfallSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const { FILL_GRADIENT_LINEAR_SHADED_DEFAULTS, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } = _ModuleSupport;
 
@@ -39,7 +40,7 @@ function itemTheme(
     };
 }
 
-export const WATERFALL_SERIES_THEME: _ModuleSupport.SeriesModule<'waterfall'>['themeTemplate'] = {
+export const WATERFALL_SERIES_THEME: ExtensibleTheme<'waterfall'> = {
     series: {
         item: {
             positive: itemTheme('altUp', 0),

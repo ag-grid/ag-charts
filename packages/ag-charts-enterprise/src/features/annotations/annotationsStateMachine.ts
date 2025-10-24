@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
+import { Debug } from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -17,7 +18,7 @@ import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isEphemeralType, isTextType } from './utils/types';
 
-const { ActionOnSet, ParallelStateMachine, StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
+const { ActionOnSet, ParallelStateMachine, StateMachine, StateMachineProperty } = _ModuleSupport;
 
 enum States {
     Idle = 'idle',

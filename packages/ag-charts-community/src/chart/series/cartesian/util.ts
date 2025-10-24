@@ -4,9 +4,9 @@ import type {
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
     DatumDefault,
+    SeriesPredictAxis,
 } from 'ag-charts-types';
 
-import type { SeriesPredictAxis } from '../../../module/coreModules';
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -104,7 +104,7 @@ export function calculateSegments(
     });
 }
 
-export const TIME_AXIS_KEYS = new Set(['time', 'timestamp', 'date', 'datetime']);
+const TIME_AXIS_KEYS = new Set(['time', 'timestamp', 'date', 'datetime']);
 
 export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
@@ -119,8 +119,8 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
 
     const value = datum[key];
     const position = getAxisPosition(direction, seriesOptions);
-
     const timeAxis = predictTimeAxisType(key, value);
+
     if (timeAxis) {
         return { type: timeAxis, position };
     }
@@ -156,7 +156,7 @@ export function predictCartesianTimeAxis<SeriesOptions extends AgCartesianSeries
     return { type, position };
 }
 
-export function predictTimeAxisType(key: string, value: unknown) {
+function predictTimeAxisType(key: string, value: unknown) {
     if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
         return CARTESIAN_AXIS_TYPE.TIME;
     }
@@ -165,20 +165,16 @@ export function predictTimeAxisType(key: string, value: unknown) {
 function getSeriesOptionsKey<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     seriesOptions: SeriesOptions
-) {
-    let key: string | undefined;
-
+): string | undefined {
     if (direction === ChartAxisDirection.X) {
         if ('xKey' in seriesOptions) {
-            key = seriesOptions.xKey;
+            return seriesOptions.xKey;
         }
     } else if (direction === ChartAxisDirection.Y) {
         if ('yKey' in seriesOptions) {
-            key = seriesOptions.yKey;
+            return seriesOptions.yKey;
         }
     }
-
-    return key;
 }
 
 function getAxisPosition<SeriesOptions extends AgCartesianSeriesOptions>(

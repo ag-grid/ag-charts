@@ -1,49 +1,56 @@
 import {
     type AxisModuleDefinition,
+    type AxisPluginModuleDefinition,
     type ChartModuleDefinition,
     type ModuleDefinition,
     ModuleType,
     type ModuleTypeSwitch,
+    type PluginModuleDefinition,
     type PresetModuleDefinition,
     type SeriesModuleDefinition,
+    type SeriesPluginModuleDefinition,
 } from '../interfaces/moduleDefinition';
-import * as Logger from './logger';
 
-const registeredModules: Map<string, { def: ModuleDefinition; version: string }> = new Map();
+interface ModuleState {
+    def: ModuleDefinition;
+    version: string;
+}
 
-export function register(definition: ModuleDefinition, version: string): void {
-    // Allow enterprise modules to overwrite community modules definition.
-    const { def: existingDefinition, version: existingVersion } = registeredModules.get(definition.name) ?? {};
+const registeredModules: Map<string, ModuleState> = new Map();
+
+export function register(
+    def:
+        | ModuleDefinition
+        | ChartModuleDefinition<any>
+        | AxisModuleDefinition<any>
+        | SeriesModuleDefinition<any>
+        | PresetModuleDefinition<any>
+        | PluginModuleDefinition<any>
+        | AxisPluginModuleDefinition<any>
+        | SeriesPluginModuleDefinition<any>,
+    version: string
+): void {
+    // Allow enterprise modules to overwrite community modules def.
+    const { def: existingDefinition, version: existingVersion } = registeredModules.get(def.name) ?? {};
 
     if (!existingDefinition) {
         // New registration case.
-        registeredModules.set(definition.name, { def: definition, version });
+        registeredModules.set(def.name, { def, version });
         return;
     }
 
-    if (!existingDefinition.enterprise && definition.enterprise && version === existingVersion) {
-        // Enterprise module overwriting community module case.
-        registeredModules.set(definition.name, { def: definition, version });
-        return;
-    }
-
-    // Module already registered with the same version - work out appropriate error handling.
     if (existingVersion === version) {
-        // Probably due to duplicate module loading - users should be aware of this because it's not a good idea.
-        Logger.warn(
-            [
-                `AG Charts - Module '${definition.name}' already registered,',
-                'ignoring (version: ${existingVersion}).`,
-                `Check your code for duplicate loading of charts NPM modules.`,
-            ].join(' ')
-        );
-        return;
+        // Enterprise module overwriting community module case.
+        if (!existingDefinition.enterprise && def.enterprise) {
+            registeredModules.set(def.name, { def, version });
+        }
+        return; // Module already registered with the same version - ignore.
     }
 
     // Module already registered with a different version - this is a problem with the users NPM dependencies.
     throw new Error(
         [
-            `AG Charts - Module '${definition.name}' already registered with different version:`,
+            `AG Charts - Module '${def.name}' already registered with different version:`,
             `${existingVersion} vs ${version}`,
             ``,
             `Check your package.json for conflicting dependencies - depending on your package manager`,
@@ -68,6 +75,12 @@ export function hasModule(moduleName: string): boolean {
     return registeredModules.has(moduleName);
 }
 
+export function* listModules(): Generator<ModuleDefinition> {
+    for (const definition of registeredModules.values()) {
+        yield definition.def;
+    }
+}
+
 export function* listModulesByType<T extends ModuleType>(moduleType: T): Generator<ModuleTypeSwitch<T>> {
     for (const definition of registeredModules.values()) {
         if (isModuleType(moduleType, definition.def)) {
@@ -76,39 +89,45 @@ export function* listModulesByType<T extends ModuleType>(moduleType: T): Generat
     }
 }
 
-export function detectChartDefinition(options: object): ChartModuleDefinition<any> {
-    for (const definition of registeredModules.values()) {
-        if (isModuleType(ModuleType.Chart, definition.def) && definition.def.detect(options)) {
-            return definition.def;
-        }
+export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {
+    const definition = registeredModules.get(moduleName);
+    if (isModuleType(ModuleType.Axis, definition?.def)) {
+        return definition.def;
+    }
+}
+
+export function getChartModule(moduleName: string): ChartModuleDefinition<any> {
+    const definition = registeredModules.get(moduleName);
+    if (isModuleType(ModuleType.Chart, definition?.def)) {
+        return definition.def;
     }
     throw new Error(
         `AG Charts - Unknown chart type; Check options are correctly structured and series types are specified`
     );
 }
 
-export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {
-    const definition = registeredModules.get(moduleName);
-    if (isModuleType(ModuleType.Axis, definition?.def)) {
-        return definition?.def;
-    }
-}
-
 export function getPresetModule(moduleName: string): PresetModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
     if (isModuleType(ModuleType.Preset, definition?.def)) {
-        return definition?.def;
+        return definition.def;
     }
 }
 
 export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
     if (isModuleType(ModuleType.Series, definition?.def)) {
-        return definition?.def;
+        return definition.def;
     }
 }
 
-function isModuleType<T extends ModuleType>(
+export function hasEnterpriseModules(): boolean {
+    for (const { def } of registeredModules.values()) {
+        if (def.enterprise) return true;
+    }
+    return false;
+}
+
+export function isModuleType<T extends ModuleType>(
     moduleType: T,
     definition: ModuleDefinition | undefined
 ): definition is ModuleTypeSwitch<T> {

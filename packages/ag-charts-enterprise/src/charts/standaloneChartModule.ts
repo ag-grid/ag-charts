@@ -3,7 +3,7 @@ import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { StandaloneChart } from './standaloneChart';
 
-const { isAgStandaloneChartOptions, standaloneChartOptionsDefs } = _ModuleSupport;
+const { standaloneChartOptionsDefs } = _ModuleSupport;
 
 export const StandaloneChartModule: ChartModuleDefinition<AgStandaloneChartOptions> = {
     type: 'chart',
@@ -12,7 +12,6 @@ export const StandaloneChartModule: ChartModuleDefinition<AgStandaloneChartOptio
 
     options: standaloneChartOptionsDefs,
 
-    detect: isAgStandaloneChartOptions,
     create(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         return new StandaloneChart(options, resources);
     },

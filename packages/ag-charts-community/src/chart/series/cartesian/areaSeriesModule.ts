@@ -1,7 +1,6 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgAreaSeriesOptions } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
-import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
@@ -18,15 +17,75 @@ import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
 import { predictCartesianTimeAxis } from './util';
 
-export const AreaSeriesModule: SeriesModule<'area'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'community',
-    chartTypes: ['cartesian'],
+const themeTemplate: ExtensibleTheme<'area'> = {
+    series: {
+        nodeClickRange: 'nearest',
+        fill: {
+            $applySwitch: [
+                { $path: 'type' },
+                { $palette: 'fill' },
+                ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                ['image', FILL_IMAGE_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
+            ],
+        },
+        stroke: { $palette: 'stroke' },
+        fillOpacity: 0.8,
+        strokeOpacity: 1,
+        strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+        lineDash: [0],
+        lineDashOffset: 0,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
+        interpolation: {
+            type: 'linear',
+        },
+        marker: {
+            enabled: false,
+            shape: 'circle',
+            size: 7,
+            strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
+                ],
+            },
+            stroke: { $palette: 'stroke' },
+        },
+        label: {
+            ...LABEL_BOXING_DEFAULTS,
+            enabled: false,
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'textColor' },
+        },
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+            position: {
+                anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
+            },
+        },
+        highlight: multiSeriesHighlightStyle(),
+        segmentation: SEGMENTATION_DEFAULTS,
+    },
+};
 
-    identifier: 'area',
-    moduleFactory: (ctx) => new AreaSeries(ctx),
+export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
+    type: 'series',
+    name: 'area',
+    chartType: 'cartesian',
     stackable: true,
+
+    options: areaSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,
     defaultAxes: [
         {
@@ -38,75 +97,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             position: CARTESIAN_POSITION.BOTTOM,
         },
     ],
-    themeTemplate: {
-        series: {
-            nodeClickRange: 'nearest',
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
-            stroke: { $palette: 'stroke' },
-            fillOpacity: 0.8,
-            strokeOpacity: 1,
-            strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-            lineDash: [0],
-            lineDashOffset: 0,
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
-            interpolation: {
-                type: 'linear',
-            },
-            marker: {
-                enabled: false,
-                shape: 'circle',
-                size: 7,
-                strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
-                fill: {
-                    $applySwitch: [
-                        { $path: 'type' },
-                        { $palette: 'fill' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                    ],
-                },
-                stroke: { $palette: 'stroke' },
-            },
-            label: {
-                ...LABEL_BOXING_DEFAULTS,
-                enabled: false,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'textColor' },
-            },
-            tooltip: {
-                range: { $path: ['/tooltip/range', 'nearest'] },
-                position: {
-                    anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
-                },
-            },
-            highlight: multiSeriesHighlightStyle(),
-            segmentation: SEGMENTATION_DEFAULTS,
-        },
-    },
-};
-
-export const NewAreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
-    type: 'series',
-    name: 'area',
-    chartType: 'cartesian',
-
-    options: areaSeriesOptionsDef,
+    themeTemplate,
 
     create: (ctx: ModuleContext) => new AreaSeries(ctx),
 };

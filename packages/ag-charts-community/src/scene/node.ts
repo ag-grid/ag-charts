@@ -371,14 +371,14 @@ export abstract class Node<TDatum = unknown> {
             // Construction cases aren't interesting - we only really care about update cases.
             for (const [property, sources] of this._debugDirtyProperties.entries()) {
                 if (sources.length > 1) {
-                    // eslint-disable-next-line no-console
-                    console.groupCollapsed(
-                        `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`
+                    Logger.logGroup(
+                        `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`,
+                        () => {
+                            for (const source of sources) {
+                                Logger.log(source);
+                            }
+                        }
                     );
-                    // eslint-disable-next-line no-console
-                    for (const source of sources) console.log(source);
-                    // eslint-disable-next-line no-console
-                    console.groupEnd();
                 }
             }
         }

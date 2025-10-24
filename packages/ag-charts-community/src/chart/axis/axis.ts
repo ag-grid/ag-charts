@@ -1,3 +1,4 @@
+import type { Scale } from 'ag-charts-core';
 import {
     type Callback,
     type CallbackParam,
@@ -22,14 +23,11 @@ import type {
 
 import type { AxisLayout } from '../../core/eventsHub';
 import type { AxisBandDatum, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
-import type { AxisOptionModule } from '../../module/axisOptionModule';
-import type { ModuleInstance } from '../../module/baseModule';
 import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -74,8 +72,6 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
     rotationCenterY: number;
     range: number[];
 }
-
-type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
 
 export enum AxisGroupZIndexMap {
     TickLines,
@@ -948,9 +944,9 @@ export abstract class Axis<
         };
     }
 
-    private readonly moduleMap: AxisModuleMap = new ModuleMap();
+    private readonly moduleMap = new ModuleMap();
 
-    getModuleMap(): AxisModuleMap {
+    getModuleMap() {
         return this.moduleMap;
     }
 

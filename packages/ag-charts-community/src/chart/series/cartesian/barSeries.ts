@@ -27,7 +27,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import { DataModel, type ProcessedData, type PropertyDefinition, fixNumericExtent } from '../../data/dataModel';
+import { DataModel, type DataPropertyDefinition, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import {
     LARGEST_KEY_INTERVAL,
     SMALLEST_KEY_INTERVAL,
@@ -183,7 +183,7 @@ export class BarSeries extends AbstractBarSeries<
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
-        const props: PropertyDefinition<any>[] = [
+        const props: DataPropertyDefinition<any>[] = [
             keyProperty(xKey, xScaleType, { id: 'xValue' }),
             valueProperty(yKey, yScaleType, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
         ];

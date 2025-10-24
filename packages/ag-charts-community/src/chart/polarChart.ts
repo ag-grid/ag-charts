@@ -1,14 +1,14 @@
+import type { Scale } from 'ag-charts-core';
 import { iterate } from 'ag-charts-core';
 
-import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
-import type { Scale } from '../scale/scale';
 import { BBox } from '../scene/bbox';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
+import type { LayoutContext } from './layout/layoutManager';
 import type { SeriesArea } from './series-area/seriesArea';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
 import { ZIndexMap } from './zIndexMap';
@@ -29,11 +29,8 @@ export class PolarChart extends Chart {
     }
 
     protected async performLayout(ctx: LayoutContext) {
-        const { layoutBox } = ctx;
-
-        const seriesRect = layoutBox
-            .clone()
-            .shrink(this.modulesManager.getModule<SeriesArea>('seriesArea')!.getPadding());
+        const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
+        const seriesRect = ctx.layoutBox.clone().shrink(seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -46,7 +43,7 @@ export class PolarChart extends Chart {
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
+            series: { visible: true, rect: seriesRect, paddedRect: ctx.layoutBox },
         });
     }
 

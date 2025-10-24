@@ -16,9 +16,9 @@ import {
 import type {
     AggregatePropertyDefinition,
     DataModelOptions,
+    DataPropertyDefinition,
     GroupByFn,
     GroupedData,
-    PropertyDefinition,
     PropertyId,
     Scoped,
 } from './dataModel';
@@ -70,7 +70,7 @@ const categoryValue = (property: string) => ({
     type: 'value' as const,
     valueType: 'category' as const,
 });
-const accumulatedGroupValues = (properties: string[], groupId: string): (Scoped & PropertyDefinition<any>)[] => [
+const accumulatedGroupValues = (properties: string[], groupId: string): (Scoped & DataPropertyDefinition<any>)[] => [
     ...properties.map((p) => ({ ...accumulatedGroupValue(p, groupId), scopes: ['test'] })),
     { ...actualAccumulateGroup(groupId, 'normal'), scopes: ['test'] },
 ];

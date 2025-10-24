@@ -1,3 +1,5 @@
+import { EventEmitter } from 'ag-charts-core';
+
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import { DataSet } from '../../data/dataSet';
@@ -59,7 +61,9 @@ class ExampleHierarchySeries extends HierarchySeries<Group, object, ExampleHiera
 
 describe('HierarchySeries', () => {
     it('creates a hierarchy', () => {
-        const series = new ExampleHierarchySeries(null!);
+        const series = new ExampleHierarchySeries({
+            eventsHub: new EventEmitter(),
+        } as any);
         series.properties.sizeKey = 'size';
         series.setChartData(
             DataSet.wrap([
@@ -87,7 +91,9 @@ describe('HierarchySeries', () => {
     });
 
     it('handles an empty dataset', () => {
-        const series = new ExampleHierarchySeries(null!);
+        const series = new ExampleHierarchySeries({
+            eventsHub: new EventEmitter(),
+        } as any);
         series.setChartData(DataSet.wrap([]));
         series.processData();
 
@@ -109,7 +115,9 @@ describe('HierarchySeries', () => {
     });
 
     it('walks tree in pre-order', () => {
-        const series = new ExampleHierarchySeries(null!);
+        const series = new ExampleHierarchySeries({
+            eventsHub: new EventEmitter(),
+        } as any);
         series.setChartData(
             DataSet.wrap([
                 {

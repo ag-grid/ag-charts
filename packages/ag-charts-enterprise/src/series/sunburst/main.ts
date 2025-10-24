@@ -1,1 +1,0 @@
-export { SunburstModule } from './sunburstModule';

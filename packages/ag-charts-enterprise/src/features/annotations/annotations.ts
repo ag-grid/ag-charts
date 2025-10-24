@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
     _Widget,
 } from 'ag-charts-community';
-import { isValidDate } from 'ag-charts-core';
+import { AbstractModuleInstance, isValidDate } from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -44,6 +44,7 @@ const {
     Vec2,
     Selection,
     BBox,
+    ObserveChanges,
 } = _ModuleSupport;
 
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
@@ -55,10 +56,7 @@ type AnnotationAxis = {
     button?: AxisButton;
 };
 
-export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @Property
-    public enabled: boolean = true;
-
+export class Annotations extends AbstractModuleInstance {
     @Property
     public readonly toolbar = new AnnotationsToolbar(this.ctx);
 
@@ -71,6 +69,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     @Property
     public axesButtons = new AxesButtons();
+
+    @Property
+    @ObserveChanges<Annotations>((target, value) => {
+        target.toolbar.enabled = value;
+        target.optionsToolbar.enabled = value;
+        target.axesButtons.enabled = value;
+    })
+    public enabled: boolean = true;
 
     @Property
     public snap: boolean = false;
@@ -119,6 +125,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.clear();
             this.xAxis?.button?.destroy();
             this.yAxis?.button?.destroy();
+            this.textInput.destroy();
         });
     }
 
@@ -715,6 +722,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        if (!this.enabled) return;
+
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
 
@@ -780,6 +789,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onPreRender() {
+        if (!this.enabled) return;
         this.updateAnnotations();
         this.state.transition('render');
     }

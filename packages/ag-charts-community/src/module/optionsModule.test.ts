@@ -1,6 +1,6 @@
 import { describe } from '@jest/globals';
 
-import { Logger } from 'ag-charts-core';
+import { Logger, ModuleRegistry } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -8,14 +8,14 @@ import type {
     AgChartOptions,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
+    SeriesType,
 } from 'ag-charts-types';
 
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { setupModules } from '../chart/factory/setupModules';
-import { SeriesType } from '../chart/mapping/types';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
+import { VERSION } from '../version';
 import { ChartOptions } from './optionsModule';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
@@ -1626,14 +1626,16 @@ describe('ChartOptions', () => {
             };
 
             for (const [seriesType, { stackable, groupable, stackedByDefault }] of Object.entries(seriesTypes)) {
-                seriesRegistry.register(
-                    seriesType as SeriesType,
+                ModuleRegistry.register(
                     {
-                        chartTypes: ['cartesian'],
+                        type: 'series',
+                        name: seriesType,
+                        chartType: 'cartesian',
                         stackable,
                         groupable,
                         stackedByDefault,
-                    } as any
+                    } as any,
+                    VERSION
                 );
             }
 
@@ -2108,8 +2110,8 @@ describe('ChartOptions', () => {
             expect(preparedOptions.tooltip?.enabled).toBe(false);
             expect(preparedOptions.tooltip?.range).toBe(theme.config.line.tooltip.range);
 
-            // AG-13304 - Disabled modules should not have any options object.
-            expect(preparedOptions.legend).toBeUndefined();
+            // Disabled modules now keep their options object.
+            expect(preparedOptions.legend).not.toBeUndefined();
         });
 
         it('should intrinsically enable nested crossline options', () => {

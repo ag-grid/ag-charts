@@ -1,14 +1,22 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgChartSyncOptions } from 'ag-charts-community';
+import { type PluginModuleDefinition, boolean, string, union } from 'ag-charts-core';
 
 import { ChartSync } from './chartSync';
 
-export const SyncModule: _ModuleSupport.RootModule = {
-    type: 'root',
-    optionsKey: 'sync',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-    moduleFactory: (ctx) => new ChartSync(ctx),
-    themeTemplate: {
-        sync: { enabled: false },
+export const SyncModule: PluginModuleDefinition<AgChartSyncOptions> = {
+    type: 'plugin',
+    name: 'sync',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: {
+        enabled: boolean,
+        groupId: string,
+        axes: union('x', 'y', 'xy'),
+        nodeInteraction: boolean,
+        zoom: boolean,
     },
+    themeTemplate: { enabled: false },
+
+    create: (ctx) => new ChartSync(ctx),
 };

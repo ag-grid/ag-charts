@@ -25,10 +25,10 @@ import type { DataController } from '../../data/dataController';
 import type {
     AggregatePropertyDefinition,
     DataGroup,
+    DataPropertyDefinition,
     GroupByFn,
     GroupedData,
     ProcessedOutputDiff,
-    PropertyDefinition,
 } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
@@ -184,7 +184,7 @@ export class HistogramSeries extends CartesianSeries<
 
         const visibleProps = visible ? {} : { forceValue: 0 };
 
-        const props: PropertyDefinition<any>[] = [keyProperty(xKey, xScaleType), SORT_DOMAIN_GROUPS];
+        const props: DataPropertyDefinition<any>[] = [keyProperty(xKey, xScaleType), SORT_DOMAIN_GROUPS];
         if (yKey) {
             let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg', { visible });
 

@@ -6,9 +6,9 @@ import { type CachedData, canReuseCachedData } from './caching';
 import {
     DataModel,
     type DataModelOptions,
+    type DataPropertyDefinition,
     type DatumPropertyDefinition,
     type ProcessedData,
-    type PropertyDefinition,
     type UngroupedData,
 } from './dataModel';
 import { DataChangeDescription, DataSet } from './dataSet';
@@ -43,7 +43,7 @@ type Result<
     G extends boolean | undefined = undefined,
 > = { processedData: ProcessedData<D>; dataModel: DataModel<D, K, G> };
 
-function getPropertyKeys(props: PropertyDefinition<any>[]) {
+function getPropertyKeys(props: DataPropertyDefinition<any>[]) {
     return props
         .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
         .map((p) => p.property)
@@ -258,7 +258,7 @@ export class DataController {
             opts: { ...requests[0].opts, props: [] },
         };
 
-        const optsByTypeAndDataId = new Map<string, PropertyDefinition<any>[]>();
+        const optsByTypeAndDataId = new Map<string, DataPropertyDefinition<any>[]>();
         const dataIds = new Map<unknown, number>();
         let nextDataId = 0;
         for (const request of requests) {

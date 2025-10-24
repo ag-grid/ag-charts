@@ -1,5 +1,6 @@
+import type { NormalizedDomain } from 'ag-charts-core';
+
 import { CategoryScale } from './categoryScale';
-import type { NormalizedDomain } from './scale';
 
 export class GroupedCategoryScale<D, I = number> extends CategoryScale<D, I> {
     static override is(value: unknown): value is GroupedCategoryScale<any, any> {

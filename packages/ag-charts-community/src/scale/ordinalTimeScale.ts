@@ -1,9 +1,9 @@
+import { type NormalizedDomain, ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import { ContinuousScale } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import { type NormalizedDomain, ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from './scale';
 import { getDateTicksForInterval } from './timeScale';
 
 export class OrdinalTimeScale extends DiscreteTimeScale {

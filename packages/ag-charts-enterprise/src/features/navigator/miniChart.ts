@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, calcLineHeight } from 'ag-charts-core';
+import { AbstractModuleInstance, Logger, calcLineHeight } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
@@ -14,7 +14,7 @@ class MiniChartPadding {
     bottom: number = 0;
 }
 
-export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class MiniChart extends AbstractModuleInstance {
     @Property
     enabled: boolean = false;
 
@@ -87,6 +87,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
+
+        this.cleanup.register(this.ctx.eventsHub.on('data:update', (data) => this.updateData(data)));
     }
 
     override destroy() {
@@ -94,6 +96,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             return;
         }
 
+        super.destroy();
         this.destroySeries(this.series);
 
         for (const a of this.axes) {

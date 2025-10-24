@@ -32,8 +32,8 @@ export class TopologyChart extends Chart {
         return 'topology' as const;
     }
 
-    override async updateData() {
-        await super.updateData();
+    override updateData() {
+        super.updateData();
 
         const options = this.getOptions() as AgTopologyChartOptions;
         if (this.topology !== options.topology) {
@@ -50,14 +50,14 @@ export class TopologyChart extends Chart {
 
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
-        const { layoutBox } = ctx;
 
-        const seriesRect = layoutBox.clone().shrink(this.modulesManager.getModule<any>('seriesArea').getPadding());
+        const seriesAreaModule: any = this.modulesManager.getModule('seriesArea');
+        const seriesRect = ctx.layoutBox.clone().shrink(seriesAreaModule.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
 
-        const mapSeries = this.series.filter<_ModuleSupport.ITopology>(isTopologySeries);
+        const mapSeries = this.series as _ModuleSupport.ITopology[];
         const combinedBbox = mapSeries.reduce<_ModuleSupport.LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
@@ -114,7 +114,7 @@ export class TopologyChart extends Chart {
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: seriesVisible, rect: seriesRect, paddedRect: layoutBox },
+            series: { visible: seriesVisible, rect: seriesRect, paddedRect: ctx.layoutBox },
         });
     }
 }

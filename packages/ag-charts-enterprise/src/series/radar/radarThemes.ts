@@ -1,10 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
+    mergeDefaults,
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
-const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar-area'>['themeTemplate'] = {
+const BASE_RADAR_SERIES_THEME: ExtensibleTheme<'radar-line' | 'radar-area'> = {
     series: {
         stroke: { $palette: 'stroke' },
         label: {
@@ -47,36 +49,34 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
     },
 };
 
-export const RADAR_LINE_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line'>['themeTemplate'] =
-    _ModuleSupport.mergeDefaults(
-        {
-            series: {
-                stroke: _ModuleSupport.SAFE_STROKE_FILL_OPERATION,
-                strokeWidth: 2,
-            },
+export const RADAR_LINE_SERIES_THEME: ExtensibleTheme<'radar-line'> = mergeDefaults(
+    {
+        series: {
+            stroke: _ModuleSupport.SAFE_STROKE_FILL_OPERATION,
+            strokeWidth: 2,
         },
-        BASE_RADAR_SERIES_THEME
-    );
+    },
+    BASE_RADAR_SERIES_THEME
+);
 
-export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>['themeTemplate'] =
-    _ModuleSupport.mergeDefaults(
-        {
-            series: {
-                fill: {
-                    $applySwitch: [
-                        { $path: 'type' },
-                        { $palette: 'fill' },
-                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
-                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                    ],
-                },
-                fillOpacity: 0.8,
-                strokeWidth: 2,
-                marker: {
-                    enabled: false,
-                },
+export const RADAR_AREA_SERIES_THEME: ExtensibleTheme<'radar-area'> = mergeDefaults(
+    {
+        series: {
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ],
+            },
+            fillOpacity: 0.8,
+            strokeWidth: 2,
+            marker: {
+                enabled: false,
             },
         },
-        BASE_RADAR_SERIES_THEME
-    );
+    },
+    BASE_RADAR_SERIES_THEME
+);

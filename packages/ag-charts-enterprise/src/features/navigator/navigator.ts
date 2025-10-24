@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, Logger, clamp } from 'ag-charts-core';
+import { AbstractModuleInstance, type BoxBounds, Logger, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -7,7 +7,7 @@ import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
-const { BaseModuleInstance, ObserveChanges, Property } = _ModuleSupport;
+const { ObserveChanges, Property } = _ModuleSupport;
 
 interface BBoxProvider {
     id: string;
@@ -17,7 +17,7 @@ interface BBoxProvider {
     getBBox(): _ModuleSupport.BBox;
 }
 
-export class Navigator extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Navigator extends AbstractModuleInstance {
     // @TempValidate
     @ObserveChanges<Navigator, MiniChart>((target, value, oldValue) => {
         target.updateBackground(oldValue?.root, value?.root);
@@ -97,9 +97,8 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         }
     }
 
-    protected onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
+    protected onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
         if (this.enabled) {
-            const { layoutBox } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;
             layoutBox.shrink(navigatorTotalHeight, 'bottom');
             this.y = layoutBox.y + layoutBox.height + this.spacing;
@@ -109,7 +108,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
         if (this.enabled && this.miniChart) {
             const { top, bottom } = this.miniChart.computeAxisPadding();
-            ctx.layoutBox.shrink(top + bottom, 'bottom');
+            layoutBox.shrink(top + bottom, 'bottom');
             this.y -= bottom;
 
             this.miniChart.inset = this.mask.strokeWidth / 2;
@@ -212,13 +211,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         this.domProxy.updateZoom();
     }
 
-    updateData(data: any) {
-        return this.miniChart?.updateData(data);
-    }
-
     async processData(dataController: _ModuleSupport.DataController) {
-        if (this.miniChart) {
-            return this.miniChart?.processData(dataController);
-        }
+        return this.miniChart?.processData(dataController);
     }
 }

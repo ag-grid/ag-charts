@@ -1,5 +1,5 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import { AbstractModuleInstance, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 
 const { ZIndexMap, LayoutElement, Property, BaseProperties, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
 
@@ -57,10 +57,7 @@ class StatusBarBackground extends BaseProperties {
     fillOpacity: number = 1;
 }
 
-export class StatusBar
-    extends _ModuleSupport.BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance, _ModuleSupport.ScopeProvider
-{
+export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.ScopeProvider {
     @Property
     enabled: boolean = false;
 
@@ -281,13 +278,12 @@ export class StatusBar
         }
     }
 
-    private startPerformLayout(opts: _ModuleSupport.LayoutContext) {
+    private startPerformLayout({ layoutBox }: _ModuleSupport.LayoutContext) {
         this.labelGroup.translationX = 0;
         this.labelGroup.translationY = 0;
 
         if (!this.enabled) return;
 
-        const { layoutBox } = opts;
         const innerSpacing = 4;
         const outerSpacing = 12;
         const spacingAbove = 0;

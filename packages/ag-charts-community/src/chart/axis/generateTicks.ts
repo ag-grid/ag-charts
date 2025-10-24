@@ -1,11 +1,18 @@
-import { type BoxBounds, cachedTextMeasurer, countFractionDigits, rotatePoint } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    type Scale,
+    ScaleAlignment,
+    type ScaleTickParams,
+    cachedTextMeasurer,
+    countFractionDigits,
+    rotatePoint,
+} from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { CategoryScale } from '../../scale/categoryScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { type Scale, ScaleAlignment, type ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { normalizeAngle360FromDegrees } from '../../util/angle';

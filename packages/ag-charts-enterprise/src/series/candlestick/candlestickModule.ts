@@ -7,14 +7,14 @@ import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
 
 const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
 
-export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
+export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
+    name: 'candlestick',
+    chartType: 'cartesian',
+    enterprise: true,
+    groupable: false,
 
-    identifier: 'candlestick',
-    moduleFactory: (ctx) => new CandlestickSeries(ctx),
+    options: candlestickSeriesOptionsDef,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -26,16 +26,6 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
         },
     ],
     themeTemplate: CANDLESTICK_SERIES_THEME,
-    groupable: false,
-};
-
-export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeriesOptions> = {
-    type: 'series',
-    name: 'candlestick',
-    chartType: 'cartesian',
-    enterprise: true,
-
-    options: candlestickSeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new CandlestickSeries(ctx),
 };

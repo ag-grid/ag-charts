@@ -4,16 +4,14 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { SankeySeries } from './sankeySeries';
 import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
 
-export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
+export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
+    name: 'sankey',
+    chartType: 'standalone',
+    enterprise: true,
     solo: true,
 
-    identifier: 'sankey',
-    moduleFactory: (ctx) => new SankeySeries(ctx),
-
+    options: sankeySeriesOptionsDef,
     themeTemplate: {
         seriesArea: {
             padding: {
@@ -24,7 +22,6 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
         series: {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            // @ts-expect-error undocumented option
             fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
@@ -60,15 +57,6 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             toggleSeries: false,
         },
     },
-};
-
-export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
-    type: 'series',
-    name: 'sankey',
-    chartType: 'standalone',
-    enterprise: true,
-
-    options: sankeySeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new SankeySeries(ctx),
 };

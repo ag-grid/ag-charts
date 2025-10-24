@@ -1,7 +1,8 @@
-import type { PlainObject } from 'ag-charts-core';
 import {
     Debug,
     Logger,
+    ModuleRegistry,
+    type PlainObject,
     circularSliceArray,
     isArray,
     isNumber,
@@ -10,7 +11,6 @@ import {
     isString,
 } from 'ag-charts-core';
 
-import { chartTypes } from '../chart/factory/chartTypes';
 import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
 import { Color } from '../util/color';
 import { without } from '../util/object';
@@ -172,13 +172,16 @@ function isChartTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterf
     const seriesType = graph.getResolvedPath(['series', '0', 'type']);
     if (typeof seriesType !== 'string') return false;
 
+    const seriesModule = ModuleRegistry.getSeriesModule(seriesType);
+    if (seriesModule == null) return false;
+
     switch (value) {
         case 'cartesian':
-            return chartTypes.isCartesian(seriesType);
+            return seriesModule.chartType === 'cartesian';
         case 'polar':
-            return chartTypes.isPolar(seriesType);
+            return seriesModule.chartType === 'polar';
         case 'standalone':
-            return chartTypes.isStandalone(seriesType);
+            return seriesModule.chartType === 'standalone';
     }
 
     return false;

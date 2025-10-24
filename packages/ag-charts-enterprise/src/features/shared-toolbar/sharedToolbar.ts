@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { AbstractModuleInstance } from 'ag-charts-core';
 
 import type { SharedToolbarSection } from './sharedToolbarTypes';
 
@@ -20,7 +21,7 @@ export interface SharedToolbarWithSection<
     layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => void;
 }
 
-export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class SharedToolbar extends AbstractModuleInstance {
     static readonly SECTION_ORDER: Array<SharedToolbarSection> = ['chartToolbar', 'annotations'];
 
     private readonly container: HTMLElement;

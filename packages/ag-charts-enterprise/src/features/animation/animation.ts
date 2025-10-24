@@ -1,8 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { AbstractModuleInstance } from 'ag-charts-core';
 
 const { ObserveChanges, Property } = _ModuleSupport;
 
-export class Animation extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Animation extends AbstractModuleInstance {
     @ObserveChanges<Animation>((target, newValue) => {
         target.ctx.animationManager.skip(!newValue);
     })
@@ -23,11 +24,7 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     constructor(protected readonly ctx: _ModuleSupport.ModuleContext) {
         super();
-
         ctx.animationManager.skip(false);
-
-        this.cleanup.register(() => {
-            ctx.animationManager.skip(true);
-        });
+        this.cleanup.register(() => ctx.animationManager.skip(true));
     }
 }

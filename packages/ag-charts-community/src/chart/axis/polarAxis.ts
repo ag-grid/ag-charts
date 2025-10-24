@@ -1,4 +1,5 @@
-import type { Scale } from '../../scale/scale';
+import type { Scale } from 'ag-charts-core';
+
 import type { BBox } from '../../scene/bbox';
 import { Property } from '../../util/properties';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';

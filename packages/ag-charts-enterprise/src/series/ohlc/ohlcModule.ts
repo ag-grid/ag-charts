@@ -1,5 +1,6 @@
 import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 import { OhlcSeries } from './ohlcSeries';
 import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
@@ -9,61 +10,47 @@ const {
     multiSeriesHighlightStyle,
 } = _ModuleSupport;
 
-export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'ohlc',
-    moduleFactory: (ctx) => new OhlcSeries(ctx),
-    defaultAxes: [
-        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
-        { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },
-    ],
-    themeTemplate: {
-        animation: { enabled: false },
-        series: {
-            item: {
-                up: {
-                    stroke: {
-                        $if: [
-                            { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                            { $palette: 'stroke' },
-                            { $palette: 'up.stroke' },
-                        ],
-                    },
-                },
-                down: {
-                    stroke: {
-                        $if: [
-                            { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                            { $palette: 'stroke' },
-                            { $palette: 'down.stroke' },
-                        ],
-                    },
+const themeTemplate: ExtensibleTheme<'ohlc'> = {
+    animation: { enabled: false },
+    series: {
+        item: {
+            up: {
+                stroke: {
+                    $if: [
+                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                        { $palette: 'stroke' },
+                        { $palette: 'up.stroke' },
+                    ],
                 },
             },
-            tooltip: {
-                range: { $path: ['/tooltip/range', 'nearest'] },
+            down: {
+                stroke: {
+                    $if: [
+                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                        { $palette: 'stroke' },
+                        { $palette: 'down.stroke' },
+                    ],
+                },
             },
-            highlight: multiSeriesHighlightStyle(false),
         },
-        axes: {
-            [CARTESIAN_AXIS_TYPE.NUMBER]: {
-                crosshair: {
-                    snap: false,
-                },
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+        },
+        highlight: multiSeriesHighlightStyle(false),
+    },
+    axes: {
+        [CARTESIAN_AXIS_TYPE.NUMBER]: {
+            crosshair: {
+                snap: false,
             },
-            [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
-                groupPaddingInner: 0,
-                crosshair: {
-                    enabled: true,
-                },
+        },
+        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
+            groupPaddingInner: 0,
+            crosshair: {
+                enabled: true,
             },
         },
     },
-    groupable: false,
 };
 
 export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
@@ -73,6 +60,11 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     enterprise: true,
 
     options: ohlcSeriesOptionsDef,
+    defaultAxes: [
+        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
+        { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },
+    ],
+    themeTemplate,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new OhlcSeries(ctx),
 };

@@ -140,7 +140,6 @@ export abstract class PolarSeries<
         });
 
         this.animationResetFns = animationResetFns;
-
         this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>(
             'empty',
             {
@@ -180,6 +179,11 @@ export abstract class PolarSeries<
             },
             () => this.checkProcessedDataAnimatable()
         );
+
+        this.cleanup.register(
+            this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
+            this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
+        );
     }
 
     override setZIndex(zIndex: number) {
@@ -204,13 +208,6 @@ export abstract class PolarSeries<
         const text = new Text();
         text.pointerEvents = PointerEvents.None;
         return text;
-    }
-
-    override addChartEventListeners(): void {
-        this.cleanup.register(
-            this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
-            this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
-        );
     }
 
     getInnerRadius(): number {

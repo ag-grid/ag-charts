@@ -5,27 +5,17 @@ import { RangeBarSeries } from './rangeBarSeries';
 import { rangeBarSeriesOptionsDef } from './rangeBarSeriesOptionsDef';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
-export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'range-bar',
-    moduleFactory: (ctx) => new RangeBarSeries(ctx),
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
-    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
-    themeTemplate: RANGE_BAR_SERIES_THEME,
-    groupable: true,
-};
-
 export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOptions> = {
     type: 'series',
     name: 'range-bar',
     chartType: 'cartesian',
     enterprise: true,
+    groupable: true,
 
     options: rangeBarSeriesOptionsDef,
+    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
+    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
+    themeTemplate: RANGE_BAR_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new RangeBarSeries(ctx),
+    create: (ctx) => new RangeBarSeries(ctx),
 };

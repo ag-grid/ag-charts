@@ -5,7 +5,6 @@ import type { ChartOptions } from '../module/optionsModule';
 import { without } from '../util/object';
 import type { TransferableResources } from './chart';
 import { polarChartOptionsDefs } from './chartOptionsDefs';
-import { isAgPolarChartOptions } from './mapping/types';
 import { PolarChart } from './polarChart';
 
 export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
@@ -14,7 +13,6 @@ export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
 
     options: polarChartOptionsDefs,
 
-    detect: isAgPolarChartOptions,
     create(options: ChartOptions, resources?: TransferableResources) {
         return new PolarChart(options, resources);
     },

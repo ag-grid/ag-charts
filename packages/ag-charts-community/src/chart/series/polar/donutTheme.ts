@@ -1,4 +1,5 @@
-import type { ExtensibleTheme } from '../../../module/coreModules';
+import type { ExtensibleTheme } from 'ag-charts-types';
+
 import { LABEL_BOXING_DEFAULTS, singleSeriesHighlightStyle } from '../../themes/util';
 import { pieTheme } from './pieTheme';
 

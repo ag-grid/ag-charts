@@ -5,14 +5,13 @@ import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefault
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
 import { mapShapeBackgroundSeriesOptionsDef } from './mapShapeBackgroundSeriesOptionsDef';
 
-export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-background'> = {
+export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBackgroundOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['topology'],
+    name: 'map-shape-background',
+    chartType: 'topology',
+    enterprise: true,
 
-    identifier: 'map-shape-background',
-    moduleFactory: (ctx) => new MapShapeBackgroundSeries(ctx),
+    options: mapShapeBackgroundSeriesOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -29,15 +28,6 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
             strokeWidth: 1,
         },
     },
-};
-
-export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBackgroundOptions> = {
-    type: 'series',
-    name: 'map-shape-background',
-    chartType: 'topology',
-    enterprise: true,
-
-    options: mapShapeBackgroundSeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new MapShapeBackgroundSeries(ctx),
 };

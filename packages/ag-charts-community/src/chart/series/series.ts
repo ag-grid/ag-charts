@@ -8,6 +8,7 @@ import {
     Logger,
     type Point,
     type RequireOptional,
+    type SeriesPluginModuleInstance,
     createId,
     isEmptyObject,
 } from 'ag-charts-core';
@@ -21,6 +22,7 @@ import type {
     FormatterParams,
     FormatterPropertyType,
     HighlightState as PublicHighlightState,
+    SeriesType,
     TextOrSegments,
 } from 'ag-charts-types';
 
@@ -33,7 +35,6 @@ import type {
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionInstance, SeriesOptionModule } from '../../module/optionsModuleTypes';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -55,7 +56,6 @@ import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
 import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
-import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import type { SeriesMarker } from './seriesMarker';
@@ -166,8 +166,6 @@ export type SeriesNodeStyleContext<TStyle> = {
     [HighlightState.OtherSeries]: TStyle;
     [HighlightState.OtherItem]: TStyle;
 };
-
-export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
 
 export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
     [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
@@ -310,7 +308,7 @@ export abstract class Series<
     protected nodeDataRefresh = true;
     protected processedDataUpdated = true;
 
-    protected readonly moduleMap: SeriesModuleMap = new ModuleMap();
+    protected readonly moduleMap = new ModuleMap<SeriesPluginModuleInstance>();
 
     protected _data?: DataSet<any>;
     protected _chartData?: DataSet<any>;
@@ -406,7 +404,10 @@ export abstract class Series<
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
 
-        this.cleanup.register(this.ctx?.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)));
+        this.cleanup.register(
+            this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),
+            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event))
+        );
     }
 
     attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {
@@ -473,10 +474,6 @@ export abstract class Series<
     override hasEventListener(type: string): boolean;
     override hasEventListener(type: string): boolean {
         return super.hasEventListener(type);
-    }
-
-    addChartEventListeners(): void {
-        return;
     }
 
     updatedDomains() {
@@ -934,7 +931,7 @@ export abstract class Series<
         return this.visible;
     }
 
-    getModuleMap(): SeriesModuleMap {
+    getModuleMap() {
         return this.moduleMap;
     }
 

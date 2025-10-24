@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE },
@@ -7,7 +8,7 @@ const {
     FILL_PATTERN_DEFAULTS,
 } = _ModuleSupport;
 
-export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>['themeTemplate'] = {
+export const RADIAL_BAR_SERIES_THEME: ExtensibleTheme<'radial-bar'> = {
     series: {
         fill: {
             $applySwitch: [

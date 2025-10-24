@@ -1,3 +1,4 @@
+import type { Scale } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -16,7 +17,6 @@ import type { AxisLayout } from '../core/eventsHub';
 import type { AxisContext, AxisFormattableLabel } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
-import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { Padding } from '../util/padding';
@@ -108,7 +108,7 @@ export interface ChartAxis {
     ): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
-    getModuleMap(): ModuleMap<any, any, any>;
+    getModuleMap(): ModuleMap;
     inRange(x: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;

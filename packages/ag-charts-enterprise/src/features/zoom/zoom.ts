@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { debounce, entries, roundTo } from 'ag-charts-core';
+import { AbstractModuleInstance, debounce, entries, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -76,7 +76,7 @@ class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoS
     padding = 0;
 }
 
-export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Zoom extends AbstractModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
             this.onEnabledChange(enabled);
