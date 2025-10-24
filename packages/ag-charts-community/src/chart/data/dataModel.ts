@@ -2,29 +2,28 @@ import { Logger, first } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
+import { Aggregator } from './data-model/aggregation/aggregator';
 import { DomainInitializer } from './data-model/domain/domainInitializer';
 import { DomainManager } from './data-model/domain/domainManager';
 import { DataExtractor } from './data-model/extraction/dataExtractor';
-import { createArray, datumKeys, isScoped, toKeyString } from './data-model/utils/helpers';
+import { DataGrouper } from './data-model/grouping/dataGrouper';
+import { createArray, isScoped, toKeyString } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from './dataChangeDescription';
-import { BandedDomain, ContinuousDomain, DiscreteDomain } from './dataDomain';
+import { BandedDomain } from './dataDomain';
 // Import types for internal use
 import type {
     AggregatePropertyDefinition,
-    ColumnBatch,
     DataGroup,
     DataModelOptions,
     GroupDatumIteratorOutput,
     GroupValueProcessorDefinition,
     GroupedData,
-    GroupingFn,
     InsertionCache,
     InsertionCacheValue,
     InternalDatumPropertyDefinition,
     InternalDefinition,
-    MergedColumnBatch,
     ProcessedData,
     ProcessedDataDef,
     ProcessedOutputDiff,
@@ -72,6 +71,8 @@ export class DataModel<
     private readonly domainInitializer!: DomainInitializer<K>;
     private readonly domainManager!: DomainManager<D, K>;
     private readonly dataExtractor!: DataExtractor<D, K>;
+    private readonly dataGrouper!: DataGrouper<D, K>;
+    private readonly aggregator!: Aggregator<D, K>;
     private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition<true>)[] = [];
@@ -189,6 +190,14 @@ export class DataModel<
             this.mode
         );
         this.dataExtractor = new DataExtractor(this.keys, this.values, this.domainManager);
+        this.dataGrouper = new DataGrouper(this.keys, this.opts.groupByFn, this.debug);
+        this.aggregator = new Aggregator(
+            this.aggregates,
+            this.groupProcessors,
+            this.values,
+            this.scopeCacheManager,
+            this.resolvers
+        );
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
@@ -320,17 +329,17 @@ export class DataModel<
 
         let processedData: ProcessedData<D> = this.extractData(sources);
         if (groupByKeys) {
-            processedData = this.groupData(processedData);
+            processedData = this.dataGrouper.groupData(processedData);
         } else if (groupByFn) {
-            processedData = this.groupData(processedData, groupByFn(processedData));
+            processedData = this.dataGrouper.groupData(processedData, groupByFn(processedData));
         }
         if (groupProcessors.length > 0 && processedData.type === 'grouped') {
-            this.postProcessGroups(processedData);
+            this.aggregator.postProcessGroups(processedData);
         }
         if (aggregates.length > 0 && processedData.type === 'ungrouped') {
-            this.aggregateUngroupedData(processedData);
+            this.aggregator.aggregateUngroupedData(processedData);
         } else if (aggregates.length > 0 && processedData.type === 'grouped') {
-            this.aggregateGroupedData(processedData);
+            this.aggregator.aggregateGroupedData(processedData);
         }
         if (propertyProcessors.length > 0) {
             this.postProcessProperties(processedData);
@@ -1101,386 +1110,6 @@ export class DataModel<
 
     private extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
         return this.dataExtractor.extractData(sources);
-    }
-
-    /**
-     * GROUPED DATA STRUCTURE AND INVARIANTS:
-     *
-     * When groupsUnique=true (each datum has distinct keys):
-     * - groups.length === columns[i].length for all columns
-     * - groups[i] corresponds to datum at columns[j][i]
-     * - All datumIndices arrays contain [0] (shared memory optimization)
-     * - Relative indexing: datumIndices contains offsets from group start
-     * - Absolute indexing: groupIndex + relativeDatumIndex gives column position
-     *
-     * When groupsUnique=false (data is aggregated):
-     * - groups.length <= columns[i].length
-     * - Multiple datums may map to same group
-     * - datumIndices contain actual relative offsets
-     *
-     * This design optimizes memory usage for high-frequency data updates
-     * where each datum typically has unique keys (e.g., time series data).
-     */
-    private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {
-        type Group = {
-            keys: unknown[];
-            datumIndices: number[][];
-            aggregation: any[];
-            validScopes: Set<string>;
-        };
-
-        const { keys: dataKeys, columns: allColumns, columnScopes, invalidKeys, invalidData } = data;
-
-        const allScopes = data.scopes;
-        const resultGroups = [];
-        const resultData = [];
-
-        const groups = allScopes.size !== 1 || groupingFn != null ? new Map<string, [number, Group]>() : undefined;
-        let groupsUnique = true;
-        let groupIndex = 0;
-
-        // Determine columns we can process in batch.
-        const rawBatchCount = allScopes.size;
-        const columnBatches = this.groupBatches(
-            allScopes,
-            allColumns,
-            columnScopes,
-            dataKeys,
-            invalidData,
-            invalidKeys
-        );
-        const mergedBatchCount = columnBatches.length;
-
-        // Track batch merging optimization if debug enabled
-        if (this.debug.check() && !data.optimizations) {
-            data.optimizations = {};
-        }
-        if (this.debug.check()) {
-            const mergeRatio = rawBatchCount > 0 ? 1 - mergedBatchCount / rawBatchCount : 0;
-            data.optimizations!.batchMerging = {
-                originalBatchCount: rawBatchCount,
-                mergedBatchCount,
-                mergeRatio,
-            };
-        }
-
-        const singleBatch = columnBatches.length === 1;
-        const allZeroDatumIndices = Object.freeze(createArray(columnBatches[0][1].length, SHARED_ZERO_INDICES));
-
-        for (const [
-            scopes,
-            scopeColumnIndexes,
-            scopeKeys,
-            siblingScopes,
-            scopeInvalidData,
-            scopeInvalidKeys,
-        ] of columnBatches) {
-            const firstColumn = allColumns[first(scopeColumnIndexes)];
-            for (let datumIndex = 0; datumIndex < firstColumn.length; datumIndex++) {
-                if (scopeInvalidKeys?.[datumIndex] === true) continue;
-
-                const keys = scopeKeys.map((k) => k[datumIndex]);
-                if (keys == null || keys.length === 0) {
-                    throw new Error('AG Charts - no keys found for scope(s): ' + scopes.join(', '));
-                }
-
-                const group = groupingFn?.(keys) ?? keys;
-                const groupStr = groups == null ? undefined : toKeyString(group);
-
-                let outputGroup: [number, Group] | undefined = groups?.get(groupStr!);
-                let currentGroup: Group | undefined;
-                let currentGroupIndex: number;
-                let isNewGroup = false;
-                if (outputGroup == null) {
-                    currentGroup = {
-                        keys: group,
-                        datumIndices: [],
-                        aggregation: [],
-                        validScopes: allScopes,
-                    };
-                    currentGroupIndex = groupIndex++;
-                    outputGroup = [currentGroupIndex, currentGroup];
-                    isNewGroup = true;
-
-                    groups?.set(groupStr!, outputGroup);
-
-                    resultGroups.push(currentGroup.keys);
-                    resultData.push(currentGroup);
-                } else {
-                    [currentGroupIndex, currentGroup] = outputGroup;
-                    groupsUnique = false;
-                }
-
-                if (scopeInvalidData?.[datumIndex] === true) {
-                    if (currentGroup.validScopes === allScopes) {
-                        // Lazy Set initialization.
-                        currentGroup.validScopes = new Set(allScopes.values());
-                    }
-                    for (const invalidScope of siblingScopes) {
-                        currentGroup.validScopes.delete(invalidScope);
-                    }
-                }
-
-                if (isNewGroup && datumIndex === currentGroupIndex && singleBatch) {
-                    // Optimised case when all datumIndices are [0] for all groups.
-                    currentGroup.datumIndices = allZeroDatumIndices as number[][];
-                } else {
-                    // If reusing a group that has the frozen optimization array, we need mutable arrays
-                    if (!isNewGroup && currentGroup.datumIndices === allZeroDatumIndices) {
-                        // Convert frozen shared array to mutable copy
-                        currentGroup.datumIndices = allZeroDatumIndices.map((arr) => [...arr]);
-                    }
-
-                    for (const columnIdx of scopeColumnIndexes) {
-                        currentGroup.datumIndices[columnIdx] ??= [];
-                        currentGroup.datumIndices[columnIdx].push(datumIndex - currentGroupIndex);
-                    }
-                }
-            }
-        }
-
-        return {
-            ...data,
-            type: 'grouped',
-            domain: {
-                ...data.domain,
-                groups: resultGroups,
-            },
-            groups: resultData,
-            groupsUnique,
-            optimizations: data.optimizations,
-            [DOMAIN_BANDS]: data[DOMAIN_BANDS],
-        };
-    }
-
-    /**
-     * Groups and merges column batches for efficient processing.
-     *
-     * BATCH MERGING OPTIMIZATION:
-     * - Identifies columns that share the same data characteristics
-     * - Merges compatible batches to reduce iteration overhead
-     * - Can reduce processing iterations by 30-50% for multi-scope datasets
-     *
-     * Compatibility criteria:
-     * - Same keys arrays (by reference)
-     * - Same invalidity arrays (by reference)
-     * - Scopes can be safely processed together
-     */
-    private groupBatches(
-        allScopes: Set<string>,
-        allColumns: any[][],
-        columnScopes: Set<string>[],
-        dataKeys: Map<string, unknown[]>[],
-        invalidData: Map<string, boolean[]> | undefined,
-        invalidKeys: Map<string, boolean[]> | undefined
-    ) {
-        const columnBatches: ColumnBatch[] = [];
-        const processedColumnIndexes = new Set<number>();
-        for (const scope of allScopes) {
-            const scopeColumnIndexes = allColumns
-                .map((_, idx) => idx)
-                .filter((idx) => !processedColumnIndexes.has(idx) && columnScopes[idx].has(scope));
-            if (scopeColumnIndexes.length === 0) continue;
-            for (const idx of scopeColumnIndexes) {
-                processedColumnIndexes.add(idx);
-            }
-
-            const siblingScopes = new Set<ScopeId>();
-            for (const columnIdx of scopeColumnIndexes) {
-                for (const columnScope of columnScopes[columnIdx]) {
-                    siblingScopes.add(columnScope);
-                }
-            }
-
-            const scopeKeys = dataKeys.map((k) => k.get(scope)).filter((k): k is unknown[] => k != null);
-
-            const scopeInvalidData = invalidData?.get(scope);
-            const scopeInvalidKeys = invalidKeys?.get(scope);
-
-            columnBatches.push([
-                scope,
-                scopeColumnIndexes,
-                scopeKeys,
-                siblingScopes,
-                scopeInvalidData,
-                scopeInvalidKeys,
-            ]);
-        }
-
-        // Merge compatible column batches to reduce iteration overhead.
-        return this.mergeCompatibleBatches(columnBatches);
-    }
-
-    /**
-     * Checks if two column batches can be merged based on shared data characteristics.
-     */
-    private areBatchesCompatible(batch1: ColumnBatch, batch2: ColumnBatch): boolean {
-        const [, , keys1, , invalidData1, invalidKeys1] = batch1;
-        const [, , keys2, , invalidData2, invalidKeys2] = batch2;
-
-        // Batches are compatible if they share the same keys and invalidity arrays
-        return keys1.every((k, i) => k === keys2[i]) && invalidKeys1 === invalidKeys2 && invalidData1 === invalidData2;
-    }
-
-    private mergeCompatibleBatches(columnBatches: ColumnBatch[]): MergedColumnBatch[] {
-        const merged: MergedColumnBatch[] = [];
-        const processed = new Set<number>();
-
-        for (let i = 0; i < columnBatches.length; i++) {
-            if (processed.has(i)) continue;
-
-            const [scope, columnIndexes, keys, siblingScopes, invalidData, invalidKeys] = columnBatches[i];
-            const mergedBatch: MergedColumnBatch = [
-                [scope],
-                [...columnIndexes],
-                keys,
-                new Set(siblingScopes),
-                invalidData,
-                invalidKeys,
-            ];
-
-            // Try to merge with subsequent batches
-            this.findAndMergeCompatibleBatches(columnBatches, i, mergedBatch, processed);
-
-            merged.push(mergedBatch);
-            processed.add(i);
-        }
-
-        return merged;
-    }
-
-    private findAndMergeCompatibleBatches(
-        columnBatches: ColumnBatch[],
-        startIndex: number,
-        mergedBatch: MergedColumnBatch,
-        processed: Set<number>
-    ) {
-        const firstBatch = columnBatches[startIndex];
-        for (let j = startIndex + 1; j < columnBatches.length; j++) {
-            if (processed.has(j)) continue;
-
-            const otherBatch = columnBatches[j];
-            const [scope, otherColumnIndexes, , otherSiblingScopes] = otherBatch;
-
-            if (!this.areBatchesCompatible(firstBatch, otherBatch)) continue;
-
-            // Merge the batches
-            mergedBatch[0].push(scope);
-            mergedBatch[1].push(...otherColumnIndexes);
-            for (const siblingScope of otherSiblingScopes) {
-                mergedBatch[3].add(siblingScope);
-            }
-            processed.add(j);
-        }
-    }
-
-    private aggregateUngroupedData(processedData: UngroupedData<any>) {
-        const domainAggValues = this.aggregates.map((): [number, number] => [Infinity, -Infinity]);
-        processedData.domain.aggValues = domainAggValues;
-
-        const { columns, dataSources } = processedData;
-
-        const onlyScope = first(dataSources.keys());
-        const keys = processedData.keys.map((k) => k.get(onlyScope));
-        const rawData = dataSources.get(onlyScope)?.data ?? [];
-        processedData.aggregation = rawData?.map((_, datumIndex) => {
-            const aggregation: [number, number][] = [];
-
-            for (const [index, def] of this.aggregates.entries()) {
-                const indices = this.valueGroupIdxLookup(def);
-                let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
-                const valuesToAgg = indices.map((columnIndex) => columns[columnIndex][datumIndex] as D[K]);
-                const k = datumKeys(keys, datumIndex);
-                const valuesAgg = k == null ? undefined : def.aggregateFunction(valuesToAgg, k);
-                if (valuesAgg) {
-                    groupAggValues =
-                        def.groupAggregateFunction?.(valuesAgg, groupAggValues) ??
-                        ContinuousDomain.extendDomain(valuesAgg, groupAggValues);
-                }
-
-                const finalValues = def.finalFunction?.(groupAggValues) ?? groupAggValues;
-
-                aggregation[index] = finalValues;
-                ContinuousDomain.extendDomain(finalValues, domainAggValues[index]);
-            }
-
-            return aggregation;
-        });
-    }
-
-    private aggregateGroupedData(processedData: GroupedData<any>) {
-        const domainAggValues = this.aggregates.map((): [number, number] => [Infinity, -Infinity]);
-        processedData.domain.aggValues = domainAggValues;
-
-        const { columns } = processedData;
-
-        for (const [index, def] of this.aggregates.entries()) {
-            const indices = this.valueGroupIdxLookup(def);
-
-            for (let groupIndex = 0; groupIndex < processedData.groups.length; groupIndex++) {
-                const group = processedData.groups[groupIndex];
-                group.aggregation ??= [];
-
-                const groupKeys = group.keys;
-
-                let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
-                const maxDatumIndex = Math.max(
-                    ...indices.map((columnIndex) => group.datumIndices[columnIndex]?.length ?? 0)
-                );
-                for (let datumIndex = 0; datumIndex < maxDatumIndex; datumIndex++) {
-                    const valuesToAgg = indices.map((columnIndex) => {
-                        const relativeDatumIndex = group.datumIndices[columnIndex]?.[datumIndex];
-                        if (relativeDatumIndex == null) {
-                            return undefined as D[K];
-                        }
-                        const absoluteDatumIndex = this.resolvers.resolveAbsoluteIndex(groupIndex, relativeDatumIndex);
-                        return columns[columnIndex][absoluteDatumIndex] as D[K];
-                    });
-                    const valuesAgg = def.aggregateFunction(valuesToAgg, groupKeys);
-                    if (valuesAgg) {
-                        groupAggValues =
-                            def.groupAggregateFunction?.(valuesAgg, groupAggValues) ??
-                            ContinuousDomain.extendDomain(valuesAgg, groupAggValues);
-                    }
-                }
-
-                const finalValues = def.finalFunction?.(groupAggValues) ?? groupAggValues;
-
-                group.aggregation[index] = finalValues;
-                ContinuousDomain.extendDomain(finalValues, domainAggValues[index]);
-            }
-        }
-    }
-
-    private postProcessGroups(processedData: GroupedData<any>) {
-        const { groupProcessors } = this;
-
-        const { columnScopes, columns, invalidData } = processedData;
-        for (const processor of groupProcessors) {
-            const valueIndexes = this.valueGroupIdxLookup(processor);
-            const adjustFn = processor.adjust()();
-
-            for (let groupIndex = 0; groupIndex < processedData.groups.length; groupIndex++) {
-                const dataGroup = processedData.groups[groupIndex];
-                adjustFn(columns, valueIndexes, dataGroup, groupIndex);
-            }
-
-            for (const valueIndex of valueIndexes) {
-                const valueDef = this.values[valueIndex];
-                const isDiscrete = valueDef.valueType === 'category';
-
-                const column = columns[valueIndex];
-                const columnScope = first(columnScopes[valueIndex]);
-                const invalidDatums = invalidData?.get(columnScope);
-                const domain = isDiscrete ? new DiscreteDomain() : new ContinuousDomain();
-                for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
-                    if (invalidDatums?.[datumIndex] === true) continue;
-                    domain.extend(column[datumIndex]);
-                }
-
-                processedData.domain.values[valueIndex] = domain.getDomain();
-            }
-        }
     }
 
     /**

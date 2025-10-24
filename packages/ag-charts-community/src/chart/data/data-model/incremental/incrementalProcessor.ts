@@ -1,6 +1,5 @@
 import { first } from 'ag-charts-core';
 
-import type { Debug } from '../../../../util/debug';
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from '../../dataChangeDescription';
 import { BandedDomain } from '../../dataDomain';
 import type {
@@ -44,8 +43,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         private readonly reducers: any[],
         private readonly processors: any[],
         private readonly propertyProcessors: any[],
-        private readonly groupProcessors: any[],
-        private readonly debug: Debug
+        private readonly groupProcessors: any[]
+        // private readonly _debug: DebugLogger
     ) {}
 
     /**
