@@ -50,11 +50,11 @@
                 defaultExtension: 'js',
             },
             'ag-charts-community/modules': {
-                main: './dist/package/main-modules.cjs.js',
+                main: '../dist/package/main-modules.cjs.js',
                 defaultExtension: 'js',
             },
             'ag-charts-enterprise/modules': {
-                main: './dist/package/main-modules.cjs.js',
+                main: '../dist/package/main-modules.cjs.js',
                 defaultExtension: 'js',
             },
         },
