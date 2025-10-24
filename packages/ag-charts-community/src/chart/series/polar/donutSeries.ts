@@ -36,7 +36,7 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
-import { normalizeAngle180, toRadians } from '../../../util/angle';
+import { normalizeAngle180, toRadians } from 'ag-charts-core/utils/angle';
 import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { mergeDefaults } from '../../../util/object';

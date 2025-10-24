@@ -15,7 +15,7 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
-import { findMinMax } from '../../util/number';
+import { findMinMax } from 'ag-charts-core/utils/numberArray';
 import { Property } from '../../util/properties';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { StateMachine } from '../../util/stateMachine';

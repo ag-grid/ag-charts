@@ -3,7 +3,7 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterP
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
-import { extent } from '../../util/extent';
+import { extent } from 'ag-charts-core/utils/extent';
 import { BaseProperties, Property } from '../../util/properties';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';

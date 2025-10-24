@@ -1,7 +1,7 @@
 import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
 import { clamp } from 'ag-charts-core';
 
-import { previousPowerOf2 } from '../util/number';
+import { previousPowerOf2 } from 'ag-charts-core/utils/numberArray';
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
 import { filterVisibleTicks } from './scaleUtil';

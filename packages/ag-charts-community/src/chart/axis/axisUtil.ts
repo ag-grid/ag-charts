@@ -7,7 +7,7 @@ import type { Group, TranslatableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import type { Rect } from '../../scene/shape/rect';
 import type { RotatableText } from '../../scene/shape/text';
-import { findMinMax } from '../../util/number';
+import { findMinMax } from 'ag-charts-core/utils/numberArray';
 
 export enum NiceMode {
     TickAndDomain,

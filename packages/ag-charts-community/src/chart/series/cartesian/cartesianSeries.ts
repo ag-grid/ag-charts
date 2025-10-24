@@ -17,7 +17,7 @@ import { Path } from '../../../scene/shape/path';
 import { type Segment, SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { findMinMax } from '../../../util/number';
+import { findMinMax } from 'ag-charts-core/utils/numberArray';
 import { Property } from '../../../util/properties';
 import { StateMachine } from '../../../util/stateMachine';
 import { NumberAxis } from '../../axis/numberAxis';

@@ -35,7 +35,7 @@ import { Selection } from '../../scene/selection';
 import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { callWithContext } from '../../util/callbackCache';
-import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
+import { clampArray, findMinMax, findRangeExtent } from 'ag-charts-core/utils/numberArray';
 import { deepFreeze, mergeDefaults } from '../../util/object';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';

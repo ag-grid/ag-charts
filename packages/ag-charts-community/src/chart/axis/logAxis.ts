@@ -2,7 +2,7 @@ import { Logger } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { LogScale } from '../../scale/logScale';
-import { normalisedExtentWithMetadata } from '../../util/extent';
+import { normalisedExtentWithMetadata } from 'ag-charts-core/utils/extent';
 import { NumberAxis } from './numberAxis';
 
 export class LogAxis extends NumberAxis {

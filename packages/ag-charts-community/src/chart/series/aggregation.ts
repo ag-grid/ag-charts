@@ -1,6 +1,6 @@
 import type { ScaleType } from 'ag-charts-core';
 
-import { nextPowerOf2 } from '../../util/number';
+import { nextPowerOf2 } from 'ag-charts-core/utils/numberArray';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
 export const AGGREGATION_INDEX_X_MAX = 1;

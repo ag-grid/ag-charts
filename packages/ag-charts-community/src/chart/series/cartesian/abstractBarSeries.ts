@@ -4,7 +4,7 @@ import type { Direction } from 'ag-charts-types';
 import { CategoryScale } from '../../../scale/categoryScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { extent } from '../../../util/extent';
+import { extent } from 'ag-charts-core/utils/extent';
 import { Property } from '../../../util/properties';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';

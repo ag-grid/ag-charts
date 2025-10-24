@@ -1,6 +1,6 @@
 import { isNumberEqual } from 'ag-charts-core';
 
-import { normalizeAngle360 } from '../../util/angle';
+import { normalizeAngle360 } from 'ag-charts-core/utils/angle';
 import { BBox } from '../bbox';
 import { SceneChangeDetection } from '../changeDetectable';
 import { Path } from './path';

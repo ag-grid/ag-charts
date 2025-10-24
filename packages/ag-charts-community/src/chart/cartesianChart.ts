@@ -4,7 +4,7 @@ import type { AgCartesianAxisPosition } from 'ag-charts-types';
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
-import { clampArray } from '../util/number';
+import { clampArray } from 'ag-charts-core/utils/numberArray';
 import { ActionOnSet } from '../util/proxy';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import { CartesianAxis } from './axis/cartesianAxis';

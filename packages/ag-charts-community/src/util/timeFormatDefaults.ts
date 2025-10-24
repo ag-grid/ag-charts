@@ -1,6 +1,6 @@
 import type { AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { findMinMax } from './number';
+import { findMinMax } from 'ag-charts-core/utils/numberArray';
 import { durationDay, durationHour, durationMinute, durationSecond, durationYear, intervalFloor } from './time';
 
 export function dateToNumber(value: any) {

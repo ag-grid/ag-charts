@@ -10,7 +10,7 @@ import type { Node } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
-import { findRangeExtent } from '../../../util/number';
+import { findRangeExtent } from 'ag-charts-core/utils/numberArray';
 import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
