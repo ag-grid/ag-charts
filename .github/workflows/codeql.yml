@@ -44,13 +44,23 @@ jobs:
 
             - name: nx pack:verify
               id: pack-verify
+              if: steps.setup.outputs.type != 'pr'
               run: |
                   yarn nx pack:verify --prod
 
-            - name: Initialize CodeQL
+            - name: Initialize CodeQL (PR)
               uses: github/codeql-action/init@v3
+              if: steps.setup.outputs.type == 'pr'
               with:
-                  config-file: ./.github/codeql/codeql-config.yml
+                  config-file: ./.github/codeql/codeql-config-pr.yml
+                  languages: ${{ matrix.language }}
+                  build-mode: ${{ matrix.build-mode }}
+
+            - name: Initialize CodeQL (latest)
+              uses: github/codeql-action/init@v3
+              if: steps.setup.outputs.type != 'pr'
+              with:
+                  config-file: ./.github/codeql/codeql-config-latest.yml
                   languages: ${{ matrix.language }}
                   build-mode: ${{ matrix.build-mode }}
 
