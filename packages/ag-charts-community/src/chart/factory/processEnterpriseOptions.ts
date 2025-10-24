@@ -1,82 +1,80 @@
-import { Logger, isArray } from 'ag-charts-core';
+import { Logger, ModuleRegistry, ModuleType, isArray } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
-import type { LegendModule, RootModule } from '../../module/coreModules';
-import { moduleRegistry } from '../../module/module';
-import { chartTypes } from './chartTypes';
-import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
+import { ExpectedModules } from './expectedModules';
 
-export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
+export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
+    chartType: string,
+    options: T,
+    silent?: boolean
+) {
     let usedOptions: string[] = [];
-    const optsType = options?.series?.[0]?.type;
-    const isGaugeChart = (optsType as string) === 'linear-gauge' || (optsType as string) === 'radial-gauge';
-    const optionsChartType = optsType ? chartTypes.get(optsType) : 'unknown';
-    for (const module of EXPECTED_ENTERPRISE_MODULES) {
-        if (optionsChartType !== 'unknown' && !module.chartTypes.includes(optionsChartType)) continue;
+    const optsType: string | undefined = options?.series?.[0]?.type;
+    const isGaugeChart = optsType === 'linear-gauge' || optsType === 'radial-gauge';
 
-        if (module.type === 'root' || module.type === 'legend') {
-            const optionValue = options[module.optionsKey as keyof T] as any;
-            if (optionValue == null) continue;
+    for (const module of ExpectedModules) {
+        if (!module.enterprise || module.removable === false) continue;
+        if (chartType && module.chartType && chartType !== module.chartType) continue;
 
-            if (!module.optionsInnerKey) {
-                usedOptions.push(module.optionsKey);
-                delete options[module.optionsKey as keyof T];
-            } else if (optionValue[module.optionsInnerKey]) {
-                usedOptions.push(`${module.optionsKey}.${module.optionsInnerKey}`);
-                delete optionValue[module.optionsInnerKey];
-            }
-        } else if (module.type === 'axis') {
-            if (
-                !('axes' in options) ||
-                !isArray(options.axes as unknown) ||
-                !options.axes?.some((axis) => axis.type === module.identifier)
-            ) {
-                continue;
-            }
+        switch (module.type) {
+            case 'chart':
+                break;
 
-            usedOptions.push(`axis[type=${module.identifier}]`);
-            options.axes = (options.axes as any).filter((axis: any) => axis.type !== module.identifier);
-        } else if (module.type === 'axis-option') {
-            if (
-                !('axes' in options) ||
-                !isArray(options.axes as unknown) ||
-                !options.axes?.some((axis) => axis[module.optionsKey as keyof typeof axis])
-            ) {
-                continue;
-            }
-
-            usedOptions.push(`axis.${module.optionsKey}`);
-            for (const axis of options.axes) {
-                if (axis[module.optionsKey as keyof typeof axis]) {
-                    delete axis[module.optionsKey as keyof typeof axis];
+            case 'axis':
+                if (
+                    'axes' in options &&
+                    isArray(options.axes) &&
+                    options.axes.some((axis) => axis.type === module.name)
+                ) {
+                    usedOptions.push(`axis[type=${module.name}]`);
+                    options.axes = (options.axes as any[]).filter((axis) => axis.type !== module.name);
                 }
-            }
-        } else if (module.type === 'series') {
-            if (module.community) continue;
-            if (
-                !isArray(options.series as unknown) ||
-                !options.series?.some((series) => series.type === module.identifier)
-            ) {
-                continue;
-            }
+                break;
 
-            usedOptions.push(`series[type=${module.identifier}]`);
-            options.series = (options.series as any).filter((series: any) => series.type !== module.identifier);
-        } else if (module.type === 'series-option') {
-            if (
-                !isArray(options.series as unknown) ||
-                !options.series?.some((series) => series[module.optionsKey as keyof typeof series])
-            ) {
-                continue;
-            }
-
-            usedOptions.push(`series.${module.optionsKey}`);
-            for (const series of options.series) {
-                type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
-                if (series[module.optionsKey as SeriesModuleKey]) {
-                    delete series[module.optionsKey as SeriesModuleKey];
+            case 'series':
+                if (isArray(options.series) && options.series.some((series) => series.type === module.name)) {
+                    usedOptions.push(`series[type=${module.name}]`);
+                    options.series = (options.series as any[]).filter((series) => series.type !== module.name);
                 }
-            }
+                break;
+
+            case 'plugin':
+                const optionsKey = module.name as keyof T;
+                if (options[optionsKey] != null) {
+                    usedOptions.push(module.name);
+                    delete options[optionsKey];
+                }
+                break;
+
+            case 'axis:plugin':
+                if (
+                    'axes' in options &&
+                    isArray(options.axes) &&
+                    options.axes.some((axis) => axis[module.name as keyof typeof axis])
+                ) {
+                    usedOptions.push(`axis.${module.name}`);
+                    for (const axis of options.axes) {
+                        if (axis[module.name as keyof typeof axis]) {
+                            delete axis[module.name as keyof typeof axis];
+                        }
+                    }
+                }
+                break;
+
+            case 'series:plugin':
+                if (
+                    isArray(options.series as unknown) &&
+                    options.series?.some((series) => series[module.name as keyof typeof series])
+                ) {
+                    usedOptions.push(`series.${module.name}`);
+                    for (const series of options.series) {
+                        type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
+                        if (series[module.name as SeriesModuleKey]) {
+                            delete series[module.name as SeriesModuleKey];
+                        }
+                    }
+                }
+                break;
         }
     }
     if (usedOptions.length && !silent) {
@@ -104,18 +102,28 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
     }
 }
 
-export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T) {
-    const integratedMode = 'mode' in options && options.mode === 'integrated';
-    for (const module of moduleRegistry.byType<RootModule | LegendModule>('root', 'legend')) {
-        const moduleOptions = options[module.optionsKey as keyof AgChartOptions] as { enabled?: boolean };
-        const isPresentAndDisabled = moduleOptions != null && moduleOptions.enabled === false;
-        const removable =
-            !('removable' in module) ||
-            module.removable === true ||
-            (module.removable === 'standalone-only' && !integratedMode);
-
-        if (isPresentAndDisabled && removable) {
-            delete options[module.optionsKey as keyof AgChartOptions];
+export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>(chartType: string, options: T) {
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+        if (module.enterprise && module.chartType && module.chartType !== chartType) {
+            delete options[module.name as keyof AgChartOptions];
+        }
+    }
+    if ('axes' in options && isArray(options.axes)) {
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+            if (module.enterprise && module.chartType && module.chartType !== chartType) {
+                for (const axis of options.axes) {
+                    delete axis[module.name as keyof typeof axis];
+                }
+            }
+        }
+    }
+    if ('series' in options && isArray(options.series)) {
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+            if (module.enterprise && module.chartType && module.chartType !== chartType) {
+                for (const series of options.series) {
+                    delete series[module.name as Exclude<keyof typeof series, 'type'>];
+                }
+            }
         }
     }
 }

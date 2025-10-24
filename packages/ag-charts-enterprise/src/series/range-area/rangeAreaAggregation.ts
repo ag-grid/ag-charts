@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ScaleType } from 'ag-charts-core';
 
 const {
     AGGREGATION_INDEX_Y_MAX,
@@ -56,7 +57,7 @@ function aggregationContainsBottomIndex(
 }
 
 export function aggregateRangeAreaData(
-    scale: _ModuleSupport.ScaleType,
+    scale: ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],

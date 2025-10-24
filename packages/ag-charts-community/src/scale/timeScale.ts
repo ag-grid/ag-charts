@@ -1,3 +1,4 @@
+import type { ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
 import { isPlainObject } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -5,7 +6,6 @@ import { TickIntervals, defaultEpoch, getTickTimeInterval, isDenseInterval } fro
 import { intervalRange, intervalRangeStartIndex, intervalStep } from '../util/time';
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';
-import type { ScaleTickParams, ScaleTickResult } from './scale';
 
 const sunday = new Date(1970, 0, 4);
 

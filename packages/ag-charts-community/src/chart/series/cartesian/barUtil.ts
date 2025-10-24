@@ -1,10 +1,10 @@
+import type { Scale } from 'ag-charts-core';
 import { isNegative } from 'ag-charts-core';
 
 import type { ApplyFn, FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Rect } from '../../../scene/shape/rect';
 import { Transformable } from '../../../scene/transformable';

@@ -1,5 +1,5 @@
-import type { NormalizedDomain, Scale, ScaleTickParams, ScaleType } from './scale';
-import { ScaleAlignment } from './scale';
+import type { NormalizedDomain, Scale, ScaleTickParams, ScaleType } from 'ag-charts-core';
+import { ScaleAlignment } from 'ag-charts-core';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
     abstract readonly type: ScaleType;

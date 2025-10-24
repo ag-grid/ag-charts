@@ -5,14 +5,13 @@ import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefault
 import { MapShapeSeries } from './mapShapeSeries';
 import { mapShapeSeriesOptionsDef } from './mapShapeSeriesOptionsDef';
 
-export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
+export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['topology'],
+    name: 'map-shape',
+    chartType: 'topology',
+    enterprise: true,
 
-    identifier: 'map-shape',
-    moduleFactory: (ctx) => new MapShapeSeries(ctx),
+    options: mapShapeSeriesOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -52,15 +51,6 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
             range: 'exact',
         },
     },
-};
-
-export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions> = {
-    type: 'series',
-    name: 'map-shape',
-    chartType: 'topology',
-    enterprise: true,
-
-    options: mapShapeSeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new MapShapeSeries(ctx),
 };

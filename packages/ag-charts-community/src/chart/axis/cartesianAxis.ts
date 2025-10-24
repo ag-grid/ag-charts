@@ -1,3 +1,4 @@
+import type { Scale } from 'ag-charts-core';
 import { arraysEqual, calcLineHeight, countLines, diffArrays, isPlainObject } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -7,7 +8,6 @@ import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';

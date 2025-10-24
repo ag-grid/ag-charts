@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Debug } from 'ag-charts-core';
 
 import type { Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
@@ -11,7 +12,7 @@ import {
 } from './measurerProperties';
 import type { MeasurerScene } from './measurerScene';
 
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {

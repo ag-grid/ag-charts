@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { debounce, entries, roundTo } from 'ag-charts-core';
+import { AbstractModuleInstance, debounce, entries, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -76,7 +76,7 @@ class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoS
     padding = 0;
 }
 
-export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Zoom extends AbstractModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
             this.onEnabledChange(enabled);
@@ -873,7 +873,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private previousZoomValid = true;
-    private isZoomValid(newZoom: DefinedZoomState, options?: { directional?: boolean }) {
+    private isZoomValid(
+        newZoom: DefinedZoomState,
+        options?: { directional?: boolean; includeYVisibleRange?: boolean }
+    ) {
         const {
             minVisibleItems,
             ctx: { zoomManager },
@@ -900,7 +903,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             return false;
         }
 
-        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
+        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems, options?.includeYVisibleRange);
         this.previousZoomValid = options?.directional ? valid : true;
 
         return valid;
@@ -1048,13 +1051,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!showCursorX) {
             const checkZoomX = scaleZoom(zoom, 0.999, 1);
             checkZoomX.x = scaleZoomAxisWithAnchor(checkZoomX.x, zoom.x, anchorPointX);
-            showCursorX = this.isZoomValid(checkZoomX);
+            showCursorX = this.isZoomValid(checkZoomX, { includeYVisibleRange: true });
         }
 
         if (!showCursorY) {
             const checkZoomY = scaleZoom(zoom, 1, 0.999);
             checkZoomY.y = scaleZoomAxisWithAnchor(checkZoomY.y, zoom.y, anchorPointY);
-            showCursorY = this.isZoomValid(checkZoomY);
+            showCursorY = this.isZoomValid(checkZoomY, { includeYVisibleRange: true });
         }
 
         domProxy.toggleAxisDraggingCursor(ChartAxisDirection.X, showCursorX);

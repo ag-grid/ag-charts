@@ -138,10 +138,6 @@ class TreemapSeriesTileHighlightStyle extends BaseProperties {
 }
 
 class TreemapSeriesHighlightStyle extends HighlightStyle {
-    constructor() {
-        super(false);
-    }
-
     @Property
     readonly group = new TreemapSeriesGroupHighlightStyle();
 
@@ -167,7 +163,7 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
     itemStyler?: Styler<AgTreemapSeriesItemStylerParams<unknown>, AgTreemapSeriesStyle>;
 
     @Property
-    override readonly highlightStyle = new TreemapSeriesHighlightStyle();
+    readonly highlightStyle = new TreemapSeriesHighlightStyle();
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();

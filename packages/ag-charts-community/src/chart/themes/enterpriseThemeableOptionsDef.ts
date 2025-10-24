@@ -65,7 +65,6 @@ import {
     type AgSankeySeriesLinkStyle,
     type AgSankeySeriesNodeStyle,
     type AgSankeySeriesThemeableOptions,
-    type AgSeriesHighlightStyle,
     type AgSunburstSeriesStyle,
     type AgSunburstSeriesThemeableOptions,
     type AgTreemapSeriesStyle,
@@ -309,11 +308,6 @@ export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlightStyle: {
-        // eslint-disable-next-line sonarjs/deprecation
-        ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
-        ...strokeOptionsDef,
-    },
     highlight: multiSeriesHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
@@ -333,13 +327,6 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
-    // TODO Remove in next major version
-    highlightStyle: {
-        // eslint-disable-next-line sonarjs/deprecation
-        ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-    },
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
@@ -357,13 +344,6 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    // TODO Remove in next major version
-    highlightStyle: {
-        // eslint-disable-next-line sonarjs/deprecation
-        ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-    },
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
@@ -626,7 +606,6 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
-    // TODO Remove in next major version
     highlightStyle: {
         label: {
             color: color,

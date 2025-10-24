@@ -1,5 +1,5 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { createId, toPlainText } from 'ag-charts-core';
+import { AbstractModuleInstance, createId, toPlainText } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
@@ -12,7 +12,7 @@ type HoverLikeEvent =
     | _Widget.MouseWidgetEvent<'mousemove'>
     | _ModuleSupport.DragInterpreterClickEvent;
 
-export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Crosshair extends AbstractModuleInstance {
     readonly id = createId(this);
 
     @Property

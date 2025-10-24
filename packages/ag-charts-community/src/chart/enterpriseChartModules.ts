@@ -1,7 +1,5 @@
 import type { ChartModuleDefinition } from 'ag-charts-core';
 
-import { isAgStandaloneChartOptions, isAgTopologyChartOptions } from './mapping/types';
-
 const placeholderCreate = () => {
     throw new Error('Enterprise module placeholder cannot be initialised');
 };
@@ -13,7 +11,6 @@ export const StandaloneChartModule: ChartModuleDefinition<any> = {
 
     options: {},
 
-    detect: isAgStandaloneChartOptions,
     create: placeholderCreate,
 };
 
@@ -24,6 +21,5 @@ export const TopologyChartModule: ChartModuleDefinition<any> = {
 
     options: {},
 
-    detect: isAgTopologyChartOptions,
     create: placeholderCreate,
 };

@@ -6,7 +6,7 @@ import type {
     AgContextMenuItemShowOn,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { Logger, clamp, createElement, toPlainText } from 'ag-charts-core';
+import { AbstractModuleInstance, Logger, clamp, createElement, toPlainText } from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
@@ -42,7 +42,7 @@ type PickedNode = _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> 
     [K in (typeof DATUM_KEYS)[number]]?: string;
 };
 
-export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class ContextMenu extends AbstractModuleInstance {
     @Property
     enabled = true;
 
@@ -409,7 +409,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             // AG-14807 Design clear hover state
             // TODO: move this logic into MenuWidget
             button.addListener('mouseleave', () => button.setFocusOverride(false));
-            button.addListener('focus', () => button.setFocusOverride(undefined));
+            button.addListener('mouseenter', () => button.setFocusOverride(undefined));
         }
     }
 

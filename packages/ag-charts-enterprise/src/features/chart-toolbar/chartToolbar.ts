@@ -1,5 +1,5 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { AbstractModuleInstance, Logger } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 
@@ -15,7 +15,7 @@ const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeHighLow', icon: 'high-low-series', value: 'high-low' },
 ];
 
-export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class ChartToolbar extends AbstractModuleInstance {
     @Property
     @ActionOnSet<ChartToolbar>({
         changeValue(enabled) {
@@ -39,10 +39,10 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         );
     }
 
-    private onLayoutStart(event: _ModuleSupport.LayoutContext) {
+    private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.updateButton();
-        this.toolbar.layout(event.layoutBox);
+        this.toolbar.layout(ctx.layoutBox);
     }
 
     private onButtonPressed({ event, buttonBounds, buttonWidget }: _ModuleSupport.ToolbarEventMap['button-pressed']) {

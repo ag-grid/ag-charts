@@ -1,49 +1,40 @@
-import { isString } from 'ag-charts-core';
+import { type ModuleInstance } from 'ag-charts-core';
 
-import type { BaseOptionsModule, ModuleInstance } from './baseModule';
+export class ModuleMap<T extends ModuleInstance = ModuleInstance> {
+    protected moduleMap = new Map<string, T>();
 
-interface Module<I extends ModuleInstance = ModuleInstance, C = object> extends BaseOptionsModule {
-    moduleFactory: (ctx: C) => I;
-}
+    modules() {
+        return this.moduleMap.values();
+    }
 
-export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = object> {
-    protected moduleMap = new Map<string, { module: M; moduleInstance: I }>();
-
-    *modules() {
-        for (const m of this.moduleMap.values()) {
-            yield m.moduleInstance;
+    addModule(moduleName: string, moduleInstance: T) {
+        if (this.moduleMap.has(moduleName)) {
+            throw new Error(`AG Charts - module already initialised: ${moduleName}`);
         }
+        this.moduleMap.set(moduleName, moduleInstance);
     }
 
-    addModule(module: M, moduleFactory: (module: M) => I) {
-        if (this.moduleMap.has(module.optionsKey)) {
-            throw new Error(`AG Charts - module already initialised: ${module.optionsKey}`);
-        }
-        this.moduleMap.set(module.optionsKey, { module, moduleInstance: moduleFactory(module) });
+    removeModule(moduleName: string) {
+        this.moduleMap.get(moduleName)?.destroy?.();
+        this.moduleMap.delete(moduleName);
     }
 
-    removeModule(module: M | string) {
-        const moduleKey = isString(module) ? module : module.optionsKey;
-        this.moduleMap.get(moduleKey)?.moduleInstance.destroy();
-        this.moduleMap.delete(moduleKey);
+    getModule(moduleName: string) {
+        return this.moduleMap.get(moduleName);
     }
 
-    getModule<R>(module: M | string): R | undefined;
-    getModule(module: M | string) {
-        return this.moduleMap.get(isString(module) ? module : module.optionsKey)?.moduleInstance;
+    isEnabled(moduleName: string) {
+        return this.moduleMap.has(moduleName);
     }
 
-    isEnabled(module: M | string) {
-        return this.moduleMap.has(isString(module) ? module : module.optionsKey);
-    }
-
-    mapModules<T>(callback: (value: I, index: number) => T) {
-        return Array.from(this.moduleMap.values(), (m, i) => callback(m.moduleInstance, i));
+    mapModules<R>(callback: (value: T, index: number) => R) {
+        return Array.from(this.moduleMap.values(), callback);
     }
 
     destroy() {
-        for (const moduleKey of this.moduleMap.keys()) {
-            this.moduleMap.get(moduleKey)?.moduleInstance.destroy();
+        for (const moduleInstance of this.moduleMap.values()) {
+            // TODO: make sure we don't have "fake" plugins/modules with no module instance
+            moduleInstance?.destroy?.();
         }
         this.moduleMap.clear();
     }

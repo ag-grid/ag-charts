@@ -1,10 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { AbstractModuleInstance } from 'ag-charts-core';
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 
 const { ChartAxisDirection, LayoutElement, PropertiesArray, Toolbar, Property } = _ModuleSupport;
 
-export class Ranges extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Ranges extends AbstractModuleInstance {
     @Property
     public enabled = false;
 
@@ -38,9 +39,8 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         this.toolbar.destroy();
     }
 
-    private onLayoutStart(event: _ModuleSupport.LayoutContext) {
+    private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
         const { buttons, ctx, enabled, toolbar, verticalSpacing } = this;
-        const { layoutBox } = event;
 
         if (!enabled || !ctx.zoomManager.isZoomEnabled()) {
             toolbar.setHidden(true);

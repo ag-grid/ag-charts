@@ -1,4 +1,5 @@
-import type { Scale } from '../../scale/scale';
+import type { Scale } from 'ag-charts-core';
+
 import type { Group } from '../../scene/group';
 import type { Padding } from '../../util/padding';
 

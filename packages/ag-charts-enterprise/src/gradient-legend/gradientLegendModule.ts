@@ -1,16 +1,59 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientLegendOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type PluginModuleDefinition,
+    and,
+    array,
+    boolean,
+    borderOptionsDef,
+    callback,
+    colorUnion,
+    fontOptionsDef,
+    greaterThan,
+    lessThan,
+    number,
+    padding,
+    positiveNumber,
+    ratio,
+} from 'ag-charts-core';
 
 import { GradientLegend } from './gradientLegend';
 
-export const GradientLegendModule: _ModuleSupport.LegendModule = {
-    type: 'legend',
-    optionsKey: 'gradientLegend',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
+export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOptions> = {
+    type: 'plugin',
+    name: 'gradientLegend',
+    enterprise: true,
+    // removable: 'standalone-only',
 
-    identifier: 'gradient',
-    moduleFactory: (ctx) => new GradientLegend(ctx),
-
+    options: {
+        enabled: boolean,
+        position: _ModuleSupport.legendPositionValidator,
+        spacing: positiveNumber,
+        reverseOrder: boolean,
+        border: borderOptionsDef,
+        cornerRadius: number,
+        padding: padding,
+        fill: colorUnion,
+        fillOpacity: ratio,
+        gradient: {
+            preferredLength: positiveNumber,
+            thickness: positiveNumber,
+        },
+        scale: {
+            label: {
+                ...fontOptionsDef,
+                minSpacing: positiveNumber,
+                format: _ModuleSupport.numberFormatValidator,
+                formatter: callback,
+            },
+            padding: positiveNumber,
+            interval: {
+                step: number,
+                values: array,
+                minSpacing: and(positiveNumber, lessThan('maxSpacing')),
+                maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
+            },
+        },
+    },
     themeTemplate: {
         enabled: false,
         position: 'bottom',
@@ -44,5 +87,9 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
         },
     },
 
-    removable: 'standalone-only',
+    create: (ctx) => {
+        const moduleInstance = new GradientLegend(ctx);
+        moduleInstance.attachLegend(ctx.scene);
+        return moduleInstance;
+    },
 };

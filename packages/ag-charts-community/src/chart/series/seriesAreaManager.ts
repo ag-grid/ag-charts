@@ -32,7 +32,7 @@ import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
-import type { ChartType } from '../factory/chartTypes';
+import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
@@ -730,7 +730,7 @@ export class SeriesAreaManager extends BaseManager {
     private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
         // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
         // value. Hierarchical charts use arrowup/down to change depth and gauges use arrowup/down to change datum type
-        // (bar/needle, targets). This allows the hierarchical and gauge charts to piggy-backon the base keyboard handling
+        // (bar/needle, targets). This allows the hierarchical and gauge charts to piggyback on the base keyboard handling
         // implementation.
         this.focus.series = this.focus.sortedSeries[0];
         const datumIndex = this.focus.datumIndex;

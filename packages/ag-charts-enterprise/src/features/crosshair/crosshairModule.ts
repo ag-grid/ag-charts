@@ -1,14 +1,14 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgCrosshairOptions } from 'ag-charts-community';
+import type { AxisPluginModuleDefinition } from 'ag-charts-core';
 
 import { Crosshair } from './crosshair';
 
-export const CrosshairModule: _ModuleSupport.AxisOptionModule = {
-    type: 'axis-option',
-    optionsKey: 'crosshair',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-    axisTypes: ['category', 'time', 'unit-time', 'ordinal-time', 'number', 'log'],
-    moduleFactory: (ctx) => new Crosshair(ctx),
+export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
+    type: 'axis:plugin',
+    name: 'crosshair',
+    chartType: 'cartesian',
+    enterprise: true,
+
     themeTemplate: {
         crosshair: {
             snap: true,
@@ -22,4 +22,6 @@ export const CrosshairModule: _ModuleSupport.AxisOptionModule = {
             },
         },
     },
+
+    create: (ctx) => new Crosshair(ctx),
 };

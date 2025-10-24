@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { entries } from 'ag-charts-core';
+import { type Scale, entries } from 'ag-charts-core';
 
 import type { AnnotationContext, Point } from '../annotationTypes';
 import { convertPoint, invertCoords } from './values';
@@ -95,11 +95,7 @@ export function translate<VectorName extends string>(
 
     const sortNumbersAbs = (a: number, b: number) => Math.abs(a) - Math.abs(b);
 
-    const overflowDirection = (
-        scale: _ModuleSupport.Scale<any, any>,
-        directionTranslation: number,
-        overflows: number[]
-    ) => {
+    const overflowDirection = (scale: Scale<any, any>, directionTranslation: number, overflows: number[]) => {
         // Explicitly test the scales because ordinal time axes report as continuous. When there is no tolerance for
         // overflowing, take the largest overflow
         if (options.overflowContinuous === 0 || !ContinuousScale.is(scale)) {

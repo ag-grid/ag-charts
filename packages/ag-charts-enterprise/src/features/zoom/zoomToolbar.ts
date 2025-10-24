@@ -52,7 +52,7 @@ export class ZoomToolbar extends BaseProperties {
             this.toolbar?.setHidden(!enabled);
         },
     })
-    public enabled?: boolean = false;
+    public enabled: boolean = false;
 
     @Property
     public buttons = new PropertiesArray(ZoomButtonProperties);
@@ -108,6 +108,7 @@ export class ZoomToolbar extends BaseProperties {
 
         // Initially translate by an estimated offset to prevent flash on load
         this.toolbar.getElement().style.transform = `translateY(54px)`;
+        this.toolbar.setHidden(!this.enabled);
 
         this.toggleVisibility(this.visible === 'always');
 

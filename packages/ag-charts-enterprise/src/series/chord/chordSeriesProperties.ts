@@ -176,9 +176,4 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
-
-    constructor() {
-        super();
-        this.highlightStyle.deprecated = false;
-    }
 }

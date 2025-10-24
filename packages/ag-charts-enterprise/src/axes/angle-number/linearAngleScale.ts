@@ -1,10 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
 
 const { range, isDenseInterval, LinearScale } = _ModuleSupport;
 
 export class LinearAngleScale extends LinearScale {
-    static getNiceStepAndTickCount(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[]) {
+    static getNiceStepAndTickCount(ticks: ScaleTickParams<number>, domain: number[]) {
         const [start, stop] = domain;
         let step = LinearScale.getTickStep(start, stop, ticks);
         const maxTickCount = Number.isNaN(ticks.maxTickCount) ? Infinity : ticks.maxTickCount;
@@ -19,10 +19,7 @@ export class LinearAngleScale extends LinearScale {
 
     arcLength: number = 0;
 
-    override ticks(
-        ticks: _ModuleSupport.ScaleTickParams<number>,
-        domain: number[] = this.domain
-    ): { ticks: number[]; count: number } {
+    override ticks(ticks: ScaleTickParams<number>, domain: number[] = this.domain): { ticks: number[]; count: number } {
         const { arcLength } = this;
 
         if (!domain || domain.length < 2 || domain.some((d) => !Number.isFinite(d)) || arcLength <= 0) {
@@ -57,7 +54,7 @@ export class LinearAngleScale extends LinearScale {
         return niceRanges.some((r) => isNumberEqual(r, sortedRange[1] - sortedRange[0]));
     }
 
-    override niceDomain(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+    override niceDomain(ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
         const linearNiceDomain = super.niceDomain(ticks, domain);
 
         if (!this.hasNiceRange()) return linearNiceDomain;

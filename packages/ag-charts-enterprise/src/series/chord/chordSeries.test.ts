@@ -142,8 +142,9 @@ describe('ChordSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            item: {
+                        highlight: {
+                            enabled: true,
+                            highlightedItem: {
                                 fill: 'lime',
                             },
                         },

@@ -5,14 +5,13 @@ import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefault
 import { MapMarkerSeries } from './mapMarkerSeries';
 import { mapMarkerSeriesOptionsDef } from './mapMarkerSeriesOptionsDef';
 
-export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
+export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['topology'],
+    name: 'map-marker',
+    chartType: 'topology',
+    enterprise: true,
 
-    identifier: 'map-marker',
-    moduleFactory: (ctx) => new MapMarkerSeries(ctx),
+    options: mapMarkerSeriesOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -50,15 +49,6 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             range: 'exact',
         },
     },
-};
-
-export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOptions> = {
-    type: 'series',
-    name: 'map-marker',
-    chartType: 'topology',
-    enterprise: true,
-
-    options: mapMarkerSeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new MapMarkerSeries(ctx),
     validate(options, optionsDefs, path) {

@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type Scale } from 'ag-charts-core';
 
 const { BaseProperties, Property } = _ModuleSupport;
 
@@ -13,7 +13,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property
     count?: number;
 
-    getSegments(scale: _ModuleSupport.Scale<number, number>, maxTicks: number) {
+    getSegments(scale: Scale<number, number>, maxTicks: number) {
         const { values, step, count } = this;
         const d0 = Math.min(...scale.domain);
         const d1 = Math.max(...scale.domain);

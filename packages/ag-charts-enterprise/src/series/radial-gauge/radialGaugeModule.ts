@@ -5,14 +5,13 @@ import { RadialGaugeSeries } from './radialGaugeSeries';
 
 const { FONT_SIZE_RATIO } = _ModuleSupport;
 
-export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
+export const RadialGaugeSeriesModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
+    name: 'radial-gauge',
+    chartType: 'standalone',
+    enterprise: true,
 
-    identifier: 'radial-gauge',
-    moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
+    options: _ModuleSupport.radialGaugeSeriesOptionsDef,
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
@@ -32,7 +31,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 ],
             },
             scale: {
-                // @ts-expect-error undocumented option
                 defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 stroke: { $path: ['/2', _ModuleSupport.SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
@@ -96,15 +94,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             },
         },
     },
-};
-
-export const RadialGaugeSeriesModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
-    type: 'series',
-    name: 'radial-gauge',
-    chartType: 'standalone',
-    enterprise: true,
-
-    options: _ModuleSupport.radialGaugeSeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RadialGaugeSeries(ctx),
 };

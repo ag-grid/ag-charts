@@ -6,7 +6,6 @@ import { without } from '../util/object';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
 import { cartesianChartOptionsDefs } from './chartOptionsDefs';
-import { isAgCartesianChartOptions } from './mapping/types';
 
 const histogramAxisTypes = new Set(['number', 'log', 'time']);
 const validHistogramAxis = (axis: any) => isObject(axis) && !histogramAxisTypes.has(axis.type);
@@ -17,7 +16,6 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
 
     options: cartesianChartOptionsDefs,
 
-    detect: isAgCartesianChartOptions,
     create(options: ChartOptions, resources?: TransferableResources) {
         return new CartesianChart(options, resources);
     },

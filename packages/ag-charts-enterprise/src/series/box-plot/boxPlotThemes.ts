@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
@@ -10,7 +11,7 @@ const {
     SEGMENTATION_DEFAULTS,
 } = _ModuleSupport;
 
-export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['themeTemplate'] = {
+export const BOX_PLOT_SERIES_THEME: ExtensibleTheme<'box-plot'> = {
     series: {
         direction: 'vertical',
         fill: {

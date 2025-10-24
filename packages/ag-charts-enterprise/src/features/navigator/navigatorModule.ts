@@ -1,16 +1,19 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgNavigatorOptions } from 'ag-charts-community';
+import type { PluginModuleDefinition } from 'ag-charts-core';
 
 import { Navigator } from './navigator';
+import { navigatorOptionsDef } from './navigatorOptionsDefs';
 import { NAVIGATOR_THEME } from './navigatorTheme';
 
-export const NavigatorModule: _ModuleSupport.RootModule = {
-    type: 'root',
-    optionsKey: 'navigator',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-    moduleFactory: (ctx) => new Navigator(ctx),
-    removable: false, // Toggling this module causes zoom state flakiness.
-    themeTemplate: {
-        navigator: NAVIGATOR_THEME,
-    },
+export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions> = {
+    type: 'plugin',
+    name: 'navigator',
+    chartType: 'cartesian',
+    enterprise: true,
+    // removable: false, // Toggling this module causes zoom state flakiness.
+
+    options: navigatorOptionsDef,
+    themeTemplate: NAVIGATOR_THEME,
+
+    create: (ctx) => new Navigator(ctx),
 };

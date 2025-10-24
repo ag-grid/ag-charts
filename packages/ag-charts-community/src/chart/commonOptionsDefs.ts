@@ -68,7 +68,6 @@ import {
     type AgSeriesTooltip,
     type AgTooltipRendererDataRow,
     type AgTooltipRendererResult,
-    type AgZoomButton,
     type FormatterPropertyType,
     type TextSegment,
     type ToolbarButton,
@@ -96,7 +95,7 @@ const legendPositionOptionsDef: OptionsDefs<AgChartLegendPositionOptions> = {
     yOffset: number,
 };
 
-const legendPositionValidator: Validator = attachDescription(
+export const legendPositionValidator: Validator = attachDescription(
     (value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
         let result: ValidatorResult | boolean;
         if (typeof value === 'string') {
@@ -122,7 +121,7 @@ const legendPositionValidator: Validator = attachDescription(
     },
     `a legend position object or placement string`
 );
-const shapeValidator = or(
+export const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
     callback
 );
@@ -152,8 +151,6 @@ export const textOrSegments = or(
         'text segments array'
     )
 );
-
-const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
 
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     enabled: boolean,
@@ -225,7 +222,7 @@ const contextMenuItemValidator = attachDescription(
     `a context menu item object or string alias: [${contextMenuItemLiterals.join(', ')}]`
 );
 
-const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', false);
+export const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', false);
 
 export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     label: string,
@@ -451,15 +448,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             yOffset: number,
         },
     },
-    animation: {
-        enabled: boolean,
-        duration: positiveNumber,
-    },
-    contextMenu: {
-        enabled: boolean,
-        items: contextMenuItemsArray,
-        getItems: callbackOf(contextMenuItemsArray, 'a menu items array'),
-    },
+    animation: defined,
+    contextMenu: defined,
     context: () => true,
     dataSource: {
         getData: callback,
@@ -502,48 +492,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         },
     },
     styleNonce: string,
-    sync: {
-        enabled: boolean,
-        groupId: string,
-        axes: union('x', 'y', 'xy'),
-        nodeInteraction: boolean,
-        zoom: boolean,
-    },
-    zoom: {
-        enabled: boolean,
-        enableAxisDragging: boolean,
-        enableAxisScrolling: boolean,
-        enableDoubleClickToReset: boolean,
-        enablePanning: boolean,
-        enableScrolling: boolean,
-        enableSelecting: boolean,
-        enableTwoFingerZoom: boolean,
-        keepAspectRatio: boolean,
-        anchorPointX: zoomAnchorPoint,
-        anchorPointY: zoomAnchorPoint,
-        axisDraggingMode: union('pan', 'zoom'),
-        axes: union('x', 'y', 'xy'),
-        deceleration: or(union('off', 'short', 'long'), ratio),
-        minVisibleItems: positiveNumber,
-        panKey: union('alt', 'ctrl', 'meta', 'shift'),
-        scrollingStep: ratio,
-        autoScaling: {
-            enabled: boolean,
-            padding: ratio,
-        },
-        buttons: {
-            enabled: boolean,
-            buttons: arrayOfDefs<AgZoomButton>(
-                {
-                    ...toolbarButtonOptionsDefs,
-                    value: union('reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end'),
-                    section: string,
-                },
-                'zoom button options array'
-            ),
-            visible: union('always', 'zoomed', 'hover'),
-        },
-    },
+    sync: defined,
+    zoom: defined,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
 };
 
@@ -554,8 +504,6 @@ commonChartOptionsDefs.dataSource.updateThrottle = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.dataSource.updateDuringInteraction = undocumented(boolean);
 
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.zoom.enableIndependentAxes = undocumented(boolean);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.statusBar = undocumented(defined);
 
@@ -589,15 +537,6 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
     listeners: {
         seriesNodeClick: callback,
         seriesNodeDoubleClick: callback,
-    },
-    // TODO Remove in next major version
-    highlightStyle: {
-        item: { ...fillOptionsDef, ...strokeOptionsDef },
-        series: {
-            enabled: boolean,
-            dimOpacity: ratio,
-            strokeWidth: positiveNumber,
-        },
     },
     highlight: highlightOptionsDef(shapeHighlightOptionsDef),
 };

@@ -669,9 +669,7 @@ describe('Legend', () => {
             // remove legend, all series should become visible again
             await chartInstance.updateDelta({
                 ...options,
-                legend: {
-                    enabled: false,
-                },
+                legend: { enabled: false },
             });
 
             await compare(chart);

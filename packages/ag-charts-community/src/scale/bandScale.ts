@@ -1,8 +1,8 @@
+import type { ScaleAlignment } from 'ag-charts-core';
 import { Logger, clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
-import type { ScaleAlignment } from './scale';
 
 /**
  * Maps a discrete domain to a continuous numeric range.

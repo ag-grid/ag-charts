@@ -1,4 +1,4 @@
-import { Debug, type DeepPartial } from 'ag-charts-core';
+import { Debug, type DeepPartial, ModuleRegistry } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -10,7 +10,6 @@ import type {
 
 import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
 import type { LicenseManager } from '../module/enterpriseModule';
-import { moduleRegistry } from '../module/module';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { deepClone } from '../util/json';
 import { ActionOnSet } from '../util/proxy';
@@ -223,7 +222,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
         const state = proxy.getState();
 
-        const isEnterprise = moduleRegistry.hasEnterpriseModules();
         const processedOverrides: Partial<AgChartOptions> = {
             ...chart.chartOptions.processedOverrides,
             container: document.createElement('div'),
@@ -236,7 +234,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
         const userOptions = chart.getOptions();
 
-        if (isEnterprise) {
+        if (ModuleRegistry.hasEnterpriseModules()) {
             // Disable enterprise features that may interfere with image generation.
             processedOverrides.animation = { enabled: false };
 

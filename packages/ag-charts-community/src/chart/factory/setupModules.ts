@@ -1,60 +1,26 @@
-import { Logger } from 'ag-charts-core';
+import { type ModuleDefinition, ModuleRegistry } from 'ag-charts-core';
 
-import { moduleRegistry } from '../../module/module';
-import { mergeDefaults } from '../../util/object';
-import { axisRegistry } from './axisRegistry';
-import { chartDefaults } from './chartTypes';
-import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
-import { legendRegistry } from './legendRegistry';
-import { seriesRegistry } from './seriesRegistry';
+import { ExpectedModules } from './expectedModules';
+
+export const verifiedModules = new Set<string>();
 
 export function setupModules() {
-    for (const m of moduleRegistry.modules) {
-        if (m.packageType === 'enterprise' && !verifyIfModuleExpected(m)) {
-            Logger.errorOnce('Unexpected enterprise module registered: ' + m.identifier);
-        }
-
-        if (m.type === 'root' && m.themeTemplate) {
-            for (const chartType of m.chartTypes) {
-                chartDefaults.set(chartType, m.themeTemplate);
-            }
-        }
-
-        if (m.type === 'series') {
-            if (m.chartTypes.length > 1) {
-                throw new Error(`AG Charts - Module definition error: ${m.identifier}`);
-            }
-            seriesRegistry.register(m.identifier, m);
-        }
-
-        if (m.type === 'series-option' && m.themeTemplate) {
-            for (const seriesType of m.seriesTypes) {
-                seriesRegistry.setThemeTemplate(seriesType, m.themeTemplate);
-            }
-        }
-
-        if (m.type === 'axis-option' && m.themeTemplate) {
-            for (const axisType of m.axisTypes) {
-                const axisTypeTheme = axisRegistry.getThemeTemplate(axisType);
-                const theme = mergeDefaults(m.themeTemplate, axisTypeTheme);
-                axisRegistry.setThemeTemplate(axisType, theme);
-            }
-        }
-
-        if (m.type === 'axis') {
-            axisRegistry.register(m.identifier, m);
-        }
-
-        if (m.type === 'legend') {
-            legendRegistry.register(m.identifier, m);
+    for (const m of ModuleRegistry.listModules()) {
+        if (m.enterprise && !verifyIfModuleExpected(m)) {
+            throw new ReferenceError(`Unexpected enterprise module registered: ${m.name}`);
         }
     }
 
-    if (moduleRegistry.hasEnterpriseModules()) {
-        const expectedButUnused = getUnusedExpectedModules();
-
-        if (expectedButUnused.length > 0) {
-            Logger.errorOnce('Enterprise modules expected but not registered: ', expectedButUnused);
+    function verifyIfModuleExpected(module: ModuleDefinition) {
+        if (!module.enterprise) {
+            throw new Error('AG Charts - internal configuration error, only enterprise modules need verification.');
         }
+        for (const s of ExpectedModules) {
+            if (s.type === module.type && s.name === module.name) {
+                verifiedModules.add(s.name);
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -3,6 +3,8 @@ import {
     Logger,
     type OptionsDefs,
     type RequireOptional,
+    type Scale,
+    ScaleAlignment,
     attachDescription,
     defined,
     isFiniteNumber,
@@ -14,7 +16,6 @@ import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag
 import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import { type Scale, ScaleAlignment } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import { deepClone } from '../../util/json';
@@ -496,13 +497,19 @@ export class ZoomManager extends BaseManager {
         return { x: xZoom, y: yZoom };
     }
 
-    public isVisibleItemsCountAtLeast(zoom: DefinedZoomState, minVisibleItems: number): boolean {
+    public isVisibleItemsCountAtLeast(
+        zoom: DefinedZoomState,
+        minVisibleItems: number,
+        includeYVisibleRange?: boolean
+    ): boolean {
         const { autoScaleYAxis } = this;
         const boundSeries = this.getBoundSeries();
 
         const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
         const yVisibleRange: [number, number] | undefined =
-            autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted ? undefined : [zoom.y.min, zoom.y.max];
+            !includeYVisibleRange && autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted
+                ? undefined
+                : [zoom.y.min, zoom.y.max];
 
         let visibleItemsCount = 0;
 

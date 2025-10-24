@@ -3,7 +3,7 @@ import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { TopologyChart } from './topologyChart';
 
-const { isAgTopologyChartOptions, topologyChartOptionsDefs } = _ModuleSupport;
+const { topologyChartOptionsDefs } = _ModuleSupport;
 
 export const TopologyChartModule: ChartModuleDefinition<AgTopologyChartOptions> = {
     type: 'chart',
@@ -12,7 +12,6 @@ export const TopologyChartModule: ChartModuleDefinition<AgTopologyChartOptions> 
 
     options: topologyChartOptionsDefs,
 
-    detect: isAgTopologyChartOptions,
     create(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         return new TopologyChart(options, resources);
     },

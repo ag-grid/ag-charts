@@ -131,9 +131,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
         this.stageLabelGroup.pointerEvents = PointerEvents.None;
-    }
 
-    override addChartEventListeners(): void {
         this.cleanup.register(this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)));
     }
 

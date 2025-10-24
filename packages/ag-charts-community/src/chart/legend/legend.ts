@@ -33,7 +33,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum, LegendChangeEvent, LegendChangePartialEvent } from '../../core/eventsHub';
-import type { LayoutContext } from '../../module/baseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -54,7 +53,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
-import { LayoutElement } from '../layout/layoutManager';
+import { type LayoutContext, LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
 import { applyShapeStyle, getShapeStyle } from '../series/shapeUtil';
@@ -265,7 +264,7 @@ export class Legend extends BaseProperties {
         }
     })
     @Property
-    enabled: boolean = true;
+    enabled: boolean = false;
 
     @Property
     position: AgChartLegendPosition = 'bottom';
@@ -1280,7 +1279,7 @@ export class Legend extends BaseProperties {
 
             if (!floating) {
                 let shrinkAmount: number;
-                let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
+                let shrinkDirection: NonNullable<Parameters<BBox['shrink']>[1]>;
                 switch (placement) {
                     case 'top':
                     case 'top-right':

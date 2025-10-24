@@ -1,4 +1,5 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
@@ -35,19 +36,21 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
     };
 }
 
-export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'>['themeTemplate'] = {
+export const CANDLESTICK_SERIES_THEME: ExtensibleTheme<'candlestick'> = {
     series: {
         item: {
             up: itemTheme('up'),
             down: itemTheme('down'),
         },
-        highlightStyle: {
-            item: { strokeWidth: 3 },
-        },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: _ModuleSupport.mergeDefaults(
+            {
+                highlightedItem: { strokeWidth: 3 },
+            },
+            multiSeriesHighlightStyle()
+        ),
     },
     animation: { enabled: false },
     axes: {

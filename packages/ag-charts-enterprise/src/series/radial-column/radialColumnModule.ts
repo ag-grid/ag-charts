@@ -7,27 +7,17 @@ import { RADIAL_COLUMN_SERIES_THEME } from './radialColumnThemes';
 
 const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
-export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-
-    identifier: 'radial-column',
-    moduleFactory: (ctx) => new RadialColumnSeries(ctx),
-    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
-    themeTemplate: RADIAL_COLUMN_SERIES_THEME,
-    stackable: true,
-    groupable: true,
-};
-
 export const RadialColumnSeriesModule: SeriesModuleDefinition<AgRadialColumnSeriesOptions> = {
     type: 'series',
     name: 'radial-column',
     chartType: 'polar',
     enterprise: true,
+    stackable: true,
+    groupable: true,
 
     options: radialColumnSeriesOptionsDef,
+    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
+    themeTemplate: RADIAL_COLUMN_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RadialColumnSeries(ctx),
 };

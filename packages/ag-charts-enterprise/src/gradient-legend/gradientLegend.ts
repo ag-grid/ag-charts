@@ -134,7 +134,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         scene.appendChild(this.legendGroup);
     }
 
-    private onStartLayout(ctx: _ModuleSupport.LayoutContext) {
+    private onStartLayout({ layoutBox }: _ModuleSupport.LayoutContext) {
         const [data] = this.data;
 
         if (!this.enabled || !data?.enabled || data.legendType !== 'gradient') {
@@ -143,15 +143,14 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         }
 
         const { colorRange } = this.normalizeColorArrays(data);
-
-        const gradientRectBBox = this.updateGradientRect(ctx.layoutBox, colorRange);
-        const axisBBox = this.updateAxis(data, gradientRectBBox) ?? new BBox(0, 0, 0, 0);
-
-        const legendBBox = BBox.merge([gradientRectBBox, axisBBox]);
         const { strokeWidth, padding } = this.getContainerStyles();
+        const gradientRectBBox = this.updateGradientRect(layoutBox, colorRange);
+        const axisBBox = this.updateAxis(data, gradientRectBBox) ?? new BBox(0, 0, 0, 0);
+        const legendBBox = BBox.merge([gradientRectBBox, axisBBox]);
+
         legendBBox.grow(padding).grow(strokeWidth);
 
-        const { left, top } = this.getMeasurements(ctx.layoutBox, legendBBox);
+        const { left, top } = this.getMeasurements(layoutBox, legendBBox);
 
         this.updateContainer(legendBBox);
         this.updateArrow();
@@ -190,8 +189,8 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
     private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorRange: string[]) {
         const { gradientRect, gradient } = this;
         const { preferredLength, thickness } = gradient;
-
         const gradientRectBBox = new BBox(0, 0, 0, 0);
+        const colorCount = Math.max(colorRange.length - 1, 1);
 
         let angle: number;
         if (this.isVertical()) {
@@ -214,7 +213,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
             gradient: 'linear',
             colorSpace: 'oklch',
             colorStops: colorRange.map((color, i) => ({
-                stop: i / (colorRange.length - 1),
+                stop: i / colorCount,
                 color,
             })),
             rotation: angle,

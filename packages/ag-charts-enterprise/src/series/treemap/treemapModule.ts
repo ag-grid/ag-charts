@@ -6,14 +6,14 @@ import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
 
 const { FONT_SIZE_RATIO } = _ModuleSupport;
 
-export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
+export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
-    identifier: 'treemap',
-    moduleFactory: (ctx) => new TreemapSeries(ctx),
+    name: 'treemap',
+    chartType: 'standalone',
+    enterprise: true,
     solo: true,
+
+    options: treemapSeriesOptionsDef,
     themeTemplate: {
         series: {
             fills: {
@@ -35,7 +35,6 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
             },
             colorRange: { $palette: 'divergingColors' },
-            // @ts-expect-error undocumented option
             undocumentedGroupFills: { $palette: 'hierarchyColors' },
             undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             group: {
@@ -116,15 +115,6 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             ..._ModuleSupport.LEGEND_CONTAINER_THEME,
         },
     },
-};
-
-export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
-    type: 'series',
-    name: 'treemap',
-    chartType: 'standalone',
-    enterprise: true,
-
-    options: treemapSeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new TreemapSeries(ctx),
 };

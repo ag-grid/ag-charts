@@ -15,6 +15,7 @@ export { time } from './util/time-interop';
 // Undocumented APIs used by Enterprise Modules.
 export * as _ModuleSupport from './module-support';
 export * as _Widget from './widget/exports';
+export * from './main-modules';
 
 // Undocumented APIs used by Integrated Charts.
 

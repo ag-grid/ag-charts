@@ -1,81 +1,72 @@
 import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
 const { BASE_FONT_SIZE, FONT_SIZE_RATIO } = _ModuleSupport;
 
-export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
-
-    identifier: 'sunburst',
-    moduleFactory: (ctx) => new SunburstSeries(ctx),
-    solo: true,
-    themeTemplate: {
-        series: {
-            fills: {
-                $applyCycle: [
-                    { $size: { $path: ['./data', { $path: '/data' }] } },
-                    { $palette: 'fills' },
-                    {
-                        $applySwitch: [
-                            { $path: ['/type', undefined, { $value: '$1' }] },
-                            { $value: '$1' },
-                            ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
-                            ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                            ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                        ],
-                    },
-                ],
-            } as any,
-            strokes: {
-                $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
-            } as any,
-            colorRange: { $palette: 'divergingColors' },
-            strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
+const themeTemplate: ExtensibleTheme<'sunburst'> = {
+    series: {
+        fills: {
+            $applyCycle: [
+                { $size: { $path: ['./data', { $path: '/data' }] } },
+                { $palette: 'fills' },
+                {
+                    $applySwitch: [
+                        { $path: ['/type', undefined, { $value: '$1' }] },
+                        { $value: '$1' },
+                        ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
+                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ],
+                },
+            ],
+        } as any,
+        strokes: {
+            $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
+        } as any,
+        colorRange: { $palette: 'divergingColors' },
+        strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
+        label: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            fontFamily: { $ref: 'fontFamily' },
+            fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
+            minimumFontSize: { $rem: 9 / BASE_FONT_SIZE },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'chartBackgroundColor' },
+            overflowStrategy: 'ellipsis',
+            wrapping: 'never',
+            spacing: 2,
+        },
+        secondaryLabel: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            fontFamily: { $ref: 'fontFamily' },
+            fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },
+            minimumFontSize: { $rem: 7 / BASE_FONT_SIZE },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'chartBackgroundColor' },
+            overflowStrategy: 'ellipsis',
+            wrapping: 'never',
+        },
+        sectorSpacing: 2,
+        padding: 3,
+        highlightStyle: {
             label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
-                minimumFontSize: { $rem: 9 / BASE_FONT_SIZE },
-                fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'chartBackgroundColor' },
-                overflowStrategy: 'ellipsis',
-                wrapping: 'never',
-                spacing: 2,
             },
             secondaryLabel: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },
-                minimumFontSize: { $rem: 7 / BASE_FONT_SIZE },
-                fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'chartBackgroundColor' },
-                overflowStrategy: 'ellipsis',
-                wrapping: 'never',
             },
-            sectorSpacing: 2,
-            padding: 3,
-            highlightStyle: {
-                label: {
-                    color: { $ref: 'chartBackgroundColor' },
-                },
-                secondaryLabel: {
-                    color: { $ref: 'chartBackgroundColor' },
-                },
-                fill: 'rgba(255,255,255, 0.33)',
-                stroke: `rgba(0, 0, 0, 0.4)`,
-                strokeWidth: 2,
-            },
+            fill: 'rgba(255,255,255, 0.33)',
+            stroke: `rgba(0, 0, 0, 0.4)`,
+            strokeWidth: 2,
         },
-        gradientLegend: {
-            enabled: true,
-            ..._ModuleSupport.LEGEND_CONTAINER_THEME,
-        },
+    },
+    gradientLegend: {
+        enabled: true,
+        ..._ModuleSupport.LEGEND_CONTAINER_THEME,
     },
 };
 
@@ -84,8 +75,10 @@ export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOption
     name: 'sunburst',
     chartType: 'standalone',
     enterprise: true,
+    solo: true,
 
     options: sunburstSeriesOptionsDef,
+    themeTemplate,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new SunburstSeries(ctx),
 };

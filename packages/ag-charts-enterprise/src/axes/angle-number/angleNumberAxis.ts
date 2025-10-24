@@ -1,5 +1,5 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
@@ -66,7 +66,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
             const maxTickCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
             const preferredTickCount = Math.floor((4 / Math.PI) * Math.abs(requestedRange[0] - requestedRange[1]));
             const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
-            const tickParams: _ModuleSupport.ScaleTickParams<number> = {
+            const tickParams: ScaleTickParams<number> = {
                 nice,
                 interval: step,
                 tickCount,

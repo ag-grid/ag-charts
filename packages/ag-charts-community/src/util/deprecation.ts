@@ -3,6 +3,9 @@ import { Logger } from 'ag-charts-core';
 import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
 import { getPath, setPath } from './object';
 
+// Note: These deprecation utilities are currently unused but are kept for future deprecations.
+// They provide decorators for marking properties as deprecated with helpful migration messages.
+
 export function createDeprecationWarning() {
     return (key: string, message?: string) => {
         const msg = [`Property [${key}] is deprecated.`, message].filter(Boolean).join(' ');

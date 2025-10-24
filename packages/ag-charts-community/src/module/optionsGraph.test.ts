@@ -1,16 +1,27 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
+import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
+import { setupModules } from '../chart/factory/setupModules';
 import { OptionsGraph } from './optionsGraph';
 
 describe('OptionsGraph', () => {
+    beforeAll(() => {
+        registerInbuiltModules();
+        setupModules();
+    });
+
+    const originalCloneDefaultAxes = (OptionsGraph as any).cloneDefaultAxes;
     beforeEach(() => {
-        seriesRegistry.cloneDefaultAxes = jest.fn().mockImplementation(() => {
+        (OptionsGraph as any).cloneDefaultAxes = jest.fn().mockImplementation(() => {
             return [
                 { type: 'number', position: 'left' },
                 { type: 'category', position: 'bottom' },
             ];
         }) as any;
+    });
+
+    afterEach(() => {
+        (OptionsGraph as any).cloneDefaultAxes = originalCloneDefaultAxes;
     });
 
     it('should merge chart defaults and user options', () => {

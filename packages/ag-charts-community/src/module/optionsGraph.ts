@@ -1,8 +1,19 @@
-import { AdjacencyListGraph, Debug, type PlainObject, type Vertex, isObject, isObjectLike } from 'ag-charts-core';
+import {
+    AdjacencyListGraph,
+    Debug,
+    ModuleRegistry,
+    type PlainObject,
+    type Vertex,
+    distribute,
+    isObject,
+    isObjectLike,
+} from 'ag-charts-core';
+import type { DatumDefault, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
-import { chartTypes } from '../chart/factory/chartTypes';
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
+import { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartTheme } from '../chart/themes/chartTheme';
+import { CARTESIAN_AXIS_TYPE } from '../chart/themes/constants';
+import { deepClone } from '../util/json';
 import { simpleMemorize } from '../util/memo';
 import { pick, without } from '../util/object';
 import { type PaletteType, paletteType } from './coreModulesTypes';
@@ -133,9 +144,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         // Apply the default axes of the primary series type if none are provided by the user.
         userOptions.axes ??=
-            seriesRegistry.predictAxes(seriesType, userOptions.series?.[0], userOptions.data) ??
-            seriesRegistry.cloneDefaultAxes(seriesType) ??
-            [];
+            this.predictAxes(seriesType, userOptions.series?.[0], userOptions.data) ??
+            this.cloneDefaultAxes(seriesType);
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');
@@ -156,7 +166,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             this.buildGraphFromObject(
                 this.root,
                 OVERRIDES_EDGE,
-                chartTypes.isCartesian(seriesType) ? commonOverrides : without(commonOverrides, ['zoom', 'navigator'])
+                ModuleRegistry.getSeriesModule(seriesType)?.chartType === 'cartesian'
+                    ? commonOverrides
+                    : without(commonOverrides, ['zoom', 'navigator'])
             );
         }
 
@@ -1102,5 +1114,60 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.rollbackEdgesTo = [];
         this.rollbackEdgesValue = [];
         this.isRollingBack = false;
+    }
+
+    private predictAxes(seriesType: SeriesType, userSeriesOptions?: any, data?: DatumDefault[]) {
+        if (!userSeriesOptions) return;
+
+        const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
+        if (!seriesData?.length) return;
+
+        const predictAxis = ModuleRegistry.getSeriesModule(seriesType)?.predictAxis;
+        if (!predictAxis) return;
+
+        const axes = new Map<ChartAxisDirection, SeriesPredictAxis<SeriesType> | undefined>();
+        const indices = distribute(0, seriesData.length - 1, 5);
+
+        for (const index of indices) {
+            const datum = seriesData[index];
+            for (const direction of Object.values(ChartAxisDirection)) {
+                const axis = predictAxis(direction, datum, userSeriesOptions);
+                if (!axes.has(direction)) {
+                    axes.set(direction, axis);
+                    continue;
+                }
+
+                // Check for stability in the predicted axis for this direction, if the prediction is unstable then
+                // return and fallback to the defaults.
+                const prevAxis = axes.get(direction);
+                if (!axis && !prevAxis) continue;
+                if (!axis || !prevAxis) return;
+                for (const key of Object.keys(prevAxis)) {
+                    if ((prevAxis as any)[key] !== (axis as any)[key]) return;
+                }
+            }
+        }
+
+        for (const [direction, axis] of axes) {
+            if (!axis) axes.delete(direction);
+        }
+
+        // If we couldn't predict any axes, fallback to the defaults.
+        if (axes.size === 0) return;
+
+        // If we predicted a single axis, merge this with the defaults by replacing the category axis.
+        if (axes.size === 1) {
+            const [predictedAxis] = axes.values();
+            return this.cloneDefaultAxes(seriesType).map((axis) =>
+                axis.type === CARTESIAN_AXIS_TYPE.CATEGORY ? predictedAxis : axis
+            );
+        }
+
+        return Array.from(axes.values());
+    }
+
+    private cloneDefaultAxes(seriesType: SeriesType) {
+        const seriesModule = ModuleRegistry.getSeriesModule(seriesType);
+        return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : [];
     }
 }

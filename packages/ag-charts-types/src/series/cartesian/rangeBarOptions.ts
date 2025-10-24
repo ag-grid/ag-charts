@@ -12,7 +12,6 @@ import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesHighlightStyle,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
@@ -66,8 +65,6 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** @deprecated Configuration for the range series items when they are hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
     label?: AgRangeBarSeriesLabelOptions<TDatum, TContext>;
     /** Configuration for the shadow used behind the series items. */

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ScaleType } from 'ag-charts-core';
 
 const {
     AGGREGATION_SPAN,
@@ -26,7 +27,7 @@ export interface OhlcSeriesDataAggregationFilter {
 }
 
 export function aggregateOhlcData(
-    scale: _ModuleSupport.ScaleType,
+    scale: ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],

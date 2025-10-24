@@ -1,6 +1,13 @@
 import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type WrapOptions, countFractionDigits, isNumberEqual, wrapTextOrSegments } from 'ag-charts-core';
+import {
+    type Scale,
+    type ScaleTickParams,
+    type WrapOptions,
+    countFractionDigits,
+    isNumberEqual,
+    wrapTextOrSegments,
+} from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
@@ -39,10 +46,7 @@ class AngleAxisLabel extends _ModuleSupport.AxisLabel {
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
-export abstract class AngleAxis<
-    TDomain,
-    TScale extends _ModuleSupport.Scale<TDomain, any>,
-> extends _ModuleSupport.PolarAxis<TScale> {
+export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> extends _ModuleSupport.PolarAxis<TScale> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
     @Property
@@ -108,7 +112,7 @@ export abstract class AngleAxis<
     } {
         const { nice, scale } = this;
 
-        const ticksParams: _ModuleSupport.ScaleTickParams<any> = {
+        const ticksParams: ScaleTickParams<any> = {
             nice,
             interval: undefined,
             tickCount: undefined,

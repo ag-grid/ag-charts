@@ -1,6 +1,6 @@
 import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { createId } from 'ag-charts-core';
+import { type Scale, createId } from 'ag-charts-core';
 
 const { BaseProperties, ChartAxisDirection, Property, Group, FONT_SIZE } = _ModuleSupport;
 
@@ -81,7 +81,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     @Property
     label = new PolarCrossLineLabel();
 
-    scale?: _ModuleSupport.Scale<any, number> = undefined;
+    scale?: Scale<any, number> = undefined;
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
     sideFlag: 1 | -1 = -1;

@@ -1,4 +1,5 @@
-import type { ScaleType } from '../../../scale/scale';
+import type { ScaleType } from 'ag-charts-core';
+
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,

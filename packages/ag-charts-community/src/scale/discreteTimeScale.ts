@@ -1,8 +1,7 @@
-import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { ScaleAlignment, type ScaleTickParams, findMaxIndex, findMinIndex } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { BandScale } from './bandScale';
-import { ScaleAlignment, type ScaleTickParams } from './scale';
 
 export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
     static override is(value: unknown): value is DiscreteTimeScale {

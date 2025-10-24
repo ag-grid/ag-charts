@@ -1,11 +1,10 @@
-import { entries, isArray } from 'ag-charts-core';
+import { ModuleRegistry, ModuleType, groupBy, isArray } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeOptions,
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgChartThemeParams,
-    AgCommonThemeableChartOptions,
     AgPaletteColors,
     AgPresetOverrides,
     AgThemeOverrides,
@@ -17,10 +16,7 @@ import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import { Color } from '../../util/color';
 import { deepClone, jsonWalk } from '../../util/json';
 import { deepFreeze, mergeDefaults } from '../../util/object';
-import { axisRegistry } from '../factory/axisRegistry';
-import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
-import { legendRegistry } from '../factory/legendRegistry';
-import { seriesRegistry } from '../factory/seriesRegistry';
+import type { ChartType } from '../factory/expectedModules';
 import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
@@ -64,26 +60,6 @@ import { LEGEND_CONTAINER_THEME, getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
-
-type ChartTypeConfig = {
-    seriesTypes: string[];
-    commonOptions: (keyof AgCommonThemeableChartOptions)[];
-};
-
-const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
-    get cartesian(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
-    },
-    get polar(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.polarTypes, commonOptions: [] };
-    },
-    get topology(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
-    },
-    get standalone(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.standaloneTypes, commonOptions: [] };
-    },
-};
 
 type OverridesKey = keyof AgThemeOverrides;
 
@@ -638,8 +614,8 @@ export class ChartTheme {
     }
 
     private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides) {
-        for (const s of chartTypes.seriesTypes) {
-            const seriesType = s as keyof AgThemeOverrides;
+        for (const s of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+            const seriesType = s.name as keyof AgThemeOverrides;
             const seriesOverrides = overrides[seriesType];
 
             if (isPresetOverridesType(seriesType)) {
@@ -650,10 +626,10 @@ export class ChartTheme {
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        for (const [nextType, { seriesTypes }] of entries(CHART_TYPE_CONFIG)) {
-            const typeDefaults = chartDefaults.get(nextType);
-            for (const seriesType of seriesTypes) {
-                config[seriesType as keyof AgChartThemeOverrides] ??= typeDefaults;
+        for (const chartModule of ModuleRegistry.listModulesByType(ModuleType.Chart)) {
+            for (const seriesModule of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+                if (seriesModule.chartType !== chartModule.name) continue;
+                config[seriesModule.name as keyof AgChartThemeOverrides] ??= chartModule.themeTemplate;
             }
         }
         return config;
@@ -662,25 +638,30 @@ export class ChartTheme {
     private getDefaults(): AgChartThemeOverrides {
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
             const result: Record<string, { series?: object; axes?: object }> = {};
-            const chartTypeDefaults = {
-                axes: {},
-                ...legendRegistry.getThemeTemplates(),
-                ...this.getChartDefaults(),
-                ...chartDefaults.get(chartType),
-            };
+            const chartTypeDefaults = mergeDefaults(
+                { axes: {} },
+                this.getChartDefaults(),
+                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
+                ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
+                    [p.name]: p.themeTemplate,
+                }))
+            );
+
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
-                    seriesRegistry.getThemeTemplate(seriesType),
+                    getSeriesThemeTemplate(seriesType),
                     result[seriesType] ?? chartTypeDefaults
                 );
 
                 const { axes } = result[seriesType] as { axes: Record<string, object> };
 
-                for (const axisType of axisRegistry.keys()) {
-                    axes[axisType] = mergeDefaults(
-                        axes[axisType],
-                        axisRegistry.getThemeTemplate(axisType),
-                        (ChartTheme.axisDefault as any)[axisType]
+                for (const axisModule of ModuleRegistry.listModulesByType(ModuleType.Axis)) {
+                    axes[axisModule.name] = mergeDefaults(
+                        axes[axisModule.name],
+                        !axisModule.chartType || axisModule.chartType === chartType
+                            ? getAxisThemeTemplate(axisModule.name)
+                            : null,
+                        (ChartTheme.axisDefault as any)[axisModule.name]
                     );
                 }
 
@@ -692,11 +673,13 @@ export class ChartTheme {
             return result;
         };
 
+        const seriesModules = [...ModuleRegistry.listModulesByType(ModuleType.Series)];
+        const seriesByChartType = groupBy(seriesModules, (s) => s.chartType || 'unknown');
+
         return mergeDefaults(
-            getOverridesByType('cartesian', chartTypes.cartesianTypes),
-            getOverridesByType('polar', chartTypes.polarTypes),
-            getOverridesByType('topology', chartTypes.topologyTypes),
-            getOverridesByType('standalone', chartTypes.standaloneTypes)
+            ...Object.keys(seriesByChartType).map((chartType) =>
+                getOverridesByType(chartType as ChartType, seriesByChartType[chartType]?.map((s) => s.name) ?? [])
+            )
         );
     }
 
@@ -793,4 +776,24 @@ export class ChartTheme {
 
         return params;
     }
+}
+
+function getAxisThemeTemplate(axisType: string) {
+    let themeTemplate = ModuleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+        if (module.axisTypes?.includes(axisType) ?? true) {
+            themeTemplate = mergeDefaults(module.themeTemplate, themeTemplate);
+        }
+    }
+    return themeTemplate;
+}
+
+function getSeriesThemeTemplate(seriesType: string) {
+    let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+        if (module.seriesTypes?.includes(seriesType) ?? true) {
+            themeTemplate = mergeDefaults(module.themeTemplate, themeTemplate);
+        }
+    }
+    return themeTemplate;
 }

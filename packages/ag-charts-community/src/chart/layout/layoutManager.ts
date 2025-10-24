@@ -1,8 +1,13 @@
 import type { EventListener } from 'ag-charts-core';
 
 import type { AxisLayout, EventsHub } from '../../core/eventsHub';
-import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import { BBox } from '../../scene/bbox';
+
+export interface LayoutContext {
+    width: number;
+    height: number;
+    layoutBox: BBox;
+}
 
 export interface LayoutState {
     axes?: AxisLayout[];
@@ -34,7 +39,7 @@ export class LayoutManager {
     }
 
     createContext(width: number, height: number): LayoutContext {
-        const context = new LayoutContext(width, height);
+        const context = { width, height, layoutBox: new BBox(0, 0, width, height) };
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
             const listeners = this.elements.get(element);
@@ -47,24 +52,12 @@ export class LayoutManager {
         return context;
     }
 
-    emitLayoutComplete(context: LayoutContext, options: LayoutState) {
-        const { width, height } = context;
+    emitLayoutComplete({ width, height }: LayoutContext, options: LayoutState) {
         this.eventsHub.emit('layout:complete', {
             axes: options.axes ?? [],
             chart: { width, height },
             clipSeries: options.clipSeries ?? false,
             series: options.series,
         });
-    }
-}
-
-class LayoutContext implements ILayoutContext {
-    readonly layoutBox: BBox;
-
-    constructor(
-        public readonly width: number,
-        public readonly height: number
-    ) {
-        this.layoutBox = new BBox(0, 0, width, height);
     }
 }

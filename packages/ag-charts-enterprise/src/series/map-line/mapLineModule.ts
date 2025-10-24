@@ -5,19 +5,17 @@ import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefault
 import { MapLineSeries } from './mapLineSeries';
 import { mapLineSeriesOptionsDef } from './mapLineSeriesOptionsDef';
 
-export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
+export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['topology'],
+    name: 'map-line',
+    chartType: 'topology',
+    enterprise: true,
 
-    identifier: 'map-line',
-    moduleFactory: (ctx) => new MapLineSeries(ctx),
+    options: mapLineSeriesOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
             stroke: applyMapPalette(_ModuleSupport.SAFE_STROKE_FILL_OPERATION),
-            // @ts-expect-error undocumented option
             colorRange: {
                 $if: [
                     { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
@@ -43,15 +41,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
             range: 'exact',
         },
     },
-};
-
-export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions> = {
-    type: 'series',
-    name: 'map-line',
-    chartType: 'topology',
-    enterprise: true,
-
-    options: mapLineSeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new MapLineSeries(ctx),
 };
