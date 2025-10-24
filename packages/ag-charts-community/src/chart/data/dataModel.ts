@@ -2,17 +2,12 @@ import { Logger, first, isNegative, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
+import { DomainInitializer } from './data-model/domain/domainInitializer';
 import { createArray, datumKeys, isScoped, toKeyString } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from './dataChangeDescription';
-import {
-    BandedDomain,
-    type BandedDomainConfig,
-    ContinuousDomain,
-    DiscreteDomain,
-    type IDataDomain,
-} from './dataDomain';
+import { BandedDomain, ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 // Import types for internal use
 import type {
     AggregatePropertyDefinition,
@@ -71,8 +66,9 @@ export class DataModel<
 
     private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
     private readonly values: InternalDatumPropertyDefinition<K>[] = [];
-    private resolvers!: DataModelResolvers<D, K>;
-    private scopeCacheManager!: ScopeCacheManager<K>;
+    private readonly resolvers!: DataModelResolvers<D, K>;
+    private readonly scopeCacheManager!: ScopeCacheManager<K>;
+    private readonly domainInitializer!: DomainInitializer<K>;
     private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition<false>)[] = [];
     private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition<true>)[] = [];
@@ -180,6 +176,7 @@ export class DataModel<
             this.aggregates,
             this.suppressFieldDotNotation
         );
+        this.domainInitializer = new DomainInitializer(this.debug, this.opts.domainBandingConfig);
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
@@ -886,86 +883,23 @@ export class DataModel<
     }
 
     /**
-     * Creates or retrieves the appropriate domain for a definition.
-     * Handles both discrete and continuous domains, with optional banding optimization.
-     */
-    private setupDomainForDefinition(
-        def: InternalDatumPropertyDefinition<K>,
-        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
-        bandingConfig: BandedDomainConfig | undefined
-    ): IDataDomain {
-        if (def.valueType === 'category') {
-            return new DiscreteDomain();
-        }
-
-        let domain = bandedDomains.get(def);
-        if (!domain && bandingConfig?.enableBanding !== false) {
-            domain = new BandedDomain(() => new ContinuousDomain(), bandingConfig, false);
-            bandedDomains.set(def, domain);
-        }
-
-        return domain ?? new ContinuousDomain();
-    }
-
-    /**
-     * Extends a domain from data array, using banded optimization if available.
-     * Note: For BandedDomain, bands should already be initialized before calling this method.
-     */
-    private extendDomainFromData(domain: IDataDomain, data: any[], invalidData?: boolean[]): void {
-        if (domain instanceof BandedDomain) {
-            // Bands should already be initialized by recomputeDomains()
-            // This preserves the selective dirty marking from updateBandsForChanges()
-            domain.extendBandsFromData(data, invalidData);
-        } else {
-            for (let i = 0; i < data.length; i++) {
-                if (invalidData?.[i] === true) continue;
-                domain.extend(data[i]);
-            }
-        }
-    }
-
-    /**
-     * Initializes a banded domain if needed based on data size and state.
-     * This is a memory optimization that divides large datasets into bands.
-     */
-    private initializeBandedDomain(domain: IDataDomain, dataSize: number, propertyName?: string): void {
-        if (!(domain instanceof BandedDomain)) return;
-
-        const stats = domain.getStats();
-        const shouldReinit = stats.bandCount === 0 || stats.dataSize !== dataSize || stats.needsReinitialization;
-
-        if (this.debug.check() && shouldReinit && propertyName) {
-            this.debug(
-                `Reinitializing bands for ${propertyName}: bandCount=${stats.bandCount}, ` +
-                    `dataSize=${stats.dataSize}, dataLength=${dataSize}, ` +
-                    `needsReinitialization=${stats.needsReinitialization}`
-            );
-        }
-
-        if (shouldReinit) {
-            domain.initializeBands(dataSize);
-        }
-    }
-
-    /**
      * Recomputes domains from transformed arrays.
      * Uses BandedDomain optimization for continuous domains to avoid full rescans.
      */
     private recomputeDomains(processedData: ProcessedData<D>): void {
         const startTime = this.debug.check() ? performance.now() : 0;
         const bandedDomains = processedData[DOMAIN_BANDS];
-        const bandingConfig = this.opts.domainBandingConfig;
         let bandStats: { totalBands: number; dirtyBands: number; totalData: number } | undefined;
 
         const keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
         const valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
 
         for (const keyDef of this.keys) {
-            keyDomains.set(keyDef, this.setupDomainForDefinition(keyDef, bandedDomains, bandingConfig));
+            keyDomains.set(keyDef, this.domainInitializer.setupDomainForDefinition(keyDef, bandedDomains));
         }
 
         for (const valueDef of this.values) {
-            valueDomains.set(valueDef, this.setupDomainForDefinition(valueDef, bandedDomains, bandingConfig));
+            valueDomains.set(valueDef, this.domainInitializer.setupDomainForDefinition(valueDef, bandedDomains));
         }
 
         // Initialize bands for key domains first (this determines band structure)
@@ -975,14 +909,14 @@ export class DataModel<
             const keysMap = processedData.keys[keyDefIndex];
             const domain = keyDomains.get(keyDef)!;
             const maxKeyLength = Math.max(...Array.from(keysMap.values()).map((keys) => keys.length));
-            this.initializeBandedDomain(domain, maxKeyLength, String(keyDef.property));
+            this.domainInitializer.initializeBandedDomain(domain, maxKeyLength, String(keyDef.property));
         }
 
         // Initialize bands for value domains
         for (const [valueDefIndex, valueDef] of this.values.entries()) {
             const column = processedData.columns[valueDefIndex];
             const domain = valueDomains.get(valueDef)!;
-            this.initializeBandedDomain(domain, column.length, String(valueDef.property));
+            this.domainInitializer.initializeBandedDomain(domain, column.length, String(valueDef.property));
         }
 
         // Collect pre-scan band statistics (after initialization, before extending domains)
@@ -1023,7 +957,7 @@ export class DataModel<
                 // This matches processData() behavior where valid keys contribute to domain
                 // even if their corresponding values are invalid
                 const invalidKeys = processedData.invalidKeys?.get(scope);
-                this.extendDomainFromData(domain, keys, invalidKeys);
+                this.domainInitializer.extendDomainFromData(domain, keys, invalidKeys);
             }
         }
 
@@ -1034,7 +968,7 @@ export class DataModel<
             const columnScope = first(valueDef.scopes);
             const invalidData = processedData.invalidData?.get(columnScope);
 
-            this.extendDomainFromData(domain, column, invalidData);
+            this.domainInitializer.extendDomainFromData(domain, column, invalidData);
         }
 
         processedData.domain.keys = this.keys.map((keyDef) => {
