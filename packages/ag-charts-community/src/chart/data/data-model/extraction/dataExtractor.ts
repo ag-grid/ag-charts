@@ -7,6 +7,20 @@ import type { DataSet } from '../../dataSet';
 import type { DomainManager } from '../domain/domainManager';
 import { createArray } from '../utils/helpers';
 
+/**
+ * DataExtractor handles data extraction from DataSet sources.
+ *
+ * EXTRACTION RESPONSIBILITIES:
+ * - Extracts key and value data from DataSet sources
+ * - Processes data through property definitions
+ * - Tracks data validity and invalid entries per scope
+ * - Builds initial ungrouped data structure for further processing
+ *
+ * DATA VALIDITY TRACKING:
+ * - Maintains invalid key/value flags per scope
+ * - Enables partial data rendering when some entries are invalid
+ * - Tracks partial valid data count for optimization decisions
+ */
 export class DataExtractor<D extends object, K extends keyof D & string> {
     constructor(
         private readonly keys: InternalDatumPropertyDefinition<K>[],

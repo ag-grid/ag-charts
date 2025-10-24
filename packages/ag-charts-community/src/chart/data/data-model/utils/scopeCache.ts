@@ -10,6 +10,20 @@ import type {
 } from '../../dataModelTypes';
 import { createPathAccessor, getPathComponents } from './helpers';
 
+/**
+ * ScopeCacheManager manages the scope cache for property definitions.
+ *
+ * SCOPE CACHE RESPONSIBILITIES:
+ * - Maintains mapping of property IDs to definitions per scope
+ * - Validates uniqueness of property IDs within each scope
+ * - Provides lookup functions for keys, values, and aggregates
+ * - Handles property ID resolution with dot notation support
+ *
+ * SCOPE CONCEPT:
+ * Scopes allow multiple data sources (series) to use the same DataModel
+ * while maintaining separate property definitions. Each scope has its own
+ * namespace for property IDs.
+ */
 export class ScopeCacheManager<K extends string> {
     constructor(
         private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition<false>>>,

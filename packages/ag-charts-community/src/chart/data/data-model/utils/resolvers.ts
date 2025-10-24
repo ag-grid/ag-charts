@@ -1,10 +1,3 @@
-/**
- * DataModel resolver methods.
- * Extracted from DataModel class as part of Phase 2.2 refactoring.
- *
- * These methods handle lookups and resolution of processed data definitions,
- * columns, domains, and sort orders.
- */
 import type {
     GroupedData,
     InternalDefinition,
@@ -19,6 +12,20 @@ import { COLUMN_SORT_ORDERS, DOMAIN_RANGES, KEY_SORT_ORDERS } from '../../dataMo
 import { RangeLookup } from '../../rangeLookup';
 import { type SortOrder, valuesSortOrder } from '../../sortOrder';
 
+/**
+ * DataModelResolvers handles lookups and resolution of processed data.
+ *
+ * RESOLVER RESPONSIBILITIES:
+ * - Resolves property definitions by ID within a scope
+ * - Looks up keys, columns, and values from processed data
+ * - Manages domain and sort order resolution
+ * - Provides range lookups for data access
+ *
+ * SCOPE-AWARE RESOLUTION:
+ * - All lookups are scoped to specific data sources
+ * - Uses internal scope cache for fast property definition lookup
+ * - Throws clear errors when definitions are not found
+ */
 export class DataModelResolvers<D extends object, K extends keyof D & string> {
     constructor(
         private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition<false>>>
