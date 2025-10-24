@@ -50,7 +50,12 @@ export class RadialColumnShape<D = any> extends Path<D> {
     }
 
     protected override computeBBox(): BBox {
-        const { innerRadius, outerRadius, columnWidth } = this;
+        const { columnWidth } = this;
+        let { innerRadius, outerRadius } = this;
+        if (innerRadius > outerRadius) {
+            [innerRadius, outerRadius] = [outerRadius, innerRadius];
+        }
+
         const rotation = this.getRotation();
         const left = -columnWidth / 2;
         const right = columnWidth / 2;
@@ -92,7 +97,11 @@ export class RadialColumnShape<D = any> extends Path<D> {
     }
 
     private updateRectangularPath() {
-        const { columnWidth, innerRadius, outerRadius, path } = this;
+        let { innerRadius, outerRadius } = this;
+        const { columnWidth, path } = this;
+        if (innerRadius > outerRadius) {
+            [innerRadius, outerRadius] = [outerRadius, innerRadius];
+        }
 
         const left = -columnWidth / 2;
         const right = columnWidth / 2;
