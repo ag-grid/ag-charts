@@ -1,4 +1,4 @@
-import { clamp } from 'ag-charts-core';
+import { clamp } from '../main';
 
 export function clampArray(value: number, array: number[]) {
     const [min, max] = findMinMax(array);
