@@ -5,4 +5,8 @@
         border-radius: var(--ag-charts-border-radius);
         margin: 0;
     }
+
+    .ag-charts-toolbar__button--active + .ag-charts-toolbar__button {
+        border-left-color: var(--ag-charts-border-color);
+    }
 }

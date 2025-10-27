@@ -48,6 +48,10 @@
     border-color: var(--ag-charts-accent-color);
     color: var(--ag-charts-accent-color);
     z-index: 2;
+
+    + .ag-charts-toolbar__button {
+        border-left-color: var(--ag-charts-accent-color);
+    }
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
@@ -62,7 +66,7 @@
     flex-direction: row;
 
     .ag-charts-toolbar__button {
-        margin: 0 0 0 -1px;
+        border-right-width: 0;
     }
 
     .ag-charts-toolbar__button--first {
@@ -74,6 +78,7 @@
     .ag-charts-toolbar__button--last {
         border-bottom-right-radius: var(--ag-charts-border-radius);
         border-top-right-radius: var(--ag-charts-border-radius);
+        border-right-width: 1px;
     }
 }
 
@@ -126,6 +131,7 @@
     border: var(--ag-charts-border);
     border-bottom-left-radius: var(--ag-charts-border-radius);
     border-top-left-radius: var(--ag-charts-border-radius);
+    border-right-width: 0;
     cursor: grab;
     display: flex;
     justify-content: center;
