@@ -408,14 +408,6 @@ export class DataModel<
         processedData: ProcessedData<D>,
         dataSets?: Map<DataSet<any>, DataChangeDescription | undefined>
     ): ProcessedData<D> {
-        // INCREMENTAL REPROCESSING OPTIMIZATION:
-        // Instead of reprocessing all data, we:
-        // 1. Apply change descriptions to transform existing arrays
-        // 2. Process only new insertions
-        // 3. Update only affected domain bands
-        // 4. Reuse existing group structures when possible
-        // This can reduce processing time by 90%+ for small updates to large datasets
-
         if (!this.isReprocessingSupported(processedData)) {
             // Log fallback reason if debug is enabled
             if (this.debug.check()) {
