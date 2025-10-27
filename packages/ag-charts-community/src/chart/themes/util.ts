@@ -143,8 +143,8 @@ export const FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS: WithThemeParams<RequiredInter
     },
 };
 
-export const FILL_GRADIENT_LINEAR_SHADED_DEFAULTS = (
-    key: string
+export const FILL_GRADIENT_LINEAR_KEYED_DEFAULTS = (
+    key: 'up' | 'down' | 'altUp' | 'altDown' | 'neutral'
 ): WithThemeParams<RequiredInternalAgGradientColor> => ({
     ...FILL_GRADIENT_LINEAR_DEFAULTS,
     colorStops: {
@@ -306,6 +306,25 @@ export const FILL_PATTERN_HIERARCHY_DEFAULTS: WithThemeParams<RequiredInternalAg
     fill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
     stroke: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
 };
+
+export const FILL_PATTERN_KEYED_DEFAULTS = (
+    key: 'up' | 'down' | 'altUp' | 'altDown' | 'neutral'
+): WithThemeParams<RequiredInternalAgPatternColor> => ({
+    ...FILL_PATTERN_DEFAULTS,
+    stroke: {
+        $if: [
+            { $isGradient: { $palette: `${key}.fill` } },
+            { $palette: 'fillFallback' },
+            {
+                $if: [
+                    { $isPattern: { $palette: `${key}.fill` } },
+                    { $path: ['/stroke', { $palette: 'fillFallback' }, { $palette: `${key}.fill` }] },
+                    { $palette: `${key}.fill` },
+                ],
+            },
+        ],
+    },
+});
 
 export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> = {
     type: 'image',
