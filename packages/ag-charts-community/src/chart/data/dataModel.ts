@@ -40,7 +40,24 @@ export * from './dataModelTypes';
 export { fixNumericExtent, getMissCount, datumKeys, getPathComponents } from './data-model/utils/helpers';
 
 /**
- * DATA MODEL OPTIMIZATIONS:
+ * Transforms raw chart data into a structured, renderable format for series visualization.
+ *
+ * The DataModel is responsible for processing data through a multi-stage pipeline:
+ * - Extracting and validating data from input datasets
+ * - Grouping data by keys (for categorical axes or stacked series)
+ * - Computing aggregations (sum, average, etc.) for grouped data
+ * - Calculating domains (value ranges) for axes and scales
+ * - Managing scoped data processing for multi-series charts
+ * - Supporting incremental updates when data changes
+ *
+ * The class orchestrates several specialized subsystems:
+ * - DataExtractor: Extracts and validates raw data
+ * - DataGrouper: Groups data by keys
+ * - Aggregator: Computes aggregations over grouped data
+ * - DomainManager: Calculates and maintains value domains
+ * - IncrementalProcessor: Handles efficient data updates
+ *
+ * Performance optimizations:
  *
  * 1. SHARED MEMORY OPTIMIZATION (groupsUnique=true):
  *    When each datum has unique keys, all groups share the same datumIndices array
