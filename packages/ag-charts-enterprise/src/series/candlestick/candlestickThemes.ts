@@ -3,9 +3,9 @@ import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSuppo
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
     multiSeriesHighlightStyle,
-    FILL_GRADIENT_LINEAR_SHADED_DEFAULTS,
+    FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
+    FILL_PATTERN_KEYED_DEFAULTS,
 } = _ModuleSupport;
 
 function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemOptions> {
@@ -20,9 +20,9 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
                         { $palette: `${key}.fill` },
                     ],
                 },
-                ['gradient', FILL_GRADIENT_LINEAR_SHADED_DEFAULTS(key)],
+                ['gradient', FILL_GRADIENT_LINEAR_KEYED_DEFAULTS(key)],
                 ['image', FILL_IMAGE_DEFAULTS],
-                ['pattern', FILL_PATTERN_DEFAULTS],
+                ['pattern', FILL_PATTERN_KEYED_DEFAULTS(key)],
             ],
         },
         stroke: {
