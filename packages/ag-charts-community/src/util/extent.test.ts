@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { extent } from 'ag-charts-core';
+import { extent } from './extent';
 
 describe('extent module', () => {
     describe('extent with isContinuous', () => {
@@ -53,10 +53,9 @@ describe('extent module', () => {
             const earliest = 5270400000;
             const latest = 1568332800000;
 
-            const typedResult = extent(
+            const result = extent(
                 [new Date(earliest), new Date(latest), new Date(1985, 5, 5)].map((d) => d.getTime())
-            );
-            const result = typedResult?.map((x) => Number(x));
+            )!.map((x) => Number(x));
 
             expect(result?.[0]).toBe(earliest);
             expect(result?.[1]).toBe(latest);
@@ -66,8 +65,9 @@ describe('extent module', () => {
             const earliest = 5270400000;
             const latest = 1568468277000;
 
-            const typedResult = extent([new Date(2019, 7, 20), new Date(earliest), latest, new Date(1985, 5, 5)]);
-            const result = typedResult?.map((x) => Number(x));
+            const result = extent([new Date(2019, 7, 20), new Date(earliest), latest, new Date(1985, 5, 5)])!.map((x) =>
+                Number(x)
+            );
 
             expect(result?.[0]).toBe(earliest);
             expect(result?.[1]).toBe(latest);
