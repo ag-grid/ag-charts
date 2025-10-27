@@ -54,27 +54,54 @@ export function visibleRangeIndices(
     length: number,
     [range0, range1]: [number, number],
     xRange: (index: number) => [number, number] | undefined
-): [number, number] {
-    let xMinIndex =
-        findMinIndex(0, length - 1, (i) => {
-            const index = sortOrder === 1 ? i : length - i;
-            const x1 = xRange(index)?.[1] ?? Number.NaN;
-            return !Number.isFinite(x1) || x1 >= range0;
-        }) ?? 0;
+): [number, number];
+export function visibleRangeIndices(
+    sortOrder: 1 | -1,
+    length: number,
+    [range0, range1]: [number, number],
+    xRange: (index: number) => [number, number] | undefined,
+    side: 'outer' | 'inner'
+): [number | undefined, number | undefined];
+export function visibleRangeIndices(
+    sortOrder: 1 | -1,
+    length: number,
+    [range0, range1]: [number, number],
+    xRange: (index: number) => [number, number] | undefined,
+    side?: 'outer' | 'inner'
+): [number | undefined, number | undefined] {
+    // The side is either exclusive (inner) or inclusive (outer) of the range of the datum, e.g. the band width of a
+    // bar in a bar series.
+    const minSide = side === 'outer' ? 0 : 1;
+    const maxSide = side === 'outer' ? 1 : 0;
 
-    let xMaxIndex =
-        findMaxIndex(0, length - 1, (i) => {
-            const index = sortOrder === 1 ? i : length - i;
-            const x0 = xRange(index)?.[0] ?? Number.NaN;
-            return !Number.isFinite(x0) || x0 <= range1;
-        }) ?? length - 1;
+    let xMinIndex = findMinIndex(0, length - 1, (i) => {
+        const index = sortOrder === 1 ? i : length - i;
+        const x1 = xRange(index)?.[minSide] ?? Number.NaN;
+        return !Number.isFinite(x1) || x1 >= range0;
+    });
 
-    if (sortOrder === -1) {
-        [xMinIndex, xMaxIndex] = [length - xMaxIndex, length - xMinIndex];
+    let xMaxIndex = findMaxIndex(0, length - 1, (i) => {
+        const index = sortOrder === 1 ? i : length - i;
+        const x0 = xRange(index)?.[maxSide] ?? Number.NaN;
+        return !Number.isFinite(x0) || x0 <= range1;
+    });
+
+    // If excluding the range of the datum and either of the extents have not been found, then fallback to the maximum
+    // extent of the indices, i.e. pretend the whole range is visible.
+    if (side != 'outer') {
+        xMinIndex ??= 0;
+        xMaxIndex ??= length - 1;
     }
 
-    xMinIndex = Math.max(xMinIndex, 0);
-    xMaxIndex = Math.min(xMaxIndex + 1, length);
+    if (sortOrder === -1) {
+        [xMinIndex, xMaxIndex] = [
+            xMaxIndex == null ? undefined : length - xMaxIndex,
+            xMinIndex == null ? undefined : length - xMinIndex,
+        ];
+    }
+
+    xMinIndex = xMinIndex == null ? undefined : Math.max(xMinIndex, 0);
+    xMaxIndex = xMaxIndex == null ? undefined : Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
 }
