@@ -28,8 +28,10 @@ const localConfiguration: Configuration = {
     },
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
+        'ag-charts-community/modules': `${localPrefix}/ag-charts-community/dist/package/main-modules.cjs.js`,
         'ag-charts-core': `${localPrefix}/ag-charts-core/dist/package/main.cjs.js`,
         'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
+        'ag-charts-enterprise/modules': `${localPrefix}/ag-charts-enterprise/dist/package/main-modules.cjs.js`,
         'ag-charts-types': `${localPrefix}/ag-charts-types/dist/package/main.cjs.js`,
         'ag-charts-locale': `${localPrefix}/ag-charts-locale/dist/package/main.cjs.js`,
     },
@@ -43,8 +45,10 @@ const buildAndArchivesConfiguration: Configuration = {
     },
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
+        'ag-charts-community/modules': `${localPrefix}/ag-charts-community/dist/package/main-modules.cjs.js`,
         'ag-charts-core': `${localPrefix}/ag-charts-core/dist/package/main.cjs.js`,
         'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
+        'ag-charts-enterprise/modules': `${localPrefix}/ag-charts-enterprise/dist/package/main-modules.cjs.js`,
         'ag-charts-types': `${localPrefix}/ag-charts-types/dist/package/main.cjs.js`,
         'ag-charts-locale': `${localPrefix}/ag-charts-locale/dist/package/main.cjs.js`,
     },
