@@ -119,9 +119,14 @@ export interface AgGroupedCategoryAxisLabelStylerParams<TContext = ContextDefaul
     readonly depth: number;
 }
 
+export type AgCartesianAxesOptions<TContext = ContextDefault> = Record<string, AgCartesianAxisOptions<TContext>> & {
+    x?: AgCartesianAxisOptions<TContext>;
+    y?: AgCartesianAxisOptions<TContext>;
+};
+
 export interface AgBaseCartesianChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Axis configurations. */
-    axes?: AgCartesianAxisOptions<TContext>[];
+    axes?: AgCartesianAxesOptions<TContext>;
     /** Series configurations. */
     series?: AgCartesianSeriesOptions<TDatum, TContext>[];
     /** Annotations configurations. */
