@@ -917,13 +917,13 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         //     }
         // }
 
-        const resolvedVertexOnEdge = this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
+        this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
         this.resolveVertexAutoEnable(vertex, object, pathArray);
 
         // Do not resolve the children if the user has provided a plain value or empty object to this vertex
-        if (resolvedVertexOnEdge !== USER_OPTIONS_EDGE) {
-            this.resolveVertexChildren(vertex, object, prune);
-        }
+        // if (resolvedVertexOnEdge !== USER_OPTIONS_EDGE) {
+        this.resolveVertexChildren(vertex, object, prune);
+        // }
     }
 
     private resolveVertexInEdgePriority(
