@@ -23,14 +23,10 @@ import { createArray } from '../utils/helpers';
  * - Tracks partial valid data count for optimization decisions
  */
 export class DataExtractor<D extends object, K extends keyof D & string> {
-    private readonly domainManager: DomainManager<D, K>;
-
     constructor(
         private readonly ctx: DataModelContext<D, K>,
-        domainManager: DomainManager<D, K>
-    ) {
-        this.domainManager = domainManager;
-    }
+        private readonly domainManager: DomainManager<D, K>
+    ) {}
 
     extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
         const { dataDomain, processValue, allScopesHaveSameDefs } =

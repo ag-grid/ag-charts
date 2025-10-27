@@ -32,10 +32,7 @@ import { createArray, toKeyString } from '../utils/helpers';
  * - Scopes can be safely processed together
  */
 export class DataGrouper<D extends object, K extends keyof D & string> {
-    constructor(
-        private readonly ctx: DataModelContext<D, K>,
-        _groupByFn?: (data: UngroupedData<D>) => GroupingFn<D>
-    ) {}
+    constructor(private readonly ctx: DataModelContext<D, K>) {}
 
     /**
      * Groups data by keys or custom grouping function.

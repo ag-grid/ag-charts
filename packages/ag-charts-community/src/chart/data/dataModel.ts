@@ -11,7 +11,6 @@ import { IncrementalProcessor } from './data-model/incremental/incrementalProces
 import { isScoped } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
-// Import types for internal use
 import type {
     AggregatePropertyDefinition,
     DataGroup,
@@ -36,12 +35,28 @@ import type {
 import type { DataChangeDescription, DataSet } from './dataSet';
 import { type SortOrder } from './sortOrder';
 
-// Export all types from dataModelTypes
 export * from './dataModelTypes';
 
-// Re-export helper functions that are part of the public API
 export { fixNumericExtent, getMissCount, datumKeys, getPathComponents } from './data-model/utils/helpers';
 
+/**
+ * DATA MODEL OPTIMIZATIONS:
+ *
+ * 1. SHARED MEMORY OPTIMIZATION (groupsUnique=true):
+ *    When each datum has unique keys, all groups share the same datumIndices array
+ *    containing [0], since each datum's relative offset from its group is always 0.
+ *
+ * 2. BANDED DOMAIN PROCESSING:
+ *    Large datasets are divided into bands for efficient domain calculation.
+ *    Only dirty bands are recalculated during incremental updates.
+ *
+ * 3. BATCH MERGING:
+ *    Column batches with identical characteristics (keys, invalidity) are merged
+ *    to reduce processing overhead.
+ *
+ * 4. INCREMENTAL REPROCESSING:
+ *    When supported, only changed data is reprocessed instead of full recalculation.
+ */
 export class DataModel<
     D extends object,
     K extends keyof D & string = keyof D & string,
@@ -181,7 +196,7 @@ export class DataModel<
         this.domainInitializer = new DomainInitializer(ctx);
         this.domainManager = new DomainManager(ctx, this.domainInitializer, this.scopeCacheManager);
         this.dataExtractor = new DataExtractor(ctx, this.domainManager);
-        this.dataGrouper = new DataGrouper(ctx, this.opts.groupByFn);
+        this.dataGrouper = new DataGrouper(ctx);
         this.aggregator = new Aggregator(ctx, this.scopeCacheManager, this.resolvers);
         this.incrementalProcessor = new IncrementalProcessor(ctx);
     }
@@ -398,7 +413,6 @@ export class DataModel<
             return this.processData(processedData.dataSources)!;
         }
 
-        // Delegate to IncrementalProcessor with required callbacks
         const { processValue } = this.initDataDomainProcessor('skip');
         return this.incrementalProcessor.reprocessData(
             processedData,

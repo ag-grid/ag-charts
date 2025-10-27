@@ -28,25 +28,6 @@ export const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
 export const DOMAIN_RANGES = Symbol('domain-ranges');
 export const DOMAIN_BANDS = Symbol('domain-bands');
 
-/**
- * DATA MODEL OPTIMIZATIONS:
- *
- * 1. SHARED MEMORY OPTIMIZATION (groupsUnique=true):
- *    When each datum has unique keys, all groups share the same datumIndices array
- *    containing [0], since each datum's relative offset from its group is always 0.
- *
- * 2. BANDED DOMAIN PROCESSING:
- *    Large datasets are divided into bands for efficient domain calculation.
- *    Only dirty bands are recalculated during incremental updates.
- *
- * 3. BATCH MERGING:
- *    Column batches with identical characteristics (keys, invalidity) are merged
- *    to reduce processing overhead.
- *
- * 4. INCREMENTAL REPROCESSING:
- *    When supported, only changed data is reprocessed instead of full recalculation.
- */
-
 // Memory optimization: Shared frozen array for datumIndices in grouped data
 // when groupsUnique=true. All groups point to same [0] array since each
 // datum has relative offset 0 from its group start position.
