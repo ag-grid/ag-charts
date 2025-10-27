@@ -46,7 +46,6 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
         highlight: boolean
     ) {
         node.isBeveled = this.isRadiusAxisCircle();
-        node.isRadiusAxisReversed = this.isRadiusAxisReversed();
 
         if (highlight) {
             node.innerRadius = datum.innerRadius;
