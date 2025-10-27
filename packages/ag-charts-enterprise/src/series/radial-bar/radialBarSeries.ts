@@ -5,8 +5,7 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, isDefined } from 'ag-charts-core';
-import { angleBetween } from 'ag-charts-core/utils/angle';
+import { type Point, angleBetween, isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';

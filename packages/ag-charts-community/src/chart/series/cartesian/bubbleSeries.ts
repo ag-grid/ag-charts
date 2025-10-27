@@ -3,6 +3,7 @@ import {
     type RequireOptional,
     cachedTextMeasurer,
     clamp,
+    extent,
     isArray,
     measureTextSegments,
     toPlainText,
@@ -37,7 +38,6 @@ import { Text } from '../../../scene/shape/text';
 import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { CallbackParamRules } from '../../../util/callbackCache';
-import { extent } from 'ag-charts-core/utils/extent';
 import { formatValue } from '../../../util/format.util';
 import { dateToNumber } from '../../../util/timeFormatDefaults';
 import { rescaleVisibleRange } from '../../../util/visibleRange';

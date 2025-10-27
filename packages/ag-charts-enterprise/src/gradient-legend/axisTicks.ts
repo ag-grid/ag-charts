@@ -4,11 +4,12 @@ import {
     cachedTextMeasurer,
     countFractionDigits,
     createId,
+    findMinMax,
+    findRangeExtent,
     isArray,
     measureTextSegments,
     toPlainText,
 } from 'ag-charts-core';
-import { findMinMax, findRangeExtent } from 'ag-charts-core/utils/numberArray';
 import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';

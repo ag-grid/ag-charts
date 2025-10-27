@@ -1,6 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Scale, entries } from 'ag-charts-core';
-import { toRadians } from 'ag-charts-core/utils/angle';
+import { type Scale, entries, toRadians } from 'ag-charts-core';
 
 import type { AnnotationContext, Point } from '../annotationTypes';
 import { convertPoint, invertCoords } from './values';

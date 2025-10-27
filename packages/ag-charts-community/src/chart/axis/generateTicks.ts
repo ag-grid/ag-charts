@@ -5,6 +5,9 @@ import {
     type ScaleTickParams,
     cachedTextMeasurer,
     countFractionDigits,
+    findMinMax,
+    findRangeExtent,
+    normalizeAngle360FromDegrees,
     rotatePoint,
 } from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
@@ -15,8 +18,6 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { normalizeAngle360FromDegrees } from 'ag-charts-core/utils/angle';
-import { findMinMax, findRangeExtent } from 'ag-charts-core/utils/numberArray';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import { intervalMilliseconds } from '../../util/time';

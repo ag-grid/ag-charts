@@ -1,8 +1,11 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import { type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
-import { angleBetween } from 'ag-charts-core/utils/angle';
-import { normalisedExtentWithMetadata } from 'ag-charts-core/utils/extent';
-import { findMinMax } from 'ag-charts-core/utils/numberArray';
+import {
+    type ScaleTickParams,
+    angleBetween,
+    findMinMax,
+    isNumberEqual,
+    normalisedExtentWithMetadata,
+} from 'ag-charts-core';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';

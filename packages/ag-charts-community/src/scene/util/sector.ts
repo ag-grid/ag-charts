@@ -1,4 +1,5 @@
-import { angleBetween, isBetweenAngles, normalizeAngle180, normalizeAngle360 } from 'ag-charts-core/utils/angle';
+import { angleBetween, isBetweenAngles, normalizeAngle180, normalizeAngle360 } from 'ag-charts-core';
+
 import { BBox } from '../bbox';
 import { segmentIntersection } from '../intersection';
 

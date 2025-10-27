@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { extent } from 'ag-charts-core/utils/extent';
+import { extent } from 'ag-charts-core';
 
 describe('extent module', () => {
     describe('extent with isContinuous', () => {

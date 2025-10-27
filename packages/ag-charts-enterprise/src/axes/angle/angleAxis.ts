@@ -6,9 +6,11 @@ import {
     type WrapOptions,
     countFractionDigits,
     isNumberEqual,
+    normalizeAngle360,
+    normalizeAngle360Inclusive,
+    toRadians,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import { normalizeAngle360, normalizeAngle360Inclusive, toRadians } from 'ag-charts-core/utils/angle';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 

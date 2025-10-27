@@ -7,7 +7,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { Point, RequireOptional } from 'ag-charts-core';
-import { findMinMax } from 'ag-charts-core/utils/numberArray';
+import { findMinMax } from 'ag-charts-core';
 
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';

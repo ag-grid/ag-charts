@@ -8,9 +8,14 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, cachedTextMeasurer, isArray, measureTextSegments } from 'ag-charts-core';
-import { toRadians } from 'ag-charts-core/utils/angle';
-import { findRangeExtent } from 'ag-charts-core/utils/numberArray';
+import {
+    type Point,
+    cachedTextMeasurer,
+    findRangeExtent,
+    isArray,
+    measureTextSegments,
+    toRadians,
+} from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';

@@ -1,4 +1,4 @@
-import { type Point, type RequireOptional, isDate, isNumber } from 'ag-charts-core';
+import { type Point, type RequireOptional, findMinMax, isDate, isNumber } from 'ag-charts-core';
 import type {
     AgHistogramBinDatum,
     AgHistogramSeriesLabelFormatterParams,
@@ -16,7 +16,6 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { deepClone } from '../../../util/json';
-import { findMinMax } from 'ag-charts-core/utils/numberArray';
 import { mergeDefaults } from '../../../util/object';
 import { createTicks, tickStep } from '../../../util/ticks';
 import { ChartAxisDirection } from '../../chartAxisDirection';

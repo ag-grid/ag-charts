@@ -2,12 +2,14 @@ import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupp
 import {
     Logger,
     type RequireOptional,
+    angleBetween,
     cachedTextMeasurer,
     calcLineHeight,
+    isBetweenAngles,
+    normalizeAngle360,
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
-import { angleBetween, isBetweenAngles, normalizeAngle360 } from 'ag-charts-core/utils/angle';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
 
 import {

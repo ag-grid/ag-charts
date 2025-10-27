@@ -1,7 +1,6 @@
-import { type InternalAgImageFill, Logger, createSvgElement } from 'ag-charts-core';
+import { type InternalAgImageFill, Logger, createSvgElement, normalizeAngle360FromDegrees } from 'ag-charts-core';
 import type { AgColorRepeat, AgImageFillFit } from 'ag-charts-types';
 
-import { normalizeAngle360FromDegrees } from 'ag-charts-core/utils/angle';
 import type { BBox } from '../bbox';
 import type { Node } from '../node';
 import type { ImageLoader } from './imageLoader';

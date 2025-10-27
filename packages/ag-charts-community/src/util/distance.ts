@@ -1,4 +1,4 @@
-import { isBetweenAngles } from 'ag-charts-core/utils/angle';
+import { isBetweenAngles } from 'ag-charts-core';
 
 function pointsDistanceSquared(x1: number, y1: number, x2: number, y2: number) {
     const dx = x1 - x2;

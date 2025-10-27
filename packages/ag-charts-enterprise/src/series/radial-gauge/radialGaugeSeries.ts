@@ -10,8 +10,17 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, cachedTextMeasurer, isArray, measureTextSegments, toPlainText } from 'ag-charts-core';
-import { isBetweenAngles, normalizeAngle360, normalizeAngle360Inclusive, toRadians } from 'ag-charts-core/utils/angle';
+import {
+    type Point,
+    cachedTextMeasurer,
+    isArray,
+    isBetweenAngles,
+    measureTextSegments,
+    normalizeAngle360,
+    normalizeAngle360Inclusive,
+    toPlainText,
+    toRadians,
+} from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';

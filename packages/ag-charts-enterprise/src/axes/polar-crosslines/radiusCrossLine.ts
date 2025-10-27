@@ -1,6 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { clamp, isNumberEqual } from 'ag-charts-core';
-import { normalizeAngle360FromDegrees } from 'ag-charts-core/utils/angle';
+import { clamp, isNumberEqual, normalizeAngle360FromDegrees } from 'ag-charts-core';
 
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 

@@ -6,12 +6,12 @@ import {
     type ModuleInstance,
     type Scale,
     arraysEqual,
+    findMinMax,
     isDate,
     isDefined,
     isFiniteNumber,
     unique,
 } from 'ag-charts-core';
-import { findMinMax } from 'ag-charts-core/utils/numberArray';
 
 import { readDatum } from '../../utils/datum';
 import { definedZoomState } from '../zoom/zoomUtils';

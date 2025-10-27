@@ -7,8 +7,14 @@ import {
     type DatumDefault,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type CallbackParam, type Point, type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
-import { extent } from 'ag-charts-core/utils/extent';
+import {
+    type CallbackParam,
+    type Point,
+    type RequireOptional,
+    extent,
+    isFiniteNumber,
+    isNumberEqual,
+} from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 

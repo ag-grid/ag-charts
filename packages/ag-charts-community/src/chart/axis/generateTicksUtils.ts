@@ -14,6 +14,7 @@ import {
     isPlainObject,
     isSegmentTruncated,
     measureTextSegments,
+    normalizeAngle360FromDegrees,
     toPlainText,
     wrapTextOrSegments,
 } from 'ag-charts-core';
@@ -24,7 +25,6 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { normalizeAngle360FromDegrees } from 'ag-charts-core/utils/angle';
 import { compareDates } from '../../util/date';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';

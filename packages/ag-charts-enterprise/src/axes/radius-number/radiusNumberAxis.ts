@@ -1,5 +1,5 @@
 import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import { normalisedExtentWithMetadata } from 'ag-charts-core/utils/extent';
+import { normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 

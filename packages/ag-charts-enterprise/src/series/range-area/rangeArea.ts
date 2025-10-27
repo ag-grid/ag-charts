@@ -9,8 +9,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { AreExact, ConstructorReturnType, DeepRequired, Point, RequireOptional } from 'ag-charts-core';
-import { extent } from 'ag-charts-core/utils/extent';
-import { findMinMax } from 'ag-charts-core/utils/numberArray';
+import { extent, findMinMax } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';

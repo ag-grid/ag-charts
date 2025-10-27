@@ -57,8 +57,6 @@ const commonConfig = {
     moduleNameMapper: {
         '^ag-charts-types$': '<rootDir>/../ag-charts-types/src/main.ts',
         '^ag-charts-locale$': '<rootDir>/../ag-charts-locale/src/main.ts',
-        '^ag-charts-core/utils/(.*)$': '<rootDir>/../ag-charts-core/src/utils/$1',
-        '^ag-charts-core$': '<rootDir>/../ag-charts-core/src/main.ts',
     },
 };
 
