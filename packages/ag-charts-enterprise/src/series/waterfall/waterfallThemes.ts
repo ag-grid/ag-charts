@@ -1,7 +1,7 @@
 import { type AgWaterfallSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
-const { FILL_GRADIENT_LINEAR_SHADED_DEFAULTS, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } = _ModuleSupport;
+const { FILL_GRADIENT_LINEAR_KEYED_DEFAULTS, FILL_IMAGE_DEFAULTS, FILL_PATTERN_KEYED_DEFAULTS } = _ModuleSupport;
 
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
@@ -18,9 +18,9 @@ function itemTheme(
                         { $palette: `${key}.fill` },
                     ],
                 },
-                ['gradient', FILL_GRADIENT_LINEAR_SHADED_DEFAULTS(key)],
+                ['gradient', FILL_GRADIENT_LINEAR_KEYED_DEFAULTS(key)],
                 ['image', FILL_IMAGE_DEFAULTS],
-                ['pattern', FILL_PATTERN_DEFAULTS],
+                ['pattern', FILL_PATTERN_KEYED_DEFAULTS(key)],
             ],
         },
         stroke: { $palette: `${key}.stroke` },
