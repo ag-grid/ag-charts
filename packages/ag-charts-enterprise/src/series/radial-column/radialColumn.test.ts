@@ -261,6 +261,46 @@ describe('RadialColumnSeries', () => {
         await compare();
     });
 
+    it('should render stacked radial column chart with corner clipping', async () => {
+        const options: AgChartOptions = {
+            data: [
+                { quarter: 'Q1', software: 4.35, hardware: 2.14 },
+                { quarter: 'Q2', software: 4.28, hardware: 3.13 },
+                { quarter: 'Q3', software: 4.14, hardware: 3.34 },
+                { quarter: 'Q4', software: 3.48, hardware: 3.56 },
+                { quarter: 'Q5', software: 3.35, hardware: 3.14 },
+            ],
+            series: [
+                {
+                    type: 'radial-column',
+                    angleKey: 'quarter',
+                    radiusKey: 'software',
+                    radiusName: 'Software',
+                    stackGroup: 'stack',
+                },
+                {
+                    type: 'radial-column',
+                    angleKey: 'quarter',
+                    radiusKey: 'hardware',
+                    radiusName: 'Hardware',
+                    stackGroup: 'stack',
+                },
+            ],
+            axes: [
+                {
+                    type: 'angle-category',
+                },
+                {
+                    type: 'radius-number',
+                    nice: false,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     describe('initial animation', () => {
         const animate = spyOnAnimationManager();
 
