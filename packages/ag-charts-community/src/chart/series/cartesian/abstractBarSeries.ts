@@ -1,10 +1,9 @@
-import { type Point, isFiniteNumber } from 'ag-charts-core';
+import { type Point, extent, isFiniteNumber } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import { CategoryScale } from '../../../scale/categoryScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { extent } from '../../../util/extent';
 import { Property } from '../../../util/properties';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';

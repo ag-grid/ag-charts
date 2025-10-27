@@ -1,6 +1,5 @@
-import { type ColorSpace, createSvgElement } from 'ag-charts-core';
+import { type ColorSpace, createSvgElement, normalizeAngle360FromDegrees } from 'ag-charts-core';
 
-import { normalizeAngle360FromDegrees } from '../../util/angle';
 import type { BBox } from '../bbox';
 import { Gradient, type GradientParams } from './gradient';
 import type { GradientColorStop } from './stops';

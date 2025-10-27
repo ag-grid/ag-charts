@@ -1,10 +1,13 @@
 import type { ScaleTickParams } from 'ag-charts-core';
 import {
     type WrapOptions,
+    angularPadding,
+    extent,
     getMaxInnerRectSize,
     inRange,
     isArray,
     isObject,
+    normalizeAngle360FromDegrees,
     sortBasedOnArray,
     toArray,
     wrapTextOrSegments,
@@ -17,8 +20,6 @@ import { BBox } from '../../scene/bbox';
 import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { angularPadding, normalizeAngle360FromDegrees } from '../../util/angle';
-import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { createDatumId } from '../data/processors';

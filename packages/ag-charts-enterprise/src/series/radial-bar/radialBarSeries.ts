@@ -5,7 +5,7 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, isDefined } from 'ag-charts-core';
+import { type Point, angleBetween, isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -29,7 +29,6 @@ const {
     seriesLabelFadeInAnimation,
     seriesLabelFadeOutAnimation,
     animationValidation,
-    angleBetween,
     createDatumId,
     CategoryScale,
     Sector,

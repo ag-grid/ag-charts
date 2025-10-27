@@ -1,4 +1,5 @@
-import { normalizeAngle360 } from '../util/angle';
+import { normalizeAngle360 } from 'ag-charts-core';
+
 import { lineDistanceSquared } from '../util/distance';
 import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';

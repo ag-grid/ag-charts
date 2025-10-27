@@ -1,5 +1,5 @@
 import type { Point, Scale } from 'ag-charts-core';
-import { clamp } from 'ag-charts-core';
+import { clamp, findRangeExtent } from 'ag-charts-core';
 import type { AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
@@ -10,7 +10,6 @@ import type { Node } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
-import { findRangeExtent } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';

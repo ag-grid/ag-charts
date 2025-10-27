@@ -8,7 +8,14 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, cachedTextMeasurer, isArray, measureTextSegments } from 'ag-charts-core';
+import {
+    type Point,
+    cachedTextMeasurer,
+    findRangeExtent,
+    isArray,
+    measureTextSegments,
+    toRadians,
+} from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -37,7 +44,6 @@ const {
     SeriesNodePickMode,
     StateMachine,
     createDatumId,
-    toRadians,
     BBox,
     Group,
     PointerEvents,
@@ -50,7 +56,6 @@ const {
     generateTicks,
     NiceMode,
     easing,
-    findRangeExtent,
     tickFormat,
     mergeDefaults,
     applyShapeStyle,

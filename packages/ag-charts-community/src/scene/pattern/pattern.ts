@@ -3,10 +3,10 @@ import {
     Logger,
     type RequiredInternalAgPatternColor,
     createSvgElement,
+    normalizeAngle360FromDegrees,
 } from 'ag-charts-core';
 import type { AgPatternName, CssColor } from 'ag-charts-types';
 
-import { normalizeAngle360FromDegrees } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { PATTERNS } from './patterns';

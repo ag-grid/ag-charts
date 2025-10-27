@@ -1,9 +1,8 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, extent } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
-import { extent } from '../../util/extent';
 import { BaseProperties, Property } from '../../util/properties';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';

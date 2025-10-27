@@ -6,6 +6,7 @@ import {
     type ModuleInstance,
     type Scale,
     arraysEqual,
+    findMinMax,
     isDate,
     isDefined,
     isFiniteNumber,
@@ -26,7 +27,6 @@ const {
     ObserveChanges,
     TooltipManager,
     Property,
-    findMinMax,
     isObjectWithStringProperty,
 } = _ModuleSupport;
 

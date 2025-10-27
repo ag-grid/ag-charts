@@ -1,18 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { clamp, isNumberEqual } from 'ag-charts-core';
+import { clamp, isNumberEqual, normalizeAngle360FromDegrees } from 'ag-charts-core';
 
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
-const {
-    ChartAxisDirection,
-    Property,
-    validateCrossLineValue,
-    normalizeAngle360FromDegrees,
-    Group,
-    Path,
-    Sector,
-    RotatableText,
-} = _ModuleSupport;
+const { ChartAxisDirection, Property, validateCrossLineValue, Group, Path, Sector, RotatableText } = _ModuleSupport;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
     @Property

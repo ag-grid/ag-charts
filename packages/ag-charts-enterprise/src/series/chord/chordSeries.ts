@@ -2,8 +2,11 @@ import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupp
 import {
     Logger,
     type RequireOptional,
+    angleBetween,
     cachedTextMeasurer,
     calcLineHeight,
+    isBetweenAngles,
+    normalizeAngle360,
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
@@ -23,9 +26,6 @@ import { ChordSeriesProperties } from './chordSeriesProperties';
 const {
     SeriesNodePickMode,
     createDatumId,
-    angleBetween,
-    normalizeAngle360,
-    isBetweenAngles,
     Sector,
     evaluateBezier,
     applyShapeStyle,

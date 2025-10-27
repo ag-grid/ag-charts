@@ -1,8 +1,8 @@
 import type { InternalAgColorType, Point } from 'ag-charts-core';
+import { isBetweenAngles, toRadians } from 'ag-charts-core';
 
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Sector } from '../../../scene/shape/sector';
-import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Marker } from '../../marker/marker';
 import type { SeriesNodePickMatch } from '../series';
 

@@ -1,5 +1,5 @@
 import type { Point, RequireOptional } from 'ag-charts-core';
-import { isDefined } from 'ag-charts-core';
+import { extent, isDefined } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
     type AgAreaSeriesMarkerItemStylerParams,
@@ -23,7 +23,6 @@ import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import type { CallbackParamRules } from '../../../util/callbackCache';
-import { extent } from '../../../util/extent';
 import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';

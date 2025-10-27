@@ -4,6 +4,8 @@ import {
     cachedTextMeasurer,
     countFractionDigits,
     createId,
+    findMinMax,
+    findRangeExtent,
     isArray,
     measureTextSegments,
     toPlainText,
@@ -22,8 +24,6 @@ const {
     Selection,
     Text,
     createIdsGenerator,
-    findMinMax,
-    findRangeExtent,
     estimateTickCount,
 } = _ModuleSupport;
 

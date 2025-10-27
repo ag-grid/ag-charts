@@ -1,9 +1,9 @@
+import { normalisedExtentWithMetadata } from 'ag-charts-core';
 import type { FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
-import { normalisedExtentWithMetadata } from '../../util/extent';
 import { Property } from '../../util/properties';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
