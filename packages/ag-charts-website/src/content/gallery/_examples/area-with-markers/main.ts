@@ -43,8 +43,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             label: {
@@ -83,7 +83,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             gridLine: {
@@ -96,7 +96,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         position: 'top',
     },

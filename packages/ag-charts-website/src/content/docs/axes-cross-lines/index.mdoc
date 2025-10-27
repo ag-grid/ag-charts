@@ -15,8 +15,8 @@ A Cross Line can either be a `line` or a `range`, and multiple Cross Lines can b
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             crossLines: [
@@ -26,7 +26,7 @@ A Cross Line can either be a `line` or a `range`, and multiple Cross Lines can b
                 },
             ],
         },
-        {
+        x: {
             position: 'bottom',
             type: 'category',
             crossLines: [
@@ -36,7 +36,7 @@ A Cross Line can either be a `line` or a `range`, and multiple Cross Lines can b
                 },
             ],
         },
-    ],
+    },
 }
 ```
 
@@ -82,8 +82,8 @@ Cross Lines are also available for Polar Axes. These have the same configuration
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             shape: 'circle',
             crossLines: [
@@ -96,7 +96,7 @@ Cross Lines are also available for Polar Axes. These have the same configuration
                 },
             ],
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             crossLines: [
@@ -111,7 +111,7 @@ Cross Lines are also available for Polar Axes. These have the same configuration
                 },
             ],
         },
-    ],
+    },
 }
 ```
 

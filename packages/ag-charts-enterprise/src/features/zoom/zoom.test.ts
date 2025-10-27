@@ -69,8 +69,8 @@ describe('Zoom', () => {
                 yKey: 'value',
             },
         ],
-        axes: [
-            {
+        axes: {
+            x: {
                 type: 'ordinal-time',
                 position: 'bottom',
                 parentLevel: {
@@ -78,11 +78,11 @@ describe('Zoom', () => {
                     enabled: true,
                 },
             },
-            {
+            y: {
                 type: 'number',
                 position: 'left',
             },
-        ],
+        },
     };
 
     let cx: number = 0;
@@ -375,11 +375,11 @@ describe('Zoom', () => {
                     { type: 'line', xKey: 'x', yKey: 'y' },
                     { type: 'line', xKey: 'x', yKey: 'y2' },
                 ],
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number', keys: ['y'] },
-                    { position: 'right', type: 'number', keys: ['y2'] },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number', keys: ['y'] },
+                    ySecondary: { position: 'right', type: 'number', keys: ['y2'] },
+                },
                 zoom: {
                     enabled: true,
                     axes: 'xy',
@@ -646,10 +646,10 @@ describe('Zoom', () => {
                     anchorPointX: 'middle',
                 },
                 animation: { enabled: false },
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             await prepareChart(undefined, undefined, options);
             await scrollAction(cx, cy, -2)(chart);
@@ -666,10 +666,10 @@ describe('Zoom', () => {
                     anchorPointX: 'middle',
                 },
                 animation: { enabled: false },
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             await prepareChart(undefined, undefined, options);
             await scrollAction(cx, cy, -2)(chart);

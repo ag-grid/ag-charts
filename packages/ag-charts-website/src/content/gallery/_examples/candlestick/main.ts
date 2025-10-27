@@ -144,8 +144,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             interval: { step: 'month' },
@@ -165,7 +165,7 @@ const options: AgChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -173,7 +173,7 @@ const options: AgChartOptions = {
             },
             interval: { step: 500 },
         },
-    ],
+    },
     tooltip: {
         range: 'exact',
         position: {

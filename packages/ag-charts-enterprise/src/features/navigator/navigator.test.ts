@@ -48,8 +48,8 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: {
                 miniChart: {},
             },
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'number',
                     position: 'left',
                     crossLines: [
@@ -67,7 +67,7 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
                         },
                     ],
                 },
-                {
+                x: {
                     type: 'category',
                     position: 'bottom',
                     crossLines: [
@@ -85,7 +85,7 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
                         },
                     ],
                 },
-            ],
+            },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line'] }),
     },

@@ -28,17 +28,17 @@ const options: AgChartOptions = {
             // visible: false
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             keys: ['iphone'],
         },
-        {
+        x: {
             position: 'bottom',
             type: 'category',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options as AgChartOptions);

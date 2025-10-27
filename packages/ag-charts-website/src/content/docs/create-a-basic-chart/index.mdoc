@@ -142,10 +142,10 @@ The chart above shows both series in a single chart, but given that the data-set
 
 ```js format="snippet"
 const options = {
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+        ySecondary: { type: 'number', position: 'right', keys: ['avgTemp'] },
     ],
     // ...
 };
@@ -157,11 +157,11 @@ const options = {
 
 ```jsx format="reactHooks"
 const [chartOptions, setChartOptions] = useState({
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+        ySecondary: { type: 'number', position: 'right', keys: ['avgTemp'] },
+    },
     // ...
 });
 ```
@@ -172,11 +172,11 @@ const [chartOptions, setChartOptions] = useState({
 
 ```js
 this.chartOptions = {
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+        ySecondary: { type: 'number', position: 'right', keys: ['avgTemp'] },
+    },
     // ...
 };
 ```
@@ -187,11 +187,11 @@ this.chartOptions = {
 
 ```tsx format="reactHooks"
 const options = ref<AgChartOptions>({
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+        ySecondary: { type: 'number', position: 'right', keys: ['avgTemp'] },
+    },
     // ...
 });
 ```
@@ -404,9 +404,9 @@ The `formatter` should be a function that receives the axis label data and retur
 
 ```js format="snippet"
 const options = {
-    axes: [
+    axes: {
         // ...
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['avgTemp'],
@@ -417,7 +417,7 @@ const options = {
                 },
             },
         },
-    ],
+    },
     // ...
 };
 ```
@@ -428,9 +428,9 @@ const options = {
 
 ```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
-    axes: [
+    axes: {
         // ...
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['avgTemp'],
@@ -441,7 +441,7 @@ const [chartOptions, setChartOptions] = useState({
                 },
             },
         },
-    ],
+    },
     // ...
 });
 ```
@@ -452,9 +452,9 @@ const [chartOptions, setChartOptions] = useState({
 
 ```js
 this.chartOptions = {
-    axes: [
+    axes: {
         // ...
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['avgTemp'],
@@ -465,7 +465,7 @@ this.chartOptions = {
                 },
             },
         },
-    ],
+    },
     // ...
 };
 ```
@@ -476,9 +476,9 @@ this.chartOptions = {
 
 ```js
 this.chartOptions = {
-    axes: [
+    axes: {
         // ...
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['avgTemp'],
@@ -489,7 +489,7 @@ this.chartOptions = {
                 },
             },
         },
-    ],
+    },
     // ...
 };
 ```

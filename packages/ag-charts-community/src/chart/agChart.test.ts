@@ -397,19 +397,19 @@ describe('AgChart', () => {
         await chartProxy.update({
             data: revenueProfitData,
             series: [{ type: 'line', xKey: 'profit', yKey: 'revenue' }],
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'number',
                     position: 'left',
                     title: {
                         text: 'Hello',
                     },
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                 },
-            ],
+            },
         });
         await waitForChartStability(chartProxy);
 
@@ -427,8 +427,8 @@ describe('AgChart', () => {
         await chartProxy.update({
             data: revenueProfitData,
             series: [{ type: 'line', xKey: 'profit', yKey: 'revenue' }],
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'number',
                     position: 'left',
                     title: {
@@ -451,11 +451,11 @@ describe('AgChart', () => {
                         ],
                     },
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                 },
-            ],
+            },
         });
         await waitForChartStability(chartProxy);
 

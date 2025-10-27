@@ -40,20 +40,20 @@ const options: AgChartOptions = {
         { type: 'line', xKey: 'month', yKey: 'avgTemp' } as AgLineSeriesOptions,
     ],
     // Axes: Configure the axes for the chart
-    axes: [
+    axes: {
         // Display category (xKey) as the bottom axis
-        {
+        x: {
             type: 'category',
             position: 'bottom',
         } as AgCategoryAxisOptions,
         // Use left axis for 'iceCreamSales' series
-        {
+        y: {
             type: 'number',
             position: 'left',
             keys: ['iceCreamSales'],
         } as AgNumberAxisOptions,
         // Use right axis for 'avgTemp' series
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['avgTemp'],
@@ -64,7 +64,7 @@ const options: AgChartOptions = {
                 },
             },
         } as AgNumberAxisOptions,
-    ],
+    },
     // Legend: Matches visual elements to their corresponding series or data categories.
     legend: {
         position: 'right',

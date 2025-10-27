@@ -34,24 +34,24 @@ const options: AgCartesianChartOptions = {
             marker: { enabled: false },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             keys: ['price'],
             title: { text: 'Closing Price' },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['volume'],
             title: { enabled: true, text: 'Trading Volume' },
         },
-    ],
+    },
     legend: {
         item: {
             showSeriesStroke: true,

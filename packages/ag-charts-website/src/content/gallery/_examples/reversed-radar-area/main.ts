@@ -62,8 +62,8 @@ const options: AgPolarChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             gridLine: {
                 enabled: true,
@@ -75,7 +75,7 @@ const options: AgPolarChartOptions = {
                 spacing: 12,
             },
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             positionAngle: 180,
@@ -85,7 +85,7 @@ const options: AgPolarChartOptions = {
             },
             reverse: true,
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

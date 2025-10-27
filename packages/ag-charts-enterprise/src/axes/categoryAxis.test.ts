@@ -6,6 +6,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    mapValues,
     repeat,
     setupMockCanvas,
     setupMockConsole,
@@ -31,7 +32,7 @@ function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axesToTest.includes(axis.type)
                     ? {
                           ...axis,
@@ -48,7 +49,7 @@ function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axesToTest.includes(axis.type)
                     ? {
                           ...axis,

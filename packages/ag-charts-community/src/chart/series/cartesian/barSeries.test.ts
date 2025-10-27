@@ -407,10 +407,10 @@ describe('BarSeries', () => {
                     { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables', stacked: true },
                     { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services', stacked: true },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -464,10 +464,10 @@ describe('BarSeries', () => {
                     { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables', stacked: true },
                     { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services', stacked: true },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1232,10 +1232,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1285,10 +1285,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1330,10 +1330,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1394,10 +1394,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1428,10 +1428,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'left' },
-                    { type: 'number', position: 'bottom' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'left' },
+                    y: { type: 'number', position: 'bottom' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1489,10 +1489,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1642,10 +1642,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1677,10 +1677,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1712,10 +1712,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1754,10 +1754,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1788,10 +1788,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'left' },
-                    { type: 'number', position: 'bottom' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'left' },
+                    y: { type: 'number', position: 'bottom' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1832,10 +1832,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1879,10 +1879,10 @@ describe('BarSeries', () => {
                 highlight: {
                     drawingMode: 'cutout',
                 },
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);

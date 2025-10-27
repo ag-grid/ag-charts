@@ -59,12 +59,12 @@ const options: AgCartesianChartOptions = {
             yName: 'Large Scale Hydro',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -74,7 +74,7 @@ const options: AgCartesianChartOptions = {
                 formatter: (params) => `${params.value / 1000}K`,
             },
         },
-    ],
+    },
     legend: {
         maxHeight: 40,
         maxWidth: 800,

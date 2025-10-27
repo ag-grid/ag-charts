@@ -55,8 +55,8 @@ const options: AgCartesianChartOptions = {
             fillOpacity: 1,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'right',
             type: 'number',
             keys: ['numberOfVisits'],
@@ -78,7 +78,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Website Visits',
             },
         },
-        {
+        ySecondary: {
             position: 'left',
             type: 'number',
             keys: ['npmDownloads'],
@@ -100,7 +100,7 @@ const options: AgCartesianChartOptions = {
                 spacing: 15,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'unit-time',
             gridLine: {
@@ -122,7 +122,7 @@ const options: AgCartesianChartOptions = {
                 size: 30,
             },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
         spacing: 20,

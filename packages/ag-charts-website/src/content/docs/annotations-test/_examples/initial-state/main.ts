@@ -22,8 +22,8 @@ const options: AgChartOptions = {
             yKey: 'height',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -39,7 +39,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             nice: false,
@@ -55,7 +55,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     annotations: {
         enabled: true, // Do we need this if annotations in initial state?
     },

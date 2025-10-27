@@ -21,19 +21,19 @@ import * as examples from './test/examples';
 const EXAMPLES: Record<string, ChartTestCase> = {
     COLUMN_SERIES_LABELS: {
         options: examples.COLUMN_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['bar'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['bar'] }),
     },
     STACKED_COLUMN_SERIES_LABELS: {
         options: examples.STACKED_COLUMN_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: ['category', 'number'],
             seriesTypes: repeat('bar', 5),
         }),
     },
     GROUPED_COLUMN_SERIES_LABELS: {
         options: examples.GROUPED_COLUMN_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: ['category', 'number'],
             seriesTypes: repeat('bar', 5),
         }),
     },

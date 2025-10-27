@@ -41,8 +41,8 @@ const options: AgPolarChartOptions<RevenueData> = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             innerRadiusRatio: 0.4,
             reverse: true,
@@ -50,11 +50,11 @@ const options: AgPolarChartOptions<RevenueData> = {
                 enabled: false,
             },
         },
-        {
+        angle: {
             type: 'angle-category',
             paddingInner: 0.2,
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

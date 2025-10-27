@@ -19,6 +19,7 @@ import {
     createChart,
     deproxy,
     extractImageData,
+    mapValues,
     repeat,
     reverseAxes,
     setupMockCanvas,
@@ -30,7 +31,7 @@ import type { CartesianTestCase, ChartOrProxy } from '../test/utils';
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation } })),
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
     };
 }
 
@@ -52,7 +53,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })),
     };
 }
 
@@ -508,11 +509,11 @@ describe('Axis Examples', () => {
                     { type: 'line', xKey: 'quarter', yKey: 'petrol' },
                     { type: 'line', xKey: 'quarter2', yKey: 'diesel' },
                 ],
-                axes: [
-                    { type: 'category', position: 'top', keys: ['quarter'] },
-                    { type: 'category', position: 'bottom', keys: ['quarter2'] },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'top', keys: ['quarter'] },
+                    secondaryX: { type: 'category', position: 'bottom', keys: ['quarter2'] },
+                    y: { type: 'number', position: 'left' },
+                },
             });
             await compare();
         });
@@ -541,10 +542,10 @@ describe('Axis Examples', () => {
         it.each(['number', 'time', 'unit-time'] as const)(`should render empty %s axis`, async (axisType) => {
             chart = await createChart({
                 data: [],
-                axes: [
-                    { type: 'number', position: 'left' },
-                    { type: axisType, position: 'bottom', min: 1 },
-                ],
+                axes: {
+                    y: { type: 'number', position: 'left' },
+                    x: { type: axisType, position: 'bottom', min: 1 },
+                },
             });
             await compare();
         });

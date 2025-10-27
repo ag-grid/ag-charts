@@ -52,18 +52,18 @@ describe('AxisGridLine', () => {
                 { x: 1, y: 1 },
             ],
             series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'number',
                     position: 'bottom',
                     gridLine: { style: [{ lineDash: [8, 3, 3, 3] }] },
                 },
-                {
+                y: {
                     type: 'number',
                     position: 'left',
                     gridLine: { style: [{ lineDash: [5, 5, 1] }] },
                 },
-            ],
+            },
         });
 
         await compare();
@@ -82,17 +82,17 @@ describe('AxisGridLine', () => {
                         { x: 4, y: 4 },
                     ],
                     series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-                    axes: [
-                        {
+                    axes: {
+                        x: {
                             type: 'number',
                             position: 'bottom',
                             gridLine: EXAMPLE_GRID_LINE,
                         },
-                        {
+                        y: {
                             type: 'number',
                             position: 'left',
                         },
-                    ],
+                    },
                 });
 
                 await compare();
@@ -109,18 +109,18 @@ describe('AxisGridLine', () => {
                         { x: new Date(2025, 11, 1), y: 1 },
                     ],
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: [
-                        {
+                    axes: {
+                        x: {
                             type: 'unit-time',
                             position: 'bottom',
                             unit: 'month',
                             gridLine: EXAMPLE_GRID_LINE,
                         },
-                        {
+                        y: {
                             type: 'number',
                             position: 'left',
                         },
-                    ],
+                    },
                 });
 
                 await compare();
@@ -139,17 +139,17 @@ describe('AxisGridLine', () => {
                         { x: 4, y: 4 },
                     ],
                     series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-                    axes: [
-                        {
+                    axes: {
+                        x: {
                             type: 'number',
                             position: 'bottom',
                         },
-                        {
+                        y: {
                             type: 'number',
                             position: 'left',
                             gridLine: EXAMPLE_GRID_LINE,
                         },
-                    ],
+                    },
                 });
 
                 await compare();
@@ -166,17 +166,17 @@ describe('AxisGridLine', () => {
                         { y: new Date(2025, 11, 1), x: 1 },
                     ],
                     series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-                    axes: [
-                        {
+                    axes: {
+                        x: {
                             type: 'number',
                             position: 'bottom',
                         },
-                        {
+                        y: {
                             type: 'unit-time',
                             position: 'left',
                             gridLine: EXAMPLE_GRID_LINE,
                         },
-                    ],
+                    },
                 });
 
                 await compare();
@@ -192,20 +192,20 @@ describe('AxisGridLine', () => {
                 { x: 1, y: 1 },
             ],
             series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'number',
                     position: 'bottom',
                     // Should draw no grid line
                     gridLine: { style: [{}] },
                 },
-                {
+                y: {
                     type: 'number',
                     position: 'left',
                     // Should draw only half of the grid lines
                     gridLine: { style: [{}, { lineDash: [5, 5, 1] }] },
                 },
-            ],
+            },
         });
 
         await compare();

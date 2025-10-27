@@ -153,15 +153,15 @@ const OPTIONS: AgCartesianChartOptions = {
             label: { enabled: true },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: {
                 style: [{ lineDash: [0] }],
             },
         },
-        {
+        y: {
             // primary y axis
             type: 'number',
             position: 'left',
@@ -172,14 +172,14 @@ const OPTIONS: AgCartesianChartOptions = {
                 { type: 'line', strokeWidth: 5, stroke: 'red', lineDash: [8, 3], value: 15 },
             ],
         },
-        {
+        ySecondary: {
             // secondary y axis
             type: 'number',
             position: 'right',
             keys: ['portions'],
             title: { text: 'Portions Consumed (Per Day)' },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
         item: { marker: { strokeWidth: 0 } },
@@ -274,8 +274,8 @@ describe('CartesianChart', () => {
         it.each([80, 160, 240, 320, 400])('should render chart correctly at width [%s]', async (width) => {
             const options: AgCartesianChartOptions = {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'unit-time',
                         position: 'bottom',
                         title: {
@@ -285,14 +285,14 @@ describe('CartesianChart', () => {
                             maxSpacing: 80,
                         },
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         title: {
                             text: 'Price in pence',
                         },
                     },
-                ],
+                },
                 legend: {
                     position: 'right',
                 },

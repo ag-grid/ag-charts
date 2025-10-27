@@ -73,8 +73,8 @@ const options: AgChartOptions = {
     zoom: {
         enabled: true,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             interval: { step: 'year' },
@@ -101,7 +101,7 @@ const options: AgChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             interval: { step: 10000 },
@@ -143,7 +143,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     tooltip: {
         position: {
             anchorTo: 'pointer',

@@ -103,8 +103,8 @@ const options: AgCartesianChartOptions = {
             yName: 'Research Institutions',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             keys: ['startups', 'techCompanies'],
@@ -112,7 +112,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Startups and Tech Companies',
             },
         },
-        {
+        ySecondary: {
             position: 'left',
             type: 'number',
             keys: ['employees'],
@@ -120,7 +120,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Number of Employees',
             },
         },
-        {
+        yTertiary: {
             position: 'left',
             type: 'number',
             keys: ['funding'],
@@ -128,7 +128,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Funding',
             },
         },
-        {
+        yQuaternary: {
             position: 'right',
             type: 'number',
             keys: ['researchInstitutions'],
@@ -136,11 +136,11 @@ const options: AgCartesianChartOptions = {
                 text: 'Number of Institutions',
             },
         },
-        {
+        x: {
             position: 'top',
             type: 'grouped-category',
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

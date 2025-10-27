@@ -157,16 +157,16 @@ const options: AgChartOptions = {
             binCount: 50,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
 };
 /* @ag-options-end */
 

@@ -48,22 +48,22 @@ const TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
             stroke: '#874349',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             interval: {
                 maxSpacing: 150,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 formatter: (params) => params.value / 1000 + 'k',
             },
         },
-    ],
+    },
     navigator: {
         height: 50,
     },
@@ -150,8 +150,8 @@ describe('Time Axis Examples', () => {
             const options: AgCartesianChartOptions = {
                 data: getData(800),
                 series: [{ type: 'line', xKey: 'date', yKey: 'price' }],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'unit-time',
                         position: 'bottom',
                         parentLevel: { enabled: true },
@@ -162,8 +162,8 @@ describe('Time Axis Examples', () => {
                             padding: 5,
                         },
                     },
-                    { type: 'number', position: 'left' },
-                ],
+                    y: { type: 'number', position: 'left' },
+                },
                 zoom: { enabled: true },
                 initialState: { zoom: { ratioX: { start: 0.95, end: 1 } } },
             };
@@ -178,9 +178,10 @@ describe('Time Axis Examples', () => {
             prepareEnterpriseTestOptions({
                 ...TIME_AXIS_EXAMPLE,
                 initialState: { zoom: { ratioX: { start: 0.2, end: 0.5 } } },
-                axes: [
-                    {
-                        ...TIME_AXIS_EXAMPLE.axes![0],
+                axes: {
+                    ...TIME_AXIS_EXAMPLE.axes,
+                    x: {
+                        ...TIME_AXIS_EXAMPLE.axes!.x!,
                         parentLevel: {
                             tick: {
                                 enabled: false,
@@ -190,8 +191,7 @@ describe('Time Axis Examples', () => {
                             enabled: true,
                         },
                     },
-                    TIME_AXIS_EXAMPLE.axes![1],
-                ],
+                },
             })
         );
         await axisCompare();

@@ -35,15 +35,15 @@ const options: AgChartOptions = {
       },
     },
   ],
-  axes: [
-    {
+  axes: {
+    x: {
       type: "category",
       position: "bottom",
       title: {
         text: "Year",
       },
     },
-    {
+    y: {
       type: "number",
       position: "left",
       title: {
@@ -53,7 +53,7 @@ const options: AgChartOptions = {
         formatter: ({ value }) => formatNumber(value),
       },
     },
-  ],
+  },
 }
 
 AgCharts.create(options)

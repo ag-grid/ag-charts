@@ -25,13 +25,12 @@ const options: AgCartesianChartOptions = {
             yName: 'Portions',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
-            // primary y axis
+        y: {
             type: 'number',
             position: 'left',
             keys: ['women', 'men'],
@@ -42,8 +41,7 @@ const options: AgCartesianChartOptions = {
                 formatter: ({ value }) => value + '%',
             },
         },
-        {
-            // secondary y axis
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['portions'],
@@ -51,7 +49,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Portions Consumed (Per Day)',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

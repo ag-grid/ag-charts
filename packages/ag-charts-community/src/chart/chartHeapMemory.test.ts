@@ -52,31 +52,31 @@ describe('Chart Heap Memory', () => {
     const options1 = {
         mode: 'integrated',
         data: genData(),
-        axes: [
-            {
+        axes: {
+            x: {
                 type: 'category',
                 position: 'bottom',
             },
-            {
+            y: {
                 type: 'number',
                 position: 'left',
             },
-        ],
+        },
         series: genSeries('bar'),
     };
     const options2 = {
         mode: 'integrated',
         data: genData(),
-        axes: [
-            {
+        axes: {
+            x: {
                 type: 'category',
                 position: 'bottom',
             },
-            {
+            y: {
                 type: 'number',
                 position: 'left',
             },
-        ],
+        },
         series: genSeries('area'),
     };
 

@@ -2,6 +2,7 @@ import type { AgCartesianChartOptions, AgCartesianCrossLineOptions } from 'ag-ch
 
 import { DATA_MEAN_SEA_LEVEL } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
+import { mapValues } from '../../test/utils';
 import { DATA_OIL_PETROLEUM } from './data';
 
 const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-bar');
@@ -51,22 +52,22 @@ const baseChartOptions: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'unit-time',
             title: {
                 text: 'Date',
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
                 text: 'Price in pence',
             },
         },
-    ],
+    },
 };
 
 const baseCrossLineOptions: AgCartesianCrossLineOptions = {
@@ -87,7 +88,7 @@ const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, 
     for (const name of Object.keys(rangeConfig)) {
         result[name] = {
             ...baseChartOptions,
-            axes: baseChartOptions['axes']?.map((axis) => {
+            axes: mapValues(baseChartOptions['axes'] ?? {}, (axis) => {
                 const range = axis.position === 'bottom' ? rangeConfig[name].vertical : rangeConfig[name].horizontal;
                 return { ...axis, crossLines: [{ ...baseCrossLineOptions, range }] };
             }),
@@ -106,7 +107,7 @@ const createChartOptionsWithInvalidCrossLines = (
         const invalidCrossLineOptions = config[name];
         result[name] = {
             ...baseChartOptions,
-            axes: baseChartOptions['axes']?.map((axis) => {
+            axes: mapValues(baseChartOptions['axes'] ?? {}, (axis) => {
                 return axis.position === 'left'
                     ? {
                           ...axis,
@@ -236,8 +237,8 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
             yKey: 'mm',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             crossLines: [
@@ -261,7 +262,7 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        x: {
             position: 'bottom',
             type: 'number',
             crossLines: [
@@ -291,7 +292,7 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         enabled: true,
         position: 'right',
@@ -300,8 +301,8 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
 
 export const LINE_CROSSLINES: AgCartesianChartOptions = {
     ...LINE_GRAPH_WITH_GAPS_EXAMPLE,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
@@ -340,7 +341,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -371,13 +372,13 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 export const AREA_CROSSLINES: AgCartesianChartOptions = {
     ...AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             crossLines: [
@@ -399,7 +400,7 @@ export const AREA_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -426,13 +427,13 @@ export const AREA_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
     ...GROUPED_COLUMN_EXAMPLE,
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
             crossLines: [
@@ -462,7 +463,7 @@ export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             crossLines: [
@@ -488,13 +489,13 @@ export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 export const BAR_CROSSLINES: AgCartesianChartOptions = {
     ...GROUPED_BAR_CHART_EXAMPLE,
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'category',
             crossLines: [
@@ -520,7 +521,7 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        x: {
             position: 'bottom',
             type: 'number',
             crossLines: [
@@ -550,5 +551,5 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };

@@ -40,8 +40,8 @@ const options: AgChartOptions = {
             stroke: '#56659b',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -53,7 +53,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -65,7 +65,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

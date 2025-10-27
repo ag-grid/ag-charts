@@ -33,11 +33,11 @@ const options: AgChartOptions = {
             marker: { enabled: false },
         },
     ],
-    axes: [
-        { type: 'number', keys: ['price'], position: 'left' },
-        { type: 'time', nice: false, position: 'bottom' },
-        { type: 'number', keys: ['volume'], position: 'right' },
-    ],
+    axes: {
+        y: { type: 'number', keys: ['price'], position: 'left' },
+        x: { type: 'time', nice: false, position: 'bottom' },
+        ySecondary: { type: 'number', keys: ['volume'], position: 'right' },
+    },
 };
 /* @ag-options-end */
 

@@ -23,8 +23,8 @@ const options: AgChartOptions = {
             fillOpacity: 0.1,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
@@ -42,14 +42,14 @@ const options: AgChartOptions = {
                             : `${value} KM`,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             min: 800,
             max: 4700,
             nice: false,
         },
-    ],
+    },
     annotations: {
         enabled: true,
         toolbar: {

@@ -89,16 +89,16 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
 
     options: areaSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,
-    defaultAxes: [
-        {
+    defaultAxes: {
+        y: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
             position: CARTESIAN_POSITION.LEFT,
         },
-        {
+        x: {
             type: CARTESIAN_AXIS_TYPE.CATEGORY,
             position: CARTESIAN_POSITION.BOTTOM,
         },
-    ],
+    },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new AreaSeries(ctx),

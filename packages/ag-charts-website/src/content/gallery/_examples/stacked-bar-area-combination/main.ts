@@ -92,8 +92,8 @@ const options: AgCartesianChartOptions = {
             strokeWidth: 2,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'right',
             label: {
@@ -106,7 +106,7 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             min: new Date(1974, 0, 0),
@@ -119,7 +119,7 @@ const options: AgCartesianChartOptions = {
             },
             interval: { step: { unit: 'year', step: 4 } },
         },
-    ],
+    },
     legend: {
         position: 'top',
     },

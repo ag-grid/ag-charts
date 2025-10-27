@@ -9,6 +9,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    mapValues,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -163,7 +164,7 @@ describe('AgChartV2', () => {
                 { ...examples.GROUPED_BAR_CHART_EXAMPLE },
             ].map(({ axes, ...opts }, idx) => ({
                 ...opts,
-                axes: axes?.map((a) => adjustPosition(a, idx)),
+                axes: mapValues(axes ?? {}, (a) => adjustPosition(a, idx)),
             }));
             for (const opts of exampleCycle) {
                 prepareTestOptions(opts);

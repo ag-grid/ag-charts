@@ -52,13 +52,13 @@ describe('Scene', () => {
             const options: AgCartesianChartOptions = {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,
                 legend: { position: 'bottom' },
-                axes: [
-                    {
+                axes: {
+                    y: {
                         type: 'number',
                         position: 'left',
                         title: { text: 'Price in Pence' },
                     },
-                    {
+                    x: {
                         type: 'time',
                         position: 'bottom',
                         title: { text: 'Date' },
@@ -66,7 +66,7 @@ describe('Scene', () => {
                         interval: { maxSpacing: 100 },
                         parentLevel: { enabled: false },
                     },
-                ],
+                },
             };
             chart = AgCharts.create(options);
             await waitForChartStability(chart);

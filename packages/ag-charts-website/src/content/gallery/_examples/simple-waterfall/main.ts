@@ -50,8 +50,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             interval: { values: [0, -148.1] },
@@ -59,7 +59,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
-        {
+        x: {
             type: 'category',
             position: 'top',
             gridLine: { enabled: true },
@@ -67,7 +67,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
             },
         },
-    ],
+    },
     legend: {
         position: {
             floating: true,

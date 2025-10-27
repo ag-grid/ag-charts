@@ -17,6 +17,7 @@ import {
     createChart,
     deproxy,
     extractImageData,
+    mapValues,
     prepareTestOptions,
     reverseAxes,
     setupMockCanvas,
@@ -26,7 +27,7 @@ import {
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation } })),
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
     };
 }
 
@@ -48,7 +49,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 
@@ -179,12 +180,12 @@ describe('Log Axis interval property handling', () => {
                     yKey: 'share',
                 },
             ],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                 },
-                {
+                y: {
                     type: 'log',
                     position: 'left',
                     min: 10,
@@ -195,7 +196,7 @@ describe('Log Axis interval property handling', () => {
                         format: '.0f',
                     },
                 },
-            ],
+            },
         };
 
         prepareTestOptions(options);
@@ -205,12 +206,12 @@ describe('Log Axis interval property handling', () => {
         // Update to log axis without interval property
         const updatedOptions: AgCartesianChartOptions = {
             ...options,
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                 },
-                {
+                y: {
                     type: 'log',
                     position: 'left',
                     min: 10,
@@ -219,7 +220,7 @@ describe('Log Axis interval property handling', () => {
                     },
                     base: 2,
                 },
-            ],
+            },
         };
 
         // This should not produce any warnings

@@ -57,8 +57,8 @@ const options: AgChartOptions = {
             yName: 'Divorces',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'top',
             interval: {
@@ -85,7 +85,7 @@ const options: AgChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             nice: false,
@@ -111,7 +111,7 @@ const options: AgChartOptions = {
                 stroke: '#326baf',
             },
         },
-    ],
+    },
     legend: {
         item: {
             paddingX: 40,

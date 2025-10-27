@@ -72,8 +72,8 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             keys: ['smartphone'],
@@ -81,7 +81,7 @@ const options: AgChartOptions<DataType> = {
             paddingInner: 0.9,
             paddingOuter: 0.8,
         },
-        {
+        x: {
             type: 'number',
             position: 'top',
             keys: ['profitMargin'],
@@ -89,7 +89,7 @@ const options: AgChartOptions<DataType> = {
                 formatter: ({ value }) => `${Math.round(value)}%`,
             },
         },
-        {
+        xSecondary: {
             type: 'number',
             position: 'bottom',
             keys: ['lowRetail', 'highRetail', 'lowCost', 'highCost'],
@@ -102,7 +102,7 @@ const options: AgChartOptions<DataType> = {
                     })}`,
             },
         },
-    ],
+    },
     seriesArea: { padding: { right: 10 } },
 };
 

@@ -125,8 +125,8 @@ const options: AgCartesianChartOptions = {
             yName: 'Fat',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             keys: ['bloodSugarSpike'],
@@ -139,7 +139,7 @@ const options: AgCartesianChartOptions = {
                 values: [0, 20, 60, 80],
             },
         },
-        {
+        ySecondary: {
             position: 'left',
             type: 'number',
             keys: ['calories'],
@@ -148,8 +148,7 @@ const options: AgCartesianChartOptions = {
             },
             thickness: 75,
         },
-
-        {
+        yTertiary: {
             position: 'right',
             type: 'number',
             keys: ['protein', 'fat', 'carbohydrates', 'fiber'],
@@ -157,7 +156,7 @@ const options: AgCartesianChartOptions = {
                 formatter: ({ value }) => `${value}g`,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'grouped-category',
             depthOptions: [{ tick: { enabled: false } }, { tick: { enabled: false } }],
@@ -165,7 +164,7 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-    ],
+    },
     legend: {
         maxWidth: 300,
         position: {

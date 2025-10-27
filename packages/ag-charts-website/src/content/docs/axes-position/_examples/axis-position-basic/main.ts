@@ -11,13 +11,13 @@ const options: AgCartesianChartOptions = {
         { quarter: 'Q3', revenue: 9.8, profitMargin: 25 },
         { quarter: 'Q4', revenue: 13.4, profitMargin: 31 },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: { text: 'Quarter' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             keys: ['revenue'],
@@ -27,7 +27,7 @@ const options: AgCartesianChartOptions = {
                 width: 3,
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['profitMargin'],
@@ -40,7 +40,7 @@ const options: AgCartesianChartOptions = {
                 width: 3,
             },
         },
-    ],
+    },
     series: [
         {
             type: 'bar',

@@ -25,16 +25,16 @@ const options: AgChartOptions = {
             closeKey: 'close',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

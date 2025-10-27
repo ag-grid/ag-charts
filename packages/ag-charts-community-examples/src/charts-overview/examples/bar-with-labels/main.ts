@@ -34,12 +34,12 @@ const options: AgChartOptions = {
       },
     },
   ],
-  axes: [
-    {
+  axes: {
+    y: {
       type: "category",
       position: "left",
     },
-    {
+    x: {
       type: "number",
       position: "bottom",
       title: {
@@ -47,7 +47,7 @@ const options: AgChartOptions = {
         text: "Change in number of jobs (thousands)",
       },
     },
-  ],
+  },
 }
 
 AgCharts.create(options)

@@ -85,8 +85,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             min: -3,
@@ -108,7 +108,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -125,7 +125,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     formatter: {
         x(params) {
             const value = params.value as number;

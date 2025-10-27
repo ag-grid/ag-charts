@@ -16,8 +16,8 @@ const options: AgCartesianChartOptions = {
             xName: 'Distance',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -29,7 +29,7 @@ const options: AgCartesianChartOptions = {
                 lineDash: [5, 10],
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -41,7 +41,7 @@ const options: AgCartesianChartOptions = {
                 lineDash: [5, 10],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

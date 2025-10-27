@@ -286,10 +286,10 @@ describe('ErrorBars', () => {
     it('should render both errorbars on continuous line series as expected', async () => {
         chart = await createEnterpriseChart({
             series: [{ ...SERIES_BOYLESLAW, type: 'line' }],
-            axes: [
-                { type: 'number', position: 'left' },
-                { type: 'number', position: 'bottom' },
-            ],
+            axes: {
+                y: { type: 'number', position: 'left' },
+                x: { type: 'number', position: 'bottom' },
+            },
         });
         await compare();
     });

@@ -20,8 +20,8 @@ const options: AgCartesianChartOptions = {
             connectMissingData: false,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -31,11 +31,11 @@ const options: AgCartesianChartOptions = {
                 formatter: ({ value }) => `£${Number(value).toLocaleString()}`,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'unit-time',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

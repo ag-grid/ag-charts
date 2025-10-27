@@ -14,27 +14,27 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function setNumberAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             min: 1,
@@ -42,17 +42,17 @@ function setNumberAxis() {
                 format: '.0f',
             },
         },
-    ];
+    };
     chart.update(options);
 }
 
 function setLogAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'log',
             position: 'left',
             min: 10,
@@ -60,17 +60,17 @@ function setLogAxis() {
                 format: '.0f',
             },
         },
-    ];
+    };
     chart.update(options);
 }
 
 function setBaseTwoLogAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'log',
             position: 'left',
             min: 10,
@@ -79,17 +79,17 @@ function setBaseTwoLogAxis() {
             },
             base: 2,
         },
-    ];
+    };
     chart.update(options);
 }
 
 function setLogAxisWithFewerTicks() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'log',
             position: 'left',
             min: 10,
@@ -100,6 +100,6 @@ function setLogAxisWithFewerTicks() {
                 format: '.0f',
             },
         },
-    ];
+    };
     chart.update(options);
 }

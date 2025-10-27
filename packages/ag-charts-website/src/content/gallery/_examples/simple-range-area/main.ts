@@ -38,8 +38,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             gridLine: {
@@ -77,7 +77,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             min: 4,
@@ -97,7 +97,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Magnitude (Richter Scale)',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

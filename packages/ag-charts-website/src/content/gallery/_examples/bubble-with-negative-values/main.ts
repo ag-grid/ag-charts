@@ -27,8 +27,8 @@ const options: AgCartesianChartOptions = {
             maxSize: 100,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
@@ -48,7 +48,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -68,7 +68,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     formatter: {
         x: (params) => {
             if (params.type !== 'number') return;

@@ -9,6 +9,7 @@ import {
     cartesianChartAssertions,
     createChart,
     extractImageData,
+    mapValues,
     repeat,
     setupMockCanvas,
     setupMockConsole,
@@ -31,7 +32,7 @@ function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axesToTest.includes(axis.type)
                     ? {
                           ...axis,
@@ -48,7 +49,7 @@ function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axesToTest.includes(axis.type)
                     ? {
                           ...axis,
@@ -142,10 +143,10 @@ const DATA = [
 
 const BASIC_TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA,
-    axes: [
-        { type: 'unit-time', position: 'bottom', unit: 'day' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom', unit: 'day' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             xKey: 'date',
@@ -182,14 +183,14 @@ const EXAMPLES: Record<string, TestCase> = {
     CATEGORY_AXIS_HORIZONTAL_INTERVAL_ON: {
         options: applyIntervalOn(DOCS_EXAMPLES['grouped-bar']),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: ['number', 'category'],
             seriesTypes: ['bar', 'bar'],
         }),
     },
     CATEGORY_AXIS_HORIZONTAL_INTERVAL_BETWEEN: {
         options: applyIntervalBetween(DOCS_EXAMPLES['grouped-bar']),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: ['number', 'category'],
             seriesTypes: ['bar', 'bar'],
         }),
     },

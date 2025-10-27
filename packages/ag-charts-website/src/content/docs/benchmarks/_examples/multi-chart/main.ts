@@ -13,10 +13,10 @@ const theme: AgCartesianChartOptions['theme'] = {
         },
     },
 };
-const axes: AgCartesianChartOptions['axes'] = [
-    { type: 'time', position: 'bottom', crosshair: {} },
-    { type: 'number', position: 'left' },
-];
+const axes = {
+    x: { type: 'time', position: 'bottom', crosshair: {} },
+    y: { type: 'number', position: 'left' },
+} as const;
 
 let chartIndex = 1;
 const chartOptions1: AgCartesianChartOptions = {

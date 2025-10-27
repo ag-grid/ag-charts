@@ -64,22 +64,22 @@ const options: AgChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             bandHighlight: {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 format: '#{.0f}%',
             },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
     },

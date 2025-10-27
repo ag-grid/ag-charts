@@ -31,8 +31,8 @@ const options: AgChartOptions<DataType> = {
         position: 'top',
         toggleSeries: false,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
             title: {
@@ -45,7 +45,7 @@ const options: AgChartOptions<DataType> = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -58,7 +58,7 @@ const options: AgChartOptions<DataType> = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

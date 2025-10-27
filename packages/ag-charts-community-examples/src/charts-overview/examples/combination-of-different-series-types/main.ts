@@ -44,8 +44,8 @@ const options: AgChartOptions = {
       yName: "Beef exports",
     },
   ],
-  axes: [
-    {
+  axes: {
+    x: {
       type: "category",
       position: "bottom",
     },
@@ -62,7 +62,7 @@ const options: AgChartOptions = {
         },
       },
     },
-    {
+    ySecondary: {
       type: "number",
       position: "right",
       keys: ["exportedTonnes"],
@@ -75,7 +75,7 @@ const options: AgChartOptions = {
         },
       },
     },
-  ],
+  },
   legend: {
     item: {
       marker: {

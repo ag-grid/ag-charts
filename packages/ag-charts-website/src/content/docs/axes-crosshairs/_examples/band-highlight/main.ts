@@ -15,15 +15,15 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             crosshair: {
                 enabled: false,
             },
         },
-        {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
@@ -33,7 +33,7 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-    ],
+    },
     formatter: {
         y: ({ value }) => {
             return `${Number(value).toLocaleString('en-GB', {

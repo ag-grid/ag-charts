@@ -74,8 +74,8 @@ const options: AgCartesianChartOptions = {
             stackGroup: 'NOL',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
             keys: ['dolphin'],
@@ -99,7 +99,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             keys: ['interactionDurationTM', 'interactionDurationYM'],
@@ -121,7 +121,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        ySecondary: {
             position: 'right',
             type: 'number',
             title: {
@@ -140,7 +140,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

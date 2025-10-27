@@ -56,8 +56,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -85,7 +85,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             reverse: true,
@@ -113,7 +113,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     tooltip: {
         position: {
             xOffset: 20,

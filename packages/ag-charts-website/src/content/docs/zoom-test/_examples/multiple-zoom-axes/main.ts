@@ -34,13 +34,12 @@ const options: AgCartesianChartOptions = {
             tooltip: { enabled: true },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
-            // primary y axis
+        y: {
             type: 'number',
             position: 'left',
             keys: ['women', 'men', 'children', 'adults'],
@@ -48,8 +47,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
         },
-        {
-            // secondary y axis
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['portions'],
@@ -57,7 +55,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Portions Consumed (Per Day)',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

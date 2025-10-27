@@ -19,8 +19,8 @@ const options: AgChartOptions = {
             yHighKey: 'detachedHouses',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -30,11 +30,11 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => `£${Number(value).toLocaleString()}`,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'unit-time',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

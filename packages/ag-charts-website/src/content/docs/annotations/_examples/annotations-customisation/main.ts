@@ -25,17 +25,17 @@ const options: AgChartOptions = {
             lowKey: 'low',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             nice: false,
         },
-    ],
+    },
     theme: {
         overrides: {
             common: {

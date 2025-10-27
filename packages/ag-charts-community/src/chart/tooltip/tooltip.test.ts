@@ -146,11 +146,11 @@ describe('Tooltip', () => {
                     { type: 'bar', xKey: 'x', yKey: 'b' },
                     { type: 'line', xKey: 'x', yKey: 'L' },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left', keys: ['b', 'a'] },
-                    { type: 'number', position: 'right', keys: ['L'] },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', keys: ['b', 'a'] },
+                    ySecondary: { type: 'number', position: 'right', keys: ['L'] },
+                },
             });
             await testHover(221, 256); // highlight datum Q1 series L
             await testHover(666, 251); // highlight datum Q2 series L

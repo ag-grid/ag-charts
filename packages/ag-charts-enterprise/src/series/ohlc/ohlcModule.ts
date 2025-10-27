@@ -61,10 +61,10 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     version: VERSION,
 
     options: ohlcSeriesOptionsDef,
-    defaultAxes: [
-        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
-        { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },
-    ],
+    defaultAxes: {
+        y: { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
+        x: { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },
+    },
     themeTemplate,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new OhlcSeries(ctx),

@@ -135,8 +135,8 @@ const options: AgCartesianChartOptions = {
             stackGroup: 'NOL',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'top',
             type: 'category',
             keys: ['dolphin'],
@@ -158,7 +158,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             keys: ['interactionDurationTM', 'interactionDurationYM'],
@@ -166,15 +166,15 @@ const options: AgCartesianChartOptions = {
                 text: 'Duration of Interaction (seconds)',
             },
         },
-        {
+        ySecondary: {
             position: 'right',
             type: 'number',
             title: {
-                text: 'Numer of Looks',
+                text: 'Number of Looks',
             },
             keys: ['numberOfLooksTM', 'numberOfLooksYM'],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

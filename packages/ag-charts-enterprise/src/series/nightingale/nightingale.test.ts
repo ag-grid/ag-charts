@@ -106,16 +106,16 @@ describe('NightingaleSeries', () => {
     it(`should render stacked nightingale chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         chart = AgCharts.create(options);
@@ -147,16 +147,16 @@ describe('NightingaleSeries', () => {
                     grouped: true,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -189,16 +189,16 @@ describe('NightingaleSeries', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 

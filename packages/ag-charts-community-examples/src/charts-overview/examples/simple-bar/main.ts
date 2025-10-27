@@ -30,12 +30,12 @@ const options: AgChartOptions = {
       yKey: "earnings",
     },
   ],
-  axes: [
-    {
+  axes: {
+    y: {
       type: "category",
       position: "left",
     },
-    {
+    x: {
       type: "number",
       position: "bottom",
       title: {
@@ -43,7 +43,7 @@ const options: AgChartOptions = {
         text: "£/week",
       },
     },
-  ],
+  },
 }
 
 AgCharts.create(options)

@@ -36,8 +36,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             line: {
@@ -60,14 +60,14 @@ const options: AgChartOptions = {
                 },
             })),
         },
-        {
+        x: {
             type: 'number',
             position: 'top',
             gridLine: {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

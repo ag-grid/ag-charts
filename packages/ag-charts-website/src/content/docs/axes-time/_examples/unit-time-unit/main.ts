@@ -2,7 +2,7 @@ import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisThemeOptions } from 'a
 
 import { getData } from './data';
 
-const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Influenza Cases',
@@ -37,8 +37,8 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             unit: {
@@ -50,10 +50,10 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
                 enabled: false,
             },
         },
-        {
+        y: {
             type: 'number',
         },
-    ],
+    },
     zoom: {
         enabled: true,
     },

@@ -23,19 +23,19 @@ const options: AgChartOptions = {
             yName: 'Office',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 format: '#{.1f} °C',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

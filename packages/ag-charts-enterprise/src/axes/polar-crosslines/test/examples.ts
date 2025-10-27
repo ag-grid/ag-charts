@@ -39,8 +39,8 @@ export const RADAR_LINE_CIRCLE_CROSSLINES: Options = {
                 angleKey: 'quarter',
             },
         ],
-        axes: [
-            {
+        axes: {
+            angle: {
                 type: 'angle-category',
                 shape: 'circle',
                 crossLines: [
@@ -67,7 +67,7 @@ export const RADAR_LINE_CIRCLE_CROSSLINES: Options = {
                     },
                 ],
             },
-            {
+            radius: {
                 type: 'radius-number',
                 shape: 'circle',
                 crossLines: [
@@ -89,7 +89,7 @@ export const RADAR_LINE_CIRCLE_CROSSLINES: Options = {
                     },
                 ],
             },
-        ],
+        },
     },
 };
 
@@ -117,8 +117,8 @@ export const RADIAL_BAR_CIRCLE_CROSSLINES: Options = {
                 angleName: 'Services',
             },
         ],
-        axes: [
-            {
+        axes: {
+            radius: {
                 type: 'radius-category',
                 groupPaddingInner: 0.2,
                 paddingInner: 0.5,
@@ -141,7 +141,7 @@ export const RADIAL_BAR_CIRCLE_CROSSLINES: Options = {
                     },
                 ],
             },
-            {
+            angle: {
                 type: 'angle-number',
                 crossLines: [
                     {
@@ -167,7 +167,7 @@ export const RADIAL_BAR_CIRCLE_CROSSLINES: Options = {
                     },
                 ],
             },
-        ],
+        },
     },
 };
 export const RADAR_LINE_POLYGON_CROSSLINES: Options = {
@@ -193,8 +193,8 @@ export const RADAR_LINE_POLYGON_CROSSLINES: Options = {
                 angleKey: 'quarter',
             },
         ],
-        axes: [
-            {
+        axes: {
+            angle: {
                 type: 'angle-category',
                 shape: 'polygon',
                 crossLines: [
@@ -221,7 +221,7 @@ export const RADAR_LINE_POLYGON_CROSSLINES: Options = {
                     },
                 ],
             },
-            {
+            radius: {
                 type: 'radius-number',
                 shape: 'polygon',
                 crossLines: [
@@ -243,7 +243,7 @@ export const RADAR_LINE_POLYGON_CROSSLINES: Options = {
                     },
                 ],
             },
-        ],
+        },
     },
 };
 
@@ -273,8 +273,8 @@ export const RADIAL_COLUMN_CATEGORY_CROSSLINES: Options = {
                 grouped: true,
             },
         ],
-        axes: [
-            {
+        axes: {
+            angle: {
                 type: 'angle-category',
                 groupPaddingInner: 0.5,
                 paddingInner: 0.5,
@@ -302,7 +302,7 @@ export const RADIAL_COLUMN_CATEGORY_CROSSLINES: Options = {
                     },
                 ],
             },
-            {
+            radius: {
                 type: 'radius-number',
                 innerRadiusRatio: 0.2,
                 crossLines: [
@@ -315,6 +315,6 @@ export const RADIAL_COLUMN_CATEGORY_CROSSLINES: Options = {
                     },
                 ],
             },
-        ],
+        },
     },
 };

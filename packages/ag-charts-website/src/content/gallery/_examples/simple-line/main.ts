@@ -77,8 +77,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'unit-time',
             bandHighlight: {
@@ -88,7 +88,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: false,
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -109,7 +109,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

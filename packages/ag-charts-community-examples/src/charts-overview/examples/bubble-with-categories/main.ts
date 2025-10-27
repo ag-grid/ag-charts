@@ -30,8 +30,8 @@ const options: AgChartOptions = {
             strokeOpacity: 0.85,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
             gridLine: {
@@ -54,7 +54,7 @@ const options: AgChartOptions = {
                 stroke: 'transparent',
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'category',
             gridLine: {
@@ -72,7 +72,7 @@ const options: AgChartOptions = {
                 stroke: 'transparent',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

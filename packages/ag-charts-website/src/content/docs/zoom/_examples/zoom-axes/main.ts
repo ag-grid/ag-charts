@@ -11,8 +11,8 @@ const options: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             interval: {
@@ -20,7 +20,7 @@ const options: AgCartesianChartOptions = {
                 maxSpacing: 120,
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
@@ -32,7 +32,7 @@ const options: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-    ],
+    },
     data: getData(),
     series: [
         {

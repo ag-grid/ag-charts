@@ -40,8 +40,8 @@ const options: AgPolarChartOptions = {
             fillOpacity: 0.3,
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             gridLine: {
                 enabled: true,
@@ -50,10 +50,10 @@ const options: AgPolarChartOptions = {
                 enabled: false,
             },
         },
-        {
+        radius: {
             type: 'radius-number',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

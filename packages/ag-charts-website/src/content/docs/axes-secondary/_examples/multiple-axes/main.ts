@@ -36,12 +36,12 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             keys: ['male', 'female'],
@@ -54,7 +54,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             keys: ['exportedTonnes'],
@@ -67,7 +67,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

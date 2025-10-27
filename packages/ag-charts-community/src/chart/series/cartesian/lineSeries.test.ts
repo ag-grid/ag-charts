@@ -281,17 +281,17 @@ describe('LineSeries', () => {
                     },
                 },
             ],
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                     keys: ['iphone'],
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'category',
                 },
-            ],
+            },
         };
 
         const animationTestCases: Array<[string, any] | [string, any, number]> = [
@@ -389,16 +389,16 @@ describe('LineSeries', () => {
                     },
                 },
             ],
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'category',
                 },
-            ],
+            },
         };
 
         describe('hide', () => {
@@ -990,10 +990,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1026,10 +1026,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1073,10 +1073,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1128,12 +1128,12 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'category',
                         position: 'bottom',
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         title: {
@@ -1141,7 +1141,7 @@ describe('LineSeries', () => {
                         },
                         nice: true,
                     },
-                ],
+                },
                 legend: {
                     position: 'bottom',
                 },
@@ -1219,8 +1219,8 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'category',
                         position: 'bottom',
                         paddingOuter: 0.8,
@@ -1245,7 +1245,7 @@ describe('LineSeries', () => {
                             fontWeight: 'bold',
                         },
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         nice: false,
@@ -1270,7 +1270,7 @@ describe('LineSeries', () => {
                             enabled: false,
                         },
                     },
-                ],
+                },
                 legend: { enabled: false },
             };
 
@@ -1310,10 +1310,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1349,10 +1349,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1391,10 +1391,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1432,10 +1432,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1479,10 +1479,10 @@ describe('LineSeries', () => {
                 highlight: {
                     drawingMode: 'cutout',
                 },
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1540,10 +1540,10 @@ describe('LineSeries', () => {
                 highlight: {
                     drawingMode: 'cutout',
                 },
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1580,10 +1580,10 @@ describe('LineSeries', () => {
                 highlight: {
                     drawingMode: 'cutout',
                 },
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);

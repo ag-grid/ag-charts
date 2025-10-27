@@ -14,8 +14,8 @@ const options: AgCartesianChartOptions = {
         right: 40,
         bottom: 0,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             crossAt: { value: 35 },
@@ -25,7 +25,7 @@ const options: AgCartesianChartOptions = {
             },
             paddingOuter: 0,
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             crossAt: { value: 5 },
@@ -34,7 +34,7 @@ const options: AgCartesianChartOptions = {
                 stroke: 'black',
             },
         },
-    ],
+    },
     series: [
         {
             type: 'bar',

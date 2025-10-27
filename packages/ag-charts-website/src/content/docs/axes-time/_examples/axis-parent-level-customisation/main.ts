@@ -15,12 +15,12 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             label: {
@@ -45,7 +45,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
     zoom: {
         enabled: true,
     },

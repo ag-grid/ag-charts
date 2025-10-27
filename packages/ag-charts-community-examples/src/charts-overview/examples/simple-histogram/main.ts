@@ -24,8 +24,8 @@ const options: AgChartOptions = {
             fillOpacity: 0.5,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -35,14 +35,14 @@ const options: AgChartOptions = {
                 step: 20,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Frequency',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

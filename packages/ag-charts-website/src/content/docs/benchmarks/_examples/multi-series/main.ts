@@ -218,8 +218,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
@@ -229,7 +229,7 @@ const options: AgCartesianChartOptions = {
                 formatter: (params: { index: number; value: any }) => (params.index % 3 ? '' : params.value),
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -239,7 +239,7 @@ const options: AgCartesianChartOptions = {
             min: 0.2,
             max: 1,
         },
-    ],
+    },
     legend: {
         position: 'bottom',
         item: {

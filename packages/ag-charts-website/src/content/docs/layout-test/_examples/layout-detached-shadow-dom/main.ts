@@ -23,11 +23,11 @@ const options: AgCartesianChartOptions = {
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' },
         { type: 'line', xKey: 'month', yKey: 'avgTemp' },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+        ySecondary: { type: 'number', position: 'right', keys: ['avgTemp'] },
+    },
 };
 
 AgCharts.create(options);

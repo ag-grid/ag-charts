@@ -43,15 +43,15 @@ const options: AgChartOptions = {
             yName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
             position: 'bottom',
             label: { rotation: 0 },
             depthOptions: [{}, { label: { fontWeight: 'bold' } }],
         },
-        { type: 'number', position: 'left' },
-    ],
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 AgCharts.create(options);

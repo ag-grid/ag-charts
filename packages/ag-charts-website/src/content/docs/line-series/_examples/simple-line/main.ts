@@ -2,6 +2,8 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
+window.agChartsDebug = 'options-graph';
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

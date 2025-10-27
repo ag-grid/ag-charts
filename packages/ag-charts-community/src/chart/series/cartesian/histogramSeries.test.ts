@@ -11,6 +11,7 @@ import {
     deproxy,
     extractImageData,
     hoverAction,
+    mapValues,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -92,7 +93,7 @@ describe('HistogramSeries', () => {
     describe('#reversed axes', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                const axes = (example.options as AgCartesianChartOptions).axes?.map((a) => ({
+                const axes = mapValues((example.options as AgCartesianChartOptions).axes ?? {}, (a) => ({
                     ...a,
                     reverse: true,
                 })) ?? [
@@ -113,7 +114,7 @@ describe('HistogramSeries', () => {
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const axes = (example.options as AgCartesianChartOptions).axes?.map((a) => ({
+                const axes = mapValues((example.options as AgCartesianChartOptions).axes ?? {}, (a) => ({
                     ...a,
                     reverse: true,
                 })) ?? [

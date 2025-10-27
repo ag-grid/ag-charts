@@ -61,8 +61,8 @@ const options: AgChartOptions = {
             size: 15,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             keys: ['smartphone'],
@@ -70,7 +70,7 @@ const options: AgChartOptions = {
             paddingInner: 0.9,
             paddingOuter: 0.8,
         },
-        {
+        x: {
             type: 'number',
             position: 'top',
             keys: ['profitMargin'],
@@ -81,7 +81,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
+        xSecondary: {
             type: 'number',
             position: 'bottom',
             keys: ['lowRetail', 'highRetail', 'lowCost', 'highCost'],
@@ -97,7 +97,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

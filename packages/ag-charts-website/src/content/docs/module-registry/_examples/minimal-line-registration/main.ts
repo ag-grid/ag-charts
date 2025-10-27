@@ -26,22 +26,22 @@ const options: AgChartOptions = {
             yName: 'Revenue',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
                 text: 'Quarter',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Revenue (USD Millions)',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

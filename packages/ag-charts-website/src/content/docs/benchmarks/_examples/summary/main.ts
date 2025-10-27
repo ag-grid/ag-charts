@@ -158,14 +158,14 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             nodeInteraction: true,
         },
         legend: { enabled: false },
-        axes: [
-            {
+        axes: {
+            x: {
                 type: 'category',
                 label: {
                     fontSize: 8,
                 },
             },
-            {
+            y: {
                 type: 'number',
                 position: 'left',
                 keys: [`timeMs`],
@@ -178,7 +178,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                     },
                 },
             },
-            {
+            ySecondary: {
                 type: 'number',
                 position: 'right',
                 keys: [`heapUsed`, `canvasBytes`],
@@ -191,7 +191,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                     },
                 },
             },
-        ],
+        },
         series: [
             {
                 type: 'bar',

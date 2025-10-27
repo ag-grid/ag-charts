@@ -154,20 +154,20 @@ const options: AgChartOptions = {
     data: initialData,
     animation: { enabled: false },
     legend: { enabled: false },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
             position: 'bottom',
             label: { format: '%H:%M:%S' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 formatter: (params) => `$${params.value.toFixed(2)}`,
             },
         },
-    ],
+    },
     series: [
         {
             type: 'line',
