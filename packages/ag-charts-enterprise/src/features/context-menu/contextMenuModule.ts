@@ -1,4 +1,5 @@
 import { type AgContextMenuOptions, _ModuleSupport } from 'ag-charts-community';
+import { callbackOf } from 'ag-charts-core';
 import { type PluginModuleDefinition, boolean, undocumented } from 'ag-charts-core';
 
 import { ContextMenu } from './contextMenu';
@@ -11,6 +12,7 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions> = {
     options: {
         enabled: boolean,
         items: _ModuleSupport.contextMenuItemsArray,
+        getItems: callbackOf(_ModuleSupport.contextMenuItemsArray, 'a menu items array'),
     },
     themeTemplate: {
         enabled: true,

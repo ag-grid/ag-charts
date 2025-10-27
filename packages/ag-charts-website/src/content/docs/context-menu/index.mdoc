@@ -69,12 +69,12 @@ Use the `showOn` property to specify when the action should be shown.
             {
                 showOn: 'always',
                 label: 'Say hello',
-                action: () => log('Hello world!'),
+                action: () => console.log('Hello world!'),
             },
             {
                 showOn: 'series-area',
                 label: 'Say hello in the series area',
-                action: () => log('Hello in the series area!'),
+                action: () => console.log('Hello in the series area!'),
             },
             {
                 showOn: 'series-node',
@@ -155,6 +155,92 @@ In this configuration:
 
 -   The built-in Zoom and Legend menu items are placed into Sub-Menus.
 -   An additional "Debug Console" Sub-Menu is added with custom actions to log events to the console.
+
+## Dynamic Items
+
+The `getItems` callback can be used to implement Dynamic Context Menus. This is typically used to write Menu Items that depend on underlying state or data in some way.
+
+{% chartExampleRunner title="Dynamic Context Menu" name="dynamic-context-menu" type="generated" /%}
+
+```js format="snippet"
+{
+    contextMenu: {
+        getItems: (params) => {
+            const menuItems = ['download', 'separator'];
+
+            if (params.showOn === 'series-node') {
+                const { xKey, yKey } = params;
+                const data = getPersistentMutableData();
+                const pX = params.datum[xKey];
+                const pY = params.datum[yKey];
+                for (const datum of data) {
+                    if (datum[xKey] === pX && datum[yKey] === pY) {
+                        const isMarked = datum.marked[yKey] ?? false;
+                        const name = `"${datum.category} - ${yKey}"`;
+                        menuItems.push(
+                            {
+                                type: 'action',
+                                showOn: 'series-node',
+                                label: 'Compare with...',
+                                items:
+                                    // Create a submenu item for each comparable series:
+                                    options.series
+                                        ?.filter((s) => s.id !== params.seriesId && s.id !== DIFF_SERIES_ID)
+                                        .map((s) => ({
+                                            type: 'action',
+                                            label: s.yName ?? s.yKey,
+                                            action: () => createDiffSeries(params.seriesId, s.id),
+                                        })) ?? [],
+                            },
+                            {
+                                type: 'action',
+                                showOn: 'series-node',
+                                label: isMarked ? `Unmark ${name}` : `Mark ${name}`,
+                                action: () => updateMarking(datum, yKey, !isMarked),
+                            }
+                        );
+                    }
+                }
+            }
+
+            if (params.showOn === 'legend-item') {
+                menuItems.push(
+                    // Custom implementation of 'toggle-series-visibility':
+                    {
+                        type: 'action',
+                        showOn: 'legend-item',
+                        label: params.visible ? `Hide ${params.text}` : `Show ${params.text}`,
+                        action: () => updateVisibility(params.seriesId, !params.visible),
+                    },
+                    'toggle-other-series'
+                );
+            }
+
+            const hasDiffSeries = options.series?.some((s) => s.id === DIFF_SERIES_ID);
+            if (hasDiffSeries) {
+                menuItems.push('separator', {
+                    type: 'action',
+                    showOn: 'always',
+                    label: 'Remove Diff',
+                    action: removeDiffSeries,
+                });
+            }
+
+            return menuItems;
+        },
+    },
+}
+```
+
+In this example:
+
+-   The Series Node Context Menu includes:
+    -   A `Compare with...` Submenu to compare the right-clicked Series to another Series.
+    -   A `Mark` or `Unmark` Menu Item to change styling the right-clicked Datum.
+-   The Legend Context Menu includes:
+    -   A `Show ${text}` Menu Item if the Series is hidden.
+    -   A `Hide ${text}` Menu Item if the Series is visible.
+-   A `Remove Diff` Menu Item is shown when applicable.
 
 ## API Reference
 

@@ -93,6 +93,53 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
     | AgContextMenuItemSeriesNode<TDatum, TContext>
     | AgContextMenuItemLegendItem<TDatum, TContext>;
 
+type GetItemsParamsOmissions = 'type' | 'event';
+
+// Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
+//
+// Using <TContext> instead of <_TDatum, TContext> would make the API very susectible to breaking changes and/or inconsistency.
+//
+// If we ever need to add a `datum: TDatum` property, then changing <TContext> to <TDatum, TContext> would be a breaking
+// change, because code that uses these generic types would need to be updated to shift generic TContext parameter by
+// one position to the right. A workaround could be to change <TContext> to <TContext, TDatum = DatumDefault>, but this
+// is inconsistent with the ordering of other generic types in our API.
+
+export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TContext = ContextDefault>
+    extends Omit<AgChartContextMenuEvent<TContext>, GetItemsParamsOmissions> {
+    /** Which clicked element this menu item should be shown for. */
+    showOn: 'always';
+}
+
+export interface AgContextMenuGetItemsParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>
+    extends Omit<AgSeriesAreaContextMenuActionEvent<TContext>, GetItemsParamsOmissions> {
+    /** Which clicked element this menu item should be shown for. */
+    showOn: 'series-area';
+}
+
+export interface AgContextMenuGetItemsParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault>
+    extends Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, GetItemsParamsOmissions> {
+    /** Which clicked element this menu item should be shown for. */
+    showOn: 'series-node';
+}
+
+export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault>
+    extends Omit<AgChartLegendContextMenuEvent<TContext>, GetItemsParamsOmissions> {
+    /** Which clicked element this menu item should be shown for. */
+    showOn: 'legend-item';
+    /** Whether the series of this legend item is visible or hidden. */
+    visible: boolean;
+}
+
+export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault> =
+    | AgContextMenuGetItemsParamsAlways<TDatum, TContext>
+    | AgContextMenuGetItemsParamsSeriesArea<TDatum, TContext>
+    | AgContextMenuGetItemsParamsSeriesNode<TDatum, TContext>
+    | AgContextMenuGetItemsParamsLegendItem<TDatum, TContext>;
+
+export type AgContextMenuGetItemsCallback<TDatum = DatumDefault, TContext = ContextDefault> = (
+    params: AgContextMenuGetItemsParams<TDatum, TContext>
+) => AgContextMenuItem<TDatum, TContext>[] | undefined;
+
 export interface AgContextMenuOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /**
      * Whether to show the context menu.
@@ -106,4 +153,10 @@ export interface AgContextMenuOptions<TDatum = DatumDefault, TContext = ContextD
      * Default: `['defaults']`
      */
     items?: AgContextMenuItem<TDatum, TContext>[];
+    /**
+     * Callback to list the menu items (and submenus) for the context menu. Overrides `items` if return-value is defined, otherwise `items` is used as a fallback.
+     *
+     * Default: `undefined`
+     */
+    getItems?: AgContextMenuGetItemsCallback<TDatum, TContext>;
 }

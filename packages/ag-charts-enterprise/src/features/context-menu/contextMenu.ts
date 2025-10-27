@@ -1,4 +1,10 @@
-import type { AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
+import type {
+    AgContextMenuGetItemsCallback,
+    AgContextMenuGetItemsParams,
+    AgContextMenuGetItemsParamsSeriesNode,
+    AgContextMenuItem,
+    AgContextMenuItemShowOn,
+} from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { AbstractModuleInstance, Logger, clamp, createElement, toPlainText } from 'ag-charts-core';
 
@@ -20,6 +26,22 @@ type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
 
+const DATUM_KEYS = [
+    'angleKey',
+    'calloutLabelKey',
+    'colorKey',
+    'labelKey',
+    'radiusKey',
+    'sectorLabelKey',
+    'sizeKey',
+    'xKey',
+    'yKey',
+] as const satisfies readonly (keyof AgContextMenuGetItemsParamsSeriesNode)[];
+
+type PickedNode = _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> & {
+    [K in (typeof DATUM_KEYS)[number]]?: string;
+};
+
 export class ContextMenu extends AbstractModuleInstance {
     @Property
     enabled = true;
@@ -30,11 +52,14 @@ export class ContextMenu extends AbstractModuleInstance {
     @Property
     readonly items: readonly Readonly<AgContextMenuItem>[] = ['defaults'];
 
+    @Property
+    readonly getItems?: AgContextMenuGetItemsCallback;
+
     // Module context
     private readonly interactionManager: _ModuleSupport.InteractionManager;
 
     // State
-    private pickedNode: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined = undefined;
+    private pickedNode: PickedNode | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;
@@ -97,10 +122,58 @@ export class ContextMenu extends AbstractModuleInstance {
         this.cleanup.register(this.ctx.eventsHub.on('context-menu:complete', (e) => this.onContext(e)));
     }
 
-    private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {
+    private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
+        const { showOn } = event;
+        const { context } = this.ctx.chartService; // TODO: callWithContext
+        switch (showOn) {
+            case 'always':
+            case 'series-area':
+                return { showOn, context };
+
+            case 'series-node': {
+                if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
+                const params: AgContextMenuGetItemsParamsSeriesNode = {
+                    showOn,
+                    context,
+                    seriesId: this.pickedNode.series.id,
+                    datum: this.pickedNode.datum,
+                };
+
+                for (const k of DATUM_KEYS) {
+                    if (this.pickedNode[k] !== undefined) {
+                        params[k] = this.pickedNode[k];
+                    }
+                }
+                return params;
+            }
+
+            case 'legend-item':
+                if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
+                const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
+                const text = toPlainText(label.text);
+
+                if (typeof itemId !== 'string') {
+                    throw new Error(`unexpected itemId type: [${typeof itemId}] (expected [string])`);
+                }
+
+                return { showOn, context, itemId, seriesId, text, visible: enabled };
+
+            default:
+                return showOn satisfies never; // unreachable
+        }
+    }
+
+    private expandItemsOptions(event: ContextMenuEvent): ContextMenuItem[] {
         const result: ContextMenuItem[] = [];
 
-        expandItems(showing, this.ctx.contextMenuRegistry, this.items, result);
+        let items: readonly Readonly<AgContextMenuItem>[] | undefined;
+        if (this.getItems) {
+            const cbParams = this.makeGetItemsParams(event);
+            items = this.getItems(cbParams);
+        }
+        items ??= this.items;
+
+        expandItems(event.showOn, this.ctx.contextMenuRegistry, items, result);
 
         return result;
     }
@@ -120,7 +193,7 @@ export class ContextMenu extends AbstractModuleInstance {
             this.pickedLegendItem = event.context.legendItem;
         }
 
-        const expandedItems = this.expandItemsOptions(event.showOn);
+        const expandedItems = this.expandItemsOptions(event);
         if (expandedItems.length === 0) return;
 
         this.show(event.widgetEvent, expandedItems);
