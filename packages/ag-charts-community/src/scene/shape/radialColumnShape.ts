@@ -127,125 +127,111 @@ export class RadialColumnShape<D = any> extends Path<D> {
     }
 
     private updateBeveledPath() {
-        const { columnWidth, path, outerRadius, innerRadius, axisInnerRadius, axisOuterRadius, isRadiusAxisReversed } =
-            this;
+        // Create a path similar to updateRectangularPath().
+        // However we want to improve the visual quality of the beveled path:
+        // - If the bar is growing outwards and starting from the inner radius, the bottom edge should curve around the inner radius.
+        // - If the bar is growing inwards and starting from the outer radius, the top edge should curve around the outer radius.
 
-        const isStackBottom = isNumberEqual(innerRadius, axisInnerRadius);
-        const sideRotation = Math.asin(columnWidth / 2 / innerRadius);
-        const pointRotation = this.getRotation();
-        const rotate = (x: number, y: number) => rotatePoint(x, y, pointRotation);
-
-        const getTriangleHypotenuse = (leg: number, otherLeg: number) => Math.hypot(leg, otherLeg);
-        const getTriangleLeg = (hypotenuse: number, otherLeg: number) => {
-            if (otherLeg > hypotenuse) {
-                return 0;
-            }
-            return Math.sqrt(hypotenuse ** 2 - otherLeg ** 2);
-        };
-        const compare = (value: number, otherValue: number, lessThan: boolean) =>
-            lessThan ? value < otherValue : value > otherValue;
-
-        // Avoid the connecting lines to be too long
-        const shouldConnectBottomCircle = isStackBottom && !Number.isNaN(sideRotation) && sideRotation < Math.PI / 6;
-
-        let left = -columnWidth / 2;
-        let right = columnWidth / 2;
-        const top = -outerRadius;
-        const bottom = -innerRadius * (shouldConnectBottomCircle ? Math.cos(sideRotation) : 1);
-
-        const hasBottomIntersection = compare(
-            axisOuterRadius,
-            getTriangleHypotenuse(innerRadius, columnWidth / 2),
-            !isRadiusAxisReversed
-        );
-
-        if (hasBottomIntersection) {
-            // Crop bottom side overflowing outer radius
-            const bottomIntersectionX = getTriangleLeg(axisOuterRadius, innerRadius);
-            left = -bottomIntersectionX;
-            right = bottomIntersectionX;
+        let { innerRadius, outerRadius } = this;
+        const { columnWidth, path, axisInnerRadius, axisOuterRadius } = this;
+        if (innerRadius > outerRadius) {
+            [innerRadius, outerRadius] = [outerRadius, innerRadius];
         }
+
+        const left = -columnWidth / 2;
+        const right = columnWidth / 2;
+        const top = -outerRadius;
+        const bottom = -innerRadius;
+
+        const rotation = this.getRotation();
+
+        // Determine growth direction based on which axis edge the bar starts from
+        const isGrowingOutward = isNumberEqual(innerRadius, axisInnerRadius);
+        const isGrowingInward = isNumberEqual(outerRadius, axisOuterRadius);
 
         path.clear(true);
 
-        // Bottom-left point
-        const bottomLeftPt = rotate(left, bottom);
-        path.moveTo(bottomLeftPt.x, bottomLeftPt.y);
+        if (isGrowingOutward || isGrowingInward) {
+            // Use beveled path with curved edge while maintaining parallel vertical edges
+            const curvedRadius = isGrowingOutward ? innerRadius : outerRadius;
 
-        // Top
-        const isEmpty = isNumberEqual(innerRadius, outerRadius);
-        const hasSideIntersection = compare(
-            axisOuterRadius,
-            getTriangleHypotenuse(outerRadius, columnWidth / 2),
-            !isRadiusAxisReversed
-        );
+            // Calculate where the vertical edges (at x = left, x = right) intersect the curved circle
+            // For a circle at origin with radius r, and vertical line at x = left:
+            // x^2 + y^2 = r^2  =>  y = -sqrt(r^2 - x^2)  (negative because we're below origin)
+            const leftRadiusSquared = curvedRadius * curvedRadius - left * left;
+            const rightRadiusSquared = curvedRadius * curvedRadius - right * right;
 
-        if (isEmpty && shouldConnectBottomCircle) {
-            // A single line across the axis inner radius
-            path.arc(
-                0,
-                0,
-                innerRadius,
-                normalizeAngle360(-sideRotation - Math.PI / 2) + pointRotation,
-                normalizeAngle360(sideRotation - Math.PI / 2) + pointRotation,
-                false
-            );
-        } else if (hasSideIntersection) {
-            // Crop top side overflowing outer radius
-            const sideIntersectionY = -getTriangleLeg(axisOuterRadius, columnWidth / 2);
-            const topIntersectionX = getTriangleLeg(axisOuterRadius, outerRadius);
-            if (!hasBottomIntersection) {
-                const topLeftPt = rotate(left, sideIntersectionY);
-                path.lineTo(topLeftPt.x, topLeftPt.y);
+            // Calculate y-coordinates where vertical edges meet the circle
+            const leftY = leftRadiusSquared > 0 ? -Math.sqrt(leftRadiusSquared) : 0;
+            const rightY = rightRadiusSquared > 0 ? -Math.sqrt(rightRadiusSquared) : 0;
+
+            // Calculate angles for the arc endpoints
+            const leftAngle = Math.atan2(leftY, left);
+            const rightAngle = Math.atan2(rightY, right);
+
+            if (isGrowingOutward) {
+                // Bottom edge curves around inner radius
+                // Path: bottom-left on arc -> arc along bottom -> bottom-right on arc -> line up right edge -> line across top -> line down left edge -> close
+
+                // Start at bottom-left where vertical edge meets the arc
+                const bottomLeftAngle = rotation + leftAngle;
+                const startPoint = rotatePoint(left, leftY, rotation);
+                path.moveTo(startPoint.x, startPoint.y);
+
+                // Arc along the bottom edge from left to right
+                const bottomRightAngle = rotation + rightAngle;
+                path.arc(0, 0, curvedRadius, bottomLeftAngle, bottomRightAngle, false);
+
+                // Line up the right edge to top-right
+                const topRight = rotatePoint(right, top, rotation);
+                path.lineTo(topRight.x, topRight.y);
+
+                // Line across the top to top-left
+                const topLeft = rotatePoint(left, top, rotation);
+                path.lineTo(topLeft.x, topLeft.y);
+
+                // Close path back to start (down the left edge)
+                path.closePath();
+            } else {
+                // Top edge curves around outer radius
+                // Path: bottom-left -> line across bottom -> line up right edge -> top-right on arc -> arc along top -> top-left on arc -> close
+
+                // Start at bottom-left
+                const bottomLeft = rotatePoint(left, bottom, rotation);
+                path.moveTo(bottomLeft.x, bottomLeft.y);
+
+                // Line across bottom to bottom-right
+                const bottomRight = rotatePoint(right, bottom, rotation);
+                path.lineTo(bottomRight.x, bottomRight.y);
+
+                // Line up the right edge to top-right where it meets the arc
+                const topRightPoint = rotatePoint(right, rightY, rotation);
+                path.lineTo(topRightPoint.x, topRightPoint.y);
+
+                // Arc along the top edge from right to left
+                const topRightAngle = rotation + rightAngle;
+                const topLeftAngle = rotation + leftAngle;
+                path.arc(0, 0, curvedRadius, topRightAngle, topLeftAngle, true);
+
+                // Close path back to start (down the left edge)
+                path.closePath();
             }
-            path.arc(
-                0,
-                0,
-                axisOuterRadius,
-                Math.atan2(sideIntersectionY, left) + pointRotation,
-                Math.atan2(top, -topIntersectionX) + pointRotation,
-                false
-            );
-            if (!isNumberEqual(topIntersectionX, 0)) {
-                // Connecting line between two top bevels
-                const topRightBevelPt = rotate(topIntersectionX, top);
-                path.lineTo(topRightBevelPt.x, topRightBevelPt.y);
-            }
-            path.arc(
-                0,
-                0,
-                axisOuterRadius,
-                Math.atan2(top, topIntersectionX) + pointRotation,
-                Math.atan2(sideIntersectionY, right) + pointRotation,
-                false
-            );
         } else {
-            // Basic connecting line
-            const topLeftPt = rotate(left, top);
-            const topRightPt = rotate(right, top);
-            path.lineTo(topLeftPt.x, topLeftPt.y);
-            path.lineTo(topRightPt.x, topRightPt.y);
-        }
+            // Fall back to rectangular path if neither edge condition is met
+            const points = [
+                [left, bottom],
+                [left, top],
+                [right, top],
+                [right, bottom],
+            ].map(([x, y]) => rotatePoint(x, y, rotation));
 
-        // Bottom
-        const bottomRightPt = rotate(right, bottom);
-        path.lineTo(bottomRightPt.x, bottomRightPt.y);
-        if (shouldConnectBottomCircle) {
-            // Connect column with inner circle
-            path.arc(
-                0,
-                0,
-                innerRadius,
-                normalizeAngle360(sideRotation - Math.PI / 2) + pointRotation,
-                normalizeAngle360(-sideRotation - Math.PI / 2) + pointRotation,
-                true
-            );
-        } else {
-            const rotatedBottomLeftPt = rotate(left, bottom);
-            path.lineTo(rotatedBottomLeftPt.x, rotatedBottomLeftPt.y);
-        }
+            path.moveTo(points[0].x, points[0].y);
+            path.lineTo(points[1].x, points[1].y);
+            path.lineTo(points[2].x, points[2].y);
+            path.lineTo(points[3].x, points[3].y);
 
-        path.closePath();
+            path.closePath();
+        }
     }
 }
 
