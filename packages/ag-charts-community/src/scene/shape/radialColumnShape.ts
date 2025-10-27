@@ -146,90 +146,78 @@ export class RadialColumnShape<D = any> extends Path<D> {
         const rotation = this.getRotation();
 
         // Determine growth direction based on which axis edge the bar starts from
-        const isGrowingOutward = isNumberEqual(innerRadius, axisInnerRadius);
-        const isGrowingInward = isNumberEqual(outerRadius, axisOuterRadius);
+        const isTouchingOuterRadius = isNumberEqual(innerRadius, axisInnerRadius);
+        const isTouchingInnerRadius = isNumberEqual(outerRadius, axisOuterRadius);
+
+        if (!isTouchingOuterRadius && !isTouchingInnerRadius) {
+            this.updateRectangularPath();
+            return;
+        }
 
         path.clear(true);
 
-        if (isGrowingOutward || isGrowingInward) {
-            // Use beveled path with curved edge while maintaining parallel vertical edges
-            const curvedRadius = isGrowingOutward ? innerRadius : outerRadius;
+        // Use beveled path with curved edge while maintaining parallel vertical edges
+        const curvedRadius = isTouchingOuterRadius ? innerRadius : outerRadius;
 
-            // Calculate where the vertical edges (at x = left, x = right) intersect the curved circle
-            // For a circle at origin with radius r, and vertical line at x = left:
-            // x^2 + y^2 = r^2  =>  y = -sqrt(r^2 - x^2)  (negative because we're below origin)
-            const leftRadiusSquared = curvedRadius * curvedRadius - left * left;
-            const rightRadiusSquared = curvedRadius * curvedRadius - right * right;
+        // Calculate where the vertical edges (at x = left, x = right) intersect the curved circle
+        // For a circle at origin with radius r, and vertical line at x = left:
+        // x^2 + y^2 = r^2  =>  y = -sqrt(r^2 - x^2)  (negative because we're below origin)
+        const leftRadiusSquared = curvedRadius * curvedRadius - left * left;
+        const rightRadiusSquared = curvedRadius * curvedRadius - right * right;
 
-            // Calculate y-coordinates where vertical edges meet the circle
-            const leftY = leftRadiusSquared > 0 ? -Math.sqrt(leftRadiusSquared) : 0;
-            const rightY = rightRadiusSquared > 0 ? -Math.sqrt(rightRadiusSquared) : 0;
+        // Calculate y-coordinates where vertical edges meet the circle
+        const leftY = leftRadiusSquared > 0 ? -Math.sqrt(leftRadiusSquared) : 0;
+        const rightY = rightRadiusSquared > 0 ? -Math.sqrt(rightRadiusSquared) : 0;
 
-            // Calculate angles for the arc endpoints
-            const leftAngle = Math.atan2(leftY, left);
-            const rightAngle = Math.atan2(rightY, right);
+        // Calculate angles for the arc endpoints
+        const leftAngle = Math.atan2(leftY, left);
+        const rightAngle = Math.atan2(rightY, right);
 
-            if (isGrowingOutward) {
-                // Bottom edge curves around inner radius
-                // Path: bottom-left on arc -> arc along bottom -> bottom-right on arc -> line up right edge -> line across top -> line down left edge -> close
+        if (isTouchingOuterRadius) {
+            // Bottom edge curves around inner radius
+            // Path: bottom-left on arc -> arc along bottom -> bottom-right on arc -> line up right edge -> line across top -> line down left edge -> close
 
-                // Start at bottom-left where vertical edge meets the arc
-                const bottomLeftAngle = rotation + leftAngle;
-                const startPoint = rotatePoint(left, leftY, rotation);
-                path.moveTo(startPoint.x, startPoint.y);
+            // Start at bottom-left where vertical edge meets the arc
+            const bottomLeftAngle = rotation + leftAngle;
+            const startPoint = rotatePoint(left, leftY, rotation);
+            path.moveTo(startPoint.x, startPoint.y);
 
-                // Arc along the bottom edge from left to right
-                const bottomRightAngle = rotation + rightAngle;
-                path.arc(0, 0, curvedRadius, bottomLeftAngle, bottomRightAngle, false);
+            // Arc along the bottom edge from left to right
+            const bottomRightAngle = rotation + rightAngle;
+            path.arc(0, 0, curvedRadius, bottomLeftAngle, bottomRightAngle, false);
 
-                // Line up the right edge to top-right
-                const topRight = rotatePoint(right, top, rotation);
-                path.lineTo(topRight.x, topRight.y);
+            // Line up the right edge to top-right
+            const topRight = rotatePoint(right, top, rotation);
+            path.lineTo(topRight.x, topRight.y);
 
-                // Line across the top to top-left
-                const topLeft = rotatePoint(left, top, rotation);
-                path.lineTo(topLeft.x, topLeft.y);
+            // Line across the top to top-left
+            const topLeft = rotatePoint(left, top, rotation);
+            path.lineTo(topLeft.x, topLeft.y);
 
-                // Close path back to start (down the left edge)
-                path.closePath();
-            } else {
-                // Top edge curves around outer radius
-                // Path: bottom-left -> line across bottom -> line up right edge -> top-right on arc -> arc along top -> top-left on arc -> close
-
-                // Start at bottom-left
-                const bottomLeft = rotatePoint(left, bottom, rotation);
-                path.moveTo(bottomLeft.x, bottomLeft.y);
-
-                // Line across bottom to bottom-right
-                const bottomRight = rotatePoint(right, bottom, rotation);
-                path.lineTo(bottomRight.x, bottomRight.y);
-
-                // Line up the right edge to top-right where it meets the arc
-                const topRightPoint = rotatePoint(right, rightY, rotation);
-                path.lineTo(topRightPoint.x, topRightPoint.y);
-
-                // Arc along the top edge from right to left
-                const topRightAngle = rotation + rightAngle;
-                const topLeftAngle = rotation + leftAngle;
-                path.arc(0, 0, curvedRadius, topRightAngle, topLeftAngle, true);
-
-                // Close path back to start (down the left edge)
-                path.closePath();
-            }
+            // Close path back to start (down the left edge)
+            path.closePath();
         } else {
-            // Fall back to rectangular path if neither edge condition is met
-            const points = [
-                [left, bottom],
-                [left, top],
-                [right, top],
-                [right, bottom],
-            ].map(([x, y]) => rotatePoint(x, y, rotation));
+            // Top edge curves around outer radius
+            // Path: bottom-left -> line across bottom -> line up right edge -> top-right on arc -> arc along top -> top-left on arc -> close
 
-            path.moveTo(points[0].x, points[0].y);
-            path.lineTo(points[1].x, points[1].y);
-            path.lineTo(points[2].x, points[2].y);
-            path.lineTo(points[3].x, points[3].y);
+            // Start at bottom-left
+            const bottomLeft = rotatePoint(left, bottom, rotation);
+            path.moveTo(bottomLeft.x, bottomLeft.y);
 
+            // Line across bottom to bottom-right
+            const bottomRight = rotatePoint(right, bottom, rotation);
+            path.lineTo(bottomRight.x, bottomRight.y);
+
+            // Line up the right edge to top-right where it meets the arc
+            const topRightPoint = rotatePoint(right, rightY, rotation);
+            path.lineTo(topRightPoint.x, topRightPoint.y);
+
+            // Arc along the top edge from right to left
+            const topRightAngle = rotation + rightAngle;
+            const topLeftAngle = rotation + leftAngle;
+            path.arc(0, 0, curvedRadius, topRightAngle, topLeftAngle, true);
+
+            // Close path back to start (down the left edge)
             path.closePath();
         }
     }
