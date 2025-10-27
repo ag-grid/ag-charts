@@ -203,6 +203,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private isFirstWheelEvent = true;
     private wasFirstWheelEventZoomCapped?: boolean;
+    private firstWheelEventDirection?: boolean;
     private readonly debouncedWheelReset = debounce(() => {
         this.isFirstWheelEvent = true;
         this.wasFirstWheelEventZoomCapped = undefined;
@@ -735,8 +736,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         isZoomCapped ||= event.deltaY < 0 && !updated;
 
+        // Prevent browser scrolling when the user scrolls over the chart and zooming is possible. If the scroll
+        // direction changes, treat it as a new scroll event.
+        if (this.firstWheelEventDirection != null && this.firstWheelEventDirection !== event.deltaY < 0) {
+            this.isFirstWheelEvent = true;
+        }
+
         if (this.isFirstWheelEvent) {
             this.wasFirstWheelEventZoomCapped = isZoomCapped;
+            this.firstWheelEventDirection = event.deltaY < 0;
             if (!isZoomCapped) {
                 event.sourceEvent.preventDefault();
             }
@@ -865,7 +873,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private previousZoomValid = true;
-    private isZoomValid(newZoom: DefinedZoomState, options?: { directional?: boolean }) {
+    private isZoomValid(
+        newZoom: DefinedZoomState,
+        options?: { directional?: boolean; includeYVisibleRange?: boolean }
+    ) {
         const {
             minVisibleItems,
             ctx: { zoomManager },
@@ -892,7 +903,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             return false;
         }
 
-        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
+        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems, options?.includeYVisibleRange);
         this.previousZoomValid = options?.directional ? valid : true;
 
         return valid;
@@ -1040,13 +1051,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!showCursorX) {
             const checkZoomX = scaleZoom(zoom, 0.999, 1);
             checkZoomX.x = scaleZoomAxisWithAnchor(checkZoomX.x, zoom.x, anchorPointX);
-            showCursorX = this.isZoomValid(checkZoomX);
+            showCursorX = this.isZoomValid(checkZoomX, { includeYVisibleRange: true });
         }
 
         if (!showCursorY) {
             const checkZoomY = scaleZoom(zoom, 1, 0.999);
             checkZoomY.y = scaleZoomAxisWithAnchor(checkZoomY.y, zoom.y, anchorPointY);
-            showCursorY = this.isZoomValid(checkZoomY);
+            showCursorY = this.isZoomValid(checkZoomY, { includeYVisibleRange: true });
         }
 
         domProxy.toggleAxisDraggingCursor(ChartAxisDirection.X, showCursorX);

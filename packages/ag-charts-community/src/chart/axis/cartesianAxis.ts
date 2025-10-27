@@ -393,7 +393,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     ): AxisLineDatum {
         const { horizontal, tick, primaryTick } = this;
 
-        const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
+        const datumTick = isPrimary && primaryTick ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
         const { stroke, width: strokeWidth } = datumTick;
