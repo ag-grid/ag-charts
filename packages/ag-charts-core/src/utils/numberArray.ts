@@ -1,4 +1,4 @@
-import { clamp } from '../main';
+import { clamp } from './numbers';
 
 export function clampArray(value: number, array: number[]) {
     const [min, max] = findMinMax(array);
