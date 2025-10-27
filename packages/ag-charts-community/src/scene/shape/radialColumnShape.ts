@@ -126,12 +126,23 @@ export class RadialColumnShape<D = any> extends Path<D> {
         path.closePath();
     }
 
+    private calculateCircleIntersection(x: number, radiusSquared: number) {
+        const xSquared = x * x;
+        if (radiusSquared <= xSquared) {
+            return null;
+        }
+        const y = -Math.sqrt(radiusSquared - xSquared);
+        const angle = Math.atan2(y, x);
+        return { y, angle };
+    }
+
     private updateBeveledPath() {
         // Create a path similar to updateRectangularPath().
         // However we want to improve the visual quality of the beveled path:
         // - If the bar is growing outwards and starting from the inner radius, the bottom edge should curve around the inner radius.
         // - If the bar is growing inwards and starting from the outer radius, the top edge should curve around the outer radius.
         // - If the bar spans the entire radius range, both edges should be curved.
+        // - If the corners breach a radius, those corners should follow the arc while maintaining straight perpendicular sections.
 
         let { innerRadius, outerRadius } = this;
         const { columnWidth, path, axisInnerRadius, axisOuterRadius } = this;
@@ -157,93 +168,151 @@ export class RadialColumnShape<D = any> extends Path<D> {
 
         path.clear(true);
 
-        // Calculate intersections for both circles if needed
         const innerRadiusSquared = innerRadius * innerRadius;
         const outerRadiusSquared = outerRadius * outerRadius;
-        const leftSquared = left * left;
-        const rightSquared = right * right;
 
-        // Check if column is too wide for any of the radii
-        const innerLeftValid = innerRadiusSquared > leftSquared;
-        const innerRightValid = innerRadiusSquared > rightSquared;
-        const outerLeftValid = outerRadiusSquared > leftSquared;
-        const outerRightValid = outerRadiusSquared > rightSquared;
+        // Calculate intersections for circles
+        const innerLeft = this.calculateCircleIntersection(left, innerRadiusSquared);
+        const innerRight = this.calculateCircleIntersection(right, innerRadiusSquared);
+        const outerLeft = this.calculateCircleIntersection(left, outerRadiusSquared);
+        const outerRight = this.calculateCircleIntersection(right, outerRadiusSquared);
 
         if (isTouchingInner && isTouchingOuter) {
             // Double bevel: both bottom and top edges are curved
-            if (!innerLeftValid || !innerRightValid || !outerLeftValid || !outerRightValid) {
+            if (!innerLeft || !innerRight || !outerLeft || !outerRight) {
                 this.updateRectangularPath();
                 return;
             }
 
-            // Calculate intersections for inner circle (bottom edge)
-            const innerLeftY = -Math.sqrt(innerRadiusSquared - leftSquared);
-            const innerRightY = -Math.sqrt(innerRadiusSquared - rightSquared);
-            const innerLeftAngle = Math.atan2(innerLeftY, left);
-            const innerRightAngle = Math.atan2(innerRightY, right);
-
-            // Calculate intersections for outer circle (top edge)
-            const outerLeftY = -Math.sqrt(outerRadiusSquared - leftSquared);
-            const outerRightY = -Math.sqrt(outerRadiusSquared - rightSquared);
-            const outerLeftAngle = Math.atan2(outerLeftY, left);
-            const outerRightAngle = Math.atan2(outerRightY, right);
-
             // Start at bottom-left where left edge meets inner circle
-            const startPoint = rotatePoint(left, innerLeftY, rotation);
+            const startPoint = rotatePoint(left, innerLeft.y, rotation);
             path.moveTo(startPoint.x, startPoint.y);
 
             // Arc along bottom edge (inner circle) from left to right
-            path.arc(0, 0, innerRadius, rotation + innerLeftAngle, rotation + innerRightAngle, false);
+            path.arc(0, 0, innerRadius, rotation + innerLeft.angle, rotation + innerRight.angle, false);
 
             // Line up right edge from inner to outer circle intersection
-            const topRightPoint = rotatePoint(right, outerRightY, rotation);
+            const topRightPoint = rotatePoint(right, outerRight.y, rotation);
             path.lineTo(topRightPoint.x, topRightPoint.y);
 
             // Arc along top edge (outer circle) from right to left (counterclockwise)
-            path.arc(0, 0, outerRadius, rotation + outerRightAngle, rotation + outerLeftAngle, true);
+            path.arc(0, 0, outerRadius, rotation + outerRight.angle, rotation + outerLeft.angle, true);
 
             // Close path (implicit line down left edge)
             path.closePath();
         } else if (isTouchingInner) {
             // Single bevel: only bottom edge is curved
-            if (!innerLeftValid || !innerRightValid) {
+            if (!innerLeft || !innerRight) {
                 this.updateRectangularPath();
                 return;
             }
 
-            const innerLeftY = -Math.sqrt(innerRadiusSquared - leftSquared);
-            const innerRightY = -Math.sqrt(innerRadiusSquared - rightSquared);
-            const innerLeftAngle = Math.atan2(innerLeftY, left);
-            const innerRightAngle = Math.atan2(innerRightY, right);
+            // Check if top corners breach the axis outer radius
+            const topLeftRadius = Math.hypot(left, top);
+            const topRightRadius = Math.hypot(right, top);
+            const topCornersBreach = topLeftRadius > axisOuterRadius || topRightRadius > axisOuterRadius;
 
-            // Start at bottom-left where vertical edge meets the inner arc
-            const startPoint = rotatePoint(left, innerLeftY, rotation);
-            path.moveTo(startPoint.x, startPoint.y);
+            if (topCornersBreach) {
+                // Corners breach the axis outer radius - need to clip them with arcs
+                // The top edge should remain straight, but corners are replaced with arcs
+                const axisOuterRadiusSquared = axisOuterRadius * axisOuterRadius;
 
-            // Arc along the bottom edge from left to right
-            path.arc(0, 0, innerRadius, rotation + innerLeftAngle, rotation + innerRightAngle, false);
+                // Find where the vertical sides intersect the axis outer radius
+                const axisOuterLeft = this.calculateCircleIntersection(left, axisOuterRadiusSquared);
+                const axisOuterRight = this.calculateCircleIntersection(right, axisOuterRadiusSquared);
 
-            // Line up the right edge to top-right
-            const topRight = rotatePoint(right, top, rotation);
-            path.lineTo(topRight.x, topRight.y);
+                if (!axisOuterLeft || !axisOuterRight) {
+                    // Column is too wide for the axis outer radius - fall back to rectangular
+                    this.updateRectangularPath();
+                    return;
+                }
 
-            // Line across the top to top-left
-            const topLeft = rotatePoint(left, top, rotation);
-            path.lineTo(topLeft.x, topLeft.y);
+                // Find where the horizontal top edge (at y = top) intersects the axis outer radius
+                const topSquared = top * top;
+                const topIntersectionSquared = axisOuterRadiusSquared - topSquared;
 
-            // Close path back to start (down the left edge)
-            path.closePath();
+                if (topIntersectionSquared <= 0) {
+                    // Top edge is entirely outside the axis outer radius
+                    // Use a continuous arc (no straight section possible)
+                    const startPoint = rotatePoint(left, innerLeft.y, rotation);
+                    path.moveTo(startPoint.x, startPoint.y);
+
+                    path.arc(0, 0, innerRadius, rotation + innerLeft.angle, rotation + innerRight.angle, false);
+
+                    const axisOuterRightPoint = rotatePoint(right, axisOuterRight.y, rotation);
+                    path.lineTo(axisOuterRightPoint.x, axisOuterRightPoint.y);
+
+                    path.arc(
+                        0,
+                        0,
+                        axisOuterRadius,
+                        rotation + axisOuterRight.angle,
+                        rotation + axisOuterLeft.angle,
+                        true
+                    );
+
+                    path.closePath();
+                } else {
+                    // Top edge intersects the circle - we can have a straight section with clipped corners
+                    const topIntersectionX = Math.sqrt(topIntersectionSquared);
+                    const topRightAngle = Math.atan2(top, topIntersectionX);
+                    const topLeftAngle = Math.atan2(top, -topIntersectionX);
+
+                    // Start at bottom-left where vertical edge meets the inner arc
+                    const startPoint = rotatePoint(left, innerLeft.y, rotation);
+                    path.moveTo(startPoint.x, startPoint.y);
+
+                    // Arc along the bottom edge from left to right
+                    path.arc(0, 0, innerRadius, rotation + innerLeft.angle, rotation + innerRight.angle, false);
+
+                    // Line up the right edge to where it meets the axis outer radius
+                    const axisOuterRightPoint = rotatePoint(right, axisOuterRight.y, rotation);
+                    path.lineTo(axisOuterRightPoint.x, axisOuterRightPoint.y);
+
+                    // Arc along the axis outer radius from right side up to top-right intersection
+                    // Going from a more negative angle (axisOuterRight) to a less negative angle (topRight)
+                    // This should be counterclockwise (anticlockwise=true)
+                    path.arc(0, 0, axisOuterRadius, rotation + axisOuterRight.angle, rotation + topRightAngle, true);
+
+                    // Straight line across the top from (topIntersectionX, top) to (-topIntersectionX, top)
+                    // This is the straight top edge of the bar
+                    const topLeftPoint = rotatePoint(-topIntersectionX, top, rotation);
+                    path.lineTo(topLeftPoint.x, topLeftPoint.y);
+
+                    // Arc along the axis outer radius from top-left intersection down to left side
+                    // Going from a less negative angle (topLeft) to a more negative angle (axisOuterLeft)
+                    // This should be counterclockwise (anticlockwise=true)
+                    path.arc(0, 0, axisOuterRadius, rotation + topLeftAngle, rotation + axisOuterLeft.angle, true);
+
+                    // Close path back to start (down the left edge)
+                    path.closePath();
+                }
+            } else {
+                // Normal case: corners don't breach the axis outer radius
+                // Start at bottom-left where vertical edge meets the inner arc
+                const startPoint = rotatePoint(left, innerLeft.y, rotation);
+                path.moveTo(startPoint.x, startPoint.y);
+
+                // Arc along the bottom edge from left to right
+                path.arc(0, 0, innerRadius, rotation + innerLeft.angle, rotation + innerRight.angle, false);
+
+                // Line up the right edge to top-right
+                const topRight = rotatePoint(right, top, rotation);
+                path.lineTo(topRight.x, topRight.y);
+
+                // Line across the top to top-left
+                const topLeft = rotatePoint(left, top, rotation);
+                path.lineTo(topLeft.x, topLeft.y);
+
+                // Close path back to start (down the left edge)
+                path.closePath();
+            }
         } else {
             // Single bevel: only top edge is curved
-            if (!outerLeftValid || !outerRightValid) {
+            if (!outerLeft || !outerRight) {
                 this.updateRectangularPath();
                 return;
             }
-
-            const outerLeftY = -Math.sqrt(outerRadiusSquared - leftSquared);
-            const outerRightY = -Math.sqrt(outerRadiusSquared - rightSquared);
-            const outerLeftAngle = Math.atan2(outerLeftY, left);
-            const outerRightAngle = Math.atan2(outerRightY, right);
 
             // Start at bottom-left
             const bottomLeft = rotatePoint(left, bottom, rotation);
@@ -254,11 +323,11 @@ export class RadialColumnShape<D = any> extends Path<D> {
             path.lineTo(bottomRight.x, bottomRight.y);
 
             // Line up the right edge to top-right where it meets the arc
-            const topRightPoint = rotatePoint(right, outerRightY, rotation);
+            const topRightPoint = rotatePoint(right, outerRight.y, rotation);
             path.lineTo(topRightPoint.x, topRightPoint.y);
 
             // Arc along the top edge from right to left
-            path.arc(0, 0, outerRadius, rotation + outerRightAngle, rotation + outerLeftAngle, true);
+            path.arc(0, 0, outerRadius, rotation + outerRight.angle, rotation + outerLeft.angle, true);
 
             // Close path back to start (down the left edge)
             path.closePath();
