@@ -1,7 +1,11 @@
+// @ag-skip-fws
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import type { DatumType } from './data';
 import { getData } from './data';
+import { initPlusButton } from './plusButton';
+
+initPlusButton();
 
 const options: AgCartesianChartOptions<DatumType> = {
     container: document.getElementById('myChart'),
