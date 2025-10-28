@@ -4,12 +4,11 @@
 }
 
 .example-controls {
-    flex: 0 0 auto;
     flex-direction: column;
     display: flex;
     padding: 10px;
     border-right: 1px solid #ccc;
-    width: fit-content;
+    max-height: 100vh;
 }
 
 #myChart {
@@ -17,26 +16,22 @@
     padding: 10px;
 }
 
+.excel-table-container {
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
 .excel-table {
-    border: 1px solid #ccc;
     border-collapse: collapse;
+    table-layout: auto;
     width: fit-content;
 }
 
-.excel-table thead,
-.excel-table tbody,
-.excel-table tr {
-    display: block;
-}
-
-.excel-table thead {
+.excel-table thead th {
     background: #eee;
-}
-
-.excel-table tbody {
-    height: 70vh;
-    overflow-y: auto;
-    overflow-x: hidden;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 .excel-table th,
@@ -44,9 +39,7 @@
     border: 1px solid #ccc;
     padding: 5px;
     text-align: center;
-    min-width: 80px;
     box-sizing: border-box;
-    position: relative;
 }
 input[type='number'] {
     width: 80px;

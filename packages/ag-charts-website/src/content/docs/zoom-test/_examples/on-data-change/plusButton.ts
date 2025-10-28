@@ -63,7 +63,7 @@ function computeNewValue(
     topRow: HTMLTableRowElement | undefined,
     bottomRow: HTMLTableRowElement | undefined,
     index: number,
-    defaultIncrement: number,
+    defaultIncrement: number
 ): number {
     // When:
     // -   Inserting in the middle, we take the average of x, y1, y2, y3 from topRow / bottomRow.

@@ -3,145 +3,148 @@
         <div class="controls-row">
             <button onclick="onUpdateData()">Update Data</button>
         </div>
-        <table class="excel-table" id="excelTable">
-            <thead>
-                <tr>
-                    <th>x</th>
-                    <th>y1</th>
-                    <th>y2</th>
-                    <th>y3</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>0</td>
-                    <td><input type="number" value="10" /></td>
-                    <td><input type="number" value="22" /></td>
-                    <td><input type="number" value="15" /></td>
-                </tr>
-                <tr>
-                    <td>100</td>
-                    <td><input type="number" value="14" /></td>
-                    <td><input type="number" value="25" /></td>
-                    <td><input type="number" value="18" /></td>
-                </tr>
-                <tr>
-                    <td>200</td>
-                    <td><input type="number" value="18" /></td>
-                    <td><input type="number" value="29" /></td>
-                    <td><input type="number" value="21" /></td>
-                </tr>
-                <tr>
-                    <td>300</td>
-                    <td><input type="number" value="23" /></td>
-                    <td><input type="number" value="31" /></td>
-                    <td><input type="number" value="24" /></td>
-                </tr>
-                <tr>
-                    <td>400</td>
-                    <td><input type="number" value="27" /></td>
-                    <td><input type="number" value="30" /></td>
-                    <td><input type="number" value="28" /></td>
-                </tr>
-                <tr>
-                    <td>500</td>
-                    <td><input type="number" value="29" /></td>
-                    <td><input type="number" value="28" /></td>
-                    <td><input type="number" value="31" /></td>
-                </tr>
-                <tr>
-                    <td>600</td>
-                    <td><input type="number" value="28" /></td>
-                    <td><input type="number" value="26" /></td>
-                    <td><input type="number" value="33" /></td>
-                </tr>
-                <tr>
-                    <td>700</td>
-                    <td><input type="number" value="26" /></td>
-                    <td><input type="number" value="23" /></td>
-                    <td><input type="number" value="32" /></td>
-                </tr>
-                <tr>
-                    <td>800</td>
-                    <td><input type="number" value="23" /></td>
-                    <td><input type="number" value="20" /></td>
-                    <td><input type="number" value="30" /></td>
-                </tr>
-                <tr>
-                    <td>900</td>
-                    <td><input type="number" value="20" /></td>
-                    <td><input type="number" value="17" /></td>
-                    <td><input type="number" value="27" /></td>
-                </tr>
-                <tr>
-                    <td>1000</td>
-                    <td><input type="number" value="18" /></td>
-                    <td><input type="number" value="15" /></td>
-                    <td><input type="number" value="24" /></td>
-                </tr>
-                <tr>
-                    <td>1100</td>
-                    <td><input type="number" value="15" /></td>
-                    <td><input type="number" value="13" /></td>
-                    <td><input type="number" value="21" /></td>
-                </tr>
-                <tr>
-                    <td>1200</td>
-                    <td><input type="number" value="13" /></td>
-                    <td><input type="number" value="12" /></td>
-                    <td><input type="number" value="19" /></td>
-                </tr>
-                <tr>
-                    <td>1300</td>
-                    <td><input type="number" value="11" /></td>
-                    <td><input type="number" value="10" /></td>
-                    <td><input type="number" value="17" /></td>
-                </tr>
-                <tr>
-                    <td>1400</td>
-                    <td><input type="number" value="13" /></td>
-                    <td><input type="number" value="12" /></td>
-                    <td><input type="number" value="15" /></td>
-                </tr>
-                <tr>
-                    <td>1500</td>
-                    <td><input type="number" value="16" /></td>
-                    <td><input type="number" value="15" /></td>
-                    <td><input type="number" value="17" /></td>
-                </tr>
-                <tr>
-                    <td>1600</td>
-                    <td><input type="number" value="20" /></td>
-                    <td><input type="number" value="19" /></td>
-                    <td><input type="number" value="19" /></td>
-                </tr>
-                <tr>
-                    <td>1700</td>
-                    <td><input type="number" value="23" /></td>
-                    <td><input type="number" value="22" /></td>
-                    <td><input type="number" value="21" /></td>
-                </tr>
-                <tr>
-                    <td>1800</td>
-                    <td><input type="number" value="26" /></td>
-                    <td><input type="number" value="25" /></td>
-                    <td><input type="number" value="24" /></td>
-                </tr>
-                <tr>
-                    <td>1900</td>
-                    <td><input type="number" value="29" /></td>
-                    <td><input type="number" value="27" /></td>
-                    <td><input type="number" value="26" /></td>
-                </tr>
-                <tr>
-                    <td>2000</td>
-                    <td><input type="number" value="31" /></td>
-                    <td><input type="number" value="30" /></td>
-                    <td><input type="number" value="29" /></td>
-                </tr>
-            </tbody>
-        </table>
-        <br/> <!-- add blank line (for appending data) -->
+        <div class="excel-table-container">
+            <table class="excel-table" id="excelTable">
+                <thead>
+                    <tr>
+                        <th>x</th>
+                        <th>y1</th>
+                        <th>y2</th>
+                        <th>y3</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0</td>
+                        <td><input type="number" value="10" /></td>
+                        <td><input type="number" value="22" /></td>
+                        <td><input type="number" value="15" /></td>
+                    </tr>
+                    <tr>
+                        <td>100</td>
+                        <td><input type="number" value="14" /></td>
+                        <td><input type="number" value="25" /></td>
+                        <td><input type="number" value="18" /></td>
+                    </tr>
+                    <tr>
+                        <td>200</td>
+                        <td><input type="number" value="18" /></td>
+                        <td><input type="number" value="29" /></td>
+                        <td><input type="number" value="21" /></td>
+                    </tr>
+                    <tr>
+                        <td>300</td>
+                        <td><input type="number" value="23" /></td>
+                        <td><input type="number" value="31" /></td>
+                        <td><input type="number" value="24" /></td>
+                    </tr>
+                    <tr>
+                        <td>400</td>
+                        <td><input type="number" value="27" /></td>
+                        <td><input type="number" value="30" /></td>
+                        <td><input type="number" value="28" /></td>
+                    </tr>
+                    <tr>
+                        <td>500</td>
+                        <td><input type="number" value="29" /></td>
+                        <td><input type="number" value="28" /></td>
+                        <td><input type="number" value="31" /></td>
+                    </tr>
+                    <tr>
+                        <td>600</td>
+                        <td><input type="number" value="28" /></td>
+                        <td><input type="number" value="26" /></td>
+                        <td><input type="number" value="33" /></td>
+                    </tr>
+                    <tr>
+                        <td>700</td>
+                        <td><input type="number" value="26" /></td>
+                        <td><input type="number" value="23" /></td>
+                        <td><input type="number" value="32" /></td>
+                    </tr>
+                    <tr>
+                        <td>800</td>
+                        <td><input type="number" value="23" /></td>
+                        <td><input type="number" value="20" /></td>
+                        <td><input type="number" value="30" /></td>
+                    </tr>
+                    <tr>
+                        <td>900</td>
+                        <td><input type="number" value="20" /></td>
+                        <td><input type="number" value="17" /></td>
+                        <td><input type="number" value="27" /></td>
+                    </tr>
+                    <tr>
+                        <td>1000</td>
+                        <td><input type="number" value="18" /></td>
+                        <td><input type="number" value="15" /></td>
+                        <td><input type="number" value="24" /></td>
+                    </tr>
+                    <tr>
+                        <td>1100</td>
+                        <td><input type="number" value="15" /></td>
+                        <td><input type="number" value="13" /></td>
+                        <td><input type="number" value="21" /></td>
+                    </tr>
+                    <tr>
+                        <td>1200</td>
+                        <td><input type="number" value="13" /></td>
+                        <td><input type="number" value="12" /></td>
+                        <td><input type="number" value="19" /></td>
+                    </tr>
+                    <tr>
+                        <td>1300</td>
+                        <td><input type="number" value="11" /></td>
+                        <td><input type="number" value="10" /></td>
+                        <td><input type="number" value="17" /></td>
+                    </tr>
+                    <tr>
+                        <td>1400</td>
+                        <td><input type="number" value="13" /></td>
+                        <td><input type="number" value="12" /></td>
+                        <td><input type="number" value="15" /></td>
+                    </tr>
+                    <tr>
+                        <td>1500</td>
+                        <td><input type="number" value="16" /></td>
+                        <td><input type="number" value="15" /></td>
+                        <td><input type="number" value="17" /></td>
+                    </tr>
+                    <tr>
+                        <td>1600</td>
+                        <td><input type="number" value="20" /></td>
+                        <td><input type="number" value="19" /></td>
+                        <td><input type="number" value="19" /></td>
+                    </tr>
+                    <tr>
+                        <td>1700</td>
+                        <td><input type="number" value="23" /></td>
+                        <td><input type="number" value="22" /></td>
+                        <td><input type="number" value="21" /></td>
+                    </tr>
+                    <tr>
+                        <td>1800</td>
+                        <td><input type="number" value="26" /></td>
+                        <td><input type="number" value="25" /></td>
+                        <td><input type="number" value="24" /></td>
+                    </tr>
+                    <tr>
+                        <td>1900</td>
+                        <td><input type="number" value="29" /></td>
+                        <td><input type="number" value="27" /></td>
+                        <td><input type="number" value="26" /></td>
+                    </tr>
+                    <tr>
+                        <td>2000</td>
+                        <td><input type="number" value="31" /></td>
+                        <td><input type="number" value="30" /></td>
+                        <td><input type="number" value="29" /></td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- add blank line (for appending data) -->
+            <br />
+        </div>
     </div>
 
     <div id="myChart"></div>
