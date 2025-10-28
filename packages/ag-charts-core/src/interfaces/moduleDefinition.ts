@@ -54,7 +54,7 @@ export interface SeriesPluginModuleInstance extends ModuleInstance {
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
     pickNodeMainAxisFirst(point: Point, majorDirection: any /* ChartAxisDirection */): PickNodeDatumResult | undefined;
-    getPropertyDefinitions(opts: PropertyDefinitionOpts): any[] /* DataPropertyDefinition<unknown>[] */;
+    getPropertyDefinitions(opts: PropertyDefinitionOpts): any[] /* PropertyDefinition<unknown>[] */;
     getDomain(direction: any /* ChartAxisDirection */): any[];
     getTooltipParams(): object;
 }
