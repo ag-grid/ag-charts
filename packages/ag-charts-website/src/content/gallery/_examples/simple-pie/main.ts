@@ -34,7 +34,6 @@ const options: AgPolarChartOptions = {
                     {
                         text: currencyFormatter.format(datum.revenue),
                         fontSize: 20,
-                        color: 'black',
                     },
                     { text: '\n' + datum.segment, fontSize: 10, color: 'grey' },
                 ],

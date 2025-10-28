@@ -45,7 +45,6 @@ const options: AgChartOptions<DataType> = {
                     {
                         text: numFormatter.format(datum.count),
                         fontSize: 20,
-                        color: 'purple',
                         fontWeight: 'bold',
                     },
                     { text: '\n' + datum.type, fontSize: 10, color: 'grey' },
