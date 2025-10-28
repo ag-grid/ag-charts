@@ -1,5 +1,5 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
-import { entries } from 'ag-charts-core';
+import { type Bounds4, type BoxBounds, type Point, Vec2, Vec4, entries } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { StartEndProperties } from '../properties/startEndProperties';
@@ -7,8 +7,6 @@ import { translate } from '../utils/coords';
 import { convertLine, convertPoint } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
-
-const { Vec2, Vec4 } = _ModuleSupport;
 
 export type StartEndHandle = 'start' | 'end';
 
@@ -55,7 +53,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
+    override dragHandle(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean) {
         const { activeHandle, dragState } = this;
 
         if (!activeHandle || !dragState) return;
@@ -113,7 +111,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
     }
 
-    protected updateHandles(datum: Datum, coords: _ModuleSupport.Vec4, bbox?: _ModuleSupport.BBox) {
+    protected updateHandles(datum: Datum, coords: Bounds4, bbox?: _ModuleSupport.BBox) {
         this.start.update({
             ...this.getHandleStyles(datum, 'start'),
             ...this.getHandleCoords(datum, coords, 'start'),
@@ -127,12 +125,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(
-        _datum: Datum,
-        coords: _ModuleSupport.Vec4,
-        context: AnnotationContext,
-        _bbox?: _ModuleSupport.BBox
-    ) {
+    protected updateAnchor(_datum: Datum, coords: Bounds4, context: AnnotationContext, _bbox?: BoxBounds) {
         this.anchor = {
             x: coords.x1 + context.seriesRect.x,
             y: coords.y1 + context.seriesRect.y,
@@ -142,10 +135,10 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
     protected getHandleCoords(
         _datum: Datum,
-        coords: _ModuleSupport.Vec4,
+        coords: Bounds4,
         handle: StartEndHandle,
         _bbox?: _ModuleSupport.BBox
-    ): _ModuleSupport.Vec2 {
+    ): Point {
         return handle === 'start' ? Vec4.start(coords) : Vec4.end(coords);
     }
 

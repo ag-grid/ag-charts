@@ -1,4 +1,4 @@
-import { type Point, clamp, createId } from 'ag-charts-core';
+import { type Point, Vec4, clamp, createId } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type {
@@ -17,7 +17,6 @@ import { BaseManager } from '../../util/baseManager';
 import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
-import { Vec4 } from '../../util/vector4';
 import type { Widget } from '../../widget/widget';
 import type {
     ClickLikeEvent,

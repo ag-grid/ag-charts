@@ -1,4 +1,4 @@
-import type { Point, Size } from '../boxBounds';
+import type { Point, Size } from '../../interfaces/sceneTypes';
 
 /**
  * Calculates the maximum width and height of an inner rectangle that can be

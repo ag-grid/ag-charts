@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Debug } from 'ag-charts-core';
 
-import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
+import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
@@ -54,7 +54,7 @@ export abstract class TextualStartEndStateMachine<
     protected node?: Node;
 
     constructor(ctx: TextualStartEndStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             datum.set({ start: point, end: point, visible: true });
             ctx.create(datum);
@@ -82,7 +82,7 @@ export abstract class TextualStartEndStateMachine<
             ctx.update();
         };
 
-        const onEndHover = ({ point }: { point: Point }) => {
+        const onEndHover = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
             datum?.set({ end: point });
             node?.toggleActive(true);

@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance } from 'ag-charts-core';
+import { AbstractModuleInstance, type Point } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
@@ -14,12 +14,12 @@ export class AxisButton extends AbstractModuleInstance {
     private readonly button: _Widget.ButtonWidget;
     private readonly snap: boolean = false;
     private padding: number = 0;
-    private coords?: _ModuleSupport.Vec2;
+    private coords?: Point;
 
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly axisCtx: _ModuleSupport.AxisContext & { snapToGroup: boolean },
-        private readonly onButtonClick: (coords?: _ModuleSupport.Vec2) => void,
+        private readonly onButtonClick: (coords?: Point) => void,
         private seriesRect: _ModuleSupport.BBox
     ) {
         super();
@@ -109,7 +109,7 @@ export class AxisButton extends AbstractModuleInstance {
         this.hide();
     }
 
-    private getButtonCoordinates({ x, y }: _ModuleSupport.Vec2) {
+    private getButtonCoordinates({ x, y }: Point) {
         const {
             axisCtx: { direction, position },
             seriesRect,
@@ -157,7 +157,7 @@ export class AxisButton extends AbstractModuleInstance {
         this.button.toggleClass(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-${name}`, include);
     }
 
-    private updatePosition({ x, y }: _ModuleSupport.Vec2) {
+    private updatePosition({ x, y }: Point) {
         this.button.getElement().style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
     }
 

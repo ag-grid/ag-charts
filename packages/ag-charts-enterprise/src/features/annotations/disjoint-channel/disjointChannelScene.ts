@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -9,8 +9,6 @@ import { translate } from '../utils/coords';
 import { updateChannelText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
-
-const { Vec2, Vec4 } = _ModuleSupport;
 
 type ChannelHandle = keyof DisjointChannelScene['handles'];
 
@@ -36,7 +34,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     override dragHandle(
         datum: DisjointChannelProperties,
-        target: _ModuleSupport.Vec2,
+        target: Point,
         context: AnnotationContext,
         snapping: boolean
     ) {
@@ -109,7 +107,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         datum.endHeight = points.topRight.y - points.bottomRight.y;
     }
 
-    protected override getTranslatePointsVectors(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2) {
+    protected override getTranslatePointsVectors(start: Point, end: Point) {
         const { bottomLeft, bottomRight, topLeft, topRight } = this.handles;
         const startHeight = bottomLeft.getBBox().y - topLeft.getBBox().y;
         const endHeight = bottomRight.getBBox().y - topRight.getBBox().y;
@@ -119,7 +117,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         return { start, end, bottomStart, bottomEnd };
     }
 
-    override updateLines(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+    override updateLines(datum: DisjointChannelProperties, top: Bounds4, bottom: Bounds4) {
         const { topLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
@@ -136,7 +134,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         bottomLine.setProperties({ ...bottom, ...lineStyles });
     }
 
-    override updateHandles(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+    override updateHandles(datum: DisjointChannelProperties, top: Bounds4, bottom: Bounds4) {
         const {
             handles: { topLeft, topRight, bottomLeft, bottomRight },
         } = this;
@@ -157,18 +155,13 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         });
     }
 
-    updateText(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+    updateText(datum: DisjointChannelProperties, top: Bounds4, bottom: Bounds4) {
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
 
         updateChannelText(false, top, bottom, datum.text, datum.strokeWidth, this.text, datum.text.label);
     }
 
-    override getBackgroundPoints(
-        datum: DisjointChannelProperties,
-        top: _ModuleSupport.Vec4,
-        bottom: _ModuleSupport.Vec4,
-        bounds: _ModuleSupport.Vec4
-    ) {
+    override getBackgroundPoints(datum: DisjointChannelProperties, top: Bounds4, bottom: Bounds4, bounds: Bounds4) {
         const isFlippedX = top.x1 > top.x2;
         const isFlippedY = top.y1 > top.y2;
         const topY = isFlippedY ? bounds.y2 : bounds.y1;

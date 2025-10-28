@@ -1,6 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type ElementID,
+    type Point,
+    Vec2,
     createElement,
     createElementId,
     entries,
@@ -16,7 +18,6 @@ const {
     Color,
     DraggablePopover,
     NativeWidget,
-    Vec2,
     createButton,
     createCheckbox,
     createSelect,
@@ -99,7 +100,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return popover;
     }
 
-    protected override updatePosition(position: _ModuleSupport.Vec2): void {
+    protected override updatePosition(position: Point): void {
         super.updatePosition(position);
 
         const { anchor, fallbackAnchor } = this.getColorPickerAnchors() ?? {};
@@ -393,7 +394,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const popoverSize = Vec2.from(popover);
         const halfWidth = Vec2.from(0.5, 1);
 
-        let position: _ModuleSupport.Vec2;
+        let position: Point;
         if (seriesRect.width > 1000) {
             const bottomCenter = Vec2.sub(
                 Vec2.add(outerOffset, Vec2.multiply(outerSize, halfWidth)),

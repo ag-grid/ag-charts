@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { clamp } from 'ag-charts-core';
+import { type Point, Vec2, clamp } from 'ag-charts-core';
 
-const { BBox, Path, Vec2, SceneChangeDetection } = _ModuleSupport;
+const { BBox, Path, SceneChangeDetection } = _ModuleSupport;
 
 export class SankeyLink<D = any> extends Path<D> {
     @SceneChangeDetection()
@@ -131,7 +131,7 @@ export class SankeyLink<D = any> extends Path<D> {
  * constant width. The `start` and `end` form a chord of a circle that has twice the radius of the pair
  * of arcs we wish to draw.
  */
-function getArcValues(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2, minRadius: number) {
+function getArcValues(start: Point, end: Point, minRadius: number) {
     // Find the perpendicular bisector of the chord
     const lineAngle = Vec2.angle(Vec2.sub(end, start));
     const chordLength = Vec2.distance(start, end);

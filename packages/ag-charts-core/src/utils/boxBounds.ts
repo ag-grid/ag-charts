@@ -1,12 +1,4 @@
-export interface Size {
-    width: number;
-    height: number;
-}
-
-export interface Point {
-    x: number;
-    y: number;
-}
+import type { Point, Size } from '../interfaces/sceneTypes';
 
 export interface BoxBounds extends Size, Point {}
 

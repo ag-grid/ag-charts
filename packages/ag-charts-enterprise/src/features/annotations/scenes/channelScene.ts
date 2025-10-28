@@ -1,8 +1,9 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
+import type { Bounds4, Point } from 'ag-charts-core';
 
 import type { ChannelTextProperties } from '../annotationProperties';
-import type { AnnotationContext, Point } from '../annotationTypes';
+import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import { convertLine } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { CollidableText } from './collidableTextScene';
@@ -17,9 +18,9 @@ export abstract class ChannelScene<
         background: { fill?: string; fillOpacity?: number };
         locked?: boolean;
         visible?: boolean;
-        start: Point;
-        end: Point;
-        bottom: { start: Point; end: Point };
+        start: DataPoint;
+        end: DataPoint;
+        bottom: { start: DataPoint; end: DataPoint };
         strokeWidth?: number;
         text?: ChannelTextProperties;
         isWriteable: () => boolean;
@@ -130,20 +131,20 @@ export abstract class ChannelScene<
 
     protected abstract updateLines(
         datum: Datum,
-        top: _ModuleSupport.Vec4,
-        bottom: _ModuleSupport.Vec4,
+        top: Bounds4,
+        bottom: Bounds4,
         context: AnnotationContext,
-        naturalTop: _ModuleSupport.Vec4,
-        naturalBottom: _ModuleSupport.Vec4
+        naturalTop: Bounds4,
+        naturalBottom: Bounds4
     ): void;
 
-    protected abstract updateHandles(datum: Datum, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4): void;
+    protected abstract updateHandles(datum: Datum, top: Bounds4, bottom: Bounds4): void;
 
-    protected abstract updateText(datum: Datum, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4): void;
+    protected abstract updateText(datum: Datum, top: Bounds4, bottom: Bounds4): void;
 
     protected readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
-    protected updateAnchor(top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+    protected updateAnchor(top: Bounds4, bottom: Bounds4) {
         const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
             this.topLine,
             (top.x1 + top.x2) / 2,
@@ -154,10 +155,5 @@ export abstract class ChannelScene<
         this.anchor.y = y;
     }
 
-    public abstract getBackgroundPoints(
-        datum: Datum,
-        top: _ModuleSupport.Vec4,
-        bottom: _ModuleSupport.Vec4,
-        bounds: _ModuleSupport.Vec4
-    ): Array<_ModuleSupport.Vec2>;
+    public abstract getBackgroundPoints(datum: Datum, top: Bounds4, bottom: Bounds4, bounds: Bounds4): Point[];
 }

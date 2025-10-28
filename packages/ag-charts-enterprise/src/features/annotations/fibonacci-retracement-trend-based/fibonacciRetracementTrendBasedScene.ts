@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { entries } from 'ag-charts-core';
+import type { Bounds4, BoxBounds, Point } from 'ag-charts-core';
+import { Vec2, Vec4, entries } from 'ag-charts-core';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
@@ -13,8 +13,6 @@ import { createFibonacciRangesData, getFibonacciCoords } from '../utils/fibonacc
 import { validateDatumPoint } from '../utils/validation';
 import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import type { FibonacciRetracementTrendBasedProperties } from './fibonacciRetracementTrendBasedProperties';
-
-const { Vec2, Vec4 } = _ModuleSupport;
 
 type ActiveHandle = StartEndHandle | 'endRetracement';
 
@@ -35,10 +33,10 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
     protected readonly ignoreYBounds?: boolean;
 
     protected dragState?: {
-        offset: _ModuleSupport.Vec2;
-        start: _ModuleSupport.Vec2;
-        end: _ModuleSupport.Vec2;
-        endRetracement: _ModuleSupport.Vec2;
+        offset: Point;
+        start: Point;
+        end: Point;
+        endRetracement: Point;
     };
 
     constructor() {
@@ -117,11 +115,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         return super.getNodeAtCoords(x, y);
     }
 
-    public dragStart(
-        datum: FibonacciRetracementTrendBasedProperties,
-        target: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ) {
+    public dragStart(datum: FibonacciRetracementTrendBasedProperties, target: Point, context: AnnotationContext) {
         this.dragState = {
             offset: target,
             ...getDragStartState({ start: datum.start, end: datum.end, endRetracement: datum.endRetracement }, context),
@@ -134,11 +128,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         this.endRetracement.toggleDragging(false);
     }
 
-    protected dragAll(
-        datum: FibonacciRetracementTrendBasedProperties,
-        target: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ) {
+    protected dragAll(datum: FibonacciRetracementTrendBasedProperties, target: Point, context: AnnotationContext) {
         const { dragState } = this;
 
         if (!dragState) return;
@@ -155,7 +145,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
     dragHandle(
         datum: FibonacciRetracementTrendBasedProperties,
-        target: _ModuleSupport.Vec2,
+        target: Point,
         context: AnnotationContext,
         snapping: boolean
     ) {
@@ -176,7 +166,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
     snapToAngle(
         datum: FibonacciRetracementTrendBasedProperties,
-        coords: _ModuleSupport.Vec2,
+        coords: Point,
         context: AnnotationContext
     ): Pick<PointProperties, 'x' | 'y'> | undefined {
         const { activeHandle } = this;
@@ -203,10 +193,10 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         context,
     }: {
         datum: FibonacciRetracementTrendBasedProperties;
-        start: _ModuleSupport.Vec2;
-        end: _ModuleSupport.Vec2;
-        endRetracement: _ModuleSupport.Vec2;
-        translation: _ModuleSupport.Vec2;
+        start: Point;
+        end: Point;
+        endRetracement: Point;
+        translation: Point;
         context: AnnotationContext;
     }) {
         const points = translate({ start, end, endRetracement }, translation, context, { overflowContinuous: 2 });
@@ -220,11 +210,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         datum.endRetracement.y = points.endRetracement.y;
     }
 
-    public translate(
-        datum: FibonacciRetracementTrendBasedProperties,
-        translation: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ) {
+    public translate(datum: FibonacciRetracementTrendBasedProperties, translation: Point, context: AnnotationContext) {
         this.translatePoints({
             datum,
             start: convertPoint(datum.start, context),
@@ -291,9 +277,9 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
     protected updateHandles(
         datum: FibonacciRetracementTrendBasedProperties,
-        coords1: _ModuleSupport.Vec4,
-        coords2?: _ModuleSupport.Vec4,
-        bbox?: _ModuleSupport.BBox
+        coords1: Bounds4,
+        coords2?: Bounds4,
+        bbox?: BoxBounds
     ) {
         this.start.update({
             ...this.getHandleStyles(datum),
@@ -318,10 +304,10 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
     protected getHandleCoords(
         _datum: FibonacciRetracementTrendBasedProperties,
-        coords: _ModuleSupport.Vec4,
+        coords: Bounds4,
         handle: ActiveHandle,
-        _bbox?: _ModuleSupport.BBox
-    ): _ModuleSupport.Vec2 {
+        _bbox?: BoxBounds
+    ): Point {
         return handle === 'start' ? Vec4.start(coords) : Vec4.end(coords);
     }
 }

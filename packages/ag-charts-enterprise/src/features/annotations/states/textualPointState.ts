@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Debug } from 'ag-charts-core';
 
-import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
+import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
@@ -47,7 +47,7 @@ export abstract class TextualPointStateMachine<
     protected node?: Node;
 
     constructor(ctx: TextualPointStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y });
             ctx.create(datum);

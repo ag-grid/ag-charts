@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { Bounds4 } from 'ag-charts-core';
 
 import type { AnnotationContext, FibonacciBands } from '../annotationTypes';
 
@@ -19,15 +19,15 @@ export enum FibonacciNodeTag {
     HorizontalLine,
 }
 
-type FibonacciRangeLabel = _ModuleSupport.Vec4 & { text: string };
+type FibonacciRangeLabel = Bounds4 & { text: string };
 
-export interface FibonacciRangeDatum extends _ModuleSupport.Vec4 {
+export interface FibonacciRangeDatum extends Bounds4 {
     id: any;
     tag: FibonacciNodeTag;
     label: FibonacciRangeLabel;
 }
 
-export function getFibonacciCoords(coords1: _ModuleSupport.Vec4, coords2?: _ModuleSupport.Vec4) {
+export function getFibonacciCoords(coords1: Bounds4, coords2?: Bounds4) {
     const { x2, y1, y2 } = coords1;
 
     const trendLineVerticalDistance = y1 - y2;
@@ -50,7 +50,7 @@ export function getFibonacciCoords(coords1: _ModuleSupport.Vec4, coords2?: _Modu
 }
 
 export function createFibonacciRangesData(
-    { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
+    { x1, y1, x2, y2 }: Bounds4,
     context: AnnotationContext,
     reverse: boolean,
     yZero: number,

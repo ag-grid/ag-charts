@@ -1,6 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-
-const { Vec2 } = _ModuleSupport;
+import { Vec2 } from 'ag-charts-core';
 
 type ShapeClipMask = { x: number; y: number; radius: number };
 

@@ -2,7 +2,7 @@ import type { TextSegment } from 'ag-charts-types';
 
 import { LRUCache } from '../classes/lruCache';
 import type { Writeable } from '../interfaces/globalTypes';
-import type { Size } from './boxBounds';
+import type { Size } from '../interfaces/sceneTypes';
 import { createCanvasContext } from './canvas';
 import { type FontOptions, LineSplitter, toFontString } from './textUtils';
 

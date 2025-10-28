@@ -1,6 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
 
-import type { AnnotationContext, AnnotationType, Constructor, Point } from './annotationTypes';
+import type { AnnotationContext, AnnotationType, Constructor, DataPoint } from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
 import type { ArrowUpProperties } from './arrow-up/arrowUpProperties';
@@ -83,21 +84,21 @@ export type AnnotationScene =
 
 export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
-    hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number, hovered?: number) => number | undefined;
-    getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => string | undefined;
+    hoverAtCoords: (coords: Point, active?: number, hovered?: number) => number | undefined;
+    getNodeAtCoords: (coords: Point, active: number) => string | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;
 
     startInteracting: () => void;
     stopInteracting: () => void;
 
-    translate: (index: number, translation: _ModuleSupport.Vec2) => void;
+    translate: (index: number, translation: Point) => void;
     copy: (index: number) => AnnotationProperties | undefined;
     paste: (datum: AnnotationProperties) => void;
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
     delete: (index: number) => void;
     deleteAll: () => void;
-    validatePoint: (point: Point, options?: { overflowContinuous: boolean }) => boolean;
+    validatePoint: (point: DataPoint, options?: { overflowContinuous: boolean }) => boolean;
 
     getAnnotationType: (index: number) => AnnotationType | undefined;
 
@@ -127,7 +128,7 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     translate: (
         node: AnnotationSceneNode,
         datum: _ModuleSupport.BaseProperties,
-        translation: _ModuleSupport.Vec2,
+        translation: Point,
         context: AnnotationContext
     ) => void;
     copy: (

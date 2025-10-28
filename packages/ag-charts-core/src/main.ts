@@ -4,6 +4,7 @@ export * from './globals';
 // Interfaces
 export * from './interfaces/globalTypes';
 export * from './interfaces/moduleDefinition';
+export * from './interfaces/sceneTypes';
 export * from './interfaces/scaleTypes';
 
 // Classes
@@ -44,3 +45,5 @@ export * from './utils/textUtils';
 export * from './utils/textWrapper';
 export * from './utils/typeGuards';
 export * from './utils/validation';
+export * as Vec2 from './utils/vector';
+export * as Vec4 from './utils/vector4';

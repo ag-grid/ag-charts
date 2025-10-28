@@ -1,12 +1,11 @@
-import { clamp, getWindow } from 'ag-charts-core';
+import { type Point, clamp, getWindow } from 'ag-charts-core';
 
-import type { Vec2 } from '../../util/vector';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { Popover, type PopoverOptions } from './popover';
 
 export interface AnchoredPopoverOptions extends PopoverOptions {
-    anchor?: Vec2;
-    fallbackAnchor?: Vec2;
+    anchor?: Point;
+    fallbackAnchor?: Point;
 }
 
 /**
@@ -16,10 +15,10 @@ export interface AnchoredPopoverOptions extends PopoverOptions {
 export abstract class AnchoredPopover<
     Options extends AnchoredPopoverOptions = AnchoredPopoverOptions,
 > extends Popover<Options> {
-    private anchor?: Vec2;
-    private fallbackAnchor?: Partial<Vec2>;
+    private anchor?: Point;
+    private fallbackAnchor?: Partial<Point>;
 
-    public setAnchor(anchor: Vec2, fallbackAnchor?: Partial<Vec2>) {
+    public setAnchor(anchor: Point, fallbackAnchor?: Partial<Point>) {
         this.anchor = anchor;
         this.fallbackAnchor = fallbackAnchor;
 

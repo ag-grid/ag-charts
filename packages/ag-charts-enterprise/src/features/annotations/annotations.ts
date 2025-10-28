@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
     _Widget,
 } from 'ag-charts-community';
-import { AbstractModuleInstance, isValidDate } from 'ag-charts-core';
+import { AbstractModuleInstance, type Point, Vec2, isValidDate } from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -14,9 +14,9 @@ import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
     AnnotationContext,
     AnnotationOptionsColorPickerType,
+    DataPoint,
     HasFontSizeAnnotationType,
     HasLineStyleAnnotationType,
-    Point,
 } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -41,7 +41,6 @@ const {
     ChartAxisDirection,
     keyProperty,
     valueProperty,
-    Vec2,
     Selection,
     BBox,
     ObserveChanges,
@@ -142,7 +141,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.update();
             },
 
-            hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number, previousHovered?: number) => {
+            hoverAtCoords: (coords: Point, active?: number, previousHovered?: number) => {
                 let hovered: number | undefined;
 
                 this.annotations.each((annotation, datum, index) => {
@@ -172,7 +171,7 @@ export class Annotations extends AbstractModuleInstance {
                 return hovered;
             },
 
-            getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => {
+            getNodeAtCoords: (coords: Point, active: number) => {
                 const node = this.annotations.at(active);
 
                 if (!node) {
@@ -182,7 +181,7 @@ export class Annotations extends AbstractModuleInstance {
                 return node.getNodeAtCoords(coords.x, coords.y);
             },
 
-            translate: (index: number, translation: _ModuleSupport.Vec2) => {
+            translate: (index: number, translation: Point) => {
                 const node = this.annotations.at(index);
                 const datum = getTypedDatum(this.annotationData.at(index));
                 if (!node || !datum) {
@@ -288,7 +287,7 @@ export class Annotations extends AbstractModuleInstance {
                 }
             },
 
-            validatePoint: (point: Point, options?: { overflowContinuous: boolean }) => {
+            validatePoint: (point: DataPoint, options?: { overflowContinuous: boolean }) => {
                 const context = this.getAnnotationContext();
                 return context ? validateDatumPoint(context, point, options) : true;
             },
@@ -644,7 +643,7 @@ export class Annotations extends AbstractModuleInstance {
         }
     }
 
-    private getDatumRangeVolume(fromPoint: Point['x'], toPoint: Point['x']) {
+    private getDatumRangeVolume(fromPoint: DataPoint['x'], toPoint: DataPoint['x']) {
         const { dataModel, processedData } = this;
 
         let from = getGroupingValue(fromPoint);
@@ -671,7 +670,7 @@ export class Annotations extends AbstractModuleInstance {
     private translateNode(
         node: AnnotationScene,
         datum: AnnotationProperties,
-        translation: _ModuleSupport.Vec2
+        translation: Point
     ): AnnotationProperties | undefined {
         const config = this.getAnnotationConfig(datum);
 
@@ -977,7 +976,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('dblclick', { offset });
     }
 
-    private onAxisButtonClick(coords?: _ModuleSupport.Vec2, direction?: Direction) {
+    private onAxisButtonClick(coords?: Point, direction?: Direction) {
         this.cancel();
         this.reset();
 

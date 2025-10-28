@@ -1,14 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
-import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext, DataPoint } from '../annotationTypes';
 import { getGroupingValue } from './scale';
 
 const { ContinuousScale } = _ModuleSupport;
 
 export function validateDatumPoint(
     context: AnnotationContext,
-    point: Point,
+    point: DataPoint,
     options: { overflowContinuous: boolean } = { overflowContinuous: false },
     warningPrefix?: string
 ) {

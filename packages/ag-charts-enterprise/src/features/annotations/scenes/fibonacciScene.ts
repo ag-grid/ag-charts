@@ -1,4 +1,5 @@
 import { type FontOptions, _ModuleSupport } from 'ag-charts-community';
+import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
 import type { FibonacciProperties } from '../properties/fibonacciProperties';
@@ -9,8 +10,6 @@ import { convertLine } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
-
-const { Vec2, Vec4 } = _ModuleSupport;
 
 export abstract class FibonacciScene<Datum extends FibonacciProperties> extends AnnotationScene {
     protected readonly trendLine = new CollidableLine();
@@ -75,7 +74,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         this.updateText(datum, oneLinePoints);
     }
 
-    protected extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
+    protected extendLine({ x1, y1, x2, y2 }: Bounds4, datum: Datum, context: AnnotationContext) {
         // Clone the points to prevent mutating the original
         const linePoints = { x1, y1, x2, y2 };
 
@@ -96,7 +95,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         return linePoints;
     }
 
-    protected updateLine(datum: Datum, coords?: _ModuleSupport.Vec4, line?: CollidableLine) {
+    protected updateLine(datum: Datum, coords?: Bounds4, line?: CollidableLine) {
         if (!coords || !line) {
             return;
         }
@@ -257,7 +256,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         return x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
     }
 
-    protected updateText(datum: Datum, coords: _ModuleSupport.Vec4) {
+    protected updateText(datum: Datum, coords: Bounds4) {
         const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine>(FibonacciNodeTag.OneLine)[0];
 
         if (!oneLine) {
@@ -270,7 +269,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         updateLineText(oneLine.id, oneLine, coords, textProperties, this.text, textProperties.label, strokeWidth);
     }
 
-    updateAnchor(_datum: Datum, coords: _ModuleSupport.Vec4, _context: AnnotationContext, _bbox?: _ModuleSupport.BBox) {
+    updateAnchor(_datum: Datum, coords: Bounds4, _context: AnnotationContext, _bbox?: _ModuleSupport.BBox) {
         const point = Vec4.topCenter(coords);
         Vec2.apply(this.anchor, _ModuleSupport.Transformable.toCanvasPoint(this.trendLine, point.x, point.y));
     }
@@ -297,7 +296,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         };
     }
 
-    public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
+    public drag(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean) {
         if (!datum.isWriteable()) return;
 
         if (this.activeHandle) {
@@ -307,14 +306,9 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         }
     }
 
-    protected abstract dragHandle(
-        datum: Datum,
-        target: _ModuleSupport.Vec2,
-        context: AnnotationContext,
-        snapping: boolean
-    ): void;
+    protected abstract dragHandle(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean): void;
 
-    protected abstract dragAll(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext): void;
+    protected abstract dragAll(datum: Datum, target: Point, context: AnnotationContext): void;
 
     public abstract translatePoints({
         datum,
@@ -324,17 +318,17 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         context,
     }: {
         datum: Datum;
-        start: _ModuleSupport.Vec2;
-        end: _ModuleSupport.Vec2;
-        translation: _ModuleSupport.Vec2;
+        start: Point;
+        end: Point;
+        translation: Point;
         context: AnnotationContext;
     }): void;
 
-    public abstract translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext): void;
+    public abstract translate(datum: Datum, translation: Point, context: AnnotationContext): void;
 
     public abstract copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext): void;
 
-    public abstract snapToAngle(datum: Datum, coords: _ModuleSupport.Vec2, context: AnnotationContext): void;
+    public abstract snapToAngle(datum: Datum, coords: Point, context: AnnotationContext): void;
 
     override getAnchor() {
         return this.anchor;
@@ -346,8 +340,8 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     protected abstract updateHandles(
         datum: Datum,
-        coords1: _ModuleSupport.Vec4,
-        coords2?: _ModuleSupport.Vec4,
+        coords1: Bounds4,
+        coords2?: Bounds4,
         bbox?: _ModuleSupport.BBox
     ): void;
 }

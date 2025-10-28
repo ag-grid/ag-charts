@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { CleanupRegistry, attachListener, setAttributes } from 'ag-charts-core';
+import { CleanupRegistry, type Point, attachListener, setAttributes } from 'ag-charts-core';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -11,7 +11,7 @@ const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface Layout {
-    getTextInputCoords: (height: number) => _ModuleSupport.Vec2;
+    getTextInputCoords: (height: number) => Point;
     getTextPosition: () => AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;

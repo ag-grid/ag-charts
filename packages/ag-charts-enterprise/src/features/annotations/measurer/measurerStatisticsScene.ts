@@ -1,10 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { type Bounds4, type BoxBounds, type Point, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { type PositionedScene, layoutAddX, layoutAddY, layoutScenesColumn, layoutScenesRow } from '../utils/layout';
 import type { MeasurerTypeProperties, QuickDatePriceRangeProperties } from './measurerProperties';
-
-const { Vec4 } = _ModuleSupport;
 
 export interface Statistics {
     dateRange?: { bars: number; value: number };
@@ -49,8 +48,8 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
     update(
         datum: MeasurerTypeProperties,
         stats: Statistics,
-        anchor: _ModuleSupport.Vec2,
-        coords: _ModuleSupport.Vec4,
+        anchor: Point,
+        coords: Bounds4,
         context: AnnotationContext,
         verticalDirection?: 'up' | 'down',
         localeManager?: _ModuleSupport.ModuleContext['localeManager']
@@ -68,20 +67,15 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         this.checkVisibility(datum, context, coords);
     }
 
-    private checkVisibility(datum: MeasurerTypeProperties, context: AnnotationContext, coords: _ModuleSupport.Vec4) {
-        const bounds = Vec4.from(new _ModuleSupport.BBox(0, 0, context.seriesRect.width, context.seriesRect.height));
-
-        if (Vec4.collides(coords, bounds)) {
-            this.visible = datum.visible ?? true;
-        } else {
-            this.visible = false;
-        }
+    private checkVisibility(datum: MeasurerTypeProperties, context: AnnotationContext, coords: Bounds4) {
+        const bounds = Vec4.from(context.seriesRect);
+        this.visible = Vec4.collides(coords, bounds) && (datum.visible ?? true);
     }
 
     private updateStatistics(
         datum: MeasurerTypeProperties,
         stats: Statistics,
-        anchor: _ModuleSupport.Vec2,
+        anchor: Point,
         localeManager?: _ModuleSupport.ModuleContext['localeManager']
     ) {
         const {
@@ -165,7 +159,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         return scenes;
     }
 
-    private updateBackground(datum: MeasurerTypeProperties, bbox: _ModuleSupport.BBox, padding: number) {
+    private updateBackground(datum: MeasurerTypeProperties, bbox: BoxBounds, padding: number) {
         const styles = this.getBackgroundStyles(datum);
 
         this.background.setProperties({

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { type Point, Vec2 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { PointProperties } from '../properties/pointProperties';
@@ -7,16 +8,14 @@ import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
-const { Vec2 } = _ModuleSupport;
-
 export abstract class PointScene<Datum extends PointProperties> extends AnnotationScene {
     override activeHandle?: string;
 
     protected readonly handle = new DivariantHandle();
 
     protected dragState?: {
-        offset: _ModuleSupport.Vec2;
-        handle: _ModuleSupport.Vec2;
+        offset: Point;
+        handle: Point;
     };
 
     protected anchor: _ModuleSupport.FloatingToolbarAnchor = {
@@ -32,14 +31,14 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.anchor = this.updateAnchor(datum, coords, context);
     }
 
-    public dragStart(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
+    public dragStart(datum: Datum, target: Point, context: AnnotationContext) {
         this.dragState = {
             offset: target,
             ...getDragStartState({ handle: datum }, context),
         };
     }
 
-    public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
+    public drag(datum: Datum, target: Point, context: AnnotationContext) {
         const { dragState } = this;
         if (!datum.isWriteable() || !dragState) return;
 
@@ -48,7 +47,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         datum.y = point.y;
     }
 
-    public translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
+    public translate(datum: Datum, translation: Point, context: AnnotationContext) {
         if (!datum.isWriteable()) return;
 
         const { point } = translate({ point: convertPoint(datum, context) }, translation, context);
@@ -106,7 +105,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         if (this.handle.containsPoint(x, y)) return 'handle';
     }
 
-    protected updateHandle(datum: Datum, point: _ModuleSupport.Vec2, bbox?: _ModuleSupport.BBox) {
+    protected updateHandle(datum: Datum, point: Point, bbox?: _ModuleSupport.BBox) {
         const { x, y } = this.getHandleCoords(datum, point, bbox);
         const styles = this.getHandleStyles(datum);
 
@@ -114,7 +113,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(datum: Datum, point: _ModuleSupport.Vec2, context: AnnotationContext) {
+    protected updateAnchor(datum: Datum, point: Point, context: AnnotationContext) {
         const coords = this.getHandleCoords(datum, point);
         return {
             x: coords.x + context.seriesRect.x,
@@ -123,11 +122,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         };
     }
 
-    protected getHandleCoords(
-        _datum: Datum,
-        point: _ModuleSupport.Vec2,
-        _bbox?: _ModuleSupport.BBox
-    ): _ModuleSupport.Vec2 {
+    protected getHandleCoords(_datum: Datum, point: Point, _bbox?: _ModuleSupport.BBox): Point {
         return {
             x: point.x,
             y: point.y,
