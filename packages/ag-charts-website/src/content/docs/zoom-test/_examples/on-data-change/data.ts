@@ -6,7 +6,7 @@ export type DatumType = {
 };
 
 export function getData(): DatumType[] {
-    const tbody = document.querySelector('#excelTable tbody');
+    const tbody = document.querySelector('#dataTable tbody');
     if (!tbody) return [];
 
     const data: DatumType[] = [];

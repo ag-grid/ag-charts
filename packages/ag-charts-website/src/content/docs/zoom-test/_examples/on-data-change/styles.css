@@ -16,26 +16,26 @@
     padding: 10px;
 }
 
-.excel-table-container {
+.data-table-container {
     overflow-y: auto;
     max-height: 70vh;
 }
 
-.excel-table {
+.data-table {
     border-collapse: collapse;
     table-layout: auto;
     width: fit-content;
 }
 
-.excel-table thead th {
+.data-table thead th {
     background: #eee;
     position: sticky;
     top: 0;
     z-index: 2;
 }
 
-.excel-table th,
-.excel-table td {
+.data-table th,
+.data-table td {
     border: 1px solid #ccc;
     padding: 5px;
     text-align: center;
