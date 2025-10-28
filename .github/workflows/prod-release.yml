@@ -10,6 +10,7 @@ env:
     CI: true
     DEPLOYMENT_APP_ID: 957224
     TAG_NAME: ${{ github.head_ref || github.ref_name }}
+    AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
 
 permissions:
     id-token: write # Required for OIDC
