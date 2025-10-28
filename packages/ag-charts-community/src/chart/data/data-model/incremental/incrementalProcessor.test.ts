@@ -1,13 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { expectWarningsCalls, setupMockConsole } from '../../../test/utils';
 import type { GroupedData } from '../../dataModel';
 import { DataModel } from '../../dataModel';
 import { DataSet } from '../../dataSet';
+import { accumulateGroup as actualAccumulateGroup } from '../../processors';
 import {
     basicDataSet,
     categoryKey,
     rangeKey,
     scopedValue,
+    sum,
     value,
     verifyReprocessMatchesBaseline,
 } from '../test/testUtils';
@@ -22,6 +25,8 @@ function bandingConfig(minDataSizeForBanding: number, targetBandCount: number) {
 }
 
 describe('DataModel', () => {
+    setupMockConsole();
+
     describe('reprocessData', () => {
         describe('append operations', () => {
             it('should handle append-only transaction', () => {
@@ -592,6 +597,35 @@ describe('DataModel', () => {
                 // Verify columns
                 expect(reprocessed.columns).toEqual([[10, 20, 30, 40]]);
             });
+
+            it('should throw error when appending data with invalid keys', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append data with invalid key (null)
+                dataSet.addTransaction({ append: [{ x: null as any, y: 20 }] });
+
+                // Should throw error about invalid keys
+                expect(() => dataModel.reprocessData(processedData!)).toThrow(/invalid keys not supported/i);
+
+                // Verify warning was logged for the invalid key during processing
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [test / undefined] ignored:",
+    "[null]",
+  ],
+]
+`);
+            });
         });
 
         describe('banding with multiple scopes', () => {
@@ -710,6 +744,427 @@ describe('DataModel', () => {
                 expect(reprocessed.domain.values[0]).toEqual([10, 1000]); // seriesA range (valueA)
                 expect(reprocessed.domain.values[1]).toEqual([5, 500]); // seriesB range (valueB)
             });
+        });
+    });
+
+    describe('multiple scopes sharing same DataSet', () => {
+        it('should not over-apply band updates when multiple scopes share same DataSet', () => {
+            // This test verifies that updateBandsForChanges() deduplicates change descriptions
+            // to avoid applying band insertions/removals multiple times
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('category', ['scope1', 'scope2']),
+                    scopedValue('scope1', 'value1'),
+                    scopedValue('scope2', 'value2'),
+                ],
+                groupByKeys: true,
+                domainBandingConfig: bandingConfig(50, 5),
+            });
+
+            // Create initial data with 100 items (above threshold to enable banding)
+            const initialData = Array.from({ length: 100 }, (_, i) => ({
+                category: `Cat${i}`,
+                value1: i * 10,
+                value2: i * 100,
+            }));
+            const dataSet = new DataSet(initialData);
+
+            // Multiple scopes, same DataSet
+            const sources = new Map([
+                ['scope1', dataSet],
+                ['scope2', dataSet],
+            ]);
+
+            const processedData = dataModel.processData(sources);
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+            // Append new data
+            dataSet.addTransaction({
+                append: [{ category: 'Cat100', value1: 1000, value2: 10000 }],
+            });
+
+            const reprocessed1 = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
+
+            // Verify the domain is correct (would be wrong if bands were updated twice)
+            expect(reprocessed1.domain.values[0]).toEqual([0, 1000]);
+            expect(reprocessed1.domain.values[1]).toEqual([0, 10000]);
+            expect(reprocessed1.columns[0][100]).toBe(1000);
+            expect(reprocessed1.columns[1][100]).toBe(10000);
+
+            // First reprocess: all bands dirty (banding initialized)
+            expect(reprocessed1.optimizations?.domainBanding).toBeDefined();
+
+            // Do a SECOND append to test the optimization
+            dataSet.addTransaction({
+                append: [{ category: 'Cat101', value1: 1010, value2: 10100 }],
+            });
+
+            const reprocessed2 = dataModel.reprocessData(reprocessed1);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
+
+            // Verify the domain is correct
+            expect(reprocessed2.domain.values[0]).toEqual([0, 1010]);
+            expect(reprocessed2.domain.values[1]).toEqual([0, 10100]);
+            expect(reprocessed2.columns[0][101]).toBe(1010);
+            expect(reprocessed2.columns[1][101]).toBe(10100);
+
+            // Verify optimization metadata shows banding was used efficiently on SECOND reprocess
+            const metadata = reprocessed2.optimizations;
+            expect(metadata?.domainBanding).toBeDefined();
+
+            const valueDefStats0 = metadata!.domainBanding!.valueDefs[0]?.stats;
+            const valueDefStats1 = metadata!.domainBanding!.valueDefs[1]?.stats;
+
+            expect(valueDefStats0).toBeDefined();
+            expect(valueDefStats1).toBeDefined();
+
+            // Both value defs should have band stats
+            expect(valueDefStats0!.totalBands).toBeGreaterThan(0);
+            expect(valueDefStats1!.totalBands).toBeGreaterThan(0);
+
+            // Not all bands should be dirty (only affected ones)
+            expect(valueDefStats0!.dirtyBands).toBeLessThan(valueDefStats0!.totalBands);
+            expect(valueDefStats1!.dirtyBands).toBeLessThan(valueDefStats1!.totalBands);
+        });
+
+        it('should not double-apply group processors when multiple scopes share same DataSet', () => {
+            // This test verifies that reprocessGroupProcessors() deduplicates change descriptions
+            // to avoid applying group processor adjustments multiple times (which would double stacking values)
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('category', ['scope1', 'scope2']),
+                    scopedValue('scope1', 'seriesA', 'stack'),
+                    scopedValue('scope2', 'seriesB', 'stack'),
+                    actualAccumulateGroup('stack', 'normal'),
+                ],
+                groupByKeys: true,
+            });
+
+            const initialData = [
+                { category: 'A', seriesA: 100, seriesB: 50 },
+                { category: 'B', seriesA: 150, seriesB: 75 },
+            ];
+            const dataSet = new DataSet(initialData);
+
+            // Multiple scopes, same DataSet
+            const sources = new Map([
+                ['scope1', dataSet],
+                ['scope2', dataSet],
+            ]);
+
+            const processedData = dataModel.processData(sources);
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+            // Append new data
+            dataSet.addTransaction({
+                append: [{ category: 'C', seriesA: 200, seriesB: 100 }],
+            });
+
+            const reprocessed = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+            const columns = reprocessed.columns;
+
+            // Verify stacking was applied ONCE (not doubled)
+            // Category A: seriesA=100, seriesB=150 (100+50 stacked)
+            expect(columns[0][0]).toBe(100);
+            expect(columns[1][0]).toBe(150); // Should be 150, not 200 (would be doubled if bug)
+
+            // Category B: seriesA=150, seriesB=225 (150+75 stacked)
+            expect(columns[0][1]).toBe(150);
+            expect(columns[1][1]).toBe(225); // Should be 225, not 300 (would be doubled if bug)
+
+            // Category C (new): seriesA=200, seriesB=300 (200+100 stacked)
+            expect(columns[0][2]).toBe(200);
+            expect(columns[1][2]).toBe(300); // Should be 300, not 400 (would be doubled if bug)
+        });
+
+        it('should not commit transactions multiple times when multiple scopes share same DataSet', () => {
+            // This test verifies that commitPendingTransactions() deduplicates DataSets
+            // to avoid committing the same transaction multiple times
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('category', ['scope1', 'scope2']),
+                    scopedValue('scope1', 'value1'),
+                    scopedValue('scope2', 'value2'),
+                ],
+                groupByKeys: true,
+            });
+
+            const initialData = [
+                { category: 'A', value1: 10, value2: 100 },
+                { category: 'B', value1: 20, value2: 200 },
+            ];
+            const dataSet = new DataSet(initialData);
+
+            // Multiple scopes, same DataSet
+            const sources = new Map([
+                ['scope1', dataSet],
+                ['scope2', dataSet],
+            ]);
+
+            const processedData = dataModel.processData(sources);
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+            // Add multiple transactions
+            dataSet.addTransaction({ append: [{ category: 'C', value1: 30, value2: 300 }] });
+            dataSet.addTransaction({ append: [{ category: 'D', value1: 40, value2: 400 }] });
+
+            // Before reprocessing, the DataSet should have pending transactions
+            expect(dataSet.getChangeDescription()).toBeTruthy();
+
+            const reprocessed = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+            // After reprocessing, transactions should be committed exactly once
+            expect(dataSet.getChangeDescription()).toBeUndefined();
+
+            // Verify data is correct
+            expect(reprocessed.columns[0]).toEqual([10, 20, 30, 40]);
+            expect(reprocessed.columns[1]).toEqual([100, 200, 300, 400]);
+
+            // Verify domain is correct
+            expect(reprocessed.domain.values[0]).toEqual([10, 40]);
+            expect(reprocessed.domain.values[1]).toEqual([100, 400]);
+        });
+
+        it('should handle mixed operations with multiple scopes sharing same DataSet', () => {
+            // This test verifies all deduplication logic works together with complex operations
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('category', ['scope1', 'scope2']),
+                    scopedValue('scope1', 'seriesA', 'stack'),
+                    scopedValue('scope2', 'seriesB', 'stack'),
+                    actualAccumulateGroup('stack', 'normal'),
+                ],
+                groupByKeys: true,
+                domainBandingConfig: bandingConfig(50, 5),
+            });
+
+            // Create larger dataset to enable banding
+            const initialData = Array.from({ length: 100 }, (_, i) => ({
+                category: `Cat${i}`,
+                seriesA: i * 10,
+                seriesB: i * 5,
+            }));
+            const dataSet = new DataSet(initialData);
+
+            // Multiple scopes, same DataSet
+            const sources = new Map([
+                ['scope1', dataSet],
+                ['scope2', dataSet],
+            ]);
+
+            const processedData = dataModel.processData(sources);
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+            // Perform mixed operations: remove from start, append at end
+            dataSet.addTransaction({
+                remove: [initialData[0]],
+                append: [{ category: 'Cat100', seriesA: 1000, seriesB: 500 }],
+            });
+
+            const reprocessed = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+            const columns = reprocessed.columns;
+
+            // Verify data length is correct (100 items still)
+            expect(columns[0].length).toBe(100);
+            expect(columns[1].length).toBe(100);
+
+            // Verify first item is now Cat1 (Cat0 was removed)
+            expect(reprocessed.domain.groups![0]).toEqual(['Cat1']);
+
+            // Verify last item is Cat100 (newly appended)
+            expect(reprocessed.domain.groups![99]).toEqual(['Cat100']);
+
+            // Verify stacking on the last item (should be applied once, not doubled)
+            expect(columns[0][99]).toBe(1000); // seriesA
+            expect(columns[1][99]).toBe(1500); // seriesB stacked: 1000 + 500 = 1500
+
+            // Verify domain reflects correct range
+            // domain.values[0] is seriesA range (not stacked)
+            // domain.values[1] is seriesB range (after stacking)
+            expect(reprocessed.domain.values[0]).toEqual([10, 1000]); // seriesA range
+            expect(reprocessed.domain.values[1]).toEqual([15, 1500]); // seriesB stacked range (10+5 to 1000+500)
+        });
+    });
+
+    describe('reprocessing with stacked area charts', () => {
+        it('should fallback to full reprocessing for normal accumulation mode', () => {
+            // Normal accumulation mode (not window) should not support reprocessing
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('category'),
+                    value('seriesA', 'stack'),
+                    value('seriesB', 'stack'),
+                    actualAccumulateGroup('stack', 'normal'),
+                ],
+                groupByKeys: true,
+            });
+
+            const initialData = [
+                { category: 'A', seriesA: 100, seriesB: 50 },
+                { category: 'B', seriesA: 150, seriesB: 75 },
+            ];
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+
+            const processedData = dataModel.processData(sources);
+
+            // Should support reprocessing with normal accumulation
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+            // Add data
+            dataSet.addTransaction({
+                append: [{ category: 'C', seriesA: 200, seriesB: 100 }],
+            });
+
+            // This should trigger a full reprocess, not incremental
+            const reprocessed = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+            // Data should still be correct even with full reprocessing
+            const groups = (reprocessed as any).groups;
+            const columns = reprocessed.columns;
+
+            expect(groups.length).toBe(3);
+
+            // With normal accumulation, values stack within groups (no accumulation across groups)
+            // A: seriesA=100, seriesB=150 (100+50 stacked)
+            // B: seriesA=150, seriesB=225 (150+75 stacked)
+            // C: seriesA=200, seriesB=300 (200+100 stacked)
+            expect(columns[0][0]).toBe(100); // A seriesA
+            expect(columns[1][0]).toBe(150); // A seriesB (100+50 stacked)
+            expect(columns[0][1]).toBe(150); // B seriesA
+            expect(columns[1][1]).toBe(225); // B seriesB (150+75 stacked)
+            expect(columns[0][2]).toBe(200); // C seriesA
+            expect(columns[1][2]).toBe(300); // C seriesB (200+100 stacked)
+        });
+    });
+
+    describe('isReprocessingSupported', () => {
+        it('should support ungrouped data without aggregates', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const sources = basicDataSet([{ x: 1, y: 10 }]);
+            const processedData = dataModel.processData(sources);
+
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+        });
+
+        it('should support grouped data with groupsUnique=true and single scope', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [rangeKey('x'), value('y')],
+                groupByKeys: true,
+            });
+
+            const sources = basicDataSet([
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+            ]);
+            const processedData = dataModel.processData(sources);
+
+            // Should be supported: single scope, groupsUnique=true, no invalid keys
+            expect(processedData!.type).toBe('grouped');
+            expect(processedData!.groupsUnique).toBe(true);
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+        });
+
+        it('should not support grouped data with groupsUnique=false', () => {
+            // Create a scenario where groupsUnique=false by using multiple scopes
+            // that share group keys (this prevents the batch merging optimization)
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('category', ['scope1', 'scope2']),
+                    scopedValue('scope1', 'value1'),
+                    scopedValue('scope2', 'value2'),
+                ],
+                groupByKeys: true,
+                groupByFn: () => () => ['shared-group'], // Force all data into one group
+            });
+
+            const dataSet1 = new DataSet([{ category: 'A', value1: 10 }]);
+            const dataSet2 = new DataSet([{ category: 'A', value2: 20 }]);
+            const sources = new Map<string, DataSet<any>>([
+                ['scope1', dataSet1],
+                ['scope2', dataSet2],
+            ]);
+            const processedData = dataModel.processData(sources);
+
+            // Multiple scopes prevent batch merging, so groupsUnique=false
+            expect(processedData!.type).toBe('grouped');
+            expect(processedData!.groupsUnique).toBe(false);
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+        });
+
+        it('should not support data with aggregates', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y', 'group1'), sum('group1')],
+            });
+
+            const sources = basicDataSet([{ x: 1, y: 10 }]);
+            const processedData = dataModel.processData(sources);
+
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+        });
+
+        it('should support multiple scopes with same DataSet', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('category', ['scope1', 'scope2']),
+                    scopedValue('scope1', 'value1'),
+                    scopedValue('scope2', 'value2'),
+                ],
+                groupByKeys: true,
+            });
+
+            const dataSet = new DataSet([
+                { category: 'A', value1: 10, value2: 100 },
+                { category: 'B', value1: 20, value2: 200 },
+            ]);
+
+            // Multiple scopes, same DataSet
+            const sources = new Map([
+                ['scope1', dataSet],
+                ['scope2', dataSet],
+            ]);
+
+            const processedData = dataModel.processData(sources);
+
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+        });
+
+        it('should not support multiple scopes with different DataSets', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [
+                    categoryKey('category', ['scope1', 'scope2']),
+                    scopedValue('scope1', 'value1'),
+                    scopedValue('scope2', 'value2'),
+                ],
+                groupByKeys: true,
+            });
+
+            const dataSet1 = new DataSet([
+                { category: 'A', value1: 10, value2: 100 },
+                { category: 'B', value1: 20, value2: 200 },
+            ]);
+            const dataSet2 = new DataSet([
+                { category: 'A', value1: 10, value2: 100 },
+                { category: 'B', value1: 20, value2: 200 },
+            ]);
+
+            // Multiple scopes, different DataSets
+            const sources = new Map([
+                ['scope1', dataSet1],
+                ['scope2', dataSet2],
+            ]);
+
+            const processedData = dataModel.processData(sources);
+
+            expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
         });
     });
 });
