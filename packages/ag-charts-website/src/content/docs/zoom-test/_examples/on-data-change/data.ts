@@ -12,7 +12,7 @@ export function getData(): DatumType[] {
     const data: DatumType[] = [];
 
     const rows = tbody.querySelectorAll('tr');
-    rows.forEach(tr => {
+    rows.forEach((tr) => {
         const cells = tr.querySelectorAll('td');
         if (cells.length < 4) return;
 

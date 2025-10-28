@@ -4,14 +4,14 @@
 }
 
 .example-controls {
-    flex: 0 0 auto;      /* shrink to fit content, do not grow */
-    overflow-y: auto;    /* vertical scrolling if table is tall */
+    flex: 0 0 auto;
+    overflow-y: auto;
     padding: 10px;
-    border-right: 1px solid #ccc; /* optional separator */
+    border-right: 1px solid #ccc;
 }
 
 #myChart {
-    flex: 1;             /* fill the remaining space */
+    flex: 1;
     padding: 10px;
 }
 
@@ -30,6 +30,6 @@
     text-align: center;
     position: relative;
 }
-input[type="number"] {
+input[type='number'] {
     width: 80px;
 }
