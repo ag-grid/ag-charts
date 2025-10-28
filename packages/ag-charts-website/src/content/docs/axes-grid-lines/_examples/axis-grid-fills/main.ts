@@ -36,9 +36,6 @@ const options: AgCartesianChartOptions = {
                     {},
                 ],
             },
-            interval: {
-                placement: 'between',
-            },
         },
         {
             type: 'number',

@@ -99,7 +99,7 @@ export class Zoom extends AbstractModuleInstance {
         },
     })
     @Property
-    public enableAxisScrolling = false;
+    public enableAxisScrolling = true;
 
     @Property
     public enableDoubleClickToReset = true;

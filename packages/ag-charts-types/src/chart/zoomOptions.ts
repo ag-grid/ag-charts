@@ -111,7 +111,7 @@ export interface AgZoomOptions {
     /**
      * Set to `true` to enable scrolling an axis to zoom series attached to that axis.
      *
-     * Default: `false`
+     * Default: `true`
      */
     enableAxisScrolling?: boolean;
     /**

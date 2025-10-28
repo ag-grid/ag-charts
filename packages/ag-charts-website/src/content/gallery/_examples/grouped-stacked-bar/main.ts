@@ -98,9 +98,6 @@ const options: AgCartesianChartOptions = {
                     },
                 ],
             },
-            interval: {
-                placement: 'between',
-            },
         },
         {
             position: 'left',
