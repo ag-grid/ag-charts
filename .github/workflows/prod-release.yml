@@ -58,22 +58,22 @@ jobs:
 
       - name: Generate SBOM
         run: |
-          npx --yes @cyclonedx/cyclonedx-npm -o ./dist/artifacts/packages/sbom.json --ignore-npm-errors --omit dev --omit peer --omit optional
+          npx --yes @cyclonedx/cyclonedx-npm -o ./dist/packages/sbom.json --ignore-npm-errors --omit dev --omit peer --omit optional
 
       # Ensure npm 11.5.1 or later is installed - required for OIDC
       - name: Update npm
         run: npm install -g npm@latest
 
-      - name: Sanity Check Base URL
+      - name: Sanity Check Versions
         run: |
-          node scripts/deployments/sanityCheckBaseUrl.js production
+            node tools/release/sanityCheckPackages.js $RELEASE_VERSION
 
       - name: Validate Dist Folders
         run: |
-          ./scripts/deployments/validateDistFolders.sh
+            ./tools/release/validateDistFolders.sh
 
-      - name: Publish to npm
-        run: ./scripts/deployments/release/publishDistArtifactsToNpm.sh
+#      - name: Publish to npm
+#        run: ./scripts/deployments/release/publishDistArtifactsToNpm.sh
 
       - name: Sign Artifacts
         env:
@@ -83,7 +83,7 @@ jobs:
         run: |
           echo "$GPG_PRIVATE_KEY" > $GPG_PRIVATE_KEY_LOCATION
           gpg --import $GPG_PRIVATE_KEY_LOCATION
-          ./scripts/deployments/release/performSigningActions.sh "$GPG_PUBLIC_KEY"
+            ./tools/release/performSigningActions.sh "$GPG_PUBLIC_KEY"
 
       - name: Create GitHub Release
         env:
@@ -93,7 +93,7 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > $KEY_LOCATION
 
-          node ./scripts/deployments/release/createGitHubReleaseAttachArtifacts.mjs \
+            node ./tools/release/createGitHubReleaseAttachArtifacts.mjs \
             --app-id=${{ env.DEPLOYMENT_APP_ID }} \
             --installation-id=${{ secrets.AG_AUTOMATED_RELEASE_INSTALLATION_ID }} \
             --private-key-path=$KEY_LOCATION \
