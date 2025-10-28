@@ -81,7 +81,6 @@ const options: AgCartesianChartOptions = {
             },
             paddingInner: 0.4,
             paddingOuter: 0.2,
-            interval: { placement: 'between' },
             gridLine: {
                 enabled: true,
                 style: [

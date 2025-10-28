@@ -171,11 +171,21 @@ export interface AgGroupedCategoryDepthOptions<TContext = ContextDefault> {
 type AgAxisIntervalPlacement = 'on' | 'between';
 
 export interface AgAxisCategoryIntervalOptions extends AgAxisBaseIntervalOptions {
+    /**
+     * Placement of ticks and labels relative to the category.
+     *
+     * Default: `'between'`
+     */
     placement?: AgAxisIntervalPlacement;
 }
 
 export interface AgAxisDiscreteTimeIntervalOptions
     extends AgAxisContinuousIntervalOptions<AgTimeInterval | AgTimeIntervalUnit | number> {
+    /**
+     * Placement of ticks and labels relative to the time interval.
+     *
+     * Default: `'between'`
+     */
     placement?: AgAxisIntervalPlacement;
 }
 

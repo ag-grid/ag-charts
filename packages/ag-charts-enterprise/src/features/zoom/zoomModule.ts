@@ -58,6 +58,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
     themeTemplate: {
         enabled: false,
         enableAxisDragging: true,
+        enableAxisScrolling: true,
         enableDoubleClickToReset: true,
         enablePanning: true,
         enableScrolling: true,
