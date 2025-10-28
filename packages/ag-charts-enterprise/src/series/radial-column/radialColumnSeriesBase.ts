@@ -333,15 +333,17 @@ export abstract class RadialColumnSeriesBase<
 
             let startAngle: number;
             let endAngle: number;
+            let angle: number;
             if (rawData.length === 1) {
                 startAngle = -0.5 * Math.PI;
                 endAngle = 1.5 * Math.PI;
+                angle = startAngle;
             } else {
                 const groupAngle = angleScale.convert(angleDatum);
                 startAngle = normalizeAngle360(groupAngle + groupScale.convert(String(groupIndex)));
                 endAngle = normalizeAngle360(startAngle + groupScale.bandwidth);
+                angle = startAngle + groupScale.bandwidth / 2;
             }
-            const angle = startAngle + groupScale.bandwidth / 2;
 
             const innerRadius = axisTotalRadius - radiusScale.convert(innerRadiusDatum);
             const outerRadius = axisTotalRadius - radiusScale.convert(outerRadiusDatum);
