@@ -1,0 +1,35 @@
+.container {
+    display: flex;
+    height: 100vh; /* full viewport height */
+}
+
+.example-controls {
+    flex: 0 0 auto;      /* shrink to fit content, do not grow */
+    overflow-y: auto;    /* vertical scrolling if table is tall */
+    padding: 10px;
+    border-right: 1px solid #ccc; /* optional separator */
+}
+
+#myChart {
+    flex: 1;             /* fill the remaining space */
+    padding: 10px;
+}
+
+.excel-table {
+    border-collapse: collapse;
+    width: fit-content;
+}
+.excel-table thead {
+    background: #eee;
+}
+
+.excel-table th,
+.excel-table td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+    position: relative;
+}
+input[type="number"] {
+    width: 80px;
+}
