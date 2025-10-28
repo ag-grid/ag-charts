@@ -5,9 +5,11 @@
 
 .example-controls {
     flex: 0 0 auto;
-    overflow-y: auto;
+    flex-direction: column;
+    display: flex;
     padding: 10px;
     border-right: 1px solid #ccc;
+    width: fit-content;
 }
 
 #myChart {
@@ -16,11 +18,25 @@
 }
 
 .excel-table {
+    border: 1px solid #ccc;
     border-collapse: collapse;
     width: fit-content;
 }
+
+.excel-table thead,
+.excel-table tbody,
+.excel-table tr {
+    display: block;
+}
+
 .excel-table thead {
     background: #eee;
+}
+
+.excel-table tbody {
+    height: 70vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .excel-table th,
@@ -28,6 +44,8 @@
     border: 1px solid #ccc;
     padding: 5px;
     text-align: center;
+    min-width: 80px;
+    box-sizing: border-box;
     position: relative;
 }
 input[type='number'] {

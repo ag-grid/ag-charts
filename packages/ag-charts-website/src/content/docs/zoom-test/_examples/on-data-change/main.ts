@@ -30,4 +30,6 @@ const options: AgCartesianChartOptions<DatumType> = {
     ],
 };
 
+function onUpdateData(): void {}
+
 const chart = AgCharts.create(options);
