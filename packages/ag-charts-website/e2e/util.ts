@@ -1,4 +1,4 @@
-import { type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { execSync } from 'child_process';
 import glob from 'glob';
 
@@ -44,6 +44,10 @@ export function getExamples() {
         console.warn(`NX_BASE set - applied changed example processing, ${affectedCount} changed examples found.`);
     }
     return examples;
+}
+
+export function toPageUrl(uri: string) {
+    return `${baseUrl}/${uri}`;
 }
 
 export function toExamplePageUrls(page: string, example: string) {
@@ -166,12 +170,18 @@ export function repeat(repCount: number, fn: () => unknown) {
     }
 }
 
+export async function gotoUrl(page: Page, url: string) {
+    await page.goto(url);
+    await page.waitForLoadState('networkidle');
+    expect(await page.title()).not.toMatch(/Page Not Found/);
+}
+
 export async function gotoExample(
     page: Page,
     url: string,
     opts = { skipStabilityChecks: false, skipNetworkIdle: false }
 ) {
-    await page.goto(url + '#e2e=true');
+    await gotoUrl(page, url + '#e2e=true');
 
     if (opts.skipNetworkIdle) {
         await page.waitForLoadState('load');
