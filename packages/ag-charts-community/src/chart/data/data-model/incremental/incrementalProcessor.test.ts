@@ -3,7 +3,14 @@ import { describe, expect, it } from '@jest/globals';
 import type { GroupedData } from '../../dataModel';
 import { DataModel } from '../../dataModel';
 import { DataSet } from '../../dataSet';
-import { basicDataSet, categoryKey, rangeKey, scopedValue, value, verifyReprocessMatchesBaseline } from '../testUtils';
+import {
+    basicDataSet,
+    categoryKey,
+    rangeKey,
+    scopedValue,
+    value,
+    verifyReprocessMatchesBaseline,
+} from '../test/testUtils';
 
 // Component-specific helper for banding configuration
 function bandingConfig(minDataSizeForBanding: number, targetBandCount: number) {
@@ -660,10 +667,10 @@ describe('DataModel', () => {
                     ['seriesB', dataSet],
                 ]);
 
-                const processedData = dataModel.processData(sources)! as GroupedData<any>;
+                const processedData = dataModel.processData(sources);
 
                 // Verify initial state
-                expect(processedData.groups.length).toBe(100);
+                expect(processedData?.groups?.length).toBe(100);
 
                 // Remove first item, append new one (simulate scrolling)
                 dataSet.addTransaction({
@@ -671,7 +678,7 @@ describe('DataModel', () => {
                     append: [{ category: 'Cat100', valueA: 1000, valueB: 500 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData) as GroupedData<any>;
+                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify groups count is still 100 (removed one, added one)

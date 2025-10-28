@@ -7,7 +7,7 @@ import { expectWarningsCalls, setupMockConsole } from '../../../test/utils';
 import type { DataModelOptions } from '../../dataModel';
 import { DataModel } from '../../dataModel';
 import { DataSet } from '../../dataSet';
-import { basicDataSet, categoryKey, extractGroupValues, scopedSum, scopedValue, sum, value } from '../testUtils';
+import { basicDataSet, categoryKey, extractGroupValues, scopedSum, scopedValue, sum, value } from '../test/testUtils';
 
 function mutilatedBrowserData() {
     const datumKeys = ['ie', 'chrome', 'firefox', 'safari'] as const;

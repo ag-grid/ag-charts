@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { DataModel } from '../../dataModel';
 import { DataSet } from '../../dataSet';
-import { categoryKey, scopedValue } from '../testUtils';
+import { categoryKey, scopedValue } from '../test/testUtils';
 
 describe('DataGrouper', () => {
     describe('Column Batch Merging', () => {

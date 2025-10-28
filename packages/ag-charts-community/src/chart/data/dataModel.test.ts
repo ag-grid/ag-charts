@@ -23,7 +23,7 @@ import {
     scopedValue,
     sum,
     value,
-} from './data-model/testUtils';
+} from './data-model/test/testUtils';
 import type { GroupByFn } from './dataModel';
 import { DataModel, getPathComponents } from './dataModel';
 import { DataSet } from './dataSet';

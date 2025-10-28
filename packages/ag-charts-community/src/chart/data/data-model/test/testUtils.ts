@@ -1,5 +1,3 @@
-import { expect } from '@jest/globals';
-
 import {
     accumulatedValue,
     area as actualArea,
@@ -7,17 +5,17 @@ import {
     groupCount as actualGroupCount,
     range as actualRange,
     sumValues,
-} from '../aggregateFunctions';
-import type { AggregatePropertyDefinition, GroupedData, PropertyId, Scoped } from '../dataModel';
-import { DataModel } from '../dataModel';
-import type { PropertyDefinition } from '../dataModelTypes';
-import { DataSet } from '../dataSet';
+} from '../../aggregateFunctions';
+import type { AggregatePropertyDefinition, GroupedData, PropertyId, Scoped } from '../../dataModel';
+import { DataModel } from '../../dataModel';
+import type { PropertyDefinition } from '../../dataModelTypes';
+import { DataSet } from '../../dataSet';
 import {
     accumulateGroup as actualAccumulateGroup,
     normaliseGroupTo as actualNormaliseGroupTo,
     normalisePropertyTo as actualNormalisePropertyTo,
     rowCountProperty as actualRowCountProperty,
-} from '../processors';
+} from '../../processors';
 
 // Property definition builders
 export const rangeKey = (property: string) => ({

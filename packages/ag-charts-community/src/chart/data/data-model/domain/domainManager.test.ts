@@ -2,7 +2,14 @@ import { describe, expect, it } from '@jest/globals';
 
 import { DataModel } from '../../dataModel';
 import { DataSet } from '../../dataSet';
-import { basicDataSet, categoryKey, rangeKey, value, verifyDomain, verifyReprocessMatchesBaseline } from '../testUtils';
+import {
+    basicDataSet,
+    categoryKey,
+    rangeKey,
+    value,
+    verifyDomain,
+    verifyReprocessMatchesBaseline,
+} from '../test/testUtils';
 
 /**
  * Helper to create a standard banding config
