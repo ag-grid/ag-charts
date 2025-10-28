@@ -99,4 +99,4 @@ jobs:
                     --installation-id=${{ secrets.AG_AUTOMATED_RELEASE_INSTALLATION_ID }} \
                     --private-key-path=$KEY_LOCATION \
                     --release-version=$RELEASE_VERSION \
-                    --artifacts-path=./dist/artifacts
+                    --artifacts-path=./
