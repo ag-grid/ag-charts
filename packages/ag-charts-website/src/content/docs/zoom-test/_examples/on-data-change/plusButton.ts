@@ -50,6 +50,79 @@ function handleMouseMove(e: MouseEvent) {
     }
 }
 
+function parseX(row: HTMLTableRowElement | undefined, index: number): number {
+    return parseFloat(row?.children[index]?.textContent || '0');
+}
+
+function parseY(row: HTMLTableRowElement | undefined, index: number): number {
+    return parseFloat(row?.children[index].querySelector('input')?.value || '0');
+}
+
+function computeNewValue(
+    parser: (row: HTMLTableRowElement | undefined, index: number) => number,
+    topRow: HTMLTableRowElement | undefined,
+    bottomRow: HTMLTableRowElement | undefined,
+    index: number
+): number {
+    // When:
+    // -   Inserting in the middle, we take the average of x, y1, y2, y3 from topRow / bottomRow.
+    // -   Appending at the end, we copy from topRow.
+    // -   Prepending at the start, we copy from bottomRow.
+    if (topRow && bottomRow) {
+        const topValue = parser(topRow, index);
+        const bottomValue = parser(bottomRow, index);
+        return Math.floor((topValue + bottomValue) / 2);
+    } else if (topRow) {
+        return parser(topRow, index) + 1;
+    } else if (bottomRow) {
+        return parser(bottomRow, index) - 1;
+    } else {
+        return 0;
+    }
+}
+
+function createButtonClickHandler(table: HTMLTableElement, insertIndex: number): (e: MouseEvent) => void {
+    return (e: MouseEvent) => {
+        e.stopPropagation();
+
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const topRow = rows[insertIndex - 1];
+        const bottomRow = rows[insertIndex];
+
+        const newRow = document.createElement('tr');
+
+        for (let i = 0; i < 4; i++) {
+            const td = document.createElement('td');
+
+            if (i === 0) {
+                // Handle x value
+                let newX = computeNewValue(parseX, topRow, bottomRow, i);
+                td.textContent = newX.toString();
+            } else {
+                // Handle y1, y2, y3
+                let newY = computeNewValue(parseY, topRow, bottomRow, i);
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.value = newY.toString();
+                td.appendChild(input);
+            }
+
+            newRow.appendChild(td);
+        }
+
+        if (bottomRow) {
+            tbody.insertBefore(newRow, bottomRow);
+        } else {
+            tbody.appendChild(newRow);
+        }
+
+        removeButton();
+    };
+}
+
 function createButton(table: HTMLTableElement, insertIndex: number, rect: DOMRect, isAbove: boolean) {
     const btn = document.createElement('button');
     btn.textContent = '+';
@@ -66,11 +139,7 @@ function createButton(table: HTMLTableElement, insertIndex: number, rect: DOMRec
     btn.style.cursor = 'pointer';
     btn.style.zIndex = '1000';
     btn.dataset.index = insertIndex.toString();
-
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        console.log(`+ button clicked between rows ${insertIndex - 1} and ${insertIndex}`);
-    });
+    btn.addEventListener('click', createButtonClickHandler(table, insertIndex));
 
     document.body.appendChild(btn);
     currentButton = btn;
