@@ -1,9 +1,10 @@
 [
     {
         "version": "100.0.0",
-        "notesPath": "./upgrade-to-ag-charts-12-3"
+        "notesPath": "./upgrade-to-ag-charts-12-3",
+        "date": "October 28th, 2025"
     },
-  {
+    {
         "version": "12.3.0",
         "date": "October 22nd, 2025",
         "highlights": [
