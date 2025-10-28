@@ -301,6 +301,25 @@ describe('RadialColumnSeries', () => {
         await compare();
     });
 
+    it('should render single datum radial column with label positioned at top center', async () => {
+        const options: AgChartOptions = {
+            data: [{ quarter: `Q1'22`, revenue: 4.35 }],
+            series: [
+                {
+                    type: 'radial-column',
+                    angleKey: 'quarter',
+                    radiusKey: 'revenue',
+                    label: {
+                        enabled: true,
+                    },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     describe('initial animation', () => {
         const animate = spyOnAnimationManager();
 
