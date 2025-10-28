@@ -7,6 +7,7 @@ set -eu
 
 NEW_VERSION="$1"
 TOOLS_DIR=$(dirname $0)
+SKIP_FORMAT="${2:-no}"
 
 PACKAGES=(
     ag-charts
@@ -45,5 +46,9 @@ done
 GRID_VERSION=$(node ${TOOLS_DIR}/calculate-grid-version.js "$NEW_VERSION")
 node ${TOOLS_DIR}/update-grid-version.js "$GRID_VERSION"
 
-# Ensure consistent package.json formatting.
-npx --yes prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
+if [ "$SKIP_FORMAT" != "yes" ]
+  then
+    # Ensure consistent package.json formatting.
+    npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
+fi
+

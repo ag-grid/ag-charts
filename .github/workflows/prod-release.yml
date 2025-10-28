@@ -1,103 +1,101 @@
 name: Publish Package
 
 on:
-  push:
-    workflow_dispatch:
-    tags:
-      - 'release-*'
+    push:
+        workflow_dispatch:
+        tags:
+            - 'release-*'
 
 env:
-  CI: true
-  DEPLOYMENT_APP_ID: 957224
-  TAG_NAME: ${{ github.head_ref || github.ref_name }}
+    CI: true
+    DEPLOYMENT_APP_ID: 957224
+    TAG_NAME: ${{ github.head_ref || github.ref_name }}
 
 permissions:
-  id-token: write  # Required for OIDC
-  contents: read
+    id-token: write # Required for OIDC
+    contents: read
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Authenticate with GitHub App
-        uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: ${{ env.DEPLOYMENT_APP_ID }}
-          private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+    publish:
+        runs-on: ubuntu-latest
+        environment: production
+        steps:
+            - name: Authenticate with GitHub App
+              uses: actions/create-github-app-token@v1
+              id: app-token
+              with:
+                  app-id: ${{ env.DEPLOYMENT_APP_ID }}
+                  private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
 
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          fetch-depth: 1 # shallow copy
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ steps.app-token.outputs.token }}
+                  fetch-depth: 1 # shallow copy
 
-      - name: Fetch Refs
-        run: |
-          git fetch origin --depth 1 ${{ github.ref_name }}
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 ${{ github.ref_name }}
 
-      - name: Set Env
-        run: |
-          RELEASE_VERSION=$(echo $TAG_NAME | sed 's/release-//')
-          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+            - name: Set Env
+              run: |
+                  RELEASE_VERSION=$(echo $TAG_NAME | sed 's/release-//')
+                  echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  registry-url: 'https://registry.npmjs.org'
 
-      - name: Yarn
-        run: |
-          yarn install --ci
+            - name: Yarn
+              run: |
+                  yarn install --ci
 
-      - name: Build
-        run: |
-          NODE_ENV=production yarn nx pack:verify --prod --skip-nx-cache
+            - name: Build
+              run: |
+                  NODE_ENV=production yarn nx pack:verify --prod --skip-nx-cache
 
-      - name: Generate SBOM
-        run: |
-          npx --yes @cyclonedx/cyclonedx-npm -o ./dist/packages/sbom.json --ignore-npm-errors --omit dev --omit peer --omit optional
+            - name: Generate SBOM
+              run: |
+                  npx --yes @cyclonedx/cyclonedx-npm -o ./dist/packages/sbom.json --ignore-npm-errors --omit dev --omit peer --omit optional
 
-      # Ensure npm 11.5.1 or later is installed - required for OIDC
-      - name: Update npm
-        run: npm install -g npm@latest
+            # Ensure npm 11.5.1 or later is installed - required for OIDC
+            - name: Update npm
+              run: npm install -g npm@latest
 
-      - name: Sanity Check Versions
-        run: |
-            node tools/release/sanityCheckPackages.js $RELEASE_VERSION
+            - name: Sanity Check Versions
+              run: |
+                  node tools/release/sanityCheckPackages.js $RELEASE_VERSION
 
-      - name: Validate Dist Folders
-        run: |
-            ./tools/release/validateDistFolders.sh
+            - name: Validate Dist Folders
+              run: |
+                  ./tools/release/validateDistFolders.sh
 
-#      - name: Publish to npm
-#        run: ./scripts/deployments/release/publishDistArtifactsToNpm.sh
+            #      - name: Publish to npm
+            #        run: ./scripts/deployments/release/publishDistArtifactsToNpm.sh
 
-      - name: Sign Artifacts
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
-          GPG_PRIVATE_KEY_LOCATION: ${{ github.workspace }}/gpg-key.pem
-        run: |
-          echo "$GPG_PRIVATE_KEY" > $GPG_PRIVATE_KEY_LOCATION
-          gpg --import $GPG_PRIVATE_KEY_LOCATION
-            ./tools/release/performSigningActions.sh "$GPG_PUBLIC_KEY"
+            - name: Sign Artifacts
+              env:
+                  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+                  GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+                  GPG_PRIVATE_KEY_LOCATION: ${{ github.workspace }}/gpg-key.pem
+              run: |
+                  echo "$GPG_PRIVATE_KEY" > $GPG_PRIVATE_KEY_LOCATION
+                  gpg --import $GPG_PRIVATE_KEY_LOCATION
+                    ./tools/release/performSigningActions.sh "$GPG_PUBLIC_KEY"
 
-      - name: Create GitHub Release
-        env:
-          PRIVATE_KEY: |
-            ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
-          KEY_LOCATION: ${{ github.workspace }}/key.pem
-        run: |
-          echo "$PRIVATE_KEY" > $KEY_LOCATION
+            - name: Create GitHub Release
+              env:
+                  PRIVATE_KEY: |
+                      ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+                  KEY_LOCATION: ${{ github.workspace }}/key.pem
+              run: |
+                  echo "$PRIVATE_KEY" > $KEY_LOCATION
 
-            node ./tools/release/createGitHubReleaseAttachArtifacts.mjs \
-            --app-id=${{ env.DEPLOYMENT_APP_ID }} \
-            --installation-id=${{ secrets.AG_AUTOMATED_RELEASE_INSTALLATION_ID }} \
-            --private-key-path=$KEY_LOCATION \
-            --release-version=$RELEASE_VERSION \
-            --artifacts-path=./dist/artifacts
-
-
+                    node ./tools/release/createGitHubReleaseAttachArtifacts.mjs \
+                    --app-id=${{ env.DEPLOYMENT_APP_ID }} \
+                    --installation-id=${{ secrets.AG_AUTOMATED_RELEASE_INSTALLATION_ID }} \
+                    --private-key-path=$KEY_LOCATION \
+                    --release-version=$RELEASE_VERSION \
+                    --artifacts-path=./dist/artifacts
