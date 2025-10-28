@@ -104,7 +104,7 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     range: 'tooltip' | 'node' = 'tooltip';
 
     @Property
-    bringToFront: boolean = false;
+    bringToFront: boolean = true;
 
     @Property
     readonly highlightedItem: HighlightOptions<TOpts> = {};

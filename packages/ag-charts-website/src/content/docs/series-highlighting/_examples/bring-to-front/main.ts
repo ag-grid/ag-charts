@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -14,29 +14,34 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'subscriptions',
             yName: 'Subscriptions',
-            highlight: {
-                bringToFront: true,
-            },
         },
         {
             type: 'area',
             xKey: 'month',
             yKey: 'services',
             yName: 'Services',
-            highlight: {
-                bringToFront: true,
-            },
         },
         {
             type: 'area',
             xKey: 'month',
             yKey: 'products',
             yName: 'Products',
-            highlight: {
-                bringToFront: true,
-            },
         },
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function enableBringToFront() {
+    options.series!.forEach((series) => {
+        (series as AgAreaSeriesOptions).highlight = { bringToFront: true };
+    });
+    chart.update(options);
+}
+
+function disableBringToFront() {
+    options.series!.forEach((series) => {
+        (series as AgAreaSeriesOptions).highlight = { bringToFront: false };
+    });
+    chart.update(options);
+}
