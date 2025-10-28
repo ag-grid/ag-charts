@@ -31,7 +31,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleTheme<'nightingale'> = {
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
         },
-        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        highlight: { ..._ModuleSupport.multiSeriesHighlightStyle(), bringToFront: false },
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {

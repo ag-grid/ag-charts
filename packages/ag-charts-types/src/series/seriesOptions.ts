@@ -29,7 +29,7 @@ export interface AgMultiSeriesHighlightOptions<
     unhighlightedSeries?: SeriesHighlightStyleOptions;
     /** Show this series in front when highlighted.
      *
-     * Default: `false`
+     * Default: `true`
      */
     bringToFront?: boolean;
 }

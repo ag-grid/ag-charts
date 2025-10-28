@@ -42,9 +42,9 @@ describe('Chart highlighting', () => {
                 { x: 'C', line1: 20, line2: 20, bar: 30 },
             ],
             series: [
-                { type: 'bar', xKey: 'x', yKey: 'bar', highlight: { bringToFront: true } },
-                { type: 'line', xKey: 'x', yKey: 'line1', highlight: { bringToFront: true } },
-                { type: 'line', xKey: 'x', yKey: 'line2', highlight: { bringToFront: true } },
+                { type: 'bar', xKey: 'x', yKey: 'bar', highlight: { bringToFront: false } },
+                { type: 'line', xKey: 'x', yKey: 'line1', highlight: { bringToFront: false } },
+                { type: 'line', xKey: 'x', yKey: 'line2', highlight: { bringToFront: false } },
             ],
         });
 
