@@ -85,17 +85,17 @@ jobs:
                   gpg --import $GPG_PRIVATE_KEY_LOCATION
                     ./tools/release/performSigningActions.sh "$GPG_PUBLIC_KEY"
 
-            - name: Create GitHub Release
-              env:
-                  PRIVATE_KEY: |
-                      ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
-                  KEY_LOCATION: ${{ github.workspace }}/key.pem
-              run: |
-                  echo "$PRIVATE_KEY" > $KEY_LOCATION
-
-                    node ./tools/release/createGitHubReleaseAttachArtifacts.mjs \
-                    --app-id=${{ env.DEPLOYMENT_APP_ID }} \
-                    --installation-id=${{ secrets.AG_AUTOMATED_RELEASE_INSTALLATION_ID }} \
-                    --private-key-path=$KEY_LOCATION \
-                    --release-version=$RELEASE_VERSION \
-                    --artifacts-path=./dist/artifacts
+#            - name: Create GitHub Release
+#              env:
+#                  PRIVATE_KEY: |
+#                      ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+#                  KEY_LOCATION: ${{ github.workspace }}/key.pem
+#              run: |
+#                  echo "$PRIVATE_KEY" > $KEY_LOCATION
+#
+#                    node ./tools/release/createGitHubReleaseAttachArtifacts.mjs \
+#                    --app-id=${{ env.DEPLOYMENT_APP_ID }} \
+#                    --installation-id=${{ secrets.AG_AUTOMATED_RELEASE_INSTALLATION_ID }} \
+#                    --private-key-path=$KEY_LOCATION \
+#                    --release-version=$RELEASE_VERSION \
+#                    --artifacts-path=./dist/artifacts
