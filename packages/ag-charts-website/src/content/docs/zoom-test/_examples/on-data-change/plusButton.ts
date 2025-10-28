@@ -62,7 +62,8 @@ function computeNewValue(
     parser: (row: HTMLTableRowElement | undefined, index: number) => number,
     topRow: HTMLTableRowElement | undefined,
     bottomRow: HTMLTableRowElement | undefined,
-    index: number
+    index: number,
+    defaultIncrement: number,
 ): number {
     // When:
     // -   Inserting in the middle, we take the average of x, y1, y2, y3 from topRow / bottomRow.
@@ -73,9 +74,9 @@ function computeNewValue(
         const bottomValue = parser(bottomRow, index);
         return Math.floor((topValue + bottomValue) / 2);
     } else if (topRow) {
-        return parser(topRow, index) + 1;
+        return parser(topRow, index) + defaultIncrement;
     } else if (bottomRow) {
-        return parser(bottomRow, index) - 1;
+        return parser(bottomRow, index) - defaultIncrement;
     } else {
         return 0;
     }
@@ -99,11 +100,11 @@ function createButtonClickHandler(table: HTMLTableElement, insertIndex: number):
 
             if (i === 0) {
                 // Handle x value
-                let newX = computeNewValue(parseX, topRow, bottomRow, i);
+                let newX = computeNewValue(parseX, topRow, bottomRow, i, 100);
                 td.textContent = newX.toString();
             } else {
                 // Handle y1, y2, y3
-                let newY = computeNewValue(parseY, topRow, bottomRow, i);
+                let newY = computeNewValue(parseY, topRow, bottomRow, i, 3);
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.value = newY.toString();
