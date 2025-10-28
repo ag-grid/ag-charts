@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
 
 import { type AnnotationContext } from '../annotationTypes';
 import type { ShapePointProperties } from '../properties/shapePointProperties';
@@ -21,7 +21,7 @@ export abstract class ShapePointScene<Datum extends ShapePointProperties> extend
         this.updateShape(datum, coords);
     }
 
-    private updateShape(datum: Datum, point: _ModuleSupport.Vec2) {
+    private updateShape(datum: Datum, point: Point) {
         this.updateShapeStyles(datum);
         this.updateShapePath(datum, point);
     }
@@ -33,7 +33,7 @@ export abstract class ShapePointScene<Datum extends ShapePointProperties> extend
         shape.fillOpacity = datum.fillOpacity ?? 1;
     }
 
-    protected updateShapePath(datum: Datum, point: _ModuleSupport.Vec2) {
+    protected updateShapePath(datum: Datum, point: Point) {
         const { shape } = this;
         shape.x = point.x;
         shape.y = point.y;

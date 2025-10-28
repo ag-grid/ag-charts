@@ -38,8 +38,6 @@ export * from './util/stateMachine';
 export * from './util/timeFormatDefaults';
 export * from './util/time';
 export * from './util/properties';
-export * from './util/vector';
-export * from './util/vector4';
 export * from './core/eventsHub';
 export * from './module/optionsModule';
 export * from './module/axisContext';

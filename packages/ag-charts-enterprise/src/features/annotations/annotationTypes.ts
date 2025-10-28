@@ -87,14 +87,7 @@ export function stringToAnnotationType(value: unknown) {
     }
 }
 
-export interface Bounds {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-export interface Point {
+export interface DataPoint {
     x?: PointType;
     y?: PointType;
 }

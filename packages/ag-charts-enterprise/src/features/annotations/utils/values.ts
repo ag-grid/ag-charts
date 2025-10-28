@@ -1,7 +1,7 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
 
 import type { PointProperties } from '../annotationProperties';
-import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext, DataPoint } from '../annotationTypes';
 import { getGrouping } from './scale';
 
 export function convertLine(
@@ -18,14 +18,17 @@ export function convertLine(
     return { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
 }
 
-export function convertPoint(point: Point, context: AnnotationContext) {
+export function convertPoint(point: DataPoint, context: AnnotationContext) {
     const x = convert(point.x, context.xAxis);
     const y = convert(point.y, context.yAxis);
 
     return { x, y };
 }
 
-export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scale' | 'snapToGroup'>): number {
+export function convert(
+    p: DataPoint['x' | 'y'],
+    context: Pick<AnnotationAxisContext, 'scale' | 'snapToGroup'>
+): number {
     if (p == null) return 0;
 
     const { value, groupPercentage } = getGrouping(p);
@@ -40,7 +43,7 @@ export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext
     return scale.convert(value) + offset;
 }
 
-export function invertCoords(coords: _ModuleSupport.Vec2, context: AnnotationContext) {
+export function invertCoords(coords: Point, context: AnnotationContext) {
     const x = invert(coords.x, context.xAxis);
     const y = invert(coords.y, context.yAxis);
 
@@ -48,7 +51,7 @@ export function invertCoords(coords: _ModuleSupport.Vec2, context: AnnotationCon
 }
 
 export function invert(
-    n: _ModuleSupport.Vec2['x' | 'y'],
+    n: number,
     context: Pick<AnnotationAxisContext, 'scale' | 'continuous' | 'scaleInvert' | 'scaleInvertNearest'>
 ) {
     const { scale } = context;

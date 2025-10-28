@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
@@ -6,8 +6,6 @@ import { getDragStartState, translate } from '../utils/coords';
 import { boundsIntersections } from '../utils/line';
 import { convertLine, convertPoint } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
-
-const { Vec2, Vec4 } = _ModuleSupport;
 
 export abstract class LinearScene<
     Datum extends {
@@ -19,14 +17,14 @@ export abstract class LinearScene<
     },
 > extends AnnotationScene {
     protected dragState?: {
-        offset: _ModuleSupport.Vec2;
-        start: _ModuleSupport.Vec2;
-        end: _ModuleSupport.Vec2;
+        offset: Point;
+        start: Point;
+        end: Point;
     };
 
     protected overflowContinuous = 0;
 
-    protected extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
+    protected extendLine({ x1, y1, x2, y2 }: Bounds4, datum: Datum, context: AnnotationContext) {
         // Clone the points to prevent mutating the original
         const linePoints = { x1, y1, x2, y2 };
 
@@ -61,14 +59,14 @@ export abstract class LinearScene<
         return linePoints;
     }
 
-    public dragStart(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
+    public dragStart(datum: Datum, target: Point, context: AnnotationContext) {
         this.dragState = {
             offset: target,
             ...getDragStartState({ start: datum.start, end: datum.end }, context),
         };
     }
 
-    public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
+    public drag(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean) {
         if (!datum.isWriteable()) return;
 
         if (this.activeHandle) {
@@ -78,14 +76,9 @@ export abstract class LinearScene<
         }
     }
 
-    protected abstract dragHandle(
-        datum: Datum,
-        target: _ModuleSupport.Vec2,
-        context: AnnotationContext,
-        snapping: boolean
-    ): void;
+    protected abstract dragHandle(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean): void;
 
-    protected dragAll(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
+    protected dragAll(datum: Datum, target: Point, context: AnnotationContext) {
         const { dragState } = this;
 
         if (!dragState) return;
@@ -93,7 +86,7 @@ export abstract class LinearScene<
         this.translatePoints(datum, dragState.start, dragState.end, Vec2.sub(target, dragState.offset), context);
     }
 
-    public translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
+    public translate(datum: Datum, translation: Point, context: AnnotationContext) {
         if (!datum.isWriteable()) return;
 
         this.translatePoints(
@@ -119,13 +112,7 @@ export abstract class LinearScene<
         return copiedDatum;
     }
 
-    protected translatePoints(
-        datum: Datum,
-        start: _ModuleSupport.Vec2,
-        end: _ModuleSupport.Vec2,
-        translation: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ) {
+    protected translatePoints(datum: Datum, start: Point, end: Point, translation: Point, context: AnnotationContext) {
         const vectors = this.getTranslatePointsVectors(start, end);
         const points = translate(vectors, translation, context, {
             overflowContinuous: this.overflowContinuous,
@@ -138,7 +125,7 @@ export abstract class LinearScene<
         datum.end.y = points.end.y;
     }
 
-    protected getTranslatePointsVectors(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2) {
+    protected getTranslatePointsVectors(start: Point, end: Point) {
         return { start, end };
     }
 }

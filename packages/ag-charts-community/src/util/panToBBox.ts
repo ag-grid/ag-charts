@@ -1,6 +1,4 @@
-import { type BoxBounds, clamp } from 'ag-charts-core';
-
-import { Vec4 } from './vector4';
+import { type Bounds4, type BoxBounds, Vec4, clamp } from 'ag-charts-core';
 
 type Ratios = { min: number; max: number };
 type XYRatios = { x: Ratios; y: Ratios };
@@ -20,7 +18,7 @@ function calcWorldAxis(viewportMin: number, viewportMax: number, ratio: Ratios):
     ];
 }
 
-function calcWorldVec4(viewport: Vec4, ratioX: Ratios, ratioY: Ratios): Vec4 {
+function calcWorldVec4(viewport: Bounds4, ratioX: Ratios, ratioY: Ratios): Bounds4 {
     const [x1, x2] = calcWorldAxis(viewport.x1, viewport.x2, ratioX);
     const [y1, y2] = calcWorldAxis(viewport.y1, viewport.y2, ratioY);
     return { x1, x2, y1, y2 };

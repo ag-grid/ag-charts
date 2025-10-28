@@ -1,8 +1,7 @@
-import { AbstractModuleInstance, createElement } from 'ag-charts-core';
+import { AbstractModuleInstance, type Point, createElement } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { getLastFocus } from '../../util/keynavUtil';
-import type { Vec2 } from '../../util/vector';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 
 const canvasOverlay = 'canvas-overlay';
@@ -136,7 +135,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         return this.element.firstElementChild as HTMLDivElement | undefined;
     }
 
-    protected updatePosition(position: Partial<Vec2>) {
+    protected updatePosition(position: Partial<Point>) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 

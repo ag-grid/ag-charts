@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isDate, isNumber } from 'ag-charts-core';
+import { type Bounds4, Vec2, Vec4, isDate, isNumber } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -18,8 +18,6 @@ import {
     QuickDatePriceRangeProperties,
 } from './measurerProperties';
 import { MeasurerStatisticsScene, QuickMeasurerStatisticsScene, type Statistics } from './measurerStatisticsScene';
-
-const { Vec2, Vec4 } = _ModuleSupport;
 
 export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     static override is(value: unknown): value is MeasurerScene {
@@ -101,11 +99,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         this.updateAnchor(datum, coords, context);
     }
 
-    private extendPerpendicular(
-        coords: _ModuleSupport.Vec4,
-        datum: MeasurerTypeProperties,
-        context: AnnotationContext
-    ) {
+    private extendPerpendicular(coords: Bounds4, datum: MeasurerTypeProperties, context: AnnotationContext) {
         const extended = {
             x1: Math.min(coords.x1, coords.x2),
             x2: Math.max(coords.x1, coords.x2),
@@ -146,7 +140,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         verticalEndCap.visible = direction !== 'horizontal';
     }
 
-    private updateLines(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
+    private updateLines(datum: MeasurerTypeProperties, coords: Bounds4) {
         const { horizontalLine, verticalLine } = this;
         const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -175,7 +169,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         }
     }
 
-    private updateText(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
+    private updateText(datum: MeasurerTypeProperties, coords: Bounds4) {
         const { direction } = datum;
         const center = Vec2.round(Vec4.center(coords), 0);
 
@@ -219,7 +213,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         this.verticalLine.setClipMask(id, verticalClipMask);
     }
 
-    private updateCaps(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
+    private updateCaps(datum: MeasurerTypeProperties, coords: Bounds4) {
         const { horizontalEndCap, verticalEndCap } = this;
         const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -248,7 +242,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         }
     }
 
-    private updateBoundingLines(datum: MeasurerTypeProperties, extendedCoords: _ModuleSupport.Vec4) {
+    private updateBoundingLines(datum: MeasurerTypeProperties, extendedCoords: Bounds4) {
         const { verticalStartLine, verticalEndLine, horizontalStartLine, horizontalEndLine } = this;
         const { direction } = datum;
         const { x1, y1, x2, y2 } = extendedCoords;
@@ -268,7 +262,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
-    private updateStatistics(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
+    private updateStatistics(datum: MeasurerTypeProperties, coords: Bounds4, context: AnnotationContext) {
         const point = Vec2.add(Vec4.bottomCenter(coords), Vec2.from(0, 10));
         const statistics: Statistics = { volume: this.getVolume(datum) };
 
@@ -291,7 +285,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     override updateAnchor(
         _datum: MeasurerTypeProperties,
-        coords: _ModuleSupport.Vec4,
+        coords: Bounds4,
         _context: AnnotationContext,
         _bbox?: _ModuleSupport.BBox
     ) {
@@ -301,9 +295,9 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     public getBackgroundPoints(
         _datum: MeasurerTypeProperties,
-        verticalStart: _ModuleSupport.Vec4,
-        verticalEnd: _ModuleSupport.Vec4,
-        _bounds: _ModuleSupport.Vec4
+        verticalStart: Bounds4,
+        verticalEnd: Bounds4,
+        _bounds: Bounds4
     ) {
         const [startStart, startEnd] = Vec2.from(verticalStart);
         const [endStart, endEnd] = Vec2.from(verticalEnd);
@@ -371,7 +365,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         return 'line';
     }
 
-    private getDateRangeBars(coords: _ModuleSupport.Vec4, context: AnnotationContext) {
+    private getDateRangeBars(coords: Bounds4, context: AnnotationContext) {
         const { step } = context.xAxis.scale;
         const sign = coords.x1 <= coords.x2 ? 1 : -1;
         return step ? Math.round(Vec4.width(coords) / step) * sign : 0;

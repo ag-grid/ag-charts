@@ -1,8 +1,8 @@
 import type { DatumDefault, ExtensibleTheme, SeriesDefaultAxes, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
-import type { Point } from '../utils/boxBounds';
 import type { OptionsDefs, ValidationResult } from '../utils/validation';
 import type { ScaleType } from './scaleTypes';
+import type { Point } from './sceneTypes';
 
 export enum ModuleType {
     Chart = 'chart',

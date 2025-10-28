@@ -1,9 +1,8 @@
-import { type BoxBounds, clamp, createElement } from 'ag-charts-core';
+import { type BoxBounds, type Point, clamp, createElement } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { getIconClassNames } from '../../util/dom';
-import type { Vec2 } from '../../util/vector';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { DraggablePopover } from '../popover/draggablePopover';
 import type { PopoverOptions } from '../popover/popover';
@@ -92,7 +91,7 @@ class FloatingToolbarPopover extends DraggablePopover {
         if (element) element.style.pointerEvents = 'unset';
     }
 
-    protected override updatePosition(position: Vec2) {
+    protected override updatePosition(position: Point) {
         const bounds = this.getBounds();
 
         const canvasRect = this.ctx.domManager.getBoundingClientRect();

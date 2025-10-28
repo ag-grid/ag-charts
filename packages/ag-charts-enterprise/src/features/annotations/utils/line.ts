@@ -1,6 +1,5 @@
 import { type AgAnnotationLineStyleType, type PixelSize, _ModuleSupport } from 'ag-charts-community';
-
-const { Vec2 } = _ModuleSupport;
+import { type Bounds4, type Point, Vec2 } from 'ag-charts-core';
 
 export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
     return lineDash ? 'dashed' : lineStyle ?? 'solid';
@@ -39,10 +38,7 @@ export function getLineCap(
 /**
  * Find the pair of points where a line intersects a bounding box.
  */
-export function boundsIntersections(
-    coords: _ModuleSupport.Vec4,
-    bounds: _ModuleSupport.BBox
-): [_ModuleSupport.Vec2, _ModuleSupport.Vec2] {
+export function boundsIntersections(coords: Bounds4, bounds: _ModuleSupport.BBox): [Point, Point] {
     const [p1, p2] = Vec2.from(coords);
 
     const reflection = bounds.height;
@@ -53,7 +49,7 @@ export function boundsIntersections(
     const fallback = [
         { x: p1.x, y: reflection ?? 0 },
         { x: p1.x, y: reflection == null ? bounds.height : reflection - bounds.height },
-    ] as [_ModuleSupport.Vec2, _ModuleSupport.Vec2];
+    ] as [Point, Point];
 
     // When a line is vertical the gradient is infinity and none of our intersections will be valid, so shortcut and
     // return the fallback value.
@@ -82,5 +78,5 @@ export function boundsIntersections(
         return fallback;
     }
 
-    return points as [_ModuleSupport.Vec2, _ModuleSupport.Vec2];
+    return points as [Point, Point];
 }

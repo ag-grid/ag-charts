@@ -1,4 +1,5 @@
 import type { AgSeriesAreaContextMenuActionEvent, _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -114,7 +115,7 @@ export class ZoomContextMenu {
         this.zoomManager.resetZoom('zoom');
     }
 
-    private iterateFindNextZoomAtPoint(origin: _ModuleSupport.Vec2) {
+    private iterateFindNextZoomAtPoint(origin: Point) {
         const { scrollingStep } = this.getModuleProperties();
 
         for (let i = scrollingStep; i <= 1 - scrollingStep; i += scrollingStep) {
@@ -125,7 +126,7 @@ export class ZoomContextMenu {
         }
     }
 
-    private getNextZoomAtPoint(origin: _ModuleSupport.Vec2, step: number) {
+    private getNextZoomAtPoint(origin: Point, step: number) {
         const { isScalingX, isScalingY } = this.getModuleProperties();
 
         const zoom = definedZoomState(this.zoomManager.getZoom());

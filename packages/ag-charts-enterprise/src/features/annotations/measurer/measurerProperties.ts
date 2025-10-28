@@ -15,7 +15,7 @@ import {
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type Constructor,
-    type Point,
+    type DataPoint,
 } from '../annotationTypes';
 import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
@@ -43,7 +43,7 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
     @Property
     public statistics = new MeasurerStatistics();
 
-    public getVolume: (from: Point['x'], to: Point['x']) => number | undefined = () => undefined;
+    public getVolume: (from: DataPoint['x'], to: DataPoint['x']) => number | undefined = () => undefined;
 
     @Property
     text = new LineTextProperties();

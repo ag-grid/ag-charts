@@ -1,11 +1,12 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
 
 import type {
     AnnotationContext,
     AnnotationLineStyle,
     AnnotationOptionsColorPickerType,
     AnnotationType,
-    Point,
+    DataPoint,
 } from '../annotationTypes';
 import type {
     LinearSettingsDialogLineChangeProps,
@@ -20,34 +21,34 @@ export type AnnotationStateEvents = InteractionEvents &
 
 type InteractionEvents = {
     click: {
-        point: Point;
+        point: DataPoint;
         shiftKey: boolean;
         bbox?: _ModuleSupport.BBox;
         textInputValue?: string;
     };
     dblclick: {
-        offset: _ModuleSupport.Vec2;
+        offset: Point;
     };
     drag: {
         context: AnnotationContext;
-        offset: _ModuleSupport.Vec2;
-        point: Point;
+        offset: Point;
+        point: DataPoint;
         shiftKey: boolean;
         bbox?: _ModuleSupport.BBox;
         textInputValue?: string;
     };
     dragStart: {
         context: AnnotationContext;
-        offset: _ModuleSupport.Vec2;
-        point: Point;
+        offset: Point;
+        point: DataPoint;
         bbox: _ModuleSupport.BBox | undefined;
         textInputValue: string | undefined;
     };
     dragEnd: undefined;
     hover: {
         context: AnnotationContext;
-        offset: _ModuleSupport.Vec2;
-        point: Point;
+        offset: Point;
+        point: DataPoint;
         shiftKey: boolean;
     };
     keyDown: {
@@ -75,7 +76,7 @@ type ActionEvents = {
     copy: undefined;
     cut: undefined;
     paste: undefined;
-    translate: { translation: _ModuleSupport.Vec2 };
+    translate: { translation: Point };
     translateEnd: undefined;
     color: {
         colorPickerType: AnnotationOptionsColorPickerType;

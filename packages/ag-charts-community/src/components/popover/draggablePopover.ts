@@ -1,4 +1,6 @@
-import { Vec2 } from '../../util/vector';
+import type { Point } from 'ag-charts-core';
+import { Vec2 } from 'ag-charts-core';
+
 import type { NativeWidget } from '../../widget/nativeWidget';
 import type { DragWidgetEvent } from '../../widget/widgetEvents';
 import { Popover, type PopoverOptions } from './popover';
@@ -8,7 +10,7 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
 
     protected dragged = false;
 
-    private dragStartState?: { client: Vec2; position: Vec2 };
+    private dragStartState?: { client: Point; position: Point };
 
     public setDragHandle(dragHandle: NativeWidget) {
         dragHandle.addListener('drag-start', (event) => {
@@ -51,7 +53,7 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
 
         const bounds = this.ctx.domManager.getBoundingClientRect();
 
-        const partialPosition: Partial<Vec2> = {};
+        const partialPosition: Partial<Point> = {};
 
         if (position.x >= 0 && position.x + popover.offsetWidth <= bounds.width) {
             partialPosition.x = position.x;

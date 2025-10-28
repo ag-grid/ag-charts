@@ -1,12 +1,11 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
+import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { getBBox, updateTextNode } from '../text/util';
 import { convertLine } from '../utils/values';
 import { StartEndScene } from './startEndScene';
-
-const { Vec4 } = _ModuleSupport;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
     override activeHandle?: 'start' | 'end';
@@ -50,27 +49,23 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         return super.getNodeAtCoords(x, y);
     }
 
-    protected getTextBBox(datum: Datum, coords: _ModuleSupport.Vec4) {
+    protected getTextBBox(datum: Datum, coords: Bounds4) {
         const { text } = datum.getText();
 
         return getBBox(datum, text, Vec4.end(coords), this.textInputBBox);
     }
 
-    protected updateLabel(datum: Datum, bbox: _ModuleSupport.BBox, coords: _ModuleSupport.Vec4) {
+    protected updateLabel(datum: Datum, bbox: _ModuleSupport.BBox, coords: Bounds4) {
         const { text, isPlaceholder } = datum.getText();
 
         updateTextNode(this.label, text, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
     }
 
-    protected updateShape(_datum: Datum, _textBBox: _ModuleSupport.BBox, _coords: _ModuleSupport.Vec4) {
+    protected updateShape(_datum: Datum, _textBBox: _ModuleSupport.BBox, _coords: Bounds4) {
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected getLabelCoords(
-        _datum: Datum,
-        _bbox: _ModuleSupport.BBox,
-        coords: _ModuleSupport.Vec4
-    ): _ModuleSupport.Vec2 {
+    protected getLabelCoords(_datum: Datum, _bbox: _ModuleSupport.BBox, coords: Bounds4): Point {
         return Vec4.end(coords);
     }
 

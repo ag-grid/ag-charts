@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
-import { Debug } from 'ag-charts-core';
+import { Debug, type Point } from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -130,7 +130,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
     protected hovered?: number;
 
     @StateMachineProperty()
-    protected hoverCoords?: _ModuleSupport.Vec2;
+    protected hoverCoords?: Point;
 
     @StateMachineProperty()
     protected copied?: AnnotationProperties;

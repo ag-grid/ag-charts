@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -10,8 +10,6 @@ import { translate } from '../utils/coords';
 import { updateChannelText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
-
-const { Vec2, Vec4 } = _ModuleSupport;
 
 type ChannelHandle = keyof ParallelChannelScene['handles'];
 type DivariantChannelHandle = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
@@ -42,7 +40,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     override dragHandle(
         datum: ParallelChannelProperties,
-        target: _ModuleSupport.Vec2,
+        target: Point,
         context: AnnotationContext,
         snapping: boolean
     ) {
@@ -114,7 +112,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         datum.height = points.topLeft.y - points.bottomLeft.y;
     }
 
-    protected override getTranslatePointsVectors(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2) {
+    protected override getTranslatePointsVectors(start: Point, end: Point) {
         const { bottomLeft, topLeft } = this.handles;
         const height = bottomLeft.getBBox().y - topLeft.getBBox().y;
         const bottomStart = Vec2.add(start, Vec2.from(0, height));
@@ -139,11 +137,11 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     override updateLines(
         datum: ParallelChannelProperties,
-        top: _ModuleSupport.Vec4,
-        bottom: _ModuleSupport.Vec4,
+        top: Bounds4,
+        bottom: Bounds4,
         context: AnnotationContext,
-        naturalTop: _ModuleSupport.Vec4,
-        naturalBottom: _ModuleSupport.Vec4
+        naturalTop: Bounds4,
+        naturalBottom: Bounds4
     ) {
         const { topLine, middleLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
@@ -184,7 +182,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         });
     }
 
-    override updateHandles(datum: ParallelChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+    override updateHandles(datum: ParallelChannelProperties, top: Bounds4, bottom: Bounds4) {
         const {
             handles: { topLeft, topMiddle, topRight, bottomLeft, bottomMiddle, bottomRight },
         } = this;
@@ -210,18 +208,13 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         });
     }
 
-    updateText(datum: ParallelChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+    updateText(datum: ParallelChannelProperties, top: Bounds4, bottom: Bounds4) {
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
 
         updateChannelText(true, top, bottom, datum.text, datum.strokeWidth, this.text, datum.text.label);
     }
 
-    override getBackgroundPoints(
-        datum: ParallelChannelProperties,
-        top: _ModuleSupport.Vec4,
-        bottom: _ModuleSupport.Vec4,
-        bounds: _ModuleSupport.Vec4
-    ) {
+    override getBackgroundPoints(datum: ParallelChannelProperties, top: Bounds4, bottom: Bounds4, bounds: Bounds4) {
         const isFlippedX = top.x1 > top.x2;
         const isFlippedY = top.y1 > top.y2;
         const outOfBoundsStart = top.x1 !== bottom.x1 && top.y1 !== bottom.y1;

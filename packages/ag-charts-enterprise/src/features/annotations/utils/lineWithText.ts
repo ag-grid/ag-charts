@@ -1,25 +1,24 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { type Bounds4, type Point, Vec2 } from 'ag-charts-core';
 
 import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';
 import type { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle } from '../scenes/handle';
 
-const { Vec2 } = _ModuleSupport;
-
 interface Numbers {
-    left: _ModuleSupport.Vec2;
-    right: _ModuleSupport.Vec2;
-    inset: _ModuleSupport.Vec2;
-    offset: _ModuleSupport.Vec2;
-    normal: _ModuleSupport.Vec2;
+    left: Point;
+    right: Point;
+    inset: Point;
+    offset: Point;
+    normal: Point;
     angle: number;
 }
 
 export function updateLineText(
     id: string,
     line: CollidableLine,
-    coords: _ModuleSupport.Vec4,
+    coords: Bounds4,
 
     textProperties?: Partial<LineTextProperties>,
     textNode?: CollidableText,
@@ -55,8 +54,8 @@ export function updateLineText(
 
 export function updateChannelText(
     offsetInsideTextLabel: boolean,
-    top: _ModuleSupport.Vec4,
-    bottom: _ModuleSupport.Vec4,
+    top: Bounds4,
+    bottom: Bounds4,
 
     textProperties: ChannelTextProperties,
     lineWidth?: number,
@@ -93,7 +92,7 @@ export function updateChannelText(
     setProperties(textNode, text, textProperties, point, numbers.angle, textBaseline);
 }
 
-function getNumbers(coords: _ModuleSupport.Vec4, fontSize?: number, strokeWidth?: number): Numbers {
+function getNumbers(coords: Bounds4, fontSize?: number, strokeWidth?: number): Numbers {
     let [left, right] = Vec2.from(coords);
     if (left.x > right.x) [left, right] = [right, left];
 
@@ -115,7 +114,7 @@ function positionAndAlignment(
     alignment?: 'left' | 'center' | 'right',
     offsetInsideTextLabel?: boolean
 ) {
-    let point: _ModuleSupport.Vec2;
+    let point: Point;
     if (alignment === 'right') {
         point = Vec2.sub(right, inset);
     } else if (alignment === 'center') {
@@ -141,7 +140,7 @@ function setProperties(
     scene: _ModuleSupport.TransformableText,
     text: string,
     textProperties: Partial<LineTextProperties> | Partial<ChannelTextProperties>,
-    point: _ModuleSupport.Vec2,
+    point: Point,
     angle: number,
     textBaseline: CanvasTextBaseline
 ) {

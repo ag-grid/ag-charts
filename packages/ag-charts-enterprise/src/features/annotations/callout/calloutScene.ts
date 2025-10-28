@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { Bounds4, BoxBounds, Point } from 'ag-charts-core';
 
-import { type AnnotationContext, AnnotationType, type Bounds } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import type { CalloutProperties } from './calloutProperties';
@@ -36,12 +37,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         this.append([this.shape, this.label, this.start, this.end]);
     }
 
-    override drag(
-        datum: CalloutProperties,
-        target: _ModuleSupport.Vec2,
-        context: AnnotationContext,
-        snapping: boolean
-    ) {
+    override drag(datum: CalloutProperties, target: Point, context: AnnotationContext, snapping: boolean) {
         if (!datum.isWriteable()) return;
 
         if (this.activeHandle === 'end') {
@@ -51,11 +47,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         }
     }
 
-    protected override getLabelCoords(
-        datum: CalloutProperties,
-        bbox: _ModuleSupport.BBox,
-        coords: _ModuleSupport.Vec4
-    ): _ModuleSupport.Vec2 {
+    protected override getLabelCoords(datum: CalloutProperties, bbox: BoxBounds, coords: Bounds4): Point {
         const padding = datum.getPadding();
         const {
             bodyBounds = {
@@ -85,7 +77,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
     protected override updateAnchor(
         datum: CalloutProperties,
-        coords: _ModuleSupport.Vec4,
+        coords: Bounds4,
         context: AnnotationContext,
         bbox: _ModuleSupport.BBox
     ) {
@@ -98,11 +90,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         };
     }
 
-    protected override updateShape(
-        datum: CalloutProperties,
-        textBBox: _ModuleSupport.BBox,
-        coords: _ModuleSupport.Vec4
-    ) {
+    protected override updateShape(datum: CalloutProperties, textBox: BoxBounds, coords: Bounds4) {
         const { shape } = this;
 
         // update shape styles
@@ -114,7 +102,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
         // update shape path
 
-        const { tailPoint, bodyBounds } = this.getDimensions(datum, textBBox, coords) ?? {};
+        const { tailPoint, bodyBounds } = this.getDimensions(datum, textBox, coords) ?? {};
         if (!tailPoint || !bodyBounds) {
             return;
         }
@@ -122,7 +110,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         this.updatePath(tailPoint, bodyBounds);
     }
 
-    private updatePath(tailPoint: _ModuleSupport.Vec2, bodyBounds: Bounds) {
+    private updatePath(tailPoint: Point, bodyBounds: BoxBounds) {
         const { x: tailX, y: tailY } = tailPoint;
         const { x, y, width, height } = bodyBounds;
 
@@ -292,10 +280,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         }
     }
 
-    private calculateCalloutPlacement(
-        placement: _ModuleSupport.Vec2,
-        bounds: { x: number; y: number; width: number; height: number }
-    ) {
+    private calculateCalloutPlacement(placement: Point, bounds: BoxBounds) {
         // bounds x and y are bottom left corner
         const right = bounds.x + bounds.width;
         const top = bounds.y - bounds.height;
@@ -322,19 +307,15 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         }
     }
 
-    public getDimensions(
-        datum: CalloutProperties,
-        textBBox: _ModuleSupport.BBox,
-        coords: _ModuleSupport.Vec4
-    ): CalloutDimensions | undefined {
+    public getDimensions(datum: CalloutProperties, textBox: BoxBounds, coords: Bounds4): CalloutDimensions | undefined {
         const { fontSize } = datum;
         const padding = datum.getPadding();
 
         const horizontalPadding = padding.left + padding.right;
         const verticalPadding = padding.top + padding.bottom;
 
-        const width = textBBox.width + horizontalPadding;
-        const height = Math.max(textBBox.height + verticalPadding, fontSize + verticalPadding);
+        const width = textBox.width + horizontalPadding;
+        const height = Math.max(textBox.height + verticalPadding, fontSize + verticalPadding);
 
         return {
             tailPoint: {
@@ -342,8 +323,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                 y: coords.y1,
             },
             bodyBounds: {
-                x: textBBox.x,
-                y: textBBox.y,
+                x: textBox.x,
+                y: textBox.y,
                 width,
                 height,
             },

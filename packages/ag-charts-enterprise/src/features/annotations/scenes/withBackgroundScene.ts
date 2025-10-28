@@ -1,26 +1,20 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
 import type { FillOptions } from 'ag-charts-types';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
-
-const { Vec4 } = _ModuleSupport;
 
 export class WithBackgroundScene {
     static updateBackground<Datum extends { background: FillOptions }>(
         this: AnnotationScene & {
             background: _ModuleSupport.Path;
             getBackgroundStyles?(datum: Datum): FillOptions;
-            getBackgroundPoints(
-                datum: Datum,
-                top: _ModuleSupport.Vec4,
-                bottom: _ModuleSupport.Vec4,
-                bounds: _ModuleSupport.Vec4
-            ): Array<_ModuleSupport.Vec2>;
+            getBackgroundPoints(datum: Datum, top: Bounds4, bottom: Bounds4, bounds: Bounds4): Point[];
         },
         datum: Datum,
-        top: _ModuleSupport.Vec4,
-        bottom: _ModuleSupport.Vec4,
+        top: Bounds4,
+        bottom: Bounds4,
         context: AnnotationContext
     ) {
         const { background } = this;

@@ -1,47 +1,12 @@
-import { roundTo } from 'ag-charts-core';
-
-export const Vec2 = {
-    add,
-    angle,
-    apply,
-    equal,
-    distance,
-    distanceSquared,
-    from,
-    gradient,
-    intercept,
-    intersectAtX,
-    intersectAtY,
-    length,
-    lengthSquared,
-    multiply,
-    normalized,
-    origin,
-    required,
-    rotate,
-    round,
-    sub,
-};
-
-export interface Vec2 {
-    x: number;
-    y: number;
-}
-
-// Avoiding circular deps, placing elsewhere causes issues of clashing Vec4.fn() naming
-interface Vec4 {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-}
+import type { Bounds4, Point } from '../interfaces/sceneTypes';
+import { roundTo } from './numbers';
 
 /**
  * Add the components of the vectors `a` and `b`.
  */
-function add(a: Vec2, b: Vec2): Vec2;
-function add(a: Vec2, b: number): Vec2;
-function add(a: Vec2, b: Vec2 | number): Vec2 {
+export function add(a: Point, b: Point): Point;
+export function add(a: Point, b: number): Point;
+export function add(a: Point, b: Point | number): Point {
     if (typeof b === 'number') {
         return { x: a.x + b, y: a.y + b };
     }
@@ -51,9 +16,9 @@ function add(a: Vec2, b: Vec2 | number): Vec2 {
 /**
  * Subtract the components of `b` from `a`.
  */
-function sub(a: Vec2, b: Vec2): Vec2;
-function sub(a: Vec2, b: number): Vec2;
-function sub(a: Vec2, b: Vec2 | number): Vec2 {
+export function sub(a: Point, b: Point): Point;
+export function sub(a: Point, b: number): Point;
+export function sub(a: Point, b: Point | number): Point {
     if (typeof b === 'number') {
         return { x: a.x - b, y: a.y - b };
     }
@@ -63,9 +28,9 @@ function sub(a: Vec2, b: Vec2 | number): Vec2 {
 /**
  * Multiply the components of `a` and `b`.
  */
-function multiply(a: Vec2, b: Vec2): Vec2;
-function multiply(a: Vec2, b: number): Vec2;
-function multiply(a: Vec2, b: Vec2 | number): Vec2 {
+export function multiply(a: Point, b: Point): Point;
+export function multiply(a: Point, b: number): Point;
+export function multiply(a: Point, b: Point | number): Point {
     if (typeof b === 'number') {
         return { x: a.x * b, y: a.y * b };
     }
@@ -75,7 +40,7 @@ function multiply(a: Vec2, b: Vec2 | number): Vec2 {
 /**
  * Get the length of a vector.
  */
-function length(a: Vec2) {
+export function length(a: Point) {
     return Math.hypot(a.x, a.y);
 }
 
@@ -83,14 +48,14 @@ function length(a: Vec2) {
  * Get the squared length of a vector. This method is faster than `length(a)` and is useful when making comparisons
  * where the precise length does not matter.
  */
-function lengthSquared(a: Vec2) {
+export function lengthSquared(a: Point) {
     return a.x * a.x + a.y * a.y;
 }
 
 /**
  * Get the distance between two vectors.
  */
-function distance(a: Vec2, b: Vec2) {
+export function distance(a: Point, b: Point) {
     return length(sub(a, b));
 }
 
@@ -98,14 +63,14 @@ function distance(a: Vec2, b: Vec2) {
  * Get the squared distance between two vectors. This method is faster than `distance(a, b)` and is useful when making
  * comparisons where the precise distance does not matter.
  */
-function distanceSquared(a: Vec2, b: Vec2) {
+export function distanceSquared(a: Point, b: Point) {
     return lengthSquared(sub(a, b));
 }
 
 /**
  * Normalize a vector so that each component is a value between 0 and 1 and the length of the vector is always 1.
  */
-function normalized(a: Vec2): Vec2 {
+export function normalized(a: Point): Point {
     const l = length(a);
     return { x: a.x / l, y: a.y / l };
 }
@@ -113,7 +78,7 @@ function normalized(a: Vec2): Vec2 {
 /**
  * Find the angle between two vectors.
  */
-function angle(a: Vec2, b?: Vec2) {
+export function angle(a: Point, b?: Point) {
     if (b == null) return Math.atan2(a.y, a.x);
     return Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x);
 }
@@ -122,7 +87,7 @@ function angle(a: Vec2, b?: Vec2) {
  * Rotate vector `a` by the angle `theta` around the origin `b`.
  * This rotation is not cumulative, i.e. `rotate(rotate(a, Math.PI), Math.PI) !== a`.
  */
-function rotate(a: Vec2, theta: number, b: Vec2 = origin()): Vec2 {
+export function rotate(a: Point, theta: number, b: Point = origin()): Point {
     const l = length(a);
     return { x: b.x + l * Math.cos(theta), y: b.y + l * Math.sin(theta) };
 }
@@ -131,7 +96,7 @@ function rotate(a: Vec2, theta: number, b: Vec2 = origin()): Vec2 {
  * Get the gradient of the line that intersects two points.
  * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
  */
-function gradient(a: Vec2, b: Vec2, reflection?: number) {
+export function gradient(a: Point, b: Point, reflection?: number) {
     const dx = b.x - a.x;
     const dy = reflection == null ? b.y - a.y : reflection - b.y - (reflection - a.y);
     return dy / dx;
@@ -142,7 +107,7 @@ function gradient(a: Vec2, b: Vec2, reflection?: number) {
  * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
-function intercept(a: Vec2, gradient: number, reflection?: number) {
+export function intercept(a: Point, gradient: number, reflection?: number) {
     const y = reflection == null ? a.y : reflection - a.y;
     return y - gradient * a.x;
 }
@@ -152,7 +117,7 @@ function intercept(a: Vec2, gradient: number, reflection?: number) {
  * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
-function intersectAtY(gradient: number, coefficient: number, y: number = 0, reflection?: number): Vec2 {
+export function intersectAtY(gradient: number, coefficient: number, y: number = 0, reflection?: number): Point {
     return {
         x: gradient === Infinity ? Infinity : (y - coefficient) / gradient,
         y: reflection == null ? y : reflection - y,
@@ -164,7 +129,7 @@ function intersectAtY(gradient: number, coefficient: number, y: number = 0, refl
  * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
-function intersectAtX(gradient: number, coefficient: number, x: number = 0, reflection?: number): Vec2 {
+export function intersectAtX(gradient: number, coefficient: number, x: number = 0, reflection?: number): Point {
     const y = gradient === Infinity ? Infinity : gradient * x + coefficient;
     return { x: x, y: reflection == null ? y : reflection - y };
 }
@@ -172,46 +137,46 @@ function intersectAtX(gradient: number, coefficient: number, x: number = 0, refl
 /**
  * Round each component of the vector.
  */
-function round(a: Vec2, decimals: number = 2): Vec2 {
+export function round(a: Point, decimals: number = 2): Point {
     return { x: roundTo(a.x, decimals), y: roundTo(a.y, decimals) };
 }
 
 /**
  * Check if the components of `a` and `b` are equal.
  */
-function equal(a: Vec2, b: Vec2): boolean {
+export function equal(a: Point, b: Point): boolean {
     return a.x === b.x && a.y === b.y;
 }
 
 /**
  * Create a vector from an `x` and `y`.
  */
-function from(x: number, y: number): Vec2;
+export function from(x: number, y: number): Point;
 /**
  * Create a vector from a widget event.
  */
-function from(event: { currentX: number; currentY: number }): Vec2;
+export function from(event: { currentX: number; currentY: number }): Point;
 /**
  * Create a vector from a html element's `offsetWidth` and `offsetHeight`.
  */
-function from(element: { offsetWidth: number; offsetHeight: number }): Vec2;
+export function from(element: { offsetWidth: number; offsetHeight: number }): Point;
 /**
  * Create a pair of vectors of the top left and bottom right of a bounding box.
  */
-function from(bbox: { x: number; y: number; width: number; height: number }): [Vec2, Vec2];
+export function from(bbox: { x: number; y: number; width: number; height: number }): [Point, Point];
 /**
  * Create a pair of vectors from a line or box containing a pair of coordinates.
  */
-function from(vec4: Vec4): [Vec2, Vec2];
-function from(
+export function from(vec4: Bounds4): [Point, Point];
+export function from(
     a:
         | number
         | { currentX: number; currentY: number }
         | { offsetWidth: number; offsetHeight: number }
         | { x: number; y: number; width: number; height: number }
-        | Vec4,
+        | Bounds4,
     b?: number
-): Vec2 | [Vec2, Vec2] {
+): Point | [Point, Point] {
     if (typeof a === 'number') {
         return { x: a, y: b! };
     }
@@ -245,22 +210,22 @@ function from(
 /**
  * Apply the components of `b` to `a` and return `a`.
  */
-function apply(a: Partial<Vec2>, b: Vec2): Vec2 {
+export function apply(a: Partial<Point>, b: Point): Point {
     a.x = b.x;
     a.y = b.y;
-    return a as Vec2;
+    return a as Point;
 }
 
 /**
  * Create a vector, defaulting the components to `0` if nullish.
  */
-function required(a?: Partial<Vec2>): Vec2 {
+export function required(a?: Partial<Point>): Point {
     return { x: a?.x ?? 0, y: a?.y ?? 0 };
 }
 
 /**
  * Create a vector at the origin point (0,0).
  */
-function origin(): Vec2 {
+export function origin(): Point {
     return { x: 0, y: 0 };
 }

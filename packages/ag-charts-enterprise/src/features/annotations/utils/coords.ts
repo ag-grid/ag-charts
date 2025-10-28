@@ -1,16 +1,16 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Scale, entries, toRadians } from 'ag-charts-core';
+import { type Point, type Scale, Vec2, entries, toRadians } from 'ag-charts-core';
 
-import type { AnnotationContext, Point } from '../annotationTypes';
+import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import { convertPoint, invertCoords } from './values';
 
-const { ContinuousScale, Vec2 } = _ModuleSupport;
+const { ContinuousScale } = _ModuleSupport;
 
 export function snapPoint(
-    offset: _ModuleSupport.Vec2,
+    offset: Point,
     context: AnnotationContext,
     snapping: boolean = false,
-    origin?: Point,
+    origin?: DataPoint,
     angleStep: number = 1
 ) {
     if (!snapping) return invertCoords(offset, context);
@@ -19,7 +19,7 @@ export function snapPoint(
     return invertCoords(snapToAngle(offset, center, angleStep), context);
 }
 
-export function snapToAngle(vector: _ModuleSupport.Vec2, center: _ModuleSupport.Vec2, step: number) {
+export function snapToAngle(vector: Point, center: Point, step: number) {
     const radial = Vec2.sub(vector, center);
     const stepRadians = toRadians(step);
     const theta = Math.round(Vec2.angle(radial) / stepRadians) * stepRadians;
@@ -28,13 +28,13 @@ export function snapToAngle(vector: _ModuleSupport.Vec2, center: _ModuleSupport.
 }
 
 export function getDragStartState<PointName extends string>(
-    points: Record<PointName, Point>,
+    points: Record<PointName, DataPoint>,
     context: AnnotationContext
 ) {
-    const dragState = {} as Record<PointName, _ModuleSupport.Vec2>;
+    const dragState = {} as Record<PointName, Point>;
 
     for (const [name, point] of entries(points)) {
-        dragState[name] = convertPoint(point as Point, context);
+        dragState[name] = convertPoint(point as DataPoint, context);
     }
 
     return dragState;
@@ -53,15 +53,15 @@ export function getDragStartState<PointName extends string>(
  * @returns A collection of translated points in domain space.
  */
 export function translate<VectorName extends string>(
-    vectors: Record<VectorName, _ModuleSupport.Vec2>,
-    translation: _ModuleSupport.Vec2,
+    vectors: Record<VectorName, Point>,
+    translation: Point,
     context: AnnotationContext,
     options: {
         overflowContinuous: number;
         translateVectors?: VectorName[];
         invertYVectors?: VectorName[];
         snap?: {
-            vectors: Record<VectorName, _ModuleSupport.Vec2>;
+            vectors: Record<VectorName, Point>;
             angle: number;
         };
     } = {
@@ -138,7 +138,7 @@ export function translate<VectorName extends string>(
         }
     }
 
-    const result = {} as Record<VectorName, _ModuleSupport.Vec2>;
+    const result = {} as Record<VectorName, Point>;
     for (const name of vectorNames) {
         result[name] = invertCoords(vectors[name], context);
     }

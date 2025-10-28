@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { calcLineHeight, clamp, wrapText } from 'ag-charts-core';
+import { type BoxBounds, type Point, calcLineHeight, clamp, wrapText } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -44,7 +44,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         super.update(datum, context);
     }
 
-    override getTextBBox(datum: NoteProperties, coords: _ModuleSupport.Vec2, context: AnnotationContext) {
+    override getTextBBox(datum: NoteProperties, coords: Point, context: AnnotationContext) {
         const bbox = super.getTextBBox(datum, coords, context);
 
         bbox.x -= datum.width / 2;
@@ -65,7 +65,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         return bbox;
     }
 
-    override updateLabel(datum: NoteProperties, bbox: _ModuleSupport.BBox): void {
+    override updateLabel(datum: NoteProperties, bbox: BoxBounds): void {
         const labelVisibility = datum.visible === false ? false : this.label.visible;
 
         super.updateLabel(datum, bbox);
@@ -79,7 +79,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         });
     }
 
-    override updateShape(datum: NoteProperties, bbox: _ModuleSupport.BBox) {
+    override updateShape(datum: NoteProperties, bbox: BoxBounds) {
         const { shape } = this;
         shape.fill = datum.background.fill;
         shape.fillOpacity = datum.background.fillOpacity ?? 1;
@@ -122,7 +122,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         }
     }
 
-    protected override updateAnchor(datum: NoteProperties, bbox: _ModuleSupport.BBox, context: AnnotationContext) {
+    protected override updateAnchor(datum: NoteProperties, bbox: BoxBounds, context: AnnotationContext) {
         const padding = datum.getPadding().top;
         const isPositionTop = datum.position === 'top';
         const direction = isPositionTop ? 1 : -1;
@@ -134,7 +134,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         };
     }
 
-    protected override getLabelCoords(datum: NoteProperties, bbox: _ModuleSupport.BBox): _ModuleSupport.Vec2 {
+    protected override getLabelCoords(datum: NoteProperties, bbox: BoxBounds): Point {
         const isPositionTop = datum.position === 'top';
         const padding = datum.getPadding().top + calcLineHeight(datum.fontSize, ANNOTATION_TEXT_LINE_HEIGHT) / 2;
 
@@ -145,11 +145,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         return datum.position === 'top' ? 'middle' : datum.position;
     }
 
-    protected override getHandleCoords(
-        _datum: NoteProperties,
-        coords: _ModuleSupport.Vec2,
-        _bbox: _ModuleSupport.BBox
-    ): _ModuleSupport.Vec2 {
+    protected override getHandleCoords(_datum: NoteProperties, coords: Point, _bbox: BoxBounds): Point {
         return {
             x: coords.x,
             y: coords.y + DivariantHandle.HANDLE_SIZE / 2 + 4,
