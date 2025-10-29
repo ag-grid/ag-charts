@@ -57,13 +57,6 @@
         "production": {}
       }
     },
-    "docs-resolved-interfaces": {
-      "executor": "nx:noop",
-      "dependsOn": ["^docs-resolved-interfaces"],
-      "inputs": [],
-      "outputs": [],
-      "cache": true
-    },
     "lint:eslint": {},
     "lint": {
       "executor": "nx:noop",
@@ -134,7 +127,7 @@
       }
     },
     "test:e2e": {
-      "dependsOn": ["^build", "docs-resolved-interfaces", "generate-examples", "generate-test-files"],
+      "dependsOn": ["^build", "generate-examples", "generate-test-files"],
       "inputs": ["{projectRoot}/playwright.config.ts", "{projectRoot}/e2e/**", { "env": "NX_BASE" }],
       "outputs": [],
       "command": "./playwright.sh --host test",
