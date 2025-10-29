@@ -195,3 +195,19 @@ reason = "undici is only used for development"
 [[IgnoredVulns]]
 id = "GHSA-3h5v-q93c-6h6q"
 reason = "ws is only used for development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-67mh-4wv8-2f99"
+reason = "esbuild dev server is only used for development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-968p-4wvh-cqc8"
+reason = "babel is only used for development, so inefficiencies only impact dev experience"
+
+[[IgnoredVulns]]
+id = "GHSA-5ff5-9fcw-vg88"
+reason = "astro is only used for generating a static site, so server vulnerabilities do not apply"
+
+[[IgnoredVulns]]
+id = "GHSA-gcx4-mw62-g8wm"
+reason = "rollup is only used for development, so does not impact production code"
