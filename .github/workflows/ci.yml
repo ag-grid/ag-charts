@@ -432,6 +432,8 @@ jobs:
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 
             - name: Merge JUnit Report XMLs
+              if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped'
+              continue-on-error: true
               run: |
                   yarn global add junit-report-merger
                   reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
