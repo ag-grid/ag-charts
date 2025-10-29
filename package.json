@@ -152,13 +152,11 @@
       "tests/vue-package-tests"
     ],
     "nohoist": [
+      "**/lru-cache",
       "**/tinypool",
       "**/@vue/**",
       "**/vue",
-      "**/vue-template-compiler",
-      "ag-charts-angular/**",
-      "ag-charts-react/**",
-      "ag-charts-vue3/**"
+      "**/vue-template-compiler"
     ]
   },
   "resolutions": {
