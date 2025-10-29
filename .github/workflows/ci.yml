@@ -83,7 +83,7 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx run-many -t build,generate-example --exclude tag:skip-gha-cache,all
+                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all
 
             - name: Build tests
               run: yarn nx run-many -t generate-test-files
