@@ -5,7 +5,7 @@
   "dependencies": {
     "ag-shared": "0.0.1",
     "glob": "8.0.3",
-    "typescript": "^5.4.5",
+    "typescript": "~5.4.5",
     "cheerio": "^1.0.0-rc.12",
     "sucrase": "^3.32.0",
     "json5": "2.2.3",

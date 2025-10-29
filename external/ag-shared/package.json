@@ -34,7 +34,7 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^5.4.5",
+    "typescript": "~5.4.5",
     "glob": "8.0.3",
     "@nx/devkit": "^18.3.4",
     "@types/yargs": "^17.0.32",

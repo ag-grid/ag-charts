@@ -46,7 +46,7 @@
   "devDependencies": {
     "ag-charts-community": "12.3.1",
     "@types/node": "18.18.11",
-    "typescript": "^5.4.5",
+    "typescript": "~5.4.5",
     "vue": "^3.5.0",
     "@babel/types": "7.17.12",
     "rimraf": "3.0.2"

@@ -85,7 +85,7 @@
     "pixelmatch": "^5.2.1",
     "rimraf": "3.0.2",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.4.5"
+    "typescript": "~5.4.5"
   },
   "dependencies": {
     "ag-charts-community": "12.3.1",

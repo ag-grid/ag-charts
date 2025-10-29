@@ -44,7 +44,7 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "tslib": "^1.10.0",
-    "typescript": "^5.4.5",
+    "typescript": "~5.4.5",
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
