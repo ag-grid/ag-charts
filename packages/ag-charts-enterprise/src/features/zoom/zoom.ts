@@ -2,6 +2,7 @@ import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _W
 import { AbstractModuleInstance, type AxisID, debounce, entries, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
+import { ZoomAutoScaler, ZoomAutoScalingProperties } from './zoomAutoScale';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomContextMenu } from './zoomContextMenu';
 import { ZoomDOMProxy } from './zoomDOMProxy';
@@ -46,33 +47,6 @@ enum DragState {
     Pan,
     Select,
     TwoFingers,
-}
-
-interface ZoomAutoScale {
-    enabled: boolean;
-    padding: number;
-}
-
-class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoScale {
-    constructor(protected onChange: (opts: ZoomAutoScale) => void) {
-        super();
-    }
-
-    @Property
-    @ActionOnSet<ZoomAutoScaling>({
-        changeValue(enabled) {
-            this.onChange({ enabled, padding: this.padding });
-        },
-    })
-    enabled = false;
-
-    @Property
-    @ActionOnSet<ZoomAutoScaling>({
-        changeValue(padding) {
-            this.onChange({ enabled: this.enabled, padding });
-        },
-    })
-    padding = 0;
 }
 
 export class Zoom extends AbstractModuleInstance {
@@ -145,9 +119,7 @@ export class Zoom extends AbstractModuleInstance {
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
     @Property
-    public readonly autoScaling = new ZoomAutoScaling((newValue) => {
-        this.ctx.zoomManager.setAutoScaleYAxis(newValue.enabled, newValue.padding);
-    });
+    public readonly autoScaling = new ZoomAutoScalingProperties();
 
     @ActionOnSet<Zoom>({
         changeValue(newValue) {
@@ -173,6 +145,7 @@ export class Zoom extends AbstractModuleInstance {
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
+    private readonly autoScaler = new ZoomAutoScaler(this.autoScaling);
     private readonly contextMenu: ZoomContextMenu;
     private readonly panner = new ZoomPanner();
     private readonly selector: ZoomSelector;
