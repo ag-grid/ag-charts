@@ -1,0 +1,197 @@
+# we ignore all octokit packages because we dont have any incoming/user driven requests to it and only
+# use to create and upload releases
+[[PackageOverrides]]
+name = "octokit"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/endpoint"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/app"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/core"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/oauth-app"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-paginate-graphql"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-paginate-rest"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-rest-endpoint-methods"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-retry"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-throttling"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/request-error"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/request"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/types"
+ignore = true
+
+# We don't use vite to serve files outside of development
+[[PackageOverrides]]
+name = "vite"
+ignore = true
+
+# We don't use http-proxy-middleware to serve files outside of development
+[[PackageOverrides]]
+name = "http-proxy-middleware"
+ignore = true
+
+# We don't use webpack-dev-* to serve files outside of development
+[[PackageOverrides]]
+name = "webpack-dev-server"
+ignore = true
+
+[[PackageOverrides]]
+name = "webpack-dev-middleware"
+ignore = true
+
+
+[[IgnoredVulns]]
+id = "GHSA-67mh-4wv8-2f99"
+reason = "We do not use the esbuild development server"
+
+[[IgnoredVulns]]
+id = "GHSA-3p6v-hrg8-8qj7"
+reason = "Used for MCP server, not exposed to end users"
+
+[[IgnoredVulns]]
+id = "GHSA-4hjh-wcwx-xvwj"
+reason = "We only use axios for build and testing"
+
+[[IgnoredVulns]]
+id = "GHSA-jr5f-v2jv-69x6"
+reason = "We only use axios for build and testing"
+
+[[IgnoredVulns]]
+id = "GHSA-qwcr-r2fm-qrc7"
+reason = "We only use body-parser for the dev server"
+
+[[IgnoredVulns]]
+id = "GHSA-v6h2-p8h4-qcjw"
+reason = "Low risk and determined to not be exploitable in our use case"
+
+[[IgnoredVulns]]
+id = "GHSA-grv7-fg5c-xmjg"
+reason = "braces is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-pxg6-pf52-xh8x"
+reason = "cookie is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-3xgq-45jj-v275"
+reason = "cross-spawn is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-ghr5-ch3p-vcr6"
+reason = "ejs is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-qw6h-vgh9-j6wx"
+reason = "express is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-rv95-896h-c2vc"
+reason = "express is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-cxjh-pqwp-8mfp"
+reason = "follow-redirects is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-fjxv-7rqg-78g4"
+reason = "We do not use form-data directly and where it is used is only for testing or dev environments"
+
+[[IgnoredVulns]]
+id = "GHSA-mwcw-c2x4-8c55"
+reason = "nanoid is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-76c9-3jph-rj3q"
+reason = "We do not use on-headers directly and where it is used is only for development"
+
+[[IgnoredVulns]]
+id = "GHSA-9wv6-86v2-598j"
+reason = "We do not use path-to-regexp directly and where it is used is only for development"
+
+[[IgnoredVulns]]
+id = "GHSA-rhx6-c78j-4q9w"
+reason = "We do not use path-to-regexp directly and where it is used is only for development"
+
+[[IgnoredVulns]]
+id = "GHSA-7mvr-c777-76hp"
+reason = "playwright is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-x7hr-w5r2-h6wg"
+reason = "prismjs is only used during the build - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-p8p7-x288-28g6"
+reason = "request calls are only used in our build"
+
+[[IgnoredVulns]]
+id = "GHSA-m6fv-jmcg-4jfg"
+reason = "send is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-76p7-773f-r4q5"
+reason = "serialize-javascript is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-cm22-4g7w-348p"
+reason = "serialize-javascript is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-f5x3-32g6-xq36"
+reason = "tar is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-vj76-c3g6-qr5v"
+reason = "tar-fs is only used for testing"
+
+[[IgnoredVulns]]
+id = "GHSA-52f5-9888-hmc6"
+reason = "Low risk and determined to not be exploitable in our use case"
+
+[[IgnoredVulns]]
+id = "GHSA-72xf-g2v4-qvf3"
+reason = "tough-cookie is only used for testing and development"
+
+[[IgnoredVulns]]
+id = "GHSA-c76h-2ccp-4975"
+reason = "undici is only used for development"
+
+[[IgnoredVulns]]
+id = "GHSA-cxrh-j4jr-qwg3"
+reason = "undici is only used for development"
+
+[[IgnoredVulns]]
+id = "GHSA-3h5v-q93c-6h6q"
+reason = "ws is only used for development/testing - it's not used in the final production build"
