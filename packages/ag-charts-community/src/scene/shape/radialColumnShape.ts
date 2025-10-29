@@ -138,12 +138,24 @@ export class RadialColumnShape<D = any> extends Path<D> {
 
     private calculateCircleIntersection(x: number, radiusSquared: number): CircleIntersection | null {
         const xSquared = x * x;
-        if (radiusSquared <= xSquared) {
+        if (radiusSquared < xSquared) {
             return null;
         }
         const y = -Math.sqrt(radiusSquared - xSquared);
         const angle = Math.atan2(y, x);
         return { y, angle };
+    }
+
+    private calculateBothIntersections(left: number, right: number, radius: number) {
+        const radiusSquared = radius * radius;
+        const leftInt = this.calculateCircleIntersection(left, radiusSquared);
+        const rightInt = this.calculateCircleIntersection(right, radiusSquared);
+
+        if (!leftInt || !rightInt) {
+            return null;
+        }
+
+        return { left: leftInt, right: rightInt };
     }
 
     private calculateAxisOuterIntersections(left: number, right: number, axisOuterRadius: number) {
@@ -172,18 +184,15 @@ export class RadialColumnShape<D = any> extends Path<D> {
         this.path.lineTo(point.x, point.y);
     }
 
-    private renderCornerClippingArcs(
+    private renderTopWithCornerClipping(
         axisOuterRadius: number,
-        geometry: BevelGeometry,
         axisOuter: { left: CircleIntersection; right: CircleIntersection; radiusSquared: number },
-        renderBottomEdge: () => void
+        geometry: BevelGeometry
     ) {
         const { path } = this;
         const { right, top, rotation } = geometry;
         const topSquared = top * top;
         const topIntersectionSquared = axisOuter.radiusSquared - topSquared;
-
-        renderBottomEdge();
 
         if (topIntersectionSquared <= 0) {
             // Top edge is entirely outside the axis outer radius - use continuous arc
@@ -201,111 +210,6 @@ export class RadialColumnShape<D = any> extends Path<D> {
             this.lineToRotated(-topIntersectionX, top, rotation);
             path.arc(0, 0, axisOuterRadius, rotation + topLeftAngle, rotation + axisOuter.left.angle, true);
         }
-
-        path.closePath();
-    }
-
-    private renderDoubleBevel(
-        innerRadius: number,
-        outerRadius: number,
-        geometry: BevelGeometry,
-        inner: { left: CircleIntersection; right: CircleIntersection },
-        outer: { left: CircleIntersection; right: CircleIntersection }
-    ) {
-        const { path } = this;
-        const { left, right, rotation } = geometry;
-
-        // Start at bottom-left where left edge meets inner circle
-        this.moveToRotated(left, inner.left.y, rotation);
-
-        // Arc along bottom edge (inner circle) from left to right
-        path.arc(0, 0, innerRadius, rotation + inner.left.angle, rotation + inner.right.angle, false);
-
-        // Line up right edge from inner to outer circle intersection
-        this.lineToRotated(right, outer.right.y, rotation);
-
-        // Arc along top edge (outer circle) from right to left (counterclockwise)
-        path.arc(0, 0, outerRadius, rotation + outer.right.angle, rotation + outer.left.angle, true);
-
-        // Close path (implicit line down left edge)
-        path.closePath();
-    }
-
-    private renderInnerBevelWithCornerClipping(
-        innerRadius: number,
-        axisOuterRadius: number,
-        geometry: BevelGeometry,
-        inner: { left: CircleIntersection; right: CircleIntersection },
-        axisOuter: { left: CircleIntersection; right: CircleIntersection; radiusSquared: number }
-    ) {
-        const { path } = this;
-        const { left, rotation } = geometry;
-
-        this.renderCornerClippingArcs(axisOuterRadius, geometry, axisOuter, () => {
-            this.moveToRotated(left, inner.left.y, rotation);
-            path.arc(0, 0, innerRadius, rotation + inner.left.angle, rotation + inner.right.angle, false);
-        });
-    }
-
-    private renderInnerBevel(
-        innerRadius: number,
-        geometry: BevelGeometry,
-        inner: { left: CircleIntersection; right: CircleIntersection }
-    ) {
-        const { path } = this;
-        const { left, right, top, rotation } = geometry;
-
-        // Start at bottom-left where vertical edge meets the inner arc
-        this.moveToRotated(left, inner.left.y, rotation);
-
-        // Arc along the bottom edge from left to right
-        path.arc(0, 0, innerRadius, rotation + inner.left.angle, rotation + inner.right.angle, false);
-
-        // Line up the right edge to top-right
-        this.lineToRotated(right, top, rotation);
-
-        // Line across the top to top-left
-        this.lineToRotated(left, top, rotation);
-
-        // Close path back to start (down the left edge)
-        path.closePath();
-    }
-
-    private renderCornerBreach(
-        axisOuterRadius: number,
-        geometry: BevelGeometry,
-        axisOuter: { left: CircleIntersection; right: CircleIntersection; radiusSquared: number }
-    ) {
-        const { left, right, bottom, rotation } = geometry;
-
-        this.renderCornerClippingArcs(axisOuterRadius, geometry, axisOuter, () => {
-            this.moveToRotated(left, bottom, rotation);
-            this.lineToRotated(right, bottom, rotation);
-        });
-    }
-
-    private renderOuterBevel(
-        outerRadius: number,
-        geometry: BevelGeometry,
-        outer: { left: CircleIntersection; right: CircleIntersection }
-    ) {
-        const { path } = this;
-        const { left, right, bottom, rotation } = geometry;
-
-        // Start at bottom-left
-        this.moveToRotated(left, bottom, rotation);
-
-        // Line across bottom to bottom-right
-        this.lineToRotated(right, bottom, rotation);
-
-        // Line up the right edge to top-right where it meets the arc
-        this.lineToRotated(right, outer.right.y, rotation);
-
-        // Arc along the top edge from right to left
-        path.arc(0, 0, outerRadius, rotation + outer.right.angle, rotation + outer.left.angle, true);
-
-        // Close path back to start (down the left edge)
-        path.closePath();
     }
 
     private updateBeveledPath() {
@@ -325,84 +229,61 @@ export class RadialColumnShape<D = any> extends Path<D> {
         const bottom = -innerRadius;
         const rotation = this.getRotation();
 
-        // Determine which edges should be beveled based on which axis boundaries the bar touches
         const isTouchingInner = isNumberEqual(innerRadius, axisInnerRadius);
         const isTouchingOuter = isNumberEqual(outerRadius, axisOuterRadius);
+        const topCornersBreach = Math.hypot(left, top) > axisOuterRadius || Math.hypot(right, top) > axisOuterRadius;
 
-        // Check if top corners breach the axis outer radius (independent of touching checks)
-        const topLeftRadius = Math.hypot(left, top);
-        const topRightRadius = Math.hypot(right, top);
-        const topCornersBreach = topLeftRadius > axisOuterRadius || topRightRadius > axisOuterRadius;
-
+        // Early exit if no beveling needed
         if (!isTouchingInner && !isTouchingOuter && !topCornersBreach) {
             this.updateRectangularPath();
             return;
         }
 
+        // Calculate only the intersections we need
+        const inner = isTouchingInner ? this.calculateBothIntersections(left, right, innerRadius) : null;
+        const outer = isTouchingOuter ? this.calculateBothIntersections(left, right, outerRadius) : null;
+        const axisOuter = topCornersBreach ? this.calculateAxisOuterIntersections(left, right, axisOuterRadius) : null;
+
+        // Single validation point: if expected intersections are missing, fall back
+        if ((isTouchingInner && !inner) || (isTouchingOuter && !outer) || (topCornersBreach && !axisOuter)) {
+            this.updateRectangularPath();
+            return;
+        }
+
         path.clear(true);
-
-        // Calculate circle intersections
-        const innerRadiusSquared = innerRadius * innerRadius;
-        const outerRadiusSquared = outerRadius * outerRadius;
-        const innerLeft = this.calculateCircleIntersection(left, innerRadiusSquared);
-        const innerRight = this.calculateCircleIntersection(right, innerRadiusSquared);
-        const outerLeft = this.calculateCircleIntersection(left, outerRadiusSquared);
-        const outerRight = this.calculateCircleIntersection(right, outerRadiusSquared);
-
         const geometry: BevelGeometry = { left, right, top, bottom, rotation };
 
-        if (isTouchingInner && isTouchingOuter) {
-            // Double bevel: both bottom and top edges are curved
-            if (!innerLeft || !innerRight || !outerLeft || !outerRight) {
-                this.updateRectangularPath();
-                return;
-            }
-            this.renderDoubleBevel(
-                innerRadius,
-                outerRadius,
-                geometry,
-                { left: innerLeft, right: innerRight },
-                { left: outerLeft, right: outerRight }
-            );
-        } else if (isTouchingInner) {
-            // Single bevel: only bottom edge is curved
-            if (!innerLeft || !innerRight) {
-                this.updateRectangularPath();
-                return;
-            }
-
-            if (topCornersBreach) {
-                const intersections = this.calculateAxisOuterIntersections(left, right, axisOuterRadius);
-                if (!intersections) {
-                    this.updateRectangularPath();
-                    return;
-                }
-                this.renderInnerBevelWithCornerClipping(
-                    innerRadius,
-                    axisOuterRadius,
-                    geometry,
-                    { left: innerLeft, right: innerRight },
-                    intersections
-                );
-            } else {
-                this.renderInnerBevel(innerRadius, geometry, { left: innerLeft, right: innerRight });
-            }
-        } else if (topCornersBreach) {
-            // Corners breach axis outer radius, but not touching inner or outer
-            const intersections = this.calculateAxisOuterIntersections(left, right, axisOuterRadius);
-            if (!intersections) {
-                this.updateRectangularPath();
-                return;
-            }
-            this.renderCornerBreach(axisOuterRadius, geometry, intersections);
+        // Walk clockwise around the shape starting from bottom-left
+        // 1. Start at bottom-left corner
+        if (inner) {
+            this.moveToRotated(left, inner.left.y, rotation);
         } else {
-            // Single bevel: only top edge is curved (touching outer)
-            if (!outerLeft || !outerRight) {
-                this.updateRectangularPath();
-                return;
-            }
-            this.renderOuterBevel(outerRadius, geometry, { left: outerLeft, right: outerRight });
+            this.moveToRotated(left, bottom, rotation);
         }
+
+        // 2. Bottom edge (horizontal)
+        if (inner) {
+            path.arc(0, 0, innerRadius, rotation + inner.left.angle, rotation + inner.right.angle, false);
+        } else {
+            this.lineToRotated(right, bottom, rotation);
+        }
+
+        // 3. Right edge (vertical) + Top edge (horizontal with potential clipping)
+        if (outer) {
+            // Simple outer arc case
+            this.lineToRotated(right, outer.right.y, rotation);
+            path.arc(0, 0, outerRadius, rotation + outer.right.angle, rotation + outer.left.angle, true);
+        } else if (axisOuter) {
+            // Corner clipping case
+            this.renderTopWithCornerClipping(axisOuterRadius, axisOuter, geometry);
+        } else {
+            // Straight top case
+            this.lineToRotated(right, top, rotation);
+            this.lineToRotated(left, top, rotation);
+        }
+
+        // 4. Left edge (implicit via closePath)
+        path.closePath();
     }
 }
 
