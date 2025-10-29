@@ -155,7 +155,10 @@
       "**/tinypool",
       "**/@vue/**",
       "**/vue",
-      "**/vue-template-compiler"
+      "**/vue-template-compiler",
+      "ag-charts-angular/**",
+      "ag-charts-react/**",
+      "ag-charts-vue3/**"
     ]
   },
   "resolutions": {
