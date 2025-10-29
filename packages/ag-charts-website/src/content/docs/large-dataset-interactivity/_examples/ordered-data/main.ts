@@ -125,6 +125,14 @@ function setSeries(type: string, label: string) {
                 },
             ];
             break;
+        case 'histogram':
+            options.series = [
+                {
+                    type,
+                    xKey: 'close',
+                },
+            ];
+            break;
         default:
             return;
     }
@@ -133,7 +141,7 @@ function setSeries(type: string, label: string) {
     if (options.data?.length !== newDatapoints) {
         options.data = baseData.slice(-newDatapoints);
     }
-    if (type == 'bubble' || type == 'scatter') {
+    if (type == 'bubble' || type == 'scatter' || type == 'histogram') {
         options.zoom!.axes = 'xy';
         options.zoom!.autoScaling!.enabled = false;
         options.navigator!.enabled = false;
