@@ -138,7 +138,7 @@ export class RadialColumnShape<D = any> extends Path<D> {
 
     private calculateCircleIntersection(x: number, radiusSquared: number): CircleIntersection | null {
         const xSquared = x * x;
-        if (radiusSquared <= xSquared) {
+        if (radiusSquared < xSquared) {
             return null;
         }
         const y = -Math.sqrt(radiusSquared - xSquared);
