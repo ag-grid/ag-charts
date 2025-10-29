@@ -3,15 +3,15 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import {
     type AgChartOptions,
     AgCharts,
-    AgPolarChartOptions,
-    AgRadialColumnSeriesOptions,
-    AgRadialSeriesItemStylerParams,
-    AgRadialSeriesStyle,
-    AgRadialSeriesStylerParams,
+    type AgPolarChartOptions,
+    type AgRadialColumnSeriesOptions,
+    type AgRadialSeriesItemStylerParams,
+    type AgRadialSeriesStyle,
+    type AgRadialSeriesStylerParams,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    MockRadialColumnStyler,
+    type MockRadialColumnStyler,
     extractImageData,
     hoverAction,
     newFreezableMock,
