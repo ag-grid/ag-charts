@@ -172,7 +172,7 @@ export class Navigator extends AbstractModuleInstance {
         this.updateZoom();
     }
 
-    private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
+    private onZoomChange(event: _ModuleSupport.ZoomChangeRequestedEvent) {
         const { x: xZoom } = event;
         if (!xZoom) return;
 
