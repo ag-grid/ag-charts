@@ -4,7 +4,7 @@ const getPackageInformation = require('./utils/utils').getPackageInformation;
 
 if (process.argv.length < 3) {
     console.log('Usage: node scripts/sanityCheckPackages.js [Chart Version]');
-    console.log('For example: node scripts/validateAgPackageAndDeps.js 10.0.0');
+    console.log('For example: node scripts/sanityCheckPackages.js 10.0.0');
     console.log('Note: This script should be run from the root of the monorepo');
     process.exit(1);
 }
