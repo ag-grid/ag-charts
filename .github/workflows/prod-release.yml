@@ -74,7 +74,7 @@ jobs:
                   ./tools/release/validateDistFolders.sh
 
             - name: Publish to npm
-              run: ./scripts/deployments/release/publishDistArtifactsToNpm.sh
+              run: ./tools/release/publishDistArtifactsToNpm.sh
 
             - name: Sign Artifacts
               env:
