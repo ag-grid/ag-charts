@@ -59,7 +59,7 @@ export abstract class AbstractBarSeries<
     protected largestDataInterval?: number = undefined;
 
     override get hasData(): boolean {
-        return this.getHasData('xValue');
+        return this.getHasData('yValue-raw');
     }
 
     protected padBandExtent(keys: any[], alignStart?: boolean) {
