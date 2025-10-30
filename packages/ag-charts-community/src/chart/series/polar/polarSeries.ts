@@ -89,8 +89,12 @@ export abstract class PolarSeries<
         () => this.labelFactory(),
         false
     );
-    protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightGroup, () =>
+    protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightNodeGroup, () =>
         this.nodeFactory()
+    );
+    protected highlightLabelSelection: Selection<Text, TDatum> = Selection.select(
+        this.highlightLabelGroup,
+        () => this.labelFactory()
     );
 
     animationResetFns?: {
@@ -238,11 +242,12 @@ export abstract class PolarSeries<
             resetMotion([this.itemSelection, this.highlightSelection], item);
         }
         if (label) {
-            resetMotion([this.labelSelection], label);
+            resetMotion([this.labelSelection, this.highlightLabelSelection], label);
         }
         this.itemSelection.cleanup();
         this.labelSelection.cleanup();
         this.highlightSelection.cleanup();
+        this.highlightLabelSelection.cleanup();
     }
 
     protected animateEmptyUpdateReady(_data: PolarAnimationData) {
@@ -256,9 +261,12 @@ export abstract class PolarSeries<
     }
 
     protected animateReadyHighlight(_data: unknown) {
-        const { item } = this.animationResetFns ?? {};
+        const { item, label } = this.animationResetFns ?? {};
         if (item) {
             resetMotion([this.highlightSelection], item);
+        }
+        if (label) {
+            resetMotion([this.highlightLabelSelection], label);
         }
     }
 
