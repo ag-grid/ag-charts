@@ -1,0 +1,4 @@
+{
+    "setup-worktree": ["AG_CLOUD_INSTALL=1 ./tools/install-for-cloud.sh"]
+}
+
