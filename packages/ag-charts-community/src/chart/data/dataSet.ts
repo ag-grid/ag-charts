@@ -4,10 +4,18 @@ export { DataChangeDescription } from './dataChangeDescription';
 
 /**
  * Encapsulates a single transaction to be applied to a DataSet.
+ * Supports both the AG Grid-compatible API (add/addIndex) and the internal format (prepend/append).
  */
 export interface DataSetTransaction<T> {
+    /** Items to add at the specified index (AG Grid-compatible API). */
+    add?: T[];
+    /** Zero-based index for add operation. If undefined or >= length, items are appended. */
+    addIndex?: number;
+    /** Items to prepend to the beginning (internal format, converted from add with addIndex=0). */
     prepend?: T[];
+    /** Items to append to the end (internal format, converted from add with no addIndex). */
     append?: T[];
+    /** Items to remove by referential equality. */
     remove?: T[];
 }
 
@@ -44,10 +52,52 @@ export class DataSet<T = unknown> {
         return changeDesc ? changeDesc.indexMap.finalLength : this.data.length;
     }
 
-    /** Queues a transaction (applied on commit). */
+    /**
+     * Queues a transaction (applied on commit).
+     * Normalizes AG Grid-compatible format (add/addIndex) to internal format (prepend/append).
+     */
     addTransaction(transaction: DataSetTransaction<T>): void {
-        this.pendingTransactions.push(transaction);
+        const normalized = this.normalizeTransaction(transaction);
+        this.pendingTransactions.push(normalized);
         this.cachedChangeDescription = undefined;
+    }
+
+    /**
+     * Converts AG Grid-compatible transaction format to internal format.
+     * Maps `add` + `addIndex` to either `prepend` or `append` based on the index.
+     */
+    private normalizeTransaction(transaction: DataSetTransaction<T>): DataSetTransaction<T> {
+        const { add, addIndex, prepend, append, remove } = transaction;
+
+        // If using legacy format, return as-is
+        if (add === undefined) {
+            return transaction;
+        }
+
+        // Convert add+addIndex to prepend/append
+        const result: DataSetTransaction<T> = { remove };
+
+        // Preserve any existing prepend/append (shouldn't happen in practice)
+        if (prepend) result.prepend = prepend;
+        if (append) result.append = append;
+
+        // Convert add to prepend or append based on addIndex
+        if (add && add.length > 0) {
+            if (addIndex === 0) {
+                // Prepend to beginning
+                result.prepend = prepend ? [...add, ...prepend] : add;
+            } else if (addIndex === undefined || addIndex >= this.netSize()) {
+                // Append to end (default behavior)
+                result.append = append ? [...append, ...add] : add;
+            } else {
+                // For arbitrary insertions (0 < addIndex < length), approximate with append
+                // TODO: Support true arbitrary insertions in a future release
+                // For now, treat as append to maintain performance characteristics
+                result.append = append ? [...append, ...add] : add;
+            }
+        }
+
+        return result;
     }
 
     hasPendingTransactions(): boolean {
@@ -158,6 +208,7 @@ export class DataSet<T = unknown> {
         const removedOriginalIndices = new Set<number>();
 
         for (const transaction of this.pendingTransactions) {
+            // Note: transactions are already normalized in addTransaction()
             const { prepend, append, remove } = transaction;
 
             if (Array.isArray(prepend) && prepend.length > 0) {

@@ -120,18 +120,29 @@ export class AgChartInstanceProxy implements AgChartProxy {
             throw new Error('AG Charts - applyTransaction expects a transaction object.');
         }
 
-        const { append, prepend, remove } = transaction;
+        const { add, addIndex, remove, update } = transaction;
 
-        if (append != null && !Array.isArray(append)) {
-            throw new Error('AG Charts - transaction "append" must be an array.');
+        if (add != null && !Array.isArray(add)) {
+            throw new Error('AG Charts - transaction "add" must be an array.');
         }
 
-        if (prepend != null && !Array.isArray(prepend)) {
-            throw new Error('AG Charts - transaction "prepend" must be an array.');
+        if (addIndex != null && (typeof addIndex !== 'number' || addIndex < 0 || !Number.isInteger(addIndex))) {
+            throw new Error('AG Charts - transaction "addIndex" must be a non-negative integer.');
         }
 
         if (remove != null && !Array.isArray(remove)) {
-            throw new Error('AG Charts - transaction "remove" must be an array or single value.');
+            throw new Error('AG Charts - transaction "remove" must be an array.');
+        }
+
+        if (update != null) {
+            if (!Array.isArray(update)) {
+                throw new Error('AG Charts - transaction "update" must be an array.');
+            }
+            throw new Error(
+                'AG Charts - transaction "update" operation is not yet implemented. ' +
+                    'Please use "add" and "remove" operations for now. ' +
+                    'The "update" operation will be available in a future release.'
+            );
         }
 
         return this.chart.applyTransaction(transaction);
