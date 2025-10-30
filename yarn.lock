@@ -16349,10 +16349,10 @@ path-type@^4.0.0:
   resolved "https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz#84ed01c0a7ba380afe09d90a8c180dcd9d03043b"
   integrity sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==
 
-path2d@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/path2d/-/path2d-0.2.0.tgz#28bb0e8e6298b2a1adb75ab1b4ffd8c263c28c19"
-  integrity sha512-KdPAykQX6kmLSOO6Jpu2KNcCED7CKjmaBNGGNuctOsG0hgYO1OdYQaan6cYXJiG0WmXOwZZPILPBimu5QAIw3A==
+path2d@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/path2d/-/path2d-0.3.1.tgz#003ccd8ce04b9d01cb408eda44c1a5618a2aa7fe"
+  integrity sha512-GSruf/RONdlJgrz3fppp6Fro1r9xHdT2Uxw+rrTvmfwHSPl3AZwvnXVUJmyzsrOUEKl5tZDWCKLgdaMsMMUC+A==
 
 pathe@^1.1.2:
   version "1.1.2"
