@@ -95,6 +95,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     );
     private stageLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> =
         Selection.select(this.stageLabelGroup, Text);
+    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> =
+        Selection.select(this.highlightLabelGroup, Text);
     private highlightDatumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
         this.highlightGroup,
         () => this.nodeFactory()
@@ -434,7 +436,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         this.checkResize(seriesRect);
 
-        const { datumSelection, labelSelection, stageLabelSelection, highlightDatumSelection } = this;
+        const {
+            datumSelection,
+            labelSelection,
+            stageLabelSelection,
+            highlightDatumSelection,
+            highlightLabelSelection,
+        } = this;
 
         this.updateSelections();
 
@@ -461,6 +469,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.updateLabelNodes({
             labelSelection: stageLabelSelection,
             labelProperties: this.properties.stageLabel,
+        });
+
+        const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum) ?? [];
+        this.highlightLabelSelection = highlightLabelSelection.update(highlightLabelData);
+        this.updateLabelNodes({
+            labelSelection: this.highlightLabelSelection,
+            labelProperties: this.properties.label,
+            isHighlight: true,
         });
 
         this.highlightDatumSelection = this.updateDatumSelection({
@@ -585,25 +601,32 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
+        isHighlight?: boolean;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, nodeDatum, datumIndex) => {
+        const { labelSelection, labelProperties, isHighlight = false } = opts;
+
+        labelSelection.each((label, nodeDatum, datumIndex) => {
             const { visible, x, y, text, textAlign, textBaseline } = nodeDatum;
+            const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+
             const style = getLabelStyles(
                 this,
                 undefined,
                 this.properties,
-                opts.labelProperties,
-                false,
+                labelProperties,
+                isHighlight,
                 activeHighlight
             );
+
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
             label.visible = visible;
             label.x = x;
             label.y = y;
             label.text = text;
             label.fill = fill;
-            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            label.opacity = (highlightStyle.opacity ?? 1) * (style.fillOpacity ?? 1);
+            label.fillOpacity = (highlightStyle.opacity ?? 1) * (style.fillOpacity ?? 1);
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
@@ -612,6 +635,17 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.textBaseline = textBaseline;
             label.setBoxing(style);
         });
+    }
+
+    protected getHighlightLabelData(
+        _labelData: PyramidNodeLabelDatum[],
+        highlightedItem?: PyramidNodeDatum
+    ): PyramidNodeLabelDatum[] | undefined {
+        if (highlightedItem?.label) {
+            return [{ ...highlightedItem.label }];
+        }
+
+        return undefined;
     }
 
     protected override computeFocusBounds(

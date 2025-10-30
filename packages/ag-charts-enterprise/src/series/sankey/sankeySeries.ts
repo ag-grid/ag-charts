@@ -609,7 +609,15 @@ export class SankeySeries extends FlowProportionSeries<
         const { x, textAlign } = this.getNodeLabelPlacement(node, leading, trailing);
 
         if (y0 >= bottom) {
-            labelData.push({ x, y, textAlign, text, size: node.size });
+            labelData.push({
+                x,
+                y,
+                textAlign,
+                text,
+                size: node.size,
+                nodeDatum: node,
+                datumIndex: node.datumIndex,
+            });
             bottom = y1;
         }
 
@@ -707,11 +715,21 @@ export class SankeySeries extends FlowProportionSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, SankeyNodeLabelDatum>;
     }) {
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const activeHighlightDatum = this.getHighlightedDatum();
         opts.labelSelection.each((label, datum) => {
-            const { x, y, textAlign, text } = datum;
+            const { x, y, textAlign, text, datumIndex, nodeDatum } = datum;
             const params: AgSankeySeriesLabelFormatterParams = datum;
-            const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
+
+            const isHighlight = this.isLabelHighlighted(nodeDatum, activeHighlightDatum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+            const style = getLabelStyles(
+                this,
+                undefined,
+                params,
+                this.properties.label,
+                isHighlight,
+                activeHighlightDatum
+            );
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x;
@@ -724,6 +742,9 @@ export class SankeySeries extends FlowProportionSeries<
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = 'middle';
+            const opacity = highlightStyle.opacity ?? 1;
+            label.opacity = opacity;
+            label.fillOpacity = opacity;
             label.setBoxing(style);
         });
     }

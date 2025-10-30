@@ -509,16 +509,32 @@ export abstract class BaseFunnelSeries<
 
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, FunnelNodeLabelDatum>;
+        isHighlight?: boolean;
     }) {
         const params: RequireOptional<AgFunnelSeriesLabelFormatterParams> = {
             stageKey: this.properties.stageKey,
             valueKey: this.properties.valueKey,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((textNode, datum) => {
-            textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, false, activeHighlight);
+        const { isHighlight = false, labelSelection } = opts;
+        labelSelection.each((textNode, datum) => {
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
+            textNode.visible = datum.visible || isHighlight;
+            textNode.fillOpacity = highlightStyle.opacity ?? 1;
+            textNode.opacity = highlightStyle.opacity ?? 1;
+            updateLabelNode(this, textNode, params, this.properties.label, datum, isHighlight, activeHighlight);
         });
+    }
+
+    protected override getHighlightLabelData(
+        _labelData: FunnelNodeLabelDatum[],
+        highlightedItem: FunnelNodeDatum
+    ): FunnelNodeLabelDatum[] | undefined {
+        if (highlightedItem.label) {
+            return [{ ...highlightedItem.label }];
+        }
+
+        return undefined;
     }
 
     protected abstract tooltipStyle(datum: any, datumIndex: number): Required<AgFunnelSeriesStyle>;
