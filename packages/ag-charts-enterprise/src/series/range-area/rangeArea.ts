@@ -724,6 +724,7 @@ export class RangeAreaSeries extends BaseSeries {
 
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
+        isHighlight?: boolean;
     }) {
         const params: RequireOptional<AgRangeAreaSeriesLabelFormatterParams> = {
             xKey: this.properties.xKey,
@@ -736,17 +737,26 @@ export class RangeAreaSeries extends BaseSeries {
             legendItemName: this.properties.legendItemName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((textNode, datum) => {
-            textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, false, activeHighlight);
+        const { isHighlight = false, labelSelection } = opts;
+        labelSelection.each((textNode, datum) => {
+            textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+            updateLabelNode(this, textNode, params, this.properties.label, datum, isHighlight, activeHighlight);
         });
+    }
+
+    protected override getHighlightLabelData(labelData: RangeAreaLabelDatum[], highlightedItem: RangeAreaMarkerDatum) {
+        if (!labelData?.length) return [];
+
+        return labelData.filter((labelDatum) => labelDatum.datum === highlightedItem.datum);
     }
 
     protected override getHighlightData(
         nodeData: RangeAreaMarkerDatum[],
         highlightedItem: RangeAreaMarkerDatum
     ): RangeAreaMarkerDatum[] | undefined {
-        const highlightItems = nodeData.filter((nodeDatum) => nodeDatum.datum === highlightedItem.datum);
+        const highlightItems = nodeData
+            .filter((nodeDatum) => nodeDatum.datum === highlightedItem.datum)
+            .map((nodeDatum) => ({ ...nodeDatum }));
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
@@ -1008,7 +1018,7 @@ export class RangeAreaSeries extends BaseSeries {
         pathSwipeInAnimation(this, animationManager, ...paths);
         resetMotion([datumSelection], resetMarkerPositionFn);
         markerSwipeScaleInAnimation(this, animationManager, datumSelection);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection, this.highlightLabelSelection);
     }
 
     protected override animateReadyResize(
@@ -1060,7 +1070,7 @@ export class RangeAreaSeries extends BaseSeries {
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'low_stroke_path_properties', animationManager, 'add', lowStroke);
             pathFadeInAnimation(this, 'high_stroke_path_properties', animationManager, 'add', highStroke);
-            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection, this.highlightLabelSelection);
             return;
         }
 
@@ -1093,7 +1103,7 @@ export class RangeAreaSeries extends BaseSeries {
 
         if (fns.hasMotion) {
             markerFadeInAnimation(this, animationManager, undefined, datumSelection);
-            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection, this.highlightLabelSelection);
         }
 
         // The animation may clip spans
