@@ -473,10 +473,23 @@ export abstract class RadialColumnSeriesBase<
 
     protected updateLabels() {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightDatum =
+            activeHighlight?.series === this && activeHighlight?.datum
+                ? (activeHighlight as RadialColumnNodeDatum)
+                : undefined;
+        const highlightData = highlightDatum ? [highlightDatum] : [];
+
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             updateLabelNode(this, node, this.properties, this.properties.label, datum.label, false, activeHighlight);
             node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
+
+        this.highlightLabelSelection.update(highlightData, undefined, (datum) => this.getDatumId(datum)).each(
+            (node, datum) => {
+                updateLabelNode(this, node, this.properties, this.properties.label, datum.label, true, activeHighlight);
+                node.fillOpacity = this.getHighlightStyle(true, datum.datumIndex).opacity ?? 1;
+            }
+        );
     }
 
     protected abstract getColumnTransitionFunctions(): {
@@ -489,7 +502,7 @@ export abstract class RadialColumnSeriesBase<
 
         const fns = this.getColumnTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection, this.highlightLabelSelection);
     }
 
     override animateClearingUpdateEmpty() {
@@ -499,7 +512,13 @@ export abstract class RadialColumnSeriesBase<
         const fns = this.getColumnTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
 
-        seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
+        seriesLabelFadeOutAnimation(
+            this,
+            'labels',
+            animationManager,
+            this.labelSelection,
+            this.highlightLabelSelection
+        );
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
