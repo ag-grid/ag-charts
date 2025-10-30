@@ -1067,5 +1067,122 @@ describe('DataSet', () => {
                 });
             });
         });
+
+        describe('virtual index adjustment when removing earlier insertions', () => {
+            test('removing earlier insertion adjusts later insertion virtualIndex', () => {
+                const x = { id: 'x' };
+                const y = { id: 'y' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3, remove: [x] },
+                    ],
+                    expected: ['A', 'B', y, 'C', 'D'],
+                });
+            });
+
+            test('removing multiple items from earlier insertion', () => {
+                const items1 = ['X', 'Y', 'Z'];
+                const item2 = 'A';
+                expectCommitResult({
+                    initial: ['1', '2', '3', '4'],
+                    transactions: [
+                        { add: items1, addIndex: 1 },
+                        { add: [item2], addIndex: 5, remove: ['X', 'Y'] },
+                    ],
+                    // After tx1: ['1', 'X', 'Y', 'Z', '2', '3', '4']
+                    // After remove X,Y: ['1', 'Z', '2', '3', '4']
+                    // Add A at adjusted index 3: ['1', 'Z', '2', 'A', '3', '4']
+                    expected: ['1', 'Z', '2', item2, '3', '4'],
+                });
+            });
+
+            test('removing entire earlier insertion', () => {
+                const x = { id: 'x' };
+                const y = { id: 'y' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3, remove: [x] },
+                    ],
+                    expected: ['A', 'B', y, 'C'],
+                });
+            });
+
+            test('removing from middle insertion adjusts only later ones', () => {
+                const x = 'X';
+                const y = 'Y';
+                const z = 'Z';
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3 },
+                        { add: [z], addIndex: 5 },
+                        { remove: [y] },
+                    ],
+                    // After insertions: ['A', 'X', 'B', 'Y', 'C', 'Z', 'D', 'E']
+                    // After removing Y: ['A', 'X', 'B', 'C', 'Z', 'D', 'E']
+                    expected: ['A', x, 'B', 'C', z, 'D', 'E'],
+                });
+            });
+
+            test('removing from multiple insertions in sequence', () => {
+                const x = 'X';
+                const y = 'Y';
+                const z = 'Z';
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3 },
+                        { add: [z], addIndex: 5, remove: [x, y] },
+                    ],
+                    // After tx1: ['A', 'X', 'B', 'C']
+                    // After tx2: ['A', 'X', 'B', 'Y', 'C']
+                    // After remove X,Y: ['A', 'B', 'C']
+                    // Add Z at adjusted index 3: ['A', 'B', 'C', 'Z']
+                    expected: ['A', 'B', 'C', z],
+                });
+            });
+
+            test('removing earlier insertion with original data removal', () => {
+                const initial = ['A', 'B', 'C', 'D', 'E'];
+                const x = 'X';
+                const y = 'Y';
+                expectCommitResult({
+                    initial,
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 4, remove: [x, initial[2]] }, // Remove 'C' and 'X'
+                    ],
+                    // After tx1: ['A', 'X', 'B', 'C', 'D', 'E']
+                    // After remove X and 'C': ['A', 'B', 'D', 'E']
+                    // Add Y at adjusted index 2: ['A', 'B', 'Y', 'D', 'E']
+                    expected: ['A', 'B', y, 'D', 'E'],
+                });
+            });
+
+            test('complex scenario with prepends, insertions, and removals', () => {
+                const initial = ['B', 'C', 'D'];
+                const x = 'X';
+                const y = 'Y';
+                expectCommitResult({
+                    initial,
+                    transactions: [
+                        { add: ['A'], addIndex: 0 }, // This becomes a prepend
+                        { add: [x], addIndex: 2 },
+                        { add: [y], addIndex: 4, remove: [x] },
+                    ],
+                    // After prepend: ['A', 'B', 'C', 'D']
+                    // After add X: ['A', 'B', 'X', 'C', 'D']
+                    // After remove X: ['A', 'B', 'C', 'D']
+                    // Add Y at adjusted index 3: ['A', 'B', 'C', 'Y', 'D']
+                    expected: ['A', 'B', 'C', y, 'D'],
+                });
+            });
+        });
     });
 });

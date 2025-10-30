@@ -280,15 +280,26 @@ export class DataSet<T = unknown> {
                 if (toRemove.size > 0) {
                     this.removeFromGroups(insertionsList, toRemove);
 
-                    // Remove items from trackedInsertions that were removed from insertionsList
-                    for (const tracked of trackedInsertions) {
+                    // Remove items from trackedInsertions and adjust virtualIndex of subsequent insertions
+                    for (let trackedIdx = 0; trackedIdx < trackedInsertions.length; trackedIdx++) {
+                        const tracked = trackedInsertions[trackedIdx];
+                        let removedCount = 0;
                         let i = 0;
+
                         while (i < tracked.items.length) {
                             if (remove.includes(tracked.items[i])) {
                                 tracked.items.splice(i, 1);
                                 virtualLength--;
+                                removedCount++;
                             } else {
                                 i++;
+                            }
+                        }
+
+                        // Adjust virtualIndex of all subsequent tracked insertions
+                        if (removedCount > 0) {
+                            for (let j = trackedIdx + 1; j < trackedInsertions.length; j++) {
+                                trackedInsertions[j].virtualIndex -= removedCount;
                             }
                         }
                     }
