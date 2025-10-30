@@ -36,7 +36,7 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
             },
-            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle(false)),
+            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle()),
         },
         tooltip: {
             range: 'exact',

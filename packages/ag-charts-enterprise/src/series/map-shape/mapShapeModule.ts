@@ -46,7 +46,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 fontWeight: 'bold',
                 overflowStrategy: 'hide',
             },
-            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle(true)),
+            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle()),
         },
         tooltip: {
             range: 'exact',

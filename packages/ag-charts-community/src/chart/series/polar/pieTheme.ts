@@ -7,7 +7,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    multiSeriesHighlightStyle,
+    partWholeHighlightStyle,
 } from '../../themes/util';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
@@ -100,7 +100,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: partWholeHighlightStyle(),
     },
     legend: { enabled: true },
 };

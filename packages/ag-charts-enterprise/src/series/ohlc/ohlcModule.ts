@@ -36,7 +36,7 @@ const themeTemplate: ExtensibleTheme<'ohlc'> = {
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: multiSeriesHighlightStyle(false),
+        highlight: multiSeriesHighlightStyle(),
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {
