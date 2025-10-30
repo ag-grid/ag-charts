@@ -139,11 +139,16 @@ export class DataChangeDescription {
     public readonly indexMap: IndexTransformationMap;
     private readonly prependValues: unknown[];
     private readonly appendValues: unknown[];
+    private readonly insertionValues: unknown[];
 
-    constructor(indexMap: IndexTransformationMap, insertions: { prependValues: unknown[]; appendValues: unknown[] }) {
+    constructor(
+        indexMap: IndexTransformationMap,
+        insertions: { prependValues: unknown[]; appendValues: unknown[]; insertionValues: unknown[] }
+    ) {
         this.indexMap = indexMap;
         this.prependValues = insertions.prependValues;
         this.appendValues = insertions.appendValues;
+        this.insertionValues = insertions.insertionValues;
     }
 
     /**
@@ -245,6 +250,26 @@ export class DataChangeDescription {
      */
     getAppendedValues<T = unknown>(): T[] {
         return this.appendValues as T[];
+    }
+
+    /**
+     * Get the values that were inserted at arbitrary indices.
+     *
+     * These values are stored during change description construction and can be used
+     * to avoid reprocessing inserted data.
+     *
+     * @returns Array of insertion values in the order they appear in splice operations
+     *
+     * @example Processing inserted data
+     * ```typescript
+     * const insertedData = changeDesc.getInsertionValues<DataRow>();
+     * for (const row of insertedData) {
+     *     processRow(row);
+     * }
+     * ```
+     */
+    getInsertionValues<T = unknown>(): T[] {
+        return this.insertionValues as T[];
     }
 
     /**

@@ -743,4 +743,253 @@ describe('DataSet', () => {
             });
         });
     });
+
+    describe('arbitrary insertions (addIndex support)', () => {
+        describe('single insertion', () => {
+            test('should insert at middle of array', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    transactions: { add: ['X'], addIndex: 2 },
+                    expected: ['A', 'B', 'X', 'C', 'D', 'E'],
+                });
+            });
+
+            test('should insert at beginning (index 0)', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: { add: ['X'], addIndex: 0 },
+                    expected: ['X', 'A', 'B', 'C'],
+                });
+            });
+
+            test('should append when index equals length', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: { add: ['X'], addIndex: 3 },
+                    expected: ['A', 'B', 'C', 'X'],
+                });
+            });
+
+            test('should append when index exceeds length', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: { add: ['X'], addIndex: 10 },
+                    expected: ['A', 'B', 'C', 'X'],
+                });
+            });
+
+            test('should insert multiple items at once', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: { add: ['X', 'Y', 'Z'], addIndex: 1 },
+                    expected: ['A', 'X', 'Y', 'Z', 'B', 'C'],
+                });
+            });
+        });
+
+        describe('multiple insertions across transactions', () => {
+            test('should handle sequential insertions with index stability', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    steps: [
+                        {
+                            transactions: [{ add: ['X'], addIndex: 2 }],
+                            expected: ['A', 'B', 'X', 'C', 'D', 'E'],
+                        },
+                        {
+                            // Index 4 is relative to current state ['A', 'B', 'X', 'C', 'D', 'E']
+                            // So it inserts between 'C' and 'D'
+                            transactions: [{ add: ['Y'], addIndex: 4 }],
+                            expected: ['A', 'B', 'X', 'C', 'Y', 'D', 'E'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle multiple insertions in same transaction', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    steps: [
+                        {
+                            transactions: [
+                                { add: ['X'], addIndex: 2 },
+                                { add: ['Y'], addIndex: 4 },
+                            ],
+                            expected: ['A', 'B', 'X', 'C', 'Y', 'D', 'E'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle insertion before earlier insertion', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C', 'D'],
+                    steps: [
+                        {
+                            transactions: [{ add: ['X'], addIndex: 3 }],
+                            expected: ['A', 'B', 'C', 'X', 'D'],
+                        },
+                        {
+                            // Insert before X (at index 1)
+                            transactions: [{ add: ['Y'], addIndex: 1 }],
+                            expected: ['A', 'Y', 'B', 'C', 'X', 'D'],
+                        },
+                    ],
+                });
+            });
+        });
+
+        describe('insertions with removals', () => {
+            test('should insert and remove in same transaction', () => {
+                const initial = ['A', 'B', 'C', 'D', 'E'];
+                expectCommitResult({
+                    initial,
+                    transactions: {
+                        add: ['X'],
+                        addIndex: 2,
+                        remove: [initial[1]], // Remove 'B'
+                    },
+                    expected: ['A', 'X', 'C', 'D', 'E'],
+                });
+            });
+
+            test('should handle removal before insertion index', () => {
+                const initial = ['A', 'B', 'C', 'D', 'E'];
+                runCommitScenario({
+                    initial,
+                    steps: [
+                        {
+                            transactions: [{ remove: [initial[1]] }], // Remove 'B'
+                            expected: ['A', 'C', 'D', 'E'],
+                        },
+                        {
+                            // Index 2 is relative to ['A', 'C', 'D', 'E']
+                            transactions: [{ add: ['X'], addIndex: 2 }],
+                            expected: ['A', 'C', 'X', 'D', 'E'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle removal after insertion', () => {
+                const initial = ['A', 'B', 'C', 'D', 'E'];
+                runCommitScenario({
+                    initial,
+                    steps: [
+                        {
+                            transactions: [{ add: ['X'], addIndex: 2 }],
+                            expected: ['A', 'B', 'X', 'C', 'D', 'E'],
+                        },
+                        {
+                            transactions: [{ remove: [initial[3]] }], // Remove original 'D'
+                            expected: ['A', 'B', 'X', 'C', 'E'],
+                        },
+                    ],
+                });
+            });
+        });
+
+        describe('insertions with prepends and appends', () => {
+            test('should handle insertion after prepend', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C'],
+                    steps: [
+                        {
+                            transactions: [{ add: ['X'], addIndex: 0 }],
+                            expected: ['X', 'A', 'B', 'C'],
+                        },
+                        {
+                            // Index 2 is relative to ['X', 'A', 'B', 'C']
+                            transactions: [{ add: ['Y'], addIndex: 2 }],
+                            expected: ['X', 'A', 'Y', 'B', 'C'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle insertion before append', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C'],
+                    steps: [
+                        {
+                            transactions: [
+                                { add: ['X'], addIndex: 1 },
+                                { add: ['Y'], addIndex: 10 }, // Append
+                            ],
+                            expected: ['A', 'X', 'B', 'C', 'Y'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle complex mixed operations', () => {
+                const initial = ['A', 'B', 'C', 'D'];
+                runCommitScenario({
+                    initial,
+                    steps: [
+                        {
+                            transactions: [
+                                { add: ['P'], addIndex: 0 }, // Prepend
+                                { add: ['M'], addIndex: 3 }, // Middle insert
+                                { add: ['Q'], addIndex: 100 }, // Append
+                                { remove: [initial[1]] }, // Remove 'B'
+                            ],
+                            expected: ['P', 'A', 'M', 'C', 'D', 'Q'],
+                        },
+                    ],
+                });
+            });
+        });
+
+        describe('edge cases', () => {
+            test('should handle insertion into empty array', () => {
+                expectCommitResult({
+                    initial: [],
+                    transactions: { add: ['X'], addIndex: 0 },
+                    expected: ['X'],
+                });
+            });
+
+            test('should handle insertion at index 1 of single-element array', () => {
+                expectCommitResult({
+                    initial: ['A'],
+                    transactions: { add: ['X'], addIndex: 1 },
+                    expected: ['A', 'X'],
+                });
+            });
+
+            test('should handle removing inserted item', () => {
+                const initial = ['A', 'B', 'C'];
+                const newItem = 'X';
+                runCommitScenario({
+                    initial,
+                    steps: [
+                        {
+                            transactions: [{ add: [newItem], addIndex: 1 }],
+                            expected: ['A', 'X', 'B', 'C'],
+                        },
+                        {
+                            transactions: [{ remove: [newItem] }],
+                            expected: ['A', 'B', 'C'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle multiple insertions at same index', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C'],
+                    steps: [
+                        {
+                            transactions: [
+                                { add: ['X'], addIndex: 1 },
+                                { add: ['Y'], addIndex: 2 }, // Now inserts after X
+                            ],
+                            expected: ['A', 'X', 'Y', 'B', 'C'],
+                        },
+                    ],
+                });
+            });
+        });
+    });
 });
