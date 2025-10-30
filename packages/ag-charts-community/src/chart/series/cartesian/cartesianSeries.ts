@@ -179,7 +179,8 @@ export abstract class CartesianSeries<
     private datumSelection: Selection<TNode, TDatum>;
     protected labelSelection: Selection<Text, TLabel> = Selection.select(this.labelGroup, Text);
 
-    private highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory());
+    private highlightSelection = Selection.select(this.highlightNodeGroup, () => this.nodeFactory());
+    protected highlightLabelSelection: Selection<Text, TLabel> = Selection.select(this.highlightLabelGroup, Text);
 
     public annotationSelections: Set<Selection<NodeWithOpacity, TDatum>> = new Set();
 
@@ -490,6 +491,10 @@ export abstract class CartesianSeries<
             isHighlight: true,
             drawingMode,
         });
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
+
         this.animationState.transition('highlight', highlightSelection);
 
         const { dataNodeGroup, labelSelection, paths, labelGroup } = this;
@@ -523,8 +528,15 @@ export abstract class CartesianSeries<
         return highlightedItem ? [{ ...highlightedItem }] : undefined;
     }
 
+    protected getHighlightLabelData(labelData: TLabel[], highlightedItem: TDatum): TLabel[] | undefined {
+        const labelItems = labelData.filter(
+            (ld) => ld.datum === highlightedItem.datum && ld.itemId === highlightedItem.itemId
+        );
+        return labelItems.length === 0 ? undefined : labelItems;
+    }
+
     protected updateHighlightSelection(): boolean {
-        const { highlightSelection, _contextNodeData: contextNodeData } = this;
+        const { highlightSelection, highlightLabelSelection, _contextNodeData: contextNodeData } = this;
         if (!contextNodeData) return false;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
@@ -533,12 +545,18 @@ export abstract class CartesianSeries<
 
         if (item == null) return false;
 
-        const { nodeData } = contextNodeData;
+        const { nodeData, labelData } = contextNodeData;
         const highlightItems = this.getHighlightData(nodeData, item);
         this.highlightSelection = this.updateHighlightSelectionItem({
             items: highlightItems,
             highlightSelection,
         });
+        const highlightLabelItems = this.getHighlightLabelData(labelData, item) ?? [];
+        this.highlightLabelSelection =
+            this.updateLabelSelection({
+                labelData: highlightLabelItems,
+                labelSelection: highlightLabelSelection,
+            }) ?? highlightLabelSelection;
 
         return true;
     }

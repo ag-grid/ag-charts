@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     deproxy,
@@ -280,7 +280,7 @@ describe('ConeFunnelSeries', () => {
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightGroup.children()].find(
+                return [...series.highlightNodeGroup.children()].find(
                     (child: any) => child.datum.id === highlightedDatum.id
                 );
             },

@@ -253,7 +253,7 @@ describe('Chart', () => {
         getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
         getTooltipRenderedValues: (params) => [params.datum[params.xKey], params.datum[params.yKey]],
         // Returns a highlighted marker
-        getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+        getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
     } as Parameters<typeof testPointerEvents>[0];
 
     describe(`Line Series Pointer Events`, () => {
@@ -365,7 +365,7 @@ describe('Chart', () => {
             getHighlightNode: (chartInstance, series) => {
                 // Returns a highlighted sector
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                for (const child of series.highlightGroup.children()) {
+                for (const child of series.highlightNodeGroup.children()) {
                     if (child.datum?.itemId === highlightedDatum.itemId) {
                         return child;
                     }

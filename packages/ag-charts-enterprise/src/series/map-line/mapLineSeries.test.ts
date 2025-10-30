@@ -295,7 +295,7 @@ describe('MapLineSeries', () => {
             },
             getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         });
     });
 });
