@@ -23,7 +23,7 @@ elif [ "${AG_CLOUD_INSTALL:-}" == "0" ]; then
     exit 0
 elif [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
     # Check if running in Claude Code remote environment
-    log_info "CLAUDE_CODE_REMOTE not set, skipping environment initialization"
+    log_info "AG_CLOUD_INSTALL or CLAUDE_CODE_REMOTE not set, skipping environment initialization"
     exit 1
 fi
 
