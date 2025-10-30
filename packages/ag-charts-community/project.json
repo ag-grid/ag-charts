@@ -117,7 +117,7 @@
         "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
       }
     },
-    "validate-size": {
+    "test:validate-size": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
