@@ -213,7 +213,7 @@ HTMLCollection [
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO VISIBLE SERIES TEXT');
         });
 
-        describe('AG-16074', () => {
+        describe.each(['bar', 'line', 'area'])('AG-16074 for %s series', (seriesType) => {
             test('should not show no data overlay when first series has null y-value but other series have data', async () => {
                 chart = await createChart({
                     data: [
@@ -227,11 +227,11 @@ HTMLCollection [
                         },
                     ],
                     series: [
-                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
-                        { type: 'bar', xKey: 'quarter', yKey: 'mac', yName: 'Mac' },
-                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', yName: 'iPad' },
-                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables' },
-                        { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services' },
+                        { type: seriesType, xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
+                        { type: seriesType, xKey: 'quarter', yKey: 'mac', yName: 'Mac' },
+                        { type: seriesType, xKey: 'quarter', yKey: 'ipad', yName: 'iPad' },
+                        { type: seriesType, xKey: 'quarter', yKey: 'wearables', yName: 'Wearables' },
+                        { type: seriesType, xKey: 'quarter', yKey: 'services', yName: 'Services' },
                     ],
                 });
 
@@ -251,9 +251,9 @@ HTMLCollection [
                         },
                     ],
                     series: [
-                        { type: 'bar', xKey: 'quarter', yKey: 'iphone' },
-                        { type: 'bar', xKey: 'quarter', yKey: 'mac' },
-                        { type: 'bar', xKey: 'quarter', yKey: 'ipad' },
+                        { type: seriesType, xKey: 'quarter', yKey: 'iphone' },
+                        { type: seriesType, xKey: 'quarter', yKey: 'mac' },
+                        { type: seriesType, xKey: 'quarter', yKey: 'ipad' },
                     ],
                 });
 
@@ -266,13 +266,13 @@ HTMLCollection [
                 chart = await createChart({
                     series: [
                         {
-                            type: 'bar',
+                            type: seriesType,
                             data: [], // First series has no data
                             xKey: 'quarter',
                             yKey: 'value',
                         },
                         {
-                            type: 'bar',
+                            type: seriesType,
                             data: [{ quarter: "Q1'18", value: 16 }], // Second series has data
                             xKey: 'quarter',
                             yKey: 'value',
