@@ -1,0 +1,413 @@
+import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+
+(window as any).agChartsDebug = ['scene:stats'];
+
+const STREAM_INTERVAL_MS = 10;
+const DATA_INTERVAL_MS = 250;
+
+// Gap configuration: we'll start with early data (0-29 minutes) and late data (60-89 minutes)
+// The gap (30-59 minutes) will be filled incrementally
+const EARLY_MINUTES = 30;
+const GAP_START_MINUTES = 30;
+const GAP_END_MINUTES = 60;
+const LATE_START_MINUTES = 60;
+const LATE_END_MINUTES = 90;
+
+interface DataPoint {
+    timestamp: number;
+    price: number;
+    volume: number;
+}
+
+class RealTimeDataFeed {
+    timerId: NodeJS.Timeout | undefined;
+    running = false;
+    callback: () => Promise<void>;
+
+    constructor(callback: () => Promise<void>) {
+        this.callback = callback;
+    }
+
+    start() {
+        if (this.running) return;
+        this.running = true;
+        this.timerId = setInterval(() => this.enqueueUpdate(), STREAM_INTERVAL_MS);
+    }
+
+    tick() {
+        return this.callback();
+    }
+
+    stop() {
+        if (!this.running) return;
+        this.running = false;
+        if (this.timerId != null) {
+            clearInterval(this.timerId);
+            this.timerId = undefined;
+        }
+    }
+
+    async enqueueUpdate() {
+        if (!this.running) return;
+        await this.callback();
+    }
+}
+
+class RapidDataFeed {
+    running = false;
+    callback: () => Promise<void>;
+
+    constructor(callback: () => Promise<void>) {
+        this.callback = callback;
+    }
+
+    start() {
+        if (this.running) return;
+        this.running = true;
+        this.runLoop();
+    }
+
+    async runLoop() {
+        while (this.running) {
+            await this.callback();
+            await chart.waitForUpdate();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+    }
+
+    stop() {
+        if (!this.running) return;
+        this.running = false;
+    }
+}
+
+/* @ag-options-extract */
+const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
+
+function createDatumForMinute(minute: number): DataPoint {
+    const pointsPerMinute = 60000 / DATA_INTERVAL_MS;
+    const index = Math.floor(minute * pointsPerMinute);
+    const timestamp = START_TIMESTAMP + minute * 60000;
+
+    // Deterministic price calculation
+    let price = 100;
+    for (let i = 0; i <= index; i++) {
+        const drift = Math.sin(i / 48) * 0.7 + Math.cos(i / 96) * 0.4;
+        price = Number((price + drift).toFixed(2));
+    }
+
+    // Deterministic volume calculation
+    const volume = 600 + Math.round((Math.sin(index / 32) + 1) * 220);
+
+    return { timestamp, price, volume };
+}
+
+function createSeedData(startMinute: number, endMinute: number): DataPoint[] {
+    const data: DataPoint[] = [];
+    const pointsPerMinute = 60000 / DATA_INTERVAL_MS;
+
+    for (let minute = startMinute; minute < endMinute; minute++) {
+        for (let i = 0; i < pointsPerMinute; i++) {
+            const index = Math.floor(minute * pointsPerMinute + i);
+            const timestamp = START_TIMESTAMP + minute * 60000 + i * DATA_INTERVAL_MS;
+
+            let price = 100;
+            for (let j = 0; j <= index; j++) {
+                const drift = Math.sin(j / 48) * 0.7 + Math.cos(j / 96) * 0.4;
+                price = Number((price + drift).toFixed(2));
+            }
+
+            const volume = 600 + Math.round((Math.sin(index / 32) + 1) * 220);
+            data.push({ timestamp, price, volume });
+        }
+    }
+
+    return data;
+}
+
+// Create initial data with a gap
+function createGappedData(): DataPoint[] {
+    const earlyData = createSeedData(0, EARLY_MINUTES);
+    const lateData = createSeedData(LATE_START_MINUTES, LATE_END_MINUTES);
+    return [...earlyData, ...lateData];
+}
+
+const initialData = createGappedData();
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: initialData,
+    animation: { enabled: false },
+    legend: { enabled: false },
+    axes: [
+        {
+            type: 'time',
+            position: 'bottom',
+            label: { format: '%H:%M:%S' },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            label: {
+                formatter: (params) => `$${params.value.toFixed(2)}`,
+            },
+        },
+    ],
+    series: [
+        {
+            type: 'line',
+            xKey: 'timestamp',
+            yKey: 'price',
+            strokeWidth: 2,
+            marker: { enabled: false },
+        },
+    ],
+};
+/* @ag-options-end */
+
+const chart = AgCharts.create(options);
+let data = [...initialData];
+
+// Gap-filling state
+let currentGapMinute = GAP_START_MINUTES;
+let currentGapPointInMinute = 0;
+const pointsPerMinute = 60000 / DATA_INTERVAL_MS;
+
+function createGapFillingDatum(): DataPoint | null {
+    // Check if gap is fully filled
+    if (currentGapMinute >= GAP_END_MINUTES) {
+        console.log('Gap fully filled');
+        return null;
+    }
+
+    const index = Math.floor(currentGapMinute * pointsPerMinute + currentGapPointInMinute);
+    const timestamp = START_TIMESTAMP + currentGapMinute * 60000 + currentGapPointInMinute * DATA_INTERVAL_MS;
+
+    // Deterministic price calculation
+    let price = 100;
+    for (let i = 0; i <= index; i++) {
+        const drift = Math.sin(i / 48) * 0.7 + Math.cos(i / 96) * 0.4;
+        price = Number((price + drift).toFixed(2));
+    }
+
+    const volume = 600 + Math.round((Math.sin(index / 32) + 1) * 220);
+
+    // Advance to next point
+    currentGapPointInMinute++;
+    if (currentGapPointInMinute >= pointsPerMinute) {
+        currentGapPointInMinute = 0;
+        currentGapMinute++;
+    }
+
+    return { timestamp, price, volume };
+}
+
+function resetDataGap() {
+    // Reset to gapped state
+    data = createGappedData();
+    chart.updateDelta({ data });
+
+    // Reset gap-filling state
+    currentGapMinute = GAP_START_MINUTES;
+    currentGapPointInMinute = 0;
+
+    console.log(
+        `Reset to gapped data: 0-${EARLY_MINUTES}min + ${LATE_START_MINUTES}-${LATE_END_MINUTES}min (gap: ${GAP_START_MINUTES}-${GAP_END_MINUTES}min)`
+    );
+}
+
+function changeSeriesType(type: 'line' | 'area' | 'bar' | 'scatter' | 'bubble') {
+    const baseConfig = {
+        xKey: 'timestamp',
+        yKey: 'price',
+    };
+
+    let seriesConfig: any;
+
+    switch (type) {
+        case 'line':
+            seriesConfig = {
+                ...baseConfig,
+                type: 'line',
+                strokeWidth: 2,
+                marker: { enabled: false },
+            };
+            break;
+        case 'area':
+            seriesConfig = {
+                ...baseConfig,
+                type: 'area',
+                strokeWidth: 2,
+                fillOpacity: 0.3,
+                marker: { enabled: false },
+            };
+            break;
+        case 'bar':
+            seriesConfig = {
+                ...baseConfig,
+                type: 'bar',
+            };
+            break;
+        case 'scatter':
+            seriesConfig = {
+                ...baseConfig,
+                type: 'scatter',
+                marker: {
+                    size: 5,
+                },
+            };
+            break;
+        case 'bubble':
+            seriesConfig = {
+                ...baseConfig,
+                type: 'bubble',
+                sizeKey: 'volume',
+                sizeName: 'Volume',
+            };
+            break;
+    }
+
+    chart.updateDelta({ series: [seriesConfig] });
+    console.log(`Changed to ${type} series`);
+}
+
+function toggleFeed() {
+    const button = document.getElementById('toggleFeedBtn');
+    if (feed.running) {
+        feed.stop();
+        if (button) button.textContent = 'Start Feed';
+    } else {
+        if (rapidFeed.running) {
+            toggleRapidFeed();
+        }
+        feed.start();
+        if (button) button.textContent = 'Stop Feed';
+    }
+}
+
+function toggleRapidFeed() {
+    const button = document.getElementById('toggleRapidFeedBtn');
+    if (rapidFeed.running) {
+        rapidFeed.stop();
+        if (button) button.textContent = 'Start Rapid Feed';
+    } else {
+        if (feed.running) {
+            toggleFeed();
+        }
+        updateCount = 0;
+        updateCountStartTime = performance.now();
+        updateRateHistory = [];
+        rapidFeed.start();
+        if (button) button.textContent = 'Stop Rapid Feed';
+    }
+}
+
+function tickFeed() {
+    feed.tick();
+}
+
+let method = 'applyTransaction-fill-gap';
+let cpuUsageHistory: number[] = [];
+let updateCount = 0;
+let updateCountStartTime = performance.now();
+let updateRateHistory: number[] = [];
+
+function use(newMethod: string) {
+    method = newMethod;
+    console.log(method);
+}
+
+const updateCallback = async () => {
+    const startTime = performance.now();
+    updateCount++;
+
+    if (method === 'applyTransaction-fill-gap') {
+        // Fill the gap incrementally
+        const newDatum = createGapFillingDatum();
+        if (!newDatum) {
+            console.log('Gap fully filled, stopping feed');
+            if (feed.running) toggleFeed();
+            if (rapidFeed.running) toggleRapidFeed();
+            return;
+        }
+
+        // Find insertion position: binary search for efficiency
+        let insertPosition = data.findIndex((d) => d.timestamp > newDatum.timestamp);
+        if (insertPosition === -1) {
+            insertPosition = data.length;
+        }
+
+        data.splice(insertPosition, 0, newDatum);
+        chart.applyTransaction({ add: [newDatum], addIndex: insertPosition });
+    } else if (method === 'updateDelta-fill-gap') {
+        // Fill the gap using updateDelta (for comparison)
+        const newDatum = createGapFillingDatum();
+        if (!newDatum) {
+            console.log('Gap fully filled, stopping feed');
+            if (feed.running) toggleFeed();
+            if (rapidFeed.running) toggleRapidFeed();
+            return;
+        }
+
+        let insertPosition = data.findIndex((d) => d.timestamp > newDatum.timestamp);
+        if (insertPosition === -1) {
+            insertPosition = data.length;
+        }
+
+        data.splice(insertPosition, 0, newDatum);
+        chart.updateDelta({ data });
+    }
+
+    await chart.waitForUpdate();
+
+    const endTime = performance.now();
+    const elapsedTime = endTime - startTime;
+
+    // Update stats display
+    const statsElement = document.getElementById('cpuUsage');
+    if (statsElement) {
+        if (rapidFeed.running) {
+            const currentTime = performance.now();
+            const timeDiff = currentTime - updateCountStartTime;
+
+            if (timeDiff >= 100) {
+                const updateRate = (updateCount / timeDiff) * 1000;
+                updateRateHistory.push(updateRate);
+                if (updateRateHistory.length > 10) {
+                    updateRateHistory.shift();
+                }
+                const avgUpdateRate = updateRateHistory.reduce((a, b) => a + b, 0) / updateRateHistory.length;
+                statsElement.textContent = `Updates/sec: ${avgUpdateRate.toFixed(0)}`;
+
+                if (timeDiff > 1000) {
+                    updateCount = 0;
+                    updateCountStartTime = currentTime;
+                }
+            }
+        } else if (feed.running) {
+            const effectiveInterval = STREAM_INTERVAL_MS;
+            const cpuUsage = (elapsedTime / effectiveInterval) * 100;
+
+            cpuUsageHistory.push(cpuUsage);
+            if (cpuUsageHistory.length > 100) {
+                cpuUsageHistory.shift();
+            }
+
+            const avgCpuUsage = cpuUsageHistory.reduce((a, b) => a + b, 0) / cpuUsageHistory.length;
+            statsElement.textContent = `CPU: ${avgCpuUsage.toFixed(1)}%`;
+        } else {
+            statsElement.textContent = `CPU: 0%`;
+        }
+    }
+
+    // Update progress indicator
+    const progressElement = document.getElementById('gapProgress');
+    if (progressElement) {
+        const totalGapPoints = (GAP_END_MINUTES - GAP_START_MINUTES) * pointsPerMinute;
+        const filledPoints = (currentGapMinute - GAP_START_MINUTES) * pointsPerMinute + currentGapPointInMinute;
+        const percentFilled = (filledPoints / totalGapPoints) * 100;
+        progressElement.textContent = `Gap filled: ${percentFilled.toFixed(1)}%`;
+    }
+};
+
+const feed = new RealTimeDataFeed(updateCallback);
+const rapidFeed = new RapidDataFeed(updateCallback);
