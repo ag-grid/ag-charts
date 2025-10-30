@@ -28,6 +28,8 @@ jobs:
                 include:
                     - language: javascript-typescript
                       build-mode: none
+        env:
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
 
         steps:
             - name: Checkout repository
