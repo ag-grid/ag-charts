@@ -13,7 +13,17 @@ import {
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
-import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
+import type {
+    AxisZoomState,
+    EventsHub,
+    ZoomAxisChangeType,
+    ZoomChangeRequestedEvent,
+    ZoomDirectionChangeRequestedEvent,
+    ZoomDirectionChangeType,
+    ZoomGeneralChangeRequestedEvent,
+    ZoomGeneralChangeType,
+    ZoomState,
+} from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
@@ -26,6 +36,11 @@ import { StateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
+
+type PartialZoomChangeRequestedEvent = ZoomChangeRequestedEvent & {
+    x?: ZoomChangeRequestedEvent['x'];
+    y?: ZoomChangeRequestedEvent['y'];
+};
 
 export interface DefinedZoomState {
     x: ZoomState;
@@ -111,7 +126,7 @@ export class ZoomManager extends BaseManager {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 }
 
-                this.autoScaleYZoom('zoom-manager');
+                this.autoScaleYZoom('zoom-manager', 'layoutComplete');
             })
         );
     }
@@ -193,7 +208,7 @@ export class ZoomManager extends BaseManager {
         this.lastRestoredState = zoom;
 
         if (independentAxes !== true) {
-            this.updateZoom('zoom-manager', zoom);
+            this.doUpdateZoom(zoom, { callerId: 'zoom-manager', changeType: 'restoreMemento', axes: {} });
             return;
         }
 
@@ -202,7 +217,12 @@ export class ZoomManager extends BaseManager {
 
         for (const axis of [primaryX, primaryY]) {
             if (!axis) continue;
-            this.updateAxisZoom('zoom-manager', axis.id, zoom[axis.direction as keyof DefinedZoomState]);
+            this.doUpdateAxisZoom(
+                'zoom-manager',
+                axis.id,
+                zoom[axis.direction as keyof DefinedZoomState],
+                'restoreMemento:axis'
+            );
         }
     }
 
@@ -223,7 +243,9 @@ export class ZoomManager extends BaseManager {
         }
 
         if (this.state.size > 0 && axes.length > 0) {
-            this.updateZoom(this.state.stateId()!, this.state.stateValue());
+            const callerId = this.state.stateId()!;
+            const newZoom = this.state.stateValue();
+            this.doUpdateZoom(newZoom, { callerId, changeType: 'update', axes: {} });
         }
     }
 
@@ -236,7 +258,7 @@ export class ZoomManager extends BaseManager {
         this.autoScaleYAxis.padding = padding;
 
         if (enabled) {
-            this.autoScaleYZoom('toggle-auto-scale');
+            this.autoScaleYZoom('toggle-auto-scale', 'update');
         }
     }
 
@@ -257,6 +279,13 @@ export class ZoomManager extends BaseManager {
     }
 
     public updateZoom(callerId: string, newZoom?: AxisZoomState) {
+        this.doUpdateZoom(newZoom, { callerId, changeType: 'update', axes: {} });
+    }
+
+    private doUpdateZoom<T extends ZoomGeneralChangeType | ZoomDirectionChangeType>(
+        newZoom: AxisZoomState | undefined,
+        ev: (ZoomGeneralChangeRequestedEvent | ZoomDirectionChangeRequestedEvent) & { changeType: T }
+    ) {
         if (newZoom?.x && (newZoom.x.min < 0 || newZoom.x.max > 1)) {
             Logger.warnOnce(
                 `Attempted to update x-axis zoom to an invalid ratio of [{ min: ${newZoom.x.min}, max: ${newZoom.x.max} }], expecting a ratio of 0 to 1, ignoring.`
@@ -271,6 +300,7 @@ export class ZoomManager extends BaseManager {
             newZoom.y = undefined;
         }
 
+        const { callerId } = ev;
         if (this.axisZoomManagers.size === 0) {
             const stateId = this.state.stateId()!;
             if (stateId === 'initial' || stateId === callerId) {
@@ -290,12 +320,21 @@ export class ZoomManager extends BaseManager {
             axis.updateZoom(callerId, newZoom?.[axis.direction]);
         }
 
-        this.applyChanges(callerId);
+        this.dispatch(ev);
     }
 
     public updateAxisZoom(callerId: string, axisId: string, newZoom?: ZoomState) {
+        this.doUpdateAxisZoom(callerId, axisId, newZoom, 'update:axis');
+    }
+
+    private doUpdateAxisZoom(
+        callerId: string,
+        axisId: string,
+        newZoom: ZoomState | undefined,
+        changeType: ZoomAxisChangeType
+    ) {
         this.axisZoomManagers.get(axisId)?.updateZoom(callerId, newZoom);
-        this.applyChanges(callerId);
+        this.dispatch({ callerId, changeType, axisId, axes: {} });
     }
 
     public resetZoom(callerId: string) {
@@ -303,11 +342,12 @@ export class ZoomManager extends BaseManager {
 
         // TODO: Move `zoomUtils.ts` to community and use `definedZoomState()` here.
         const zoom = this.getRestoredZoom();
-        this.updateZoom(callerId, {
+        const newZoom = {
             x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
             y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
             autoScaleYAxis: zoom?.autoScaleYAxis ?? true,
-        });
+        };
+        this.doUpdateZoom(newZoom, { callerId, changeType: 'reset', axes: {} });
     }
 
     public resetAxisZoom(callerId: string, axisId: string) {
@@ -321,7 +361,7 @@ export class ZoomManager extends BaseManager {
         }
         for (const axis of this.axes) {
             if (axis.direction !== direction) continue;
-            this.updateAxisZoom(callerId, axis.id, restoredZoom?.[direction] ?? { min: 0, max: 1 });
+            this.doUpdateAxisZoom(callerId, axis.id, restoredZoom?.[direction] ?? { min: 0, max: 1 }, 'update:axis');
         }
     }
 
@@ -332,9 +372,17 @@ export class ZoomManager extends BaseManager {
     }
 
     public updatePrimaryAxisZoom(callerId: string, direction: ChartAxisDirection, newZoom?: ZoomState) {
+        this.doUpdateAxisZoom(callerId, direction, newZoom, 'update:axis');
+    }
+    private doUpdatePrimaryAxisZoom(
+        callerId: string,
+        direction: ChartAxisDirection,
+        newZoom: ZoomState | undefined,
+        changeType: ZoomAxisChangeType
+    ) {
         const primaryAxis = this.getPrimaryAxis(direction);
         if (!primaryAxis) return;
-        this.updateAxisZoom(callerId, primaryAxis.id, newZoom);
+        this.doUpdateAxisZoom(callerId, primaryAxis.id, newZoom, changeType);
     }
 
     public panToBBox(callerId: string, seriesRect: BBox, target: BoxBounds): boolean {
@@ -356,10 +404,10 @@ export class ZoomManager extends BaseManager {
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
 
         if (this.independentAxes) {
-            this.updatePrimaryAxisZoom(callerId, ChartAxisDirection.X, newZoom.x);
-            this.updatePrimaryAxisZoom(callerId, ChartAxisDirection.Y, newZoom.y);
+            this.doUpdatePrimaryAxisZoom(callerId, ChartAxisDirection.X, newZoom.x, 'panToBBox:axis');
+            this.doUpdatePrimaryAxisZoom(callerId, ChartAxisDirection.Y, newZoom.y, 'panToBBox:axis');
         } else {
-            this.updateZoom(callerId, newZoom);
+            this.doUpdateZoom(newZoom, { callerId, changeType: 'panToBBox', axes: {} });
         }
         return true;
     }
@@ -370,10 +418,19 @@ export class ZoomManager extends BaseManager {
     }
 
     public extendToEnd(callerId: string, direction: ChartAxisDirection, extent: number) {
-        return this.extendWith(callerId, direction, (end) => Number(end) - extent);
+        return this.doExtendWith(callerId, direction, (end) => Number(end) - extent, 'extendToEnd:direction');
     }
 
     public extendWith(callerId: string, direction: ChartAxisDirection, fn: (end: Date | number) => Date | number) {
+        this.doExtendWith(callerId, direction, fn, 'extendWith:direction');
+    }
+
+    private doExtendWith(
+        callerId: string,
+        direction: ChartAxisDirection,
+        fn: (end: Date | number) => Date | number,
+        changeType: ZoomDirectionChangeType
+    ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
 
@@ -386,7 +443,7 @@ export class ZoomManager extends BaseManager {
         const ratio = this.rangeToRatio({ start }, direction);
         if (!ratio) return;
 
-        this.updateZoom(callerId, { [direction]: ratio });
+        this.doUpdateZoom({ [direction]: ratio }, { callerId, changeType, axes: {}, direction });
     }
 
     public updateWith(
@@ -406,7 +463,10 @@ export class ZoomManager extends BaseManager {
         const ratio = this.rangeToRatio({ start, end }, direction);
         if (!ratio) return;
 
-        this.updateZoom(callerId, { [direction]: ratio });
+        this.doUpdateZoom(
+            { [direction]: ratio },
+            { callerId, changeType: 'updateWith:direction', axes: {}, direction }
+        );
     }
 
     public getZoom(): AxisZoomState | undefined {
@@ -568,7 +628,7 @@ export class ZoomManager extends BaseManager {
         }
     }
 
-    private autoScaleYZoom(callerId: string, applyChanges = true) {
+    private autoScaleYZoom(callerId: string, changeType: ZoomGeneralChangeType | undefined, dispatch = true) {
         const { independentAxes } = this;
 
         const zoom = this.getZoom();
@@ -589,13 +649,13 @@ export class ZoomManager extends BaseManager {
             }
         }
 
-        if (applyChanges) {
-            this.applyChanges(callerId);
+        if (changeType && dispatch) {
+            this.dispatch({ callerId, changeType, axes: {} });
         }
     }
 
-    private applyChanges(callerId: string) {
-        this.autoScaleYZoom(callerId, false);
+    private dispatch(ev: PartialZoomChangeRequestedEvent) {
+        this.autoScaleYZoom(ev.callerId, undefined, false);
 
         const changed = Array.from(this.axisZoomManagers.values(), (axis) => axis.applyChanges()).includes(true);
 
@@ -603,12 +663,14 @@ export class ZoomManager extends BaseManager {
             return;
         }
 
-        const axes: Record<string, ZoomState | undefined> = {};
         for (const [axisId, axis] of this.axisZoomManagers.entries()) {
-            axes[axisId] = axis.getZoom();
+            ev.axes[axisId] = axis.getZoom();
         }
+        const { x, y } = this.getZoom() ?? {};
+        ev.x = x;
+        ev.y = y;
 
-        this.eventsHub.emit('zoom:change-requested', { ...this.getZoom(), axes, callerId });
+        this.eventsHub.emit('zoom:change-requested', ev);
     }
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {

@@ -119,12 +119,30 @@ export interface SeriesKeyNavZoomEvent {
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 
-export interface ZoomChangeRequestedEvent extends AxisZoomState {
+export type ZoomGeneralChangeType = 'layoutComplete' | 'panToBBox' | 'reset' | 'restoreMemento' | 'update';
+export type ZoomAxisChangeType = 'panToBBox:axis' | 'reset:axis' | 'restoreMemento:axis' | 'update:axis';
+export type ZoomDirectionChangeType = 'extendToEnd:direction' | 'extendWith:direction' | 'updateWith:direction';
+export type ZoomChangeType = ZoomGeneralChangeType | ZoomAxisChangeType | ZoomDirectionChangeType;
+
+interface BaseZoomChangeRequestedEvent<C extends ZoomChangeType> extends AxisZoomState {
     readonly callerId: string;
+    readonly changeType: C;
     readonly axes: Record<string, Readonly<ZoomState> | undefined>;
     readonly x?: Readonly<ZoomState>;
     readonly y?: Readonly<ZoomState>;
 }
+export interface ZoomGeneralChangeRequestedEvent extends BaseZoomChangeRequestedEvent<ZoomGeneralChangeType> {}
+export interface ZoomAxisChangeRequestedEvent extends BaseZoomChangeRequestedEvent<ZoomAxisChangeType> {
+    readonly axisId: string;
+}
+export interface ZoomDirectionChangeRequestedEvent extends BaseZoomChangeRequestedEvent<ZoomDirectionChangeType> {
+    readonly direction: ChartAxisDirection;
+}
+
+export type ZoomChangeRequestedEvent =
+    | ZoomGeneralChangeRequestedEvent
+    | ZoomAxisChangeRequestedEvent
+    | ZoomDirectionChangeRequestedEvent;
 
 export interface ZoomPanStartEvent {
     readonly callerId: string;
