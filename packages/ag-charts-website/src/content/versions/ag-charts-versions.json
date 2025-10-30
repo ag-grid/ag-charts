@@ -1,5 +1,15 @@
 [
     {
+        "version": "13.0.0",
+        "date": "December 10th, 2025",
+        "highlights": [
+            { "text": "Bundle size reduction", "path": "" },
+            { "text": "Highlight updates", "path": "" },
+            { "text": "High frequency data", "path": "" }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-13"
+    },
+    {
         "version": "12.3.1",
         "date": "October 29th, 2025"
     },

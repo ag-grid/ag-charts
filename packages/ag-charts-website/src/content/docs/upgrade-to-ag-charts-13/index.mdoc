@@ -12,16 +12,16 @@
 # * `{% if not(isFramework("react")) %}` - wrap around blocks where it does *not* apply to a framework
 # * `{% metaTag tags=[...] %}` - add meta tags to the page for search engines
 
-title: 'Upgrade to AG Charts !x.x!'
-description: "See what's new in AG Charts v!x.x! View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
-migrationVersion: '!x.x.x!'
+title: 'Upgrade to AG Charts 13.0'
+description: "See what's new in AG Charts v13.0! View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
+migrationVersion: '13.0.0'
 ---
 
 ## What's New
 
 <!-- Description with !BLOG_LINK! -->
 
-See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-<!-- XXXX -->/) for feature highlights of what's new in this version.
+See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-13/) for feature highlights of what's new in this major version.
 
 Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid {% gridVersion() %}.
 
@@ -35,84 +35,67 @@ DO NOT TOUCH.
 
 ## Breaking Changes
 
-<!-- If breaking changes do *not* exist, add the following: -->
 <!--
 There are no breaking changes in AG Charts version {% migrationVersion() %}.
 -->
 
-<!-- Otherwise -->
-<!--
 The full list of breaking changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Breaking Changes" %}
-This release includes the following breaking changes:
 
-### Breaking changes section Name
+### TODO: Breaking changes section Name
 
-- item...
+-   TODO: item...
 
 {% /expandingSection %}
--->
 
 ## Behaviour Changes
 
-<!-- If behaviour changes do *not* exist, add the following: -->
 <!--
 There are no behaviour changes in AG Charts version {% migrationVersion() %}.
 -->
 
-<!-- Otherwise -->
-<!--
 The full list of behaviour changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Behaviour Changes" %}
 
 This release includes the following behaviour changes:
 
-### Behaviour Changes section Name
+### Axes
 
-- item...
+-   `interval.placement` defaults to `'between'` instead of `on`.
+
+### Highlighting
+
+-   `highlight.bringToFront` defaults to `true` for all series.
+
+### Other Changes
+
+-   `zoom.enableAxisScrolling` defaults to `true`. Use `enabled: false` to disable.
 
 {% /expandingSection %}
--->
 
 ## Removal of Deprecated Properties
 
 <!-- If there are *no* deprecated APIs, add the following: -->
-<!--
-There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}.
--->
+
+<!-- There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}. -->
 
 <!-- Otherwise: -->
-<!--
-The following APIs have been deprecated since version !PREV_x.x! and have now been removed.
+
+The following APIs have been deprecated since version 12 and have now been removed.
 
 {% expandingSection headerText="Removed Deprecated Properties" %}
 
 ### Deprecated APIs section Name
 
-- item...
+-   item...
 
 {% /expandingSection %}
--->
 
 ## Deprecations
 
-<!-- If there are *no* deprecations, add the following: -->
-<!--
 There are no deprecations in AG Charts version {% migrationVersion() %}.
--->
-
-<!-- Otherwise: -->
-<!--
-{% expandingSection headerText="Deprecations" %}
-
-### Deprecation section Name
-
-- item...
-
-{% /expandingSection %}
--->
 
 <!-- Changelog for the `migrationVersion` property DO NOT TOUCH -->
 

@@ -7,8 +7,6 @@ const options: AgCartesianChartOptions = {
     data: getData(),
     zoom: {
         enabled: true,
-        enableAxisDragging: true,
-        enableAxisScrolling: true,
     },
     padding: {
         top: 10,
