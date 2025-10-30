@@ -98,8 +98,12 @@ export class MapMarkerSeries
 
     private labelSelection: _ModuleSupport.Selection<
         _ModuleSupport.Text,
-        _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+        _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>
     > = Selection.select(this.labelGroup, Text, false);
+    private highlightLabelSelection: _ModuleSupport.Selection<
+        _ModuleSupport.Text,
+        _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>
+    > = Selection.select(this.highlightLabelGroup, Text, false);
     private markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> = Selection.select(
         this.markerGroup,
         Marker,
@@ -107,6 +111,7 @@ export class MapMarkerSeries
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
         Selection.select(this.highlightGroup, Marker);
+    private placedLabelData: _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>[] = [];
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -293,11 +298,8 @@ export class MapMarkerSeries
     }
 
     private getLabelDatum(
-        datum: any,
+        node: MapMarkerNodeDatum,
         labelValue: string | undefined,
-        x: number,
-        y: number,
-        size: number,
         measurer: ITextMeasurer
     ): MapMarkerNodeLabelDatum | undefined {
         if (labelValue == null) return;
@@ -320,6 +322,7 @@ export class MapMarkerSeries
         } = this.properties;
         if (labelKey == null || !label.enabled) return;
 
+        const { datum, datumIndex, index, idValue, lonValue, latValue, point } = node;
         const { placement } = label;
         const labelText = this.getLabelText<AgMapMarkerSeriesLabelFormatterParams>(
             labelValue,
@@ -351,10 +354,12 @@ export class MapMarkerSeries
         const anchor = Marker.anchor(shape);
 
         return {
-            point: { x, y, size },
+            point: { x: point.x, y: point.y, size: point.size },
             label: { width, height, text: labelText },
             anchor,
             placement,
+            datumIndex,
+            datumId: createDatumId(index, idValue, lonValue, latValue),
         };
     }
 
@@ -449,7 +454,7 @@ export class MapMarkerSeries
 
         const node = this.buildNodeDatum(datum, datumIndex, -1, point, dataValues);
 
-        const label = this.getLabelDatum(datum, dataValues.labelValue, x, y, size, measurer) ?? undefined;
+        const label = this.getLabelDatum(node, dataValues.labelValue, measurer) ?? undefined;
 
         return { node, label };
     }
@@ -471,7 +476,7 @@ export class MapMarkerSeries
             const node = this.buildNodeDatum(datum, datumIndex, index, point, dataValues);
             nodes.push(node);
 
-            const label = this.getLabelDatum(datum, dataValues.labelValue, x, y, size, measurer);
+            const label = this.getLabelDatum(node, dataValues.labelValue, measurer);
             if (label) {
                 labels.push(label);
             }
@@ -607,19 +612,7 @@ export class MapMarkerSeries
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
 
-        let highlightedDatum: MapMarkerNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        const { legendItemName } = this.properties;
-        const matchingLegendItemName =
-            legendItemName != null &&
-            highlightedDatum?.datum == null &&
-            legendItemName === highlightedDatum?.legendItemName;
-
-        if (
-            highlightedDatum != null &&
-            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
-        ) {
-            highlightedDatum = undefined;
-        }
+        const highlightedDatum = this.getHighlightedDatum();
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
@@ -636,6 +629,9 @@ export class MapMarkerSeries
             highlightedDatum,
         });
 
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateHighlightLabelSelection(highlightedDatum);
+
         if (scaleChange || resize) {
             this.animationState.transition('resize');
         }
@@ -643,23 +639,37 @@ export class MapMarkerSeries
     }
 
     public override updatePlacedLabelData(labelData: _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>[]) {
+        this.placedLabelData = labelData;
         this.labelSelection = this.labelSelection.update(labelData, (text) => {
             text.pointerEvents = _ModuleSupport.PointerEvents.None;
         });
-        this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateHighlightLabelSelection();
     }
 
-    private updateLabelNodes(opts: {
+    private updateLabelNodes({
+        isHighlight,
+        labelSelection,
+    }: {
         labelSelection: _ModuleSupport.Selection<
             _ModuleSupport.Text,
-            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+            _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>
         >;
+        isHighlight: boolean;
     }) {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
+        labelSelection.each((label, placedLabel) => {
+            const { x, y, width, height, text, datum: labelDatum } = placedLabel;
             type P = AgMapMarkerSeriesLabelFormatterParams;
-            const style = getLabelStyles<P>(this, undefined, properties, properties.label, false, activeHighlight);
+            const style = getLabelStyles<P>(
+                this,
+                undefined,
+                properties,
+                properties.label,
+                isHighlight,
+                activeHighlight
+            );
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;
@@ -672,8 +682,44 @@ export class MapMarkerSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
-            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            const datumIndex = labelDatum?.datumIndex;
+            label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
+        });
+    }
+
+    private getHighlightedLabelId(highlightedDatum: MapMarkerNodeDatum | undefined = this.getHighlightedDatum()) {
+        if (highlightedDatum == null) return undefined;
+        return createDatumId(
+            highlightedDatum.index,
+            highlightedDatum.idValue,
+            highlightedDatum.lonValue,
+            highlightedDatum.latValue
+        );
+    }
+
+    private updateHighlightLabelSelection(
+        highlightedDatum: MapMarkerNodeDatum | undefined = this.getHighlightedDatum()
+    ) {
+        const highlightId = this.getHighlightedLabelId(highlightedDatum);
+
+        const highlightLabels =
+            highlightId == null || !this.isLabelEnabled()
+                ? []
+                : this.placedLabelData.filter((label) => label.datum.datumId === highlightId);
+
+        this.highlightLabelSelection = this.highlightLabelSelection.update(highlightLabels);
+
+        if (highlightLabels.length === 0) {
+            this.highlightLabelSelection.cleanup();
+            this.highlightLabelGroup.visible = false;
+            return;
+        }
+
+        this.highlightLabelGroup.visible = true;
+        this.updateLabelNodes({
+            labelSelection: this.highlightLabelSelection,
+            isHighlight: true,
         });
     }
 
@@ -795,6 +841,9 @@ export class MapMarkerSeries
         this.labelSelection.cleanup();
         this.markerSelection.cleanup();
         this.highlightMarkerSelection.cleanup();
+        this.highlightLabelSelection.cleanup();
+        this.highlightLabelGroup.visible = false;
+        this.placedLabelData = [];
     }
 
     private animateMarkers() {

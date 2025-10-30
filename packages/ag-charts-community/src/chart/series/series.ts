@@ -37,7 +37,7 @@ import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
-import { PointerEvents, type Node } from '../../scene/node';
+import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
 import { isGradientFill, isPatternFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
@@ -286,7 +286,11 @@ export abstract class Series<
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(
-        new TranslatableGroup({ name: `${this.internalId}-highlight-label`, pointerEvents: PointerEvents.None })
+        new TranslatableGroup({
+            name: `${this.internalId}-highlight-label`,
+            pointerEvents: PointerEvents.None,
+            zIndex: SeriesContentZIndexMap.LABEL,
+        })
     );
 
     // Error bars etc.

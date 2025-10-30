@@ -20,6 +20,9 @@ export interface MapShapeNodeLabelDatum {
     readonly text: TextOrSegments;
     readonly fontSize: number;
     readonly lineHeight: number;
+    readonly datumIndex: number;
+    readonly idValue: string;
+    readonly datumId: string | number | boolean;
 }
 
 export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {

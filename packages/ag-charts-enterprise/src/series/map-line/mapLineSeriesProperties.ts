@@ -10,7 +10,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { Property, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 
-export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
+export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {
+    readonly datumIndex: number;
+    readonly idValue: string;
+}
 
 export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly itemId: string;

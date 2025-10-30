@@ -79,6 +79,11 @@ export class MapLineSeries extends TopologySeries<
         this.highlightGroup,
         () => this.nodeFactory()
     );
+    private highlightLabelSelection: _ModuleSupport.Selection<
+        _ModuleSupport.Text,
+        _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
+    > = Selection.select(this.highlightLabelGroup, Text);
+    private placedLabelData: _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>[] = [];
 
     public contextNodeData?: MapLineNodeDataContext;
 
@@ -213,11 +218,13 @@ export class MapLineSeries extends TopologySeries<
 
     private getLabelDatum(
         datum: any,
+        datumIndex: number,
+        idValue: string | undefined,
         labelValue: string | undefined,
         projectedGeometry: _ModuleSupport.Geometry | undefined,
         measurer: ITextMeasurer
     ): MapLineNodeLabelDatum | undefined {
-        if (labelValue == null || projectedGeometry == null) return;
+        if (labelValue == null || projectedGeometry == null || idValue == null) return;
 
         const lineString = largestLineString(projectedGeometry);
         if (lineString == null) return;
@@ -259,6 +266,8 @@ export class MapLineSeries extends TopologySeries<
             label: { width, height, text: labelText },
             anchor: undefined,
             placement: undefined,
+            datumIndex,
+            idValue,
         };
     }
 
@@ -357,7 +366,14 @@ export class MapLineSeries extends TopologySeries<
                 missingGeometries.push(dataValues.idValue);
             }
 
-            const labelDatum = this.getLabelDatum(datum, dataValues.labelValue, projectedGeometry, measurer);
+            const labelDatum = this.getLabelDatum(
+                datum,
+                datumIndex,
+                dataValues.idValue,
+                dataValues.labelValue,
+                projectedGeometry,
+                measurer
+            );
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
@@ -401,21 +417,7 @@ export class MapLineSeries extends TopologySeries<
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
 
-        let highlightedDatum: MapLineNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-
-        const { legendItemName } = this.properties;
-        const matchingLegendItemName =
-            legendItemName != null &&
-            highlightedDatum?.datum == null &&
-            legendItemName === highlightedDatum?.legendItemName;
-
-        if (
-            highlightedDatum != null &&
-            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
-        ) {
-            highlightedDatum = undefined;
-        }
-
+        const highlightedDatum = this.getHighlightedDatum();
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
@@ -428,6 +430,9 @@ export class MapLineSeries extends TopologySeries<
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateHighlightLabelSelection(highlightedDatum);
     }
 
     private updateDatumSelection(opts: {
@@ -522,22 +527,29 @@ export class MapLineSeries extends TopologySeries<
     }
 
     public override updatePlacedLabelData(labelData: _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>[]) {
+        this.placedLabelData = labelData;
         this.labelSelection = this.labelSelection.update(labelData, (text) => {
             text.pointerEvents = _ModuleSupport.PointerEvents.None;
         });
-        this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateHighlightLabelSelection();
     }
 
-    private updateLabelNodes(opts: {
+    private updateLabelNodes({
+        isHighlight,
+        labelSelection,
+    }: {
         labelSelection: _ModuleSupport.Selection<
             _ModuleSupport.Text,
-            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+            _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
         >;
+        isHighlight: boolean;
     }) {
         const { properties } = this;
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
-            const style = getLabelStyles(this, undefined, properties, properties.label, false, activeHighlight);
+        const activeHighlight = this.getHighlightedDatum();
+        labelSelection.each((label, placedLabel) => {
+            const { x, y, width, height, text, datum: labelDatum } = placedLabel;
+            const style = getLabelStyles(this, undefined, properties, properties.label, isHighlight, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;
@@ -550,9 +562,24 @@ export class MapLineSeries extends TopologySeries<
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
-            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            const datumIndex = labelDatum?.datumIndex;
+            label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
         });
+    }
+
+    private updateHighlightLabelSelection(highlightedDatum: MapLineNodeDatum | undefined = this.getHighlightedDatum()) {
+        const highlightId = highlightedDatum?.idValue;
+        const highlightLabels =
+            highlightId == null || !this.isLabelEnabled()
+                ? []
+                : this.placedLabelData.filter((label) => label.datum.idValue === highlightId);
+
+        this.highlightLabelSelection = this.highlightLabelSelection.update(highlightLabels);
+        if (highlightLabels.length === 0) {
+            this.highlightLabelSelection.cleanup();
+        }
+        this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
     }
 
     resetAnimation() {

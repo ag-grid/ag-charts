@@ -111,9 +111,11 @@ export class MapShapeSeries
         Text
     );
     private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
-        this.highlightGroup,
+        this.highlightNodeGroup,
         () => this.nodeFactory()
     );
+    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum> =
+        Selection.select(this.highlightLabelGroup, Text);
 
     public contextNodeData?: MapShapeNodeDataContext;
 
@@ -296,7 +298,12 @@ export class MapShapeSeries
         return { geometry, labelText, aspectRatio, x, y, maxWidth, fixedPolygon };
     }
 
-    private getLabelDatum(labelLayout: LabelLayout, scaling: number): MapShapeNodeLabelDatum | undefined {
+    private getLabelDatum(
+        labelLayout: LabelLayout,
+        scaling: number,
+        datumIndex: number,
+        idValue: string
+    ): MapShapeNodeLabelDatum | undefined {
         const { scale } = this;
         if (scale == null) return;
 
@@ -340,6 +347,9 @@ export class MapShapeSeries
             text,
             fontSize,
             lineHeight,
+            datumIndex,
+            idValue,
+            datumId: createDatumId(idValue),
         };
     }
 
@@ -424,7 +434,9 @@ export class MapShapeSeries
             }
 
             const labelDatum =
-                labelLayout != null && scale != null ? this.getLabelDatum(labelLayout, scaling) : undefined;
+                labelLayout != null && scale != null
+                    ? this.getLabelDatum(labelLayout, scaling, datumIndex, dataValues.idValue)
+                    : undefined;
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
@@ -467,19 +479,7 @@ export class MapShapeSeries
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
 
-        let highlightedDatum: MapShapeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        const { legendItemName } = this.properties;
-        const matchingLegendItemName =
-            legendItemName != null &&
-            highlightedDatum?.datum == null &&
-            legendItemName === highlightedDatum?.legendItemName;
-
-        if (
-            highlightedDatum != null &&
-            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
-        ) {
-            highlightedDatum = undefined;
-        }
+        const highlightedDatum = this.getHighlightedDatum();
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
@@ -489,7 +489,13 @@ export class MapShapeSeries
         this.updateDatumNodes({ datumSelection });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
-        this.updateLabelNodes({ labelSelection });
+        const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum);
+        this.highlightLabelSelection = this.updateLabelSelection({
+            labelData: highlightLabelData,
+            labelSelection: this.highlightLabelSelection,
+        });
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum == null ? [] : [highlightedDatum],
@@ -497,6 +503,18 @@ export class MapShapeSeries
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection });
+    }
+
+    private getHighlightLabelData(
+        labelData: MapShapeNodeLabelDatum[],
+        highlightedDatum?: MapShapeNodeDatum
+    ): MapShapeNodeLabelDatum[] {
+        if (labelData.length === 0) return [];
+
+        const highlightId = createDatumId(highlightedDatum?.idValue);
+        return labelData.filter(
+            (labelDatum) => labelDatum.datumId === highlightId && labelDatum.datumIndex === highlightedDatum?.datumIndex
+        );
     }
 
     private updateDatumSelection(opts: {
@@ -608,14 +626,26 @@ export class MapShapeSeries
         return opts.labelSelection.update(labels);
     }
 
-    private updateLabelNodes(opts: {
+    private updateLabelNodes({
+        isHighlight,
+        labelSelection,
+    }: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
+        isHighlight: boolean;
     }) {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
+        labelSelection.each((label, labelDatum) => {
+            const { x, y, text, fontSize, lineHeight, datumIndex } = labelDatum;
             type P = AgMapShapeSeriesLabelFormatterParams;
-            const style = getLabelStyles<P>(this, undefined, properties, properties.label, false, activeHighlight);
+            const style = getLabelStyles<P>(
+                this,
+                undefined,
+                properties,
+                properties.label,
+                isHighlight,
+                activeHighlight
+            );
             const { color: fill, fontStyle, fontWeight, fontFamily } = style;
             label.visible = true;
             label.x = x;
@@ -629,7 +659,7 @@ export class MapShapeSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
-            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
         });
     }
