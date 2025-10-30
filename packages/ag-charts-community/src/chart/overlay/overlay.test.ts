@@ -316,7 +316,7 @@ HTMLCollection [
                         series: [{ type: seriesType, xKey: 'quarter', yKey: 'iphone' }],
                     });
 
-                    // Check that no data overlay IS shown
+                    // Check that no data overlay is NOT shown
                     const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
