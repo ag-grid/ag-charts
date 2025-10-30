@@ -164,10 +164,6 @@ export class BarSeries extends AbstractBarSeries<
         );
     }
 
-    override get hasData(): boolean {
-        return this.getHasData('yValue-raw');
-    }
-
     override async processData(dataController: DataController) {
         if (!this.data) return;
 

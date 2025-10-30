@@ -48,21 +48,16 @@ export abstract class DataModelSeries<
         return this.processedData?.dataSources?.get(this.id)?.data?.length ?? 0;
     }
 
-    getHasData(axisKey: string): boolean {
-        const { dataModel, processedData } = this;
+    invalidDataCount() {
+        return this.processedData?.invalidData?.get(this.id)?.length ?? 0;
+    }
 
-        if (!dataModel || !processedData) {
-            return super.hasData;
-        }
+    missingDataCount() {
+        return this.dataModel?.resolveMissingDataCount(this) ?? 0;
+    }
 
-        const values = dataModel.resolveColumnById(this, axisKey, processedData);
-        for (const value of values) {
-            if (value != null && (typeof value !== 'number' || !Number.isNaN(value))) {
-                return true;
-            }
-        }
-
-        return false;
+    override get hasData() {
+        return Math.max(0, this.dataCount() - this.invalidDataCount() - this.missingDataCount()) > 0;
     }
 
     protected getScaleInformation({

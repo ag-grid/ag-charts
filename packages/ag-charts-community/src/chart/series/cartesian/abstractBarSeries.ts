@@ -58,10 +58,6 @@ export abstract class AbstractBarSeries<
     protected smallestDataInterval?: number = undefined;
     protected largestDataInterval?: number = undefined;
 
-    override get hasData(): boolean {
-        return this.getHasData('xValue');
-    }
-
     protected padBandExtent(keys: any[], alignStart?: boolean) {
         const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;
         const scalePadding = isFiniteNumber(this.smallestDataInterval) ? this.smallestDataInterval * ratio : 0;

@@ -213,77 +213,100 @@ HTMLCollection [
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO VISIBLE SERIES TEXT');
         });
 
-        describe.each(['bar', 'line', 'area'])('AG-16074 for %s series', (seriesType) => {
-            test('should not show no data overlay when first series has null y-value but other series have data', async () => {
-                chart = await createChart({
-                    data: [
-                        {
-                            quarter: "Q1'18",
-                            iphone: null, // First series has null
-                            mac: 16,
-                            ipad: 14,
-                            wearables: 12,
-                            services: 20,
-                        },
-                    ],
-                    series: [
-                        { type: seriesType, xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
-                        { type: seriesType, xKey: 'quarter', yKey: 'mac', yName: 'Mac' },
-                        { type: seriesType, xKey: 'quarter', yKey: 'ipad', yName: 'iPad' },
-                        { type: seriesType, xKey: 'quarter', yKey: 'wearables', yName: 'Wearables' },
-                        { type: seriesType, xKey: 'quarter', yKey: 'services', yName: 'Services' },
-                    ],
+        describe.each<'bar' | 'line' | 'area'>(['bar', 'line', 'area'])(
+            'AG-16074 for %s series',
+            (seriesType: 'bar' | 'line' | 'area') => {
+                test('should not show no data overlay when first series has null y-value but other series have data', async () => {
+                    chart = await createChart({
+                        data: [
+                            {
+                                quarter: "Q1'18",
+                                iphone: null, // First series has null
+                                mac: 16,
+                            },
+                        ],
+                        series: [
+                            { type: seriesType, xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
+                            { type: seriesType, xKey: 'quarter', yKey: 'mac', yName: 'Mac' },
+                        ],
+                    });
+
+                    // Check that no data overlay is NOT shown
+                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    expect(overlayEl).toBe(null);
                 });
 
-                // Check that no data overlay is NOT shown
-                const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
-                expect(overlayEl).toBe(null);
-            });
+                test('should show no data overlay when all series have null values', async () => {
+                    chart = await createChart({
+                        data: [
+                            {
+                                quarter: "Q1'18",
+                                iphone: null,
+                                mac: null,
+                            },
+                        ],
+                        series: [
+                            { type: seriesType, xKey: 'quarter', yKey: 'iphone' },
+                            { type: seriesType, xKey: 'quarter', yKey: 'mac' },
+                        ],
+                    });
 
-            test('should show no data overlay when all series have null values', async () => {
-                chart = await createChart({
-                    data: [
-                        {
-                            quarter: "Q1'18",
-                            iphone: null,
-                            mac: null,
-                            ipad: null,
-                        },
-                    ],
-                    series: [
-                        { type: seriesType, xKey: 'quarter', yKey: 'iphone' },
-                        { type: seriesType, xKey: 'quarter', yKey: 'mac' },
-                        { type: seriesType, xKey: 'quarter', yKey: 'ipad' },
-                    ],
+                    // Check that no data overlay IS shown
+                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    expect(overlayEl).not.toBe(null);
                 });
 
-                // Check that no data overlay IS shown
-                const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
-                expect(overlayEl).not.toBe(null);
-            });
+                test('should show no data overlay when all series have missing values', async () => {
+                    chart = await createChart({
+                        data: [
+                            {
+                                quarter: "Q1'18",
+                            },
+                        ],
+                        series: [
+                            { type: seriesType, xKey: 'quarter', yKey: 'iphone' },
+                            { type: seriesType, xKey: 'quarter', yKey: 'mac' },
+                        ],
+                    });
 
-            test('should not show no data overlay when first series has empty data but other series have data', async () => {
-                chart = await createChart({
-                    series: [
-                        {
-                            type: seriesType,
-                            data: [], // First series has no data
-                            xKey: 'quarter',
-                            yKey: 'value',
-                        },
-                        {
-                            type: seriesType,
-                            data: [{ quarter: "Q1'18", value: 16 }], // Second series has data
-                            xKey: 'quarter',
-                            yKey: 'value',
-                        },
-                    ],
+                    const seriesTypeCapitalized = seriesType.charAt(0).toUpperCase() + seriesType.slice(1);
+                    expectWarningsCalls().toMatchInlineSnapshot(`[
+  [
+    "AG Charts - the key 'iphone' was not found in any data element for ${seriesTypeCapitalized}Series-1.",
+  ],
+  [
+    "AG Charts - the key 'mac' was not found in any data element for ${seriesTypeCapitalized}Series-2.",
+  ],
+]`);
+
+                    // Check that no data overlay IS shown
+                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    expect(overlayEl).not.toBe(null);
                 });
 
-                // Check that no data overlay is NOT shown
-                const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
-                expect(overlayEl).toBe(null);
-            });
-        });
+                test('should not show no data overlay when first series has empty data but other series have data', async () => {
+                    chart = await createChart({
+                        series: [
+                            {
+                                type: seriesType,
+                                data: [], // First series has no data
+                                xKey: 'quarter',
+                                yKey: 'value',
+                            },
+                            {
+                                type: seriesType,
+                                data: [{ quarter: "Q1'18", value: 16 }], // Second series has data
+                                xKey: 'quarter',
+                                yKey: 'value',
+                            },
+                        ],
+                    });
+
+                    // Check that no data overlay is NOT shown
+                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    expect(overlayEl).toBe(null);
+                });
+            }
+        );
     });
 });
