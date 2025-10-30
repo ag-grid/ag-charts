@@ -128,7 +128,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     override get hasData(): boolean {
-        return this.getHasData('xValue');
+        return this.getHasData('yValueRaw');
     }
 
     private isNormalized() {

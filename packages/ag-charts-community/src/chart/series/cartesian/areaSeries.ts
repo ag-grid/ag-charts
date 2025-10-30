@@ -154,7 +154,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override get hasData(): boolean {
-        return this.getHasData('xValue');
+        return this.getHasData('yValueRaw');
     }
 
     override renderToOffscreenCanvas(): boolean {
