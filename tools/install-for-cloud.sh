@@ -16,15 +16,15 @@ log_error() {
     echo "[install-for-cloud] ERROR: $*" >&2
 }
 
-# Check if running in Claude Code remote environment
-if [ "${CLAUDE_CODE_REMOTE:-false}" != "true" ]; then
-    log_info "Not a remote session, skipping install"
+if [ "${AG_CLOUD_INSTALL:-}" == "1" ]; then
+    log_info "AG_CLOUD_INSTALL set, initializing environment"
+elif [ "${AG_CLOUD_INSTALL:-}" == "0" ]; then
+    log_info "Disabled by AG_CLOUD_INSTALL, skipping environment initialization"
     exit 0
-fi
-
-if [ "${AG_CLOUD_INSTALL:-1}" == "0" ]; then
-    log_info "Disabled by AG_CLOUD_INSTALL env-var, skipping install"
-    exit 0
+elif [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
+    # Check if running in Claude Code remote environment
+    log_info "CLAUDE_CODE_REMOTE not set, skipping environment initialization"
+    exit 1
 fi
 
 # Ensure we're in the project directory

@@ -174,6 +174,16 @@ function setup_mcp() {
     ln -sf "${relative_path}tools/prompts/.mcp.json" "$target_file"
 }
 
+function setup_cursor_worktrees() {
+    local target_file=$1
+
+    # Calculate the relative path from target_file to the worktrees config
+    local relative_path=$(path_to_root $target_file)
+
+    mkdir -p $(dirname $target_file)
+    ln -sf "${relative_path}tools/prompts/.cursor-worktrees.json" "$target_file"
+}
+
 function configure_mcp() {
     function add_mcp() {
         local name=$1
@@ -392,6 +402,7 @@ if (command -v cursor >/dev/null 2>&1) ; then
     setup_commands .cursor/commands md link
     setup_instructions AGENTS.md
     setup_mcp .cursor/mcp.json
+    setup_cursor_worktrees .cursor/worktrees.json
 fi
 
 if (command -v codex >/dev/null 2>&1) ; then
