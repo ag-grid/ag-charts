@@ -270,14 +270,14 @@ HTMLCollection [
                     });
 
                     const seriesTypeCapitalized = seriesType.charAt(0).toUpperCase() + seriesType.slice(1);
-                    expectWarningsCalls().toMatchInlineSnapshot(`[
-  [
-    "AG Charts - the key 'iphone' was not found in any data element for ${seriesTypeCapitalized}Series-1.",
-  ],
-  [
-    "AG Charts - the key 'mac' was not found in any data element for ${seriesTypeCapitalized}Series-2.",
-  ],
-]`);
+                    expectWarningsCalls().toEqual([
+                        [
+                            `AG Charts - the key 'iphone' was not found in any data element for ${seriesTypeCapitalized}Series-1.`,
+                        ],
+                        [
+                            `AG Charts - the key 'mac' was not found in any data element for ${seriesTypeCapitalized}Series-2.`,
+                        ],
+                    ]);
 
                     // Check that no data overlay IS shown
                     const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
