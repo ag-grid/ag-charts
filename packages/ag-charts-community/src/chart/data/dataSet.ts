@@ -296,10 +296,14 @@ export class DataSet<T = unknown> {
                             }
                         }
 
-                        // Adjust virtualIndex of all subsequent tracked insertions
+                        // Only adjust insertions positioned after the original span
                         if (removedCount > 0) {
+                            const originalEndPosition = tracked.virtualIndex + originalLength;
                             for (let j = trackedIdx + 1; j < trackedInsertions.length; j++) {
-                                trackedInsertions[j].virtualIndex -= removedCount;
+                                // Only adjust if positioned at or after the end of the removed span
+                                if (trackedInsertions[j].virtualIndex >= originalEndPosition) {
+                                    trackedInsertions[j].virtualIndex -= removedCount;
+                                }
                             }
                         }
                     }

@@ -1183,6 +1183,98 @@ describe('DataSet', () => {
                     expected: ['A', 'B', 'C', y, 'D'],
                 });
             });
+
+            // Bug fix: Only adjust insertions positioned after the removed span
+            test('removing later insertion should not affect earlier insertion', () => {
+                const x1 = { id: 'x1' };
+                const x2 = { id: 'x2' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D'],
+                    transactions: [
+                        { add: [x1], addIndex: 3 }, // later removal target
+                        { add: [x2], addIndex: 1 }, // inserts to the left
+                        { remove: [x1] },
+                    ],
+                    // After tx1: ['A', 'B', 'C', x1, 'D']
+                    // After tx2: ['A', x2, 'B', 'C', x1, 'D']
+                    // After remove x1: ['A', x2, 'B', 'C', 'D']
+                    // x2's virtualIndex (1) < x1's end position (4), so NOT adjusted
+                    expected: ['A', x2, 'B', 'C', 'D'],
+                });
+            });
+
+            test('removing earlier insertion should affect later insertion', () => {
+                const x1 = { id: 'x1' };
+                const x2 = { id: 'x2' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D'],
+                    transactions: [
+                        { add: [x1], addIndex: 1 }, // earlier removal target
+                        { add: [x2], addIndex: 3 }, // inserts to the right
+                        { remove: [x1] },
+                    ],
+                    // After tx1: ['A', x1, 'B', 'C', 'D']
+                    // After tx2: ['A', x1, 'B', x2, 'C', 'D']
+                    // After remove x1: ['A', 'B', x2, 'C', 'D']
+                    // x2 should shift from position 3 to position 2
+                    expected: ['A', 'B', x2, 'C', 'D'],
+                });
+            });
+
+            test('insertion at boundary of removed span should be adjusted', () => {
+                const x1 = { id: 'x1' };
+                const x2 = { id: 'x2' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D'],
+                    transactions: [
+                        { add: [x1], addIndex: 1 },
+                        { add: [x2], addIndex: 2 }, // exactly at the end of x1's span
+                        { remove: [x1] },
+                    ],
+                    // After tx1: ['A', x1, 'B', 'C', 'D']
+                    // After tx2: ['A', x1, x2, 'B', 'C', 'D']
+                    // After remove x1: ['A', x2, 'B', 'C', 'D']
+                    // x2 at position 2 (end of x1's span [1,2)) should shift to 1
+                    expected: ['A', x2, 'B', 'C', 'D'],
+                });
+            });
+
+            test('removing multiple items from earlier insertion affects later insertion', () => {
+                const items1 = ['X', 'Y', 'Z'];
+                const x2 = { id: 'x2' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    transactions: [
+                        { add: items1, addIndex: 1 },
+                        { add: [x2], addIndex: 5 }, // after the 3-item insertion
+                        { remove: ['Y', 'Z'] }, // remove 2 items from first insertion
+                    ],
+                    // After tx1: ['A', 'X', 'Y', 'Z', 'B', 'C', 'D', 'E']
+                    // After tx2: ['A', 'X', 'Y', 'Z', 'B', x2, 'C', 'D', 'E']
+                    // After remove Y,Z: ['A', 'X', 'B', x2, 'C', 'D', 'E']
+                    // x2 should shift from position 5 to position 3 (adjust by 2)
+                    expected: ['A', 'X', 'B', x2, 'C', 'D', 'E'],
+                });
+            });
+
+            test('removing middle insertion adjusts only later ones not earlier', () => {
+                const x = 'X';
+                const y = 'Y';
+                const z = 'Z';
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3 },
+                        { add: [z], addIndex: 5 },
+                        { remove: [y] },
+                    ],
+                    // After insertions: ['A', 'X', 'B', 'Y', 'C', 'Z']
+                    // After removing Y: ['A', 'X', 'B', 'C', 'Z']
+                    // X should remain at position 1, Z should shift from 5 to 4
+                    expected: ['A', x, 'B', 'C', z],
+                });
+            });
         });
     });
 });
