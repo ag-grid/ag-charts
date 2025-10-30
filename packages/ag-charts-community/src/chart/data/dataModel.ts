@@ -254,6 +254,10 @@ export class DataModel<
         return this.resolvers.resolveColumnNeedsValueOf(scope, searchId, processedData);
     }
 
+    resolveMissingDataCount(scope: ScopeProvider): number {
+        return this.resolvers.resolveMissingDataCount(scope);
+    }
+
     /**
      * Provides a convenience iterator to iterate over all of the extract datum values in a
      * specific DataGroup.

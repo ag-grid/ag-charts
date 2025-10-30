@@ -1121,7 +1121,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (this.mode !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
             const seriesMarkerFills: { [key: string]: Map<TextOrSegments, AgColorType | undefined> } = {};
-            const seriesTypeMap = new Map(this.series.map((s) => [s.id, s.type]));
+            const seriesMap = new Map(this.series.map((s) => [s.id, s]));
 
             for (const {
                 seriesId,
@@ -1130,7 +1130,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             } of legendData.filter((d) => !d.hideInLegend)) {
                 if (marker.fill == null) continue;
 
-                const seriesType = seriesTypeMap.get(seriesId)!;
+                const series = seriesMap.get(seriesId);
+                if (!series?.hasData) continue;
+
+                const seriesType = series.type;
                 const markerFill = (seriesMarkerFills[seriesType] ??= new Map());
 
                 if (markerFill.has(label.text)) {

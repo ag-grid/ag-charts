@@ -127,10 +127,6 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
-    override get hasData(): boolean {
-        return this.getHasData('xValue');
-    }
-
     private isNormalized() {
         return this.properties.normalizedTo != null;
     }

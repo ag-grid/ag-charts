@@ -112,10 +112,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    override get hasData(): boolean {
-        return this.getHasData('angleValue-raw');
-    }
-
     protected override nodeFactory(): _ModuleSupport.Sector {
         return new Sector();
     }

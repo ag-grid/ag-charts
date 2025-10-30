@@ -91,6 +91,7 @@ export class Overlay extends BaseProperties {
                 content.innerText = this.getText(localeManager);
             }
             this.content = content;
+            this.content.classList.add(this.className);
 
             animationManager?.animate({
                 from: 0,

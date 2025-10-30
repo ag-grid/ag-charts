@@ -29,6 +29,14 @@ import type { DataModelContext } from '../dataModelContext';
 export class DataModelResolvers<D extends object, K extends keyof D & string> {
     constructor(private readonly ctx: DataModelContext<D, K>) {}
 
+    resolveMissingDataCount(scope: ScopeProvider): number {
+        let missingDataCount = 0;
+        for (const value of this.ctx.values) {
+            missingDataCount = Math.max(missingDataCount, value.missing.get(scope.id) ?? 0);
+        }
+        return missingDataCount;
+    }
+
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
         const def = this.ctx.scopeCache.get(scope.id)?.get(searchId);
 

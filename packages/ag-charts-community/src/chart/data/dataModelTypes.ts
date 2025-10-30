@@ -72,6 +72,7 @@ export interface CommonMetadata<D> {
     invalidKeys: Map<ScopeId, boolean[]> | undefined;
     invalidKeyCount: Map<ScopeId, number> | undefined;
     invalidData: Map<ScopeId, boolean[]> | undefined;
+    invalidDataCount: Map<ScopeId, number> | undefined;
     keys: Map<ScopeId, unknown[]>[];
     columns: any[][];
     columnScopes: Set<ScopeId>[];
