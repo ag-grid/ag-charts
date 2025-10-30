@@ -853,6 +853,48 @@ describe('DataSet', () => {
                 });
             });
 
+            test('should handle inserting and removing same item in single transaction', () => {
+                const initial = ['A', 'B', 'C'];
+                const newItem = 'X';
+                expectCommitResult({
+                    initial,
+                    transactions: {
+                        add: [newItem],
+                        addIndex: 1,
+                        remove: [newItem],
+                    },
+                    expected: ['A', 'B', 'C'], // Item should not appear
+                });
+            });
+
+            test('should handle multiple inserts then remove all in single transaction', () => {
+                const initial = ['A', 'B'];
+                const items = ['X', 'Y', 'Z'];
+                expectCommitResult({
+                    initial,
+                    transactions: {
+                        add: items,
+                        addIndex: 1,
+                        remove: items,
+                    },
+                    expected: ['A', 'B'], // Items should not appear
+                });
+            });
+
+            test('should handle partial removal of inserted items', () => {
+                const initial = ['A', 'B'];
+                const items = ['X', 'Y', 'Z'];
+                expectCommitResult({
+                    initial,
+                    transactions: {
+                        add: items,
+                        addIndex: 1,
+                        remove: ['Y'], // Remove only 'Y'
+                    },
+                    expected: ['A', 'X', 'Z', 'B'], // Only X and Z should appear
+                });
+            });
+
             test('should handle removal before insertion index', () => {
                 const initial = ['A', 'B', 'C', 'D', 'E'];
                 runCommitScenario({
@@ -988,6 +1030,40 @@ describe('DataSet', () => {
                             expected: ['A', 'X', 'Y', 'B', 'C'],
                         },
                     ],
+                });
+            });
+
+            test('should handle two insertions at exact same index in single commit', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: [
+                        { add: ['X'], addIndex: 1 },
+                        { add: ['Y'], addIndex: 1 }, // Same index as X
+                    ],
+                    expected: ['A', 'Y', 'X', 'B', 'C'], // Y should come before X
+                });
+            });
+
+            test('should handle three insertions at exact same index', () => {
+                expectCommitResult({
+                    initial: ['A', 'B'],
+                    transactions: [
+                        { add: ['X'], addIndex: 1 },
+                        { add: ['Y'], addIndex: 1 },
+                        { add: ['Z'], addIndex: 1 },
+                    ],
+                    expected: ['A', 'Z', 'Y', 'X', 'B'], // Z, Y, X in that order
+                });
+            });
+
+            test('should handle multiple multi-item insertions at same index', () => {
+                expectCommitResult({
+                    initial: ['A', 'B'],
+                    transactions: [
+                        { add: ['X1', 'X2'], addIndex: 1 },
+                        { add: ['Y1', 'Y2'], addIndex: 1 },
+                    ],
+                    expected: ['A', 'Y1', 'Y2', 'X1', 'X2', 'B'],
                 });
             });
         });

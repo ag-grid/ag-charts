@@ -122,49 +122,25 @@ export class DataSet<T = unknown> {
             return false;
         }
 
-        // Build a map of insertion values by their destination index
-        // This is needed because splice operations may not be in sequential order
-        const insertionMap = new Map<number, T>();
-
-        // Add prepended values (at indices 0 to prependCount-1)
+        // Get all insertion values in order: prepends, insertions, appends
         const prependedValues = changeDescription.getPrependedValues<T>();
-        for (const [index, value] of prependedValues.entries()) {
-            insertionMap.set(index, value);
-        }
-
-        // Add insertion values (at their splice operation indices)
-        // Note: We need to match insertions to their splice operations by walking through splice ops
         const insertionValues = changeDescription.getInsertionValues<T>();
-        let insertionValueIndex = 0;
-        for (const op of changeDescription.indexMap.spliceOps) {
-            if (op.insertCount > 0 && op.index > 0 && op.index < this.data.length + prependedValues.length) {
-                // This is an insertion (not prepend, not append)
-                // Map each inserted element to its destination index
-                for (let i = 0; i < op.insertCount; i++) {
-                    if (insertionValueIndex < insertionValues.length) {
-                        insertionMap.set(op.index + i, insertionValues[insertionValueIndex++]);
-                    }
-                }
-            }
-        }
-
-        // Add appended values (at the end)
         const appendedValues = changeDescription.getAppendedValues<T>();
-        const baseAppendIndex =
-            prependedValues.length +
-            (this.data.length - changeDescription.indexMap.removedIndices.size) +
-            insertionValues.length;
-        for (const [index, value] of appendedValues.entries()) {
-            insertionMap.set(baseAppendIndex + index, value);
-        }
 
-        // Apply transformations using the insertion map
+        // Create a flat list of all values to insert, in the order they'll be consumed
+        const allInsertionValues = [...prependedValues, ...insertionValues, ...appendedValues];
+
+        // Use a sequential index to consume insertion values in order instead of a map
+        // keyed by destination index (which causes collisions when multiple insertions
+        // target overlapping indices)
+        let insertionValueIndex = 0;
+
+        // Apply transformations using sequential consumption
         changeDescription.applyToArray(this.data, (destIndex) => {
-            const value = insertionMap.get(destIndex);
-            if (value === undefined) {
+            if (insertionValueIndex >= allInsertionValues.length) {
                 throw new Error(`AG Charts - Internal error: No insertion value found for index ${destIndex}`);
             }
-            return value;
+            return allInsertionValues[insertionValueIndex++];
         });
 
         this.pendingTransactions = [];
@@ -303,6 +279,19 @@ export class DataSet<T = unknown> {
                 // Remove from insertions
                 if (toRemove.size > 0) {
                     this.removeFromGroups(insertionsList, toRemove);
+
+                    // Remove items from trackedInsertions that were removed from insertionsList
+                    for (const tracked of trackedInsertions) {
+                        let i = 0;
+                        while (i < tracked.items.length) {
+                            if (remove.includes(tracked.items[i])) {
+                                tracked.items.splice(i, 1);
+                                virtualLength--;
+                            } else {
+                                i++;
+                            }
+                        }
+                    }
                 }
 
                 // Remove from appends
