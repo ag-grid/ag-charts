@@ -334,4 +334,3 @@ const updateCallback = async () => {
 
 const feed = new RealTimeDataFeed(updateCallback);
 const rapidFeed = new RapidDataFeed(updateCallback);
-
