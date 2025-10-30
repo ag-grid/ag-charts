@@ -729,6 +729,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             }
         }
 
+        // Recompute invalidDataCount
+        if (processedData.invalidDataCount) {
+            for (const [scope, invalidData] of processedData.invalidData ?? new Map()) {
+                const count = invalidData.filter(Boolean).length;
+                processedData.invalidDataCount.set(scope, count);
+            }
+        }
+
         // Clear cached data that depends on array positions
         processedData[DOMAIN_RANGES].clear();
         processedData[KEY_SORT_ORDERS].clear();

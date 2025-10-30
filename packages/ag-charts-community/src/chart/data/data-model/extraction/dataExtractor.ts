@@ -34,7 +34,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
         const { keys: keyDefs, values: valueDefs } = this.ctx;
 
-        const { invalidData, invalidKeys, invalidKeyCount, allKeyMappings } = this.extractKeys(
+        const { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings } = this.extractKeys(
             keyDefs,
             sources,
             processValue
@@ -42,6 +42,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
         const { columns, columnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength } = this.extractValues(
             invalidData,
+            invalidDataCount,
             valueDefs,
             sources,
             invalidKeys,
@@ -71,6 +72,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             invalidKeys,
             invalidKeyCount,
             invalidData,
+            invalidDataCount,
             domain: {
                 keys: keyDefs.map(propertyDomain),
                 values: valueDefs.map(propertyDomain),
@@ -102,6 +104,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const invalidKeys = new Map<ScopeId, boolean[]>();
         const invalidData = new Map<ScopeId, boolean[]>();
         const invalidKeyCount = new Map<ScopeId, number>();
+        const invalidDataCount = new Map<ScopeId, number>();
         const allKeys = new Map<(typeof keyDefs)[number], Map<ScopeId, unknown[]>>();
 
         let keyDefKeys: Map<ScopeId, unknown[]>;
@@ -113,6 +116,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             if (invalidKeys.has(sourceScope)) {
                 invalidKeys.set(target, invalidKeys.get(sourceScope)!);
                 invalidData.set(target, invalidData.get(sourceScope)!);
+                invalidDataCount.set(target, invalidDataCount.get(sourceScope)!);
             }
         };
 
@@ -162,28 +166,36 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     invalidKeys.set(scope, invalidScopeKeys);
                     invalidData.set(scope, invalidScopeData);
                     invalidKeyCount.set(scope, missingKeys);
+                    invalidDataCount.set(scope, missingKeys);
                 }
             }
         }
-        return { invalidData, invalidKeys, invalidKeyCount, allKeyMappings: allKeys };
+        return { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings: allKeys };
     }
 
     private readonly markScopeDatumInvalid = function (
         scopes: string[],
         data: unknown[],
         datumIndex: number,
-        invalidData: Map<ScopeId, boolean[]>
+        invalidData: Map<ScopeId, boolean[]>,
+        invalidDataCount: Map<ScopeId, number>
     ) {
         for (const scope of scopes) {
             if (!invalidData.has(scope)) {
                 invalidData.set(scope, createArray(data.length, false));
+                invalidDataCount.set(scope, 0);
             }
-            invalidData.get(scope)![datumIndex] = true;
+            const scopeInvalidData = invalidData.get(scope)!;
+            if (!scopeInvalidData[datumIndex]) {
+                scopeInvalidData[datumIndex] = true;
+                invalidDataCount.set(scope, invalidDataCount.get(scope)! + 1);
+            }
         }
     };
 
     private extractValues(
         invalidData: Map<ScopeId, boolean[]>,
+        invalidDataCount: Map<ScopeId, number>,
         valueDefs: InternalDatumPropertyDefinition<K>[],
         sources: Map<string, DataSet<unknown>>,
         scopeInvalidKeys: Map<ScopeId, boolean[]>,
@@ -223,7 +235,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 let value = result.value;
 
                 if (invalidKey || !result.valid) {
-                    this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData);
+                    this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
                 }
 
                 if (invalidKey) {

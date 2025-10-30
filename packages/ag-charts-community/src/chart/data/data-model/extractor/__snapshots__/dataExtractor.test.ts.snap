@@ -116,6 +116,7 @@ exports[`DataExtractor empty data set processing should generated the expected r
     "count": 0,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -657,6 +658,12 @@ exports[`DataExtractor missing and invalid data processing - multiple scopes sho
       false,
     ],
   },
+  "invalidDataCount": Map {
+    "test" => 1,
+    "series-a" => 1,
+    "series-b" => 2,
+    "series-c" => 2,
+  },
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -973,6 +980,9 @@ exports[`DataExtractor missing and invalid data processing should generated the 
       true,
       false,
     ],
+  },
+  "invalidDataCount": Map {
+    "test" => 5,
   },
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},

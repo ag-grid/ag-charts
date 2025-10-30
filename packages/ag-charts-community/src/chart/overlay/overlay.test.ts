@@ -306,6 +306,20 @@ HTMLCollection [
                     const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
+
+                test('should not show no data overlay when first series has some invalid data', async () => {
+                    chart = await createChart({
+                        data: [
+                            { quarter: "Q1'18", iphone: null },
+                            { quarter: "Q2'18", iphone: 16 },
+                        ],
+                        series: [{ type: seriesType, xKey: 'quarter', yKey: 'iphone' }],
+                    });
+
+                    // Check that no data overlay IS shown
+                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    expect(overlayEl).toBe(null);
+                });
             }
         );
     });

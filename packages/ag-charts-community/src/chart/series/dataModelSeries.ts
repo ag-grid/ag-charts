@@ -49,7 +49,7 @@ export abstract class DataModelSeries<
     }
 
     invalidDataCount() {
-        return this.processedData?.invalidData?.get(this.id)?.length ?? 0;
+        return this.processedData?.invalidDataCount?.get(this.id) ?? 0;
     }
 
     missingDataCount() {
