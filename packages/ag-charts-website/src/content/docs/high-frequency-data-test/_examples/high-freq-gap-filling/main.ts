@@ -4,6 +4,7 @@ import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const STREAM_INTERVAL_MS = 10;
 const DATA_INTERVAL_MS = 250;
+const POINTS_PER_MINUTE = 60000 / DATA_INTERVAL_MS;
 
 // Gap configuration: we'll start with early data (0-29 minutes) and late data (60-89 minutes)
 // The gap (30-59 minutes) will be filled incrementally
@@ -84,41 +85,56 @@ class RapidDataFeed {
 /* @ag-options-extract */
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 
-function createDatumForMinute(minute: number): DataPoint {
-    const pointsPerMinute = 60000 / DATA_INTERVAL_MS;
-    const index = Math.floor(minute * pointsPerMinute);
-    const timestamp = START_TIMESTAMP + minute * 60000;
+const priceCache: number[] = [];
+const volumeCache: number[] = [];
+let lastComputedIndex = -1;
+let lastPrice = 100;
 
-    // Deterministic price calculation
-    let price = 100;
-    for (let i = 0; i <= index; i++) {
-        const drift = Math.sin(i / 48) * 0.7 + Math.cos(i / 96) * 0.4;
-        price = Number((price + drift).toFixed(2));
+function getPriceForIndex(index: number): number {
+    if (index <= lastComputedIndex && priceCache[index] != null) {
+        return priceCache[index];
     }
 
-    // Deterministic volume calculation
-    const volume = 600 + Math.round((Math.sin(index / 32) + 1) * 220);
+    for (let i = lastComputedIndex + 1; i <= index; i++) {
+        const drift = Math.sin(i / 48) * 0.7 + Math.cos(i / 96) * 0.4;
+        lastPrice = Number((lastPrice + drift).toFixed(2));
+        priceCache[i] = lastPrice;
+        lastComputedIndex = i;
+    }
 
-    return { timestamp, price, volume };
+    return priceCache[index];
+}
+
+function getVolumeForIndex(index: number): number {
+    if (volumeCache[index] != null) {
+        return volumeCache[index];
+    }
+
+    const volume = 600 + Math.round((Math.sin(index / 32) + 1) * 220);
+    volumeCache[index] = volume;
+    return volume;
+}
+
+function createDataPointForIndex(index: number): DataPoint {
+    return {
+        timestamp: START_TIMESTAMP + index * DATA_INTERVAL_MS,
+        price: getPriceForIndex(index),
+        volume: getVolumeForIndex(index),
+    };
+}
+
+function createDatumForMinute(minute: number): DataPoint {
+    const index = minute * POINTS_PER_MINUTE;
+    return createDataPointForIndex(index);
 }
 
 function createSeedData(startMinute: number, endMinute: number): DataPoint[] {
     const data: DataPoint[] = [];
-    const pointsPerMinute = 60000 / DATA_INTERVAL_MS;
 
     for (let minute = startMinute; minute < endMinute; minute++) {
-        for (let i = 0; i < pointsPerMinute; i++) {
-            const index = Math.floor(minute * pointsPerMinute + i);
-            const timestamp = START_TIMESTAMP + minute * 60000 + i * DATA_INTERVAL_MS;
-
-            let price = 100;
-            for (let j = 0; j <= index; j++) {
-                const drift = Math.sin(j / 48) * 0.7 + Math.cos(j / 96) * 0.4;
-                price = Number((price + drift).toFixed(2));
-            }
-
-            const volume = 600 + Math.round((Math.sin(index / 32) + 1) * 220);
-            data.push({ timestamp, price, volume });
+        for (let i = 0; i < POINTS_PER_MINUTE; i++) {
+            const index = minute * POINTS_PER_MINUTE + i;
+            data.push(createDataPointForIndex(index));
         }
     }
 
@@ -170,7 +186,6 @@ let data = [...initialData];
 // Gap-filling state
 let currentGapMinute = GAP_START_MINUTES;
 let currentGapPointInMinute = 0;
-const pointsPerMinute = 60000 / DATA_INTERVAL_MS;
 
 function createGapFillingDatum(): DataPoint | null {
     // Check if gap is fully filled
@@ -179,26 +194,17 @@ function createGapFillingDatum(): DataPoint | null {
         return null;
     }
 
-    const index = Math.floor(currentGapMinute * pointsPerMinute + currentGapPointInMinute);
-    const timestamp = START_TIMESTAMP + currentGapMinute * 60000 + currentGapPointInMinute * DATA_INTERVAL_MS;
-
-    // Deterministic price calculation
-    let price = 100;
-    for (let i = 0; i <= index; i++) {
-        const drift = Math.sin(i / 48) * 0.7 + Math.cos(i / 96) * 0.4;
-        price = Number((price + drift).toFixed(2));
-    }
-
-    const volume = 600 + Math.round((Math.sin(index / 32) + 1) * 220);
+    const index = currentGapMinute * POINTS_PER_MINUTE + currentGapPointInMinute;
+    const datum = createDataPointForIndex(index);
 
     // Advance to next point
     currentGapPointInMinute++;
-    if (currentGapPointInMinute >= pointsPerMinute) {
+    if (currentGapPointInMinute >= POINTS_PER_MINUTE) {
         currentGapPointInMinute = 0;
         currentGapMinute++;
     }
 
-    return { timestamp, price, volume };
+    return datum;
 }
 
 function resetDataGap() {
@@ -402,8 +408,9 @@ const updateCallback = async () => {
     // Update progress indicator
     const progressElement = document.getElementById('gapProgress');
     if (progressElement) {
-        const totalGapPoints = (GAP_END_MINUTES - GAP_START_MINUTES) * pointsPerMinute;
-        const filledPoints = (currentGapMinute - GAP_START_MINUTES) * pointsPerMinute + currentGapPointInMinute;
+        const totalGapPoints = (GAP_END_MINUTES - GAP_START_MINUTES) * POINTS_PER_MINUTE;
+        const filledPoints =
+            (currentGapMinute - GAP_START_MINUTES) * POINTS_PER_MINUTE + currentGapPointInMinute;
         const percentFilled = (filledPoints / totalGapPoints) * 100;
         progressElement.textContent = `Gap filled: ${percentFilled.toFixed(1)}%`;
     }
