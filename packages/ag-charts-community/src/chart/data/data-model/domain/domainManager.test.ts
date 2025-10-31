@@ -225,6 +225,37 @@ describe('DomainManager', () => {
                 expect(reprocessed.keys[0].get('test')?.[2]).toBe(9);
                 expect(reprocessed.keys[0].get('test')?.[3]).toBe(10);
             });
+
+            it('should continue extending the domain across successive prepends', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: bandingConfig(100, 5),
+                });
+
+                const initialData = Array.from({ length: 600 }, (_, i) => ({
+                    x: i,
+                    y: i,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                let processedData: any = dataModel.processData(sources)!;
+                expect(processedData.domain.keys).toEqual([[0, 599]]);
+                expect(processedData.domain.values).toEqual([[0, 599]]);
+
+                for (let iteration = 0; iteration < 5; iteration++) {
+                    const newValue = -1 - iteration;
+                    dataSet.addTransaction({ prepend: [{ x: newValue, y: newValue }] });
+
+                    processedData = dataModel.reprocessData(processedData)!;
+                    verifyReprocessMatchesBaseline(dataModel, processedData, sources);
+
+                    const expectedMin = newValue;
+                    expect(processedData.domain.keys).toEqual([[expectedMin, 599]]);
+                    expect(processedData.domain.values).toEqual([[expectedMin, 599]]);
+                    expect(processedData.input.count).toBe(600 + iteration + 1);
+                }
+            });
         });
 
         describe('mixed operations with banding', () => {
