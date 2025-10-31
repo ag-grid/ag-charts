@@ -1329,6 +1329,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { calloutLabel } = this.properties;
 
         const tempTextNode = new Text();
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
             const datum: PieDonutNodeDatum = text.closestDatum();
@@ -1341,7 +1343,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 continue;
             }
 
-            const style = this.getLabelStyle(datum, calloutLabel);
+            const isDatumHighlighted =
+                seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
+
+            const style = this.getLabelStyle(datum, calloutLabel, isDatumHighlighted);
             const calloutLength = this.getCalloutLineStyle(datum, false).length;
 
             const labelRadius = outerRadius + calloutLength + calloutLabel.offset;
@@ -1384,7 +1389,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             text.setAlign(align);
             text.setBoxing(style);
             text.fill = style.color;
-            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+            text.fillOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
             text.visible = visible;
         }
     }
