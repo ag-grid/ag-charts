@@ -126,8 +126,18 @@ export class AgChartInstanceProxy implements AgChartProxy {
             throw new Error('AG Charts - transaction "add" must be an array.');
         }
 
-        if (addIndex != null && (typeof addIndex !== 'number' || addIndex < 0 || !Number.isInteger(addIndex))) {
-            throw new Error('AG Charts - transaction "addIndex" must be a non-negative integer.');
+        if (addIndex != null) {
+            // Use isSafeInteger for better safety (includes isInteger check and bounds validation)
+            if (typeof addIndex !== 'number' || !Number.isSafeInteger(addIndex) || addIndex < 0) {
+                throw new Error(
+                    'AG Charts - transaction "addIndex" must be a safe non-negative integer (0 to 9007199254740991).'
+                );
+            }
+
+            // Validate consistency: addIndex requires add array with items
+            if (add == null || add.length === 0) {
+                throw new Error('AG Charts - transaction "addIndex" requires a non-empty "add" array.');
+            }
         }
 
         if (remove != null && !Array.isArray(remove)) {
