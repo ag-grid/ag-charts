@@ -22,7 +22,7 @@ import { deepClone } from '../../util/json';
 import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
-import { StateTracker } from '../../util/stateTracker';
+import { NonNullableStateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
@@ -72,7 +72,7 @@ export class ZoomManager extends BaseManager {
     public mementoOriginatorKey = 'zoom' as const;
 
     private readonly axisZoomManagers = new Map<string, AxisZoomManager>();
-    private readonly state = new StateTracker<AxisZoomState>(undefined, 'initial');
+    private readonly state = new NonNullableStateTracker<AxisZoomState>({}, 'initial');
 
     private readonly axes: ChartAxisLike[] = [];
     private didLayoutAxes = false;
@@ -223,7 +223,7 @@ export class ZoomManager extends BaseManager {
         }
 
         if (this.state.size > 0 && axes.length > 0) {
-            this.updateZoom(this.state.stateId()!, this.state.stateValue());
+            this.updateZoom(this.state.stateId(), this.state.stateValue());
         }
     }
 
@@ -272,7 +272,7 @@ export class ZoomManager extends BaseManager {
         }
 
         if (this.axisZoomManagers.size === 0) {
-            const stateId = this.state.stateId()!;
+            const stateId = this.state.stateId();
             if (stateId === 'initial' || stateId === callerId) {
                 this.state.set(callerId, newZoom);
             }
@@ -860,7 +860,7 @@ export class ZoomManager extends BaseManager {
 class AxisZoomManager {
     public readonly direction: CartesianAxisDirection;
     private currentZoom: ZoomState;
-    private readonly state: StateTracker<ZoomState>;
+    private readonly state: NonNullableStateTracker<ZoomState>;
 
     constructor(axis: CartesianAxisDirection | ChartAxisLike) {
         let min: number;
@@ -874,8 +874,8 @@ class AxisZoomManager {
             [min = 0, max = 1] = axis.visibleRange;
         }
 
-        this.state = new StateTracker({ min, max });
-        this.currentZoom = this.state.stateValue()!;
+        this.state = new NonNullableStateTracker({ min, max }, 'initial');
+        this.currentZoom = this.state.stateValue();
     }
 
     public updateZoom(callerId: string, newZoom?: ZoomState) {
@@ -883,18 +883,18 @@ class AxisZoomManager {
     }
 
     public getZoom() {
-        return deepClone(this.state.stateValue()!);
+        return deepClone(this.state.stateValue());
     }
 
     public hasChanges(): boolean {
         const currentZoom = this.currentZoom;
-        const pendingZoom = this.state.stateValue()!;
+        const pendingZoom = this.state.stateValue();
         return currentZoom.min !== pendingZoom.min || currentZoom.max !== pendingZoom.max;
     }
 
     public applyChanges(): boolean {
         const hasChanges = this.hasChanges();
-        this.currentZoom = this.state.stateValue()!;
+        this.currentZoom = this.state.stateValue();
         return hasChanges;
     }
 }
