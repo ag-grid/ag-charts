@@ -409,8 +409,7 @@ const updateCallback = async () => {
     const progressElement = document.getElementById('gapProgress');
     if (progressElement) {
         const totalGapPoints = (GAP_END_MINUTES - GAP_START_MINUTES) * POINTS_PER_MINUTE;
-        const filledPoints =
-            (currentGapMinute - GAP_START_MINUTES) * POINTS_PER_MINUTE + currentGapPointInMinute;
+        const filledPoints = (currentGapMinute - GAP_START_MINUTES) * POINTS_PER_MINUTE + currentGapPointInMinute;
         const percentFilled = (filledPoints / totalGapPoints) * 100;
         progressElement.textContent = `Gap filled: ${percentFilled.toFixed(1)}%`;
     }
