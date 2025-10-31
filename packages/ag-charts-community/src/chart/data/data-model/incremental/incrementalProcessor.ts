@@ -98,6 +98,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         this.commitPendingTransactions(processedData);
         const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
+        this.processAllUpdates(processedData, scopeChanges, processValue, insertionCaches);
 
         this.updateBandsForChanges(processedData, scopeChanges);
         const removedKeys = this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
@@ -177,7 +178,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             processedChangeDescs.add(changeDesc);
 
             const { indexMap } = changeDesc;
-            const { spliceOps } = indexMap;
+            const { spliceOps, updatedIndices } = indexMap;
 
             for (const op of spliceOps) {
                 if (op.insertCount > 0) {
@@ -192,6 +193,15 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     );
                 }
             }
+
+            // Mark bands containing updated indices as dirty
+            // We use handleInsertion with 0 count to mark the band as dirty without changing structure
+            if (updatedIndices.size > 0) {
+                for (const index of updatedIndices) {
+                    this.applyOperationToBandedDomains(bandedDomains, (domain) => domain.handleInsertion(index, 0));
+                }
+            }
+
             // Note: No need for special append-only or prepend-only handling here.
             // handleInsertion() now properly marks the last band dirty when appending,
             // and handleRemoval() marks the first band dirty when removing from start.
@@ -250,6 +260,83 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             insertionCaches.set(scope, cache);
         }
         return insertionCaches;
+    }
+
+    /**
+     * Processes all updated items once per scope, adding them to the insertion cache.
+     * This ensures updated values are available when transforming columns/keys arrays.
+     */
+    private processAllUpdates(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        processValue: (
+            def: InternalDatumPropertyDefinition<K>,
+            datum: any,
+            idx: number,
+            scopes: string | string[]
+        ) => ProcessedValue,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        for (const [scope, changeDesc] of scopeChanges) {
+            const dataSet = processedData.dataSources.get(scope);
+            if (!dataSet) continue;
+
+            const updatedIndices = changeDesc.getUpdatedIndices();
+            if (updatedIndices.length === 0) continue;
+
+            // Get or create cache for this scope
+            let cache = insertionCaches.get(scope);
+            if (!cache) {
+                cache = new Map();
+                insertionCaches.set(scope, cache);
+            }
+
+            // Process each updated index
+            for (const destIndex of updatedIndices) {
+                if (destIndex < 0 || destIndex >= dataSet.data.length) {
+                    continue; // Skip invalid indices
+                }
+
+                const datum = dataSet.data[destIndex];
+
+                const keys = new Map<number, ProcessedValueEntry>();
+                const values = new Map<number, ProcessedValueEntry>();
+                let hasInvalidKey = false;
+                let hasInvalidValue = false;
+
+                if (datum == null || typeof datum !== 'object') {
+                    hasInvalidKey = true;
+                    hasInvalidValue = true;
+                } else {
+                    // Process all keys for this scope
+                    for (const [keyDefIndex, keyDef] of this.ctx.keys.entries()) {
+                        if (!keyDef.scopes?.includes(scope)) continue;
+
+                        const result = processValue(keyDef, datum, destIndex, scope);
+                        keys.set(keyDefIndex, { value: result.value, valid: result.valid });
+
+                        if (!result.valid) {
+                            hasInvalidKey = true;
+                        }
+                    }
+
+                    // Process all values for this scope
+                    for (const [valueDefIndex, valueDef] of this.ctx.values.entries()) {
+                        if (!valueDef.scopes?.includes(scope)) continue;
+
+                        const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
+                        values.set(valueDefIndex, { value: result.value, valid: result.valid });
+
+                        if (!result.valid) {
+                            hasInvalidValue = true;
+                        }
+                    }
+                }
+
+                // Store in cache (overwrites any existing insertion at this index)
+                cache.set(destIndex, { keys, values, hasInvalidKey, hasInvalidValue });
+            }
+        }
     }
 
     /**

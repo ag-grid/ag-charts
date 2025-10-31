@@ -34,6 +34,9 @@ export interface IndexTransformationMap {
     /** Set of removed original indices */
     removedIndices: Set<number>;
 
+    /** Set of updated final indices (indices in the final array that have updated items) */
+    updatedIndices: Set<number>;
+
     /** Total number of prepended items */
     totalPrependCount: number;
 
@@ -164,6 +167,21 @@ export class DataChangeDescription {
      */
     getRemovedIndices(): number[] {
         return Array.from(this.indexMap.removedIndices).sort((a, b) => a - b);
+    }
+
+    /**
+     * Get all indices that were updated in the final array, sorted ascending.
+     *
+     * @returns Array of updated indices (e.g., [1, 3, 7])
+     *
+     * @example
+     * ```typescript
+     * const updated = changeDesc.getUpdatedIndices();
+     * console.log(`Updated ${updated.length} items at indices: ${updated}`);
+     * ```
+     */
+    getUpdatedIndices(): number[] {
+        return Array.from(this.indexMap.updatedIndices).sort((a, b) => a - b);
     }
 
     /**

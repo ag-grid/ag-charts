@@ -1001,12 +1001,16 @@ describe('Chart', () => {
                 ).rejects.toThrow('"update" must be an array');
             });
 
-            it('should reject update operation (not yet implemented)', async () => {
+            it('should accept empty update array', async () => {
                 await expect(
                     chartProxy.applyTransaction({
-                        update: [{ x: 1, y: 10 }],
+                        update: [],
                     })
-                ).rejects.toThrow('not yet implemented');
+                ).resolves.not.toThrow();
+                await waitForChartStability(chart);
+
+                // Data unchanged
+                expect(chart.data.data).toHaveLength(3);
             });
 
             it('should accept empty transaction', async () => {

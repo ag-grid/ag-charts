@@ -323,6 +323,185 @@ describe('DataSet', () => {
             expect(preserved[0]).toEqual([0, 0]); // item0 preserved at same index
             expect(preserved[1]).toEqual([3, 1]); // item3 moved to index 1
         });
+
+        test('should handle update-only operations', () => {
+            const item0 = { x: 0 };
+            const item1 = { x: 1 };
+            const item2 = { x: 2 };
+            const dataSet = new DataSet([item0, item1, item2]);
+
+            // Mutate items
+            item1.x = 10;
+            dataSet.addTransaction({ update: [item1] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // Check index map - no structure changes
+            expect(desc.indexMap.originalLength).toBe(3);
+            expect(desc.indexMap.finalLength).toBe(3);
+            expect(desc.indexMap.spliceOps).toHaveLength(0);
+
+            // Check that updated indices are tracked
+            expect(desc.getUpdatedIndices()).toEqual([1]);
+
+            // No removals
+            expect(desc.getRemovedIndices()).toEqual([]);
+        });
+
+        test('should handle updating multiple items', () => {
+            const item0 = { x: 0 };
+            const item1 = { x: 1 };
+            const item2 = { x: 2 };
+            const item3 = { x: 3 };
+            const dataSet = new DataSet([item0, item1, item2, item3]);
+
+            // Mutate items
+            item1.x = 10;
+            item3.x = 30;
+            dataSet.addTransaction({ update: [item1, item3] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // Check that updated indices are tracked
+            expect(desc.getUpdatedIndices()).toEqual([1, 3]);
+
+            // No removals
+            expect(desc.getRemovedIndices()).toEqual([]);
+        });
+
+        test('should handle updating non-existent items as no-op', () => {
+            const item0 = { x: 0 };
+            const item1 = { x: 1 };
+            const item2 = { x: 2 };
+            const nonExistent = { x: 99 };
+            const dataSet = new DataSet([item0, item1, item2]);
+
+            dataSet.addTransaction({ update: [nonExistent] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // No updates should be tracked
+            expect(desc.getUpdatedIndices()).toEqual([]);
+        });
+
+        test('should handle combined update + append', () => {
+            const item0 = { x: 0 };
+            const item1 = { x: 1 };
+            const dataSet = new DataSet([item0, item1]);
+
+            item0.x = 10;
+            dataSet.addTransaction({ update: [item0], append: [{ x: 2 }] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // Check index map
+            expect(desc.indexMap.originalLength).toBe(2);
+            expect(desc.indexMap.finalLength).toBe(3);
+
+            // Updated item at index 0
+            expect(desc.getUpdatedIndices()).toEqual([0]);
+
+            // No removals
+            expect(desc.getRemovedIndices()).toEqual([]);
+        });
+
+        test('should handle combined update + prepend', () => {
+            const item0 = { x: 0 };
+            const item1 = { x: 1 };
+            const dataSet = new DataSet([item0, item1]);
+
+            item1.x = 10;
+            dataSet.addTransaction({ update: [item1], prepend: [{ x: -1 }] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // Check index map
+            expect(desc.indexMap.originalLength).toBe(2);
+            expect(desc.indexMap.finalLength).toBe(3);
+
+            // Updated item shifted from index 1 to index 2 due to prepend
+            expect(desc.getUpdatedIndices()).toEqual([2]);
+
+            // No removals
+            expect(desc.getRemovedIndices()).toEqual([]);
+        });
+
+        test('should handle combined remove + update with remove taking precedence', () => {
+            const item0 = { x: 0 };
+            const item1 = { x: 1 };
+            const item2 = { x: 2 };
+            const dataSet = new DataSet([item0, item1, item2]);
+
+            item1.x = 10;
+            dataSet.addTransaction({ remove: [item1], update: [item1] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // Item was removed, so it shouldn't appear in updated indices
+            expect(desc.getUpdatedIndices()).toEqual([]);
+            expect(desc.getRemovedIndices()).toEqual([1]);
+        });
+
+        test('should handle update of prepended item', () => {
+            const item0 = { x: 0 };
+            const dataSet = new DataSet([item0]);
+
+            const newItem = { x: -1 };
+            dataSet.addTransaction({ prepend: [newItem] });
+            dataSet.addTransaction({ update: [newItem] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // Prepended item at index 0 should be marked as updated
+            expect(desc.getUpdatedIndices()).toEqual([0]);
+            expect(desc.indexMap.totalPrependCount).toBe(1);
+        });
+
+        test('should handle update of appended item', () => {
+            const item0 = { x: 0 };
+            const dataSet = new DataSet([item0]);
+
+            const newItem = { x: 1 };
+            dataSet.addTransaction({ append: [newItem] });
+            dataSet.addTransaction({ update: [newItem] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // Appended item at index 1 should be marked as updated
+            expect(desc.getUpdatedIndices()).toEqual([1]);
+            expect(desc.indexMap.totalAppendCount).toBe(1);
+        });
+
+        test('should handle complex multi-transaction with updates', () => {
+            const item0 = { x: 0 };
+            const item1 = { x: 1 };
+            const item2 = { x: 2 };
+            const dataSet = new DataSet([item0, item1, item2]);
+
+            const newItem = { x: 3 };
+            item0.x = 100;
+            item2.x = 200;
+
+            dataSet.addTransaction({ prepend: [{ x: -1 }] });
+            dataSet.addTransaction({ append: [newItem] });
+            dataSet.addTransaction({ update: [item0, item2, newItem] });
+
+            const desc = dataSet.getChangeDescription()!;
+            expect(desc).toBeDefined();
+
+            // item0 at index 1 (after prepend), item2 at index 3, newItem at index 4
+            expect(desc.getUpdatedIndices()).toEqual([1, 3, 4]);
+            expect(desc.indexMap.originalLength).toBe(3);
+            expect(desc.indexMap.finalLength).toBe(5);
+        });
     });
 
     describe('commitPendingTransactions', () => {
@@ -477,6 +656,192 @@ describe('DataSet', () => {
                         expected: ['y', 'x', 'a', 'c', 'd'],
                     },
                 ],
+            });
+        });
+
+        describe('update operations', () => {
+            test('should update single item', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const item2 = { x: 2 };
+
+                const dataSet = new DataSet([item0, item1, item2]);
+
+                // Mutate item in place
+                item1.x = 10;
+                dataSet.addTransaction({ update: [item1] });
+                dataSet.commitPendingTransactions();
+
+                // Array should be same references, just mutated
+                expect(dataSet.data).toEqual([item0, item1, item2]);
+                expect(dataSet.data[1].x).toBe(10);
+            });
+
+            test('should update multiple items', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const item2 = { x: 2 };
+
+                const dataSet = new DataSet([item0, item1, item2]);
+
+                // Mutate items in place
+                item0.x = 100;
+                item2.x = 200;
+                dataSet.addTransaction({ update: [item0, item2] });
+                dataSet.commitPendingTransactions();
+
+                expect(dataSet.data).toEqual([item0, item1, item2]);
+                expect(dataSet.data[0].x).toBe(100);
+                expect(dataSet.data[2].x).toBe(200);
+            });
+
+            test('should handle update of non-existent item as no-op', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const nonExistent = { x: 99 };
+
+                const dataSet = new DataSet([item0, item1]);
+
+                dataSet.addTransaction({ update: [nonExistent] });
+                dataSet.commitPendingTransactions();
+
+                // Array unchanged
+                expect(dataSet.data).toEqual([item0, item1]);
+            });
+
+            test('should handle combined add and update', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const newItem = { x: 2 };
+
+                const dataSet = new DataSet([item0, item1]);
+
+                item0.x = 100;
+                dataSet.addTransaction({ append: [newItem], update: [item0] });
+                dataSet.commitPendingTransactions();
+
+                expect(dataSet.data).toEqual([item0, item1, newItem]);
+                expect(dataSet.data[0].x).toBe(100);
+            });
+
+            test('should handle combined prepend and update', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const newItem = { x: -1 };
+
+                const dataSet = new DataSet([item0, item1]);
+
+                item1.x = 100;
+                dataSet.addTransaction({ prepend: [newItem], update: [item1] });
+                dataSet.commitPendingTransactions();
+
+                expect(dataSet.data).toEqual([newItem, item0, item1]);
+                expect(dataSet.data[2].x).toBe(100);
+            });
+
+            test('should handle combined remove and update with remove taking precedence', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const item2 = { x: 2 };
+
+                const dataSet = new DataSet([item0, item1, item2]);
+
+                item1.x = 100;
+                dataSet.addTransaction({ remove: [item1], update: [item1] });
+                dataSet.commitPendingTransactions();
+
+                // item1 should be removed despite being in update array
+                expect(dataSet.data).toEqual([item0, item2]);
+            });
+
+            test('should handle update of newly prepended item', () => {
+                const item0 = { x: 0 };
+                const newItem = { x: -1 };
+
+                const dataSet = new DataSet([item0]);
+
+                dataSet.addTransaction({ prepend: [newItem] });
+                newItem.x = -100;
+                dataSet.addTransaction({ update: [newItem] });
+                dataSet.commitPendingTransactions();
+
+                expect(dataSet.data).toEqual([newItem, item0]);
+                expect(dataSet.data[0].x).toBe(-100);
+            });
+
+            test('should handle update of newly appended item', () => {
+                const item0 = { x: 0 };
+                const newItem = { x: 1 };
+
+                const dataSet = new DataSet([item0]);
+
+                dataSet.addTransaction({ append: [newItem] });
+                newItem.x = 100;
+                dataSet.addTransaction({ update: [newItem] });
+                dataSet.commitPendingTransactions();
+
+                expect(dataSet.data).toEqual([item0, newItem]);
+                expect(dataSet.data[1].x).toBe(100);
+            });
+
+            test('should handle all operations combined', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const item2 = { x: 2 };
+                const prependItem = { x: -1 };
+                const appendItem = { x: 3 };
+
+                const dataSet = new DataSet([item0, item1, item2]);
+
+                item0.x = 100;
+                item2.x = 200;
+                dataSet.addTransaction({
+                    prepend: [prependItem],
+                    append: [appendItem],
+                    remove: [item1],
+                    update: [item0, item2],
+                });
+                dataSet.commitPendingTransactions();
+
+                expect(dataSet.data).toEqual([prependItem, item0, item2, appendItem]);
+                expect(dataSet.data[1].x).toBe(100);
+                expect(dataSet.data[2].x).toBe(200);
+            });
+
+            test('should handle sequential updates', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const item2 = { x: 2 };
+
+                runCommitScenario({
+                    initial: [item0, item1, item2],
+                    steps: [
+                        {
+                            transactions: [{ update: [item0, item1] }],
+                            expected: [item0, item1, item2],
+                        },
+                        {
+                            transactions: [{ update: [item1, item2] }],
+                            expected: [item0, item1, item2],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle update with arbitrary insertion', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const item2 = { x: 2 };
+                const newItem = { x: 1.5 };
+
+                const dataSet = new DataSet([item0, item1, item2]);
+
+                item1.x = 100;
+                dataSet.addTransaction({ add: [newItem], addIndex: 2, update: [item1] });
+                dataSet.commitPendingTransactions();
+
+                expect(dataSet.data).toEqual([item0, item1, newItem, item2]);
+                expect(dataSet.data[1].x).toBe(100);
             });
         });
     });
