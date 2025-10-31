@@ -1,4 +1,4 @@
-import { type AgBoxPlotSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgBoxPlotSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { BoxPlotSeries } from './boxPlotSeries';
@@ -11,6 +11,7 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     chartType: 'cartesian',
     enterprise: true,
     groupable: true,
+    version: VERSION,
 
     options: boxPlotSeriesOptionsDef,
     predictAxis: _ModuleSupport.predictCartesianTimeAxis,

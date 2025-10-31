@@ -1,4 +1,4 @@
-import type { AgChartSyncOptions } from 'ag-charts-community';
+import { type AgChartSyncOptions, VERSION } from 'ag-charts-community';
 import { type PluginModuleDefinition, boolean, string, union } from 'ag-charts-core';
 
 import { ChartSync } from './chartSync';
@@ -8,6 +8,7 @@ export const SyncModule: PluginModuleDefinition<AgChartSyncOptions> = {
     name: 'sync',
     chartType: 'cartesian',
     enterprise: true,
+    version: VERSION,
 
     options: {
         enabled: boolean,

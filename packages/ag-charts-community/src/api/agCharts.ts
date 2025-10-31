@@ -11,10 +11,7 @@ import type {
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
-import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
-import { setupModules } from '../chart/factory/setupModules';
 import { detectChartType } from '../chart/mapping/types';
-import { AllCommunityModules } from '../main-modules';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
@@ -23,10 +20,6 @@ import { deepFreeze } from '../util/object';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
-
-// Temporarily set here, in the future users will register modules manually
-// Remember to remove dep-cruiser exception for main-modules imports when removed
-ModuleRegistry.registerMany(AllCommunityModules, VERSION);
 
 const debug = Debug.create(true, 'opts');
 
@@ -123,16 +116,6 @@ class AgChartsInternal {
         return chart ? AgChartInstanceProxy.chartInstances.get(chart) : undefined;
     }
 
-    private static initialised = false;
-    static initialiseModules() {
-        if (AgChartsInternal.initialised) return;
-
-        registerInbuiltModules();
-        setupModules();
-
-        AgChartsInternal.initialised = true;
-    }
-
     private static readonly callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
         create(userOptions, processedOverrides, specialOverrides, optionsMetadata, data) {
@@ -182,8 +165,6 @@ class AgChartsInternal {
             apiStartTime,
         } = opts;
         const styles = enterpriseModule.styles == null ? [] : [['ag-charts-enterprise', enterpriseModule.styles]];
-
-        AgChartsInternal.initialiseModules();
 
         debug(() => ['>>> AgCharts.createOrUpdate() user options', deepClone(userOptions)]);
 

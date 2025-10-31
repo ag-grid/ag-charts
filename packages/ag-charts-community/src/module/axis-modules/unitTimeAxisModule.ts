@@ -23,11 +23,13 @@ import {
     timeIntervalUnit,
 } from '../../chart/axesOptionsDefs';
 import { UnitTimeAxis } from '../../chart/axis/unitTimeAxis';
+import { VERSION } from '../../version';
 
 export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
     type: 'axis',
     name: 'unit-time',
     chartType: 'cartesian',
+    version: VERSION,
 
     options: {
         ...cartesianAxisOptionsDefs,

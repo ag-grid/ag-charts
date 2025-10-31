@@ -1,4 +1,4 @@
-import type { AgCrosshairOptions } from 'ag-charts-community';
+import { type AgCrosshairOptions, VERSION } from 'ag-charts-community';
 import type { AxisPluginModuleDefinition } from 'ag-charts-core';
 
 import { Crosshair } from './crosshair';
@@ -8,6 +8,7 @@ export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
     name: 'crosshair',
     chartType: 'cartesian',
     enterprise: true,
+    version: VERSION,
 
     themeTemplate: {
         crosshair: {

@@ -3,6 +3,7 @@ import type { AgPolarChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { without } from '../util/object';
+import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
 import { polarChartOptionsDefs } from './chartOptionsDefs';
 import { PolarChart } from './polarChart';
@@ -10,6 +11,7 @@ import { PolarChart } from './polarChart';
 export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
     type: 'chart',
     name: 'polar',
+    version: VERSION,
 
     options: polarChartOptionsDefs,
 

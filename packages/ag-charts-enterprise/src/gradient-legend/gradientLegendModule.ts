@@ -1,4 +1,4 @@
-import { type AgGradientLegendOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientLegendOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     and,
@@ -22,6 +22,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
     type: 'plugin',
     name: 'gradientLegend',
     enterprise: true,
+    version: VERSION,
     // removable: 'standalone-only',
 
     options: {

@@ -18,7 +18,6 @@ export * as _Widget from './widget/exports';
 export * from './main-modules';
 
 // Undocumented APIs used by Integrated Charts.
-
 export const AgChartsCommunityModule = {
     VERSION,
     _Scene,

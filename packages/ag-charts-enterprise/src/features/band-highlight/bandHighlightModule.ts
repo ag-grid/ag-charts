@@ -1,4 +1,4 @@
-import type { AgBandHighlightOptions } from 'ag-charts-community';
+import { type AgBandHighlightOptions, VERSION } from 'ag-charts-community';
 import type { AxisPluginModuleDefinition } from 'ag-charts-core';
 
 import { BandHighlight } from './bandHighlight';
@@ -9,6 +9,7 @@ export const BandHighlightModule: AxisPluginModuleDefinition<AgBandHighlightOpti
     chartType: 'cartesian',
     axisTypes: ['category', 'ordinal-time', 'unit-time', 'grouped-category'],
     enterprise: true,
+    version: VERSION,
 
     themeTemplate: {
         bandHighlight: {

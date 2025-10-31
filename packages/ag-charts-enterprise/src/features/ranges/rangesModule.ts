@@ -1,4 +1,4 @@
-import { type AgRangesButton, type AgRangesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgRangesButton, type AgRangesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     and,
@@ -23,6 +23,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
     name: 'ranges',
     chartType: 'cartesian',
     enterprise: true,
+    version: VERSION,
 
     options: {
         enabled: boolean,

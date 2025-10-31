@@ -1,4 +1,4 @@
-import type { AgChartBackground } from 'ag-charts-community';
+import { type AgChartBackground, VERSION } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     boolean,
@@ -16,6 +16,7 @@ export const BackgroundModule: PluginModuleDefinition<AgChartBackground> = {
     type: 'plugin',
     name: 'background',
     enterprise: true,
+    version: VERSION,
 
     options: {
         visible: boolean,

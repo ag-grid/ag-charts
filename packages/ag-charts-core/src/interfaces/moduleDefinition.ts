@@ -66,6 +66,7 @@ export interface ModuleDefinition<
 > {
     readonly type: `${TModule}` | TModule;
     readonly name: string;
+    readonly version: string;
     readonly enterprise?: boolean;
     placeholder?: boolean;
 

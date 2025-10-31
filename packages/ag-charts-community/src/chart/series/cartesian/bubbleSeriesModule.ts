@@ -2,6 +2,7 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgBubbleSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
+import { VERSION } from '../../../version';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -53,6 +54,7 @@ export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> =
     type: 'series',
     name: 'bubble',
     chartType: 'cartesian',
+    version: VERSION,
 
     options: bubbleSeriesOptionsDef,
     predictAxis: predictCartesianAxis,

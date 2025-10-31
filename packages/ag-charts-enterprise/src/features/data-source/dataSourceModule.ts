@@ -1,6 +1,7 @@
 import { type PluginModuleDefinition, boolean, callback, positiveNumber, undocumented } from 'ag-charts-core';
 import type { AgDataSourceOptions } from 'ag-charts-types';
 
+import { VERSION } from '../../../../ag-charts-community/src/version';
 import { DataSource } from './dataSource';
 
 export const DataSourceModule: PluginModuleDefinition<
@@ -13,6 +14,7 @@ export const DataSourceModule: PluginModuleDefinition<
     type: 'plugin',
     name: 'dataSource',
     enterprise: true,
+    version: VERSION,
 
     options: {
         getData: callback,

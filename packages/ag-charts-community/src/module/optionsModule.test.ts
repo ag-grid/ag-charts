@@ -1626,17 +1626,15 @@ describe('ChartOptions', () => {
             };
 
             for (const [seriesType, { stackable, groupable, stackedByDefault }] of Object.entries(seriesTypes)) {
-                ModuleRegistry.register(
-                    {
-                        type: 'series',
-                        name: seriesType,
-                        chartType: 'cartesian',
-                        stackable,
-                        groupable,
-                        stackedByDefault,
-                    } as any,
-                    VERSION
-                );
+                ModuleRegistry.register({
+                    type: 'series',
+                    name: seriesType,
+                    chartType: 'cartesian',
+                    version: VERSION,
+                    stackable,
+                    groupable,
+                    stackedByDefault,
+                } as any);
             }
 
             it.each(Object.keys(seriesTypes))(

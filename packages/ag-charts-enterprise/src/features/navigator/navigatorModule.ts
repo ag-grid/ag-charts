@@ -1,4 +1,4 @@
-import type { AgNavigatorOptions } from 'ag-charts-community';
+import { type AgNavigatorOptions, VERSION } from 'ag-charts-community';
 import type { PluginModuleDefinition } from 'ag-charts-core';
 
 import { Navigator } from './navigator';
@@ -10,6 +10,7 @@ export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions> = {
     name: 'navigator',
     chartType: 'cartesian',
     enterprise: true,
+    version: VERSION,
     // removable: false, // Toggling this module causes zoom state flakiness.
 
     options: navigatorOptionsDef,

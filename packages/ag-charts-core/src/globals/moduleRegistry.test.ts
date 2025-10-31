@@ -18,7 +18,7 @@ import {
     listModules,
     listModulesByType,
     register,
-    registerMany,
+    registerModules,
     reset,
 } from './moduleRegistry';
 
@@ -119,12 +119,12 @@ describe('moduleRegistry', () => {
         });
     });
 
-    describe('registerMany', () => {
+    describe('registerModules', () => {
         test('registers each provided module definition', () => {
             const axis = createAxisModule('axis-module');
             const series = createSeriesModule('series-module');
 
-            registerMany([axis, series], '1.0.0');
+            registerModules([axis, series], '1.0.0');
 
             expect(getAxisModule('axis-module')).toBe(axis);
             expect(getSeriesModule('series-module')).toBe(series);
@@ -164,7 +164,7 @@ describe('moduleRegistry', () => {
             const preset = createPresetModule('preset-module');
             const series = createSeriesModule('series-module');
 
-            registerMany([axis, chart, preset, series], '1.0.0');
+            registerModules([axis, chart, preset, series], '1.0.0');
 
             expect(getAxisModule('axis-module')).toBe(axis);
             expect(getAxisModule('series-module')).toBeUndefined();
