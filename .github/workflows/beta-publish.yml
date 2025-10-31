@@ -39,16 +39,13 @@ jobs:
             - name: Fetch Refs
               run: git fetch origin --depth 1 latest-success latest
 
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v4
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
               with:
-                  node-version: '20'
-                  cache: 'yarn'
-
-            - name: yarn install
-              id: yarn_install
-              run: yarn install --ci
+                  cache_mode: ro
+                  base_ref: ${{ github.head_ref }}
+                  yarn_postinstall: false
 
             - name: Calculate Next Beta Version
               id: next_version
