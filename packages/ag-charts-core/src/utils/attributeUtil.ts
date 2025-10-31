@@ -1,7 +1,7 @@
 import type { Direction } from 'ag-charts-types';
 
 import type { Nullable } from '../interfaces/globalTypes';
-import type { ElementID } from './id';
+import type { ElementID } from './idBranding';
 import { entries } from './iterators';
 
 export type StrictHTMLElement = HTMLElement & { id: ElementID };

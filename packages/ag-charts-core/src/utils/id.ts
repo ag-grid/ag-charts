@@ -1,17 +1,16 @@
-const ID_MAP = new Map<string, number>();
-const elementIDBrand = Symbol('ElementID');
-let nextElementID: number = 1;
+import type { AxisID, ElementID } from './idBranding';
 
-// Branded string: This is used to ensure type safety by disallowing `Element.id` to be mistakeningly assigned to a
-// general-purpose string.
-export type ElementID = string & { readonly [elementIDBrand]: true };
+type IDTypes = ElementID | AxisID;
+
+const ID_MAP = new Map<string, number>();
+let nextElementID: number = 1;
 
 export function resetIds() {
     ID_MAP.clear();
     nextElementID = 1;
 }
 
-export function createId(instance: any): string {
+export function createId<T extends IDTypes | string = string>(instance: any): T {
     const constructor = instance.constructor;
     const className = Object.hasOwn(constructor, 'className') ? constructor.className : constructor.name;
 
@@ -21,7 +20,7 @@ export function createId(instance: any): string {
     const nextId = (ID_MAP.get(className) ?? 0) + 1;
     ID_MAP.set(className, nextId);
 
-    return `${className}-${nextId}`;
+    return `${className}-${nextId}` as T;
 }
 
 export function createElementId(): ElementID {

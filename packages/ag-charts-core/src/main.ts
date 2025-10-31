@@ -35,6 +35,7 @@ export * from './utils/functions';
 export * from './utils/geoJson';
 export * from './utils/graph';
 export * from './utils/id';
+export * from './utils/idBranding';
 export * from './utils/iterators';
 export * from './utils/linkedList';
 export * from './utils/numberArray';
