@@ -310,7 +310,7 @@ export class DataSet<T = unknown> {
 
                                 const relativeInsertionPosition = Math.min(
                                     Math.max(later.virtualIndex - tracked.virtualIndex, 0),
-                                    previousLength,
+                                    previousLength
                                 );
 
                                 let removedBeforeInsertion = 0;

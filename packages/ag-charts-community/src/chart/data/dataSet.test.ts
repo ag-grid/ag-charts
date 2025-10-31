@@ -527,7 +527,10 @@ describe('DataSet', () => {
             return { dataSet, tracker };
         }
 
-        function withTrackedData<T, R>(initialData: T[], run: (context: { dataSet: DataSet<T>; tracker: OperationTracker<T>; initial: T[] }) => R): R {
+        function withTrackedData<T, R>(
+            initialData: T[],
+            run: (context: { dataSet: DataSet<T>; tracker: OperationTracker<T>; initial: T[] }) => R
+        ): R {
             const snapshot = [...initialData];
             const { dataSet, tracker } = createTrackedDataSet([...initialData]);
 
@@ -538,7 +541,10 @@ describe('DataSet', () => {
             return Array.from({ length: size }, (_, i) => i);
         }
 
-        function withTrackedNumbers<R>(size: number, run: (context: { dataSet: DataSet<number>; tracker: OperationTracker<number>; initial: number[] }) => R): R {
+        function withTrackedNumbers<R>(
+            size: number,
+            run: (context: { dataSet: DataSet<number>; tracker: OperationTracker<number>; initial: number[] }) => R
+        ): R {
             return withTrackedData(range(size), run);
         }
 
@@ -632,11 +638,7 @@ describe('DataSet', () => {
                 const results = sizes.map((size) =>
                     withTrackedNumbers(size, ({ dataSet, tracker, initial }) => {
                         const firstNew = size + 1;
-                        applyTransactions(
-                            dataSet,
-                            { append: [firstNew, firstNew + 1] },
-                            { remove: [firstNew] },
-                        );
+                        applyTransactions(dataSet, { append: [firstNew, firstNew + 1] }, { remove: [firstNew] });
 
                         dataSet.commitPendingTransactions();
 
@@ -646,7 +648,7 @@ describe('DataSet', () => {
                         expect(dataSet.data).toEqual([...initial, firstNew + 1]);
 
                         return { reads: readsBeforeAssertions, splices: splicesBeforeAssertions };
-                    }),
+                    })
                 );
 
                 const uniqueReadCounts = new Set(results.map(({ reads }) => reads));
