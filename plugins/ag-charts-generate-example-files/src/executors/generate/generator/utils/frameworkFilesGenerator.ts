@@ -51,29 +51,54 @@ type ConfigGenerator = ({
     suppressOptionsClone?: boolean;
 }) => Promise<FrameworkFiles>;
 
-const getModuleSetupPreamble = (isEnterprise: boolean) => {
-    const setupFunction = isEnterprise ? 'setupEnterpriseModules' : 'setupCommunityModules';
-    const packageName = isEnterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
-
-    return `import { ${setupFunction} } from '${packageName}';\n${setupFunction}();\n`;
-};
-
-const injectModuleSetup = (code: string, isEnterprise: boolean) => {
-    const setupFunction = isEnterprise ? 'setupEnterpriseModules' : 'setupCommunityModules';
-    if (code.includes(`${setupFunction}(`)) {
+const ensureModuleSetup = (
+    code: string,
+    {
+        isEnterprise,
+        framework,
+    }: {
+        isEnterprise: boolean;
+        framework: InternalFramework;
+    }
+) => {
+    const hasCommunityCall =
+        code.includes('setupCommunityModules(') || code.includes('setupCommunityModules?.');
+    if (hasCommunityCall) {
         return code;
     }
 
-    const preamble = getModuleSetupPreamble(isEnterprise);
-    const useClientMatch = code.match(/^(['"]use client['"];?\s*)/);
+    if (framework === 'vanilla') {
+        const snippets = [
+            'agCharts.setupCommunityModules?.();',
+            isEnterprise ? 'agCharts.setupEnterpriseModules?.();' : undefined,
+        ].filter(Boolean);
 
-    if (useClientMatch) {
-        const directive = useClientMatch[0].trimEnd();
-        const remainder = code.slice(useClientMatch[0].length).replace(/^\s*/, '');
-        return `${directive}\n${preamble}\n${remainder}`;
+        if (snippets.length === 0) {
+            return code;
+        }
+
+        return `${snippets.join('\n')}\n\n${code}`;
     }
 
-    return `${preamble}\n${code}`;
+    const importLines: string[] = [`import { setupCommunityModules } from 'ag-charts-community';`];
+    const callLines: string[] = ['setupCommunityModules();'];
+
+    const hasEnterpriseCall =
+        code.includes('setupEnterpriseModules(') || code.includes('setupEnterpriseModules?.');
+    if (isEnterprise && !hasEnterpriseCall) {
+        importLines.push(`import { setupEnterpriseModules } from 'ag-charts-enterprise';`);
+        callLines.push('setupEnterpriseModules();');
+    }
+
+    const insertion = `${importLines.join('\n')}\n${callLines.join('\n')}\n\n`;
+    const useClientMatch = code.match(/^(['"]use client['"];?\s*)/);
+    if (useClientMatch) {
+        const directive = useClientMatch[0];
+        const remainder = code.slice(directive.length);
+        return `${directive.trimEnd()}\n${insertion}${remainder.replace(/^\s*/, '')}`;
+    }
+
+    return `${insertion}${code}`;
 };
 
 // noinspection TypeScriptValidateTypes
@@ -128,7 +153,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
         }
 
-        mainJs = injectModuleSetup(mainJs, isEnterprise);
+        mainJs = ensureModuleSetup(mainJs, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {
@@ -148,7 +173,15 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, transformEntryFile, isDev, isEnterprise }) => {
+    typescript: async ({
+        entryFile,
+        indexHtml,
+        otherScriptFiles,
+        bindings,
+        transformEntryFile,
+        isDev,
+        isEnterprise,
+    }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -180,7 +213,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTs = transformEntryFile({ entryFile: mainTs, chartAPI });
         }
 
-        mainTs = injectModuleSetup(mainTs, isEnterprise);
+        mainTs = ensureModuleSetup(mainTs, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             mainTs = await prettier.format(mainTs, {
@@ -227,7 +260,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexJsx = transformEntryFile({ entryFile: indexJsx });
         }
 
-        indexJsx = injectModuleSetup(indexJsx, isEnterprise);
+        indexJsx = ensureModuleSetup(indexJsx, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             indexJsx = await prettier.format(indexJsx, {
@@ -275,7 +308,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexTsx = transformEntryFile({ entryFile: indexTsx });
         }
 
-        indexTsx = injectModuleSetup(indexTsx, isEnterprise);
+        indexTsx = ensureModuleSetup(indexTsx, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             indexTsx = await prettier.format(indexTsx, {
@@ -315,7 +348,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             appComponent = transformEntryFile({ entryFile: appComponent });
         }
 
-        appComponent = injectModuleSetup(appComponent, isEnterprise);
+        appComponent = ensureModuleSetup(appComponent, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             appComponent = await prettier.format(appComponent, {
@@ -357,7 +390,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = transformEntryFile({ entryFile: mainJs });
         }
 
-        mainJs = injectModuleSetup(mainJs, isEnterprise);
+        mainJs = ensureModuleSetup(mainJs, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {
