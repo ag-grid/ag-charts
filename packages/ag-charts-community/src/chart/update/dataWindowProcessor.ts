@@ -28,7 +28,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
             this.eventsHub.on('data:load', () => this.onDataLoad()),
             this.eventsHub.on('data:error', () => this.onDataError()),
             this.updateService.addListener('update-complete', (e) => this.onUpdateComplete(e)),
-            this.eventsHub.on('zoom:change-requested', () => this.onZoomChange())
+            this.eventsHub.on('zoom:change-request', () => this.onZoomChange())
         );
     }
 

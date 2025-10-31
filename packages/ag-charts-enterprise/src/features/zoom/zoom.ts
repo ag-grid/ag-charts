@@ -254,7 +254,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
             ctx.updateService.addListener('process-data', (event) => this.onProcessData(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
-            ctx.eventsHub.on('zoom:change-requested', (event) => this.onZoomChangeRequested(event)),
+            ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequested(event)),
             ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
             () => this.teardown()
@@ -798,7 +798,7 @@ export class Zoom extends AbstractModuleInstance {
 
         if (this.wasZoomChangeRequested) {
             this.wasZoomChangeRequested = false;
-            this.ctx.eventsHub.emit('zoom:change-completed', null);
+            this.ctx.eventsHub.emit('zoom:change-complete', null);
         }
     }
 

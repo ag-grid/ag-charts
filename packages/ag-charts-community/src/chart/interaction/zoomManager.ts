@@ -100,7 +100,7 @@ export class ZoomManager extends BaseManager {
         super();
 
         this.cleanup.register(
-            eventsHub.on('zoom:change-completed', () => {
+            eventsHub.on('zoom:change-complete', () => {
                 this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
             }),
             eventsHub.on('layout:complete', () => {
@@ -608,7 +608,7 @@ export class ZoomManager extends BaseManager {
             axes[axisId] = axis.getZoom();
         }
 
-        this.eventsHub.emit('zoom:change-requested', { ...this.getZoom(), axes, callerId });
+        this.eventsHub.emit('zoom:change-request', { ...this.getZoom(), axes, callerId });
     }
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {

@@ -53,8 +53,8 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
-    'zoom:change-requested': ZoomChangeRequestedEvent;
-    'zoom:change-completed': null;
+    'zoom:change-request': ZoomChangeRequestedEvent;
+    'zoom:change-complete': null;
     'zoom:pan-start': ZoomPanStartEvent;
 }
 
