@@ -1648,11 +1648,11 @@ describe('DataModel', () => {
 
                 // Verify accumulated and normalized values are recalculated
                 // Accumulated: [10, 35, 65], Normalized to [0, 100]
-                const expectedNormalized = [
-                    (10 / 65) * 100, // ~15.38
-                    (35 / 65) * 100, // ~53.85
-                    100, // ~100
-                ];
+                const accumulated = [10, 35, 65];
+                const domainMin = Math.min(...accumulated);
+                const domainMax = Math.max(...accumulated);
+                const span = domainMax - domainMin || 1; // Avoid divide-by-zero when span is zero.
+                const expectedNormalized = accumulated.map((v) => ((v - domainMin) / span) * 100);
 
                 expect(reprocessed.columns[0]).toHaveLength(3);
                 expect(reprocessed.columns[0][0]).toBeCloseTo(expectedNormalized[0], 1);

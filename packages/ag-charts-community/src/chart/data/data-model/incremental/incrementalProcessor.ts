@@ -442,6 +442,17 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     const cached = insertionCache?.get(destIndex);
                     return extractValue(cached, def, defIndex);
                 });
+
+                const updatedIndices = changeDesc.getUpdatedIndices();
+                if (updatedIndices.length > 0) {
+                    for (const destIndex of updatedIndices) {
+                        if (destIndex < 0 || destIndex >= array.length) {
+                            continue;
+                        }
+                        const cached = insertionCache?.get(destIndex);
+                        array[destIndex] = extractValue(cached, def, defIndex);
+                    }
+                }
             }
         }
     }
@@ -519,6 +530,23 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                         }
                     }
                 );
+
+                const updatedIndices = changeDesc.getUpdatedIndices();
+                if (updatedIndices.length > 0) {
+                    for (const destIndex of updatedIndices) {
+                        if (destIndex < 0 || destIndex >= keysArray.length) {
+                            continue;
+                        }
+
+                        const cached = insertionCache?.get(destIndex);
+                        if (cached) {
+                            const keyResult = cached.keys.get(defIndex);
+                            keysArray[destIndex] = keyResult?.valid ? keyResult.value : def.invalidValue;
+                        } else {
+                            keysArray[destIndex] = def.invalidValue;
+                        }
+                    }
+                }
             }
         }
 
@@ -597,6 +625,18 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                 const cached = insertionCache?.get(destIndex);
                 return extractValue(cached);
             });
+
+            const updatedIndices = changeDesc.getUpdatedIndices();
+            if (updatedIndices.length > 0) {
+                for (const destIndex of updatedIndices) {
+                    if (destIndex < 0 || destIndex >= array.length) {
+                        continue;
+                    }
+
+                    const cached = insertionCache?.get(destIndex);
+                    array[destIndex] = extractValue(cached);
+                }
+            }
         }
     }
 
@@ -661,6 +701,22 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         changeDesc.applyToArray(processedData.groups, (destIndex) => {
             return this.createDataGroupForInsertion(destIndex, processedData, scope, insertionCache);
         });
+
+        const updatedIndices = changeDesc.getUpdatedIndices();
+        if (updatedIndices.length > 0) {
+            for (const destIndex of updatedIndices) {
+                if (destIndex < 0 || destIndex >= processedData.groups.length) {
+                    continue;
+                }
+
+                processedData.groups[destIndex] = this.createDataGroupForInsertion(
+                    destIndex,
+                    processedData,
+                    scope,
+                    insertionCache
+                );
+            }
+        }
     }
 
     /**
