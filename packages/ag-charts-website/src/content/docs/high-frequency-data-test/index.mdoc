@@ -28,6 +28,10 @@ enterprise: true
 
 {% chartExampleRunner title="High Frequency Candlestick" name="high-freq-candlestick" type="generated" /%}
 
+## Gap Filling
+
+{% chartExampleRunner title="High Frequency Gap Filling" name="high-freq-gap-filling" type="generated" /%}
+
 ## Stacked Line Series
 
 The following example demonstrates the performance improvement of incremental grouping with stacked line charts. When using `applyTransaction()` with the new incremental grouping feature, the chart only processes new data points instead of regrouping all data. Compare the CPU usage between `updateDelta()` (full reprocessing) and `applyTransaction()` (incremental updates).

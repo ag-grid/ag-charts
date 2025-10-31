@@ -283,26 +283,51 @@ export class DataSet<T = unknown> {
                     // Remove items from trackedInsertions and adjust virtualIndex of subsequent insertions
                     for (let trackedIdx = 0; trackedIdx < trackedInsertions.length; trackedIdx++) {
                         const tracked = trackedInsertions[trackedIdx];
-                        let removedCount = 0;
+                        const previousLength = tracked.items.length;
+                        const removedOffsets: number[] = [];
                         let i = 0;
 
                         while (i < tracked.items.length) {
                             if (remove.includes(tracked.items[i])) {
+                                removedOffsets.push(i + removedOffsets.length);
                                 tracked.items.splice(i, 1);
                                 virtualLength--;
-                                removedCount++;
                             } else {
                                 i++;
                             }
                         }
 
-                        // Only adjust insertions positioned after the original span
+                        const removedCount = removedOffsets.length;
+
+                        // Adjust later insertions based on how many removed items existed before their positions
                         if (removedCount > 0) {
-                            const originalEndPosition = tracked.virtualIndex + originalLength;
                             for (let j = trackedIdx + 1; j < trackedInsertions.length; j++) {
-                                // Only adjust if positioned at or after the end of the removed span
-                                if (trackedInsertions[j].virtualIndex >= originalEndPosition) {
-                                    trackedInsertions[j].virtualIndex -= removedCount;
+                                const later = trackedInsertions[j];
+
+                                if (later.virtualIndex <= tracked.virtualIndex) {
+                                    continue;
+                                }
+
+                                const relativeInsertionPosition = Math.min(
+                                    Math.max(later.virtualIndex - tracked.virtualIndex, 0),
+                                    previousLength,
+                                );
+
+                                let removedBeforeInsertion = 0;
+                                for (const offset of removedOffsets) {
+                                    if (offset < relativeInsertionPosition) {
+                                        removedBeforeInsertion++;
+                                    } else {
+                                        break;
+                                    }
+                                }
+
+                                if (relativeInsertionPosition === previousLength) {
+                                    removedBeforeInsertion = removedCount;
+                                }
+
+                                if (removedBeforeInsertion > 0) {
+                                    later.virtualIndex -= removedBeforeInsertion;
                                 }
                             }
                         }
