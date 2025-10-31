@@ -207,10 +207,10 @@ function createGapFillingDatum(): DataPoint | null {
     return datum;
 }
 
-function resetDataGap() {
+async function resetDataGap() {
     // Reset to gapped state
     data = createGappedData();
-    chart.updateDelta({ data });
+    await chart.updateDelta({ data });
 
     // Reset gap-filling state
     currentGapMinute = GAP_START_MINUTES;
@@ -343,7 +343,7 @@ const updateCallback = async () => {
         }
 
         data.splice(insertPosition, 0, newDatum);
-        chart.applyTransaction({ add: [newDatum], addIndex: insertPosition });
+        await chart.applyTransaction({ add: [newDatum], addIndex: insertPosition });
     } else if (method === 'updateDelta-fill-gap') {
         // Fill the gap using updateDelta (for comparison)
         const newDatum = createGapFillingDatum();
@@ -359,11 +359,11 @@ const updateCallback = async () => {
             insertPosition = data.length;
         }
 
-        data.splice(insertPosition, 0, newDatum);
-        chart.updateDelta({ data });
+        const nextData = data.slice();
+        nextData.splice(insertPosition, 0, newDatum);
+        data = nextData;
+        await chart.updateDelta({ data: nextData });
     }
-
-    await chart.waitForUpdate();
 
     const endTime = performance.now();
     const elapsedTime = endTime - startTime;
