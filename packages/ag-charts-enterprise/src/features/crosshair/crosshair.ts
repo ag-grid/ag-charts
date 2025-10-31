@@ -82,7 +82,7 @@ export class Crosshair extends AbstractModuleInstance {
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
-            ctx.eventsHub.on('zoom:change', () => this.onMouseOut()),
+            ctx.eventsHub.on('zoom:change-request', () => this.onMouseOut()),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
             () => {

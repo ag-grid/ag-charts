@@ -53,7 +53,8 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
-    'zoom:change': ZoomChangeEvent;
+    'zoom:change-request': ZoomChangeRequestedEvent;
+    'zoom:change-complete': null;
     'zoom:pan-start': ZoomPanStartEvent;
 }
 
@@ -118,7 +119,7 @@ export interface SeriesKeyNavZoomEvent {
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 
-export interface ZoomChangeEvent extends AxisZoomState {
+export interface ZoomChangeRequestedEvent extends AxisZoomState {
     readonly callerId: string;
     readonly axes: Record<string, Readonly<ZoomState> | undefined>;
     readonly x?: Readonly<ZoomState>;

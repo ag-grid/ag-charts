@@ -208,6 +208,7 @@ export class Zoom extends AbstractModuleInstance {
         this.isFirstWheelEvent = true;
         this.wasFirstWheelEventZoomCapped = undefined;
     }, 100);
+    private wasZoomChangeRequested = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -253,7 +254,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
             ctx.updateService.addListener('process-data', (event) => this.onProcessData(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
-            ctx.eventsHub.on('zoom:change', (event) => this.onZoomChange(event)),
+            ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequested(event)),
             ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
             () => this.teardown()
@@ -794,9 +795,16 @@ export class Zoom extends AbstractModuleInstance {
         if (this.enableAxisDragging) {
             this.toggleAxisDraggingCursorsDebounced();
         }
+
+        if (this.wasZoomChangeRequested) {
+            this.wasZoomChangeRequested = false;
+            this.ctx.eventsHub.emit('zoom:change-complete', null);
+        }
     }
 
-    private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
+    private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestedEvent) {
+        this.wasZoomChangeRequested = true;
+
         if (event.callerId !== 'zoom') {
             this.panner.stopInteractions();
         }

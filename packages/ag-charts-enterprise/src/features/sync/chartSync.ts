@@ -121,7 +121,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private enabledZoomSync() {
         const { eventsHub } = this.moduleContext;
         this.disableZoomSync?.(); // Cleanup any existing listeners.
-        this.disableZoomSync = eventsHub.on('zoom:change', this.onZoom.bind(this));
+        this.disableZoomSync = eventsHub.on('zoom:change-request', this.onZoom.bind(this));
     }
 
     private onZoom() {
