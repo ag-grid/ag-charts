@@ -120,18 +120,39 @@ export class AgChartInstanceProxy implements AgChartProxy {
             throw new Error('AG Charts - applyTransaction expects a transaction object.');
         }
 
-        const { append, prepend, remove } = transaction;
+        const { add, addIndex, remove, update } = transaction;
 
-        if (append != null && !Array.isArray(append)) {
-            throw new Error('AG Charts - transaction "append" must be an array.');
+        if (add != null && !Array.isArray(add)) {
+            throw new Error('AG Charts - transaction "add" must be an array.');
         }
 
-        if (prepend != null && !Array.isArray(prepend)) {
-            throw new Error('AG Charts - transaction "prepend" must be an array.');
+        if (addIndex != null) {
+            // Use isSafeInteger for better safety (includes isInteger check and bounds validation)
+            if (typeof addIndex !== 'number' || !Number.isSafeInteger(addIndex) || addIndex < 0) {
+                throw new Error(
+                    'AG Charts - transaction "addIndex" must be a safe non-negative integer (0 to 9007199254740991).'
+                );
+            }
+
+            // Validate consistency: addIndex requires add array with items
+            if (add == null || add.length === 0) {
+                throw new Error('AG Charts - transaction "addIndex" requires a non-empty "add" array.');
+            }
         }
 
         if (remove != null && !Array.isArray(remove)) {
-            throw new Error('AG Charts - transaction "remove" must be an array or single value.');
+            throw new Error('AG Charts - transaction "remove" must be an array.');
+        }
+
+        if (update != null) {
+            if (!Array.isArray(update)) {
+                throw new Error('AG Charts - transaction "update" must be an array.');
+            }
+            throw new Error(
+                'AG Charts - transaction "update" operation is not yet implemented. ' +
+                    'Please use "add" and "remove" operations for now. ' +
+                    'The "update" operation will be available in a future release.'
+            );
         }
 
         return this.chart.applyTransaction(transaction);

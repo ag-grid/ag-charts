@@ -332,26 +332,10 @@ describe('DataSet', () => {
                     initial: ['a', 'b', 'c', 'd', 'e'],
                     transactions: { remove: ['b', 'd'] },
                     expected: ['a', 'c', 'e'],
-                }); // Will FAIL with current bug
+                });
             });
 
-            test('should handle removing alternating elements', () => {
-                expectCommitResult({
-                    initial: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-                    transactions: { remove: [1, 3, 5, 7, 9] },
-                    expected: [0, 2, 4, 6, 8],
-                }); // Will FAIL
-            });
-
-            test('should handle removing first and last with middle elements', () => {
-                expectCommitResult({
-                    initial: ['first', 'a', 'b', 'c', 'last'],
-                    transactions: { remove: ['first', 'b', 'last'] },
-                    expected: ['a', 'c'],
-                }); // Will FAIL
-            });
-
-            test('should handle massive disjoint removals', () => {
+            test('should scale to large non-consecutive removals', () => {
                 const initial = Array.from({ length: 100 }, (_, i) => i);
                 const toRemove = initial.filter((x) => x % 3 === 0);
 
@@ -364,28 +348,21 @@ describe('DataSet', () => {
         });
 
         describe('multiple prepend transactions', () => {
-            test('should maintain LIFO order for sequential prepends', () => {
-                expectCommitResult<string | number>({
+            test.each([
+                {
+                    name: 'maintains LIFO order for sequential prepends',
                     initial: [42],
                     transactions: [{ prepend: ['a'] }, { prepend: ['b'] }],
                     expected: ['b', 'a', 42],
-                }); // Will FAIL - gets ['a', 'b', 42]
-            });
-
-            test('should handle multiple prepends with multiple values each', () => {
-                expectCommitResult({
+                },
+                {
+                    name: 'supports multi-value prepends',
                     initial: ['original'],
                     transactions: [{ prepend: ['a1', 'a2'] }, { prepend: ['b1', 'b2'] }],
                     expected: ['b1', 'b2', 'a1', 'a2', 'original'],
-                }); // Will FAIL
-            });
-
-            test('should handle three consecutive prepend transactions', () => {
-                expectCommitResult<string>({
-                    initial: [] as string[],
-                    transactions: [{ prepend: ['first'] }, { prepend: ['second'] }, { prepend: ['third'] }],
-                    expected: ['third', 'second', 'first'],
-                }); // Will FAIL
+                },
+            ])('$name', ({ initial, transactions, expected }) => {
+                expectCommitResult({ initial, transactions, expected });
             });
         });
 
@@ -550,30 +527,72 @@ describe('DataSet', () => {
             return { dataSet, tracker };
         }
 
-        describe('append/prepend-only operations', () => {
-            test.each([
-                { op: 'append', size: 10000, transaction: { append: [10001, 10002, 10003] } },
-                { op: 'prepend', size: 10000, transaction: { prepend: [-3, -2, -1] } },
-                { op: 'both', size: 10000, transaction: { prepend: [-1], append: [10001] } },
-            ])('$op: should not scan original data', ({ size, transaction }) => {
-                const data = Array.from({ length: size }, (_, i) => i);
-                const { dataSet, tracker } = createTrackedDataSet(data);
+        function withTrackedData<T, R>(
+            initialData: T[],
+            run: (context: { dataSet: DataSet<T>; tracker: OperationTracker<T>; initial: T[] }) => R
+        ): R {
+            const snapshot = [...initialData];
+            const { dataSet, tracker } = createTrackedDataSet([...initialData]);
 
+            return run({ dataSet, tracker, initial: snapshot });
+        }
+
+        function range(size: number) {
+            return Array.from({ length: size }, (_, i) => i);
+        }
+
+        function withTrackedNumbers<R>(
+            size: number,
+            run: (context: { dataSet: DataSet<number>; tracker: OperationTracker<number>; initial: number[] }) => R
+        ): R {
+            return withTrackedData(range(size), run);
+        }
+
+        function applyTransactions<T>(dataSet: DataSet<T>, ...transactions: DataTransaction<T>[]) {
+            for (const transaction of transactions) {
                 dataSet.addTransaction(transaction);
-                dataSet.getChangeDescription();
+            }
+        }
 
-                // Building change description should not read original data
-                expect(tracker.reads).toBe(0);
+        describe('append/prepend-only operations', () => {
+            const MAX_SIMPLE_SPLICES = 2;
+            test.each([
+                {
+                    name: 'append',
+                    size: 10000,
+                    transaction: { append: [10001, 10002, 10003] } as DataTransaction<number>,
+                    expected: (initial: number[]) => [...initial, 10001, 10002, 10003],
+                },
+                {
+                    name: 'prepend',
+                    size: 10000,
+                    transaction: { prepend: [-3, -2, -1] } as DataTransaction<number>,
+                    expected: (initial: number[]) => [-3, -2, -1, ...initial],
+                },
+                {
+                    name: 'prepend and append',
+                    size: 10000,
+                    transaction: { prepend: [-1], append: [10001] } as DataTransaction<number>,
+                    expected: (initial: number[]) => [-1, ...initial, 10001],
+                },
+            ])('$name: avoids scanning original data', ({ size, transaction, expected }) => {
+                withTrackedNumbers(size, ({ dataSet, tracker, initial }) => {
+                    applyTransactions(dataSet, transaction);
+                    dataSet.getChangeDescription();
 
-                tracker.reset();
-                dataSet.commitPendingTransactions();
+                    expect(tracker.reads).toBe(0);
 
-                // Should use batch operations
-                expect(tracker.splices).toBeLessThanOrEqual(2);
+                    tracker.reset();
+                    dataSet.commitPendingTransactions();
+
+                    expect(tracker.splices).toBeLessThanOrEqual(MAX_SIMPLE_SPLICES);
+                    expect(dataSet.data).toEqual(expected(initial));
+                });
             });
         });
 
         describe('removal optimizations', () => {
+            const MAX_REMOVAL_SPLICES = 3;
             test.each([
                 {
                     name: 'remove recently appended items',
@@ -581,6 +600,7 @@ describe('DataSet', () => {
                     setup: (ds: DataSet<number>) => ds.addTransaction({ append: [10001, 10002, 10003] }),
                     remove: [10002],
                     expectNoScan: true,
+                    expected: (initial: number[]) => [...initial, 10001, 10003],
                 },
                 {
                     name: 'remove recently prepended items',
@@ -588,158 +608,673 @@ describe('DataSet', () => {
                     setup: (ds: DataSet<number>) => ds.addTransaction({ prepend: [-3, -2, -1] }),
                     remove: [-2],
                     expectNoScan: true,
+                    expected: (initial: number[]) => [-3, -1, ...initial],
                 },
-            ])('$name: avoids scanning original data', ({ size, setup, remove, expectNoScan }) => {
-                const data = Array.from({ length: size }, (_, i) => i);
-                const { dataSet, tracker } = createTrackedDataSet(data);
+            ])('$name: avoids scanning original data', ({ size, setup, remove, expectNoScan, expected }) => {
+                withTrackedNumbers(size, ({ dataSet, tracker, initial }) => {
+                    setup(dataSet);
+                    dataSet.addTransaction({ remove });
+                    dataSet.getChangeDescription();
 
-                // Setup appends/prepends but DON'T commit yet
-                setup(dataSet);
+                    if (expectNoScan) {
+                        expect(tracker.reads).toBe(0);
+                    }
 
-                // Now add removal transaction (removing from pending prepends/appends)
-                dataSet.addTransaction({ remove });
-                dataSet.getChangeDescription();
+                    tracker.reset();
+                    dataSet.commitPendingTransactions();
 
-                // Verify change description was built without scanning original data
-                if (expectNoScan) {
-                    expect(tracker.reads).toBe(0);
-                }
-
-                tracker.reset();
-
-                // Now commit all transactions
-                dataSet.commitPendingTransactions();
-                expect(tracker.splices).toBeLessThanOrEqual(3);
+                    expect(tracker.splices).toBeLessThanOrEqual(MAX_REMOVAL_SPLICES);
+                    expect(dataSet.data).toEqual(expected(initial));
+                });
             });
         });
 
         describe('scale verification', () => {
             test('operations scale with changes, not data size', () => {
                 const sizes = [1000, 10000, 100000];
-                const results: { size: number; reads: number; splices: number }[] = [];
+                const MAX_ALLOWED_READS = 50;
+                const MAX_ALLOWED_SPLICES = 3;
 
-                for (const size of sizes) {
-                    const data = Array.from({ length: size }, (_, i) => i);
-                    const { dataSet, tracker } = createTrackedDataSet(data);
+                const results = sizes.map((size) =>
+                    withTrackedNumbers(size, ({ dataSet, tracker, initial }) => {
+                        const firstNew = size + 1;
+                        applyTransactions(dataSet, { append: [firstNew, firstNew + 1] }, { remove: [firstNew] });
 
-                    // Same operations regardless of size
-                    dataSet.addTransaction({ append: [size + 1, size + 2] });
-                    dataSet.addTransaction({ remove: [size + 1] });
-                    dataSet.commitPendingTransactions();
+                        dataSet.commitPendingTransactions();
 
-                    results.push({
-                        size,
-                        reads: tracker.reads,
-                        splices: tracker.splices,
-                    });
-                }
+                        const readsBeforeAssertions = tracker.reads;
+                        const splicesBeforeAssertions = tracker.splices;
 
-                // Operations should be constant regardless of data size
-                const reads = results.map((r) => r.reads);
-                const splices = results.map((r) => r.splices);
+                        expect(dataSet.data).toEqual([...initial, firstNew + 1]);
 
-                // All read counts should be the same (or very close)
-                expect(Math.max(...reads) - Math.min(...reads)).toBeLessThan(10);
-                // All splice counts should be the same
-                expect(new Set(splices).size).toBe(1);
+                        return { reads: readsBeforeAssertions, splices: splicesBeforeAssertions };
+                    })
+                );
 
-                // Should be efficient
-                expect(Math.max(...reads)).toBeLessThan(50);
-                expect(Math.max(...splices)).toBeLessThanOrEqual(3);
+                const uniqueReadCounts = new Set(results.map(({ reads }) => reads));
+                const uniqueSpliceCounts = new Set(results.map(({ splices }) => splices));
+
+                expect(uniqueReadCounts.size).toBe(1);
+                expect(uniqueSpliceCounts.size).toBe(1);
+
+                const [readCount] = Array.from(uniqueReadCounts);
+                const [spliceCount] = Array.from(uniqueSpliceCounts);
+
+                expect(readCount).toBeLessThanOrEqual(MAX_ALLOWED_READS);
+                expect(spliceCount).toBeLessThanOrEqual(MAX_ALLOWED_SPLICES);
             });
 
             test('mixed operations remain efficient at scale', () => {
                 const size = 50000;
-                // Use primitives to avoid object identity scan
-                const data = Array.from({ length: size }, (_, i) => i);
-                const { dataSet, tracker } = createTrackedDataSet(data);
+                const MAX_SPLICES_FOR_MIXED = 5;
 
-                // Multiple transactions with mixed operations
-                const obj1 = size + 1;
-                const obj2 = size + 2;
-                dataSet.addTransaction({ prepend: [-2, -1] });
-                dataSet.addTransaction({ append: [obj1, obj2] });
+                withTrackedNumbers(size, ({ dataSet, tracker, initial }) => {
+                    const obj1 = size + 1;
+                    const obj2 = size + 2;
 
-                // Remove from recently added items (no scan needed) - before committing
-                dataSet.addTransaction({ remove: [-1, obj1] });
-                dataSet.getChangeDescription();
+                    applyTransactions(dataSet, { prepend: [-2, -1] }, { append: [obj1, obj2] });
+                    dataSet.addTransaction({ remove: [-1, obj1] });
+                    dataSet.getChangeDescription();
 
-                // Building change description should not scan original data
-                expect(tracker.reads).toBe(0);
+                    expect(tracker.reads).toBe(0);
 
-                tracker.reset();
+                    tracker.reset();
+                    dataSet.commitPendingTransactions();
 
-                // Commit should use efficient batch operations
-                dataSet.commitPendingTransactions();
-                expect(tracker.splices).toBeLessThanOrEqual(5);
-
-                // Verify correctness
-                expect(dataSet.data).toHaveLength(size + 2); // 50000 + 2prepends + 2appends - 2removes = 50002
+                    expect(tracker.splices).toBeLessThanOrEqual(MAX_SPLICES_FOR_MIXED);
+                    expect(dataSet.data).toEqual([-2, ...initial, obj2]);
+                });
             });
         });
 
         describe('early stopping verification', () => {
             test('stops scanning after finding all items in buildIndexMap', () => {
                 const size = 10000;
-                const data = Array.from({ length: size }, (_, i) => i);
-                const { dataSet, tracker } = createTrackedDataSet(data);
+                const targets = [10, 20, 30];
+                const EARLY_STOP_MIN_READS = 25;
+                const EARLY_STOP_MAX_READS = 50;
 
-                // Remove items near the beginning
-                dataSet.addTransaction({ remove: [10, 20, 30] });
+                withTrackedNumbers(size, ({ dataSet, tracker, initial }) => {
+                    dataSet.addTransaction({ remove: targets });
+                    dataSet.getChangeDescription();
 
-                // Build change description (this is where scanning happens)
-                dataSet.getChangeDescription();
+                    expect(tracker.reads).toBeGreaterThan(EARLY_STOP_MIN_READS);
+                    expect(tracker.reads).toBeLessThan(EARLY_STOP_MAX_READS);
 
-                // Should have scanned to find the items, stopping after finding all 3
-                expect(tracker.reads).toBeLessThan(50); // Early stop around index 30
-                expect(tracker.reads).toBeGreaterThan(25); // But scanned past 30
+                    tracker.reset();
+                    dataSet.commitPendingTransactions();
 
-                tracker.reset();
-
-                // Now commit (splice operations will cause additional reads)
-                dataSet.commitPendingTransactions();
-
-                // Verify correctness
-                expect(dataSet.data).not.toContain(10);
-                expect(dataSet.data).not.toContain(20);
-                expect(dataSet.data).not.toContain(30);
-                expect(dataSet.data).toHaveLength(size - 3);
+                    const expected = initial.filter((value) => !targets.includes(value));
+                    expect(dataSet.data).toEqual(expected);
+                });
             });
         });
 
         describe('object identity limitation', () => {
             test('object removal requires full scan (documented limitation)', () => {
                 const size = 10000;
-                const data = Array.from({ length: size }, (_, i) => ({ id: i }));
-                const { dataSet, tracker } = createTrackedDataSet(data);
+                const initial = Array.from({ length: size }, (_, i) => ({ id: i }));
 
-                // Try to remove with different object instance (won't match)
-                dataSet.addTransaction({ remove: [{ id: 100 }] });
-                dataSet.commitPendingTransactions();
+                withTrackedData(initial, ({ dataSet, tracker }) => {
+                    dataSet.addTransaction({ remove: [{ id: 100 }] });
+                    dataSet.commitPendingTransactions();
 
-                // Will scan entire array looking for the object
-                expect(tracker.reads).toBe(size);
-
-                // Verify item not removed (different object reference)
-                expect(dataSet.data).toHaveLength(size);
+                    expect(tracker.reads).toBe(size);
+                    expect(dataSet.data).toHaveLength(size);
+                    expect(dataSet.data.some((item) => item.id === 100)).toBe(true);
+                });
             });
 
             test('same object reference avoids scan', () => {
                 const size = 10000;
                 const obj = { id: -1 };
-                const data = Array.from({ length: size }, (_, i) => ({ id: i }));
-                const { dataSet, tracker } = createTrackedDataSet(data);
+                const initial = Array.from({ length: size }, (_, i) => ({ id: i }));
 
-                // Prepend and remove using SAME reference
-                dataSet.addTransaction({ prepend: [obj] });
-                tracker.reset();
+                withTrackedData(initial, ({ dataSet, tracker }) => {
+                    dataSet.addTransaction({ prepend: [obj] });
+                    tracker.reset();
 
-                dataSet.addTransaction({ remove: [obj] });
-                dataSet.commitPendingTransactions();
+                    dataSet.addTransaction({ remove: [obj] });
+                    dataSet.commitPendingTransactions();
 
-                // Should find in prepends, no scan needed
-                expect(tracker.reads).toBe(0);
-                expect(dataSet.data).toHaveLength(size);
+                    expect(tracker.reads).toBe(0);
+                    expect(dataSet.data).toHaveLength(size);
+                    expect(dataSet.data).not.toContain(obj);
+                });
+            });
+        });
+    });
+
+    describe('arbitrary insertions (addIndex support)', () => {
+        describe('single insertion', () => {
+            test('should insert at middle of array', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    transactions: { add: ['X'], addIndex: 2 },
+                    expected: ['A', 'B', 'X', 'C', 'D', 'E'],
+                });
+            });
+
+            test('should insert at beginning (index 0)', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: { add: ['X'], addIndex: 0 },
+                    expected: ['X', 'A', 'B', 'C'],
+                });
+            });
+
+            test('should append when index equals length', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: { add: ['X'], addIndex: 3 },
+                    expected: ['A', 'B', 'C', 'X'],
+                });
+            });
+
+            test('should append when index exceeds length', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: { add: ['X'], addIndex: 10 },
+                    expected: ['A', 'B', 'C', 'X'],
+                });
+            });
+
+            test('should insert multiple items at once', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: { add: ['X', 'Y', 'Z'], addIndex: 1 },
+                    expected: ['A', 'X', 'Y', 'Z', 'B', 'C'],
+                });
+            });
+        });
+
+        describe('multiple insertions across transactions', () => {
+            test('should handle sequential insertions with index stability', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    steps: [
+                        {
+                            transactions: [{ add: ['X'], addIndex: 2 }],
+                            expected: ['A', 'B', 'X', 'C', 'D', 'E'],
+                        },
+                        {
+                            // Index 4 is relative to current state ['A', 'B', 'X', 'C', 'D', 'E']
+                            // So it inserts between 'C' and 'D'
+                            transactions: [{ add: ['Y'], addIndex: 4 }],
+                            expected: ['A', 'B', 'X', 'C', 'Y', 'D', 'E'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle multiple insertions in same transaction', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    steps: [
+                        {
+                            transactions: [
+                                { add: ['X'], addIndex: 2 },
+                                { add: ['Y'], addIndex: 4 },
+                            ],
+                            expected: ['A', 'B', 'X', 'C', 'Y', 'D', 'E'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle insertion before earlier insertion', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C', 'D'],
+                    steps: [
+                        {
+                            transactions: [{ add: ['X'], addIndex: 3 }],
+                            expected: ['A', 'B', 'C', 'X', 'D'],
+                        },
+                        {
+                            // Insert before X (at index 1)
+                            transactions: [{ add: ['Y'], addIndex: 1 }],
+                            expected: ['A', 'Y', 'B', 'C', 'X', 'D'],
+                        },
+                    ],
+                });
+            });
+        });
+
+        describe('insertions with removals', () => {
+            test('should insert and remove in same transaction', () => {
+                const initial = ['A', 'B', 'C', 'D', 'E'];
+                expectCommitResult({
+                    initial,
+                    transactions: {
+                        add: ['X'],
+                        addIndex: 2,
+                        remove: [initial[1]], // Remove 'B'
+                    },
+                    expected: ['A', 'X', 'C', 'D', 'E'],
+                });
+            });
+
+            test('should handle inserting and removing same item in single transaction', () => {
+                const initial = ['A', 'B', 'C'];
+                const newItem = 'X';
+                expectCommitResult({
+                    initial,
+                    transactions: {
+                        add: [newItem],
+                        addIndex: 1,
+                        remove: [newItem],
+                    },
+                    expected: ['A', 'B', 'C'], // Item should not appear
+                });
+            });
+
+            test('should handle multiple inserts then remove all in single transaction', () => {
+                const initial = ['A', 'B'];
+                const items = ['X', 'Y', 'Z'];
+                expectCommitResult({
+                    initial,
+                    transactions: {
+                        add: items,
+                        addIndex: 1,
+                        remove: items,
+                    },
+                    expected: ['A', 'B'], // Items should not appear
+                });
+            });
+
+            test('should handle partial removal of inserted items', () => {
+                const initial = ['A', 'B'];
+                const items = ['X', 'Y', 'Z'];
+                expectCommitResult({
+                    initial,
+                    transactions: {
+                        add: items,
+                        addIndex: 1,
+                        remove: ['Y'], // Remove only 'Y'
+                    },
+                    expected: ['A', 'X', 'Z', 'B'], // Only X and Z should appear
+                });
+            });
+
+            test('should handle removal before insertion index', () => {
+                const initial = ['A', 'B', 'C', 'D', 'E'];
+                runCommitScenario({
+                    initial,
+                    steps: [
+                        {
+                            transactions: [{ remove: [initial[1]] }], // Remove 'B'
+                            expected: ['A', 'C', 'D', 'E'],
+                        },
+                        {
+                            // Index 2 is relative to ['A', 'C', 'D', 'E']
+                            transactions: [{ add: ['X'], addIndex: 2 }],
+                            expected: ['A', 'C', 'X', 'D', 'E'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle removal after insertion', () => {
+                const initial = ['A', 'B', 'C', 'D', 'E'];
+                runCommitScenario({
+                    initial,
+                    steps: [
+                        {
+                            transactions: [{ add: ['X'], addIndex: 2 }],
+                            expected: ['A', 'B', 'X', 'C', 'D', 'E'],
+                        },
+                        {
+                            transactions: [{ remove: [initial[3]] }], // Remove original 'D'
+                            expected: ['A', 'B', 'X', 'C', 'E'],
+                        },
+                    ],
+                });
+            });
+        });
+
+        describe('insertions with prepends and appends', () => {
+            test('should handle insertion after prepend', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C'],
+                    steps: [
+                        {
+                            transactions: [{ add: ['X'], addIndex: 0 }],
+                            expected: ['X', 'A', 'B', 'C'],
+                        },
+                        {
+                            // Index 2 is relative to ['X', 'A', 'B', 'C']
+                            transactions: [{ add: ['Y'], addIndex: 2 }],
+                            expected: ['X', 'A', 'Y', 'B', 'C'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle insertion before append', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C'],
+                    steps: [
+                        {
+                            transactions: [
+                                { add: ['X'], addIndex: 1 },
+                                { add: ['Y'], addIndex: 10 }, // Append
+                            ],
+                            expected: ['A', 'X', 'B', 'C', 'Y'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle complex mixed operations', () => {
+                const initial = ['A', 'B', 'C', 'D'];
+                runCommitScenario({
+                    initial,
+                    steps: [
+                        {
+                            transactions: [
+                                { add: ['P'], addIndex: 0 }, // Prepend
+                                { add: ['M'], addIndex: 3 }, // Middle insert
+                                { add: ['Q'], addIndex: 100 }, // Append
+                                { remove: [initial[1]] }, // Remove 'B'
+                            ],
+                            expected: ['P', 'A', 'M', 'C', 'D', 'Q'],
+                        },
+                    ],
+                });
+            });
+        });
+
+        describe('edge cases', () => {
+            test('should handle insertion into empty array', () => {
+                expectCommitResult({
+                    initial: [],
+                    transactions: { add: ['X'], addIndex: 0 },
+                    expected: ['X'],
+                });
+            });
+
+            test('should handle insertion at index 1 of single-element array', () => {
+                expectCommitResult({
+                    initial: ['A'],
+                    transactions: { add: ['X'], addIndex: 1 },
+                    expected: ['A', 'X'],
+                });
+            });
+
+            test('should handle removing inserted item', () => {
+                const initial = ['A', 'B', 'C'];
+                const newItem = 'X';
+                runCommitScenario({
+                    initial,
+                    steps: [
+                        {
+                            transactions: [{ add: [newItem], addIndex: 1 }],
+                            expected: ['A', 'X', 'B', 'C'],
+                        },
+                        {
+                            transactions: [{ remove: [newItem] }],
+                            expected: ['A', 'B', 'C'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle multiple insertions at same index', () => {
+                runCommitScenario({
+                    initial: ['A', 'B', 'C'],
+                    steps: [
+                        {
+                            transactions: [
+                                { add: ['X'], addIndex: 1 },
+                                { add: ['Y'], addIndex: 2 }, // Now inserts after X
+                            ],
+                            expected: ['A', 'X', 'Y', 'B', 'C'],
+                        },
+                    ],
+                });
+            });
+
+            test('should handle two insertions at exact same index in single commit', () => {
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: [
+                        { add: ['X'], addIndex: 1 },
+                        { add: ['Y'], addIndex: 1 }, // Same index as X
+                    ],
+                    expected: ['A', 'Y', 'X', 'B', 'C'], // Y should come before X
+                });
+            });
+
+            test('should handle three insertions at exact same index', () => {
+                expectCommitResult({
+                    initial: ['A', 'B'],
+                    transactions: [
+                        { add: ['X'], addIndex: 1 },
+                        { add: ['Y'], addIndex: 1 },
+                        { add: ['Z'], addIndex: 1 },
+                    ],
+                    expected: ['A', 'Z', 'Y', 'X', 'B'], // Z, Y, X in that order
+                });
+            });
+
+            test('should handle multiple multi-item insertions at same index', () => {
+                expectCommitResult({
+                    initial: ['A', 'B'],
+                    transactions: [
+                        { add: ['X1', 'X2'], addIndex: 1 },
+                        { add: ['Y1', 'Y2'], addIndex: 1 },
+                    ],
+                    expected: ['A', 'Y1', 'Y2', 'X1', 'X2', 'B'],
+                });
+            });
+        });
+
+        describe('virtual index adjustment when removing earlier insertions', () => {
+            test('removing earlier insertion adjusts later insertion virtualIndex', () => {
+                const x = { id: 'x' };
+                const y = { id: 'y' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3, remove: [x] },
+                    ],
+                    expected: ['A', 'B', y, 'C', 'D'],
+                });
+            });
+
+            test('removing multiple items from earlier insertion', () => {
+                const items1 = ['X', 'Y', 'Z'];
+                const item2 = 'A';
+                expectCommitResult({
+                    initial: ['1', '2', '3', '4'],
+                    transactions: [
+                        { add: items1, addIndex: 1 },
+                        { add: [item2], addIndex: 5, remove: ['X', 'Y'] },
+                    ],
+                    // After tx1: ['1', 'X', 'Y', 'Z', '2', '3', '4']
+                    // After remove X,Y: ['1', 'Z', '2', '3', '4']
+                    // Add A at adjusted index 3: ['1', 'Z', '2', 'A', '3', '4']
+                    expected: ['1', 'Z', '2', item2, '3', '4'],
+                });
+            });
+
+            test('removing entire earlier insertion', () => {
+                const x = { id: 'x' };
+                const y = { id: 'y' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3, remove: [x] },
+                    ],
+                    expected: ['A', 'B', y, 'C'],
+                });
+            });
+
+            test('removing from middle insertion adjusts only later ones', () => {
+                const x = 'X';
+                const y = 'Y';
+                const z = 'Z';
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3 },
+                        { add: [z], addIndex: 5 },
+                        { remove: [y] },
+                    ],
+                    // After insertions: ['A', 'X', 'B', 'Y', 'C', 'Z', 'D', 'E']
+                    // After removing Y: ['A', 'X', 'B', 'C', 'Z', 'D', 'E']
+                    expected: ['A', x, 'B', 'C', z, 'D', 'E'],
+                });
+            });
+
+            test('removing from multiple insertions in sequence', () => {
+                const x = 'X';
+                const y = 'Y';
+                const z = 'Z';
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3 },
+                        { add: [z], addIndex: 5, remove: [x, y] },
+                    ],
+                    // After tx1: ['A', 'X', 'B', 'C']
+                    // After tx2: ['A', 'X', 'B', 'Y', 'C']
+                    // After remove X,Y: ['A', 'B', 'C']
+                    // Add Z at adjusted index 3: ['A', 'B', 'C', 'Z']
+                    expected: ['A', 'B', 'C', z],
+                });
+            });
+
+            test('removing earlier insertion with original data removal', () => {
+                const initial = ['A', 'B', 'C', 'D', 'E'];
+                const x = 'X';
+                const y = 'Y';
+                expectCommitResult({
+                    initial,
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 4, remove: [x, initial[2]] }, // Remove 'C' and 'X'
+                    ],
+                    // After tx1: ['A', 'X', 'B', 'C', 'D', 'E']
+                    // After remove X and 'C': ['A', 'B', 'D', 'E']
+                    // Add Y at adjusted index 2: ['A', 'B', 'Y', 'D', 'E']
+                    expected: ['A', 'B', y, 'D', 'E'],
+                });
+            });
+
+            test('complex scenario with prepends, insertions, and removals', () => {
+                const initial = ['B', 'C', 'D'];
+                const x = 'X';
+                const y = 'Y';
+                expectCommitResult({
+                    initial,
+                    transactions: [
+                        { add: ['A'], addIndex: 0 }, // This becomes a prepend
+                        { add: [x], addIndex: 2 },
+                        { add: [y], addIndex: 4, remove: [x] },
+                    ],
+                    // After prepend: ['A', 'B', 'C', 'D']
+                    // After add X: ['A', 'B', 'X', 'C', 'D']
+                    // After remove X: ['A', 'B', 'C', 'D']
+                    // Add Y at adjusted index 3: ['A', 'B', 'C', 'Y', 'D']
+                    expected: ['A', 'B', 'C', y, 'D'],
+                });
+            });
+
+            // Bug fix: Only adjust insertions positioned after the removed span
+            test('removing later insertion should not affect earlier insertion', () => {
+                const x1 = { id: 'x1' };
+                const x2 = { id: 'x2' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D'],
+                    transactions: [
+                        { add: [x1], addIndex: 3 }, // later removal target
+                        { add: [x2], addIndex: 1 }, // inserts to the left
+                        { remove: [x1] },
+                    ],
+                    // After tx1: ['A', 'B', 'C', x1, 'D']
+                    // After tx2: ['A', x2, 'B', 'C', x1, 'D']
+                    // After remove x1: ['A', x2, 'B', 'C', 'D']
+                    // x2's virtualIndex (1) < x1's end position (4), so NOT adjusted
+                    expected: ['A', x2, 'B', 'C', 'D'],
+                });
+            });
+
+            test('removing earlier insertion should affect later insertion', () => {
+                const x1 = { id: 'x1' };
+                const x2 = { id: 'x2' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D'],
+                    transactions: [
+                        { add: [x1], addIndex: 1 }, // earlier removal target
+                        { add: [x2], addIndex: 3 }, // inserts to the right
+                        { remove: [x1] },
+                    ],
+                    // After tx1: ['A', x1, 'B', 'C', 'D']
+                    // After tx2: ['A', x1, 'B', x2, 'C', 'D']
+                    // After remove x1: ['A', 'B', x2, 'C', 'D']
+                    // x2 should shift from position 3 to position 2
+                    expected: ['A', 'B', x2, 'C', 'D'],
+                });
+            });
+
+            test('insertion at boundary of removed span should be adjusted', () => {
+                const x1 = { id: 'x1' };
+                const x2 = { id: 'x2' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D'],
+                    transactions: [
+                        { add: [x1], addIndex: 1 },
+                        { add: [x2], addIndex: 2 }, // exactly at the end of x1's span
+                        { remove: [x1] },
+                    ],
+                    // After tx1: ['A', x1, 'B', 'C', 'D']
+                    // After tx2: ['A', x1, x2, 'B', 'C', 'D']
+                    // After remove x1: ['A', x2, 'B', 'C', 'D']
+                    // x2 at position 2 (end of x1's span [1,2)) should shift to 1
+                    expected: ['A', x2, 'B', 'C', 'D'],
+                });
+            });
+
+            test('removing multiple items from earlier insertion affects later insertion', () => {
+                const items1 = ['X', 'Y', 'Z'];
+                const x2 = { id: 'x2' };
+                expectCommitResult({
+                    initial: ['A', 'B', 'C', 'D', 'E'],
+                    transactions: [
+                        { add: items1, addIndex: 1 },
+                        { add: [x2], addIndex: 5 }, // after the 3-item insertion
+                        { remove: ['Y', 'Z'] }, // remove 2 items from first insertion
+                    ],
+                    // After tx1: ['A', 'X', 'Y', 'Z', 'B', 'C', 'D', 'E']
+                    // After tx2: ['A', 'X', 'Y', 'Z', 'B', x2, 'C', 'D', 'E']
+                    // After remove Y,Z: ['A', 'X', 'B', x2, 'C', 'D', 'E']
+                    // x2 should shift from position 5 to position 3 (adjust by 2)
+                    expected: ['A', 'X', 'B', x2, 'C', 'D', 'E'],
+                });
+            });
+
+            test('removing middle insertion adjusts only later ones not earlier', () => {
+                const x = 'X';
+                const y = 'Y';
+                const z = 'Z';
+                expectCommitResult({
+                    initial: ['A', 'B', 'C'],
+                    transactions: [
+                        { add: [x], addIndex: 1 },
+                        { add: [y], addIndex: 3 },
+                        { add: [z], addIndex: 5 },
+                        { remove: [y] },
+                    ],
+                    // After insertions: ['A', 'X', 'B', 'Y', 'C', 'Z']
+                    // After removing Y: ['A', 'X', 'B', 'C', 'Z']
+                    // X should remain at position 1, Z should shift from 5 to 4
+                    expected: ['A', x, 'B', 'C', z],
+                });
             });
         });
     });

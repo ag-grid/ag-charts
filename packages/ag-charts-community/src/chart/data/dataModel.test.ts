@@ -23,6 +23,7 @@ import {
     scopedValue,
     sum,
     value,
+    verifyReprocessMatchesBaseline,
 } from './data-model/test/testUtils';
 import type { GroupByFn } from './dataModel';
 import { DataModel, getPathComponents } from './dataModel';
@@ -1199,6 +1200,87 @@ describe('DataModel', () => {
         it('rejects invalid paths', () => {
             expect(getPathComponents(`["test"]other`)).toBe(undefined);
             expect(getPathComponents(`[test]`)).toBe(undefined);
+        });
+    });
+
+    describe('mid-dataset insertions', () => {
+        it('should match full processing when inserting within ungrouped data', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const initialData = [
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+                { x: 4, y: 40 },
+                { x: 5, y: 50 },
+            ];
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+
+            const processedData = dataModel.processData(sources);
+
+            // Opt-in to diff metadata so incremental path mimics chart usage.
+            processedData!.reduced = { diff: {} };
+
+            dataSet.addTransaction({
+                add: [{ x: 3, y: 30 }],
+                addIndex: 2,
+            });
+
+            const reprocessed = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+            expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4, 5]);
+            expect(reprocessed.columns).toEqual([[10, 20, 30, 40, 50]]);
+            expect(reprocessed.domain.keys).toEqual([[1, 5]]);
+            expect(reprocessed.domain.values).toEqual([[10, 50]]);
+        });
+
+        it('should stay aligned after transaction, full process, and another transaction with mid insert', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const initialData = [
+                { x: 0, y: 0 },
+                { x: 2, y: 20 },
+                { x: 4, y: 40 },
+                { x: 6, y: 60 },
+            ];
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+
+            const processedData = dataModel.processData(sources);
+            processedData!.reduced = { diff: {} };
+
+            dataSet.addTransaction({
+                add: [{ x: 3, y: 30 }],
+                addIndex: 2,
+            });
+
+            const firstReprocess = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, firstReprocess, sources);
+
+            // Simulate updateDelta() recreating the DataSet with the latest materialized data.
+            const snapshotDataSet = new DataSet([...dataSet.data]);
+            sources.set('test', snapshotDataSet);
+
+            const fullProcess = dataModel.processData(sources);
+            fullProcess!.reduced = { diff: {} };
+
+            snapshotDataSet.addTransaction({
+                add: [{ x: 5, y: 50 }],
+                addIndex: 4,
+            });
+
+            const secondReprocess = dataModel.reprocessData(fullProcess!);
+            verifyReprocessMatchesBaseline(dataModel, secondReprocess, sources);
+
+            expect(secondReprocess.keys[0].get('test')).toEqual([0, 2, 3, 4, 5, 6]);
+            expect(secondReprocess.columns).toEqual([[0, 20, 30, 40, 50, 60]]);
+            expect(secondReprocess.domain.keys).toEqual([[0, 6]]);
+            expect(secondReprocess.domain.values).toEqual([[0, 60]]);
         });
     });
 

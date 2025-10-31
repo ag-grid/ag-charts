@@ -4,11 +4,21 @@ export { DataChangeDescription } from './dataChangeDescription';
 
 /**
  * Encapsulates a single transaction to be applied to a DataSet.
+ * Supports both the AG Grid-compatible API (add/addIndex) and the internal format (prepend/append/insertions).
  */
 export interface DataSetTransaction<T> {
+    /** Items to add at the specified index (AG Grid-compatible API). */
+    add?: T[];
+    /** Zero-based index for add operation. If undefined or >= length, items are appended. */
+    addIndex?: number;
+    /** Items to prepend to the beginning (internal format, converted from add with addIndex=0). */
     prepend?: T[];
+    /** Items to append to the end (internal format, converted from add with no addIndex). */
     append?: T[];
+    /** Items to remove by referential equality. */
     remove?: T[];
+    /** Arbitrary insertions at specific indices (internal format, converted from add with 0 < addIndex < length). */
+    insertions?: Array<{ index: number; items: T[] }>;
 }
 
 /**
@@ -44,10 +54,53 @@ export class DataSet<T = unknown> {
         return changeDesc ? changeDesc.indexMap.finalLength : this.data.length;
     }
 
-    /** Queues a transaction (applied on commit). */
+    /**
+     * Queues a transaction (applied on commit).
+     * Normalizes AG Grid-compatible format (add/addIndex) to internal format (prepend/append).
+     */
     addTransaction(transaction: DataSetTransaction<T>): void {
-        this.pendingTransactions.push(transaction);
+        const normalized = this.normalizeTransaction(transaction);
+        this.pendingTransactions.push(normalized);
         this.cachedChangeDescription = undefined;
+    }
+
+    /**
+     * Converts AG Grid-compatible transaction format to internal format.
+     * Maps `add` + `addIndex` to prepend, append, or arbitrary insertion based on the index.
+     */
+    private normalizeTransaction(transaction: DataSetTransaction<T>): DataSetTransaction<T> {
+        const { add, addIndex, prepend, append, remove } = transaction;
+
+        // If using legacy format, return as-is
+        if (add === undefined) {
+            return transaction;
+        }
+
+        // Convert add+addIndex to prepend/append/insertions
+        const result: DataSetTransaction<T> = { remove };
+
+        // Preserve any existing prepend/append (shouldn't happen in practice)
+        if (prepend) result.prepend = prepend;
+        if (append) result.append = append;
+
+        // Convert add to prepend, append, or arbitrary insertion based on addIndex
+        if (add && add.length > 0) {
+            const currentSize = this.netSize();
+
+            if (addIndex === undefined || addIndex >= currentSize) {
+                // Append to end (default behavior)
+                result.append = append ? [...append, ...add] : add;
+            } else if (addIndex === 0) {
+                // Prepend to beginning
+                result.prepend = prepend ? [...add, ...prepend] : add;
+            } else {
+                // Arbitrary insertion: store in insertions array
+                // Index is relative to current data state (after previous transactions)
+                result.insertions = [{ index: addIndex, items: add }];
+            }
+        }
+
+        return result;
     }
 
     hasPendingTransactions(): boolean {
@@ -69,12 +122,26 @@ export class DataSet<T = unknown> {
             return false;
         }
 
-        const allInsertions = [
-            ...changeDescription.getPrependedValues<T>(),
-            ...changeDescription.getAppendedValues<T>(),
-        ];
-        let insertionIndex = 0;
-        changeDescription.applyToArray(this.data, () => allInsertions[insertionIndex++]);
+        // Get all insertion values in order: prepends, insertions, appends
+        const prependedValues = changeDescription.getPrependedValues<T>();
+        const insertionValues = changeDescription.getInsertionValues<T>();
+        const appendedValues = changeDescription.getAppendedValues<T>();
+
+        // Create a flat list of all values to insert, in the order they'll be consumed
+        const allInsertionValues = [...prependedValues, ...insertionValues, ...appendedValues];
+
+        // Use a sequential index to consume insertion values in order instead of a map
+        // keyed by destination index (which causes collisions when multiple insertions
+        // target overlapping indices)
+        let insertionValueIndex = 0;
+
+        // Apply transformations using sequential consumption
+        changeDescription.applyToArray(this.data, (destIndex) => {
+            if (insertionValueIndex >= allInsertionValues.length) {
+                throw new Error(`AG Charts - Internal error: No insertion value found for index ${destIndex}`);
+            }
+            return allInsertionValues[insertionValueIndex++];
+        });
 
         this.pendingTransactions = [];
         this.cachedChangeDescription = undefined;
@@ -108,10 +175,11 @@ export class DataSet<T = unknown> {
             return this.cachedChangeDescription;
         }
 
-        const { indexMap, prependValues, appendValues } = this.buildIndexMap();
+        const { indexMap, prependValues, appendValues, insertionValues } = this.buildIndexMap();
         const changeDescription = new DataChangeDescription(indexMap, {
             prependValues,
             appendValues,
+            insertionValues,
         });
 
         this.cachedChangeDescription = changeDescription;
@@ -145,70 +213,161 @@ export class DataSet<T = unknown> {
      * - Track operation boundaries instead of individual items
      * - Only scan for values that are actually being removed
      * - Stop scanning early when all removed values are found
+     * - Support arbitrary insertions at any index
      */
     private buildIndexMap(): {
         indexMap: IndexTransformationMap;
         prependValues: T[];
         appendValues: T[];
+        insertionValues: T[];
     } {
         const originalLength = this.data.length;
 
         const prependsList: T[][] = [];
         const appendsList: T[][] = [];
+        const insertionsList: T[][] = [];
         const removedOriginalIndices = new Set<number>();
 
-        for (const transaction of this.pendingTransactions) {
-            const { prepend, append, remove } = transaction;
+        // Track insertions with their virtual indices for later splice operation generation
+        interface TrackedInsertion {
+            virtualIndex: number; // Index at time of transaction (relative to current state)
+            items: T[];
+        }
+        const trackedInsertions: TrackedInsertion[] = [];
 
+        // Track virtual array length as we process transactions
+        let virtualLength = originalLength;
+
+        for (const transaction of this.pendingTransactions) {
+            // Note: transactions are already normalized in addTransaction()
+            const { prepend, append, insertions, remove } = transaction;
+
+            // Handle prepends (special case: always at virtual index 0)
             if (Array.isArray(prepend) && prepend.length > 0) {
                 prependsList.unshift([...prepend]); // LIFO order
+                virtualLength += prepend.length;
             }
 
+            // Handle arbitrary insertions
+            if (Array.isArray(insertions)) {
+                for (const { index, items } of insertions) {
+                    if (index >= 0 && index <= virtualLength && items.length > 0) {
+                        // Store insertion with its virtual index for later processing
+                        trackedInsertions.push({
+                            virtualIndex: index,
+                            items: [...items],
+                        });
+                        insertionsList.push([...items]);
+                        virtualLength += items.length;
+                    }
+                }
+            }
+
+            // Handle appends
             if (Array.isArray(append) && append.length > 0) {
                 appendsList.push([...append]);
+                virtualLength += append.length;
             }
 
-            // Removals check prepends, originals, then appends
+            // Removals check prepends, insertions, originals, then appends
             if (Array.isArray(remove) && remove.length > 0) {
                 const toRemove = new Set(remove);
 
                 // OPTIMIZATION 3: Remove from prepends first (FIFO - front to back)
-                // These are typically much smaller sets than original data
                 this.removeFromGroups(prependsList, toRemove);
 
-                // OPTIMIZATION 3: Remove from appends next (FIFO - front to back)
-                // Also typically much smaller than original data
+                // Remove from insertions
+                if (toRemove.size > 0) {
+                    this.removeFromGroups(insertionsList, toRemove);
+
+                    // Remove items from trackedInsertions and adjust virtualIndex of subsequent insertions
+                    for (let trackedIdx = 0; trackedIdx < trackedInsertions.length; trackedIdx++) {
+                        const tracked = trackedInsertions[trackedIdx];
+                        const previousLength = tracked.items.length;
+                        const removedOffsets: number[] = [];
+                        let i = 0;
+
+                        while (i < tracked.items.length) {
+                            if (remove.includes(tracked.items[i])) {
+                                removedOffsets.push(i + removedOffsets.length);
+                                tracked.items.splice(i, 1);
+                                virtualLength--;
+                            } else {
+                                i++;
+                            }
+                        }
+
+                        const removedCount = removedOffsets.length;
+
+                        // Adjust later insertions based on how many removed items existed before their positions
+                        if (removedCount > 0) {
+                            for (let j = trackedIdx + 1; j < trackedInsertions.length; j++) {
+                                const later = trackedInsertions[j];
+
+                                if (later.virtualIndex <= tracked.virtualIndex) {
+                                    continue;
+                                }
+
+                                const relativeInsertionPosition = Math.min(
+                                    Math.max(later.virtualIndex - tracked.virtualIndex, 0),
+                                    previousLength
+                                );
+
+                                let removedBeforeInsertion = 0;
+                                for (const offset of removedOffsets) {
+                                    if (offset < relativeInsertionPosition) {
+                                        removedBeforeInsertion++;
+                                    } else {
+                                        break;
+                                    }
+                                }
+
+                                if (relativeInsertionPosition === previousLength) {
+                                    removedBeforeInsertion = removedCount;
+                                }
+
+                                if (removedBeforeInsertion > 0) {
+                                    later.virtualIndex -= removedBeforeInsertion;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Remove from appends
                 if (toRemove.size > 0) {
                     this.removeFromGroups(appendsList, toRemove);
                 }
 
                 // OPTIMIZATIONS 1 & 2: Only scan original data for remaining values
-                // Build index map lazily and only for values we're actually looking for
                 if (toRemove.size > 0) {
-                    // Only scan the data for values that still need to be removed
                     for (let i = 0; i < this.data.length && toRemove.size > 0; i++) {
                         const value = this.data[i];
                         if (toRemove.has(value)) {
                             removedOriginalIndices.add(i);
                             toRemove.delete(value);
-                            // OPTIMIZATION 2: Stop early if we've found all values
-                            // (assumes each value appears only once, which is common)
+                            virtualLength--;
                         }
                     }
                 }
             }
         }
 
-        // Flatten the prepends and appends lists
+        // Flatten the prepends, appends, and insertions lists
         const survivingPrepends = prependsList.flat();
         const survivingAppends = appendsList.flat();
+        const survivingInsertions = insertionsList.flat();
 
         const totalPrependCount = survivingPrepends.length;
         const totalAppendCount = survivingAppends.length;
+        const totalInsertionCount = survivingInsertions.length;
         const survivingOriginalCount = originalLength - removedOriginalIndices.size;
-        const finalLength = totalPrependCount + survivingOriginalCount + totalAppendCount;
+        const finalLength = totalPrependCount + survivingOriginalCount + totalInsertionCount + totalAppendCount;
 
+        // Generate splice operations for all insertions, removals, prepends, and appends
         const spliceOps: SpliceOperation[] = [];
+
+        // 1. Prepend operation (always at index 0)
         if (totalPrependCount > 0) {
             spliceOps.push({
                 index: 0,
@@ -217,10 +376,11 @@ export class DataSet<T = unknown> {
             });
         }
 
+        // 2. Removal operations (back to front to avoid index shifting)
         if (removedOriginalIndices.size > 0) {
             const sortedRemovals = Array.from(removedOriginalIndices).sort((a, b) => b - a);
 
-            // Group consecutive indices and create optimized splice operations
+            // Group consecutive indices for optimized splice operations
             let currentGroupStart = sortedRemovals[0];
             let currentGroupCount = 1;
 
@@ -242,7 +402,6 @@ export class DataSet<T = unknown> {
                 }
             }
 
-            // Add the last group
             spliceOps.push({
                 index: currentGroupStart - currentGroupCount + 1 + totalPrependCount,
                 deleteCount: currentGroupCount,
@@ -250,9 +409,38 @@ export class DataSet<T = unknown> {
             });
         }
 
+        // 3. Arbitrary insertion operations
+        // Important: Insertions must be applied in the order they were tracked (NOT sorted)
+        // because each insertion's virtualIndex accounts for previous insertions
+        // We also need to adjust for removals that shift indices
+        if (trackedInsertions.length > 0) {
+            for (const insertion of trackedInsertions) {
+                // Calculate how many removals occurred before this insertion's virtual index
+                // Removals shift indices left, so we need to subtract them
+                let removalsBeforeInsertion = 0;
+                for (const removedIndex of removedOriginalIndices) {
+                    // Account for prepends: original index in virtual space is originalIndex + totalPrependCount
+                    const virtualIndexOfRemoval = removedIndex + totalPrependCount;
+                    if (virtualIndexOfRemoval < insertion.virtualIndex) {
+                        removalsBeforeInsertion++;
+                    }
+                }
+
+                // Adjust insertion index to account for removals
+                const adjustedIndex = insertion.virtualIndex - removalsBeforeInsertion;
+
+                spliceOps.push({
+                    index: adjustedIndex,
+                    deleteCount: 0,
+                    insertCount: insertion.items.length,
+                });
+            }
+        }
+
+        // 4. Append operation (at the end)
         if (totalAppendCount > 0) {
             spliceOps.push({
-                index: totalPrependCount + survivingOriginalCount,
+                index: totalPrependCount + survivingOriginalCount + totalInsertionCount,
                 deleteCount: 0,
                 insertCount: totalAppendCount,
             });
@@ -271,6 +459,7 @@ export class DataSet<T = unknown> {
             indexMap,
             prependValues: survivingPrepends,
             appendValues: survivingAppends,
+            insertionValues: survivingInsertions,
         };
     }
 }
