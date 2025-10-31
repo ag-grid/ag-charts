@@ -1,6 +1,6 @@
+import { VERSION } from 'ag-charts-community';
 import type { PluginModuleDefinition } from 'ag-charts-core';
 
-import { VERSION } from '../../../../ag-charts-community/src/version';
 import { Foreground } from './foreground';
 
 export const ForegroundModule: PluginModuleDefinition<never> = {

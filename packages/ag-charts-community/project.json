@@ -16,13 +16,13 @@
     },
     "build:types": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts", "{projectRoot}/src/main-modules.ts"]
+        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts"]
       }
     },
     "build:test": {},
     "build:package": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts", "{projectRoot}/src/main-modules.ts"],
+        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts"],
         "external": ["ag-charts-core"]
       }
     },

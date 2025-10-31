@@ -1,7 +1,7 @@
+import { VERSION } from 'ag-charts-community';
 import { type PluginModuleDefinition, boolean, positiveNumber, undocumented } from 'ag-charts-core';
 import type { AgAnimationOptions } from 'ag-charts-types';
 
-import { VERSION } from '../../../../ag-charts-community/src/version';
 import { Animation } from './animation';
 
 export const AnimationModule: PluginModuleDefinition<AgAnimationOptions> = {

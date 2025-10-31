@@ -5,6 +5,7 @@ import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
+import { registerInbuiltModules } from './src/chart/factory/registerInbuiltModules';
 
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
@@ -49,3 +50,5 @@ declare module 'expect' {
 }
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });
+
+registerInbuiltModules();

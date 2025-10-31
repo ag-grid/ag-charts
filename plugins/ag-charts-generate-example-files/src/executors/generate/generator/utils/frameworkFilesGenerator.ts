@@ -51,9 +51,42 @@ type ConfigGenerator = ({
     suppressOptionsClone?: boolean;
 }) => Promise<FrameworkFiles>;
 
+const getModuleSetupPreamble = (isEnterprise: boolean) => {
+    const setupFunction = isEnterprise ? 'setupEnterpriseModules' : 'setupCommunityModules';
+    const packageName = isEnterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
+
+    return `import { ${setupFunction} } from '${packageName}';\n${setupFunction}();\n`;
+};
+
+const injectModuleSetup = (code: string, isEnterprise: boolean) => {
+    const setupFunction = isEnterprise ? 'setupEnterpriseModules' : 'setupCommunityModules';
+    if (code.includes(`${setupFunction}(`)) {
+        return code;
+    }
+
+    const preamble = getModuleSetupPreamble(isEnterprise);
+    const useClientMatch = code.match(/^(['"]use client['"];?\s*)/);
+
+    if (useClientMatch) {
+        const directive = useClientMatch[0].trimEnd();
+        const remainder = code.slice(useClientMatch[0].length).replace(/^\s*/, '');
+        return `${directive}\n${preamble}\n${remainder}`;
+    }
+
+    return `${preamble}\n${code}`;
+};
+
 // noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, transformEntryFile, isDev }) => {
+    vanilla: async ({
+        entryFile,
+        indexHtml,
+        typedBindings,
+        otherScriptFiles,
+        transformEntryFile,
+        isDev,
+        isEnterprise,
+    }) => {
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -95,6 +128,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
         }
 
+        mainJs = injectModuleSetup(mainJs, isEnterprise);
+
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {
                 parser: 'babel',
@@ -113,7 +148,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, transformEntryFile, isDev }) => {
+    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, transformEntryFile, isDev, isEnterprise }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -145,6 +180,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTs = transformEntryFile({ entryFile: mainTs, chartAPI });
         }
 
+        mainTs = injectModuleSetup(mainTs, isEnterprise);
+
         if (!isDev) {
             mainTs = await prettier.format(mainTs, {
                 parser: 'typescript',
@@ -172,6 +209,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         isDev,
         transformEntryFile,
         suppressOptionsClone,
+        isEnterprise,
     }) => {
         const internalFramework = 'reactFunctional';
         const entryFileName = getEntryFileName(internalFramework)!;
@@ -188,6 +226,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             indexJsx = transformEntryFile({ entryFile: indexJsx });
         }
+
+        indexJsx = injectModuleSetup(indexJsx, isEnterprise);
 
         if (!isDev) {
             indexJsx = await prettier.format(indexJsx, {
@@ -217,6 +257,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         transformEntryFile,
         isDev,
         suppressOptionsClone,
+        isEnterprise,
     }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
@@ -233,6 +274,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             indexTsx = transformEntryFile({ entryFile: indexTsx });
         }
+
+        indexTsx = injectModuleSetup(indexTsx, isEnterprise);
 
         if (!isDev) {
             indexTsx = await prettier.format(indexTsx, {
@@ -253,7 +296,14 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    angular: async ({ typedBindings, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
+    angular: async ({
+        typedBindings,
+        otherScriptFiles,
+        isDev,
+        transformEntryFile,
+        suppressOptionsClone,
+        isEnterprise,
+    }) => {
         const internalFramework: InternalFramework = 'angular';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -264,6 +314,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             appComponent = transformEntryFile({ entryFile: appComponent });
         }
+
+        appComponent = injectModuleSetup(appComponent, isEnterprise);
 
         if (!isDev) {
             appComponent = await prettier.format(appComponent, {
@@ -287,7 +339,15 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
+    vue3: async ({
+        bindings,
+        indexHtml,
+        otherScriptFiles,
+        isDev,
+        transformEntryFile,
+        suppressOptionsClone,
+        isEnterprise,
+    }) => {
         const internalFramework: InternalFramework = 'vue3';
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
@@ -296,6 +356,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             mainJs = transformEntryFile({ entryFile: mainJs });
         }
+
+        mainJs = injectModuleSetup(mainJs, isEnterprise);
 
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {

@@ -1,7 +1,7 @@
+import { VERSION } from 'ag-charts-community';
 import { type PluginModuleDefinition, boolean, callback, positiveNumber, undocumented } from 'ag-charts-core';
 import type { AgDataSourceOptions } from 'ag-charts-types';
 
-import { VERSION } from '../../../../ag-charts-community/src/version';
 import { DataSource } from './dataSource';
 
 export const DataSourceModule: PluginModuleDefinition<

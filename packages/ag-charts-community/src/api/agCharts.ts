@@ -166,6 +166,16 @@ class AgChartsInternal {
         } = opts;
         const styles = enterpriseModule.styles == null ? [] : [['ag-charts-enterprise', enterpriseModule.styles]];
 
+        if (ModuleRegistry.listModules().next().done) {
+            throw new Error(
+                [
+                    'AG Charts - No modules have been registered.',
+                    'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create().',
+                    'For the default community distribution use registerInbuiltModules(), or setupEnterpriseModules() when working with ag-charts-enterprise.',
+                ].join(' ')
+            );
+        }
+
         debug(() => ['>>> AgCharts.createOrUpdate() user options', deepClone(userOptions)]);
 
         const { presetType } = optionsMetadata;

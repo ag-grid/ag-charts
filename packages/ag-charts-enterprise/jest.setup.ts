@@ -5,6 +5,8 @@ import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
+import { setupCommunityModules } from 'ag-charts-community';
+import { setupEnterpriseModules } from './src/setup';
 
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
@@ -51,3 +53,6 @@ declare module 'expect' {
 expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 jest.mock('./src/license/licenseManager');
+
+setupCommunityModules();
+setupEnterpriseModules();

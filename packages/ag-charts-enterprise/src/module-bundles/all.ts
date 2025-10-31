@@ -1,4 +1,4 @@
-import { GaugePresetModule, PriceVolumePresetModule } from 'ag-charts-community/modules';
+import { GaugePresetModule, PriceVolumePresetModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
 import { AllCartesianEnterpriseModules } from './cartesian';

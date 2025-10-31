@@ -3,7 +3,7 @@ import { ModuleRegistry } from 'ag-charts-core';
 
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
-import { AllEnterpriseModules } from './main-modules';
+import { AllEnterpriseModules } from './module-bundles';
 import styles from './styles.css';
 
 export function setupEnterpriseModules() {
