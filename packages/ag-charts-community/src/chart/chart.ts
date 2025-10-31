@@ -1335,9 +1335,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (deltaOptions.data) {
-            // Always create a new DataSet for updateDelta to ensure cache invalidation
-            // This ensures the cache check (DataSet reference equality) will fail
-            this.data = new DataSet(deltaOptions.data);
+            // Always create a new DataSet for updateDelta to ensure cache invalidation.
+            // Only clone when we still hold the caller's array reference (updateDelta fast path).
+            const suppliedData = deltaOptions.data;
+            const userOptionsData = newChartOptions.userOptions.data;
+            const needsClone = Array.isArray(suppliedData) && suppliedData !== userOptionsData;
+            const dataForDataSet = needsClone ? suppliedData.slice() : suppliedData;
+            this.data = new DataSet(dataForDataSet);
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);

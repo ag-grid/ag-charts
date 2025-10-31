@@ -464,6 +464,41 @@ describe('Chart', () => {
                 getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Sector),
             });
         });
+
+        it('should clone supplied data array when using updateDelta()', async () => {
+            const chartOptions = prepareTestOptions<{
+                data: { year: string; gdp: number }[];
+                series: any[];
+            }>({
+                data: [],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'year',
+                        yKey: 'gdp',
+                    },
+                ],
+            });
+
+            const chartProxy = AgCharts.create(chartOptions);
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            const sourceData = [
+                { year: '2018', gdp: 10 },
+                { year: '2019', gdp: 20 },
+            ];
+
+            await chartProxy.updateDelta({ data: sourceData });
+            await waitForChartStability(chart);
+
+            expect(chart.data.data).not.toBe(sourceData);
+            const lengthBeforeMutation = chart.data.data.length;
+
+            sourceData.push({ year: '2020', gdp: 30 });
+
+            expect(chart.data.data.length).toBe(lengthBeforeMutation);
+        });
     });
 
     describe('Chart data inherited by Series', () => {
