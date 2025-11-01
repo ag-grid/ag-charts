@@ -26,7 +26,7 @@
     "ag-grid-enterprise": "~34.3.1",
     "ag-grid-react": "~34.3.1",
     "algoliasearch": "^4.18.0",
-    "astro": "5.13.3",
+    "astro": "5.15.3",
     "cheerio": "^1.0.0-rc.12",
     "chokidar": "^4.0.3",
     "classnames": "^2.3.2",
