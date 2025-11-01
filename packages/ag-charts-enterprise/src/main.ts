@@ -1,9 +1,3 @@
-import { AgCharts, VERSION, _Scene, _Theme, _Util, setupCommunityModules } from 'ag-charts-community';
-import type { IntegratedModule } from 'ag-charts-types';
-
-import { LicenseManager as RealLicenseManager } from './license/licenseManager';
-import { setupEnterpriseModules as internalSetup } from './setup';
-
 export {
     AG_CHARTS_LOCALE_EN_US,
     AgCharts,
@@ -21,6 +15,8 @@ export {
 export * from 'ag-charts-types';
 
 export { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from 'ag-charts-community';
+
+export { setupEnterpriseModules } from './setup';
 
 export { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
 export { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
@@ -78,26 +74,4 @@ export { AllStandaloneEnterpriseModules } from './module-bundles/standalone';
 export { AllTopologyEnterpriseModules } from './module-bundles/topology';
 export { AllEnterpriseModules } from './module-bundles/all';
 
-export const LicenseManager = {
-    setLicenseKey(key: string) {
-        RealLicenseManager.setLicenseKey(key);
-    },
-};
-
-export function setupEnterpriseModules() {
-    internalSetup();
-    setupCommunityModules();
-}
-
-export const AgChartsEnterpriseModule: IntegratedModule = {
-    VERSION,
-    _Scene,
-    _Theme,
-    _Util,
-    create: AgCharts.create.bind(AgCharts),
-    createSparkline: AgCharts.__createSparkline.bind(AgCharts),
-    setup: setupEnterpriseModules,
-    setGridContext: RealLicenseManager.setGridContext.bind(RealLicenseManager),
-    setLicenseKey: RealLicenseManager.setLicenseKey.bind(RealLicenseManager),
-    isEnterprise: true,
-};
+export { LicenseManager, AgChartsEnterpriseModule } from './module-bundles/integrated';
