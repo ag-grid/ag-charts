@@ -11,7 +11,7 @@
     "@astrojs/markdoc": "0.15.7",
     "@astrojs/prism": "3.3.0",
     "@astrojs/react": "^4.3.0",
-    "@astrojs/sitemap": "3.5.1",
+    "@astrojs/sitemap": "3.6.0",
     "@carbon/icons-react": "^11.21.0",
     "@markdoc/markdoc": "0.3.5",
     "@microlink/react-json-view": "^1.26.1",
