@@ -24,6 +24,7 @@ import {
 
 const everyModuleDefaults = {
     enterprise: false,
+    version: '1.0.0',
     create: () => ({}),
 } as const;
 
@@ -82,7 +83,7 @@ describe('moduleRegistry', () => {
         test('stores new module definitions', () => {
             const module = createSeriesModule('series-module');
 
-            register(module, '1.0.0');
+            register(module);
 
             expect(hasModule('series-module')).toBe(true);
             expect(getSeriesModule('series-module')).toBe(module);
@@ -93,8 +94,8 @@ describe('moduleRegistry', () => {
             const community = createSeriesModule('replacement-target');
             const enterprise = createSeriesModule('replacement-target', { enterprise: true });
 
-            register(community, '1.0.0');
-            register(enterprise, '1.0.0');
+            register(community);
+            register(enterprise);
 
             expect(getSeriesModule('replacement-target')).toBe(enterprise);
         });
@@ -103,19 +104,19 @@ describe('moduleRegistry', () => {
             const first = createSeriesModule('duplicate-module');
             const second = createSeriesModule('duplicate-module', { chartType: 'polar' });
 
-            register(first, '1.0.0');
-            register(second, '1.0.0');
+            register(first);
+            register(second);
 
             expect(getSeriesModule('duplicate-module')).toBe(first);
         });
 
         test('throws when the same module is registered with a different version', () => {
             const first = createSeriesModule('conflicting-module');
-            const conflicting = createSeriesModule('conflicting-module', { chartType: 'polar' });
+            const conflicting = createSeriesModule('conflicting-module', { chartType: 'polar', version: '2.0.0' });
 
-            register(first, '1.0.0');
+            register(first);
 
-            expect(() => register(conflicting, '2.0.0')).toThrow(/already registered with different version/);
+            expect(() => register(conflicting)).toThrow(/already registered with different version/);
         });
     });
 
@@ -124,7 +125,7 @@ describe('moduleRegistry', () => {
             const axis = createAxisModule('axis-module');
             const series = createSeriesModule('series-module');
 
-            registerModules([axis, series], '1.0.0');
+            registerModules([axis, series]);
 
             expect(getAxisModule('axis-module')).toBe(axis);
             expect(getSeriesModule('series-module')).toBe(series);
@@ -133,7 +134,7 @@ describe('moduleRegistry', () => {
 
     describe('reset', () => {
         test('clears the registry', () => {
-            register(createSeriesModule('temporary-module'), '1.0.0');
+            register(createSeriesModule('temporary-module'));
 
             reset();
 
@@ -148,9 +149,9 @@ describe('moduleRegistry', () => {
             const axis = createAxisModule('axis-module');
             const chart = createChartModule('chart-module');
 
-            register(series, '1.0.0');
-            register(axis, '1.0.0');
-            register(chart, '1.0.0');
+            register(series);
+            register(axis);
+            register(chart);
 
             expect(Array.from(listModulesByType(ModuleType.Series))).toEqual([series]);
             expect(Array.from(listModulesByType(ModuleType.Axis))).toEqual([axis]);
@@ -164,7 +165,7 @@ describe('moduleRegistry', () => {
             const preset = createPresetModule('preset-module');
             const series = createSeriesModule('series-module');
 
-            registerModules([axis, chart, preset, series], '1.0.0');
+            registerModules([axis, chart, preset, series]);
 
             expect(getAxisModule('axis-module')).toBe(axis);
             expect(getAxisModule('series-module')).toBeUndefined();
@@ -184,11 +185,11 @@ describe('moduleRegistry', () => {
 
     describe('hasEnterpriseModules', () => {
         test('detects when any registered module is flagged as enterprise', () => {
-            register(createSeriesModule('community-module'), '1.0.0');
+            register(createSeriesModule('community-module'));
 
             expect(hasEnterpriseModules()).toBe(false);
 
-            register(createSeriesModule('enterprise-module', { enterprise: true }), '1.0.0');
+            register(createSeriesModule('enterprise-module', { enterprise: true }));
 
             expect(hasEnterpriseModules()).toBe(true);
         });

@@ -61,8 +61,7 @@ const ensureModuleSetup = (
         framework: InternalFramework;
     }
 ) => {
-    const hasCommunityCall =
-        code.includes('setupCommunityModules(') || code.includes('setupCommunityModules?.');
+    const hasCommunityCall = code.includes('setupCommunityModules(') || code.includes('setupCommunityModules?.');
     if (hasCommunityCall) {
         return code;
     }
@@ -83,8 +82,7 @@ const ensureModuleSetup = (
     const importLines: string[] = [`import { setupCommunityModules } from 'ag-charts-community';`];
     const callLines: string[] = ['setupCommunityModules();'];
 
-    const hasEnterpriseCall =
-        code.includes('setupEnterpriseModules(') || code.includes('setupEnterpriseModules?.');
+    const hasEnterpriseCall = code.includes('setupEnterpriseModules(') || code.includes('setupEnterpriseModules?.');
     if (isEnterprise && !hasEnterpriseCall) {
         importLines.push(`import { setupEnterpriseModules } from 'ag-charts-enterprise';`);
         callLines.push('setupEnterpriseModules();');
