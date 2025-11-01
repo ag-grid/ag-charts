@@ -1,7 +1,7 @@
 const { plugins } = require('../../esbuild.config.cjs');
 
 const defaultConfig = {
-    path: './src/main-modules.ts',
+    path: './src/main.ts',
     brotli: false,
     modifyEsbuildConfig(esbuildConfig) {
         esbuildConfig.plugins = plugins;
