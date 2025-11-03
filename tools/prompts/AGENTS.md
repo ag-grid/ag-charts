@@ -152,6 +152,30 @@ Essential practices:
 
 For detailed example guidelines, see [Examples Guide](tools/prompts/guides/examples.md).
 
+**Framework Generation:**
+
+Examples are automatically transformed from vanilla TypeScript into React, Angular, and Vue variants. **All public documentation examples MUST work across all frameworks.**
+
+When creating or modifying examples:
+
+-   **Public examples MUST be framework-compatible**: All documentation examples must work in vanilla, TypeScript, React, Angular, and Vue
+-   **Write framework-compatible vanilla examples first**: Follow patterns in the Examples Guide to ensure clean transformation
+-   **Use simple, declarative patterns**: Top-level options, chart instance, and simple event handlers transform cleanly
+-   **Test generated variants**: Run `nx validate-examples` and visually test framework switcher in dev server
+-   **`@ag-skip-fws` is for internal use ONLY**: Only use for `benchmarks` and `*-test` pages, never for public documentation
+-   **Redesign instead of skip**: If a public example can't transform cleanly, simplify or redesign it to be framework-compatible
+-   **Review transformation patterns**: See [Framework Patterns Guide](tools/prompts/guides/examples-framework-patterns.md) for detailed technical reference
+
+**Quick Framework Compatibility Checklist:**
+
+-   ✅ Container uses `document.getElementById('myChart')`
+-   ✅ Options stored in top-level variable
+-   ✅ Chart instance stored in top-level variable
+-   ✅ Event handlers are simple function calls: `onclick="updateChart()"`
+-   ✅ Functions are top-level (not nested)
+-   ❌ No complex DOM manipulation beyond controls
+-   ❌ No external library dependencies
+
 ### Performance and Benchmarks
 
 For benchmark guidelines, see [Benchmarks Guide](tools/prompts/guides/benchmarks.md).
