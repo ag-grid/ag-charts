@@ -432,6 +432,8 @@ jobs:
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 
             - name: Merge JUnit Report XMLs
+              if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped'
+              continue-on-error: true
               run: |
                   yarn global add junit-report-merger
                   reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
@@ -492,7 +494,7 @@ jobs:
 
             - name: Commit History
               id: commits
-              if: always() && job.status != 'cancelled' && (github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/next') && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
                   GIT_LOG=$(git log HEAD ^${{ needs.init.outputs.nx_base }} --format="%an (%h) %s")
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
@@ -500,7 +502,7 @@ jobs:
                   echo "EOF" >> $GITHUB_ENV
 
             - name: Tag Latest Successful Commit
-              if: success() && (github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/next') && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              if: success() && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               uses: EndBug/latest-tag@latest
               with:
                   ref: ${{ github.ref_name }}-success
@@ -508,7 +510,7 @@ jobs:
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
-              if: always() && job.status != 'cancelled' && (github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/next') && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}

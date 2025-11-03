@@ -66,8 +66,14 @@ runs:
                 git fetch origin -f --depth 1 tag ${branch}-success
               elif [[ ${branch} =~ b[0-9][0-9]\..+ ]] ; then
                 # Release
-                echo "base=${branch}" >> $GITHUB_OUTPUT
-                echo "NX_BASE=${branch}" >> $GITHUB_ENV
+                # Try to use the -success tag if it exists, otherwise fall back to branch name
+                if git fetch origin -f --depth 1 tag ${branch}-success 2>/dev/null; then
+                  echo "base=${branch}-success" >> $GITHUB_OUTPUT
+                  echo "NX_BASE=${branch}-success" >> $GITHUB_ENV
+                else
+                  echo "base=${branch}" >> $GITHUB_OUTPUT
+                  echo "NX_BASE=${branch}" >> $GITHUB_ENV
+                fi
                 echo "type=release" >> $GITHUB_OUTPUT
               else
                 # PR
