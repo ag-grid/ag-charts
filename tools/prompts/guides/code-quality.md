@@ -34,9 +34,9 @@ This guide covers code quality practices, including avoiding code bloat, comment
 
 ## Related Resources
 
-- [Documentation Pages Guide](./docs-pages.md) - Documentation quality standards
-- [Examples Guide](./examples.md) - Example code quality requirements
-- [Testing Guide](./testing.md) - Test quality standards
+-   [Documentation Pages Guide](./docs-pages.md) - Documentation quality standards
+-   [Examples Guide](./examples.md) - Example code quality requirements
+-   [Testing Guide](./testing.md) - Test quality standards
 
 ## Self-Review Before Committing
 

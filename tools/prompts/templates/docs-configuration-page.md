@@ -16,7 +16,7 @@ Replace `[ConfigType]` with PascalCase for TypeScript interfaces.
 
 ---
 
-```markdown
+````markdown
 ---
 title: '[ConfigArea]'
 description: '[Description of what this configuration area controls]. Use [mention different types/modes]. [Brief overview of capabilities].'
@@ -45,6 +45,7 @@ In most cases, [explanation of automatic/default behavior]. By default, [describ
     ],
 }
 ```
+````
 
 ## [Type/Mode 1 Name]
 
@@ -66,6 +67,7 @@ In most cases, [explanation of automatic/default behavior]. By default, [describ
 ```
 
 [Explanation of the configuration:]
+
 -   [Key point about this type's behavior]
 -   [When to use this type]
 -   [Important characteristics or limitations]
@@ -163,6 +165,7 @@ For a full list of configuration options see [[Type] Options](#reference-Ag[Conf
 [Optional: Link to related configuration or next logical topic]
 
 Continue to the next section to learn about [[Related Topic]](./[related-topic]/).
+
 ```
 
 ---
@@ -209,13 +212,21 @@ Each type gets a major section with:
 
 **Pattern**:
 ```
+
 ## Overview
+
 ## Default Behavior
+
 ## Type 1
+
 ## Type 2
+
 ## Type 3
+
 ...
+
 ## API Reference (tabs for each type)
+
 ```
 
 ### For Mode-Based Configuration (e.g., Formatters)
@@ -227,12 +238,19 @@ Group by formatting approach:
 
 **Pattern**:
 ```
+
 ## Overview
+
 ## Default Behavior
+
 ## Approach 1 (e.g., Global Formatter)
+
 ## Approach 2 (e.g., Property Formatters)
+
 ## Approach 3 (e.g., Format Strings)
+
 ## API Reference
+
 ```
 
 ### For Hierarchical Configuration (e.g., Layout)
@@ -244,16 +262,26 @@ Group by what's being configured:
 
 **Pattern**:
 ```
+
 ## Overview
+
 ## Chart Sizing
+
 ### Fixed Dimensions
+
 ### Auto-sizing
+
 ## Padding
+
 ### Chart Padding
+
 ### Series Area Padding
+
 ## Component Spacing
+
 ## API Reference
-```
+
+````
 
 ---
 
@@ -268,9 +296,10 @@ When documenting multiple types, help users understand the differences:
 | Use Case | [brief] | [brief] | [brief] |
 | Scale | [type] | [type] | [type] |
 | Best For | [use] | [use] | [use] |
-```
+````
 
 **When to Use Which** (list format):
+
 ```markdown
 -   Use **[Type 1]** when [use case description]
 -   Use **[Type 2]** when [use case description]
@@ -278,6 +307,7 @@ When documenting multiple types, help users understand the differences:
 ```
 
 **Visual Comparison** (show types side-by-side):
+
 ```markdown
 {% chartExampleRunner title="[Type] Comparison" name="[comparison-example]" type="generated" /%}
 ```
@@ -289,14 +319,16 @@ When documenting multiple types, help users understand the differences:
 ### Technical Accuracy
 
 Configuration pages are often highly technical. Ensure:
-- Property names exactly match TypeScript definitions
-- Default behaviors are correctly described
-- Limitations and edge cases are documented
-- Type constraints are explained (e.g., log axis must be positive/negative)
+
+-   Property names exactly match TypeScript definitions
+-   Default behaviors are correctly described
+-   Limitations and edge cases are documented
+-   Type constraints are explained (e.g., log axis must be positive/negative)
 
 ### Progressive Complexity
 
 Start with simplest type/mode first:
+
 1. Most common/default type
 2. Related variations
 3. Advanced or specialized types
@@ -305,7 +337,7 @@ Start with simplest type/mode first:
 ### Cross-Referencing
 
 Link extensively to related areas:
-- Related configuration (e.g., axes → series)
-- Features that use this configuration (e.g., formatters → tooltips)
-- Related documentation (e.g., time axes → time data handling)
 
+-   Related configuration (e.g., axes → series)
+-   Features that use this configuration (e.g., formatters → tooltips)
+-   Related documentation (e.g., time axes → time data handling)

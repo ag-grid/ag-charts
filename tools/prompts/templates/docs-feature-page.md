@@ -16,11 +16,11 @@ Replace `[FeatureType]` with PascalCase for TypeScript interfaces (e.g., "Toolti
 
 ---
 
-```markdown
+````markdown
 ---
 title: '[FeatureName]s'
 description: '[Brief description of what the feature does]. Customise [key aspects]. [Mention key capabilities]. [Note any special behaviors].'
-enterprise: false  # Set to true if enterprise-only
+enterprise: false # Set to true if enterprise-only
 ---
 
 [Opening paragraph: Clearly explain what the feature does and why users need it]
@@ -40,6 +40,7 @@ enterprise: false  # Set to true if enterprise-only
     [minimal configuration if needed, or show that no configuration is required],
 }
 ```
+````
 
 In this [example/configuration]:
 
@@ -90,6 +91,7 @@ The options for `mode` are:
 ```
 
 [Additional explanation, including:]
+
 -   [How the configuration affects behavior]
 -   [When to use this configuration]
 -   [Important notes or gotchas]
@@ -222,6 +224,7 @@ In this configuration:
 {% /tabItem %}
 
 {% /tabs %}
+
 ```
 
 ---
@@ -298,3 +301,4 @@ Reference these existing feature pages for patterns:
 - Configuration Options
 - Theme Overrides
 
+```

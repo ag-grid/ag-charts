@@ -477,6 +477,6 @@ When updating gallery examples from external references:
 
 ## Related Resources
 
-- [Documentation Pages Guide](./docs-pages.md) - How to write documentation pages that reference examples
-- [Documentation Checklist](../checklists/docs-page.md) - Validation checklist for documentation pages
-- [Code Quality Guide](./code-quality.md) - Code quality standards that apply to examples
+-   [Documentation Pages Guide](./docs-pages.md) - How to write documentation pages that reference examples
+-   [Documentation Checklist](../checklists/docs-page.md) - Validation checklist for documentation pages
+-   [Code Quality Guide](./code-quality.md) - Code quality standards that apply to examples

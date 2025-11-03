@@ -16,7 +16,7 @@ Replace `[SeriesType]` with PascalCase for TypeScript interfaces (e.g., "Bar", "
 
 ---
 
-```markdown
+````markdown
 ---
 title: '[SeriesName] Series'
 description: '$framework [SeriesName] Charts [brief description of what they visualize and key capabilities]. Supports [list key features]. See API docs for more info.'
@@ -42,6 +42,7 @@ To create a [SeriesName] Series, use the `'[series-type]'` series type.
     ],
 }
 ```
+````
 
 In this configuration:
 
@@ -154,6 +155,7 @@ In this configuration:
 {% /tabItem %}
 
 {% /tabs %}
+
 ```
 
 ---
@@ -217,3 +219,4 @@ Reference these existing series pages for patterns:
 - Data Format Requirements
 - Hierarchical Data (if applicable)
 
+```
