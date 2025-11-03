@@ -30,6 +30,20 @@ type _DeepRequiredObject<T, IgnoredKeys extends string> = {
         : DeepRequired<Defined<T[K]>, IgnoredKeys>;
 };
 
+export type DeepReadonly<T> = T extends (...args: any[]) => any
+    ? T
+    : T extends any[]
+      ? _DeepReadonlyArray<T[number]>
+      : T extends object
+        ? _DeepReadonlyObject<T>
+        : T;
+
+type _DeepReadonlyArray<T> = ReadonlyArray<DeepReadonly<T>>;
+
+type _DeepReadonlyObject<T> = {
+    readonly [K in keyof T]: DeepReadonly<T[K]>;
+};
+
 export type DeepPartial<T> =
     T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
