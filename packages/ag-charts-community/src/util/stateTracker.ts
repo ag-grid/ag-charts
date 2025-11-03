@@ -1,6 +1,6 @@
 export class StateTracker<T, K = string> extends Map<K, T> {
-    private cachedState?: K;
-    private cachedValue?: T;
+    protected cachedState?: K;
+    protected cachedValue?: T;
 
     constructor(
         protected readonly defaultValue?: T,
@@ -25,13 +25,30 @@ export class StateTracker<T, K = string> extends Map<K, T> {
         return super.delete(key);
     }
 
-    stateId() {
+    stateId(): K | undefined {
         this.cachedState ??= Array.from(this.keys()).pop() ?? this.defaultState;
         return this.cachedState;
     }
 
-    stateValue() {
+    stateValue(): T | undefined {
         this.cachedValue ??= Array.from(this.values()).pop() ?? this.defaultValue;
         return this.cachedValue;
+    }
+}
+
+export class NonNullableStateTracker<T, K = string> extends StateTracker<T, K> {
+    constructor(
+        protected override readonly defaultValue: T,
+        protected override readonly defaultState: K
+    ) {
+        super(defaultValue, defaultState);
+    }
+
+    override stateId(): K {
+        return super.stateId() ?? this.defaultState;
+    }
+
+    override stateValue(): T {
+        return super.stateValue() ?? this.defaultValue;
     }
 }
