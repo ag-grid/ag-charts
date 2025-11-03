@@ -17,6 +17,10 @@ const tubeLineColours = {
     District: '#007D32',
     Metropolitan: '#9B0058',
     Northern: '#000000',
+    Piccadilly: '#0019A8',
+    'Waterloo & City': '#76D0BD',
+    Circle: '#FFC80A',
+    Central: '#DC241F',
 };
 
 const options: AgTopologyChartOptions = {
