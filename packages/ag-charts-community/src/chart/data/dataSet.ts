@@ -269,13 +269,19 @@ export class DataSet<T = unknown> {
         const survivingOriginalCount = originalLength - effects.removedOriginalIndices.size;
         const finalLength = totalPrependCount + survivingOriginalCount + totalInsertionCount + totalAppendCount;
 
+        const sortedRemoved =
+            effects.removedOriginalIndices.size > 0
+                ? this.getSortedRemovedIndices(effects.removedOriginalIndices)
+                : undefined;
+
         const spliceOps = this.buildSpliceOperations(
             totalPrependCount,
             totalInsertionCount,
             totalAppendCount,
             survivingOriginalCount,
             effects.trackedInsertions,
-            effects.removedOriginalIndices
+            sortedRemoved?.desc,
+            sortedRemoved?.asc
         );
 
         const updatedFinalIndices = this.resolveUpdatedIndices(
@@ -283,7 +289,7 @@ export class DataSet<T = unknown> {
             totalInsertionCount,
             survivingOriginalCount,
             effects.updateTracking,
-            effects.removedOriginalIndices,
+            sortedRemoved?.asc,
             effects.updatedOriginalIndices
         );
 
@@ -303,6 +309,11 @@ export class DataSet<T = unknown> {
             appendValues: survivingAppends,
             insertionValues: survivingInsertions,
         };
+    }
+
+    private getSortedRemovedIndices(removedOriginalIndices: Set<number>): { asc: number[]; desc: number[] } {
+        const asc = Array.from(removedOriginalIndices).sort((a, b) => a - b);
+        return { asc, desc: [...asc].reverse() };
     }
 
     private collectTransactionEffects(): TransactionEffects<T> {
@@ -542,7 +553,8 @@ export class DataSet<T = unknown> {
         totalAppendCount: number,
         survivingOriginalCount: number,
         trackedInsertions: TrackedInsertion<T>[],
-        removedOriginalIndices: Set<number>
+        sortedRemovedDesc: number[] | undefined,
+        sortedRemovedAsc: number[] | undefined
     ): SpliceOperation[] {
         const spliceOps: SpliceOperation[] = [];
 
@@ -554,14 +566,13 @@ export class DataSet<T = unknown> {
             });
         }
 
-        if (removedOriginalIndices.size > 0) {
-            const sortedRemovals = Array.from(removedOriginalIndices).sort((a, b) => b - a);
-            let currentGroupStart = sortedRemovals[0];
+        if (sortedRemovedDesc && sortedRemovedDesc.length > 0) {
+            let currentGroupStart = sortedRemovedDesc[0];
             let currentGroupCount = 1;
 
-            for (let i = 1; i < sortedRemovals.length; i++) {
-                const currentIndex = sortedRemovals[i];
-                const prevIndex = sortedRemovals[i - 1];
+            for (let i = 1; i < sortedRemovedDesc.length; i++) {
+                const currentIndex = sortedRemovedDesc[i];
+                const prevIndex = sortedRemovedDesc[i - 1];
 
                 if (prevIndex - currentIndex === 1) {
                     currentGroupCount++;
@@ -587,7 +598,7 @@ export class DataSet<T = unknown> {
         if (trackedInsertions.length > 0) {
             for (const insertion of trackedInsertions) {
                 const removalsBeforeInsertion = this.countRemovalsBeforeIndex(
-                    removedOriginalIndices,
+                    sortedRemovedAsc,
                     totalPrependCount,
                     insertion.virtualIndex
                 );
@@ -614,16 +625,22 @@ export class DataSet<T = unknown> {
     }
 
     private countRemovalsBeforeIndex(
-        removedOriginalIndices: Set<number>,
+        sortedRemovedAsc: number[] | undefined,
         totalPrependCount: number,
         insertionVirtualIndex: number
     ): number {
+        if (!sortedRemovedAsc || sortedRemovedAsc.length === 0) {
+            return 0;
+        }
+
         let removalsBeforeInsertion = 0;
 
-        for (const removedIndex of removedOriginalIndices) {
+        for (const removedIndex of sortedRemovedAsc) {
             const virtualIndexOfRemoval = removedIndex + totalPrependCount;
             if (virtualIndexOfRemoval < insertionVirtualIndex) {
                 removalsBeforeInsertion++;
+            } else {
+                break;
             }
         }
 
@@ -635,7 +652,7 @@ export class DataSet<T = unknown> {
         totalInsertionCount: number,
         survivingOriginalCount: number,
         updateTracking: UpdateIndexTracking | undefined,
-        removedOriginalIndices: Set<number>,
+        sortedRemovedAsc: number[] | undefined,
         updatedOriginalIndices: Set<number>
     ): Set<number> {
         const updatedFinalIndices = new Set<number>();
@@ -647,18 +664,17 @@ export class DataSet<T = unknown> {
         }
 
         if (updatedOriginalIndices.size > 0) {
-            const sortedRemovals = Array.from(removedOriginalIndices).sort((a, b) => a - b);
+            const sortedUpdatedOriginals = Array.from(updatedOriginalIndices).sort((a, b) => a - b);
+            let removalPtr = 0;
 
-            for (const originalIdx of updatedOriginalIndices) {
-                let removalsBeforeCount = 0;
-                for (const removedIdx of sortedRemovals) {
-                    if (removedIdx < originalIdx) {
-                        removalsBeforeCount++;
-                    } else {
-                        break;
+            for (const originalIdx of sortedUpdatedOriginals) {
+                if (sortedRemovedAsc) {
+                    while (removalPtr < sortedRemovedAsc.length && sortedRemovedAsc[removalPtr] < originalIdx) {
+                        removalPtr++;
                     }
                 }
 
+                const removalsBeforeCount = sortedRemovedAsc ? removalPtr : 0;
                 const finalIdx = originalIdx + totalPrependCount - removalsBeforeCount;
                 updatedFinalIndices.add(finalIdx);
             }
