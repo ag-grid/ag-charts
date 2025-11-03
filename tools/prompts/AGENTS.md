@@ -21,6 +21,7 @@ For detailed information on specific topics, consult these guides:
 
 -   **[Testing Guide](tools/prompts/guides/testing.md)** - Testing strategies, best practices, and philosophy
 -   **[Examples Guide](tools/prompts/guides/examples.md)** - Working with examples, validation, and path mappings
+-   **[Documentation Pages Guide](tools/prompts/guides/docs-pages.md)** - Creating consistent, high-quality documentation pages
 -   **[JIRA Guide](tools/prompts/guides/jira.md)** - JIRA ticket search and creation guidelines
 -   **[Code Quality Guide](tools/prompts/guides/code-quality.md)** - Code bloat avoidance, comments, and review practices
 -   **[Default Values Guide](tools/prompts/guides/defaults.md)** - Understanding the three-tier default system and theme configuration
@@ -70,6 +71,7 @@ NOTE: These are only intended for agentic tools that don't support custom slash 
 -   `/pr-review` - execute `tools/prompts/commands/pr-review.md` on specified PR.
 -   `/release-options-review` - execute `tools/prompts/commands/release-options-review.md` on specified release options.
 -   `/release-docs-review` - execute `tools/prompts/commands/release-docs-review.md` to review all documentation changes between releases.
+-   `/docs-create` - execute `tools/prompts/commands/docs-create.md` to scaffold a new documentation page.
 -   `/docs-review` - execute `tools/prompts/commands/docs-review.md` on specified docs.
 -   `/distil` - execute `tools/prompts/commands/distil.md` to reduce code bloat, redundant code and comments, and productionize changes on the current branch.
 -   `/sonar-fix` - execute `tools/prompts/commands/sonar-fix.md` to review and fix SonarCloud issues.
@@ -133,9 +135,18 @@ Essential practices:
     3. Sync any dependent docs/examples.
     4. Run `nx test ag-charts-community`, `nx test ag-charts-enterprise`, and targeted `nx benchmark` commands when performance is at risk.
 -   **Documentation/content update**
-    1. Modify the relevant `.mdoc` under `packages/ag-charts-website/src/content/docs/`.
-    2. Update `packages/ag-charts-website/src/content/docs-nav/nav.json` if navigation changes.
-    3. For significant doc changes, sanity-check with `nx e2e ag-charts-website`.
+    1. Consult the [Documentation Pages Guide](tools/prompts/guides/docs-pages.md) for structure and patterns.
+    2. If creating a new page, use `/docs-create` command or select appropriate template from `tools/prompts/templates/`.
+    3. Modify the relevant `.mdoc` under `packages/ag-charts-website/src/content/docs/`.
+    4. Update `packages/ag-charts-website/src/content/docs-nav/nav.json` if navigation changes.
+    5. Create or update examples in `_examples/` folder following the [Examples Guide](tools/prompts/guides/examples.md).
+    6. Ensure all examples are framework-compatible (NO `@ag-skip-fws` for public documentation).
+    7. Run `nx generate-examples ag-charts-website` to generate framework variants.
+    8. Run `nx validate-examples` to verify examples typecheck correctly.
+    9. Test page in dev server with `nx dev` across all frameworks.
+    10. For significant doc changes, sanity-check with `nx e2e ag-charts-website`.
+    11. Optionally run `/docs-review` command to validate technical accuracy.
+    12. Review [Documentation Checklist](tools/prompts/checklists/docs-page.md) before finalizing.
 -   **Example-only change** (see [Examples Guide](tools/prompts/guides/examples.md))
     1. Edit the example files (`index.html`, `main.ts`, optional `styles.css`/`data.ts`).
     2. Mirror updates in the sibling `index.mdoc` docs page.

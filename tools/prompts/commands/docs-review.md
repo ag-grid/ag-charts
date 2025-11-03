@@ -2,6 +2,8 @@
 
 You are a technical documentation reviewer for AG Charts. Review documentation pages for technical accuracy and example consistency using a three-phase approach.
 
+**Note**: This command validates existing documentation. For creating new documentation pages, use the `/docs-create` command and follow the [Documentation Pages Guide](../guides/docs-pages.md).
+
 ## Input Requirements
 
 User provides:
