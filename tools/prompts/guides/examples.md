@@ -40,6 +40,280 @@ Example paths are mapped from repo paths:
 -   If a TData type is useful for the example, `data.ts` should also declare this.
 -   For deeper architectural context, see the main AGENTS.md file for Documentation Resources.
 
+## Framework Generation
+
+Examples written in vanilla TypeScript are automatically transformed into React, Angular, and Vue variants. Understanding how this transformation works is essential for creating examples that work across all frameworks.
+
+### Framework Generation Patterns
+
+The example generator parses your vanilla TypeScript code and transforms it into framework-specific implementations. The following patterns are supported and transform cleanly:
+
+**Supported Patterns:**
+
+-   **Container Setup**: Chart container must use `document.getElementById()`:
+
+    ```typescript
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        // ... other options
+    };
+    ```
+
+-   **Chart Instance Storage**: Store chart instance in a top-level variable:
+
+    ```typescript
+    const chart = AgCharts.create(options);
+    ```
+
+-   **Options Object**: Declare options as a top-level variable (not `const options = {...}` inline in create call):
+
+    ```typescript
+    const options: AgChartOptions = {
+        /* ... */
+    };
+    const chart = AgCharts.create(options);
+    ```
+
+-   **Event Handlers in HTML**: Use inline event handlers that call top-level functions:
+
+    ```html
+    <button onclick="updateData()">Update</button>
+    <select onchange="changeTheme(this.value)">
+        ...
+    </select>
+    ```
+
+-   **Top-Level Functions**: Functions that update the chart should be top-level (not nested):
+
+    ```typescript
+    function updateData() {
+        options.data = getNewData();
+        chart.update(options);
+    }
+    ```
+
+-   **Chart Updates**: Use either `chart.update(options)` or `chart.updateDelta(partial)`:
+
+    ```typescript
+    // Full update
+    function changeData() {
+        options.data = newData;
+        chart.update(options);
+    }
+
+    // Delta update
+    function changeTitle() {
+        chart.updateDelta({ title: { text: 'New Title' } });
+    }
+    ```
+
+-   **Using Chart API**: Access chart methods directly:
+
+    ```typescript
+    function downloadChart() {
+        chart.download({ fileName: 'my-chart.png' });
+    }
+    ```
+
+### Framework Generation Restrictions
+
+The following patterns **do not** transform cleanly to frameworks and should be avoided or require `@ag-skip-fws`:
+
+**Unsupported Patterns:**
+
+-   **Complex DOM Manipulation**: Direct DOM queries, element creation, or manipulation beyond simple controls
+-   **External Libraries**: Third-party libraries (D3, Lodash, etc.) that aren't chart-related
+-   **Advanced State Management**: Complex state beyond simple chart options updates
+-   **Inline Arrow Functions in HTML**: Event handlers must call named functions, not inline arrows
+-   **Chart Instance in Closures**: Don't capture chart in complex closures or nested scopes
+-   **Dynamic HTML Generation**: Creating or modifying HTML structure in JavaScript
+-   **Global Window Assignments**: Assigning to `window` object (except for event handlers which are handled automatically)
+-   **Multiple Chart Instances**: Complex examples with multiple coordinated charts may not transform well
+
+**Examples Requiring `@ag-skip-fws`:**
+
+```typescript
+// ❌ External library integration
+import * as d3 from 'd3';
+
+// ❌ Complex DOM manipulation
+function updateUI() {
+    document.querySelector('.status').innerHTML = '<div>Updated</div>';
+    document.getElementById('myChart').style.height = '500px';
+}
+
+const scale = d3.scaleLinear();
+
+// ❌ Advanced async patterns
+async function fetchAndUpdate() {
+    const data = await complexAsyncOperation();
+    await processData(data);
+    chart.update(options);
+}
+```
+
+### Writing Framework-Compatible Examples
+
+Follow these guidelines to ensure your examples transform cleanly across all frameworks:
+
+**Checklist for Framework-Compatible Examples:**
+
+1. **Structure your code consistently:**
+
+    ```typescript
+    // 1. Imports
+    import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
+    import { getData } from './data';
+
+    // 2. Options object (top-level)
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        data: getData(),
+        // ... rest of options
+    };
+
+    // 3. Chart creation (top-level)
+    const chart = AgCharts.create(options);
+
+    // 4. Top-level functions for interactions
+    function updateChart() {
+        options.data = getNewData();
+        chart.update(options);
+    }
+    ```
+
+2. **Keep event handlers simple:**
+
+    ```html
+    <!-- ✅ Good: calls named function -->
+    <button onclick="toggleSeries()">Toggle</button>
+    <select onchange="updateInterval(this.value)">
+        ...
+    </select>
+
+    <!-- ❌ Bad: inline logic -->
+    <button onclick="chart.update({ title: { text: 'New' } })">Update</button>
+    ```
+
+3. **Use appropriate update methods:**
+
+    ```typescript
+    // ✅ Good: full options update
+    function changeData() {
+        options.data = newData;
+        chart.update(options);
+    }
+
+    // ✅ Good: delta update for small changes
+    function changeTitle() {
+        chart.updateDelta({ title: { text: 'New Title' } });
+    }
+
+    // ❌ Avoid: mixing both patterns inconsistently
+    ```
+
+4. **Manage state in options object:**
+
+    ```typescript
+    // ✅ Good: state in options
+    const options: AgChartOptions = {
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    };
+
+    function toggleMarkers() {
+        const series = options.series![0];
+        series.marker = { enabled: !series.marker?.enabled };
+        chart.update(options);
+    }
+
+    // ❌ Avoid: separate state variables
+    let markersEnabled = true;
+    function toggleMarkers() {
+        markersEnabled = !markersEnabled;
+        // ... this pattern doesn't transform well
+    }
+    ```
+
+5. **Test across frameworks:**
+
+    ```bash
+    # Generate all framework variants
+    nx run ag-charts-website-${pageName}_${exampleName}_main.ts:generate
+
+    # Typecheck to verify transformations
+    nx validate-examples
+
+    # Visually test in dev server (switch frameworks in UI)
+    nx dev
+    ```
+
+**Common Pitfalls:**
+
+| Issue                         | Problem                        | Solution                                      |
+| ----------------------------- | ------------------------------ | --------------------------------------------- |
+| Chart not updating            | Not calling `chart.update()`   | Always call `update()` after changing options |
+| TypeScript errors in React    | Using `chart` in wrong scope   | Ensure chart stored in top-level variable     |
+| Event handlers not working    | Complex inline handlers        | Use simple function calls                     |
+| Options not persisting        | Creating new options each time | Mutate the options object, then update        |
+| Multiple charts coordination  | Complex state synchronization  | Simplify to single chart or separate examples |
+| Type errors in generated code | Missing type imports           | Import all needed types in main.ts            |
+
+### Framework Generation Requirements
+
+**CRITICAL**: All public documentation examples MUST work across all frameworks. The `@ag-skip-fws` directive is ONLY for internal use.
+
+**Public vs Internal Examples:**
+
+-   **Public examples** (documentation pages): MUST be framework-compatible
+-   **Internal examples** (`benchmarks`, `*-test` pages): Can use `@ag-skip-fws` if needed
+
+**For Public Documentation Examples:**
+
+If your example requires patterns that don't transform to frameworks (complex DOM manipulation, external libraries, etc.), you MUST redesign the example to be framework-compatible. Do NOT use `@ag-skip-fws`.
+
+**Example Redesign Strategies:**
+
+-   **Complex DOM manipulation** → Keep controls simple, let frameworks handle UI
+-   **External libraries** → Use AG Charts native features instead
+-   **Multiple coordinated charts** → Show individual chart capabilities separately
+-   **Advanced async patterns** → Simplify to basic async or use static data
+
+**For Internal Test/Benchmark Examples Only:**
+
+Use the `// @ag-skip-fws` directive in `main.ts` for internal testing or benchmarking:
+
+```typescript
+// @ag-skip-fws
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
+// ... rest of example
+```
+
+**Valid uses of `@ag-skip-fws` (internal only):**
+
+-   **Performance Testing**: Benchmarks or high-frequency update examples
+-   **Test Examples**: Internal `-test` page examples for specific edge cases
+-   **Complex DOM Testing**: Shadow DOM, iframe, or other browser API testing
+-   **Framework-specific Testing**: Examples specifically testing framework integration issues
+
+**Decision Tree:**
+
+```
+Is this a public documentation example?
+├─ YES → MUST be framework-compatible
+│   ├─ Simple controls? → ✅ Implement as shown in patterns
+│   ├─ Complex patterns needed? → ❌ Redesign to be simpler and framework-compatible
+│   └─ Cannot simplify? → Reconsider if example belongs in public docs
+│
+└─ NO (benchmark or *-test page) → Can use @ag-skip-fws if genuinely needed
+    ├─ Performance testing → ✅ Use @ag-skip-fws
+    ├─ Browser API testing → ✅ Use @ag-skip-fws
+    └─ Could be made compatible? → Prefer framework-compatible even for tests
+```
+
+**Note on Provided Examples**: A mechanism exists at `provided/modules/{framework}/` to manually override generated framework files, but this is **strongly discouraged** as it requires manual maintenance for each framework update. Do not use this mechanism.
+
 ## Example Validation + Building
 
 -   **Gallery example** (`packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/`)
@@ -50,8 +324,6 @@ Example paths are mapped from repo paths:
     -   `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:typecheck`
 -   **All examples**
     -   `nx validate-examples` (batch typecheck; much faster than individual targets)
--   **Ad-hoc or `-test` examples**
-    -   Add `// @ag-skip-fws` to `main.ts` to skip framework variant generation
 
 ## Example Generation
 
