@@ -12,6 +12,7 @@ import {
     findRangeExtent,
     isArray,
 } from 'ag-charts-core';
+import type { AxisID } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -154,7 +155,7 @@ export abstract class Axis<
 
     protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
 
-    readonly id = createId(this);
+    readonly id: AxisID = createId(this);
 
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
