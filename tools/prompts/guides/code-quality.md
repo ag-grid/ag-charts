@@ -26,7 +26,17 @@ This guide covers code quality practices, including avoiding code bloat, comment
     -   Ensure tests exercise real implementations, not test-only helper functions
     -   Verify consistency: if similar tests check X, all related tests should check X
     -   Look for opportunities to improve test coverage without adding redundancy
+-   **For documentation changes**:
+    -   Follow [Documentation Pages Guide](./docs-pages.md) for structure and patterns
+    -   Ensure examples are framework-compatible (see [Examples Guide](./examples.md))
+    -   Verify technical accuracy against TypeScript definitions
 -   See `tools/prompts/commands/pr-review.md` for detailed PR review instructions.
+
+## Related Resources
+
+- [Documentation Pages Guide](./docs-pages.md) - Documentation quality standards
+- [Examples Guide](./examples.md) - Example code quality requirements
+- [Testing Guide](./testing.md) - Test quality standards
 
 ## Self-Review Before Committing
 

@@ -11,7 +11,7 @@ Example paths are mapped from repo paths:
 
 ## Example Guidelines
 
--   When adding examples, make sure to also update the Markdoc page relating to the example (index.mdoc adjacent to the enclosing `_examples/` folder).
+-   When adding examples, make sure to also update the Markdoc page relating to the example (index.mdoc adjacent to the enclosing `_examples/` folder). See the [Documentation Pages Guide](./docs-pages.md) for how to structure documentation pages.
 -   Never add inline documentation to examples.
 -   `-test` page examples are for internal testing and don't typically need much documentation.
 -   Any other examples should be documented in the related `index.mdoc` file which should be a sibling of the enclosing parent folder `_examples`.
@@ -472,5 +472,11 @@ When updating gallery examples from external references:
 ## Quick Playbook: Example-only Change
 
 1. Edit the example files (`index.html`, `main.ts`, optional `styles.css`/`data.ts`)
-2. Mirror updates in the sibling `index.mdoc` docs page
+2. Mirror updates in the sibling `index.mdoc` docs page (see [Documentation Pages Guide](./docs-pages.md) for documentation patterns)
 3. Run the relevant generation/typecheck command plus `nx validate-examples`
+
+## Related Resources
+
+- [Documentation Pages Guide](./docs-pages.md) - How to write documentation pages that reference examples
+- [Documentation Checklist](../checklists/docs-page.md) - Validation checklist for documentation pages
+- [Code Quality Guide](./code-quality.md) - Code quality standards that apply to examples
