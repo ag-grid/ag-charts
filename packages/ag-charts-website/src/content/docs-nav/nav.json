@@ -193,6 +193,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "High-Frequency Data",
+                            "path": "high-frequency-data"
+                        },
+                        {
+                            "type": "item",
                             "title": "Large Datasets",
                             "path": "large-dataset-interactivity"
                         },

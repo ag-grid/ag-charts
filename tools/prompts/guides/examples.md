@@ -22,15 +22,17 @@ Example paths are mapped from repo paths:
         ```html
         <div id="myChart"></div>
         ```
-    -   Complex example:
+    -   Complex example with controls:
         ```html
-        <div class="controls-row">
-            <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
-            <select id="methodSelect" onchange="updateMethod(this.value)">
-                <option value="updateDelta">updateDelta()</option>
-                <option value="applyTransaction">applyTransaction()</option>
-            </select>
-            <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+        <div class="example-controls">
+            <div class="controls-row">
+                <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+                <select id="methodSelect" onchange="updateMethod(this.value)">
+                    <option value="updateDelta">updateDelta()</option>
+                    <option value="applyTransaction">applyTransaction()</option>
+                </select>
+                <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+            </div>
         </div>
         <div id="myChart"></div>
         ```

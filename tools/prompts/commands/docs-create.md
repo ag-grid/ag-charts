@@ -100,6 +100,7 @@ User must provide:
     - Specify what each example demonstrates
     - Note configuration needed for each
     - Mark framework compatibility requirements
+    - Follow proper `index.html` structure (see below)
 
 9. **Write Configuration Sections**
 
@@ -143,7 +144,7 @@ packages/ag-charts-website/src/content/docs/[page-name]/index.mdoc
 
 List all required examples with specifications:
 
-```markdown
+````markdown
 ## Required Examples
 
 ### Example 1: simple-[feature]
@@ -154,6 +155,11 @@ List all required examples with specifications:
     -   [List key configuration]
 -   **Data**: [Data requirements]
 -   **Framework Compatible**: Yes
+-   **Files Required**:
+    -   `main.ts` - TypeScript implementation
+    -   `index.html` - HTML body snippet (see structure below)
+    -   `data.ts` - (Optional) Data file with `getData()` function
+    -   `styles.css` - (Optional) Custom styles
 
 ### Example 2: [variation]-[feature]
 
@@ -163,9 +169,51 @@ List all required examples with specifications:
     -   [List key configuration]
 -   **Data**: [Data requirements]
 -   **Framework Compatible**: Yes
+-   **Files Required**:
+    -   `main.ts` - TypeScript implementation
+    -   `index.html` - HTML body snippet (see structure below)
 
 [Continue for all examples...]
+
+## HTML Structure for Examples
+
+The `index.html` file must be a **body snippet only**, not a complete HTML document:
+
+**Simple Example (no controls):**
+
+```html
+<div id="myChart"></div>
 ```
+````
+
+**Example with Controls:**
+
+```html
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="functionName()">Button Text</button>
+        <select onchange="changeHandler(this.value)">
+            <option value="option1">Option 1</option>
+            <option value="option2">Option 2</option>
+        </select>
+        <span id="statusDisplay">Status: Ready</span>
+    </div>
+</div>
+<div id="myChart"></div>
+```
+
+**Key Requirements:**
+
+-   ❌ No `<!DOCTYPE>`, `<html>`, `<head>`, or `<body>` tags
+-   ❌ No `<script>` tags (main.ts is automatically included)
+-   ✅ Use `class="example-controls"` wrapper for control sections
+-   ✅ Use `class="controls-row"` for the inner controls container
+-   ✅ Chart container must be `<div id="myChart"></div>`
+-   ✅ Event handlers use `onclick="functionName()"` pattern (top-level functions only)
+
+The `example-controls.css` styles are automatically applied at runtime.
+
+````
 
 ### 3. Navigation Entry
 
@@ -176,7 +224,7 @@ Provide JSON to add to `packages/ag-charts-website/src/content/docs-nav/nav.json
     "title": "[Page Title]",
     "path": "[page-name]"
 }
-```
+````
 
 Specify which section it should be added to.
 
