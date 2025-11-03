@@ -9,11 +9,13 @@ import {
     continuousAxisOptions,
 } from '../../chart/axesOptionsDefs';
 import { TimeAxis } from '../../chart/axis/timeAxis';
+import { VERSION } from '../../version';
 
 export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
     type: 'axis',
     name: 'time',
     chartType: 'cartesian',
+    version: VERSION,
 
     options: {
         ...cartesianAxisOptionsDefs,

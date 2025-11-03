@@ -1,4 +1,4 @@
-import { type AgStandaloneChartOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgStandaloneChartOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { StandaloneChart } from './standaloneChart';
@@ -9,6 +9,7 @@ export const StandaloneChartModule: ChartModuleDefinition<AgStandaloneChartOptio
     type: 'chart',
     name: 'standalone',
     enterprise: true,
+    version: VERSION,
 
     options: standaloneChartOptionsDefs,
 

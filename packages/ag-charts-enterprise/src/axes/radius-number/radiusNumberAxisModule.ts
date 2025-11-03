@@ -1,4 +1,4 @@
-import { type AgRadiusNumberAxisOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadiusNumberAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { AxisModuleDefinition } from 'ag-charts-core';
 
 import { RadiusNumberAxis } from './radiusNumberAxis';
@@ -8,6 +8,7 @@ export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOpti
     name: 'radius-number',
     chartType: 'polar',
     enterprise: true,
+    version: VERSION,
 
     options: _ModuleSupport.radiusNumberAxisOptionsDefs,
 

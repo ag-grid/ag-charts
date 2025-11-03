@@ -59,6 +59,10 @@
                 "url": "https://www.ag-grid.com/about/"
             },
             {
+                "name": "Contact Us",
+                "url": "https://www.ag-grid.com/about#contact-section"
+            },
+            {
                 "name": "Privacy Policy",
                 "url": "/privacy"
             },

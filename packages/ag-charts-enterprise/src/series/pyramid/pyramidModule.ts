@@ -1,4 +1,4 @@
-import type { AgPyramidSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgPyramidSeriesOptions, VERSION, type _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { PyramidSeries } from './pyramidSeries';
@@ -11,6 +11,7 @@ export const PyramidSeriesModule: SeriesModuleDefinition<AgPyramidSeriesOptions>
     chartType: 'standalone',
     enterprise: true,
     solo: true,
+    version: VERSION,
 
     options: pyramidSeriesOptionsDef,
     themeTemplate: PYRAMID_SERIES_THEME,

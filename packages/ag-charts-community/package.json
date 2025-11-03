@@ -17,12 +17,6 @@
       "require": "./dist/package/integrated-charts-scene.cjs.js",
       "import": "./dist/package/integrated-charts-scene.esm.mjs",
       "default": "./dist/package/integrated-charts-scene.cjs.js"
-    },
-    "./modules": {
-      "types": "./dist/types/src/main-modules.d.ts",
-      "require": "./dist/package/main-modules.cjs.js",
-      "import": "./dist/package/main-modules.esm.mjs",
-      "default": "./dist/package/main-modules.cjs.js"
     }
   },
   "sideEffects": [

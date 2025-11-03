@@ -1,4 +1,4 @@
-import { type AgErrorBarOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgErrorBarOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesPluginModuleDefinition } from 'ag-charts-core';
 
 import { ErrorBars } from './errorBar';
@@ -11,6 +11,7 @@ export const ErrorBarsModule: SeriesPluginModuleDefinition<AgErrorBarOptions> = 
     // seriesTypes: AgErrorBarSupportedSeriesTypes,
     seriesTypes: ['bar', 'line', 'scatter'],
     enterprise: true,
+    version: VERSION,
 
     options: _ModuleSupport.errorBarOptionsDefs,
     themeTemplate: {

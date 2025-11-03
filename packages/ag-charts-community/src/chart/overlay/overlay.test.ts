@@ -110,6 +110,43 @@ describe('Overlay', () => {
 `);
         });
 
+        test('primitive data - string', async () => {
+            chart = await createChart({
+                data: ['f'],
+                series: [{ type: 'bar', xKey: 'quarter', yKey: 'iphone' }],
+            });
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No data to display');
+        });
+
+        test('primitive data - number', async () => {
+            chart = await createChart({
+                data: [123, 456],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No data to display');
+        });
+
+        test('primitive data - mixed types', async () => {
+            chart = await createChart({
+                data: ['string', 123, true, null],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No data to display');
+        });
+
+        test('mixed valid objects and primitives', async () => {
+            chart = await createChart({
+                data: [{ x: 'a', y: 1 }, 'invalid', { x: 'b', y: 2 }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+            // Should NOT show overlay because there are some valid data items
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl).toBeFalsy();
+        });
+
         test('no visible series', async () => {
             chart = await createChart({
                 data: [

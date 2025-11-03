@@ -232,6 +232,7 @@ module.exports = {
                     'ag-charts-types',
                     'ag-charts-locale',
                     '^src/(locale|module|util|core)/',
+                    '^src/version',
                     'node_modules',
                 ],
             },

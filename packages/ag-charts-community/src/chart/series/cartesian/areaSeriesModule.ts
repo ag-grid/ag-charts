@@ -2,6 +2,7 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
+import { VERSION } from '../../../version';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {
@@ -84,6 +85,7 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
     name: 'area',
     chartType: 'cartesian',
     stackable: true,
+    version: VERSION,
 
     options: areaSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,

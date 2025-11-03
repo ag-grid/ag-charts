@@ -11,12 +11,6 @@
       "require": "./dist/package/main.cjs.js",
       "import": "./dist/package/main.esm.mjs",
       "default": "./dist/package/main.cjs.js"
-    },
-    "./modules": {
-      "types": "./dist/types/src/main-modules.d.ts",
-      "require": "./dist/package/main-modules.cjs.js",
-      "import": "./dist/package/main-modules.esm.mjs",
-      "default": "./dist/package/main-modules.cjs.js"
     }
   },
   "sideEffects": [

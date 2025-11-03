@@ -11,12 +11,7 @@ import {
     type SeriesPluginModuleDefinition,
 } from '../interfaces/moduleDefinition';
 
-interface ModuleState {
-    def: ModuleDefinition;
-    version: string;
-}
-
-const registeredModules: Map<string, ModuleState> = new Map();
+const registeredModules: Map<string, ModuleDefinition> = new Map();
 
 export function register(
     def:
@@ -27,22 +22,21 @@ export function register(
         | PresetModuleDefinition<any>
         | PluginModuleDefinition<any>
         | AxisPluginModuleDefinition<any>
-        | SeriesPluginModuleDefinition<any>,
-    version: string
+        | SeriesPluginModuleDefinition<any>
 ): void {
     // Allow enterprise modules to overwrite community modules def.
-    const { def: existingDefinition, version: existingVersion } = registeredModules.get(def.name) ?? {};
+    const existingDefinition = registeredModules.get(def.name);
 
     if (!existingDefinition) {
         // New registration case.
-        registeredModules.set(def.name, { def, version });
+        registeredModules.set(def.name, def);
         return;
     }
 
-    if (existingVersion === version) {
+    if (existingDefinition.version === def.version) {
         // Enterprise module overwriting community module case.
         if (!existingDefinition.enterprise && def.enterprise) {
-            registeredModules.set(def.name, { def, version });
+            registeredModules.set(def.name, def);
         }
         return; // Module already registered with the same version - ignore.
     }
@@ -51,7 +45,7 @@ export function register(
     throw new Error(
         [
             `AG Charts - Module '${def.name}' already registered with different version:`,
-            `${existingVersion} vs ${version}`,
+            `${existingDefinition.version} vs ${def.version}`,
             ``,
             `Check your package.json for conflicting dependencies - depending on your package manager`,
             `one of these commands may help:`,
@@ -61,9 +55,9 @@ export function register(
     );
 }
 
-export function registerMany(definitions: ModuleDefinition[], version: string): void {
+export function registerModules(definitions: ModuleDefinition[]): void {
     for (const definition of definitions) {
-        register(definition, version);
+        register(definition);
     }
 }
 
@@ -77,29 +71,29 @@ export function hasModule(moduleName: string): boolean {
 
 export function* listModules(): Generator<ModuleDefinition> {
     for (const definition of registeredModules.values()) {
-        yield definition.def;
+        yield definition;
     }
 }
 
 export function* listModulesByType<T extends ModuleType>(moduleType: T): Generator<ModuleTypeSwitch<T>> {
     for (const definition of registeredModules.values()) {
-        if (isModuleType(moduleType, definition.def)) {
-            yield definition.def;
+        if (isModuleType(moduleType, definition)) {
+            yield definition;
         }
     }
 }
 
 export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isModuleType(ModuleType.Axis, definition?.def)) {
-        return definition.def;
+    if (isModuleType(ModuleType.Axis, definition)) {
+        return definition;
     }
 }
 
 export function getChartModule(moduleName: string): ChartModuleDefinition<any> {
     const definition = registeredModules.get(moduleName);
-    if (isModuleType(ModuleType.Chart, definition?.def)) {
-        return definition.def;
+    if (isModuleType(ModuleType.Chart, definition)) {
+        return definition;
     }
     throw new Error(
         `AG Charts - Unknown chart type; Check options are correctly structured and series types are specified`
@@ -108,21 +102,21 @@ export function getChartModule(moduleName: string): ChartModuleDefinition<any> {
 
 export function getPresetModule(moduleName: string): PresetModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isModuleType(ModuleType.Preset, definition?.def)) {
-        return definition.def;
+    if (isModuleType(ModuleType.Preset, definition)) {
+        return definition;
     }
 }
 
 export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isModuleType(ModuleType.Series, definition?.def)) {
-        return definition.def;
+    if (isModuleType(ModuleType.Series, definition)) {
+        return definition;
     }
 }
 
 export function hasEnterpriseModules(): boolean {
-    for (const { def } of registeredModules.values()) {
-        if (def.enterprise) return true;
+    for (const definition of registeredModules.values()) {
+        if (definition.enterprise) return true;
     }
     return false;
 }

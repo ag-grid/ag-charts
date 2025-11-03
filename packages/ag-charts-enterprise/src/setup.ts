@@ -1,13 +1,13 @@
-import { type AgChartOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import { ModuleRegistry } from 'ag-charts-core';
 
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
-import { AllEnterpriseModules } from './main-modules';
+import { AllEnterpriseModules } from './module-bundles';
 import styles from './styles.css';
 
 export function setupEnterpriseModules() {
-    ModuleRegistry.registerMany(AllEnterpriseModules, VERSION);
+    ModuleRegistry.registerModules(AllEnterpriseModules);
 
     _ModuleSupport.enterpriseModule.isEnterprise = true;
     _ModuleSupport.enterpriseModule.styles = styles;

@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { PluginModuleDefinition } from 'ag-charts-core';
+import { VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type PluginModuleDefinition } from 'ag-charts-core';
 
 import { StatusBar } from './statusBar';
 
@@ -8,6 +8,7 @@ export const StatusBarModule: PluginModuleDefinition<never> = {
     name: 'statusBar',
     chartType: 'cartesian',
     enterprise: true,
+    version: VERSION,
 
     themeTemplate: {
         enabled: false,

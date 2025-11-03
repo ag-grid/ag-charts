@@ -1,4 +1,4 @@
-import { type AgTopologyChartOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgTopologyChartOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { TopologyChart } from './topologyChart';
@@ -9,6 +9,7 @@ export const TopologyChartModule: ChartModuleDefinition<AgTopologyChartOptions> 
     type: 'chart',
     name: 'topology',
     enterprise: true,
+    version: VERSION,
 
     options: topologyChartOptionsDefs,
 

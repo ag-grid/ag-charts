@@ -15,12 +15,14 @@ import {
 } from 'ag-charts-core';
 import type { AgChartLegendOptions } from 'ag-charts-types';
 
+import { VERSION } from '../../version';
 import { legendPositionValidator, shapeValidator } from '../commonOptionsDefs';
 import { Legend } from './legend';
 
 export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {
     type: 'plugin',
     name: 'legend',
+    version: VERSION,
     // TODO fix missing behaviour
     // removable: 'standalone-only',
 

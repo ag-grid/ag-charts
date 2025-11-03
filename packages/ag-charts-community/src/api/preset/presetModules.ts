@@ -40,6 +40,7 @@ import { areaSeriesOptionsDef } from '../../chart/series/cartesian/areaSeriesOpt
 import { barSeriesOptionsDef } from '../../chart/series/cartesian/barSeriesOptionsDef';
 import { lineSeriesOptionsDef } from '../../chart/series/cartesian/lineSeriesOptionsDef';
 import { without } from '../../util/object';
+import { VERSION } from '../../version';
 import { gauge } from './gauge';
 import { linearGaugeSeriesOptionsDef, radialGaugeSeriesOptionsDef } from './gaugeOptionsDefs';
 import { priceVolume } from './priceVolumePreset';
@@ -180,6 +181,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
     type: 'preset',
     name: 'price-volume',
     enterprise: true,
+    version: VERSION,
 
     options: priceVolumeOptionsDef,
 
@@ -190,6 +192,7 @@ export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',
     name: 'gauge-preset',
     enterprise: true,
+    version: VERSION,
 
     options: typeUnion<AgGaugeOptions>(
         {
@@ -211,6 +214,7 @@ export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
 export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> = {
     type: 'preset',
     name: 'sparkline',
+    version: VERSION,
 
     options: typeUnion<AgSparklineOptions>(
         {
