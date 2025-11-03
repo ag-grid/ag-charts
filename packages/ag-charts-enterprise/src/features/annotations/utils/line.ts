@@ -1,4 +1,4 @@
-import { type AgAnnotationLineStyleType, type PixelSize, _ModuleSupport } from 'ag-charts-community';
+import type { AgAnnotationLineStyleType, PixelSize, _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type Point, Vec2 } from 'ag-charts-core';
 
 export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {

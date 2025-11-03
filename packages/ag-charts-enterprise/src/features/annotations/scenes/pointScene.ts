@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { type Point, Vec2 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';

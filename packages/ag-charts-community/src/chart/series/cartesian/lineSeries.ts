@@ -793,6 +793,7 @@ export class LineSeries extends CartesianSeries<
                 enabled: this.properties.marker.enabled,
             },
             line: {
+                enabled: true,
                 stroke,
                 strokeOpacity,
                 strokeWidth,

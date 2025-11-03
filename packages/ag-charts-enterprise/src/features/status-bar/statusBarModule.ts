@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type PluginModuleDefinition } from 'ag-charts-core';
+import type { PluginModuleDefinition } from 'ag-charts-core';
 
 import { StatusBar } from './statusBar';
 

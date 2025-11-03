@@ -1,5 +1,5 @@
 import { type AgAnnotationsOptions, _ModuleSupport } from 'ag-charts-community';
-import { type PluginModuleDefinition } from 'ag-charts-core';
+import type { PluginModuleDefinition } from 'ag-charts-core';
 
 import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
 import { Annotations } from './annotations';

@@ -40,13 +40,23 @@ type GroupedTooltipContent =
     | ({ type: 'structured' } & GroupedStructuredContent)
     | { type: 'raw'; rawHtmlString: string };
 
+function textOrSegmentsIsDefined(value: TextOrSegments | undefined): value is TextOrSegments {
+    if (value == null) {
+        return false;
+    } else if (Array.isArray(value)) {
+        return value.some((segment) => textOrSegmentsIsDefined(segment.text));
+    } else {
+        return value.trim() !== '';
+    }
+}
+
 function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipContent[] {
     const out: GroupedTooltipContent[] = [];
     const groupedContents = new Map<TextOrSegments, GroupedStructuredContent>();
     for (const item of content) {
         if (item.type === 'structured') {
             const { heading } = item;
-            const insertionTarget = heading == null ? undefined : groupedContents.get(heading);
+            const insertionTarget = textOrSegmentsIsDefined(heading) ? groupedContents.get(heading) : undefined;
             const groupedItem: GroupedTooltipContent = { type: 'structured', heading, items: [item] };
             if (insertionTarget == null) {
                 groupedContents.set(heading!, groupedItem);
@@ -69,11 +79,11 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
         if (c.type === 'raw') {
             continue;
         }
-        if (c.heading != null) {
+        if (textOrSegmentsIsDefined(c.heading)) {
             ariaLabel.push(toPlainText(c.heading));
         }
         for (const i of c.items) {
-            if (i.title != null) {
+            if (textOrSegmentsIsDefined(i.title)) {
                 ariaLabel.push(toPlainText(i.title));
             }
             if (i.data) {
@@ -90,16 +100,16 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
 function dataHtml(label: string | undefined, value: string, inline: boolean) {
     let rowHtml = '';
 
-    if (label == null && !value) {
+    if (!textOrSegmentsIsDefined(label) && !value) {
         return '';
     }
 
-    if (label == null) {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(value)}</span>`;
-    } else {
+    if (textOrSegmentsIsDefined(label)) {
         rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(label)}</span>`;
         rowHtml += ' ';
         rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-value">${sanitizeHtml(value)}</span>`;
+    } else {
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(value)}</span>`;
     }
 
     const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}-row`];
@@ -116,15 +126,17 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
         return html;
     }
 
-    const dataInline = content.title == null && content.data?.length === 1;
+    const titleDefined = textOrSegmentsIsDefined(content.title);
+
+    const dataInline = !titleDefined && content.data?.length === 1;
 
     const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
-    if (symbol != null && (content.title != null || content.data?.length)) {
+    if (symbol != null && (titleDefined || content.data?.length)) {
         html += `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${symbol}</span>`;
     }
 
-    if (content.title != null) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title)}</span>`;
+    if (titleDefined) {
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title!)}</span>`;
         html += ' ';
     }
 
@@ -164,13 +176,14 @@ function tooltipContentHtml(
             compactTitle = toPlainText(singleItem?.title);
             break;
         case 'single':
+            const headingDefined = textOrSegmentsIsDefined(content.heading);
             compact =
                 singleItem != null &&
-                (content.heading == null || singleItem.title == null) &&
+                (!headingDefined || singleItem.title == null) &&
                 singleItem.data?.length === 1 &&
                 singleItem.data[0].label == null &&
                 singleItem.data[0].value != null;
-            compactFallbackLabel = toPlainText(content.heading ?? singleItem?.title);
+            compactFallbackLabel = toPlainText(headingDefined ? content.heading : singleItem?.title);
             break;
         case 'shared':
             compact = false;
@@ -190,7 +203,7 @@ function tooltipContentHtml(
         }
     } else {
         // Full rendering
-        if (content.heading != null) {
+        if (textOrSegmentsIsDefined(content.heading)) {
             html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(toPlainText(content.heading))}</span>`;
             html += ' ';
         }

@@ -1,4 +1,4 @@
-import { type ModuleInstance } from 'ag-charts-core';
+import type { ModuleInstance } from 'ag-charts-core';
 
 export class ModuleMap<T extends ModuleInstance = ModuleInstance> {
     protected moduleMap = new Map<string, T>();

@@ -12,6 +12,7 @@ export interface LegendMarker extends Omit<AgSeriesMarkerStyle, 'stroke'> {
 }
 
 export interface LegendLine {
+    enabled: boolean;
     stroke: string;
     strokeOpacity: number;
     strokeWidth: number;
@@ -27,12 +28,12 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
     const group = new Group();
 
     const markerStrokeWidth = Math.min(symbol.marker.strokeWidth ?? 1, 2);
-    const lineStrokeWidth = Math.min(symbol.line?.strokeWidth ?? 0, 2);
+    const lineStrokeWidth = symbol.line?.enabled ? Math.min(symbol.line.strokeWidth, 2) : 0;
 
     const width = Math.max(symbol.marker.enabled === false ? 0 : size, symbol.line == null ? 0 : lineSize);
     const height = Math.max(symbol.marker.enabled === false ? 0 : size, lineStrokeWidth);
 
-    if (symbol.line != null) {
+    if (symbol.line?.enabled) {
         const { stroke, strokeOpacity, lineDash } = symbol.line;
         const line = new Line();
         line.x1 = 0;

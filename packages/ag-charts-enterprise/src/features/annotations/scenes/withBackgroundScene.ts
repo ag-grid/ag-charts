@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
 import type { FillOptions } from 'ag-charts-types';
 

@@ -1,4 +1,4 @@
-import { ModuleType } from 'ag-charts-core';
+import type { ModuleType } from 'ag-charts-core';
 
 export type ChartType = 'cartesian' | 'polar' | 'topology' | 'standalone';
 

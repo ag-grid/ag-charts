@@ -1248,6 +1248,7 @@ export class AreaSeries extends CartesianSeries<
                 enabled: marker.enabled || strokeWidth <= 0,
             },
             line: {
+                enabled: true,
                 stroke,
                 strokeOpacity,
                 strokeWidth,

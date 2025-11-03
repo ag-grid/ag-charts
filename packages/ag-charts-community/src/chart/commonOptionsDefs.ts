@@ -641,6 +641,24 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
                 {
                     heading: string,
                     title: string,
+                    symbol: {
+                        marker: {
+                            enabled: boolean,
+                            shape: shapeValidator,
+                            ...fillOptionsDef,
+                            stroke: colorUnion,
+                            strokeOpacity: ratio,
+                            strokeWidth: positiveNumber,
+                            ...lineDashOptionsDef,
+                        },
+                        line: {
+                            enabled: boolean,
+                            stroke: colorUnion,
+                            strokeWidth: positiveNumber,
+                            strokeOpacity: ratio,
+                            ...lineDashOptionsDef,
+                        },
+                    },
                     data: arrayOfDefs<AgTooltipRendererDataRow>({
                         label: required(string),
                         value: required(string),

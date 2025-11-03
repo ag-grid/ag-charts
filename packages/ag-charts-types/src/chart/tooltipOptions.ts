@@ -1,5 +1,14 @@
+import type { FillOptions, LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { AgChartCallbackParams, Renderer } from './callbackOptions';
-import type { ContextDefault, DatumDefault, DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
+import type {
+    AgMarkerShape,
+    ContextDefault,
+    DatumDefault,
+    DurationMs,
+    InteractionRange,
+    PixelSize,
+    TextWrap,
+} from './types';
 
 export type AgTooltipMode = 'single' | 'shared' | 'compact';
 
@@ -71,11 +80,32 @@ export interface AgTooltipRendererDataRow {
     value: string;
 }
 
+export interface AgTooltipRendererSymbolMarker extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Enabled rendering the symbol marker. */
+    enabled?: boolean;
+    /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
+    shape?: AgMarkerShape;
+}
+
+export interface AgTooltipRendererSymbolLine extends StrokeOptions, LineDashOptions {
+    /** Enabled rendering the symbol line. */
+    enabled?: boolean;
+}
+
+export interface AgTooltipRendererSymbol {
+    /** Configuration for the tooltip markers. */
+    marker?: AgTooltipRendererSymbolMarker;
+    /** Configuration for the tooltip lines. */
+    line?: AgTooltipRendererSymbolLine;
+}
+
 export interface AgTooltipRendererResult {
     /** Text for the tooltip header. */
     heading?: string;
     /** Text for the tooltip title. */
     title?: string;
+    /** Symbol for the tooltip. */
+    symbol?: AgTooltipRendererSymbol;
     /** An array of text for the tooltip body. */
     data?: AgTooltipRendererDataRow[];
 }
