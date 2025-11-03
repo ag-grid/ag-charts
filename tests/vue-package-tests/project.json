@@ -8,7 +8,7 @@
       "executor": "nx:noop",
       "inputs": [],
       "outputs": [],
-      "dependsOn": ["test:package:local-latest", "^test:package:production-latest"],
+      "dependsOn": ["test:package:modules:local-latest", "test:package:production-latest"],
       "configurations": {
         "update": {}
       }
@@ -35,6 +35,15 @@
     "test:package:editor": {
       "dependsOn": ["^pack"],
       "command": "{projectRoot}/run.sh -n -e latest"
+    },
+    "test:package:modules:local-latest": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-modules.sh latest",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-modules.sh -u latest"
+        }
+      }
     }
   },
   "implicitDependencies": [
