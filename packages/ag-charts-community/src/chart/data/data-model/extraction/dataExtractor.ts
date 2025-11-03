@@ -143,7 +143,16 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 let invalidScopeData;
                 let missingKeys = 0;
                 for (let datumIndex = 0; datumIndex < data.length; datumIndex++) {
-                    if (data[datumIndex] == null || typeof data[datumIndex] !== 'object') continue;
+                    if (data[datumIndex] == null || typeof data[datumIndex] !== 'object') {
+                        // Count non-object items as invalid data
+                        invalidScopeKeys ??= createArray(data.length, false);
+                        invalidScopeData ??= createArray(data.length, false);
+                        missingKeys += 1;
+                        invalidScopeKeys[datumIndex] = true;
+                        invalidScopeData[datumIndex] = true;
+                        keys.push(invalidValue);
+                        continue;
+                    }
 
                     const result = processValue(keyDef, data[datumIndex], datumIndex, scope);
 
@@ -226,7 +235,12 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             const invalidKeys = scopeInvalidKeys.get(columnScope);
             let needsValueOf = false;
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
-                if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') continue;
+                if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') {
+                    // Count non-object items as invalid data
+                    this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
+                    column[datumIndex] = invalidValue;
+                    continue;
+                }
 
                 const valueDatum = columnSource[datumIndex];
                 const invalidKey = invalidKeys == null ? false : invalidKeys[datumIndex];
