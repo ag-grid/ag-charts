@@ -3,6 +3,7 @@ import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { without } from '../util/object';
+import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
 import { cartesianChartOptionsDefs } from './chartOptionsDefs';
@@ -13,6 +14,7 @@ const validHistogramAxis = (axis: any) => isObject(axis) && !histogramAxisTypes.
 export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions> = {
     type: 'chart',
     name: 'cartesian',
+    version: VERSION,
 
     options: cartesianChartOptionsDefs,
 

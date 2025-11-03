@@ -1,4 +1,4 @@
-import type { AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgFunnelSeriesOptions, VERSION, type _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { FunnelSeries } from './funnelSeries';
@@ -11,6 +11,7 @@ export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> =
     chartType: 'cartesian',
     enterprise: true,
     solo: true,
+    version: VERSION,
 
     options: funnelSeriesOptionsDef,
     defaultAxes: FUNNEL_SERIES_AXES,

@@ -1,4 +1,4 @@
-import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgNightingaleSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { NightingaleSeries } from './nightingaleSeries';
@@ -15,6 +15,7 @@ export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeries
     stackable: true,
     groupable: true,
     stackedByDefault: true,
+    version: VERSION,
 
     options: nightingaleSeriesOptionsDef,
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],

@@ -1,4 +1,4 @@
-import { type AgZoomButton, type AgZoomOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgZoomButton, type AgZoomOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     arrayOfDefs,
@@ -19,6 +19,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
     type: 'plugin',
     name: 'zoom',
     enterprise: true,
+    version: VERSION,
 
     options: {
         enabled: boolean,

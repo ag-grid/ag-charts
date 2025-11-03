@@ -16,13 +16,13 @@
     },
     "build:types": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"]
+        "additionalEntryPoints": []
       }
     },
     "build:test": {},
     "build:package": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
+        "additionalEntryPoints": [],
         "external": ["ag-charts-core", "ag-charts-community"]
       }
     },

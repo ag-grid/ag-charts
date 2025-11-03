@@ -1,4 +1,4 @@
-import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgMapShapeBackgroundOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
@@ -10,6 +10,7 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
     name: 'map-shape-background',
     chartType: 'topology',
     enterprise: true,
+    version: VERSION,
 
     options: mapShapeBackgroundSeriesOptionsDef,
     themeTemplate: {

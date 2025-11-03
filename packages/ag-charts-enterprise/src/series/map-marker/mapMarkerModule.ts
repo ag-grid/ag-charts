@@ -1,4 +1,4 @@
-import { type AgMapMarkerSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgMapMarkerSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import { type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
@@ -10,6 +10,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     name: 'map-marker',
     chartType: 'topology',
     enterprise: true,
+    version: VERSION,
 
     options: mapMarkerSeriesOptionsDef,
     themeTemplate: {

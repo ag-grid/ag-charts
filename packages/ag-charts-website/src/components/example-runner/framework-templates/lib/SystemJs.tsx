@@ -28,10 +28,8 @@ const localConfiguration: Configuration = {
     },
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
-        'ag-charts-community/modules': `${localPrefix}/ag-charts-community/dist/package/main-modules.cjs.js`,
         'ag-charts-core': `${localPrefix}/ag-charts-core/dist/package/main.cjs.js`,
         'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
-        'ag-charts-enterprise/modules': `${localPrefix}/ag-charts-enterprise/dist/package/main-modules.cjs.js`,
         'ag-charts-types': `${localPrefix}/ag-charts-types/dist/package/main.cjs.js`,
         'ag-charts-locale': `${localPrefix}/ag-charts-locale/dist/package/main.cjs.js`,
     },
@@ -45,10 +43,8 @@ const buildAndArchivesConfiguration: Configuration = {
     },
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
-        'ag-charts-community/modules': `${localPrefix}/ag-charts-community/dist/package/main-modules.cjs.js`,
         'ag-charts-core': `${localPrefix}/ag-charts-core/dist/package/main.cjs.js`,
         'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
-        'ag-charts-enterprise/modules': `${localPrefix}/ag-charts-enterprise/dist/package/main-modules.cjs.js`,
         'ag-charts-types': `${localPrefix}/ag-charts-types/dist/package/main.cjs.js`,
         'ag-charts-locale': `${localPrefix}/ag-charts-locale/dist/package/main.cjs.js`,
     },
@@ -109,10 +105,8 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
         configuration.chartMap = {
             ...configuration.chartMap,
             'ag-charts-community': `${localPrefix}/ag-charts-community`,
-            'ag-charts-community/modules': `${localPrefix}/ag-charts-community`,
             'ag-charts-core': `${localPrefix}/ag-charts-core`,
             'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise`,
-            'ag-charts-enterprise/modules': `${localPrefix}/ag-charts-enterprise`,
             'ag-charts-types': `${localPrefix}/ag-charts-types`,
             'ag-charts-locale': `${localPrefix}/ag-charts-locale`,
         };
@@ -139,7 +133,26 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
             <script src={systemJsPath} />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `System.import('${startFile}').catch(function(err) { console.error(err); });`,
+                    __html: `
+            var setupModules = function() {
+                return System.import('ag-charts-community').then(function(mod) {
+                    if (mod && typeof mod.setupCommunityModules === 'function') {
+                        mod.setupCommunityModules();
+                    }
+                });
+            };
+
+            setupModules()
+                .catch(function(err) {
+                    console.warn('AG Charts community module registration failed', err);
+                })
+                .then(function() {
+                    return System.import('${startFile}');
+                })
+                .catch(function(err) {
+                    console.error(err);
+                });
+        `,
                 }}
             />
         </>

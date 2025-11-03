@@ -1,4 +1,4 @@
-import { type AgRadialGaugePreset, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialGaugePreset, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RadialGaugeSeries } from './radialGaugeSeries';
@@ -10,6 +10,7 @@ export const RadialGaugeSeriesModule: SeriesModuleDefinition<AgRadialGaugePreset
     name: 'radial-gauge',
     chartType: 'standalone',
     enterprise: true,
+    version: VERSION,
 
     options: _ModuleSupport.radialGaugeSeriesOptionsDef,
     themeTemplate: {

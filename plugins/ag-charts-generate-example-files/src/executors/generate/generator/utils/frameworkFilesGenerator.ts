@@ -51,9 +51,65 @@ type ConfigGenerator = ({
     suppressOptionsClone?: boolean;
 }) => Promise<FrameworkFiles>;
 
+const ensureModuleSetup = (
+    code: string,
+    {
+        isEnterprise,
+        framework,
+    }: {
+        isEnterprise: boolean;
+        framework: InternalFramework;
+    }
+) => {
+    const hasCommunityCall = code.includes('setupCommunityModules(') || code.includes('setupCommunityModules?.');
+    if (hasCommunityCall) {
+        return code;
+    }
+
+    if (framework === 'vanilla') {
+        const snippets = [
+            'agCharts.setupCommunityModules?.();',
+            isEnterprise ? 'agCharts.setupEnterpriseModules?.();' : undefined,
+        ].filter(Boolean);
+
+        if (snippets.length === 0) {
+            return code;
+        }
+
+        return `${snippets.join('\n')}\n\n${code}`;
+    }
+
+    const importLines: string[] = [`import { setupCommunityModules } from 'ag-charts-community';`];
+    const callLines: string[] = ['setupCommunityModules();'];
+
+    const hasEnterpriseCall = code.includes('setupEnterpriseModules(') || code.includes('setupEnterpriseModules?.');
+    if (isEnterprise && !hasEnterpriseCall) {
+        importLines.push(`import { setupEnterpriseModules } from 'ag-charts-enterprise';`);
+        callLines.push('setupEnterpriseModules();');
+    }
+
+    const insertion = `${importLines.join('\n')}\n${callLines.join('\n')}\n\n`;
+    const useClientMatch = code.match(/^(['"]use client['"];?\s*)/);
+    if (useClientMatch) {
+        const directive = useClientMatch[0];
+        const remainder = code.slice(directive.length);
+        return `${directive.trimEnd()}\n${insertion}${remainder.replace(/^\s*/, '')}`;
+    }
+
+    return `${insertion}${code}`;
+};
+
 // noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, transformEntryFile, isDev }) => {
+    vanilla: async ({
+        entryFile,
+        indexHtml,
+        typedBindings,
+        otherScriptFiles,
+        transformEntryFile,
+        isDev,
+        isEnterprise,
+    }) => {
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -95,6 +151,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
         }
 
+        mainJs = ensureModuleSetup(mainJs, { framework: internalFramework, isEnterprise });
+
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {
                 parser: 'babel',
@@ -113,7 +171,15 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, transformEntryFile, isDev }) => {
+    typescript: async ({
+        entryFile,
+        indexHtml,
+        otherScriptFiles,
+        bindings,
+        transformEntryFile,
+        isDev,
+        isEnterprise,
+    }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -145,6 +211,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTs = transformEntryFile({ entryFile: mainTs, chartAPI });
         }
 
+        mainTs = ensureModuleSetup(mainTs, { framework: internalFramework, isEnterprise });
+
         if (!isDev) {
             mainTs = await prettier.format(mainTs, {
                 parser: 'typescript',
@@ -172,6 +240,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         isDev,
         transformEntryFile,
         suppressOptionsClone,
+        isEnterprise,
     }) => {
         const internalFramework = 'reactFunctional';
         const entryFileName = getEntryFileName(internalFramework)!;
@@ -188,6 +257,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             indexJsx = transformEntryFile({ entryFile: indexJsx });
         }
+
+        indexJsx = ensureModuleSetup(indexJsx, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             indexJsx = await prettier.format(indexJsx, {
@@ -217,6 +288,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         transformEntryFile,
         isDev,
         suppressOptionsClone,
+        isEnterprise,
     }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
@@ -233,6 +305,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             indexTsx = transformEntryFile({ entryFile: indexTsx });
         }
+
+        indexTsx = ensureModuleSetup(indexTsx, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             indexTsx = await prettier.format(indexTsx, {
@@ -253,7 +327,14 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    angular: async ({ typedBindings, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
+    angular: async ({
+        typedBindings,
+        otherScriptFiles,
+        isDev,
+        transformEntryFile,
+        suppressOptionsClone,
+        isEnterprise,
+    }) => {
         const internalFramework: InternalFramework = 'angular';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -264,6 +345,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             appComponent = transformEntryFile({ entryFile: appComponent });
         }
+
+        appComponent = ensureModuleSetup(appComponent, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             appComponent = await prettier.format(appComponent, {
@@ -287,7 +370,15 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
+    vue3: async ({
+        bindings,
+        indexHtml,
+        otherScriptFiles,
+        isDev,
+        transformEntryFile,
+        suppressOptionsClone,
+        isEnterprise,
+    }) => {
         const internalFramework: InternalFramework = 'vue3';
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
@@ -296,6 +387,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             mainJs = transformEntryFile({ entryFile: mainJs });
         }
+
+        mainJs = ensureModuleSetup(mainJs, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {

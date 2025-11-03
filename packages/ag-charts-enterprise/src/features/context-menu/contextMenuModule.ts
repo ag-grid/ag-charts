@@ -1,4 +1,4 @@
-import { type AgContextMenuOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgContextMenuOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import { callbackOf } from 'ag-charts-core';
 import { type PluginModuleDefinition, boolean, undocumented } from 'ag-charts-core';
 
@@ -8,6 +8,7 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions> = {
     type: 'plugin',
     name: 'contextMenu',
     enterprise: true,
+    version: VERSION,
 
     options: {
         enabled: boolean,

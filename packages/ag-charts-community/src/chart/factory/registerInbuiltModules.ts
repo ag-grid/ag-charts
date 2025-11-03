@@ -1,8 +1,7 @@
 import { ModuleRegistry } from 'ag-charts-core';
 
-import { AllCommunityModules } from '../../main-modules';
-import { VERSION } from '../../version';
+import { AllCommunityModules } from '../../module-bundles/all';
 
 export function registerInbuiltModules() {
-    ModuleRegistry.registerMany(AllCommunityModules, VERSION);
+    ModuleRegistry.registerModules(AllCommunityModules);
 }

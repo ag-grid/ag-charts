@@ -8,11 +8,13 @@ import {
     continuousAxisOptions,
 } from '../../chart/axesOptionsDefs';
 import { NumberAxis } from '../../chart/axis/numberAxis';
+import { VERSION } from '../../version';
 
 export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
     type: 'axis',
     name: 'number',
     chartType: 'cartesian',
+    version: VERSION,
 
     options: {
         ...cartesianAxisOptionsDefs,

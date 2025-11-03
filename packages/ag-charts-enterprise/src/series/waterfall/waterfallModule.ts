@@ -1,4 +1,4 @@
-import { type AgWaterfallSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgWaterfallSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { WaterfallSeries } from './waterfallSeries';
@@ -11,6 +11,7 @@ export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOpti
     chartType: 'cartesian',
     enterprise: true,
     solo: true,
+    version: VERSION,
 
     options: waterfallSeriesOptionsDef,
     defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,

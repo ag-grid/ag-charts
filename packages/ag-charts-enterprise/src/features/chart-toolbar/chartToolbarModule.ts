@@ -1,4 +1,4 @@
-import type { AgChartToolbarThemeableOptions } from 'ag-charts-community';
+import { type AgChartToolbarThemeableOptions, VERSION } from 'ag-charts-community';
 import { type PluginModuleDefinition, boolean } from 'ag-charts-core';
 
 import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
@@ -9,6 +9,7 @@ export const ChartToolbarModule: PluginModuleDefinition<AgChartToolbarThemeableO
     name: 'chartToolbar',
     chartType: 'cartesian',
     enterprise: true,
+    version: VERSION,
 
     options: {
         enabled: boolean,

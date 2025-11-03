@@ -1,4 +1,4 @@
-import { type AgRadarAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadarAreaSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RADAR_AREA_SERIES_THEME } from '../radar/radarThemes';
@@ -12,6 +12,7 @@ export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOpti
     name: 'radar-area',
     chartType: 'polar',
     enterprise: true,
+    version: VERSION,
 
     options: radarAreaSeriesOptionsDef,
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],

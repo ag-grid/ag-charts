@@ -1,4 +1,4 @@
-import type { AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgMapLineBackgroundOptions, VERSION, type _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
@@ -10,6 +10,7 @@ export const MapLineBackgroundSeriesModule: SeriesModuleDefinition<AgMapLineBack
     name: 'map-line-background',
     chartType: 'topology',
     enterprise: true,
+    version: VERSION,
 
     options: mapLineBackgroundSeriesOptionsDef,
     themeTemplate: {
