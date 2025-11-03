@@ -200,7 +200,7 @@ export class BandedDomain<T = any> implements IDataDomain<T> {
             const band = this.bands[i];
             const isLastBand = i === this.bands.length - 1;
 
-            if (insertIndex <= band.startIndex) {
+            if (insertIndex < band.startIndex) {
                 // Insertion before this band - shift both indices
                 band.startIndex += insertCount;
                 band.endIndex += insertCount;

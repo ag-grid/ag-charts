@@ -1,0 +1,14 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button id="toggleFeedBtn" onclick="toggleFeed()">Start Feed</button>
+        <button id="toggleRapidFeedBtn" onclick="toggleRapidFeed()">Start Rapid Feed</button>
+        <button onclick="tickFeed()">Tick Feed</button>
+        <select onchange="use(this.value)">
+            <option value="applyTransaction-update">applyTransaction (update 2-5 items)</option>
+            <option value="update-all">applyTransaction (update all items)</option>
+            <option value="updateDelta-update">updateDelta (update)</option>
+        </select>
+        <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+    </div>
+</div>
+<div id="myChart"></div>

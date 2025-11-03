@@ -1375,6 +1375,325 @@ describe('DataModel', () => {
         });
     });
 
+    describe('update operations', () => {
+        describe('ungrouped data', () => {
+            it('should process updated items correctly', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const item0 = { x: 1, y: 10 };
+                const item1 = { x: 2, y: 20 };
+                const item2 = { x: 3, y: 30 };
+                const dataSet = new DataSet([item0, item1, item2]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+
+                // Mutate item in place
+                item1.y = 25;
+                dataSet.addTransaction({ update: [item1] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify updated values are reflected
+                expect(reprocessed.columns).toEqual([[10, 25, 30]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+            });
+
+            it('should handle multiple updated items', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const item0 = { x: 1, y: 10 };
+                const item1 = { x: 2, y: 20 };
+                const item2 = { x: 3, y: 30 };
+                const dataSet = new DataSet([item0, item1, item2]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+                processedData!.reduced = { diff: {} };
+
+                // Mutate items in place
+                item0.y = 15;
+                item2.y = 35;
+                dataSet.addTransaction({ update: [item0, item2] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify updated values are reflected
+                expect(reprocessed.columns).toEqual([[15, 20, 35]]);
+                expect(reprocessed.domain.values).toEqual([[15, 35]]);
+            });
+
+            it('should handle combined update and append', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const item0 = { x: 1, y: 10 };
+                const item1 = { x: 2, y: 20 };
+                const dataSet = new DataSet([item0, item1]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+                processedData!.reduced = { diff: {} };
+
+                // Mutate and add
+                item0.y = 15;
+                const newItem = { x: 3, y: 30 };
+                dataSet.addTransaction({ update: [item0], append: [newItem] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                expect(reprocessed.columns).toEqual([[15, 20, 30]]);
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+            });
+
+            it('should handle combined update and prepend', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const item0 = { x: 2, y: 20 };
+                const item1 = { x: 3, y: 30 };
+                const dataSet = new DataSet([item0, item1]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+                processedData!.reduced = { diff: {} };
+
+                // Mutate and prepend
+                item1.y = 35;
+                const newItem = { x: 1, y: 10 };
+                dataSet.addTransaction({ update: [item1], prepend: [newItem] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                expect(reprocessed.columns).toEqual([[10, 20, 35]]);
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3]);
+            });
+
+            it('should handle combined update, remove, and add', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const item0 = { x: 1, y: 10 };
+                const item1 = { x: 2, y: 20 };
+                const item2 = { x: 3, y: 30 };
+                const dataSet = new DataSet([item0, item1, item2]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+                processedData!.reduced = { diff: {} };
+
+                // Remove, update, and add
+                item0.y = 15;
+                const newItem = { x: 4, y: 40 };
+                dataSet.addTransaction({
+                    remove: [item1],
+                    update: [item0],
+                    append: [newItem],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                expect(reprocessed.columns).toEqual([[15, 30, 40]]);
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 3, 4]);
+            });
+
+            it('should preserve update behavior through multiple reprocessing cycles', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const item0 = { x: 1, y: 10 };
+                const item1 = { x: 2, y: 20 };
+                const dataSet = new DataSet([item0, item1]);
+                const sources = new Map([['test', dataSet]]);
+
+                const initialProcessedData = dataModel.processData(sources)!;
+                initialProcessedData.reduced = { diff: {} };
+
+                // First update
+                item0.y = 15;
+                dataSet.addTransaction({ update: [item0] });
+                const firstReprocessed = dataModel.reprocessData(initialProcessedData);
+                verifyReprocessMatchesBaseline(dataModel, firstReprocessed, sources);
+
+                expect(firstReprocessed.columns).toEqual([[15, 20]]);
+
+                // Second update
+                item1.y = 25;
+                dataSet.addTransaction({ update: [item1] });
+                const secondReprocessed = dataModel.reprocessData(firstReprocessed);
+                verifyReprocessMatchesBaseline(dataModel, secondReprocessed, sources);
+
+                expect(secondReprocessed.columns).toEqual([[15, 25]]);
+            });
+        });
+
+        describe('grouped data', () => {
+            it('should process updated items in grouped data', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [categoryKey('category'), value('value')],
+                    groupByKeys: true,
+                });
+
+                const item0 = { category: 'A', value: 10 };
+                const item1 = { category: 'B', value: 20 };
+                const item2 = { category: 'C', value: 30 };
+                const dataSet = new DataSet([item0, item1, item2]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources)!;
+
+                // Mutate item in place
+                item1.value = 25;
+                dataSet.addTransaction({ update: [item1] });
+
+                const reprocessed = dataModel.reprocessData(processedData);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify updated value is reflected in the group
+                if (reprocessed.type === 'grouped') {
+                    expect(resolveGroupColumn(reprocessed, 1, 0)).toEqual([25]);
+                }
+            });
+
+            it('should handle multiple updates in grouped data', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [categoryKey('category'), value('value')],
+                    groupByKeys: true,
+                });
+
+                const item0 = { category: 'A', value: 10 };
+                const item1 = { category: 'B', value: 20 };
+                const item2 = { category: 'C', value: 30 };
+                const dataSet = new DataSet([item0, item1, item2]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources)!;
+
+                // Mutate items in place
+                item0.value = 15;
+                item2.value = 35;
+                dataSet.addTransaction({ update: [item0, item2] });
+
+                const reprocessed = dataModel.reprocessData(processedData);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                if (reprocessed.type === 'grouped') {
+                    expect(resolveGroupColumn(reprocessed, 0, 0)).toEqual([15]);
+                    expect(resolveGroupColumn(reprocessed, 2, 0)).toEqual([35]);
+                }
+            });
+
+            it('should handle updates with category key changes', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [categoryKey('category'), value('value')],
+                    groupByKeys: true,
+                });
+
+                const item0 = { category: 'A', value: 10 };
+                const item1 = { category: 'B', value: 20 };
+                const dataSet = new DataSet([item0, item1]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources)!;
+
+                // Change both category and value
+                item1.category = 'C';
+                item1.value = 25;
+                dataSet.addTransaction({ update: [item1] });
+
+                const reprocessed = dataModel.reprocessData(processedData);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify the updated category appears in the groups
+                if (reprocessed.type === 'grouped') {
+                    expect(reprocessed.groups.map((g) => g.keys[0])).toEqual(['A', 'C']);
+                    expect(resolveGroupColumn(reprocessed, 1, 0)).toEqual([25]);
+                }
+            });
+        });
+
+        describe('accumulated and normalized properties', () => {
+            it('should handle updates with accumulated values', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), accumulatedPropertyValue('y'), normalisePropertyTo('y', [0, 100])],
+                });
+
+                const item0 = { x: 1, y: 10 };
+                const item1 = { x: 2, y: 20 };
+                const item2 = { x: 3, y: 30 };
+                const dataSet = new DataSet([item0, item1, item2]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+
+                // Mutate item - this should affect accumulation
+                item1.y = 25;
+                dataSet.addTransaction({ update: [item1] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify accumulated and normalized values are recalculated
+                // Accumulated: [10, 35, 65], Normalized to [0, 100]
+                const accumulated = [10, 35, 65];
+                const domainMin = Math.min(...accumulated);
+                const domainMax = Math.max(...accumulated);
+                const span = domainMax - domainMin || 1; // Avoid divide-by-zero when span is zero.
+                const expectedNormalized = accumulated.map((v) => ((v - domainMin) / span) * 100);
+
+                expect(reprocessed.columns[0]).toHaveLength(3);
+                expect(reprocessed.columns[0][0]).toBeCloseTo(expectedNormalized[0], 1);
+                expect(reprocessed.columns[0][1]).toBeCloseTo(expectedNormalized[1], 1);
+                expect(reprocessed.columns[0][2]).toBeCloseTo(expectedNormalized[2], 1);
+            });
+        });
+
+        describe('with mid-dataset insertions', () => {
+            it('should handle update combined with mid-dataset insertion', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const item0 = { x: 1, y: 10 };
+                const item1 = { x: 2, y: 20 };
+                const item3 = { x: 4, y: 40 };
+                const dataSet = new DataSet([item0, item1, item3]);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+                processedData!.reduced = { diff: {} };
+
+                // Insert item in middle and update existing item
+                const item2 = { x: 3, y: 30 };
+                item1.y = 25;
+                dataSet.addTransaction({
+                    add: [item2],
+                    addIndex: 2,
+                    update: [item1],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
+                expect(reprocessed.columns).toEqual([[10, 25, 30, 40]]);
+            });
+        });
+    });
+
     describe('optimization metadata', () => {
         it('should collect optimization metadata when debug enabled', () => {
             const dataModel = new DataModel<any, any>({

@@ -144,15 +144,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
             throw new Error('AG Charts - transaction "remove" must be an array.');
         }
 
-        if (update != null) {
-            if (!Array.isArray(update)) {
-                throw new Error('AG Charts - transaction "update" must be an array.');
-            }
-            throw new Error(
-                'AG Charts - transaction "update" operation is not yet implemented. ' +
-                    'Please use "add" and "remove" operations for now. ' +
-                    'The "update" operation will be available in a future release.'
-            );
+        if (update != null && !Array.isArray(update)) {
+            throw new Error('AG Charts - transaction "update" must be an array.');
         }
 
         return this.chart.applyTransaction(transaction);

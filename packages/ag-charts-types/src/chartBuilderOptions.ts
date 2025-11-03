@@ -207,6 +207,18 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
      * // Remove existing data by reference
      * const itemToRemove = data[0];
      * await chart.applyTransaction({ remove: [itemToRemove] });
+     *
+     * // Update existing data by reference
+     * const itemToUpdate = data[1];
+     * itemToUpdate.y = 100; // Mutate the item in place
+     * await chart.applyTransaction({ update: [itemToUpdate] });
+     *
+     * // Combined operations
+     * await chart.applyTransaction({
+     *   remove: [data[0]],
+     *   update: [data[1]],
+     *   add: [{ x: 10, y: 20 }]
+     * });
      * ```
      */
     applyTransaction(transaction: AgDataTransaction<TDatum>): Promise<void>;
