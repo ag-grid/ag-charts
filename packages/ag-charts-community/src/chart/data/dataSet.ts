@@ -414,58 +414,14 @@ export class DataSet<T = unknown> {
         }
 
         const toUpdate = new Set(update);
-        const updatedPrependsIndices: number[] = [];
-        const updatedAppendsIndices: number[] = [];
-        const updatedInsertionsIndices: number[] = [];
-
-        let prependIndex = 0;
-        for (const prependGroup of state.prependsList) {
-            for (const item of prependGroup) {
-                if (toUpdate.has(item)) {
-                    updatedPrependsIndices.push(prependIndex);
-                    toUpdate.delete(item);
-                }
-                prependIndex++;
-            }
-            if (toUpdate.size === 0) break;
-        }
+        const updatedPrependsIndices = this.collectUpdatedIndicesFromGroups(state.prependsList, toUpdate);
+        const updatedInsertionsIndices =
+            toUpdate.size > 0 ? this.collectUpdatedIndicesFromGroups(state.insertionsList, toUpdate) : [];
+        const updatedAppendsIndices =
+            toUpdate.size > 0 ? this.collectUpdatedIndicesFromGroups(state.appendsList, toUpdate) : [];
 
         if (toUpdate.size > 0) {
-            let insertionIndex = 0;
-            for (const insertionGroup of state.insertionsList) {
-                for (const item of insertionGroup) {
-                    if (toUpdate.has(item)) {
-                        updatedInsertionsIndices.push(insertionIndex);
-                        toUpdate.delete(item);
-                    }
-                    insertionIndex++;
-                }
-                if (toUpdate.size === 0) break;
-            }
-        }
-
-        if (toUpdate.size > 0) {
-            let appendIndex = 0;
-            for (const appendGroup of state.appendsList) {
-                for (const item of appendGroup) {
-                    if (toUpdate.has(item)) {
-                        updatedAppendsIndices.push(appendIndex);
-                        toUpdate.delete(item);
-                    }
-                    appendIndex++;
-                }
-                if (toUpdate.size === 0) break;
-            }
-        }
-
-        if (toUpdate.size > 0) {
-            for (let i = 0; i < this.data.length && toUpdate.size > 0; i++) {
-                const value = this.data[i];
-                if (toUpdate.has(value) && !state.removedOriginalIndices.has(i)) {
-                    state.updatedOriginalIndices.add(i);
-                    toUpdate.delete(value);
-                }
-            }
+            this.collectUpdatedOriginalIndices(toUpdate, state);
         }
 
         state.updateTracking = {
@@ -473,6 +429,42 @@ export class DataSet<T = unknown> {
             updatedAppendsIndices,
             updatedInsertionsIndices,
         };
+    }
+
+    // Flattens grouped inserts to find updated item offsets while consuming the lookup set.
+    private collectUpdatedIndicesFromGroups(groups: T[][], toUpdate: Set<T>): number[] {
+        if (toUpdate.size === 0 || groups.length === 0) {
+            return [];
+        }
+
+        const updatedIndices: number[] = [];
+        let flatIndex = 0;
+
+        for (const group of groups) {
+            for (const item of group) {
+                if (toUpdate.has(item)) {
+                    updatedIndices.push(flatIndex);
+                    toUpdate.delete(item);
+                }
+                flatIndex++;
+            }
+
+            if (toUpdate.size === 0) {
+                break;
+            }
+        }
+
+        return updatedIndices;
+    }
+
+    private collectUpdatedOriginalIndices(toUpdate: Set<T>, state: TransactionCollectionState<T>): void {
+        for (let i = 0; i < this.data.length && toUpdate.size > 0; i++) {
+            const value = this.data[i];
+            if (toUpdate.has(value) && !state.removedOriginalIndices.has(i)) {
+                state.updatedOriginalIndices.add(i);
+                toUpdate.delete(value);
+            }
+        }
     }
 
     private removeFromTrackedInsertions(removeValues: T[], state: TransactionCollectionState<T>): void {
