@@ -365,7 +365,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.test_pkg_matrix )}}
-        if: (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release')
+        # AG-15977: Re-enable this when we have a way to test framework package tests with modules.
+        if: false
+        # if: (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release')
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
