@@ -949,6 +949,7 @@ export class RangeAreaSeries extends BaseSeries {
         return {
             marker: markerStyle,
             line: {
+                enabled: true,
                 stroke,
                 strokeOpacity,
                 strokeWidth,

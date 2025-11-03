@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type Point, Vec2 } from 'ag-charts-core';
 
 import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';

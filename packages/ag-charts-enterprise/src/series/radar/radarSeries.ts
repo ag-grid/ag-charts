@@ -490,6 +490,7 @@ export abstract class RadarSeries<
         return {
             marker: markerStyle,
             line: {
+                enabled: true,
                 stroke,
                 strokeOpacity,
                 strokeWidth,

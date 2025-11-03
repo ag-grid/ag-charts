@@ -1,9 +1,9 @@
-import {
-    type ColorSpace,
-    type InternalAgColorType,
-    type RequiredInternalAgGradientColor,
-    type RequiredInternalAgImageFill,
-    type RequiredInternalAgPatternColor,
+import type {
+    ColorSpace,
+    InternalAgColorType,
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgImageFill,
+    RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 import type {
     AgColorRepeat,

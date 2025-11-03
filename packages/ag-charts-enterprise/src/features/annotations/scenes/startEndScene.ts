@@ -1,4 +1,4 @@
-import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
+import type { AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type BoxBounds, type Point, Vec2, Vec4, entries } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';

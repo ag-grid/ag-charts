@@ -8,7 +8,9 @@ import type {
 } from 'ag-charts-types';
 
 import { callWithContext } from '../../util/callbackCache';
+import { mergeDefaults } from '../../util/object';
 import { BaseProperties, Property } from '../../util/properties';
+import type { LegendSymbolOptions } from '../legend/legendSymbol';
 import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
 
 export type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
@@ -47,7 +49,19 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
     ): TooltipContent {
         const overrides = this.renderer == null ? undefined : callWithContext(callers, this.renderer, params);
         if (typeof overrides === 'string') return { type: 'raw', rawHtmlString: overrides };
-        if (overrides != null) return { type: 'structured', ...content, ...overrides };
+        if (overrides != null) {
+            const symbol: LegendSymbolOptions | undefined =
+                content.symbol || overrides.symbol
+                    ? {
+                          marker: mergeDefaults(overrides.symbol?.marker, content.symbol?.marker),
+                          line: content.symbol?.line
+                              ? mergeDefaults(overrides.symbol?.line, content.symbol.line)
+                              : undefined,
+                      }
+                    : undefined;
+
+            return { type: 'structured', ...content, ...overrides, symbol };
+        }
         return { type: 'structured', ...content };
     }
 }

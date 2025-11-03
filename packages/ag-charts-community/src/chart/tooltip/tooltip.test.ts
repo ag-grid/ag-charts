@@ -34,7 +34,7 @@ describe('Tooltip', () => {
 
     describe('Validation', () => {
         it('should show 1 warning for invalid tooltip value', async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { month: 'Jun', sweaters: 50 },
                     { month: 'Jul', sweaters: 70 },
@@ -56,7 +56,7 @@ describe('Tooltip', () => {
         });
 
         it('should show 1 warning for invalid tooltip anchorTo value', async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { month: 'Jun', sweaters: 50 },
                     { month: 'Jul', sweaters: 70 },
@@ -188,6 +188,118 @@ describe('Tooltip', () => {
             });
             await testHover(58, 28); // no highlight match
             await testHover(140, 140); // match within range <= 20
+        });
+    });
+
+    describe('Symbol', () => {
+        it('should allow disabling symbol', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { marker: { enabled: false } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).not.toContain('ag-charts-tooltip-symbol');
+        });
+
+        it('should allow disabling symbol line only', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { line: { enabled: false } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
+            expect(element?.innerHTML).toContain('<path');
+            expect(element?.innerHTML).not.toContain('<line');
+        });
+
+        it('should allow disabling symbol marker only', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { marker: { enabled: false } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
+            expect(element?.innerHTML).not.toContain('<path');
+            expect(element?.innerHTML).toContain('<line');
+        });
+
+        it('should allow customizing symbol fill and shape', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { marker: { fill: 'red', shape: 'square' } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
+            expect(element?.innerHTML).toContain('d="M 4 0 L 16 0 L 16 12 L 4 12 Z"');
+            expect(element?.innerHTML).toContain('fill="red"');
         });
     });
 });
