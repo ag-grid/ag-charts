@@ -252,7 +252,7 @@ export class ZoomToolbar extends BaseProperties {
             const axisZooms = this.ctx.zoomManager.getAxisZooms();
             for (const [axisId, { direction, zoom }] of entries(axisZooms)) {
                 if (zoom == null) continue;
-                this.onButtonPressAxis(button, props, axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
+                this.onButtonPressAxis(button, props, axisId, direction, zoom);
             }
         } else {
             this.onButtonPressUnified(button, props);

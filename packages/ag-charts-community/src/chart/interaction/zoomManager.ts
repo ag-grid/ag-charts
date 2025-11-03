@@ -40,9 +40,9 @@ export type ZoomMemento = {
     autoScaledAxes?: AgAutoScaledAxes;
 };
 
-export type ChartAxisLike = {
+export type CartesianAxisLike = {
     id: string;
-    direction: ChartAxisDirection;
+    direction: CartesianAxisDirection;
     visibleRange: [number, number];
     scale: Scale<any, any>;
     range: [number, number];
@@ -57,7 +57,7 @@ class ZoomManagerAutoScaleAxis {
     manuallyAdjusted = false;
 }
 
-const rangeValidator = (axis?: ChartAxisLike) =>
+const rangeValidator = (axis?: CartesianAxisLike) =>
     attachDescription((value, { options }) => {
         if (!ContinuousScale.is(axis?.scale) && !DiscreteTimeScale.is(axis?.scale)) return true;
         if (value == null || options.end == null) return true;
@@ -74,7 +74,7 @@ export class ZoomManager extends BaseManager {
     private readonly axisZoomManagers = new Map<string, AxisZoomManager>();
     private readonly state = new NonNullableStateTracker<AxisZoomState>({}, 'initial');
 
-    private readonly axes: ChartAxisLike[] = [];
+    private readonly axes: CartesianAxisLike[] = [];
     private didLayoutAxes = false;
 
     private readonly autoScaleYAxis = new ZoomManagerAutoScaleAxis();
@@ -206,7 +206,7 @@ export class ZoomManager extends BaseManager {
         }
     }
 
-    public updateAxes(nextAxes: Array<ChartAxisLike | CartesianAxisDirection>) {
+    public updateAxes(nextAxes: Array<CartesianAxisLike | CartesianAxisDirection>) {
         const { axes, axisZoomManagers } = this;
 
         const existingZoomManagers = new Map(axisZoomManagers);
@@ -331,7 +331,7 @@ export class ZoomManager extends BaseManager {
         this.autoScaleYAxis.manuallyAdjusted = true;
     }
 
-    public updatePrimaryAxisZoom(callerId: string, direction: ChartAxisDirection, newZoom?: ZoomState) {
+    public updatePrimaryAxisZoom(callerId: string, direction: CartesianAxisDirection, newZoom?: ZoomState) {
         const primaryAxis = this.getPrimaryAxis(direction);
         if (!primaryAxis) return;
         this.updateAxisZoom(callerId, primaryAxis.id, newZoom);
@@ -369,11 +369,11 @@ export class ZoomManager extends BaseManager {
         this.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
-    public extendToEnd(callerId: string, direction: ChartAxisDirection, extent: number) {
+    public extendToEnd(callerId: string, direction: CartesianAxisDirection, extent: number) {
         return this.extendWith(callerId, direction, (end) => Number(end) - extent);
     }
 
-    public extendWith(callerId: string, direction: ChartAxisDirection, fn: (end: Date | number) => Date | number) {
+    public extendWith(callerId: string, direction: CartesianAxisDirection, fn: (end: Date | number) => Date | number) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
 
@@ -391,7 +391,7 @@ export class ZoomManager extends BaseManager {
 
     public updateWith(
         callerId: string,
-        direction: ChartAxisDirection,
+        direction: CartesianAxisDirection,
         fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]
     ) {
         const axis = this.getPrimaryAxis(direction);
@@ -431,8 +431,8 @@ export class ZoomManager extends BaseManager {
         return this.axisZoomManagers.get(axisId)?.getZoom() ?? { min: 0, max: 1 };
     }
 
-    public getAxisZooms(): Record<string, { direction: ChartAxisDirection; zoom: ZoomState }> {
-        const axes: Record<string, { direction: ChartAxisDirection; zoom: ZoomState }> = {};
+    public getAxisZooms(): Record<string, { direction: CartesianAxisDirection; zoom: ZoomState }> {
+        const axes: Record<string, { direction: CartesianAxisDirection; zoom: ZoomState }> = {};
         for (const [axisId, axis] of this.axisZoomManagers.entries()) {
             axes[axisId] = {
                 direction: axis.direction,
@@ -446,7 +446,7 @@ export class ZoomManager extends BaseManager {
         return this.lastRestoredState;
     }
 
-    public getPrimaryAxisId(direction: ChartAxisDirection) {
+    public getPrimaryAxisId(direction: CartesianAxisDirection) {
         return this.getPrimaryAxis(direction)?.id;
     }
 
@@ -611,7 +611,7 @@ export class ZoomManager extends BaseManager {
         this.eventsHub.emit('zoom:change-request', { ...this.getZoom(), axes, callerId });
     }
 
-    private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {
+    private getRangeDirection(ratio: ZoomState, direction: CartesianAxisDirection): AgZoomRange | undefined {
         const axis = this.getPrimaryAxis(direction);
         if (!axis || (!ContinuousScale.is(axis.scale) && !DiscreteTimeScale.is(axis.scale))) return;
 
@@ -634,7 +634,7 @@ export class ZoomManager extends BaseManager {
         return { start, end };
     }
 
-    private rangeToRatio(range: AgZoomRange, direction: ChartAxisDirection): ZoomState | undefined {
+    private rangeToRatio(range: AgZoomRange, direction: CartesianAxisDirection): ZoomState | undefined {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
 
@@ -685,11 +685,11 @@ export class ZoomManager extends BaseManager {
         return { min, max };
     }
 
-    private getPrimaryAxis(direction: ChartAxisDirection) {
+    private getPrimaryAxis(direction: CartesianAxisDirection) {
         return this.axes?.find((a) => a.direction === direction);
     }
 
-    private getDomainExtents(axis: ChartAxisLike) {
+    private getDomainExtents(axis: CartesianAxisLike) {
         const { domain } = axis.scale;
         const d0 = domain.at(0);
         const d1 = domain.at(-1);
@@ -699,7 +699,7 @@ export class ZoomManager extends BaseManager {
         return [d0, d1];
     }
 
-    private getDomainPixelExtents(axis: ChartAxisLike) {
+    private getDomainPixelExtents(axis: CartesianAxisLike) {
         const [d0, d1] = axis.scale.range;
 
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
@@ -716,8 +716,8 @@ export class ZoomManager extends BaseManager {
     }
 
     private zoomBounds(
-        xAxis: ChartAxisLike,
-        yAxis: ChartAxisLike,
+        xAxis: CartesianAxisLike,
+        yAxis: CartesianAxisLike,
         zoom: { min: number; max: number },
         padding: number
     ): ZoomState | undefined {
@@ -800,7 +800,7 @@ export class ZoomManager extends BaseManager {
     }
 
     private primaryAxisZoom(
-        direction: ChartAxisDirection,
+        direction: CartesianAxisDirection,
         zoom: ZoomState,
         { padding = 0 } = {}
     ): ZoomState | undefined {
@@ -815,13 +815,13 @@ export class ZoomManager extends BaseManager {
     }
 
     private combinedAxisZoom(
-        direction: ChartAxisDirection,
+        direction: CartesianAxisDirection,
         zoom: ZoomState,
         { padding = 0 } = {}
     ): ZoomState | undefined {
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
-        const seriesXAxes = new Map<any, ChartAxisLike>();
+        const seriesXAxes = new Map<any, CartesianAxisLike>();
         for (const xAxis of this.axes) {
             if (xAxis.direction !== crossDirection) continue;
 
@@ -862,7 +862,7 @@ class AxisZoomManager {
     private currentZoom: ZoomState;
     private readonly state: NonNullableStateTracker<ZoomState>;
 
-    constructor(axis: CartesianAxisDirection | ChartAxisLike) {
+    constructor(axis: CartesianAxisDirection | CartesianAxisLike) {
         let min: number;
         let max: number;
         if (typeof axis === 'string') {
@@ -870,7 +870,7 @@ class AxisZoomManager {
             min = 0;
             max = 1;
         } else {
-            this.direction = axis.direction as CartesianAxisDirection;
+            this.direction = axis.direction;
             [min = 0, max = 1] = axis.visibleRange;
         }
 
