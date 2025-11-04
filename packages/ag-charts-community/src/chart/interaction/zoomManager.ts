@@ -70,7 +70,6 @@ class ZoomManagerAutoScaleAxis {
     enabled = false;
     padding = 0;
     manuallyAdjusted = false;
-    lastAutoScaleYAxis = true;
 }
 
 const rangeValidator = (axis?: CartesianAxisLike) =>
@@ -276,7 +275,9 @@ export class ZoomManager extends BaseManager {
 
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = changes;
-        this.autoScaleYAxis.lastAutoScaleYAxis = zoom.autoScaleYAxis ?? false;
+        if (zoom.autoScaleYAxis != undefined) {
+            this.autoScaleYAxis.manuallyAdjusted = !zoom.autoScaleYAxis;
+        }
         this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'restoreMemento', changes });
     }
 
@@ -359,14 +360,11 @@ export class ZoomManager extends BaseManager {
         return result;
     }
 
-    private applyUpdateZoom(
-        { callerId, changeType, changes }: UpdateZoomParams,
-        autoScaleYAxis?: boolean // TODO(olegat) move to enterprise
-    ): boolean {
+    private applyUpdateZoom({ callerId, changeType, changes }: UpdateZoomParams): boolean {
         validateChanges(changes);
 
-        autoScaleYAxis ??= this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted;
-        if (autoScaleYAxis) {
+        // TODO(olegat) move to enterprise
+        if (this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted) {
             changes = this.autoScaleYZoom(callerId, changeType, false) ?? changes;
         }
 
@@ -386,10 +384,8 @@ export class ZoomManager extends BaseManager {
 
     public resetZoom(callerId: string) {
         this.autoScaleYAxis.manuallyAdjusted = false;
-
-        const { lastAutoScaleYAxis } = this.autoScaleYAxis;
         const changes = this.toCoreZoomState(this.getRestoredZoom());
-        this.applyUpdateZoom({ callerId, changeType: 'reset', changes }, lastAutoScaleYAxis);
+        this.applyUpdateZoom({ callerId, changeType: 'reset', changes });
     }
 
     public resetAxisZoom(callerId: string, axisId: AxisID) {
