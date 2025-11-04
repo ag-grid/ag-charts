@@ -22,11 +22,11 @@ import type {
     ZoomChangeType,
     ZoomState,
 } from '../../core/eventsHub';
-import { deepClone } from '../../module-support';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
+import { deepClone } from '../../util/json';
 import { objectsEqual, strictObjectKeys } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
