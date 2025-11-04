@@ -157,6 +157,7 @@ export class ZoomManager extends BaseManager {
     private toCoreZoomState(axisZoom: DeepReadonly<AxisZoomState>): CoreZoomState {
         const result: CoreZoomState = {};
         let ids: AxisID[];
+        const state = this.state.stateValue();
 
         if (this.independentAxes) {
             const xId = this.getPrimaryAxisId(ChartAxisDirection.X);
@@ -165,11 +166,12 @@ export class ZoomManager extends BaseManager {
             if (xId) ids.push(xId);
             if (yId) ids.push(yId);
         } else {
-            ids = strictObjectKeys(this.state.stateValue);
+            ids = strictObjectKeys(state);
         }
 
         for (const id of ids) {
-            for (const direction of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
+            const { direction } = state[id] ?? {};
+            if (direction != undefined) {
                 const zoom = axisZoom[direction];
                 if (zoom) {
                     const { min, max } = zoom;
