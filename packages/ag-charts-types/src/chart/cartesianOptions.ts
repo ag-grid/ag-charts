@@ -35,8 +35,6 @@ export interface AgBaseCartesianAxisOptions<
     CrosshairLabelType = AgCrosshairLabel<any, ContextDefault>,
     TContext = ContextDefault,
 > extends AgBaseAxisOptions<LabelType, TContext> {
-    /** An array of keys determining which series are charted on this axis. */
-    keys?: string[];
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Value on the first perpendicular axis' domain where this axis should intersect. */
