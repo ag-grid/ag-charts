@@ -1,6 +1,6 @@
 1s/^/import { AgCharts } from 'ag-charts-angular';\nimport { ModuleRegistry, AllCommunityModules } from 'ag-charts-community';\n/
 s/\imports: \[\]/imports: [AgCharts]/
-/export class AppComponent/{
+/export class App/{
   a\
   constructor() {\
     ModuleRegistry.registerModules(AllCommunityModules);\
