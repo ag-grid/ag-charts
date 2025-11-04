@@ -378,10 +378,6 @@ export class ZoomManager extends BaseManager {
         }
         this.state.set(callerId, newState);
 
-        if (autoScaleYAxis != null) {
-            this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
-        }
-
         this.dispatch(callerId, changeType, changedAxes);
     }
 
