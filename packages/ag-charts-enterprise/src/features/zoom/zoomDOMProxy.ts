@@ -45,6 +45,7 @@ export class ZoomDOMProxy {
     }
 
     update(
+        enabled: boolean,
         enableAxisDragging: boolean,
         enableAxisScrolling: boolean,
         ctx: _ModuleSupport.ModuleContext,
@@ -55,7 +56,7 @@ export class ZoomDOMProxy {
         for (const ax of this.axes) {
             ax.div.setHidden(!enableAxisDragging && !enableAxisScrolling);
         }
-        if (!enableAxisDragging && !enableAxisScrolling) return;
+        if (!enabled || (!enableAxisDragging && !enableAxisScrolling)) return;
 
         const { X, Y } = ChartAxisDirection;
         const axesCtx = [...ctx.axisManager.getAxisContext(X), ...ctx.axisManager.getAxisContext(Y)];

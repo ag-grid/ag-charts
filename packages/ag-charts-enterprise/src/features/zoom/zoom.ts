@@ -785,7 +785,13 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        this.domProxy.update(this.enableAxisDragging, this.enableAxisScrolling, this.ctx, event.series.rect);
+        this.domProxy.update(
+            this.enabled,
+            this.enableAxisDragging,
+            this.enableAxisScrolling,
+            this.ctx,
+            event.series.rect
+        );
 
         if (!this.enabled) return;
 
