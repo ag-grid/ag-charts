@@ -484,6 +484,10 @@ export class ZoomManager extends BaseManager {
         return this.state.stateValue();
     }
 
+    public getCoreZoom(): CoreZoomStateSafeRetrieval {
+        return this.state.stateValue();
+    }
+
     public getRestoredZoom(): CoreZoomStateSafeRetrieval {
         return this.lastRestoredState ?? {};
     }

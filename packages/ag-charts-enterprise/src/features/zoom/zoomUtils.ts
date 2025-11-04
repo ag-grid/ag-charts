@@ -1,4 +1,4 @@
-import type { AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
+import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
 import { type BoxBounds, clamp, isNumberEqual } from 'ag-charts-core';
 
 import type { DefinedZoomState } from './zoomTypes';
@@ -166,4 +166,10 @@ export function constrainAxis(axis: { min: number; max: number }) {
     max = Math.min(UNIT_MAX, max);
 
     return { min, max };
+}
+
+export function canResetZoom(zoomManager: _ModuleSupport.ZoomManager) {
+    const current = zoomManager.getCoreZoom();
+    const restore = zoomManager.getRestoredZoom();
+    return _ModuleSupport.jsonDiff(current, restore) != null;
 }

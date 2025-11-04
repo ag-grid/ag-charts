@@ -4,6 +4,7 @@ import type { Point } from 'ag-charts-core';
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
     UNIT_SIZE,
+    canResetZoom,
     constrainZoom,
     definedZoomState,
     dx,
@@ -21,7 +22,6 @@ export class ZoomContextMenu {
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly canResetZoom: () => boolean,
         private readonly getRect: () => _ModuleSupport.BBox | undefined,
         private readonly updateZoom: (zoom: DefinedZoomState) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
@@ -55,7 +55,7 @@ export class ZoomContextMenu {
         const removeListener = this.eventsHub.on('context-menu:setup', (event) => {
             contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);
             contextMenuRegistry.builtins.items['pan-to-cursor'].enabled = shouldEnablePanToHere();
-            contextMenuRegistry.builtins.items['reset-zoom'].enabled = this.canResetZoom();
+            contextMenuRegistry.builtins.items['reset-zoom'].enabled = canResetZoom(this.zoomManager);
         });
 
         return () => {

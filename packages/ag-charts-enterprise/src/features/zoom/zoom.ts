@@ -24,7 +24,6 @@ import {
     dx,
     dy,
     isMaxZoom,
-    isZoomEqual,
     scaleZoom,
     scaleZoomAxisWithAnchor,
 } from './zoomUtils';
@@ -158,16 +157,10 @@ export class Zoom extends AbstractModuleInstance {
     @Property
     public axisDraggingMode: AgZoomAxisDraggingMode = 'zoom';
 
-    private readonly canResetZoom = (zoom?: Readonly<DefinedZoomState>): boolean => {
-        zoom ??= this.getZoom();
-        return !isZoomEqual(zoom, this.getResetZoom());
-    };
-
     @Property
     public buttons = new ZoomToolbar(
         this.ctx,
         this.getModuleProperties.bind(this),
-        this.canResetZoom,
         this.updateZoom.bind(this),
         this.updateAxisZoom.bind(this),
         this.resetZoom.bind(this),
@@ -220,7 +213,6 @@ export class Zoom extends AbstractModuleInstance {
             ctx.contextMenuRegistry,
             ctx.zoomManager,
             this.getModuleProperties.bind(this),
-            this.canResetZoom,
             () => this.paddedRect,
             this.updateZoom.bind(this),
             this.isZoomValid.bind(this)
@@ -1076,10 +1068,6 @@ export class Zoom extends AbstractModuleInstance {
 
     private getZoom() {
         return definedZoomState(this.ctx.zoomManager.getZoom());
-    }
-
-    private getResetZoom() {
-        return definedZoomState(this.ctx.zoomManager.getRestoredZoom());
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {
