@@ -3,14 +3,16 @@
 set -eu
 
 fw=react
-dev_port=3000
-patch_subdir=next-js
+fw_package=react
+dev_port=5173
+patch_subdir=basic-modules
 
 function install_fw {
-    npx -y create-next-app@latest react-${version}-next-js-test --yes --ts --src-dir --app
+    npm create -y vite@latest react-${version}-basic-test -- --template react-ts
 
-    cd react-${version}-next-js-test
+    cd react-${version}-basic-test
     npm i react@${version} react-dom@${version}
+    npm i
 
     git init
 }

@@ -29,6 +29,7 @@ function snapshot_versions {
 while getopts ":eniupc" opt; do
   case $opt in
     i)
+      interactive=true
       editor=true
       mode=native
       ;;
@@ -48,11 +49,6 @@ while getopts ":eniupc" opt; do
     u)
       update=true
       passthrough_opts="${passthrough_opts} -u"
-      ;;
-    i)
-      interactive=true
-      passthrough_opts="${passthrough_opts} -i"
-      it_opts=-it
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2

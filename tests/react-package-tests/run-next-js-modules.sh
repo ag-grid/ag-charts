@@ -4,7 +4,7 @@ set -eu
 
 fw=react
 dev_port=3000
-patch_subdir=next-js
+patch_subdir=next-js-modules
 
 function install_fw {
     npx -y create-next-app@latest react-${version}-next-js-test --yes --ts --src-dir --app

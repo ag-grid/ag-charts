@@ -9,13 +9,13 @@
       "inputs": [],
       "outputs": [],
       "dependsOn": [
-        "test:package:basic:local-18",
-        "test:package:basic:local-19",
-        "test:package:basic:local-latest",
+        "test:package:basic-modules:local-18",
+        "test:package:basic-modules:local-19",
+        "test:package:basic-modules:local-latest",
         "test:package:basic:production-18",
         "test:package:basic:production-19",
-        "test:package:next-js:local-18",
-        "test:package:next-js:local-19"
+        "test:package:next-js-modules:local-18",
+        "test:package:next-js-modules:local-19"
       ],
       "configurations": {
         "update": {}
@@ -93,6 +93,51 @@
     "test:package:next-js:editor": {
       "dependsOn": ["^pack"],
       "command": "{projectRoot}/run-next-js.sh -n -e 19"
+    },
+    "test:package:basic-modules:local-18": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic-modules.sh 18",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic-modules.sh -u 18"
+        }
+      }
+    },
+    "test:package:basic-modules:local-19": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic-modules.sh 19",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic-modules.sh -u 19"
+        }
+      }
+    },
+    "test:package:basic-modules:local-latest": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic-modules.sh latest",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic-modules.sh -u latest"
+        }
+      }
+    },
+    "test:package:next-js-modules:local-18": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-next-js-modules.sh 18",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-next-js-modules.sh -u 18"
+        }
+      }
+    },
+    "test:package:next-js-modules:local-19": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-next-js-modules.sh 19",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-next-js-modules.sh -u 19"
+        }
+      }
     }
   },
   "implicitDependencies": [

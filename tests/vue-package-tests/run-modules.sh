@@ -2,15 +2,17 @@
 
 set -eu
 
-fw=react
-dev_port=3000
-patch_subdir=next-js
+fw=vue3
+fw_package=vue
+dev_port=5173
+patch_subdir=modules
 
 function install_fw {
-    npx -y create-next-app@latest react-${version}-next-js-test --yes --ts --src-dir --app
+    echo ">>> npx create-vue"
+    npx create-vue --default --ts vue-${version}-test
 
-    cd react-${version}-next-js-test
-    npm i react@${version} react-dom@${version}
+    cd vue-${version}-test
+    npm i
 
     git init
 }
@@ -22,7 +24,7 @@ function build_fw {
 
 function serve_fw {
     echo ">>> npm run dev"
-    npm run dev
+    npm run dev --host
 }
 
 # NOTE: This gets inlined when running in Docker for simplicity of execution.

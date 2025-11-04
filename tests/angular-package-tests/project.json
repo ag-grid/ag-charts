@@ -9,11 +9,11 @@
       "inputs": [],
       "outputs": [],
       "dependsOn": [
-        "test:package:local-17",
-        "test:package:local-18",
-        "test:package:local-19",
-        "test:package:local-20",
-        "test:package:local-latest",
+        "test:package:modules:local-17",
+        "test:package:modules:local-18",
+        "test:package:modules:local-19",
+        "test:package:modules:local-20",
+        "test:package:modules:local-latest",
         "test:package:production-19"
       ],
       "configurations": {
@@ -69,6 +69,51 @@
     "test:package:editor": {
       "dependsOn": ["^pack"],
       "command": "{projectRoot}/run.sh -n -e latest"
+    },
+    "test:package:modules:local-17": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-modules.sh 17",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-modules.sh -u 17"
+        }
+      }
+    },
+    "test:package:modules:local-18": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-modules.sh 18",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-modules.sh -u 18"
+        }
+      }
+    },
+    "test:package:modules:local-19": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-modules.sh 19",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-modules.sh -u 19"
+        }
+      }
+    },
+    "test:package:modules:local-20": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-modules.sh 20",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-modules.sh -u 20"
+        }
+      }
+    },
+    "test:package:modules:local-latest": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-modules.sh latest",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-modules.sh -u latest"
+        }
+      }
     }
   },
   "implicitDependencies": [
