@@ -28,7 +28,8 @@
     },
     "build:umd": {
       "options": {
-        "outputFileName": "ag-charts-community"
+        "outputFileName": "ag-charts-community",
+        "main": "{projectRoot}/src/main-umd.ts"
       }
     },
     "lint:eslint": {},

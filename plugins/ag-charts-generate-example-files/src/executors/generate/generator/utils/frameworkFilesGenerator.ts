@@ -55,28 +55,13 @@ const ensureModuleSetup = (
     code: string,
     {
         isEnterprise,
-        framework,
     }: {
         isEnterprise: boolean;
-        framework: InternalFramework;
     }
 ) => {
     const hasCommunityCall = code.includes('setupCommunityModules(') || code.includes('setupCommunityModules?.');
     if (hasCommunityCall) {
         return code;
-    }
-
-    if (framework === 'vanilla') {
-        const snippets = [
-            'agCharts.setupCommunityModules?.();',
-            isEnterprise ? 'agCharts.setupEnterpriseModules?.();' : undefined,
-        ].filter(Boolean);
-
-        if (snippets.length === 0) {
-            return code;
-        }
-
-        return `${snippets.join('\n')}\n\n${code}`;
     }
 
     const importLines: string[] = [`import { setupCommunityModules } from 'ag-charts-community';`];
@@ -101,18 +86,10 @@ const ensureModuleSetup = (
 
 // noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: async ({
-        entryFile,
-        indexHtml,
-        typedBindings,
-        otherScriptFiles,
-        transformEntryFile,
-        isDev,
-        isEnterprise,
-    }) => {
+    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, transformEntryFile, isDev }) => {
         const internalFramework: InternalFramework = 'vanilla';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         let mainJs = readAsJsFile(entryFile);
 
         const localeImports = typedBindings.imports
@@ -123,18 +100,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         }
 
         // Chart classes that need scoping
-        const chartsExports = new Set([
-            'time',
-            'AgCharts',
-            'VERSION',
-            'Marker',
-            'AG_CHARTS_LOCALE_EN_US',
-            '_Scene',
-            '_Theme',
-            '_Scale',
-            '_Util',
-            '_ModuleSupport',
-        ]);
+        const chartsExports = new Set(['time', 'AgCharts', 'VERSION', 'Marker', 'AG_CHARTS_LOCALE_EN_US']);
         const chartImports = typedBindings.imports
             .filter((i: any) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
             .flatMap((imp) => imp.imports)
@@ -150,8 +116,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (transformEntryFile) {
             mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
         }
-
-        mainJs = ensureModuleSetup(mainJs, { framework: internalFramework, isEnterprise });
 
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {
@@ -181,8 +145,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         isEnterprise,
     }) => {
         const internalFramework: InternalFramework = 'typescript';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
 
         const { externalEventHandlers } = bindings;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
@@ -211,7 +175,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTs = transformEntryFile({ entryFile: mainTs, chartAPI });
         }
 
-        mainTs = ensureModuleSetup(mainTs, { framework: internalFramework, isEnterprise });
+        mainTs = ensureModuleSetup(mainTs, { isEnterprise });
 
         if (!isDev) {
             mainTs = await prettier.format(mainTs, {
@@ -243,8 +207,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         isEnterprise,
     }) => {
         const internalFramework = 'reactFunctional';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let indexJsx = await vanillaToReactFunctional(
@@ -258,7 +222,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexJsx = transformEntryFile({ entryFile: indexJsx });
         }
 
-        indexJsx = ensureModuleSetup(indexJsx, { framework: internalFramework, isEnterprise });
+        indexJsx = ensureModuleSetup(indexJsx, { isEnterprise });
 
         if (!isDev) {
             indexJsx = await prettier.format(indexJsx, {
@@ -291,8 +255,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         isEnterprise,
     }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let indexTsx = await vanillaToReactFunctionalTs(
@@ -306,7 +270,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexTsx = transformEntryFile({ entryFile: indexTsx });
         }
 
-        indexTsx = ensureModuleSetup(indexTsx, { framework: internalFramework, isEnterprise });
+        indexTsx = ensureModuleSetup(indexTsx, { isEnterprise });
 
         if (!isDev) {
             indexTsx = await prettier.format(indexTsx, {
@@ -336,8 +300,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         isEnterprise,
     }) => {
         const internalFramework: InternalFramework = 'angular';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let appComponent = await vanillaToAngular(deepCloneObject(typedBindings), [], suppressOptionsClone);
@@ -346,7 +310,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             appComponent = transformEntryFile({ entryFile: appComponent });
         }
 
-        appComponent = ensureModuleSetup(appComponent, { framework: internalFramework, isEnterprise });
+        appComponent = ensureModuleSetup(appComponent, { isEnterprise });
 
         if (!isDev) {
             appComponent = await prettier.format(appComponent, {
@@ -388,7 +352,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = transformEntryFile({ entryFile: mainJs });
         }
 
-        mainJs = ensureModuleSetup(mainJs, { framework: internalFramework, isEnterprise });
+        mainJs = ensureModuleSetup(mainJs, { isEnterprise });
 
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {
@@ -397,8 +361,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             });
         }
 
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
 
         return {
             files: {

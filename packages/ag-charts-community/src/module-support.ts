@@ -42,7 +42,6 @@ export * from './core/eventsHub';
 export * from './module/optionsModule';
 export * from './module/axisContext';
 export * from './module/moduleContext';
-export * from './module/enterpriseModule';
 export * from './chart/background/background';
 export * from './chart/background/backgroundModule';
 export * from './chart/chartAnimationPhase';
