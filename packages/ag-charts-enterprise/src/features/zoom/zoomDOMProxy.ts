@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type BaseStyleTypeMap, boxEmpty, type AxisID } from 'ag-charts-core';
+import { type AxisID, type BaseStyleTypeMap, boxEmpty } from 'ag-charts-core';
 
 const { ChartAxisDirection } = _ModuleSupport;
 

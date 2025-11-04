@@ -1,4 +1,5 @@
 import {
+    type AxisID,
     type BoxBounds,
     Logger,
     type OptionsDefs,
@@ -10,7 +11,6 @@ import {
     isFiniteNumber,
     isObject,
     validate,
-    type AxisID,
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 

@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { CleanupRegistry, createElement, debounce, entries, type AxisID } from 'ag-charts-core';
+import { type AxisID, CleanupRegistry, createElement, debounce, entries } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
