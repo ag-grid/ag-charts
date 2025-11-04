@@ -130,13 +130,11 @@ const SECONDARY_AXIS_OPTIONS: AgCartesianAxesOptions = {
     y: {
         position: 'left',
         type: 'number',
-        keys: ['y1', 'y3'],
         crosshair: CROSSHAIR_OPTIONS,
     },
     ySecondary: {
         position: 'left',
         type: 'number',
-        keys: ['y2'],
         crosshair: {
             ...CROSSHAIR_OPTIONS,
             stroke: '#73C0DE',
@@ -164,6 +162,7 @@ const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
 const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SECONDARY_AXIS_OPTIONS,
+    series: BASE_OPTIONS.series?.map((s) => ({ ...s, yKeyAxis: 'yKey' in s && s.yKey === 'y2' ? 'ySecondary' : 'y' })),
 };
 
 const STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {

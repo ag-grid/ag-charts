@@ -29,7 +29,6 @@ const options: AgCartesianChartOptions = {
         y: {
             type: 'number',
             position: 'left',
-            keys: ['price'],
             min: 400,
             max: 1600,
         },

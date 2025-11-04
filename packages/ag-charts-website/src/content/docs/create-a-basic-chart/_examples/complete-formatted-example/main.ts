@@ -35,8 +35,19 @@ const options: AgChartOptions = {
     ] as IData[],
     // Series: Defines which chart type and data to use
     series: [
-        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' } as AgBarSeriesOptions,
-        { type: 'line', xKey: 'month', yKey: 'avgTemp', yName: 'Average Temperature (°C)' } as AgLineSeriesOptions,
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            yName: 'Ice Cream Sales',
+        } as AgBarSeriesOptions,
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            yName: 'Average Temperature (°C)',
+            yKeyAxis: 'ySecondary',
+        } as AgLineSeriesOptions,
     ],
     // Axes: Configure the axes for the chart
     axes: {
@@ -49,7 +60,6 @@ const options: AgChartOptions = {
         y: {
             type: 'number',
             position: 'left',
-            keys: ['iceCreamSales'],
             // Format the label applied to this axis
             label: {
                 formatter: (params) => {
@@ -61,7 +71,6 @@ const options: AgChartOptions = {
         ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['avgTemp'],
             // Format the label applied to this axis (append ' °C')
             label: {
                 formatter: (params) => {

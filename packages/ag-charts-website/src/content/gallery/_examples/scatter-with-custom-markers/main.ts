@@ -49,6 +49,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Date',
             yKey: 'npmDownloads',
             yName: 'NPM Downloads',
+            yKeyAxis: 'ySecondary',
             title: 'NPM Downloads',
             shape: npmLogo,
             size: 20,
@@ -59,7 +60,6 @@ const options: AgCartesianChartOptions = {
         y: {
             position: 'right',
             type: 'number',
-            keys: ['numberOfVisits'],
             gridLine: {
                 style: [
                     {
@@ -81,7 +81,6 @@ const options: AgCartesianChartOptions = {
         ySecondary: {
             position: 'left',
             type: 'number',
-            keys: ['npmDownloads'],
             title: {
                 text: 'NPM Downloads',
             },

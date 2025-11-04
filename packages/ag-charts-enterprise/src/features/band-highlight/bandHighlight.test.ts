@@ -94,12 +94,10 @@ const SECONDARY_AXIS_OPTIONS: AgCartesianAxesOptions = {
     y: {
         position: 'left',
         type: 'number',
-        keys: ['y1', 'y3'],
     },
     ySecondary: {
         position: 'left',
         type: 'number',
-        keys: ['y2'],
     },
     x: {
         position: 'bottom',
@@ -140,6 +138,7 @@ const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
 const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SECONDARY_AXIS_OPTIONS,
+    series: BASE_OPTIONS.series?.map((s) => ({ ...s, yKeyAxis: 'yKey' in s && s.yKey === 'y2' ? 'ySecondary' : 'y' })),
 };
 
 const GROUPED_STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
@@ -219,6 +218,7 @@ const GROUPED_STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksTM',
             yName: 'Number of Looks - Transparent Mirror',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Number of Looks - Transparent Mirror',
             stackGroup: 'NOL',
         },
@@ -227,6 +227,7 @@ const GROUPED_STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksYM',
             yName: 'Number of Looks - Yellow Mirror',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Number of Looks - Yellow Mirror',
             stackGroup: 'NOL',
         },
@@ -235,7 +236,6 @@ const GROUPED_STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
         x: {
             position: 'top',
             type: 'category',
-            keys: ['dolphin'],
             bandHighlight: {
                 enabled: true,
             },
@@ -243,12 +243,10 @@ const GROUPED_STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
         y: {
             position: 'left',
             type: 'number',
-            keys: ['interactionDurationTM', 'interactionDurationYM'],
         },
         ySecondary: {
             position: 'right',
             type: 'number',
-            keys: ['numberOfLooksTM', 'numberOfLooksYM'],
         },
     },
 };

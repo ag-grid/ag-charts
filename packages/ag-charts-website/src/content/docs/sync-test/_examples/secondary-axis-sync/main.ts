@@ -63,7 +63,6 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             y: {
                 type: 'number',
                 position: 'left',
-                keys: [`timeMs`],
                 min: 0,
                 label: {
                     formatter: (params) => {
@@ -76,7 +75,6 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             ySecondary: {
                 type: 'number',
                 position: 'right',
-                keys: [`heapUsed`, `canvasBytes`],
                 min: 0,
                 label: {
                     formatter: (params) => {
@@ -100,6 +98,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 xKey: 'name',
                 yKey: `heapUsed`,
                 yName: `Heap`,
+                yKeyAxis: 'ySecondary',
                 stackGroup: 'memory',
             },
             {
@@ -107,6 +106,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 xKey: 'name',
                 yKey: `canvasBytes`,
                 yName: `Canvas`,
+                yKeyAxis: 'ySecondary',
                 stackGroup: 'memory',
             },
         ],

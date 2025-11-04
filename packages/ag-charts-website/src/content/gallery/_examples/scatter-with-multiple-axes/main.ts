@@ -28,6 +28,7 @@ const options: AgCartesianChartOptions<DataType> = {
             xName: 'Year',
             yKey: 'lifeExpectancy',
             yName: 'Age',
+            yKeyAxis: 'ySecondary',
             title: 'Life Expectancy',
             size: 5,
         },
@@ -74,7 +75,6 @@ const options: AgCartesianChartOptions<DataType> = {
         y: {
             type: 'number',
             position: 'right',
-            keys: ['numberOfDeaths'],
             title: {
                 text: 'Number of Deaths',
             },
@@ -103,7 +103,6 @@ const options: AgCartesianChartOptions<DataType> = {
             nice: false,
             min: 25,
             max: 85,
-            keys: ['lifeExpectancy'],
             crosshair: {
                 enabled: true,
                 label: {

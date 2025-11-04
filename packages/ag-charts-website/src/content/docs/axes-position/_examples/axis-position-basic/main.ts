@@ -20,7 +20,6 @@ const options: AgCartesianChartOptions = {
         y: {
             type: 'number',
             position: 'left',
-            keys: ['revenue'],
             title: { text: 'Revenue ($M)' },
             line: {
                 stroke: 'red',
@@ -30,7 +29,6 @@ const options: AgCartesianChartOptions = {
         ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['profitMargin'],
             title: { text: 'Profit Margin (%)' },
             label: {
                 formatter: ({ value }) => `${value}%`,
@@ -51,6 +49,7 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             xKey: 'quarter',
             yKey: 'profitMargin',
+            yKeyAxis: 'ySecondary',
         },
     ],
 };

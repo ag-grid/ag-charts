@@ -285,7 +285,6 @@ describe('LineSeries', () => {
                 y: {
                     position: 'left',
                     type: 'number',
-                    keys: ['iphone'],
                 },
                 x: {
                     position: 'bottom',

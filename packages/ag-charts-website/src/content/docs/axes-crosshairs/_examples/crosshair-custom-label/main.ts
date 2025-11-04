@@ -46,7 +46,6 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'number',
             position: 'bottom',
-            keys: ['year'],
             crosshair: {
                 snap: false,
                 label: {

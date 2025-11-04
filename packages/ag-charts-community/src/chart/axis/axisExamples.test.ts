@@ -507,11 +507,11 @@ describe('Axis Examples', () => {
                 ],
                 series: [
                     { type: 'line', xKey: 'quarter', yKey: 'petrol' },
-                    { type: 'line', xKey: 'quarter2', yKey: 'diesel' },
+                    { type: 'line', xKey: 'quarter2', yKey: 'diesel', xKeyAxis: 'secondaryX' },
                 ],
                 axes: {
-                    x: { type: 'category', position: 'top', keys: ['quarter'] },
-                    secondaryX: { type: 'category', position: 'bottom', keys: ['quarter2'] },
+                    x: { type: 'category', position: 'top' },
+                    secondaryX: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
                 },
             });

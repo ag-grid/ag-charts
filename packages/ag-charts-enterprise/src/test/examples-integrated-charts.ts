@@ -1190,7 +1190,6 @@ const COMBO_LINE: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            keys: ['gold', 'silver', 'bronze'],
             position: 'left',
         },
     },
@@ -1233,7 +1232,6 @@ const COMBO_AREA: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            keys: ['gold', 'silver', 'bronze'],
             position: 'left',
         },
     },

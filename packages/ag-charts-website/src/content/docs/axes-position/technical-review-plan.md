@@ -80,8 +80,8 @@
 ```js
 axes: {
     x: { type: 'category', position: 'bottom', title: { text: 'Quarter' } },
-    y: { type: 'number', position: 'left', keys: ['revenue'], title: { text: 'Revenue ($M)' } },
-    ySecondary: { type: 'number', position: 'right', keys: ['profitMargin'], title: { text: 'Profit Margin (%)' } },
+    y: { type: 'number', position: 'left', title: { text: 'Revenue ($M)' } },
+    ySecondary: { type: 'number', position: 'right', title: { text: 'Profit Margin (%)' } },
 };
 ```
 

@@ -32,7 +32,6 @@ const options: AgCartesianChartOptions = {
         x: {
             position: 'left',
             type: 'number',
-            keys: ['iphone'],
         },
         y: {
             position: 'bottom',

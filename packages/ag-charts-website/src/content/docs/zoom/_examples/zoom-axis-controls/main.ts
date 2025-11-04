@@ -20,7 +20,6 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Spending',
             },
-            keys: ['spending'],
             interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
@@ -32,7 +31,6 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Tonnes',
             },
-            keys: ['tonnes'],
             interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
@@ -62,6 +60,7 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             xKey: 'year',
             yKey: 'tonnes',
+            yKeyAxis: 'ySecondary',
         },
     ],
 };

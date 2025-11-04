@@ -1018,6 +1018,7 @@ export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'portions',
             yName: 'Portions',
+            yKeyAxis: 'ySecondary',
             strokeWidth: 3,
             label: {
                 enabled: true,
@@ -1035,7 +1036,6 @@ export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
         y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men', 'children', 'adults'],
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
@@ -1043,7 +1043,6 @@ export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
         ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',
             },
@@ -1069,6 +1068,7 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'portions',
             yName: 'Portions',
+            yKeyAxis: 'ySecondary',
             strokeWidth: 3,
             marker: {
                 enabled: true,
@@ -1111,7 +1111,6 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
         y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men', 'children', 'adults'],
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
@@ -1119,7 +1118,6 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
         ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',
             },
@@ -1160,6 +1158,7 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             xName: 'Weight',
             yKey: 'age',
             yName: 'Age',
+            yKeyAxis: 'ySecondary',
             labelKey: 'age',
             size: 7,
             fill: '#ccb9c9',
@@ -1182,7 +1181,6 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
         y: {
             position: 'left',
             type: 'number',
-            keys: ['height'],
             title: {
                 enabled: true,
                 text: 'Height',
@@ -1194,7 +1192,6 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
         ySecondary: {
             position: 'right',
             type: 'number',
-            keys: ['age'],
             line: {
                 stroke: undefined,
             },

@@ -62,6 +62,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksTM',
             yName: 'Looks - Transparent',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Looks - Transparent',
             stackGroup: 'NOL',
         },
@@ -70,6 +71,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksYM',
             yName: 'Looks - Yellow',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Looks - Yellow',
             stackGroup: 'NOL',
         },
@@ -78,7 +80,6 @@ const options: AgCartesianChartOptions = {
         x: {
             position: 'bottom',
             type: 'category',
-            keys: ['dolphin'],
             title: {
                 text: 'Dolphin',
             },
@@ -102,7 +103,6 @@ const options: AgCartesianChartOptions = {
         y: {
             position: 'left',
             type: 'number',
-            keys: ['interactionDurationTM', 'interactionDurationYM'],
             title: {
                 text: 'Duration of Interaction (seconds)',
             },
@@ -127,7 +127,6 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Number of Looks',
             },
-            keys: ['numberOfLooksTM', 'numberOfLooksYM'],
             gridLine: {
                 style: [
                     {

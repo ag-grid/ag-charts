@@ -36,8 +36,8 @@ const options: AgCartesianChartOptions = {
         { type: 'bar', xKey: 'year', yKey: 'revenue', yName: 'Revenue' },
         { type: 'bar', xKey: 'year', yKey: 'revenue_benchmark', yName: 'Revenue Benchmark' },
 
-        { type: 'line', xKey: 'year', yKey: 'growth', yName: 'Growth' },
-        { type: 'line', xKey: 'year', yKey: 'growth_benchmark', yName: 'Growth Benchmark' },
+        { type: 'line', xKey: 'year', yKey: 'growth', yName: 'Growth', yKeyAxis: 'ySecondary' },
+        { type: 'line', xKey: 'year', yKey: 'growth_benchmark', yName: 'Growth Benchmark', yKeyAxis: 'ySecondary' },
     ],
     axes: {
         x: { type: 'category', position: 'bottom' },
@@ -46,7 +46,6 @@ const options: AgCartesianChartOptions = {
             position: 'left',
             title: { text: 'Revenue (M)' },
             max: 500,
-            keys: ['revenue', 'revenue_benchmark'],
         },
         ySecondary: {
             type: 'number',
@@ -55,7 +54,6 @@ const options: AgCartesianChartOptions = {
             nice: false,
             max: 0.5,
             min: -0.5,
-            keys: ['growth', 'growth_benchmark'],
             label: { formatter: ({ value }) => `${(value * 100).toFixed(0)}%` },
         },
     },

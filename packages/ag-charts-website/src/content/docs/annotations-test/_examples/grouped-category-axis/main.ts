@@ -85,6 +85,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'funding',
             yName: 'Funding',
+            yKeyAxis: 'yTertiary',
             fillOpacity: 1,
         },
         {
@@ -93,6 +94,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'employees',
             yName: 'Employees',
+            yKeyAxis: 'ySecondary',
             fillOpacity: 1,
         },
         {
@@ -101,13 +103,13 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'researchInstitutions',
             yName: 'Research Institutions',
+            yKeyAxis: 'yQuaternary',
         },
     ],
     axes: {
         y: {
             position: 'left',
             type: 'number',
-            keys: ['startups', 'techCompanies'],
             title: {
                 text: 'Startups and Tech Companies',
             },
@@ -115,7 +117,6 @@ const options: AgCartesianChartOptions = {
         ySecondary: {
             position: 'left',
             type: 'number',
-            keys: ['employees'],
             title: {
                 text: 'Number of Employees',
             },
@@ -123,7 +124,6 @@ const options: AgCartesianChartOptions = {
         yTertiary: {
             position: 'left',
             type: 'number',
-            keys: ['funding'],
             title: {
                 text: 'Funding',
             },
@@ -131,7 +131,6 @@ const options: AgCartesianChartOptions = {
         yQuaternary: {
             position: 'right',
             type: 'number',
-            keys: ['researchInstitutions'],
             title: {
                 text: 'Number of Institutions',
             },

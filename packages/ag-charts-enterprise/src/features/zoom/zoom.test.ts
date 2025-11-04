@@ -373,12 +373,12 @@ describe('Zoom', () => {
                 ],
                 series: [
                     { type: 'line', xKey: 'x', yKey: 'y' },
-                    { type: 'line', xKey: 'x', yKey: 'y2' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'ySecondary' },
                 ],
                 axes: {
                     x: { position: 'bottom', type: 'number' },
-                    y: { position: 'left', type: 'number', keys: ['y'] },
-                    ySecondary: { position: 'right', type: 'number', keys: ['y2'] },
+                    y: { position: 'left', type: 'number' },
+                    ySecondary: { position: 'right', type: 'number' },
                 },
                 zoom: {
                     enabled: true,

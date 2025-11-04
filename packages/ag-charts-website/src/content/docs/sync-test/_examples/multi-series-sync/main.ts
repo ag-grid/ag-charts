@@ -13,13 +13,11 @@ const commonOptions: AgCartesianChartOptions = {
         y: {
             type: 'number',
             position: 'left',
-            keys: [`timeMs`],
             label: { formatter: labelFormatter(formatMillis) },
         },
         ySecondary: {
             type: 'number',
             position: 'right',
-            keys: [`heapUsed`, `canvasBytes`],
             label: { formatter: labelFormatter(formatBytes) },
         },
     },
@@ -36,6 +34,7 @@ const commonOptions: AgCartesianChartOptions = {
             xKey: 'name',
             yKey: `heapUsed`,
             yName: `Heap`,
+            yKeyAxis: 'ySecondary',
             stackGroup: 'memory',
         },
         {
@@ -43,6 +42,7 @@ const commonOptions: AgCartesianChartOptions = {
             xKey: 'name',
             yKey: `canvasBytes`,
             yName: `Canvas`,
+            yKeyAxis: 'ySecondary',
             stackGroup: 'memory',
         },
     ],

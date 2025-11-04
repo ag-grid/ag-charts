@@ -32,6 +32,7 @@ const options: AgChartOptions<DataType> = {
             yLowName: 'Lowest Cost',
             yHighName: 'Highest Cost',
             yName: 'Production Cost Range',
+            xKeyAxis: 'xSecondary',
             cornerRadius: 2,
         },
         {
@@ -44,6 +45,7 @@ const options: AgChartOptions<DataType> = {
             yLowName: 'Lowest Price',
             yHighName: 'Highest Price',
             yName: 'Retail Price Range',
+            xKeyAxis: 'xSecondary',
             cornerRadius: 2,
         },
         {
@@ -76,7 +78,6 @@ const options: AgChartOptions<DataType> = {
         y: {
             type: 'category',
             position: 'left',
-            keys: ['smartphone'],
             groupPaddingInner: 0,
             paddingInner: 0.9,
             paddingOuter: 0.8,
@@ -84,7 +85,6 @@ const options: AgChartOptions<DataType> = {
         x: {
             type: 'number',
             position: 'top',
-            keys: ['profitMargin'],
             label: {
                 formatter: ({ value }) => `${Math.round(value)}%`,
             },
@@ -92,7 +92,6 @@ const options: AgChartOptions<DataType> = {
         xSecondary: {
             type: 'number',
             position: 'bottom',
-            keys: ['lowRetail', 'highRetail', 'lowCost', 'highCost'],
             label: {
                 formatter: ({ value }) =>
                     `${Number(value).toLocaleString('en-US', {

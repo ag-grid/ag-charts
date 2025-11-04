@@ -22,12 +22,14 @@ const commonOptions: AgCartesianChartOptions = {
             xKey: 'date',
             yKey: 'product',
             yName: 'Product',
+            yKeyAxis: 'ySecondary',
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'services',
             yName: 'Services',
+            yKeyAxis: 'ySecondary',
         },
     ],
     axes: {
@@ -39,13 +41,10 @@ const commonOptions: AgCartesianChartOptions = {
             type: 'number',
             position: 'left',
             max: 100,
-            keys: ['domestic', 'international'],
         },
         ySecondary: {
             type: 'number',
             position: 'right',
-
-            keys: ['product', 'services'],
         },
     },
     tooltip: { mode: 'single' },
