@@ -5,6 +5,10 @@ import { isDecoratedObject, listDecoratedProperties } from './decorator';
 
 type FalsyType = false | null | undefined;
 
+export function strictObjectKeys<O extends object>(o: O): (keyof O)[] {
+    return Object.keys(o) as (keyof O)[];
+}
+
 export function objectsEqual(a: unknown, b: unknown): boolean {
     if (Array.isArray(a)) {
         if (!Array.isArray(b)) return false;
