@@ -37,21 +37,28 @@ interface ZoomAutoScalerPropertiesDeps {
 }
 
 export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
-    private overrideEnabled?: boolean;
-
     constructor(
         private readonly properties: ZoomAutoScalingProperties,
-        private readonly zoomManager: ZoomManager,
+        private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly deps: ZoomAutoScalerPropertiesDeps
     ) {}
 
+    public manuallyAdjusted: boolean = false;
+
+    get enabled(): boolean {
+        return this.properties.enabled && !this.manuallyAdjusted;
+    }
+
     onChangeRequest(event: _ModuleSupport.ZoomChangeRequestedEvent) {
         if (event.changeType == 'reset') {
-            for (const id of strictObjectKeys(event.changes)) {
-                if (event.changes[id]!.direction === _ModuleSupport.ChartAxisDirection.Y) {
-                    this.autoScaleYAxis.manuallyAdjusted = false;
+            for (const id of event.changedAxes) {
+                if (event.state[id]?.direction === _ModuleSupport.ChartAxisDirection.Y) {
+                    this.manuallyAdjusted = false;
                 }
             }
+        }
+        if (this.enabled) {
+            event.constrainChanges(this.autoScaleYZoom());
         }
     }
 
@@ -107,18 +114,13 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         }
     }
 
-    private autoScaleYZoom(
-        callerId: string,
-        changeType: ZoomChangeType | undefined,
-        apply = true,
-        changes?: UpdateZoomChanges
-    ) {
-        const zoom = this.getZoom();
+    private autoScaleYZoom(changes?: _ModuleSupport.UpdateZoomChanges): _ModuleSupport.CoreZoomState | undefined {
+        const zoom = this.zoomManager.getZoom();
         if (zoom && changes) {
             // The `zoom` is outdated, let's patch in the updates from `changes`.
-            const state = this.state.stateValue();
-            for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
-                for (const id of strictObjectKeys(changes)) {
+            const state = this.zoomManager.getAxisZooms();
+            for (const dir of [_ModuleSupport.ChartAxisDirection.X, _ModuleSupport.ChartAxisDirection.Y] as const) {
+                for (const id of _ModuleSupport.strictObjectKeys(changes)) {
                     if (state[id]?.direction === dir) {
                         zoom[dir] = changes[id];
                         break;
@@ -129,13 +131,9 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         if (zoom?.x == null) return;
 
         const zoomY = this.getAutoScaleYZoom(zoom.x);
-        if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;
+        if (zoomY == null || _ModuleSupport.objectsEqual(zoom.y, zoomY)) return;
 
-        changes = this.toCoreZoomState({ x: zoom.x, y: zoomY });
-        if (changeType && apply) {
-            this.applyUpdateZoom({ callerId, changeType, changes });
-        }
-        return changes;
+        return this.zoomManager.toCoreZoomState({ x: zoom.x, y: zoomY });
     }
 
     private zoomBounds(

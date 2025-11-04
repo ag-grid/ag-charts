@@ -2,7 +2,7 @@ import type { AxisID, Scale } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
 import type { AgAnnotation, AgContextMenuItemShowOn, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { CartesianAxisDirection, ChartAxisDirection } from '../chart/chartAxisDirection';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
@@ -125,7 +125,7 @@ export interface ZoomChangeRequestedEvent extends AxisZoomState {
     readonly callerId: string;
     readonly changeType: ZoomChangeType;
     readonly changedAxes: readonly AxisID[];
-    readonly state: { readonly [K in AxisID]: Readonly<ZoomState> | undefined };
+    readonly state: { readonly [K in AxisID]: Readonly<ZoomStateDirection> | undefined };
     readonly x?: Readonly<ZoomState>;
     readonly y?: Readonly<ZoomState>;
 }
@@ -149,6 +149,10 @@ export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> e
 export interface ZoomState {
     min: number;
     max: number;
+}
+
+export interface ZoomStateDirection extends ZoomState {
+    direction: 'x' | 'y';
 }
 
 export interface AxisZoomState {

@@ -97,8 +97,8 @@ function validateChanges(changes: UpdateZoomChanges): void {
     }
 }
 
-type UpdateZoomChanges = Record<AxisID, ZoomState | undefined>;
-type UpdateZoomParams = {
+export type UpdateZoomChanges = Record<AxisID, ZoomState | undefined>;
+export type UpdateZoomParams = {
     callerId: string;
     changes: UpdateZoomChanges;
     changeType: ZoomChangeType;
@@ -163,7 +163,8 @@ export class ZoomManager extends BaseManager {
         );
     }
 
-    private toCoreZoomState(axisZoom: DeepReadonly<AxisZoomState>): CoreZoomState {
+    // FIXME: should be private
+    public toCoreZoomState(axisZoom: DeepReadonly<AxisZoomState>): CoreZoomState {
         const result: CoreZoomState = {};
         let ids: AxisID[];
         const state = this.state.stateValue();
