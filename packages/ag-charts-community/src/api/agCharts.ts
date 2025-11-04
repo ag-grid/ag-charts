@@ -1,4 +1,4 @@
-import { Debug, type DeepPartial, ModuleRegistry } from 'ag-charts-core';
+import { Debug, type DeepPartial, type LicenseManager, ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -12,8 +12,6 @@ import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { detectChartType } from '../chart/mapping/types';
-import type { LicenseManager } from '../module/enterpriseModule';
-import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { deepClone, jsonWalk } from '../util/json';
 import { deepFreeze } from '../util/object';
@@ -35,7 +33,7 @@ export abstract class AgCharts {
     private static licenseCheck(options: AgChartOptions) {
         if (this.licenseChecked) return;
 
-        this.licenseManager = enterpriseModule.licenseManager?.(options);
+        this.licenseManager = enterpriseRegistry.licenseManager?.(options);
         this.licenseManager?.validateLicense();
         this.licenseChecked = true;
     }
@@ -44,7 +42,7 @@ export abstract class AgCharts {
     static readonly optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
     public static getLicenseDetails(licenseKey: string) {
-        return enterpriseModule.licenseManager?.({}).getLicenseDetails(licenseKey);
+        return enterpriseRegistry.licenseManager?.({}).getLicenseDetails(licenseKey);
     }
 
     /**
@@ -74,7 +72,7 @@ export abstract class AgCharts {
             });
 
             if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
-                enterpriseModule.injectWatermark?.(
+                enterpriseRegistry.injectWatermark?.(
                     chart.chart!.ctx.domManager,
                     this.licenseManager.getWatermarkMessage()
                 );
@@ -164,7 +162,7 @@ class AgChartsInternal {
             stripSymbols = false,
             apiStartTime,
         } = opts;
-        const styles = enterpriseModule.styles == null ? [] : [['ag-charts-enterprise', enterpriseModule.styles]];
+        const styles = enterpriseRegistry.styles == null ? [] : [['ag-charts-enterprise', enterpriseRegistry.styles]];
 
         if (ModuleRegistry.listModules().next().done) {
             throw new Error(

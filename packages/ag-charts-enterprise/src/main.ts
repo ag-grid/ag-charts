@@ -1,3 +1,10 @@
+import { enterpriseRegistry } from 'ag-charts-core';
+import type { AgChartOptions } from 'ag-charts-types';
+
+import { LicenseManager } from './license/licenseManager';
+import { injectWatermark } from './license/watermark';
+import styles from './styles.css';
+
 export {
     AG_CHARTS_LOCALE_EN_US,
     AgCharts,
@@ -15,8 +22,6 @@ export {
 export * from 'ag-charts-types';
 
 export { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from 'ag-charts-community';
-
-export { setupEnterpriseModules } from './setup';
 
 export { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
 export { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
@@ -73,5 +78,12 @@ export { AllPolarEnterpriseModules } from './module-bundles/polar';
 export { AllStandaloneEnterpriseModules } from './module-bundles/standalone';
 export { AllTopologyEnterpriseModules } from './module-bundles/topology';
 export { AllEnterpriseModules } from './module-bundles/all';
+export { AllCommunityAndEnterpriseModules } from './module-bundles/all-with-community';
 
 export { LicenseManager, AgChartsEnterpriseModule } from './module-bundles/integrated';
+
+// Globally registered enterprise setup
+enterpriseRegistry.styles = styles;
+enterpriseRegistry.licenseManager = (options: AgChartOptions) =>
+    new LicenseManager(options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document));
+enterpriseRegistry.injectWatermark = injectWatermark;

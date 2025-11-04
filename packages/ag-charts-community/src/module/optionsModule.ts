@@ -34,7 +34,6 @@ import { detectChartType } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { deepFreeze, merge, mergeDefaults } from '../util/object';
-import { enterpriseModule } from './enterpriseModule';
 import { OptionsGraph, createOptionsGraph } from './optionsGraph';
 
 export interface ChartSpecialOverrides {
@@ -319,7 +318,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
         removeUnusedEnterpriseOptions(this.chartDef.name, processedOptions);
-        if (!enterpriseModule.isEnterprise) {
+        if (!ModuleRegistry.hasEnterpriseModules()) {
             removeUsedEnterpriseOptions(this.chartDef.name, processedOptions, true);
         }
 
