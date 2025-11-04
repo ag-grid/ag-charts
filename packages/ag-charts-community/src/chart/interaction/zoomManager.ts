@@ -10,6 +10,7 @@ import {
     isFiniteNumber,
     isObject,
     validate,
+    type AxisID,
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
@@ -41,7 +42,7 @@ export type ZoomMemento = {
 };
 
 export type CartesianAxisLike = {
-    id: string;
+    id: AxisID;
     direction: CartesianAxisDirection;
     visibleRange: [number, number];
     scale: Scale<any, any>;
@@ -293,7 +294,7 @@ export class ZoomManager extends BaseManager {
         this.applyChanges(callerId);
     }
 
-    public updateAxisZoom(callerId: string, axisId: string, newZoom?: ZoomState) {
+    public updateAxisZoom(callerId: string, axisId: AxisID, newZoom?: ZoomState) {
         this.axisZoomManagers.get(axisId)?.updateZoom(callerId, newZoom);
         this.applyChanges(callerId);
     }
@@ -310,7 +311,7 @@ export class ZoomManager extends BaseManager {
         });
     }
 
-    public resetAxisZoom(callerId: string, axisId: string) {
+    public resetAxisZoom(callerId: string, axisId: AxisID) {
         const axisZoomManager = this.axisZoomManagers.get(axisId);
         const direction = axisZoomManager?.direction;
         if (direction == null) return;
@@ -325,7 +326,7 @@ export class ZoomManager extends BaseManager {
         }
     }
 
-    public setAxisManuallyAdjusted(_callerId: string, axisId: string) {
+    public setAxisManuallyAdjusted(_callerId: string, axisId: AxisID) {
         const direction = this.axisZoomManagers.get(axisId)?.direction;
         if (direction !== ChartAxisDirection.Y) return;
         this.autoScaleYAxis.manuallyAdjusted = true;
@@ -427,11 +428,11 @@ export class ZoomManager extends BaseManager {
         }
     }
 
-    public getAxisZoom(axisId: string): ZoomState {
+    public getAxisZoom(axisId: AxisID | CartesianAxisDirection): ZoomState {
         return this.axisZoomManagers.get(axisId)?.getZoom() ?? { min: 0, max: 1 };
     }
 
-    public getAxisZooms(): Record<string, { direction: CartesianAxisDirection; zoom: ZoomState }> {
+    public getAxisZooms(): Record<AxisID, { direction: CartesianAxisDirection; zoom: ZoomState }> {
         const axes: Record<string, { direction: CartesianAxisDirection; zoom: ZoomState }> = {};
         for (const [axisId, axis] of this.axisZoomManagers.entries()) {
             axes[axisId] = {
