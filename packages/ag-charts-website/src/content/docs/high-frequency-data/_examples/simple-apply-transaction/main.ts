@@ -112,4 +112,3 @@ function updateButton() {
         button.textContent = isRunning ? 'Stop' : 'Start';
     }
 }
-
