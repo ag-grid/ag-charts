@@ -15,7 +15,7 @@ import type {
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgRangeBarSeriesItemStylerParams<
     TDatum = DatumDefault,
@@ -114,7 +114,8 @@ export interface AgRangeBarSeriesOptions<TDatum = DatumDefault, TContext = Conte
     extends AgRangeBarSeriesOptionsKeys<TDatum>,
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum, TContext>,
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions {
     /** Configuration for the Range Bar Series. */
     type: 'range-bar';
 }

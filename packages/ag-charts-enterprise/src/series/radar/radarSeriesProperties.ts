@@ -45,6 +45,12 @@ export class RadarSeriesProperties<
     radiusName?: string;
 
     @Property
+    angleKeyAxis: string = 'angle';
+
+    @Property
+    radiusKeyAxis: string = 'radius';
+
+    @Property
     legendItemName?: string;
 
     @Property

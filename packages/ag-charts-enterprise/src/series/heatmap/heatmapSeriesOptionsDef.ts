@@ -9,6 +9,8 @@ export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     type: required(constant('heatmap')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     colorKey: string,
     xName: string,
     yName: string,

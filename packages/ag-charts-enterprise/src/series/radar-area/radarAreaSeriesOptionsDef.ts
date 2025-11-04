@@ -9,6 +9,8 @@ export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions> = 
     type: required(constant('radar-area')),
     angleKey: required(string),
     radiusKey: required(string),
+    angleKeyAxis: string,
+    radiusKeyAxis: string,
     angleName: string,
     radiusName: string,
     legendItemName: string,
