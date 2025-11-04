@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, type AxisID, debounce, entries, roundTo } from 'ag-charts-core';
+import { AbstractModuleInstance, type AxisID, debounce, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -660,9 +660,7 @@ export class Zoom extends AbstractModuleInstance {
         event.sourceEvent.preventDefault();
 
         const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
-        for (const [axisId, { direction, zoom }] of entries(newZooms)) {
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
-        }
+        this.ctx.zoomManager.updateChanges('zoom', newZooms);
     }
 
     private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
@@ -718,21 +716,11 @@ export class Zoom extends AbstractModuleInstance {
 
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
-            for (const [axisId, { direction, zoom: axisZoom }] of entries(newZooms)) {
-                const constrainedZoom =
-                    direction === ChartAxisDirection.X
-                        ? this.constrainZoom({ x: axisZoom, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
-                        : axisZoom;
-                updated &&= this.updateAxisZoom(
-                    axisId,
-                    direction as _ModuleSupport.CartesianAxisDirection,
-                    constrainedZoom
-                );
-            }
+            this.ctx.zoomManager.updateChanges('zoom', newZooms);
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
             if (newZoom == null) return;
-            updated = this.updateUnifiedZoom(newZoom, { directional: true });
+            this.ctx.zoomManager.updateZoom('zoom', newZoom);
         }
 
         isZoomCapped ||= event.deltaY < 0 && !updated;
@@ -829,11 +817,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!seriesRect) return;
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
-
-        for (const [axisId, { direction, zoom }] of entries(newZooms)) {
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
-        }
-
+        this.ctx.zoomManager.updateChanges('zoom', newZooms);
         tooltipManager.updateTooltip(TOOLTIP_ID);
     }
 

@@ -1,6 +1,7 @@
 import {
     type AxisID,
     type BoxBounds,
+    type DeepReadonly,
     Logger,
     type OptionsDefs,
     type RequireOptional,
@@ -14,13 +15,19 @@ import {
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
-import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
+import type {
+    AxisZoomState,
+    EventsHub,
+    ZoomChangeRequestedEvent,
+    ZoomChangeType,
+    ZoomState,
+} from '../../core/eventsHub';
+import { deepClone } from '../../module-support';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
-import { deepClone } from '../../util/json';
-import { objectsEqual } from '../../util/object';
+import { objectsEqual, strictObjectKeys } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { NonNullableStateTracker } from '../../util/stateTracker';
@@ -33,6 +40,10 @@ export interface DefinedZoomState {
     y: ZoomState;
 }
 
+type CoreZoomEntry = ZoomState & { direction: CartesianAxisDirection };
+export type CoreZoomState = Record<AxisID, CoreZoomEntry>;
+export type CoreZoomStateSafeRetrieval = { readonly [K in AxisID]: CoreZoomEntry | undefined };
+
 export type ZoomMemento = {
     rangeX?: AgZoomRange;
     rangeY?: AgZoomRange;
@@ -41,9 +52,12 @@ export type ZoomMemento = {
     autoScaledAxes?: AgAutoScaledAxes;
 };
 
-export type CartesianAxisLike = {
+export type SimpleAxis = {
     id: AxisID;
     direction: CartesianAxisDirection;
+};
+
+export type CartesianAxisLike = SimpleAxis & {
     visibleRange: [number, number];
     scale: Scale<any, any>;
     range: [number, number];
@@ -56,6 +70,7 @@ class ZoomManagerAutoScaleAxis {
     enabled = false;
     padding = 0;
     manuallyAdjusted = false;
+    lastAutoScaleYAxis = true;
 }
 
 const rangeValidator = (axis?: CartesianAxisLike) =>
@@ -65,6 +80,30 @@ const rangeValidator = (axis?: CartesianAxisLike) =>
         return value < options.end;
     }, `to be less than end`);
 
+function validateChanges(changes: UpdateZoomParams['changes']): void {
+    for (const axisId of strictObjectKeys(changes)) {
+        const zoom = changes[axisId];
+        if (!zoom) continue;
+
+        const { min, max } = zoom;
+
+        if (min < 0 || max > 1) {
+            Logger.warnOnce(
+                `Attempted to update axis (${axisId}) zoom to an invalid ratio of [{ min: ${min}, max: ${max} }], expecting a ratio of 0 to 1. Ignoring.`
+            );
+
+            // Remove invalid zoom state for this axis
+            delete changes[axisId];
+        }
+    }
+}
+
+type UpdateZoomParams = {
+    callerId: string;
+    changes: Record<AxisID, ZoomState>;
+    changeType: ZoomChangeType;
+};
+
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
@@ -72,14 +111,12 @@ const rangeValidator = (axis?: CartesianAxisLike) =>
 export class ZoomManager extends BaseManager {
     public mementoOriginatorKey = 'zoom' as const;
 
-    private readonly axisZoomManagers = new Map<string, AxisZoomManager>();
-    private readonly state = new NonNullableStateTracker<AxisZoomState>({}, 'initial');
-
+    private readonly state = new NonNullableStateTracker<CoreZoomStateSafeRetrieval>({}, 'initial');
     private readonly axes: CartesianAxisLike[] = [];
     private didLayoutAxes = false;
 
     private readonly autoScaleYAxis = new ZoomManagerAutoScaleAxis();
-    private lastRestoredState: AxisZoomState | undefined = undefined;
+    private lastRestoredState: CoreZoomStateSafeRetrieval | undefined = undefined;
     private independentAxes = false;
     private navigatorModule = false;
     private zoomModule = false;
@@ -112,9 +149,55 @@ export class ZoomManager extends BaseManager {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 }
 
-                this.autoScaleYZoom('zoom-manager');
+                this.autoScaleYZoom('zoom-manager', 'layoutComplete');
             })
         );
+    }
+
+    private toCoreZoomState(axisZoom: DeepReadonly<AxisZoomState>): CoreZoomState {
+        const result: CoreZoomState = {};
+        let ids: AxisID[];
+
+        if (this.independentAxes) {
+            const xId = this.getPrimaryAxisId(ChartAxisDirection.X);
+            const yId = this.getPrimaryAxisId(ChartAxisDirection.Y);
+            ids = [];
+            if (xId) ids.push(xId);
+            if (yId) ids.push(yId);
+        } else {
+            ids = strictObjectKeys(this.state.stateValue);
+        }
+
+        for (const id of ids) {
+            for (const direction of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
+                const zoom = axisZoom[direction];
+                if (zoom) {
+                    const { min, max } = zoom;
+                    result[id] = { min, max, direction };
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private toAxisZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): AxisZoomState | undefined {
+        let x: ZoomState | undefined;
+        let y: ZoomState | undefined;
+
+        // Use the zoom on the primary (first) axis in each direction
+        for (const id of strictObjectKeys(coreZoom)) {
+            const { min, max, direction } = coreZoom[id]!;
+            if (direction === ChartAxisDirection.X) {
+                x ??= { min, max };
+            } else if (direction === ChartAxisDirection.Y) {
+                y ??= { min, max };
+            }
+        }
+
+        if (x || y) {
+            return { x, y };
+        }
     }
 
     public createMemento() {
@@ -147,8 +230,6 @@ export class ZoomManager extends BaseManager {
     }
 
     public restoreMemento(version: string, mementoVersion: string, memento: ZoomMemento | undefined) {
-        const { independentAxes } = this;
-
         if (!this.axes || !this.didLayoutAxes) {
             this.pendingMemento = { version, mementoVersion, memento };
             return;
@@ -157,7 +238,7 @@ export class ZoomManager extends BaseManager {
 
         // Migration from older versions can be implemented here.
 
-        const zoom: AxisZoomState = this.getDefinedZoom();
+        const zoom: DefinedZoomState & Pick<AxisZoomState, 'autoScaleYAxis'> = this.getDefinedZoom();
 
         if (memento?.rangeX) {
             zoom.x = this.rangeToRatio(memento.rangeX, ChartAxisDirection.X) ?? { min: 0, max: 1 };
@@ -191,41 +272,30 @@ export class ZoomManager extends BaseManager {
             zoom.autoScaleYAxis = yAutoScale;
         }
 
-        this.lastRestoredState = zoom;
-
-        if (independentAxes !== true) {
-            this.updateZoom('zoom-manager', zoom);
-            return;
-        }
-
-        const primaryX = this.getPrimaryAxis(ChartAxisDirection.X);
-        const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
-
-        for (const axis of [primaryX, primaryY]) {
-            if (!axis) continue;
-            this.updateAxisZoom('zoom-manager', axis.id, zoom[axis.direction as keyof DefinedZoomState]);
-        }
+        const changes = this.toCoreZoomState(zoom);
+        this.lastRestoredState = changes;
+        this.autoScaleYAxis.lastAutoScaleYAxis = zoom.autoScaleYAxis ?? false;
+        this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'restoreMemento', changes });
     }
 
-    public updateAxes(nextAxes: Array<CartesianAxisLike | CartesianAxisDirection>) {
-        const { axes, axisZoomManagers } = this;
-
-        const existingZoomManagers = new Map(axisZoomManagers);
-        axisZoomManagers.clear();
-
+    public setAxes(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>) {
+        const { axes } = this;
         axes.length = 0;
         for (const axis of nextAxes) {
-            if (typeof axis === 'string') {
-                axisZoomManagers.set(axis, existingZoomManagers.get(axis) ?? new AxisZoomManager(axis));
-            } else {
+            if ('range' in axis) {
                 axes.push(axis);
-                axisZoomManagers.set(axis.id, existingZoomManagers.get(axis.id) ?? new AxisZoomManager(axis));
             }
         }
 
-        if (this.state.size > 0 && axes.length > 0) {
-            this.updateZoom(this.state.stateId(), this.state.stateValue());
+        const callerId = this.state.stateId();
+        const oldState = this.state.stateValue();
+        const changes: CoreZoomState = {};
+        for (const { id, direction } of nextAxes) {
+            const { min, max } = oldState[id] ?? { min: 0, max: 1 };
+            changes[id] = { min, max, direction };
         }
+        this.state.set(callerId, changes);
+        this.applyUpdateZoom({ callerId, changeType: 'setAxes', changes });
     }
 
     public setIndependentAxes(independent = true) {
@@ -237,7 +307,7 @@ export class ZoomManager extends BaseManager {
         this.autoScaleYAxis.padding = padding;
 
         if (enabled) {
-            this.autoScaleYZoom('toggle-auto-scale');
+            this.autoScaleYZoom('toggle-auto-scale', 'update');
         }
     }
 
@@ -258,84 +328,86 @@ export class ZoomManager extends BaseManager {
     }
 
     public updateZoom(callerId: string, newZoom?: AxisZoomState) {
-        if (newZoom?.x && (newZoom.x.min < 0 || newZoom.x.max > 1)) {
-            Logger.warnOnce(
-                `Attempted to update x-axis zoom to an invalid ratio of [{ min: ${newZoom.x.min}, max: ${newZoom.x.max} }], expecting a ratio of 0 to 1, ignoring.`
-            );
-            newZoom.x = undefined;
-        }
+        this.updateChanges(callerId, this.toCoreZoomState(newZoom ?? {}));
+    }
 
-        if (newZoom?.y && (newZoom.y.min < 0 || newZoom.y.max > 1)) {
-            Logger.warnOnce(
-                `Attempted to update y-axis zoom to an invalid ratio of [{ min: ${newZoom.y.min}, max: ${newZoom.y.max} }], expecting a ratio of 0 to 1, ignoring.`
-            );
-            newZoom.y = undefined;
-        }
+    public updateAxisZoom(callerId: string, axisId: AxisID, newZoom?: ZoomState) {
+        const changes = { [axisId]: newZoom ?? this.getAxisZoom(axisId) };
+        this.updateChanges(callerId, changes);
+    }
 
-        if (this.axisZoomManagers.size === 0) {
-            const stateId = this.state.stateId();
-            if (stateId === 'initial' || stateId === callerId) {
-                this.state.set(callerId, newZoom);
+    public updateChanges(callerId: string, changes: UpdateZoomParams['changes']) {
+        this.applyUpdateZoom({ callerId, changeType: 'update', changes });
+    }
+
+    private computeChangedAxesIds(newState: UpdateZoomParams['changes']): readonly AxisID[] {
+        const result: AxisID[] = [];
+        const oldState = this.state.stateValue();
+        for (const id of strictObjectKeys(newState)) {
+            const newAxisState = newState[id];
+            const oldAxisState = oldState[id];
+            if (
+                oldAxisState == undefined ||
+                oldAxisState.min !== newAxisState.min ||
+                oldAxisState.max !== newAxisState.max
+            ) {
+                result.push(id);
             }
-            return;
         }
+        return result;
+    }
 
-        this.state.set(callerId, newZoom);
+    private applyUpdateZoom(
+        { callerId, changeType, changes }: UpdateZoomParams,
+        autoScaleYAxis?: boolean // TODO(olegat) move to enterprise
+    ) {
+        validateChanges(changes);
 
-        const autoScaleYAxis = newZoom?.autoScaleYAxis;
+        autoScaleYAxis ??= this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted;
+
+        const changedAxes = this.computeChangedAxesIds(changes);
+        const newState: CoreZoomStateSafeRetrieval = deepClone(this.state.stateValue());
+        for (const id of changedAxes) {
+            const axis = newState[id];
+            if (axis != undefined) {
+                axis.min = changes[id].min;
+                axis.max = changes[id].max;
+            }
+        }
+        this.state.set(callerId, newState);
+
         if (autoScaleYAxis != null) {
             this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
         }
 
-        for (const axis of this.axisZoomManagers.values()) {
-            axis.updateZoom(callerId, newZoom?.[axis.direction]);
-        }
-
-        this.applyChanges(callerId);
-    }
-
-    public updateAxisZoom(callerId: string, axisId: AxisID, newZoom?: ZoomState) {
-        this.axisZoomManagers.get(axisId)?.updateZoom(callerId, newZoom);
-        this.applyChanges(callerId);
+        this.dispatch(callerId, changeType, changedAxes);
     }
 
     public resetZoom(callerId: string) {
         this.autoScaleYAxis.manuallyAdjusted = false;
 
-        // TODO: Move `zoomUtils.ts` to community and use `definedZoomState()` here.
-        const zoom = this.getRestoredZoom();
-        this.updateZoom(callerId, {
-            x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
-            y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
-            autoScaleYAxis: zoom?.autoScaleYAxis ?? true,
-        });
+        const { lastAutoScaleYAxis } = this.autoScaleYAxis;
+        const changes = this.toCoreZoomState(this.getRestoredZoom());
+        this.applyUpdateZoom({ callerId, changeType: 'reset', changes }, lastAutoScaleYAxis);
     }
 
     public resetAxisZoom(callerId: string, axisId: AxisID) {
-        const axisZoomManager = this.axisZoomManagers.get(axisId);
-        const direction = axisZoomManager?.direction;
+        const direction = this.state.stateValue()[axisId]?.direction;
         if (direction == null) return;
         const restoredZoom = this.getRestoredZoom();
+        let lastAutoScaleYAxis: boolean | undefined;
         if (direction === ChartAxisDirection.Y) {
-            const autoScaleYAxis = restoredZoom?.autoScaleYAxis ?? true;
-            this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
+            lastAutoScaleYAxis = restoredZoom?.autoScaleYAxis ?? true;
+            this.autoScaleYAxis.manuallyAdjusted = !lastAutoScaleYAxis;
         }
-        for (const axis of this.axes) {
-            if (axis.direction !== direction) continue;
-            this.updateAxisZoom(callerId, axis.id, restoredZoom?.[direction] ?? { min: 0, max: 1 });
-        }
+        const changes = this.toCoreZoomState({ [direction]: restoredZoom[direction] });
+        this.applyUpdateZoom({ callerId, changeType: 'reset', changes });
     }
 
     public setAxisManuallyAdjusted(_callerId: string, axisId: AxisID) {
-        const direction = this.axisZoomManagers.get(axisId)?.direction;
+        const direction = this.state.stateValue()[axisId]?.direction;
         if (direction !== ChartAxisDirection.Y) return;
         this.autoScaleYAxis.manuallyAdjusted = true;
-    }
-
-    public updatePrimaryAxisZoom(callerId: string, direction: CartesianAxisDirection, newZoom?: ZoomState) {
-        const primaryAxis = this.getPrimaryAxis(direction);
-        if (!primaryAxis) return;
-        this.updateAxisZoom(callerId, primaryAxis.id, newZoom);
     }
 
     public panToBBox(callerId: string, seriesRect: BBox, target: BoxBounds): boolean {
@@ -355,13 +427,8 @@ export class ZoomManager extends BaseManager {
         }
 
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
-
-        if (this.independentAxes) {
-            this.updatePrimaryAxisZoom(callerId, ChartAxisDirection.X, newZoom.x);
-            this.updatePrimaryAxisZoom(callerId, ChartAxisDirection.Y, newZoom.y);
-        } else {
-            this.updateZoom(callerId, newZoom);
-        }
+        const changes = this.toCoreZoomState(newZoom);
+        this.applyUpdateZoom({ callerId, changeType: 'panToBBox', changes });
         return true;
     }
 
@@ -411,40 +478,26 @@ export class ZoomManager extends BaseManager {
     }
 
     public getZoom(): AxisZoomState | undefined {
-        let x: ZoomState | undefined;
-        let y: ZoomState | undefined;
-
-        // Use the zoom on the primary (first) axis in each direction
-        for (const axis of this.axisZoomManagers.values()) {
-            if (axis.direction === ChartAxisDirection.X) {
-                x ??= axis.getZoom();
-            } else if (axis.direction === ChartAxisDirection.Y) {
-                y ??= axis.getZoom();
-            }
-        }
-
-        if (x || y) {
-            return { x, y };
-        }
+        return this.toAxisZoomState(this.state.stateValue());
     }
 
-    public getAxisZoom(axisId: AxisID | CartesianAxisDirection): ZoomState {
-        return this.axisZoomManagers.get(axisId)?.getZoom() ?? { min: 0, max: 1 };
+    public getAxisZoom(axisId: AxisID): ZoomState {
+        return this.state.stateValue()[axisId] ?? { min: 0, max: 1 };
     }
 
-    public getAxisZooms(): Record<AxisID, { direction: CartesianAxisDirection; zoom: ZoomState }> {
-        const axes: Record<string, { direction: CartesianAxisDirection; zoom: ZoomState }> = {};
-        for (const [axisId, axis] of this.axisZoomManagers.entries()) {
-            axes[axisId] = {
-                direction: axis.direction,
-                zoom: axis.getZoom(),
-            };
-        }
-        return axes;
+    public getAxisZooms(): CoreZoomStateSafeRetrieval {
+        return this.state.stateValue();
     }
 
-    public getRestoredZoom(): AxisZoomState | undefined {
-        return this.lastRestoredState;
+    public getRestoredZoom() {
+        // TODO: Move `zoomUtils.ts` to community and use `definedZoomState()` here.
+        const zoom = this.toAxisZoomState(this.lastRestoredState ?? {});
+        const newZoom = {
+            x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
+            y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
+            autoScaleYAxis: zoom?.autoScaleYAxis ?? true,
+        };
+        return newZoom;
     }
 
     public getPrimaryAxisId(direction: CartesianAxisDirection) {
@@ -569,47 +622,30 @@ export class ZoomManager extends BaseManager {
         }
     }
 
-    private autoScaleYZoom(callerId: string, applyChanges = true) {
-        const { independentAxes } = this;
-
+    private autoScaleYZoom(callerId: string, changeType: ZoomChangeType | undefined, apply = true) {
         const zoom = this.getZoom();
         if (zoom?.x == null) return;
 
         const zoomY = this.getAutoScaleYZoom(zoom.x);
         if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;
 
-        if (independentAxes) {
-            const primaryAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
-            const primaryAxisManager = primaryAxis == null ? undefined : this.axisZoomManagers.get(primaryAxis.id);
-            primaryAxisManager?.updateZoom('zoom-manager', zoomY);
-        } else {
-            for (const axisZoomManager of this.axisZoomManagers.values()) {
-                if (axisZoomManager.direction === ChartAxisDirection.Y) {
-                    axisZoomManager.updateZoom('zoom-manager', zoomY);
-                }
-            }
-        }
-
-        if (applyChanges) {
-            this.applyChanges(callerId);
+        if (changeType && apply) {
+            const changes = this.toCoreZoomState({ y: zoomY });
+            this.applyUpdateZoom({ callerId, changeType, changes });
         }
     }
 
-    private applyChanges(callerId: string) {
-        this.autoScaleYZoom(callerId, false);
+    private dispatch(callerId: string, changeType: ZoomChangeType, changedAxes: readonly AxisID[]) {
+        this.autoScaleYZoom(callerId, undefined, false);
 
-        const changed = Array.from(this.axisZoomManagers.values(), (axis) => axis.applyChanges()).includes(true);
-
-        if (!changed) {
+        if (changedAxes.length === 0) {
             return;
         }
 
-        const axes: Record<string, ZoomState | undefined> = {};
-        for (const [axisId, axis] of this.axisZoomManagers.entries()) {
-            axes[axisId] = axis.getZoom();
-        }
-
-        this.eventsHub.emit('zoom:change-request', { ...this.getZoom(), axes, callerId });
+        const { x, y } = this.getZoom() ?? {};
+        const state = this.state.stateValue();
+        const newEvent: ZoomChangeRequestedEvent = { callerId, changeType, changedAxes, state, x, y };
+        this.eventsHub.emit('zoom:change-request', newEvent);
     }
 
     private getRangeDirection(ratio: ZoomState, direction: CartesianAxisDirection): AgZoomRange | undefined {
@@ -855,47 +891,5 @@ export class ZoomManager extends BaseManager {
         if (min > max) return;
 
         return { min, max };
-    }
-}
-
-class AxisZoomManager {
-    public readonly direction: CartesianAxisDirection;
-    private currentZoom: ZoomState;
-    private readonly state: NonNullableStateTracker<ZoomState>;
-
-    constructor(axis: CartesianAxisDirection | CartesianAxisLike) {
-        let min: number;
-        let max: number;
-        if (typeof axis === 'string') {
-            this.direction = axis;
-            min = 0;
-            max = 1;
-        } else {
-            this.direction = axis.direction;
-            [min = 0, max = 1] = axis.visibleRange;
-        }
-
-        this.state = new NonNullableStateTracker({ min, max }, 'initial');
-        this.currentZoom = this.state.stateValue();
-    }
-
-    public updateZoom(callerId: string, newZoom?: ZoomState) {
-        this.state.set(callerId, newZoom);
-    }
-
-    public getZoom() {
-        return deepClone(this.state.stateValue());
-    }
-
-    public hasChanges(): boolean {
-        const currentZoom = this.currentZoom;
-        const pendingZoom = this.state.stateValue();
-        return currentZoom.min !== pendingZoom.min || currentZoom.max !== pendingZoom.max;
-    }
-
-    public applyChanges(): boolean {
-        const hasChanges = this.hasChanges();
-        this.currentZoom = this.state.stateValue();
-        return hasChanges;
     }
 }
