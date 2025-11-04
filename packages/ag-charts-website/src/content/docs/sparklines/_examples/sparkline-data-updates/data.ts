@@ -8,4 +8,3 @@ export const data = [
     { date: new Date('2025-01-07'), price: 156 },
     { date: new Date('2025-01-08'), price: 160 },
 ];
-
