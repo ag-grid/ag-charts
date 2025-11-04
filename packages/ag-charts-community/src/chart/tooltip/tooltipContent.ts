@@ -100,10 +100,6 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
 function dataHtml(label: string | undefined, value: string, inline: boolean) {
     let rowHtml = '';
 
-    if (!textOrSegmentsIsDefined(label) && !value) {
-        return '';
-    }
-
     if (textOrSegmentsIsDefined(label)) {
         rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(label)}</span>`;
         rowHtml += ' ';
@@ -191,8 +187,8 @@ function tooltipContentHtml(
 
     let html = '';
     if (compact && singleItem != null) {
-        if (compactTitle != null) {
-            html += dataHtml(undefined, compactTitle, false);
+        if (textOrSegmentsIsDefined(compactTitle)) {
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(compactTitle)}</span>`;
         }
 
         if (singleItem.data) {
