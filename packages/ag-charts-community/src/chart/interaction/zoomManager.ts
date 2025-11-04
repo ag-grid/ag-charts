@@ -329,17 +329,17 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public updateZoom(callerId: string, newZoom?: AxisZoomState) {
-        this.updateChanges(callerId, this.toCoreZoomState(newZoom ?? {}));
+    public updateZoom(callerId: string, newZoom?: AxisZoomState): boolean {
+        return this.updateChanges(callerId, this.toCoreZoomState(newZoom ?? {}));
     }
 
-    public updateAxisZoom(callerId: string, axisId: AxisID, newZoom?: ZoomState) {
+    public updateAxisZoom(callerId: string, axisId: AxisID, newZoom?: ZoomState): boolean {
         const changes = { [axisId]: newZoom ?? this.getAxisZoom(axisId) };
-        this.updateChanges(callerId, changes);
+        return this.updateChanges(callerId, changes);
     }
 
-    public updateChanges(callerId: string, changes: UpdateZoomParams['changes']) {
-        this.applyUpdateZoom({ callerId, changeType: 'update', changes });
+    public updateChanges(callerId: string, changes: UpdateZoomParams['changes']): boolean {
+        return this.applyUpdateZoom({ callerId, changeType: 'update', changes });
     }
 
     private computeChangedAxesIds(newState: UpdateZoomParams['changes']): readonly AxisID[] {
@@ -362,7 +362,7 @@ export class ZoomManager extends BaseManager {
     private applyUpdateZoom(
         { callerId, changeType, changes }: UpdateZoomParams,
         autoScaleYAxis?: boolean // TODO(olegat) move to enterprise
-    ) {
+    ): boolean {
         validateChanges(changes);
 
         autoScaleYAxis ??= this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted;
@@ -378,7 +378,7 @@ export class ZoomManager extends BaseManager {
         }
         this.state.set(callerId, newState);
 
-        this.dispatch(callerId, changeType, changedAxes);
+        return this.dispatch(callerId, changeType, changedAxes);
     }
 
     public resetZoom(callerId: string) {
@@ -633,17 +633,18 @@ export class ZoomManager extends BaseManager {
         }
     }
 
-    private dispatch(callerId: string, changeType: ZoomChangeType, changedAxes: readonly AxisID[]) {
+    private dispatch(callerId: string, changeType: ZoomChangeType, changedAxes: readonly AxisID[]): boolean {
         this.autoScaleYZoom(callerId, undefined, false);
 
         if (changedAxes.length === 0) {
-            return;
+            return false;
         }
 
         const { x, y } = this.getZoom() ?? {};
         const state = this.state.stateValue();
         const newEvent: ZoomChangeRequestedEvent = { callerId, changeType, changedAxes, state, x, y };
         this.eventsHub.emit('zoom:change-request', newEvent);
+        return true;
     }
 
     private getRangeDirection(ratio: ZoomState, direction: CartesianAxisDirection): AgZoomRange | undefined {

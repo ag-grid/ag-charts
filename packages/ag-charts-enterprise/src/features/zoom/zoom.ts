@@ -712,15 +712,15 @@ export class Zoom extends AbstractModuleInstance {
 
         if (!seriesRect) return;
 
-        let updated = true;
+        let updated: boolean;
 
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
-            this.ctx.zoomManager.updateChanges('zoom', newZooms);
+            updated = this.ctx.zoomManager.updateChanges('zoom', newZooms);
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
             if (newZoom == null) return;
-            this.ctx.zoomManager.updateZoom('zoom', newZoom);
+            updated = this.ctx.zoomManager.updateZoom('zoom', newZoom);
         }
 
         isZoomCapped ||= event.deltaY < 0 && !updated;
