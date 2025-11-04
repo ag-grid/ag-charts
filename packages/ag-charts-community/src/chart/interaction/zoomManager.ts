@@ -104,6 +104,15 @@ type UpdateZoomParams = {
     changeType: ZoomChangeType;
 };
 
+function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
+    const result: CoreZoomState = {};
+    for (const { id, direction } of nextAxes) {
+        const { min, max } = state[id] ?? { min: 0, max: 1 };
+        result[id] = { min, max, direction };
+    }
+    return result;
+}
+
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
@@ -283,7 +292,7 @@ export class ZoomManager extends BaseManager {
         this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'restoreMemento', changes });
     }
 
-    public setAxes(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>) {
+    public setAxes(nextAxes: Parameters<typeof refreshCoreState>[0]) {
         const { axes } = this;
         axes.length = 0;
         for (const axis of nextAxes) {
@@ -294,12 +303,10 @@ export class ZoomManager extends BaseManager {
 
         const callerId = this.state.stateId();
         const oldState = this.state.stateValue();
-        const changes: CoreZoomState = {};
-        for (const { id, direction } of nextAxes) {
-            const { min, max } = oldState[id] ?? { min: 0, max: 1 };
-            changes[id] = { min, max, direction };
-        }
+        const changes = refreshCoreState(nextAxes, oldState);
         this.state.set(callerId, changes);
+        this.lastRestoredState = refreshCoreState(nextAxes, this.lastRestoredState ?? {});
+
         this.applyUpdateZoom({ callerId, changeType: 'setAxes', changes });
     }
 
