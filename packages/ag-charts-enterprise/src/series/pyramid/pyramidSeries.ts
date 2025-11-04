@@ -98,7 +98,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> =
         Selection.select(this.highlightLabelGroup, Text);
     private highlightDatumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
-        this.highlightGroup,
+        this.highlightNodeGroup,
         () => this.nodeFactory()
     );
 

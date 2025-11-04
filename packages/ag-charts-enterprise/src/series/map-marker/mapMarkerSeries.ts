@@ -110,7 +110,7 @@ export class MapMarkerSeries
         false
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
-        Selection.select(this.highlightGroup, Marker);
+        Selection.select(this.highlightNodeGroup, Marker);
     private placedLabelData: _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>[] = [];
 
     private contextNodeData?: MapMarkerNodeDataContext;

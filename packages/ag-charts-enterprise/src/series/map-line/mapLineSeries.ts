@@ -76,7 +76,7 @@ export class MapLineSeries extends TopologySeries<
         _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
     > = Selection.select(this.labelGroup, Text);
     private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
-        this.highlightGroup,
+        this.highlightNodeGroup,
         () => this.nodeFactory()
     );
     private highlightLabelSelection: _ModuleSupport.Selection<

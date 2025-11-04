@@ -90,7 +90,7 @@ describe('MapMarkerSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            const seriesImpl = chart.series[0] as MapMarkerSeries;
+            const seriesImpl = chart.series[1] as MapMarkerSeries;
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
