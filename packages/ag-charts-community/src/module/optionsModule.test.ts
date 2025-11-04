@@ -436,11 +436,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -503,11 +503,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -570,11 +570,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -637,11 +637,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -701,11 +701,11 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -760,11 +760,11 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -833,11 +833,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -900,11 +900,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -967,11 +967,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1034,11 +1034,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1098,11 +1098,11 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -1157,11 +1157,11 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -1230,11 +1230,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1297,11 +1297,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1364,11 +1364,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1431,11 +1431,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1495,11 +1495,11 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -1554,11 +1554,11 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
