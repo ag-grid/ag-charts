@@ -366,6 +366,9 @@ export class ZoomManager extends BaseManager {
         validateChanges(changes);
 
         autoScaleYAxis ??= this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted;
+        if (autoScaleYAxis) {
+            changes = this.autoScaleYZoom(callerId, changeType, false) ?? changes;
+        }
 
         const changedAxes = this.computeChangedAxesIds(changes);
         const newState: CoreZoomStateSafeRetrieval = deepClone(this.state.stateValue());
@@ -627,15 +630,14 @@ export class ZoomManager extends BaseManager {
         const zoomY = this.getAutoScaleYZoom(zoom.x);
         if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;
 
+        const changes = this.toCoreZoomState({ x: zoom.x, y: zoomY });
         if (changeType && apply) {
-            const changes = this.toCoreZoomState({ y: zoomY });
             this.applyUpdateZoom({ callerId, changeType, changes });
         }
+        return changes;
     }
 
     private dispatch(callerId: string, changeType: ZoomChangeType, changedAxes: readonly AxisID[]): boolean {
-        this.autoScaleYZoom(callerId, undefined, false);
-
         if (changedAxes.length === 0) {
             return false;
         }
