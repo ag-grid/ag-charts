@@ -125,7 +125,7 @@ export class ZoomManager extends BaseManager {
     private didLayoutAxes = false;
 
     private readonly autoScaleYAxis = new ZoomManagerAutoScaleAxis();
-    private lastRestoredState: CoreZoomStateSafeRetrieval | undefined = undefined;
+    private lastRestoredState: CoreZoomStateSafeRetrieval = {};
     private independentAxes = false;
     private navigatorModule = false;
     private zoomModule = false;
@@ -305,7 +305,7 @@ export class ZoomManager extends BaseManager {
         const oldState = this.state.stateValue();
         const changes = refreshCoreState(nextAxes, oldState);
         this.state.set(callerId, changes);
-        this.lastRestoredState = refreshCoreState(nextAxes, this.lastRestoredState ?? {});
+        this.lastRestoredState = refreshCoreState(nextAxes, this.lastRestoredState);
 
         this.applyUpdateZoom({ callerId, changeType: 'setAxes', changes });
     }
@@ -496,7 +496,7 @@ export class ZoomManager extends BaseManager {
     }
 
     public getRestoredZoom(): CoreZoomStateSafeRetrieval {
-        return this.lastRestoredState ?? {};
+        return this.lastRestoredState;
     }
 
     public getPrimaryAxisId(direction: CartesianAxisDirection) {
