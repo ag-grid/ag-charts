@@ -49,11 +49,14 @@ function getImports(componentFilenames: string[], bindings: any, styleFileNames:
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
     }));
     if (bindings.usesChartApi) {
-        chartImports.push({
-            module: bindings.chartSettings.enterprise ? "'ag-charts-enterprise'" : "'ag-charts-community'",
-            isNamespaced: false,
-            imports: ['AgChartsInstance'],
-        });
+        const packageName = bindings.chartSettings.enterprise ? "'ag-charts-enterprise'" : "'ag-charts-community'";
+        const existingImport = chartImports.find((i) => i.module === packageName);
+
+        if (existingImport) {
+            existingImport.imports = Array.from(new Set(existingImport.imports).add('AgChartsInstance'));
+        } else {
+            chartImports.push({ module: packageName, isNamespaced: false, imports: ['AgChartsInstance'] });
+        }
     }
 
     if (chartImports.length > 0) {
