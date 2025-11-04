@@ -1,4 +1,4 @@
-import { Logger, ModuleRegistry, ModuleType, isArray } from 'ag-charts-core';
+import { Logger, ModuleRegistry, ModuleType, isArray, isObject } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
@@ -41,11 +41,15 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
             case 'axis':
                 if (
                     'axes' in options &&
-                    isArray(options.axes) &&
-                    options.axes.some((axis) => axis.type === module.name)
+                    isObject(options.axes) &&
+                    Object.values(options.axes).some((series) => series.type === module.name)
                 ) {
                     missingModules.push(module);
-                    options.axes = (options.axes as any[]).filter((axis) => axis.type !== module.name);
+                    for (const key of Object.keys(options.axes)) {
+                        if (options.axes[key].type === module.name) {
+                            delete options.axes[key];
+                        }
+                    }
                 }
                 break;
 
@@ -67,11 +71,11 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
             case 'axis:plugin':
                 if (
                     'axes' in options &&
-                    isArray(options.axes) &&
-                    options.axes.some((axis) => axis[module.name as keyof typeof axis])
+                    isObject(options.axes) &&
+                    Object.values(options.axes).some((axis) => axis[module.name as keyof typeof axis])
                 ) {
                     missingModules.push(module);
-                    for (const axis of options.axes) {
+                    for (const axis of Object.values(options.axes)) {
                         if (axis[module.name as keyof typeof axis]) {
                             delete axis[module.name as keyof typeof axis];
                         }
@@ -154,10 +158,10 @@ export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions
             delete options[module.name as keyof AgChartOptions];
         }
     }
-    if ('axes' in options && isArray(options.axes)) {
+    if ('axes' in options && isObject(options.axes)) {
         for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
             if (module.chartType && module.chartType !== chartType) {
-                for (const axis of options.axes) {
+                for (const axis of Object.values(options.axes)) {
                     delete axis[module.name as keyof typeof axis];
                 }
             }

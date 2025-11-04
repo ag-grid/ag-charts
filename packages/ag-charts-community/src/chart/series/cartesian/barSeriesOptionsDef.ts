@@ -70,6 +70,8 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     type: required(constant('bar')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     direction: union('horizontal', 'vertical'),

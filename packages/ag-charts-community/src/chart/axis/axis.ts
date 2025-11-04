@@ -1,4 +1,4 @@
-import type { Scale } from 'ag-charts-core';
+import type { AxisID, Scale } from 'ag-charts-core';
 import {
     type Callback,
     type CallbackParam,
@@ -7,12 +7,10 @@ import {
     type RequireOptional,
     WeakCache,
     clampArray,
-    createId,
     findMinMax,
     findRangeExtent,
     isArray,
 } from 'ag-charts-core';
-import type { AxisID } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -155,7 +153,7 @@ export abstract class Axis<
 
     protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
 
-    readonly id: AxisID = createId(this);
+    id: AxisID = 'unknown' as AxisID;
 
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
@@ -186,9 +184,6 @@ export abstract class Axis<
     /** Reverse the axis scale domain. */
     @Property
     reverse: boolean = false;
-
-    @Property
-    keys: string[] = [];
 
     @Property
     readonly interval = new AxisInterval();

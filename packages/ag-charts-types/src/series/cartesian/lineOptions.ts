@@ -17,7 +17,7 @@ import type {
     AgCartesianSeriesTooltipRendererParams,
     AgErrorBoundSeriesTooltipRendererParams,
 } from './cartesianSeriesTooltipOptions';
-import type { LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
@@ -109,6 +109,7 @@ export interface AgLineSeriesOptionsNames {
 
 export interface AgLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgLineSeriesOptionsKeys<TDatum>,
         AgLineSeriesOptionsNames,
         AgLineSeriesThemeableOptions<TDatum, TContext> {

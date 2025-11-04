@@ -24,7 +24,7 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
     validate(options: any, optionsDefs, path) {
         const additionalErrors: ValidationError[] = [];
         if (options?.series?.[0]?.type === 'histogram') {
-            if (options?.axes?.some(validHistogramAxis)) {
+            if (Object.values(options?.axes ?? {}).some(validHistogramAxis)) {
                 additionalErrors.push(
                     new ValidationError(
                         'invalid',

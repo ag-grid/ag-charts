@@ -67,6 +67,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     ): number;
     dataCount(): number;
     shouldFlipXY?: () => boolean;
+    getKeyAxis(direction: ChartAxisDirection): string | undefined;
     getKeys(direction: ChartAxisDirection): string[];
     getKeyProperties(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];

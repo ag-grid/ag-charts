@@ -53,7 +53,10 @@ export class MiniChart extends AbstractModuleInstance {
     protected seriesRect?: _ModuleSupport.BBox = undefined;
 
     @ActionOnSet<MiniChart>({
-        changeValue(newValue: _ModuleSupport.ChartAxis[], oldValue: _ModuleSupport.ChartAxis[] = []) {
+        changeValue(
+            newValue: _ModuleSupport.ChartAxes,
+            oldValue: _ModuleSupport.ChartAxes = new _ModuleSupport.ChartAxes()
+        ) {
             const axisNodes = {
                 axisNode: this.axisGroup,
                 gridNode: this.axisGridGroup,
@@ -76,7 +79,7 @@ export class MiniChart extends AbstractModuleInstance {
             }
         },
     })
-    axes: _ModuleSupport.ChartAxis[] = [];
+    axes: _ModuleSupport.ChartAxes = new _ModuleSupport.ChartAxes();
 
     @ActionOnSet<MiniChart>({
         changeValue(newValue, oldValue) {
@@ -99,10 +102,7 @@ export class MiniChart extends AbstractModuleInstance {
         super.destroy();
         this.destroySeries(this.series);
 
-        for (const a of this.axes) {
-            a.destroy();
-        }
-        this.axes = [];
+        this.axes.destroy();
 
         this._destroyed = true;
     }
@@ -166,45 +166,15 @@ export class MiniChart extends AbstractModuleInstance {
 
         for (const series of this.series) {
             for (const direction of series.directions) {
-                const directionAxes = directionToAxesMap[direction];
-                if (!directionAxes) {
-                    Logger.warnOnce(
-                        `no available axis for direction [${direction}]; check series and axes configuration.`
-                    );
-                    continue;
-                }
-
-                const seriesKeys = series.getKeys(direction);
-                const newAxis = this.findMatchingAxis(directionAxes, seriesKeys);
+                const seriesAxisId = series.getKeyAxis(direction) ?? direction;
+                const newAxis = this.axes.findById(seriesAxisId);
                 if (!newAxis) {
                     Logger.warnOnce(
-                        `no matching axis for direction [${direction}] and keys [${seriesKeys}]; check series and axes configuration.`
+                        `no matching axis for direction [${direction}] and id [${seriesAxisId}]; check series and axes configuration.`
                     );
-                    continue;
+                    return;
                 }
-
                 series.axes[direction] = newAxis;
-            }
-        }
-    }
-
-    private findMatchingAxis(
-        directionAxes: _ModuleSupport.ChartAxis[],
-        directionKeys?: string[]
-    ): _ModuleSupport.ChartAxis | undefined {
-        for (const axis of directionAxes) {
-            if (!axis.keys.length) {
-                return axis;
-            }
-
-            if (!directionKeys) {
-                continue;
-            }
-
-            for (const directionKey of directionKeys) {
-                if (axis.keys.includes(directionKey)) {
-                    return axis;
-                }
             }
         }
     }

@@ -110,7 +110,7 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
     direction: ChartAxisDirection,
     datum: DatumDefault,
     seriesOptions: SeriesOptions
-): SeriesPredictAxis<SeriesOptions['type']> | undefined {
+): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
     if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
     if (!isObject(datum)) return;
 
@@ -142,7 +142,7 @@ export function predictCartesianTimeAxis<SeriesOptions extends AgCartesianSeries
     direction: ChartAxisDirection,
     datum: DatumDefault,
     seriesOptions: SeriesOptions
-): SeriesPredictAxis<SeriesOptions['type']> | undefined {
+): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
     if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
     if (!isObject(datum)) return;
 

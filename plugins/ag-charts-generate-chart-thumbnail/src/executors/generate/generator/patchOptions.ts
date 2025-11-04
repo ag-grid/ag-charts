@@ -51,11 +51,12 @@ export function patchOptions(
         },
     } as AgChartTheme;
 
-    (options as any as AgCartesianChartOptions).axes?.forEach((axis) => {
+    for (const id of Object.keys((options as any as AgCartesianChartOptions).axes ?? {})) {
+        const axis = (options as any as AgCartesianChartOptions).axes[id];
         if (typeof axis.title !== 'undefined') {
             axis.title = { enabled: false };
         }
-    });
+    }
 
     if (api === 'createGauge') {
         delete options.title;
