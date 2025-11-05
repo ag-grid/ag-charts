@@ -79,7 +79,7 @@ const rangeValidator = (axis?: CartesianAxisLike) =>
         return value < options.end;
     }, `to be less than end`);
 
-function validateChanges(changes: UpdateZoomParams['changes']): void {
+function validateChanges(changes: UpdateZoomChanges): void {
     for (const axisId of strictObjectKeys(changes)) {
         const zoom = changes[axisId];
         if (!zoom) continue;
@@ -97,9 +97,10 @@ function validateChanges(changes: UpdateZoomParams['changes']): void {
     }
 }
 
+type UpdateZoomChanges = Record<AxisID, ZoomState>;
 type UpdateZoomParams = {
     callerId: string;
-    changes: Record<AxisID, ZoomState>;
+    changes: UpdateZoomChanges;
     changeType: ZoomChangeType;
 };
 
@@ -340,11 +341,11 @@ export class ZoomManager extends BaseManager {
         return this.updateChanges(callerId, changes);
     }
 
-    public updateChanges(callerId: string, changes: UpdateZoomParams['changes']): boolean {
+    public updateChanges(callerId: string, changes: UpdateZoomChanges): boolean {
         return this.applyUpdateZoom({ callerId, changeType: 'update', changes });
     }
 
-    private computeChangedAxesIds(newState: UpdateZoomParams['changes']): readonly AxisID[] {
+    private computeChangedAxesIds(newState: UpdateZoomChanges): readonly AxisID[] {
         const result: AxisID[] = [];
         const oldState = this.state.stateValue();
         for (const id of strictObjectKeys(newState)) {
