@@ -120,7 +120,7 @@ export class Zoom extends AbstractModuleInstance {
 
     @Property
     public readonly autoScaling: ZoomAutoScalingProperties = new ZoomAutoScalingProperties((opts) => {
-        this.autoScaler.onChange(opts);
+        this.autoScaler?.onChange(opts);
     });
 
     @ActionOnSet<Zoom>({
@@ -147,7 +147,7 @@ export class Zoom extends AbstractModuleInstance {
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
-    private readonly autoScaler = new ZoomAutoScaler(this.autoScaling);
+    private readonly autoScaler: ZoomAutoScaler;
     private readonly contextMenu: ZoomContextMenu;
     private readonly panner = new ZoomPanner();
     private readonly selector: ZoomSelector;
@@ -181,6 +181,7 @@ export class Zoom extends AbstractModuleInstance {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
+        this.autoScaler = new ZoomAutoScaler(this.autoScaling, ctx.zoomManager, this);
         const selectionRect = new ZoomRect();
         this.selector = new ZoomSelector(selectionRect, this.getZoom.bind(this), this.isZoomValid.bind(this));
         this.contextMenu = new ZoomContextMenu(

@@ -29,7 +29,7 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import { deepClone } from '../../util/json';
-import { objectsEqual, strictObjectKeys } from '../../util/object';
+import { strictObjectKeys } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { NonNullableStateTracker } from '../../util/stateTracker';
@@ -152,7 +152,7 @@ export class ZoomManager extends BaseManager {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 }
 
-                this.autoScaleYZoom('zoom-manager', 'layoutComplete');
+                this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'layoutComplete', changes: {} });
             })
         );
     }
@@ -496,7 +496,9 @@ export class ZoomManager extends BaseManager {
         const xZoom: ZoomState = { min: xVisibleRange[0], max: xVisibleRange[1] };
         let yZoom: ZoomState | undefined;
 
+        /* TODO: move to enterprise
         yZoom ??= this.getAutoScaleYZoom(xZoom);
+        //*/
         if (yVisibleRange) {
             yZoom = { min: yVisibleRange[0], max: yVisibleRange[1] };
         }
