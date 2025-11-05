@@ -338,19 +338,6 @@ export class ZoomManager extends BaseManager {
     private applyUpdateZoom({ callerId, changeType, changes }: UpdateZoomParams): boolean {
         validateChanges(changes);
 
-        // TODO(olegat) move to enterprise
-        if (changeType == 'reset') {
-            const state = this.state.stateValue();
-            for (const id of strictObjectKeys(changes)) {
-                if (state[id]?.direction === ChartAxisDirection.Y) {
-                    this.autoScaleYAxis.manuallyAdjusted = false;
-                }
-            }
-        }
-        if (this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted) {
-            changes = this.autoScaleYZoom(callerId, changeType, false, changes) ?? changes;
-        }
-
         const changedAxes = this.computeChangedAxesIds(changes);
         const newState: CoreZoomStateSafeRetrieval = deepClone(this.state.stateValue());
         for (const id of changedAxes) {
