@@ -959,7 +959,15 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private updateChanges(changes: _ModuleSupport.CoreZoomState) {
-        this.updateZoom(definedZoomState(this.ctx.zoomManager.toAxisZoomState(changes)));
+        // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
+        // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
+        // breaking thebehaviour.
+        const partialZoom = this.ctx.zoomManager.toAxisZoomState(changes) ?? {};
+        const currentZoom = definedZoomState(this.ctx.zoomManager.getZoom());
+        this.updateZoom({
+            x: partialZoom.x ?? currentZoom.x,
+            y: partialZoom.y ?? currentZoom.y,
+        });
     }
 
     private updateZoom(zoom: DefinedZoomState) {
