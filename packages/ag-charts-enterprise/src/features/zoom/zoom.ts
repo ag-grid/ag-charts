@@ -721,11 +721,7 @@ export class Zoom extends AbstractModuleInstance {
                     direction === ChartAxisDirection.X
                         ? this.constrainZoom({ x: { min, max }, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
                         : { min, max };
-                updated &&= this.updateAxisZoom(
-                    axisId,
-                    direction,
-                    constrainedZoom
-                );
+                updated &&= this.updateAxisZoom(axisId, direction, constrainedZoom);
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
