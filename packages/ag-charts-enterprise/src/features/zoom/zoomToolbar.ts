@@ -8,6 +8,7 @@ import {
     UNIT_MAX,
     UNIT_MIN,
     ZOOM_VALID_CHECK_DEBOUNCE,
+    canResetZoom,
     constrainAxis,
     constrainZoom,
     definedZoomState,
@@ -87,7 +88,6 @@ export class ZoomToolbar extends BaseProperties {
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly canResetZoom: (zoom: Readonly<DefinedZoomState>) => boolean,
         private readonly updateZoom: (zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
             axisId: AxisID,
@@ -235,7 +235,7 @@ export class ZoomToolbar extends BaseProperties {
                     );
                     break;
                 case 'reset':
-                    enabled = this.canResetZoom(zoom);
+                    enabled = canResetZoom(this.ctx.zoomManager);
                     break;
             }
 
