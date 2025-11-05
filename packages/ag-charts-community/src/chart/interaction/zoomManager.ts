@@ -552,12 +552,6 @@ export class ZoomManager extends BaseManager {
     }
 
     private dispatch(callerId: string, changeType: ZoomChangeType, changedAxes: readonly AxisID[]): boolean {
-        /*
-          Move to zoom-change-complete event:
-        if (changedAxes.length === 0) {
-            return false;
-        }
-        //*/
         const { x, y } = this.getZoom() ?? {};
         const state = this.state.stateValue();
         let constrainedState: typeof state | undefined;
@@ -588,7 +582,8 @@ export class ZoomManager extends BaseManager {
         if (constrainedState) {
             this.state.set(callerId, constrainedState);
         }
-        return true;
+
+        return changedAxes.length > 0 || constrainedState != undefined;
     }
 
     private getRangeDirection(ratio: ZoomState, direction: CartesianAxisDirection): AgZoomRange | undefined {
