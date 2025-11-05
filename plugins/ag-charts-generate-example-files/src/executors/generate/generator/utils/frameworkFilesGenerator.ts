@@ -4,6 +4,7 @@ import { ANGULAR_GENERATED_MAIN_FILE_NAME } from '../constants';
 import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
 import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vanilla-to-react-functional-ts';
+import { vanillaToTypescript } from '../transformation-scripts/chart-vanilla-to-typescript';
 import { vanillaToVue3 } from '../transformation-scripts/chart-vanilla-to-vue3';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import type { FileContents, InternalFramework } from '../types';
@@ -112,13 +113,15 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, transformEntryFile, isDev }) => {
+    typescript: async ({ indexHtml, otherScriptFiles, bindings, typedBindings, transformEntryFile, isDev }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
 
         const { externalEventHandlers } = bindings;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
+
+        let mainTs = vanillaToTypescript(deepCloneObject(typedBindings));
 
         // Attach external event handlers
         let externalEventHandlersCode;
@@ -133,15 +136,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             ].join('\n');
         }
 
-        let mainTs = externalEventHandlersCode ? `${entryFile}${externalEventHandlersCode}` : entryFile;
-
-        const chartAPI = 'AgCharts';
-        if (!mainTs.includes(`chart = ${chartAPI}`)) {
-            mainTs = mainTs.replace(`${chartAPI}.create(options);`, `const chart = ${chartAPI}.create(options);`);
+        if (externalEventHandlersCode) {
+            mainTs = `${mainTs}\n${externalEventHandlersCode}`;
         }
 
         if (transformEntryFile) {
-            mainTs = transformEntryFile({ entryFile: mainTs, chartAPI });
+            mainTs = transformEntryFile({ entryFile: mainTs, chartAPI: 'AgCharts' });
         }
 
         if (!isDev) {
