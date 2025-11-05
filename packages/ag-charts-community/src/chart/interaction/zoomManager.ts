@@ -367,7 +367,7 @@ export class ZoomManager extends BaseManager {
 
         // TODO(olegat) move to enterprise
         if (this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted) {
-            changes = this.autoScaleYZoom(callerId, changeType, false) ?? changes;
+            changes = this.autoScaleYZoom(callerId, changeType, false, changes) ?? changes;
         }
 
         const changedAxes = this.computeChangedAxesIds(changes);
@@ -427,8 +427,7 @@ export class ZoomManager extends BaseManager {
 
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
         const changes = this.toCoreZoomState(newZoom);
-        this.applyUpdateZoom({ callerId, changeType: 'panToBBox', changes });
-        return true;
+        return this.applyUpdateZoom({ callerId, changeType: 'panToBBox', changes });
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
@@ -621,14 +620,31 @@ export class ZoomManager extends BaseManager {
         }
     }
 
-    private autoScaleYZoom(callerId: string, changeType: ZoomChangeType | undefined, apply = true) {
+    private autoScaleYZoom(
+        callerId: string,
+        changeType: ZoomChangeType | undefined,
+        apply = true,
+        changes?: UpdateZoomChanges
+    ) {
         const zoom = this.getZoom();
+        if (zoom && changes) {
+            // The `zoom` is outdated, let's patch in the updates from `changes`.
+            const state = this.state.stateValue();
+            for (const dir of ['x', 'y'] as const) {
+                for (const id of strictObjectKeys(changes)) {
+                    if (state[id]?.direction === dir) {
+                        zoom[dir] = changes[id];
+                        break;
+                    }
+                }
+            }
+        }
         if (zoom?.x == null) return;
 
         const zoomY = this.getAutoScaleYZoom(zoom.x);
         if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;
 
-        const changes = this.toCoreZoomState({ x: zoom.x, y: zoomY });
+        changes = this.toCoreZoomState({ x: zoom.x, y: zoomY });
         if (changeType && apply) {
             this.applyUpdateZoom({ callerId, changeType, changes });
         }
