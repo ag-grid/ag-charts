@@ -269,6 +269,10 @@ export class ZoomManager extends BaseManager {
         this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'restoreMemento', changes });
     }
 
+    public getAxes() {
+        return this.axes;
+    }
+
     public setAxes(nextAxes: Parameters<typeof refreshCoreState>[0]) {
         const { axes } = this;
         axes.length = 0;
@@ -654,7 +658,7 @@ export class ZoomManager extends BaseManager {
         return { min, max };
     }
 
-    private getPrimaryAxis(direction: CartesianAxisDirection) {
+    public getPrimaryAxis(direction: CartesianAxisDirection) {
         return this.axes?.find((a) => a.direction === direction);
     }
 

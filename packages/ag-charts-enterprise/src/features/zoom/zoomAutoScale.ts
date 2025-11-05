@@ -1,8 +1,11 @@
 import type { AgZoomAutoScaling } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { DeepRequired } from 'ag-charts-core';
+import { type DeepRequired, isFiniteNumber } from 'ag-charts-core';
 
 const { ChartAxisDirection, ActionOnSet, BaseProperties, Property } = _ModuleSupport;
+type ZoomState = _ModuleSupport.ZoomState;
+type CartesianAxisDirection = _ModuleSupport.CartesianAxisDirection;
+type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
 
 type ZoomAutoScalingOpts = DeepRequired<AgZoomAutoScaling>;
 type ZoomAutoScaleChangeCb = (opts: ZoomAutoScalingOpts) => void;
@@ -52,7 +55,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
 
     onChange(opts: ZoomAutoScalingOpts): void {
         if (opts.enabled) {
-            this.zoomManager.updateChanges('zoom-auto-scaler', this.autoScaleYZoom() ?? {})
+            this.zoomManager.updateChanges('zoom-auto-scaler', this.autoScaleYZoom() ?? {});
         }
     }
 
@@ -234,8 +237,8 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
     ): ZoomState | undefined {
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
-        const xAxis = this.getPrimaryAxis(crossDirection);
-        const yAxis = this.getPrimaryAxis(direction);
+        const xAxis = this.zoomManager.getPrimaryAxis(crossDirection);
+        const yAxis = this.zoomManager.getPrimaryAxis(direction);
 
         if (xAxis == null || yAxis == null) return;
 
@@ -247,10 +250,11 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         zoom: ZoomState,
         { padding = 0 } = {}
     ): ZoomState | undefined {
+        const axes = this.zoomManager.getAxes();
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const seriesXAxes = new Map<any, CartesianAxisLike>();
-        for (const xAxis of this.axes) {
+        for (const xAxis of axes) {
             if (xAxis.direction !== crossDirection) continue;
 
             for (const series of xAxis.boundSeries) {
@@ -260,7 +264,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
 
         let min = 1;
         let max = 0;
-        for (const yAxis of this.axes) {
+        for (const yAxis of axes) {
             if (yAxis.direction !== direction) continue;
 
             for (const series of yAxis.boundSeries) {
