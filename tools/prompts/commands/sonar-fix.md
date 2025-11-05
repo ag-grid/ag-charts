@@ -624,9 +624,9 @@ Create a detailed execution plan:
 
 After each batch:
 
--   ✅ Run `nx format` to ensure formatting
--   ✅ Run `nx lint <affected-packages>` to verify no new issues
--   ✅ Run `nx build:types <affected-packages>` to catch type errors
+-   ✅ Run `yarn nx format` to ensure formatting
+-   ✅ Run `yarn nx lint <affected-packages>` to verify no new issues
+-   ✅ Run `yarn nx build:types <affected-packages>` to catch type errors
 -   ✅ Create commit with descriptive message
 
 ### Skipped Issues (Tier 3 - Complex)
@@ -859,9 +859,9 @@ Wait for user confirmation before proceeding.
     3. Verify the issue still exists (may have been fixed already)
     4. Check if the issue matches any exception pattern - if so, SKIP IT
     5. Apply the fix using the rule guide patterns (only for non-exception cases)
-    6. After all fixes, run: `nx format`
-    7. Verify: `nx lint {affected-packages}`
-    8. Verify: `nx build:types {affected-packages}`
+    6. After all fixes, run: `yarn nx format`
+    7. Verify: `yarn nx lint {affected-packages}`
+    8. Verify: `yarn nx build:types {affected-packages}`
     9. Create ONE commit with message:
     ```
 
@@ -1014,7 +1014,7 @@ Cache: node_modules/.cache/sonar-issues/
 
 -   Run \`/sonar-fix\` again to see updated report
 -   Review progress file for detailed fix history
--   Verify changes with \`nx test ag-charts-community\` and \`nx test ag-charts-enterprise\`
+-   Verify changes with \`yarn nx test ag-charts-community\` and \`yarn nx test ag-charts-enterprise\`
 -   Cache will auto-refresh in 1 hour
 
 **SonarCloud Link:** https://sonarcloud.io/project/issues?id=ag-charts-community-latest&issueStatuses=OPEN%2CCONFIRMED
@@ -1203,7 +1203,7 @@ packages/ag-charts-core/src/utils/validation.ts
 
 ### Safety and Verification
 
--   ✅ **Always format after changes:** Use `nx format` to ensure consistency
+-   ✅ **Always format after changes:** Use `yarn nx format` to ensure consistency
 -   ✅ **Verify each batch:** Run lint and type checks for affected packages
 -   ✅ **Commit frequently:** One commit per batch for easy rollback
 -   ✅ **Read file context:** Always read surrounding code before making changes

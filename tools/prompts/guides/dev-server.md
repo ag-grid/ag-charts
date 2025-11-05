@@ -6,14 +6,14 @@ This guide covers working with the local development server and build watch moni
 
 -   Prefer the shared HTTPS server on port 4600 when available.
 -   When using the Puppeteer MCP tool, pass `allowDangerous: true`, run headless, and include `--ignore-certificate-errors` to handle the self-signed cert.
--   Start a local watcher with `nx dev` whenever you need live rebuilds across packages and the website.
+-   Start a local watcher with `yarn nx dev` whenever you need live rebuilds across packages and the website.
 -   `packages/ag-charts-website/src/content/gallery/data.json` owns gallery example metadata.
 -   `packages/ag-charts-website/src/content/docs-nav/nav.json` owns docs navigation structure.
 -   Docs map from `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc` to `/charts/javascript/${pageName}/`.
 
 ## Build Watch Status Monitoring
 
-The `nx dev` watch script (`external/ag-shared/scripts/watch/watch.js`) maintains a status file at `node_modules/.cache/ag-watch-status.json` for monitoring build state.
+The `yarn nx dev` watch script (`external/ag-shared/scripts/watch/watch.js`) maintains a status file at `node_modules/.cache/ag-watch-status.json` for monitoring build state.
 
 **Check this file to**:
 

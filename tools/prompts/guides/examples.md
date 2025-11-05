@@ -317,18 +317,18 @@ Is this a public documentation example?
 ## Example Validation + Building
 
 -   **Gallery example** (`packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/`)
-    -   `nx run ag-charts-website-gallery_${exampleName}_main.ts:generate`
-    -   `nx run ag-charts-website-gallery_${exampleName}_main.ts:typecheck`
+    -   `yarn nx run ag-charts-website-gallery_${exampleName}_main.ts:generate`
+    -   `yarn nx run ag-charts-website-gallery_${exampleName}_main.ts:typecheck`
 -   **Docs example** (`packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/`)
-    -   `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:generate`
-    -   `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:typecheck`
+    -   `yarn nx run ag-charts-website-${pageName}_${exampleName}_main.ts:generate`
+    -   `yarn nx run ag-charts-website-${pageName}_${exampleName}_main.ts:typecheck`
 -   **All examples**
-    -   `nx validate-examples` (batch typecheck; much faster than individual targets)
+    -   `yarn nx validate-examples` (batch typecheck; much faster than individual targets)
 
 ## Example Generation
 
--   Use `nx generate-examples ag-charts-website` to exercise example generation
--   Use `nx generate-thumbnails ag-charts-website` to exercise thumbnail generation
+-   Use `yarn nx generate-examples ag-charts-website` to exercise example generation
+-   Use `yarn nx generate-thumbnails ag-charts-website` to exercise thumbnail generation
 
 ## Reading External Examples (Plnkr, CodePen, etc.)
 
@@ -449,8 +449,8 @@ When updating gallery examples from external references:
 1. Identify what feature is being showcased (e.g., "multi-font labels")
 2. Update relevant gallery example `main.ts` with the formatter pattern
 3. If data source changes, update `data.ts` to match the reference example
-4. Validate with `nx validate-examples` before committing
-5. Test locally via `nx dev` to verify visual appearance
+4. Validate with `yarn nx validate-examples` before committing
+5. Test locally via `yarn nx dev` to verify visual appearance
 
 ### Best Practices for External Code Extraction
 
@@ -473,7 +473,7 @@ When updating gallery examples from external references:
 
 1. Edit the example files (`index.html`, `main.ts`, optional `styles.css`/`data.ts`)
 2. Mirror updates in the sibling `index.mdoc` docs page (see [Documentation Pages Guide](./docs-pages.md) for documentation patterns)
-3. Run the relevant generation/typecheck command plus `nx validate-examples`
+3. Run the relevant generation/typecheck command plus `yarn nx validate-examples`
 
 ## Related Resources
 

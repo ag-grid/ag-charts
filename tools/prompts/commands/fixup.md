@@ -2,7 +2,7 @@
 
 Focusing on ${ARGUMENTS}, follow these steps:
 
-1. Run the `nx build`, `nx lint` and `nx validate-examples` commands to identify any errors or warnings.
+1. Run the `yarn nx build`, `yarn nx lint` and `yarn nx validate-examples` commands to identify any errors or warnings.
 2. Group the errors and warnings into categories.
 3. Identify examples of how to fix each category of error.
 
@@ -12,7 +12,7 @@ Focusing on ${ARGUMENTS}, follow these steps:
 
     - Ensure sub-agents are instructed to focus on specific errors and/or projects and/or files, especially if running in parallel, to avoid interfering with each other (especially when verifying fixes and running tooling again).
 
-5. Verify the fixes by running the `nx build`, `nx lint` and `nx validate-examples` commands again.
+5. Verify the fixes by running the `yarn nx build`, `yarn nx lint` and `yarn nx validate-examples` commands again.
 
 # NEVER DO THESE WORKAROUND
 
@@ -23,6 +23,6 @@ The only exception is if the user has explicitly asked to change the build, lint
 
 # Definition of Done
 
--   Run the `nx build`, `nx lint` and `nx validate-examples` show no warnings or errors.
+-   Run the `yarn nx build`, `yarn nx lint` and `yarn nx validate-examples` show no warnings or errors.
 -   We have NOT changed build/lint/typecheck configurations to workaround
 -   Verify the `mcp__ide__getDiagnostics` tool to check for any errors or warnings in the codebase in the users IDE.

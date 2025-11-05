@@ -139,7 +139,7 @@ Group findings into categories:
     -   Magic numbers/strings
 
 -   **Low Priority (polish):**
-    -   Formatting inconsistencies (will be caught by `nx format`)
+    -   Formatting inconsistencies (will be caught by `yarn nx format`)
     -   Minor style improvements
     -   Optional JSDoc improvements
 
@@ -416,7 +416,7 @@ ${commit-hash} - "Distil code quality on ${current_branch}"
 
 -   Review the changes to ensure they match your expectations
 -   Run additional tests if this affects critical functionality
--   Consider running `nx e2e ag-charts-website` if documentation was affected
+-   Consider running `yarn nx e2e ag-charts-website` if documentation was affected
 ```
 
 ## 4. Important Guidelines

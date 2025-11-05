@@ -505,7 +505,7 @@ nx validate-examples
 
 ### Visual Testing
 
-1. Start dev server: `nx dev`
+1. Start dev server: `yarn nx dev`
 2. Navigate to example page
 3. Use framework switcher in UI (JavaScript/TypeScript/React/Angular/Vue)
 4. Test interactions in each framework
@@ -541,7 +541,7 @@ dist/packages/ag-charts-website/public/generated-examples/
 
 **Debugging Steps:**
 
-1. Generate examples: `nx generate-examples ag-charts-website`
+1. Generate examples: `yarn nx generate-examples ag-charts-website`
 2. Open generated file for problematic framework
 3. Check transformation output
 4. Compare with vanilla source

@@ -47,11 +47,11 @@ This guide covers code quality practices, including avoiding code bloat, comment
 
 ## Essential Quality Commands
 
--   `nx format` – format repo files; run from the project root before committing
--   `nx build:types <package>` – regenerate declaration files when touching exported APIs
--   `nx lint <package>` – apply ESLint and custom rules before final review
+-   `yarn nx format` – format repo files; run from the project root before committing
+-   `yarn nx build:types <package>` – regenerate declaration files when touching exported APIs
+-   `yarn nx lint <package>` – apply ESLint and custom rules before final review
 
 ## Formatting Best Practice
 
--   Make sure to run `nx format` on any changes to ensure consistent formatting before commit
--   Prefer running `nx format` in the root of the repo to format changes, as there are config nuances that aren't taken into account when directly running tooling in more specific places
+-   Make sure to run `yarn nx format` on any changes to ensure consistent formatting before commit
+-   Prefer running `yarn nx format` in the root of the repo to format changes, as there are config nuances that aren't taken into account when directly running tooling in more specific places

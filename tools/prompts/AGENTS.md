@@ -7,11 +7,11 @@ This file provides guidance to AI Agents when working with code in this reposito
 -   **Yarn and Nx based repo:** Use Yarn for package management and Nx for build and test orchestration.
 -   **Main constraint:** Community and enterprise runtime bundles stay dependency-free beyond AG Charts code.
 -   **Default branch:** Target `latest`; follow release/JIRA naming conventions below for topic branches.
--   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`nx dev`) and build health (see [Development Server Guide](tools/prompts/guides/dev-server.md)).
--   **Formatting:** Run `nx format` from the repo root before proposing commits.
--   **Typechecking:** Run `nx build:types <package>` from the repo root before proposing commits.
--   **Linting:** Run `nx lint <package>` from the repo root before proposing commits.
--   **Baseline verification:** Expect to run `nx test ag-charts-community`, `nx test ag-charts-enterprise`, and `nx e2e ag-charts-website` after meaningful chart changes.
+-   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`yarn nx dev`) and build health (see [Development Server Guide](tools/prompts/guides/dev-server.md)).
+-   **Formatting:** Run `yarn nx format` from the repo root before proposing commits.
+-   **Typechecking:** Run `yarn nx build:types <package>` from the repo root before proposing commits.
+-   **Linting:** Run `yarn nx lint <package>` from the repo root before proposing commits.
+-   **Baseline verification:** Expect to run `yarn nx test ag-charts-community`, `yarn nx test ag-charts-enterprise`, and `yarn nx e2e ag-charts-website` after meaningful chart changes.
 -   **Test verification patterns:** When writing or modifying tests, review similar tests to ensure consistent verification patterns (see [Testing Guide](tools/prompts/guides/testing.md)).
 -   **Context docs:** Skim `tools/prompts/technology-stack.md` for stack or architectural decisions before introducing new patterns.
 
@@ -49,19 +49,19 @@ For detailed information about preferred technologies and architectural constrai
 
 -   `yarn install` – install dependencies after cloning or when the Yarn lockfile changes.
     -   `./tools/install-for-cloud.sh` – install dependencies and tooling in a remote environment - use this in preference to `yarn install` to ensure all global tools are installed.
--   `nx clean` – purge all dist folders when switching branches or before packaging releases.
--   `nx format` – format repo files; run from the project root before committing.
--   `nx build <package>` – compile a specific package after code edits.
--   `nx build:types <package>` – regenerate declaration files when touching exported APIs.
--   `nx build:package <package>` – create ESM/CJS bundles to validate publishable output.
--   `nx build:umd <package>` – produce UMD bundles for browser distribution smoke-tests.
--   `nx run-many -t build` – rebuild all packages when changes span the dependency graph.
--   `nx test <package>` – execute Jest suites for the affected package.
--   `nx test <package> --testPathPattern="<file-name>"` - test specific test file
--   `nx test <package> --testPathPattern="<file-name>" --testNamePattern="<test-name>"` - test specific test name in a specific test file
--   `nx e2e <package>` – run Playwright flows when altering website behaviour.
--   `nx lint <package>` – apply ESLint and custom rules before final review.
--   `nx benchmark <package>` – assess performance regressions; filter via `-- -t "pattern"` when needed.
+-   `yarn nx clean` – purge all dist folders when switching branches or before packaging releases.
+-   `yarn nx format` – format repo files; run from the project root before committing.
+-   `yarn nx build <package>` – compile a specific package after code edits.
+-   `yarn nx build:types <package>` – regenerate declaration files when touching exported APIs.
+-   `yarn nx build:package <package>` – create ESM/CJS bundles to validate publishable output.
+-   `yarn nx build:umd <package>` – produce UMD bundles for browser distribution smoke-tests.
+-   `yarn nx run-many -t build` – rebuild all packages when changes span the dependency graph.
+-   `yarn nx test <package>` – execute Jest suites for the affected package.
+-   `yarn nx test <package> --testPathPattern="<file-name>"` - test specific test file
+-   `yarn nx test <package> --testPathPattern="<file-name>" --testNamePattern="<test-name>"` - test specific test name in a specific test file
+-   `yarn nx e2e <package>` – run Playwright flows when altering website behaviour.
+-   `yarn nx lint <package>` – apply ESLint and custom rules before final review.
+-   `yarn nx benchmark <package>` – assess performance regressions; filter via `-- -t "pattern"` when needed.
 
 ## Slash Commands
 
@@ -121,7 +121,7 @@ For code quality guidelines, see [Code Quality Guide](tools/prompts/guides/code-
 
 Essential practices:
 
--   Run `nx format` before committing
+-   Run `yarn nx format` before committing
 -   Self-review your changes before proposing commits
 -   Ensure tests exercise real implementations, not test helpers
 
@@ -133,7 +133,7 @@ Essential practices:
     1. Update the affected implementation (typically under `packages/ag-charts-*/src/chart`).
     2. Adjust public API surface in `packages/ag-charts-types` if signatures change.
     3. Sync any dependent docs/examples.
-    4. Run `nx test ag-charts-community`, `nx test ag-charts-enterprise`, and targeted `nx benchmark` commands when performance is at risk.
+    4. Run `yarn nx test ag-charts-community`, `yarn nx test ag-charts-enterprise`, and targeted `yarn nx benchmark` commands when performance is at risk.
 -   **Documentation/content update**
     1. Consult the [Documentation Pages Guide](tools/prompts/guides/docs-pages.md) for structure and patterns.
     2. If creating a new page, use `/docs-create` command or select appropriate template from `tools/prompts/templates/`.
@@ -141,16 +141,16 @@ Essential practices:
     4. Update `packages/ag-charts-website/src/content/docs-nav/nav.json` if navigation changes.
     5. Create or update examples in `_examples/` folder following the [Examples Guide](tools/prompts/guides/examples.md).
     6. Ensure all examples are framework-compatible (NO `@ag-skip-fws` for public documentation).
-    7. Run `nx generate-examples ag-charts-website` to generate framework variants.
-    8. Run `nx validate-examples` to verify examples typecheck correctly.
-    9. Test page in dev server with `nx dev` across all frameworks.
-    10. For significant doc changes, sanity-check with `nx e2e ag-charts-website`.
+    7. Run `yarn nx generate-examples ag-charts-website` to generate framework variants.
+    8. Run `yarn nx validate-examples` to verify examples typecheck correctly.
+    9. Test page in dev server with `yarn nx dev` across all frameworks.
+    10. For significant doc changes, sanity-check with `yarn nx e2e ag-charts-website`.
     11. Optionally run `/docs-review` command to validate technical accuracy.
     12. Review [Documentation Checklist](tools/prompts/checklists/docs-page.md) before finalizing.
 -   **Example-only change** (see [Examples Guide](tools/prompts/guides/examples.md))
     1. Edit the example files (`index.html`, `main.ts`, optional `styles.css`/`data.ts`).
     2. Mirror updates in the sibling `index.mdoc` docs page.
-    3. Run the relevant generation/typecheck command plus `nx validate-examples`.
+    3. Run the relevant generation/typecheck command plus `yarn nx validate-examples`.
 
 ### Adding New Chart Types
 
@@ -172,7 +172,7 @@ When creating or modifying examples:
 -   **Public examples MUST be framework-compatible**: All documentation examples must work in vanilla, TypeScript, React, Angular, and Vue
 -   **Write framework-compatible vanilla examples first**: Follow patterns in the Examples Guide to ensure clean transformation
 -   **Use simple, declarative patterns**: Top-level options, chart instance, and simple event handlers transform cleanly
--   **Test generated variants**: Run `nx validate-examples` and visually test framework switcher in dev server
+-   **Test generated variants**: Run `yarn nx validate-examples` and visually test framework switcher in dev server
 -   **`@ag-skip-fws` is for internal use ONLY**: Only use for `benchmarks` and `*-test` pages, never for public documentation
 -   **Redesign instead of skip**: If a public example can't transform cleanly, simplify or redesign it to be framework-compatible
 -   **Review transformation patterns**: See [Framework Patterns Guide](tools/prompts/guides/examples-framework-patterns.md) for detailed technical reference
@@ -193,7 +193,7 @@ For benchmark guidelines, see [Benchmarks Guide](tools/prompts/guides/benchmarks
 
 Key points:
 
--   Use `nx benchmark` to check performance impact on hotspots.
+-   Use `yarn nx benchmark` to check performance impact on hotspots.
 -   Focus on canvas rendering efficiency and memory churn.
 -   Enable `AG_BENCHMARK_DEBUG=1` locally for detailed memory output.
 
@@ -207,8 +207,8 @@ Key points:
 ## Nx Workflow
 
 -   **Example Generation**:
-    -   Use `nx generate-examples ag-charts-website` to exercise example generation
-    -   Use `nx generate-thumbnails ag-charts-website` to exercise thumbnail generation
+    -   Use `yarn nx generate-examples ag-charts-website` to exercise example generation
+    -   Use `yarn nx generate-thumbnails ag-charts-website` to exercise thumbnail generation
 
 ## JIRA Tickets
 

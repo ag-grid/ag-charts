@@ -4,7 +4,7 @@ This guide covers running and creating performance benchmarks for AG Charts.
 
 ## Performance Considerations
 
--   Use `nx benchmark` to check performance impact on hotspots.
+-   Use `yarn nx benchmark` to check performance impact on hotspots.
 -   Focus on canvas rendering efficiency and memory churn.
 -   Enable `AG_BENCHMARK_DEBUG=1` locally for detailed memory output.
 
@@ -16,8 +16,8 @@ This guide covers running and creating performance benchmarks for AG Charts.
 
 ## Running Benchmarks
 
--   `nx benchmark ag-charts-community -- -t "initial load"` runs all "initial load" cases for community.
--   `nx benchmark ag-charts-enterprise -- -t "initial load"` does the same for enterprise.
+-   `yarn nx benchmark ag-charts-community -- -t "initial load"` runs all "initial load" cases for community.
+-   `yarn nx benchmark ag-charts-enterprise -- -t "initial load"` does the same for enterprise.
 -   Filtering is by test name pattern (xargs prevents targeting individual files).
 
 ## Creating New Benchmarks
@@ -26,4 +26,4 @@ This guide covers running and creating performance benchmarks for AG Charts.
 2. Create or copy the example to `packages/ag-charts-website/src/content/docs/benchmarks/_examples/${exampleName}/`.
 3. Add `/* @ag-options-extract */` and `/* @ag-options-end */` comments around the options object in the example's `main.ts`.
 4. Add example dependency to `benchmark.dependsOn` array in the package's `project.json`: `ag-charts-website-benchmarks_${exampleName}_main.ts:generate-example`.
-5. Run `nx benchmark ag-charts-{community,enterprise} -- -t "test pattern"` to verify.
+5. Run `yarn nx benchmark ag-charts-{community,enterprise} -- -t "test pattern"` to verify.
