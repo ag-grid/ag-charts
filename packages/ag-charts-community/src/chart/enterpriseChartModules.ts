@@ -1,6 +1,8 @@
 import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { VERSION } from '../version';
+import { standaloneChartOptionsDefs } from './chartOptionsDefs';
+import { StandaloneChart } from './standaloneChart';
 
 const placeholderCreate = () => {
     throw new Error('Enterprise module placeholder cannot be initialised');
@@ -9,12 +11,11 @@ const placeholderCreate = () => {
 export const StandaloneChartModule: ChartModuleDefinition<any> = {
     type: 'chart',
     name: 'standalone',
-    placeholder: true,
     version: VERSION,
 
-    options: {},
+    options: standaloneChartOptionsDefs,
 
-    create: placeholderCreate,
+    create: (options, resources) => new StandaloneChart(options, resources),
 };
 
 export const TopologyChartModule: ChartModuleDefinition<any> = {

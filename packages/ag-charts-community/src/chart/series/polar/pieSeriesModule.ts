@@ -10,7 +10,7 @@ import { pieTheme } from './pieTheme';
 export const PieSeriesModule: SeriesModuleDefinition<AgPieSeriesOptions> = {
     type: 'series',
     name: 'pie',
-    chartType: 'polar',
+    chartType: 'standalone',
     version: VERSION,
 
     options: pieSeriesOptionsDef,

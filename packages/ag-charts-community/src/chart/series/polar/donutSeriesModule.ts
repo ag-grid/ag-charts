@@ -10,7 +10,7 @@ import { donutTheme } from './donutTheme';
 export const DonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = {
     type: 'series',
     name: 'donut',
-    chartType: 'polar',
+    chartType: 'standalone',
     version: VERSION,
 
     options: donutSeriesOptionsDef,

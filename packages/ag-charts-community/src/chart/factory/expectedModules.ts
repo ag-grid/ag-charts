@@ -14,7 +14,7 @@ export const ExpectedModules: ModulePlaceholder[] = [
     // Chart types
     { type: 'chart', name: 'cartesian' },
     { type: 'chart', name: 'standalone' },
-    { type: 'chart', name: 'polar' }, // TODO refactor pie/donut to be a standalone chart type, and make polar an enterprise feature
+    { type: 'chart', name: 'polar', enterprise: true },
     { type: 'chart', name: 'topology', enterprise: true },
 
     // Axis types
@@ -36,8 +36,8 @@ export const ExpectedModules: ModulePlaceholder[] = [
     { type: 'series', name: 'bubble', chartType: 'cartesian' },
     { type: 'series', name: 'line', chartType: 'cartesian' },
     { type: 'series', name: 'area', chartType: 'cartesian' },
-    { type: 'series', name: 'pie', chartType: 'polar' }, // TODO should be of chartType standalone
-    { type: 'series', name: 'donut', chartType: 'polar' }, // TODO should be of chartType standalone
+    { type: 'series', name: 'pie', chartType: 'standalone' },
+    { type: 'series', name: 'donut', chartType: 'standalone' },
     { type: 'series', name: 'box-plot', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'candlestick', chartType: 'cartesian', enterprise: true },
     { type: 'series', name: 'cone-funnel', chartType: 'cartesian', enterprise: true },
