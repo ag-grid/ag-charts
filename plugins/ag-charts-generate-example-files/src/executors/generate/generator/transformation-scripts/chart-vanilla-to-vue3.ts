@@ -245,7 +245,10 @@ export async function vanillaToVue3(
             /this.\$refs.agCharts.chart.(\w*)\(options/g,
             'agCharts.value.chart.$1(options.value'
         );
-        mainFile = mainFile.replace(/(?<!\.)\bchart\b/g, 'agCharts.value.chart');
+        // Split multi-variable declarations containing 'chart' to avoid breaking syntax
+        mainFile = mainFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
+        // Replace 'chart' references but not in variable declarations
+        mainFile = mainFile.replace(/(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g, 'agCharts.value.chart');
     }
 
     return mainFile;

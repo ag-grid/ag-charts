@@ -304,7 +304,13 @@ export async function vanillaToAngular(
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
         indexFile = indexFile.replace(/chart.(\w*)\(/g, 'this.agCharts.chart!.$1(');
         indexFile = indexFile.replace(/this.agCharts.chart!.(\w*)\(options/g, 'this.agCharts.chart!.$1(this.options');
-        indexFile = indexFile.replace(/(?<!\.)\bchart\b/g, 'this.agCharts.chart!');
+        // Split multi-variable declarations containing 'chart' to avoid breaking syntax
+        indexFile = indexFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
+        // Replace 'chart' references but not in variable declarations
+        indexFile = indexFile.replace(
+            /(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g,
+            'this.agCharts.chart!'
+        );
     }
 
     return indexFile;
