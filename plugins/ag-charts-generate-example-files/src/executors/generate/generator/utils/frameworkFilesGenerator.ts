@@ -288,6 +288,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
     },
     vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
         const internalFramework: InternalFramework = 'vue3';
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let mainJs = await vanillaToVue3(deepCloneObject(bindings), [], suppressOptionsClone);
@@ -302,9 +304,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 embeddedLanguageFormatting: 'off',
             });
         }
-
-        const entryFileName = getEntryFileName(internalFramework);
-        const mainFileName = getMainFileName(internalFramework);
 
         return {
             files: {
