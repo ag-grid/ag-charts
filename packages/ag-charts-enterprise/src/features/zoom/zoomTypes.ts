@@ -1,9 +1,6 @@
 import type { AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
 
-export interface DefinedZoomState extends _ModuleSupport.AxisZoomState {
-    x: _ModuleSupport.ZoomState;
-    y: _ModuleSupport.ZoomState;
-}
+export type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 
 export type ZoomCoords = {
     x1: number;

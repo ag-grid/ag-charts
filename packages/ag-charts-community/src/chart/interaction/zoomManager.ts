@@ -17,6 +17,7 @@ import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag
 
 import type {
     AxisZoomState,
+    DefinedZoomState,
     EventsHub,
     ZoomChangeRequestedEvent,
     ZoomChangeState,
@@ -36,11 +37,6 @@ import { NonNullableStateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
-
-export interface DefinedZoomState {
-    x: ZoomState;
-    y: ZoomState;
-}
 
 type CoreZoomEntry = ZoomState & { direction: CartesianAxisDirection };
 export type CoreZoomState = Record<AxisID, CoreZoomEntry>;
