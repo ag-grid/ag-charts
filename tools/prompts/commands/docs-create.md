@@ -218,7 +218,13 @@ The `example-controls.css` styles are automatically applied at runtime.
 For framework compatibility, utility functions need proper scoping:
 
 ```typescript
-let chart: AgChartInstance;
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    // ... options
+};
+
+const chart = AgCharts.create(options);
+
 let isRunning = false;
 
 // Called from DOM (onclick="toggleUpdates()") - no comment needed
@@ -233,7 +239,6 @@ function toggleUpdates() {
 // Uses chart/state but NOT called from DOM - needs /** inScope */
 /** inScope */
 function startUpdates() {
-    if (!chart) return;
     isRunning = true;
     // ... use chart
 }
@@ -244,6 +249,8 @@ function stopUpdates() {
     // ... use chart
 }
 ```
+
+**Important:** Always initialize chart immediately with `const chart = AgCharts.create(options)` right after the options definition. Do NOT use deferred initialization (`let chart` declared early, assigned later) as this breaks framework transformers.
 
 **When to add `/** inScope \*/`:\*\*
 

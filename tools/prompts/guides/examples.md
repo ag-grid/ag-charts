@@ -120,7 +120,13 @@ The example generator parses your vanilla TypeScript code and transforms it into
 -   **Scoping Utility Functions**: Functions that use chart or state but aren't called from DOM need `/** inScope */`:
 
     ```typescript
-    let chart: AgChartInstance;
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        // ... options
+    };
+
+    const chart = AgCharts.create(options);
+
     let isRunning = false;
 
     // Called from DOM - automatically hoisted, no comment needed
@@ -135,7 +141,6 @@ The example generator parses your vanilla TypeScript code and transforms it into
     // Uses chart/state but NOT called from DOM - needs /** inScope */
     /** inScope */
     function startUpdates() {
-        if (!chart) return;
         isRunning = true;
         // ... use chart
     }
@@ -146,6 +151,8 @@ The example generator parses your vanilla TypeScript code and transforms it into
         // ... use chart
     }
     ```
+
+    **Important:** Chart must be initialized with `const chart = AgCharts.create(options)` immediately after options, not deferred with `let chart` and later assignment.
 
     **When to use `/** inScope \*/`:\*\*
 

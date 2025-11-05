@@ -23,15 +23,26 @@ const tags: Record<ChartAPI, string> = {
     vanilla: 'ag-charts',
 };
 
-function processFunction(code: string, suppressOptionsClone: boolean): string {
-    return wrapOptionsUpdateCode(
+function processFunction(code: string, suppressOptionsClone: boolean, methodNames: string[] = []): string {
+    let processed = wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
         'this.options',
         undefined,
         undefined,
         !suppressOptionsClone
     );
-    return wrapOptionsUpdateCode(convertFunctionToProperty(code));
+    
+    // Add this. prefix to instance method calls within this function
+    methodNames.forEach((methodName) => {
+        if (!GLOBAL_FUNCTIONS.includes(methodName)) {
+            // Negative lookbehind: not preceded by '.' (covers this.method, obj.method, etc.)
+            // Negative lookahead: not followed by '=' or ':' (for declarations like 'method = ')
+            const regex = new RegExp(`(?<!\\.)\\b${methodName}\\b(?!\\s*[=:])`, 'g');
+            processed = processed.replace(regex, `this.${methodName}`);
+        }
+    });
+    
+    return processed;
 }
 
 function getImports(bindings, componentFileNames: string[], { typeParts }): string[] {
@@ -170,9 +181,12 @@ export async function vanillaToAngular(
         const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(bindings, options);
         const template = getTemplate(bindings, placeholders[0], propertyAttributes);
 
-        const instanceMethods = bindings.instanceMethods.map((v) => processFunction(v, suppressOptionsClone));
+        // Get method names first so we can transform calls within method bodies
+        const methodNames = getInstanceMethodNames(bindings);
+        
+        const instanceMethods = bindings.instanceMethods.map((v) => processFunction(v, suppressOptionsClone, methodNames));
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(handler.body, suppressOptionsClone)
+            processFunction(handler.body, suppressOptionsClone, methodNames)
         );
 
         indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
@@ -286,17 +300,6 @@ export async function vanillaToAngular(
         indexFile = indexFile.replace(/this.agCharts.chart!.(\w*)\(options/g, 'this.agCharts.chart!.$1(this.options');
         indexFile = indexFile.replace(/(?<!\.)\bchart\b/g, 'this.agCharts.chart!');
     }
-
-    // Transform instance method calls to use this. prefix
-    const methodNames = getInstanceMethodNames(bindings);
-    methodNames.forEach((methodName) => {
-        if (!GLOBAL_FUNCTIONS.includes(methodName)) {
-            // Add this. prefix to bare function calls
-            // Use negative lookbehind to avoid double transformation
-            const regex = new RegExp(`(?<!this\\.)\\b${methodName}\\(`, 'g');
-            indexFile = indexFile.replace(regex, `this.${methodName}(`);
-        }
-    });
 
     return indexFile;
 }
