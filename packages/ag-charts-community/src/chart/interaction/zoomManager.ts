@@ -630,7 +630,7 @@ export class ZoomManager extends BaseManager {
         if (zoom && changes) {
             // The `zoom` is outdated, let's patch in the updates from `changes`.
             const state = this.state.stateValue();
-            for (const dir of ['x', 'y'] as const) {
+            for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
                 for (const id of strictObjectKeys(changes)) {
                     if (state[id]?.direction === dir) {
                         zoom[dir] = changes[id];
