@@ -102,15 +102,11 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
     }
 
     private getAutoScaleYZoom(zoomX: ZoomState): ZoomState | undefined {
-        if (!this.isZoomEnabled()) return;
+        if (!this.enabled) return;
 
-        const { independentAxes, autoScaleYAxis } = this;
-
-        if (!autoScaleYAxis.enabled || autoScaleYAxis.manuallyAdjusted) return;
-
-        const { padding } = autoScaleYAxis;
+        const { padding } = this.properties;
         let yZoom: ZoomState | undefined;
-        if (independentAxes) {
+        if (this.deps.enableIndependentAxes) {
             yZoom = this.primaryAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
         } else {
             yZoom = this.combinedAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
