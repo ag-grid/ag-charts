@@ -182,7 +182,8 @@ export class ZoomManager extends BaseManager {
         return result;
     }
 
-    private toAxisZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): AxisZoomState | undefined {
+    // FIXME: should be private
+    public toAxisZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): AxisZoomState | undefined {
         let x: ZoomState | undefined;
         let y: ZoomState | undefined;
 

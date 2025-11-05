@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, type AxisID, debounce, roundTo } from 'ag-charts-core';
+import { AbstractModuleInstance, type AxisID, debounce, roundTo, entries } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -660,7 +660,7 @@ export class Zoom extends AbstractModuleInstance {
         event.sourceEvent.preventDefault();
 
         const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
-        this.ctx.zoomManager.updateChanges('zoom', newZooms);
+        this.updateChanges(newZooms);
     }
 
     private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
@@ -712,15 +712,25 @@ export class Zoom extends AbstractModuleInstance {
 
         if (!seriesRect) return;
 
-        let updated: boolean;
+        let updated = true;
 
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
-            updated = this.ctx.zoomManager.updateChanges('zoom', newZooms);
+            for (const [axisId, { direction, min, max }] of entries(newZooms)) {
+                const constrainedZoom =
+                    direction === ChartAxisDirection.X
+                    ? this.constrainZoom({ x: { min, max }, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
+                : {min, max};
+                updated &&= this.updateAxisZoom(
+                    axisId,
+                    direction as _ModuleSupport.CartesianAxisDirection,
+                    constrainedZoom
+                );
+            }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
             if (newZoom == null) return;
-            updated = this.ctx.zoomManager.updateZoom('zoom', newZoom);
+            updated = this.updateUnifiedZoom(newZoom, { directional: true });
         }
 
         isZoomCapped ||= event.deltaY < 0 && !updated;
@@ -817,7 +827,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!seriesRect) return;
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
-        this.ctx.zoomManager.updateChanges('zoom', newZooms);
+        this.updateChanges(newZooms);
         tooltipManager.updateTooltip(TOOLTIP_ID);
     }
 
@@ -946,6 +956,10 @@ export class Zoom extends AbstractModuleInstance {
 
     public updateSyncZoom(zoom: DefinedZoomState) {
         this.updateZoom(zoom);
+    }
+
+    private updateChanges(changes: _ModuleSupport.CoreZoomState) {
+        this.updateZoom(definedZoomState(this.ctx.zoomManager.toAxisZoomState(changes)));
     }
 
     private updateZoom(zoom: DefinedZoomState) {
