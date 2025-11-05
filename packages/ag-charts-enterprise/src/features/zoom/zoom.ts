@@ -723,7 +723,7 @@ export class Zoom extends AbstractModuleInstance {
                         : { min, max };
                 updated &&= this.updateAxisZoom(
                     axisId,
-                    direction as _ModuleSupport.CartesianAxisDirection,
+                    direction,
                     constrainedZoom
                 );
             }
