@@ -30,6 +30,7 @@ This skill guides you through improving AG Charts gallery examples using a struc
 1. `core-rules.md` - Mandatory rules for theme compatibility
 2. `visual-analysis.md` - PREVis evaluation workflow
 3. `troubleshooting.md` - Quick fixes for common issues
+4. _(Optional)_ `tools/prompts/guides/examples.md` - Framework compatibility patterns
 
 ### Step 1: Baseline Visual Analysis
 
@@ -49,6 +50,8 @@ This skill guides you through improving AG Charts gallery examples using a struc
 ### Step 2: Load Feature Modules
 
 Based on PREVis issues identified, load **ONLY relevant** modules from `tools/prompts/commands/spruce-example/features/`:
+
+_(All paths are relative to repository root: `tools/prompts/commands/spruce-example/features/[module].md`)_
 
 | Issue Type                                                 | Load Module          |
 | ---------------------------------------------------------- | -------------------- |
@@ -71,6 +74,13 @@ Based on PREVis issues identified, load **ONLY relevant** modules from `tools/pr
 -   ✅ NO styles.css or CSS files
 -   ✅ Using specific chart type (e.g., `AgCartesianChartOptions`, not `AgChartOptions`)
 -   ✅ All axes have `type` specified
+
+**Framework Compatibility (CRITICAL for gallery examples):**
+
+-   ✅ All examples MUST work across all frameworks (vanilla, React, Angular, Vue)
+-   ✅ NO `@ag-skip-fws` directive for examples (only for benchmarks/test pages)
+-   ✅ Follow framework-compatible patterns from `tools/prompts/guides/examples.md`
+-   ✅ Use simple, declarative patterns: top-level options, chart instance, simple event handlers
 
 **Apply improvements:**
 
@@ -109,6 +119,15 @@ Based on PREVis issues identified, load **ONLY relevant** modules from `tools/pr
     ```bash
     nx generate-thumbnails ag-charts-website
     ```
+
+**📝 Documentation Update:**
+
+After completing validation, if this example has an adjacent `index.mdoc` documentation page:
+
+-   Update the documentation to reflect any structural or configuration changes
+-   Ensure code snippets in docs match the improved example patterns
+-   See `tools/prompts/guides/docs-pages.md` for documentation standards
+-   Consider using the `spruce-docs` skill for documentation improvements
 
 ## Completion Checklist
 
@@ -149,7 +168,10 @@ Gallery examples:
 
 -   Main workflow command: `tools/prompts/commands/spruce-example.md`
 -   Examples guide: `tools/prompts/guides/examples.md`
+-   Framework patterns guide: `tools/prompts/guides/examples-framework-patterns.md`
+-   Documentation pages guide: `tools/prompts/guides/docs-pages.md`
 -   Testing guide: `tools/prompts/guides/testing.md`
+-   Spruce Docs skill: `tools/prompts/skills/spruce-docs/SKILL.md` (for documentation improvements)
 
 ## Example Usage
 
