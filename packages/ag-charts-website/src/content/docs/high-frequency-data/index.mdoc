@@ -48,9 +48,9 @@ Transactions support three types of operations: adding, removing, and updating d
 
 Use the `add` property to append new data items to the dataset.
 
-```js format="snippet"
+```js
 // Append new items to the end
-await chart.applyTransaction({
+chart.applyTransaction({
     add: [
         { time: new Date('2024-01-05'), value: 42 },
         { time: new Date('2024-01-06'), value: 38 },
@@ -60,15 +60,15 @@ await chart.applyTransaction({
 
 Use `addIndex` to control where items are inserted:
 
-```js format="snippet"
+```js
 // Prepend items to the beginning
-await chart.applyTransaction({
+chart.applyTransaction({
     add: [{ time: new Date('2024-01-01'), value: 50 }],
     addIndex: 0,
 });
 
 // Insert items at a specific position
-await chart.applyTransaction({
+chart.applyTransaction({
     add: [{ time: new Date('2024-01-03'), value: 45 }],
     addIndex: 2,
 });
@@ -78,7 +78,7 @@ await chart.applyTransaction({
 
 Use the `remove` property to remove items from the dataset. Items are matched by referential equality, meaning you must provide the exact object reference that exists in the data array.
 
-```js format="snippet"
+```js
 // Keep a reference to the data items
 const data = [
     { time: new Date('2024-01-01'), value: 50 },
@@ -88,7 +88,7 @@ const data = [
 
 // Later, remove specific items by reference
 const itemToRemove = data[0];
-await chart.applyTransaction({
+chart.applyTransaction({
     remove: [itemToRemove],
 });
 ```
@@ -101,7 +101,7 @@ Items are identified by object reference, not by comparing property values. To r
 
 Use the `update` property to modify existing items. First mutate the item in place, then pass the reference in the transaction.
 
-```js format="snippet"
+```js
 // Keep a reference to the data items
 const data = [
     { time: new Date('2024-01-01'), value: 50 },
@@ -113,7 +113,7 @@ const itemToUpdate = data[1];
 itemToUpdate.value = 100;
 
 // Notify the chart of the change
-await chart.applyTransaction({
+chart.applyTransaction({
     update: [itemToUpdate],
 });
 ```
@@ -122,8 +122,8 @@ await chart.applyTransaction({
 
 Multiple operations can be performed in a single transaction for efficiency:
 
-```js format="snippet"
-await chart.applyTransaction({
+```js
+chart.applyTransaction({
     remove: [oldItems[0], oldItems[1]],
     update: [modifiedItem],
     add: [
