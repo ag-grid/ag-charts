@@ -181,6 +181,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
     type: 'preset',
     name: 'price-volume',
     enterprise: true,
+    placeholder: true,
     version: VERSION,
 
     options: priceVolumeOptionsDef,
@@ -192,6 +193,7 @@ export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',
     name: 'gauge-preset',
     enterprise: true,
+    placeholder: true,
     version: VERSION,
 
     options: typeUnion<AgGaugeOptions>(

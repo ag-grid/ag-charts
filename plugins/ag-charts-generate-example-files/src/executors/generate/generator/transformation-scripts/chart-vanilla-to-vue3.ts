@@ -39,11 +39,6 @@ function getImports(componentFileNames: string[], bindings): string[] {
         ...i,
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
     }));
-    const chartImport = getChartImports(chartImports, bindings.usesChartApi);
-
-    if (chartImport) {
-        imports.push(chartImport);
-    }
 
     if (chartImports.length > 0) {
         addBindingImports(chartImports, imports, false, true);
@@ -143,7 +138,7 @@ export async function vanillaToVue3(
     // placeholders are for when a chart id is set - for example <div id="myChart"></div>
     if (placeholders.length <= 1) {
         const options = properties.find((p) => p.name === 'options');
-        const { propertyAssignments, propertyVars, propertyAttributes, propertyNames } = getPropertyBindings(
+        const { propertyVars, propertyAttributes, propertyNames } = getPropertyBindings(
             bindings,
             placeholders[0],
             options

@@ -2,7 +2,11 @@
   "name": "ag-charts-core",
   "version": "12.3.1-beta.20251105.1105",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css",
+    "*.html",
+    "./src/main.ts"
+  ],
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
   "module": "./dist/package/main.esm.mjs",

@@ -116,7 +116,7 @@ export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any>
 
 export function hasEnterpriseModules(): boolean {
     for (const definition of registeredModules.values()) {
-        if (definition.enterprise) return true;
+        if (definition.enterprise && !definition.placeholder) return true;
     }
     return false;
 }

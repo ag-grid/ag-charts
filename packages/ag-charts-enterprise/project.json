@@ -28,7 +28,8 @@
     },
     "build:umd": {
       "options": {
-        "outputFileName": "ag-charts-enterprise"
+        "outputFileName": "ag-charts-enterprise",
+        "main": "{projectRoot}/src/main-umd.ts"
       }
     },
     "lint:eslint": {},

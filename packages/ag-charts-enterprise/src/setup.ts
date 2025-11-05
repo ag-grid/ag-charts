@@ -1,19 +1,18 @@
-import { type AgChartOptions, _ModuleSupport } from 'ag-charts-community';
-import { ModuleRegistry } from 'ag-charts-core';
+import { type AgChartOptions } from 'ag-charts-community';
+import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
-import { AllEnterpriseModules } from './module-bundles';
+import { AllCommunityAndEnterpriseModules } from './module-bundles/all-with-community';
 import styles from './styles.css';
 
 export function setupEnterpriseModules() {
-    ModuleRegistry.registerModules(AllEnterpriseModules);
+    ModuleRegistry.registerModules(AllCommunityAndEnterpriseModules);
 
-    _ModuleSupport.enterpriseModule.isEnterprise = true;
-    _ModuleSupport.enterpriseModule.styles = styles;
-    _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
+    enterpriseRegistry.styles = styles;
+    enterpriseRegistry.licenseManager = (options: AgChartOptions) =>
         new LicenseManager(
             options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document)
         );
-    _ModuleSupport.enterpriseModule.injectWatermark = injectWatermark;
+    enterpriseRegistry.injectWatermark = injectWatermark;
 }
