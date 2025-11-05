@@ -31,7 +31,7 @@ function processFunction(code: string, suppressOptionsClone: boolean, methodName
         undefined,
         !suppressOptionsClone
     );
-    
+
     // Add this. prefix to instance method calls within this function
     methodNames.forEach((methodName) => {
         if (!GLOBAL_FUNCTIONS.includes(methodName)) {
@@ -41,7 +41,7 @@ function processFunction(code: string, suppressOptionsClone: boolean, methodName
             processed = processed.replace(regex, `this.${methodName}`);
         }
     });
-    
+
     return processed;
 }
 
@@ -155,7 +155,11 @@ function getInstanceMethodNames(bindings: any): string[] {
     const instanceMethodNames = bindings.instanceMethods
         .map((m) => {
             // Extract function name from declaration
-            // Handles: "methodName = () =>" and "methodName: () =>"
+            // Handles: "function methodName()" (including async), "methodName = () =>", and "methodName: () =>"
+            const fnDeclMatch = m.match(/^\s*(?:async\s+)?function\s+(\w+)\s*\(/);
+            if (fnDeclMatch) {
+                return fnDeclMatch[1];
+            }
             const match = m.match(/^\s*(\w+)\s*[=:]/);
             return match ? match[1] : null;
         })
@@ -183,8 +187,10 @@ export async function vanillaToAngular(
 
         // Get method names first so we can transform calls within method bodies
         const methodNames = getInstanceMethodNames(bindings);
-        
-        const instanceMethods = bindings.instanceMethods.map((v) => processFunction(v, suppressOptionsClone, methodNames));
+
+        const instanceMethods = bindings.instanceMethods.map((v) =>
+            processFunction(v, suppressOptionsClone, methodNames)
+        );
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
             processFunction(handler.body, suppressOptionsClone, methodNames)
         );
