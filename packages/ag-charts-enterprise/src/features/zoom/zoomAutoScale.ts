@@ -2,7 +2,7 @@ import type { AgZoomAutoScaling } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { DeepRequired } from 'ag-charts-core';
 
-const { ActionOnSet, BaseProperties, Property } = _ModuleSupport;
+const { ChartAxisDirection, ActionOnSet, BaseProperties, Property } = _ModuleSupport;
 
 type ZoomAutoScalingOpts = DeepRequired<AgZoomAutoScaling>;
 type ZoomAutoScaleChangeCb = (opts: ZoomAutoScalingOpts) => void;
@@ -52,7 +52,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
     onChangeRequest(event: _ModuleSupport.ZoomChangeRequestedEvent) {
         if (event.changeType == 'reset') {
             for (const id of event.changedAxes) {
-                if (event.state[id]?.direction === _ModuleSupport.ChartAxisDirection.Y) {
+                if (event.state[id]?.direction === ChartAxisDirection.Y) {
                     this.manuallyAdjusted = false;
                 }
             }
@@ -69,7 +69,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
             let yAutoScale: boolean | undefined = memento?.autoScaledAxes?.includes('y');
             if (memento?.rangeY) {
                 yAutoScale ??= false;
-                zoom.y = this.zoomManager.rangeToRatio(memento.rangeY, _ModuleSupport.ChartAxisDirection.Y) ?? {
+                zoom.y = this.zoomManager.rangeToRatio(memento.rangeY, ChartAxisDirection.Y) ?? {
                     min: 0,
                     max: 1,
                 };
@@ -119,7 +119,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         if (zoom && changes) {
             // The `zoom` is outdated, let's patch in the updates from `changes`.
             const state = this.zoomManager.getAxisZooms();
-            for (const dir of [_ModuleSupport.ChartAxisDirection.X, _ModuleSupport.ChartAxisDirection.Y] as const) {
+            for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
                 for (const id of _ModuleSupport.strictObjectKeys(changes)) {
                     if (state[id]?.direction === dir) {
                         zoom[dir] = changes[id];
