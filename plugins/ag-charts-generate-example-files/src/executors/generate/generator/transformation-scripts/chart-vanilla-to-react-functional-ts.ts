@@ -236,6 +236,7 @@ export async function vanillaToReactFunctionalTs(
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current!$3');
         indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current!.$1(');
         indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current!');
+        indexFile = indexFile.replace(/(?<!\.)\bchart\b/g, 'chartRef.current!');
     }
 
     return indexFile;

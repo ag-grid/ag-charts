@@ -117,6 +117,47 @@ The example generator parses your vanilla TypeScript code and transforms it into
     }
     ```
 
+-   **Scoping Utility Functions**: Functions that use chart or state but aren't called from DOM need `/** inScope */`:
+
+    ```typescript
+    let chart: AgChartInstance;
+    let isRunning = false;
+
+    // Called from DOM - automatically hoisted, no comment needed
+    function toggleUpdates() {
+        if (isRunning) {
+            stopUpdates();
+        } else {
+            startUpdates();
+        }
+    }
+
+    // Uses chart/state but NOT called from DOM - needs /** inScope */
+    /** inScope */
+    function startUpdates() {
+        if (!chart) return;
+        isRunning = true;
+        // ... use chart
+    }
+
+    /** inScope */
+    function stopUpdates() {
+        isRunning = false;
+        // ... use chart
+    }
+    ```
+
+    **When to use `/** inScope \*/`:\*\*
+
+    -   Function uses `chart` reference or module-level state variables
+    -   Function is NOT directly called from DOM event handlers (onclick, onchange, etc.)
+    -   Function is called by other functions or timers/intervals
+
+    **When NOT to use `/** inScope \*/`:\*\*
+
+    -   Function is called directly from HTML event handlers (auto-hoisted)
+    -   Function is top-level and doesn't use chart/state
+
 ### Framework Generation Restrictions
 
 The following patterns **do not** transform cleanly to frameworks and should be avoided or require `@ag-skip-fws`:
@@ -131,6 +172,7 @@ The following patterns **do not** transform cleanly to frameworks and should be 
 -   **Dynamic HTML Generation**: Creating or modifying HTML structure in JavaScript
 -   **Global Window Assignments**: Assigning to `window` object (except for event handlers which are handled automatically)
 -   **Multiple Chart Instances**: Complex examples with multiple coordinated charts may not transform well
+-   **Missing `/** inScope \*/`\*\*: Utility functions that use chart/state but aren't called from DOM must have this comment
 
 **Examples Requiring `@ag-skip-fws`:**
 

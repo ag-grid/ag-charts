@@ -185,41 +185,7 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
     /**
      * Apply a transaction to incrementally update the chart data without replacing the entire dataset.
      *
-     * This method provides high-performance updates for real-time data scenarios by:
-     * - Processing only the changed data (90%+ faster than full data refresh for small updates)
-     * - Maintaining chart state (animations are not supported)
-     * - Supporting high-frequency updates (tested at 100+ updates/second)
-     *
-     * Transactions support adding, removing, and updating data items. Items are identified
-     * by referential equality (object reference).
-     *
-     * @param transaction - Object containing arrays of data items to add, remove, or update
      * @returns a `Promise` that resolves once the transaction has been applied and rendered
-     *
-     * @example
-     * ```typescript
-     * // Append new data
-     * await chart.applyTransaction({ add: [{ x: 10, y: 20 }] });
-     *
-     * // Prepend new data
-     * await chart.applyTransaction({ add: [{ x: 0, y: 5 }], addIndex: 0 });
-     *
-     * // Remove existing data by reference
-     * const itemToRemove = data[0];
-     * await chart.applyTransaction({ remove: [itemToRemove] });
-     *
-     * // Update existing data by reference
-     * const itemToUpdate = data[1];
-     * itemToUpdate.y = 100; // Mutate the item in place
-     * await chart.applyTransaction({ update: [itemToUpdate] });
-     *
-     * // Combined operations
-     * await chart.applyTransaction({
-     *   remove: [data[0]],
-     *   update: [data[1]],
-     *   add: [{ x: 10, y: 20 }]
-     * });
-     * ```
      */
     applyTransaction(transaction: AgDataTransaction<TDatum>): Promise<void>;
 

@@ -111,6 +111,47 @@ function getTemplate(bindings: any, id: string, attributes: string[]): string {
     return convertTemplate(template);
 }
 
+// Built-in/global functions that should NOT be transformed with this. prefix
+const GLOBAL_FUNCTIONS = [
+    'requestAnimationFrame',
+    'cancelAnimationFrame',
+    'setTimeout',
+    'setInterval',
+    'clearTimeout',
+    'clearInterval',
+    'performance',
+    'console',
+    'Math',
+    'JSON',
+    'Object',
+    'Array',
+    'Date',
+    'String',
+    'Number',
+    'Boolean',
+    'Error',
+    'parseInt',
+    'parseFloat',
+    'isNaN',
+    'isFinite',
+    'encodeURIComponent',
+    'decodeURIComponent',
+    'clone', // from imports
+];
+
+function getInstanceMethodNames(bindings: any): string[] {
+    const eventHandlerNames = bindings.externalEventHandlers.map((h) => h.name);
+    const instanceMethodNames = bindings.instanceMethods
+        .map((m) => {
+            // Extract function name from declaration
+            // Handles: "methodName = () =>" and "methodName: () =>"
+            const match = m.match(/^\s*(\w+)\s*[=:]/);
+            return match ? match[1] : null;
+        })
+        .filter(Boolean);
+    return [...eventHandlerNames, ...instanceMethodNames];
+}
+
 export async function vanillaToAngular(
     bindings: any,
     componentFileNames: string[],
@@ -243,7 +284,19 @@ export async function vanillaToAngular(
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
         indexFile = indexFile.replace(/chart.(\w*)\(/g, 'this.agCharts.chart!.$1(');
         indexFile = indexFile.replace(/this.agCharts.chart!.(\w*)\(options/g, 'this.agCharts.chart!.$1(this.options');
+        indexFile = indexFile.replace(/(?<!\.)\bchart\b/g, 'this.agCharts.chart!');
     }
+
+    // Transform instance method calls to use this. prefix
+    const methodNames = getInstanceMethodNames(bindings);
+    methodNames.forEach((methodName) => {
+        if (!GLOBAL_FUNCTIONS.includes(methodName)) {
+            // Add this. prefix to bare function calls
+            // Use negative lookbehind to avoid double transformation
+            const regex = new RegExp(`(?<!this\\.)\\b${methodName}\\(`, 'g');
+            indexFile = indexFile.replace(regex, `this.${methodName}(`);
+        }
+    });
 
     return indexFile;
 }

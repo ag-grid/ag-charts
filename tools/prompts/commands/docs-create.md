@@ -213,6 +213,49 @@ The `index.html` file must be a **body snippet only**, not a complete HTML docum
 
 The `example-controls.css` styles are automatically applied at runtime.
 
+**TypeScript Function Scoping:**
+
+For framework compatibility, utility functions need proper scoping:
+
+```typescript
+let chart: AgChartInstance;
+let isRunning = false;
+
+// Called from DOM (onclick="toggleUpdates()") - no comment needed
+function toggleUpdates() {
+    if (isRunning) {
+        stopUpdates();
+    } else {
+        startUpdates();
+    }
+}
+
+// Uses chart/state but NOT called from DOM - needs /** inScope */
+/** inScope */
+function startUpdates() {
+    if (!chart) return;
+    isRunning = true;
+    // ... use chart
+}
+
+/** inScope */
+function stopUpdates() {
+    isRunning = false;
+    // ... use chart
+}
+```
+
+**When to add `/** inScope \*/`:\*\*
+
+-   Function uses `chart` reference or module-level state variables
+-   Function is NOT directly called from HTML event handlers
+-   Function is called by other functions, timers, or intervals
+
+**When NOT to add `/** inScope \*/`:\*\*
+
+-   Function is called directly from HTML (auto-hoisted)
+-   Function doesn't use chart instance or state
+
 ````
 
 ### 3. Navigation Entry

@@ -28,15 +28,17 @@ The `AgChartInstance` can be obtained using the Vue `$refs` component property t
 exposes a `chart` property.
 {% /if %}
 
-This example demonstrates using `applyTransaction()` to add new data points to a chart in real-time:
+This example demonstrates using `applyTransaction()` to handle high-frequency updates on a large dataset. The chart starts with 50,000 data points and updates every frame using `requestAnimationFrame()`, maintaining a scrolling time window by removing old points and adding new ones:
 
 {% chartExampleRunner title="Apply Transaction" name="simple-apply-transaction" type="generated" /%}
 
 In this example:
 
--   The chart instance reference is obtained when the chart is created.
--   New data points are added using `applyTransaction({ add: [...] })`.
--   The chart updates efficiently without re-processing the entire dataset.
+-   The chart starts with 50,000 data points to demonstrate scalability.
+-   Updates occur every animation frame (typically 60 FPS) for smooth real-time streaming.
+-   Each update removes 10 old points from the start and adds 10 new points to the end.
+-   The transaction combines both operations efficiently: `applyTransaction({ remove: [...], add: [...] })`.
+-   Performance metrics (FPS and update count) demonstrate the efficiency of incremental updates.
 
 ## Transaction Operations
 
@@ -167,3 +169,5 @@ For full data replacement or configuration changes, see [Create/Update](./api-cr
 {% /tabItem %}
 
 {% /tabs %}
+
+

@@ -1,15 +1,9 @@
 import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { getData, DataPoint } from './data';
 
-const data: any[] = [];
-const startTime = Date.now();
+const POINTS_PER_UPDATE = 10;
 
-// Generate initial data
-for (let i = 0; i < 20; i++) {
-    data.push({
-        time: startTime + i * 1000,
-        value: Math.random() * 50 + 25,
-    });
-}
+const data = getData();
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -20,6 +14,7 @@ const options: AgChartOptions = {
             xKey: 'time',
             yKey: 'value',
             stroke: '#5090DC',
+            strokeWidth: 1,
             marker: {
                 enabled: false,
             },
@@ -32,6 +27,7 @@ const options: AgChartOptions = {
             label: {
                 format: '%H:%M:%S',
             },
+            nice: false,
         },
         {
             type: 'number',
@@ -43,58 +39,86 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart: AgChartInstance = AgCharts.create(options);
-
+let chart: AgChartInstance;
 let isRunning = false;
-let intervalId: number | undefined;
+let animationFrameId: number | undefined;
 let updateCount = 0;
+let lastTime = performance.now();
+let frameCount = 0;
+let fps = 0;
 
+/** inScope */
 function updateChart() {
-    const newDataPoint = {
-        time: Date.now(),
-        value: Math.random() * 50 + 25,
-    };
+    if (!isRunning || !chart) return;
 
-    // Add new point
-    data.push(newDataPoint);
-
-    // Remove old points to maintain window of 20 items
-    const itemsToRemove = [];
-    while (data.length > 20) {
-        itemsToRemove.push(data[0]);
-        data.shift();
+    // Calculate FPS
+    frameCount++;
+    const currentTime = performance.now();
+    if (currentTime - lastTime >= 1000) {
+        fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+        frameCount = 0;
+        lastTime = currentTime;
+        updateStats();
     }
 
+    // Create new data points
+    const newPoints: DataPoint[] = [];
+    const lastPoint = data[data.length - 1];
+    const baseTime = lastPoint.time;
+    const baseValue = lastPoint.value;
+
+    for (let i = 0; i < POINTS_PER_UPDATE; i++) {
+        newPoints.push({
+            time: baseTime + (i + 1) * 100,
+            value: baseValue + (Math.random() - 0.5) * 5,
+        });
+    }
+
+    // Remove old points from the start
+    const pointsToRemove: DataPoint[] = data.slice(0, POINTS_PER_UPDATE);
+
+    // Apply transaction for efficient update
     chart.applyTransaction({
-        add: [newDataPoint],
-        remove: itemsToRemove,
+        remove: pointsToRemove,
+        add: newPoints,
     });
 
+    // Update data array
+    data.splice(0, POINTS_PER_UPDATE);
+    data.push(...newPoints);
+
     updateCount++;
-    updateCounter();
+
+    // Continue animation loop
+    animationFrameId = requestAnimationFrame(updateChart);
 }
 
-function updateCounter() {
-    const counterElement = document.getElementById('updateCounter');
-    if (counterElement) {
-        counterElement.textContent = updateCount.toString();
+/** inScope */
+function updateStats() {
+    const statsElement = document.getElementById('stats');
+    if (statsElement) {
+        statsElement.textContent = `Updates: ${updateCount} | FPS: ${fps} | Points: ${data.length.toLocaleString()}`;
     }
 }
 
+/** inScope */
 function startUpdates() {
-    if (isRunning) return;
+    if (isRunning || !chart) return;
     isRunning = true;
     updateButton();
-    intervalId = window.setInterval(updateChart, 500);
+    lastTime = performance.now();
+    frameCount = 0;
+    animationFrameId = requestAnimationFrame(updateChart);
 }
 
+/** inScope */
 function stopUpdates() {
     if (!isRunning) return;
     isRunning = false;
     updateButton();
-    if (intervalId !== undefined) {
-        clearInterval(intervalId);
-        intervalId = undefined;
+    if (animationFrameId !== undefined) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = undefined;
     }
 }
 
@@ -106,9 +130,14 @@ function toggleUpdates() {
     }
 }
 
+/** inScope */
 function updateButton() {
     const button = document.getElementById('toggleButton');
     if (button) {
-        button.textContent = isRunning ? 'Stop' : 'Start';
+        button.textContent = isRunning ? 'Stop Stream' : 'Start Stream';
     }
 }
+
+chart = AgCharts.create(options);
+
+

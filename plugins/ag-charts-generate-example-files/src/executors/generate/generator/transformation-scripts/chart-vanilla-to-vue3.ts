@@ -245,6 +245,7 @@ export async function vanillaToVue3(
             /this.\$refs.agCharts.chart.(\w*)\(options/g,
             'agCharts.value.chart.$1(options.value'
         );
+        mainFile = mainFile.replace(/(?<!\.)\bchart\b/g, 'agCharts.value.chart');
     }
 
     return mainFile;
