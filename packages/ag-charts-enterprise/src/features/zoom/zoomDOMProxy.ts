@@ -53,10 +53,11 @@ export class ZoomDOMProxy {
     ) {
         this.seriesRect = seriesRect;
 
+        const disabled = !enabled || (!enableAxisDragging && !enableAxisScrolling);
         for (const ax of this.axes) {
-            ax.div.setHidden(!enableAxisDragging && !enableAxisScrolling);
+            ax.div.setHidden(disabled);
         }
-        if (!enabled || (!enableAxisDragging && !enableAxisScrolling)) return;
+        if (disabled) return;
 
         const { X, Y } = ChartAxisDirection;
         const axesCtx = [...ctx.axisManager.getAxisContext(X), ...ctx.axisManager.getAxisContext(Y)];
