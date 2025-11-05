@@ -111,7 +111,7 @@ function getAllMethods(bindings: any, suppressOptionsClone: boolean): [string[],
         return body;
     });
 
-    const methodNames = bindings.externalEventHandlers.concat(bindings.instanceMethods).map((event) => event.name);
+    const methodNames = bindings.externalEventHandlers.map((event) => event.name);
 
     return [externalEventHandlers, instanceMethods, globalMethods, methodNames];
 }
@@ -245,6 +245,7 @@ export async function vanillaToVue3(
             /this.\$refs.agCharts.chart.(\w*)\(options/g,
             'agCharts.value.chart.$1(options.value'
         );
+        mainFile = mainFile.replace(/(?<!\.)\bchart\b/g, 'agCharts.value.chart');
     }
 
     return mainFile;

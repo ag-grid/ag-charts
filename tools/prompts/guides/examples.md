@@ -22,15 +22,17 @@ Example paths are mapped from repo paths:
         ```html
         <div id="myChart"></div>
         ```
-    -   Complex example:
+    -   Complex example with controls:
         ```html
-        <div class="controls-row">
-            <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
-            <select id="methodSelect" onchange="updateMethod(this.value)">
-                <option value="updateDelta">updateDelta()</option>
-                <option value="applyTransaction">applyTransaction()</option>
-            </select>
-            <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+        <div class="example-controls">
+            <div class="controls-row">
+                <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+                <select id="methodSelect" onchange="updateMethod(this.value)">
+                    <option value="updateDelta">updateDelta()</option>
+                    <option value="applyTransaction">applyTransaction()</option>
+                </select>
+                <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+            </div>
         </div>
         <div id="myChart"></div>
         ```
@@ -115,6 +117,54 @@ The example generator parses your vanilla TypeScript code and transforms it into
     }
     ```
 
+-   **Scoping Utility Functions**: Functions that use chart or state but aren't called from DOM need `/** inScope */`:
+
+    ```typescript
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        // ... options
+    };
+
+    const chart = AgCharts.create(options);
+
+    let isRunning = false;
+
+    // Called from DOM - automatically hoisted, no comment needed
+    function toggleUpdates() {
+        if (isRunning) {
+            stopUpdates();
+        } else {
+            startUpdates();
+        }
+    }
+
+    // Uses chart/state but NOT called from DOM - needs /** inScope */
+    /** inScope */
+    function startUpdates() {
+        isRunning = true;
+        // ... use chart
+    }
+
+    /** inScope */
+    function stopUpdates() {
+        isRunning = false;
+        // ... use chart
+    }
+    ```
+
+    **Important:** Chart must be initialized with `const chart = AgCharts.create(options)` immediately after options, not deferred with `let chart` and later assignment.
+
+    **When to use `/** inScope \*/`:\*\*
+
+    -   Function uses `chart` reference or module-level state variables
+    -   Function is NOT directly called from DOM event handlers (onclick, onchange, etc.)
+    -   Function is called by other functions or timers/intervals
+
+    **When NOT to use `/** inScope \*/`:\*\*
+
+    -   Function is called directly from HTML event handlers (auto-hoisted)
+    -   Function is top-level and doesn't use chart/state
+
 ### Framework Generation Restrictions
 
 The following patterns **do not** transform cleanly to frameworks and should be avoided or require `@ag-skip-fws`:
@@ -129,6 +179,7 @@ The following patterns **do not** transform cleanly to frameworks and should be 
 -   **Dynamic HTML Generation**: Creating or modifying HTML structure in JavaScript
 -   **Global Window Assignments**: Assigning to `window` object (except for event handlers which are handled automatically)
 -   **Multiple Chart Instances**: Complex examples with multiple coordinated charts may not transform well
+-   **Missing `/** inScope \*/`\*\*: Utility functions that use chart/state but aren't called from DOM must have this comment
 
 **Examples Requiring `@ag-skip-fws`:**
 
