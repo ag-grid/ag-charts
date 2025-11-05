@@ -12,7 +12,7 @@ Automated process to generate or refresh `PREVIS.md` files for AG Charts gallery
 
 **Prerequisites Check:**
 
--   [ ] Dev server running on `https://localhost:4600` (use `nx dev` if not)
+-   [ ] Dev server running on `https://localhost:4600` (use `yarn nx dev` if not)
 -   [ ] Puppeteer configured with self-signed cert support
 -   [ ] Example exists in gallery structure
 

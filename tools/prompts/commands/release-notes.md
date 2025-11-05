@@ -91,4 +91,4 @@ You will use these variables throughout the process.
 
     -   Write the modified content back to the file.
 
-7.  Run `nx format --all`
+7.  Run `yarn nx format --all`

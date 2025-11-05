@@ -38,19 +38,19 @@ This guide covers testing strategies, best practices, and philosophy for AG Char
 
 ## Essential Test Commands
 
--   `nx test <package>` – execute Jest suites for the affected package
--   `nx test <package> --testPathPattern="<file-name>"` - test specific test file
--   `nx test <package> --testPathPattern="<file-name>" --testNamePattern="<test-name>"` - test specific test name in a specific test file
--   `nx e2e <package>` – run Playwright flows when altering website behaviour
--   `nx benchmark <package>` – assess performance regressions; filter via `-- -t "pattern"` when needed
+-   `yarn nx test <package>` – execute Jest suites for the affected package
+-   `yarn nx test <package> --testPathPattern="<file-name>"` - test specific test file
+-   `yarn nx test <package> --testPathPattern="<file-name>" --testNamePattern="<test-name>"` - test specific test name in a specific test file
+-   `yarn nx e2e <package>` – run Playwright flows when altering website behaviour
+-   `yarn nx benchmark <package>` – assess performance regressions; filter via `-- -t "pattern"` when needed
 
 ## Baseline Verification
 
 After meaningful chart changes, expect to run:
 
--   `nx test ag-charts-community`
--   `nx test ag-charts-enterprise`
--   `nx e2e ag-charts-website`
+-   `yarn nx test ag-charts-community`
+-   `yarn nx test ag-charts-enterprise`
+-   `yarn nx e2e ag-charts-website`
 
 ## Test Verification Patterns
 

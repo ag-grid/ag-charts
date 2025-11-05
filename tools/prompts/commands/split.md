@@ -279,9 +279,9 @@ For EACH target file (except the one that keeps original name):
 -   [ ] All target files created with proper content
 -   [ ] Original source file updated with imports
 -   [ ] All dependent files updated
--   [ ] `nx format` passed
--   [ ] `nx build:types` passed
--   [ ] `nx test` passed
+-   [ ] `yarn nx format` passed
+-   [ ] `yarn nx build:types` passed
+-   [ ] `yarn nx test` passed
 -   [ ] Git history verified with `git log --follow` and `git blame -C -C -C`
 -   [ ] Changes merged back to original branch
 -   [ ] Working directory is clean

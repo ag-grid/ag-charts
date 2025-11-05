@@ -211,9 +211,9 @@ Checklist results:
 
 1. Create examples (see Example Requirements document)
 2. Add page to navigation (see Navigation Entry)
-3. Run `nx generate-examples ag-charts-website`
-4. Run `nx validate-examples`
-5. Test in dev server with `nx dev`
+3. Run `yarn nx generate-examples ag-charts-website`
+4. Run `yarn nx validate-examples`
+5. Test in dev server with `yarn nx dev`
 ```
 
 ## Usage Examples
@@ -352,9 +352,9 @@ After creating documentation with this command:
 1. **Review generated content** for accuracy
 2. **Create examples** following Example Requirements document
 3. **Add to navigation** using provided JSON
-4. **Generate framework variants**: `nx generate-examples ag-charts-website`
-5. **Validate examples**: `nx validate-examples`
-6. **Test in dev server**: `nx dev`
+4. **Generate framework variants**: `yarn nx generate-examples ag-charts-website`
+5. **Validate examples**: `yarn nx validate-examples`
+6. **Test in dev server**: `yarn nx dev`
 7. **Optional**: Run `/docs-review` for comprehensive validation
 
 ## Related Resources

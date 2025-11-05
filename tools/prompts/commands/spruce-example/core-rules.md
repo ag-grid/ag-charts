@@ -88,8 +88,8 @@ Gallery examples are used by thousands of developers who:
 
 1.  ✅ Example MUST compile without TypeScript errors
 2.  ✅ Example MUST generate without warnings
-3.  ✅ **Validation MUST pass** (`nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck`) - **DO NOT SKIP THIS**
-4.  ✅ Thumbnail generation MUST succeed (`nx generate-thumbnails`)
+3.  ✅ **Validation MUST pass** (`yarn nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck`) - **DO NOT SKIP THIS**
+4.  ✅ Thumbnail generation MUST succeed (`yarn nx generate-thumbnails`)
 5.  ✅ All `axes[].type` fields MUST be specified
 
 ### Failure Conditions (STOP IMMEDIATELY):
@@ -99,7 +99,7 @@ Gallery examples are used by thousands of developers who:
 -   If PREVis evaluation cannot be performed: **STOP - DO NOT PROCEED**
 -   If PREVis score decreases: **REVERT ALL CHANGES**
 -   If compilation fails: **FIX OR REVERT**
--   **If `nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck` fails: FIX OR REVERT - DO NOT SKIP**
+-   **If `yarn nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck` fails: FIX OR REVERT - DO NOT SKIP**
 -   If thumbnail generation fails: **FIX OR REVERT**
 -   Do NOT proceed with code-only analysis
 -   Report the error and explain that visual analysis is required

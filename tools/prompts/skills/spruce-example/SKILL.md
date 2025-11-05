@@ -17,7 +17,7 @@ This skill guides you through improving AG Charts gallery examples using a struc
 
 ## Prerequisites
 
--   Development server must be running (`nx dev`)
+-   Development server must be running (`yarn nx dev`)
 -   Puppeteer available for visual analysis
 -   Access to previs-evaluator agent for PREVis evaluation
 
@@ -117,7 +117,7 @@ Cannot mark complete until **ALL** checked:
 -   [ ] PREVis score maintained or improved
 -   [ ] NO hardcoded colors or fonts in code
 -   [ ] Footnotes minimized (only essential ones kept)
--   [ ] `nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck` PASSED
+-   [ ] `yarn nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck` PASSED
 -   [ ] Thumbnails generated successfully
 -   [ ] Works in both light and dark themes
 

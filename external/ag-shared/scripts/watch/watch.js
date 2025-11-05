@@ -524,7 +524,7 @@ function respawnError() {
     error(`Repeated respawn detected!
         
     The Nx Daemon maybe erroring, try restarting it to resolve with either:
-    - \`nx daemon --stop\`
+    - \`yarn nx daemon --stop\`
     - \`yarn\`
 
     Or alternatively view its logs at:

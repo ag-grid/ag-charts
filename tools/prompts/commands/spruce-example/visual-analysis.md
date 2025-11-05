@@ -83,9 +83,9 @@ await puppeteer_navigate({
     -   [ ] If score decreased: CHANGES REVERTED
 -   [ ] **✅ COMPILATION & BUILD (MUST RUN ALL)**:
     -   [ ] Example compiles without TypeScript errors
-    -   [ ] Example generates without warnings (`nx run ag-charts-website-gallery_${exampleName}_main.ts:generate`)
-    -   [ ] **VALIDATION PASSES** (`nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck`) - **CRITICAL - DO NOT SKIP**
-    -   [ ] Thumbnail generation succeeds (`nx generate-thumbnails ag-charts-website`)
+    -   [ ] Example generates without warnings (`yarn nx run ag-charts-website-gallery_${exampleName}_main.ts:generate`)
+    -   [ ] **VALIDATION PASSES** (`yarn nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck`) - **CRITICAL - DO NOT SKIP**
+    -   [ ] Thumbnail generation succeeds (`yarn nx generate-thumbnails ag-charts-website`)
     -   [ ] All `axes[].type` fields are specified
 -   [ ] **THOROUGH Overlap Check** (CRITICAL for floating elements):
     -   [ ] Floating legend doesn't obscure any data points

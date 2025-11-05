@@ -2,19 +2,19 @@
 
 ## 🚨 Quick Fix Reference
 
-| Symptom                                                                   | Cause                  | Solution                              |
-| ------------------------------------------------------------------------- | ---------------------- | ------------------------------------- |
-| **TypeScript Errors**                                                     |
-| "Property does not exist on type"                                         | Generic AgChartOptions | Use `AgCartesianChartOptions`         |
-| "Type 'string' is not assignable"                                         | Missing `as const`     | Add `type: 'bar' as const`            |
-| "axes does not exist"                                                     | Wrong chart type       | Use correct type (Cartesian vs Polar) |
-| **Visual Issues**                                                         |
-| Dark mode broken                                                          | Hardcoded colors       | Remove ALL color values               |
-| Fonts inconsistent                                                        | Font overrides         | Remove ALL font properties            |
-| Theme not applying                                                        | CSS files present      | Delete all CSS files                  |
-| **Validation Failures**                                                   |
-| `nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck` fails | Missing axes[].type    | Add `type` to every axis              |
-| Compilation errors                                                        | Wrong imports          | Import from ag-charts-enterprise      |
+| Symptom                                                                        | Cause                  | Solution                              |
+| ------------------------------------------------------------------------------ | ---------------------- | ------------------------------------- |
+| **TypeScript Errors**                                                          |
+| "Property does not exist on type"                                              | Generic AgChartOptions | Use `AgCartesianChartOptions`         |
+| "Type 'string' is not assignable"                                              | Missing `as const`     | Add `type: 'bar' as const`            |
+| "axes does not exist"                                                          | Wrong chart type       | Use correct type (Cartesian vs Polar) |
+| **Visual Issues**                                                              |
+| Dark mode broken                                                               | Hardcoded colors       | Remove ALL color values               |
+| Fonts inconsistent                                                             | Font overrides         | Remove ALL font properties            |
+| Theme not applying                                                             | CSS files present      | Delete all CSS files                  |
+| **Validation Failures**                                                        |
+| `yarn nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck` fails | Missing axes[].type    | Add `type` to every axis              |
+| Compilation errors                                                             | Wrong imports          | Import from ag-charts-enterprise      |
 
 ## ❌ ABSOLUTE RULES - NO EXCEPTIONS
 
@@ -72,7 +72,7 @@ axes: [
 
 ## 🎯 When Things Fail
 
-### If `nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck` fails:
+### If `yarn nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck` fails:
 
 1. Check all axes have `type` specified
 2. Verify no hardcoded colors/fonts
