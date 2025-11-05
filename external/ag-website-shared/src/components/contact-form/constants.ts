@@ -4,8 +4,12 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 export type ResultType = 'success' | 'failure';
 
+console.log(GRID_URL);
+console.log(GRID_URL);
+console.log(GRID_URL);
+console.log(GRID_URL);
 export const RETURN_URLS: Record<ResultType, string> = {
     // NOTE: Need to add trailing slash to avoid 302 redirect on S3
-    success: pathJoin(SITE_URL, urlWithBaseUrl('/contact/success', GRID_URL), '') + '/',
-    failure: pathJoin(SITE_URL, urlWithBaseUrl('/contact/failure', GRID_URL)) + '/',
+    success: pathJoin(GRID_URL, '/contact/success') + '/',
+    failure: pathJoin(GRID_URL, '/contact/failure') + '/',
 };
