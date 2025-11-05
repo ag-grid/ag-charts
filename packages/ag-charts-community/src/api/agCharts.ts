@@ -169,7 +169,6 @@ class AgChartsInternal {
                 [
                     'AG Charts - No modules have been registered.',
                     'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create().',
-                    'For the default community distribution use registerInbuiltModules(), or setupEnterpriseModules() when working with ag-charts-enterprise.',
                 ].join(' ')
             );
         }

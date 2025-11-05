@@ -1,0 +1,47 @@
+import {
+    AgChartOptions,
+    AgCharts,
+    CartesianChartModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
+
+import { getData } from './data';
+
+ModuleRegistry.registerModules([CartesianChartModule, LineSeriesModule, NumberAxisModule, CategoryAxisModule]);
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(),
+    title: {
+        text: 'Registered Line Chart',
+    },
+    series: [
+        {
+            type: 'line',
+            xKey: 'quarter',
+            yKey: 'revenue',
+            yName: 'Revenue',
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+            title: {
+                text: 'Quarter',
+            },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            title: {
+                text: 'Revenue (USD Millions)',
+            },
+        },
+    ],
+};
+
+AgCharts.create(options);
