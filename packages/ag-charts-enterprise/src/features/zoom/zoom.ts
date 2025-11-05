@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, type AxisID, debounce, roundTo, entries } from 'ag-charts-core';
+import { AbstractModuleInstance, type AxisID, debounce, entries, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -719,8 +719,8 @@ export class Zoom extends AbstractModuleInstance {
             for (const [axisId, { direction, min, max }] of entries(newZooms)) {
                 const constrainedZoom =
                     direction === ChartAxisDirection.X
-                    ? this.constrainZoom({ x: { min, max }, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
-                : {min, max};
+                        ? this.constrainZoom({ x: { min, max }, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
+                        : { min, max };
                 updated &&= this.updateAxisZoom(
                     axisId,
                     direction as _ModuleSupport.CartesianAxisDirection,
