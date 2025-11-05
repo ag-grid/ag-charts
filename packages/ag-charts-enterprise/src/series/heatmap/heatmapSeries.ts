@@ -481,7 +481,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
             type P = AgHeatmapSeriesLabelFormatterParams;
             type D = HeatmapLabelDatum;
-            updateLabelNode<P, D>(this, text, this.properties, this.properties.label, datum, isHighlight, activeHighlight);
+            updateLabelNode<P, D>(
+                this,
+                text,
+                this.properties,
+                this.properties.label,
+                datum,
+                isHighlight,
+                activeHighlight
+            );
         });
     }
 

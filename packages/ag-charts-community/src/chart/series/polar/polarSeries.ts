@@ -92,9 +92,8 @@ export abstract class PolarSeries<
     protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightNodeGroup, () =>
         this.nodeFactory()
     );
-    protected highlightLabelSelection: Selection<Text, TDatum> = Selection.select(
-        this.highlightLabelGroup,
-        () => this.labelFactory()
+    protected highlightLabelSelection: Selection<Text, TDatum> = Selection.select(this.highlightLabelGroup, () =>
+        this.labelFactory()
     );
 
     animationResetFns?: {

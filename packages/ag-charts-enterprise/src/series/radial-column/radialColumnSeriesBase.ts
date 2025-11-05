@@ -484,12 +484,12 @@ export abstract class RadialColumnSeriesBase<
             node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
 
-        this.highlightLabelSelection.update(highlightData, undefined, (datum) => this.getDatumId(datum)).each(
-            (node, datum) => {
+        this.highlightLabelSelection
+            .update(highlightData, undefined, (datum) => this.getDatumId(datum))
+            .each((node, datum) => {
                 updateLabelNode(this, node, this.properties, this.properties.label, datum.label, true, activeHighlight);
                 node.fillOpacity = this.getHighlightStyle(true, datum.datumIndex).opacity ?? 1;
-            }
-        );
+            });
     }
 
     protected abstract getColumnTransitionFunctions(): {
@@ -502,7 +502,13 @@ export abstract class RadialColumnSeriesBase<
 
         const fns = this.getColumnTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection, this.highlightLabelSelection);
+        seriesLabelFadeInAnimation(
+            this,
+            'labels',
+            this.ctx.animationManager,
+            labelSelection,
+            this.highlightLabelSelection
+        );
     }
 
     override animateClearingUpdateEmpty() {
