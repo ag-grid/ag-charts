@@ -29,6 +29,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Module Registry",
+                            "path": "module-registry"
+                        },
+                        {
+                            "type": "item",
                             "title": "Enterprise Licence Key",
                             "path": "license-install"
                         },

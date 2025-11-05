@@ -64,21 +64,28 @@ export function parser({
     dirPath: string;
     exampleSettings: ExampleSettings;
 }) {
-    const bindings = internalParser(readAsJsFile(srcFile, { includeImports: true }), html, exampleSettings, dirPath);
+    const jsFile = readAsJsFile(srcFile, { includeImports: true });
+    const bindings = internalParser(jsFile, html, exampleSettings, dirPath);
     const typedBindings = internalParser(srcFile, html, exampleSettings, dirPath);
     // Ensure options type percolates through for JS cases.
     Object.assign(bindings.optionsTypeInfo, typedBindings.optionsTypeInfo);
 
-    const isEnterprise = exampleSettings.enterprise;
-    const packageName = isEnterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
-    const moduleBundle = isEnterprise ? 'AllCommunityAndEnterpriseModules' : 'AllCommunityModules';
-    const moduleImports = ['ModuleRegistry', moduleBundle];
+    if (jsFile.includes('ModuleRegistry.registerModules(')) {
+        const [match] = jsFile.match(/ModuleRegistry.registerModules\(.*\);/m);
+        bindings.globals.push(match);
+        typedBindings.globals.push(match);
+    } else {
+        const isEnterprise = exampleSettings.enterprise;
+        const packageName = isEnterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
+        const moduleBundle = isEnterprise ? 'AllCommunityAndEnterpriseModules' : 'AllCommunityModules';
+        const moduleImports = ['ModuleRegistry', moduleBundle];
 
-    addImport(bindings, packageName, moduleImports);
-    addImport(typedBindings, packageName, moduleImports);
+        addImport(bindings, packageName, moduleImports);
+        addImport(typedBindings, packageName, moduleImports);
 
-    bindings.globals.push(`ModuleRegistry.registerModules(${moduleBundle});`);
-    typedBindings.globals.push(`ModuleRegistry.registerModules(${moduleBundle});`);
+        bindings.globals.push(`ModuleRegistry.registerModules(${moduleBundle});`);
+        typedBindings.globals.push(`ModuleRegistry.registerModules(${moduleBundle});`);
+    }
 
     return { bindings, typedBindings };
 }

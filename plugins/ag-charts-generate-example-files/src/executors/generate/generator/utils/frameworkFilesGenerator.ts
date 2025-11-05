@@ -57,7 +57,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
-        let mainJs = readAsJsFile(entryFile);
+        let mainJs = readAsJsFile(entryFile).replace(/ModuleRegistry.registerModules\(.*\);/m, '');
 
         const localeImports = typedBindings.imports
             .filter((i: any) => i.module.includes('ag-charts-locale'))
@@ -67,18 +67,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         }
 
         // Chart classes that need scoping
-        const chartsExports = new Set([
-            'time',
-            'AgCharts',
-            'VERSION',
-            'Marker',
-            'AG_CHARTS_LOCALE_EN_US',
-            '_Scene',
-            '_Theme',
-            '_Scale',
-            '_Util',
-            '_ModuleSupport',
-        ]);
+        const chartsExports = new Set(['time', 'AgCharts', 'VERSION', 'Marker', 'AG_CHARTS_LOCALE_EN_US']);
         const chartImports = typedBindings.imports
             .filter((i) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
             .flatMap((imp) => imp.imports)
