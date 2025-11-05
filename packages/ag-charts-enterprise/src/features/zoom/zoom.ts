@@ -660,9 +660,7 @@ export class Zoom extends AbstractModuleInstance {
         event.sourceEvent.preventDefault();
 
         const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
-        for (const [axisId, { direction, zoom }] of entries(newZooms)) {
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
-        }
+        this.updateChanges(newZooms);
     }
 
     private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
@@ -718,16 +716,12 @@ export class Zoom extends AbstractModuleInstance {
 
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
-            for (const [axisId, { direction, zoom: axisZoom }] of entries(newZooms)) {
+            for (const [axisId, { direction, min, max }] of entries(newZooms)) {
                 const constrainedZoom =
                     direction === ChartAxisDirection.X
-                        ? this.constrainZoom({ x: axisZoom, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
-                        : axisZoom;
-                updated &&= this.updateAxisZoom(
-                    axisId,
-                    direction as _ModuleSupport.CartesianAxisDirection,
-                    constrainedZoom
-                );
+                        ? this.constrainZoom({ x: { min, max }, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
+                        : { min, max };
+                updated &&= this.updateAxisZoom(axisId, direction, constrainedZoom);
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
@@ -835,11 +829,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!seriesRect) return;
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
-
-        for (const [axisId, { direction, zoom }] of entries(newZooms)) {
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
-        }
-
+        this.updateChanges(newZooms);
         tooltipManager.updateTooltip(TOOLTIP_ID);
     }
 
@@ -968,6 +958,18 @@ export class Zoom extends AbstractModuleInstance {
 
     public updateSyncZoom(zoom: DefinedZoomState) {
         this.updateZoom(zoom);
+    }
+
+    private updateChanges(changes: _ModuleSupport.CoreZoomState) {
+        // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
+        // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
+        // breaking thebehaviour.
+        const partialZoom = this.ctx.zoomManager.toAxisZoomState(changes) ?? {};
+        const currentZoom = definedZoomState(this.ctx.zoomManager.getZoom());
+        this.updateZoom({
+            x: partialZoom.x ?? currentZoom.x,
+            y: partialZoom.y ?? currentZoom.y,
+        });
     }
 
     private updateZoom(zoom: DefinedZoomState) {

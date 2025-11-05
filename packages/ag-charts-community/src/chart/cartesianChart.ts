@@ -66,7 +66,7 @@ export class CartesianChart extends Chart {
         this.syncAxisChanges(newValue, oldValue);
 
         if (this.ctx != null) {
-            this.ctx.zoomManager.updateAxes(newValue);
+            this.ctx.zoomManager.setAxes(newValue);
         }
     }
 

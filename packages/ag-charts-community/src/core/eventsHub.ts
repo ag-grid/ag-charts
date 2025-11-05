@@ -1,4 +1,4 @@
-import type { Scale } from 'ag-charts-core';
+import type { AxisID, Scale } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
 import type { AgAnnotation, AgContextMenuItemShowOn, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -119,9 +119,13 @@ export interface SeriesKeyNavZoomEvent {
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 
+export type ZoomChangeType = 'layoutComplete' | 'panToBBox' | 'reset' | 'restoreMemento' | 'update' | 'setAxes';
+
 export interface ZoomChangeRequestedEvent extends AxisZoomState {
     readonly callerId: string;
-    readonly axes: Record<string, Readonly<ZoomState> | undefined>;
+    readonly changeType: ZoomChangeType;
+    readonly changedAxes: readonly AxisID[];
+    readonly state: { readonly [K in AxisID]: Readonly<ZoomState> | undefined };
     readonly x?: Readonly<ZoomState>;
     readonly y?: Readonly<ZoomState>;
 }

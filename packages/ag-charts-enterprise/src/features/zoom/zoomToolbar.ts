@@ -250,9 +250,10 @@ export class ZoomToolbar extends BaseProperties {
 
         if (props.independentAxes && button.value !== 'reset') {
             const axisZooms = this.ctx.zoomManager.getAxisZooms();
-            for (const [axisId, { direction, zoom }] of entries(axisZooms)) {
-                if (zoom == null) continue;
-                this.onButtonPressAxis(button, props, axisId, direction, zoom);
+            for (const [axisId, value] of entries(axisZooms)) {
+                if (value == null) continue;
+                const { direction, min, max } = value;
+                this.onButtonPressAxis(button, props, axisId, direction, { min, max });
             }
         } else {
             this.onButtonPressUnified(button, props);

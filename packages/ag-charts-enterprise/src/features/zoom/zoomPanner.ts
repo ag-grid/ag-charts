@@ -1,8 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { entries, getWindow } from 'ag-charts-core';
 
-import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
+import type { ZoomCoords } from './zoomTypes';
 import { UNIT_MAX, UNIT_MIN, constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
+
+type State = _ModuleSupport.CoreZoomState;
+type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
 
 export interface ZoomPanUpdate {
     type: 'update';
@@ -163,24 +166,27 @@ export class ZoomPanner {
         return this.direction == null || this.direction === _ModuleSupport.ChartAxisDirection.Y;
     }
 
-    translateZooms(bbox: _ModuleSupport.BBox, currentZooms: AxisZoomStates, deltaX: number, deltaY: number) {
+    translateZooms(bbox: _ModuleSupport.BBox, currentZooms: StateRetrieval, deltaX: number, deltaY: number) {
         const offset = pointToRatio(bbox, bbox.x + Math.abs(deltaX), bbox.y + bbox.height - Math.abs(deltaY));
 
         const offsetX = Math.sign(deltaX) * offset.x;
         const offsetY = -Math.sign(deltaY) * offset.y;
 
-        const newZooms: AxisZoomStates = {};
+        const newZooms: State = {};
 
-        for (const [axisId, { direction, zoom: currentZoom }] of entries(currentZooms)) {
+        for (const [axisId, currentZoom] of entries(currentZooms)) {
+            if (currentZoom == null) continue;
             // Skip panning axes that are fully zoomed out to prevent floating point issues
-            if (currentZoom && currentZoom.min === UNIT_MIN && currentZoom.max === UNIT_MAX) {
+            if (currentZoom.min === UNIT_MIN && currentZoom.max === UNIT_MAX) {
                 continue;
             }
+            const { direction } = currentZoom;
 
             let zoom = definedZoomState({ [direction]: currentZoom });
             zoom = constrainZoom(translateZoom(zoom, offsetX * dx(zoom), offsetY * dy(zoom)));
 
-            newZooms[axisId] = { direction, zoom: zoom[direction as _ModuleSupport.CartesianAxisDirection] };
+            const { min, max } = zoom[direction];
+            newZooms[axisId] = { direction, min, max };
         }
 
         return newZooms;
