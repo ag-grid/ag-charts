@@ -135,6 +135,8 @@ export class BubbleSeries extends CartesianSeries<
 
     private readonly sizeScale = new LinearScale();
 
+    private placedLabelData: PlacedLabel<BubbleScatterNodeDatum>[] = [];
+
     override get pickModeAxis() {
         return 'main-category' as const;
     }
@@ -663,6 +665,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     public override updatePlacedLabelData(labelData: PlacedLabel<BubbleScatterNodeDatum>[]) {
+        this.placedLabelData = labelData;
         this.labelSelection.update(
             labelData.map((v) => ({
                 ...v.datum,
@@ -677,6 +680,40 @@ export class BubbleSeries extends CartesianSeries<
             }
         );
         this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.updateHighlightLabelSelection();
+    }
+
+    private updateHighlightLabelSelection() {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightItem =
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum
+                ? (highlightedDatum as BubbleScatterNodeDatum)
+                : undefined;
+
+        const highlightLabelData =
+            highlightItem == null
+                ? []
+                : this.placedLabelData
+                      .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
+                      .map((label) => ({
+                          ...label.datum,
+                          point: {
+                              x: label.x,
+                              y: label.y,
+                              size: label.datum.point.size,
+                          },
+                      }));
+
+        this.highlightLabelSelection =
+            this.updateLabelSelection({
+                labelData: highlightLabelData,
+                labelSelection: this.highlightLabelSelection,
+            }) ?? this.highlightLabelSelection;
+
+        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
     }
 
     protected updateLabelNodes(opts: {
@@ -700,6 +737,16 @@ export class BubbleSeries extends CartesianSeries<
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             text.setBoxing(style);
+        });
+    }
+
+    protected override updateLabelSelection(opts: {
+        labelData: BubbleScatterNodeDatum[];
+        labelSelection: Selection<Text, BubbleScatterNodeDatum>;
+    }): Selection<Text, BubbleScatterNodeDatum> {
+        const { labelData, labelSelection } = opts;
+        return labelSelection.update(labelData, (text) => {
+            text.pointerEvents = PointerEvents.None;
         });
     }
 

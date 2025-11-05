@@ -63,6 +63,8 @@ interface ChordNodeLabelDatum {
     angle: number;
     radius: number;
     size: number;
+    nodeDatum: ChordNodeDatum;
+    datumIndex: FlowProportionNodeDatumIndex;
 }
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
@@ -198,6 +200,8 @@ export class ChordSeries extends FlowProportionSeries<
                     angle: Number.NaN,
                     radius: Number.NaN,
                     size: node.size,
+                    datumIndex: node.datumIndex,
+                    nodeDatum: node,
                 });
             }
 
@@ -306,6 +310,8 @@ export class ChordSeries extends FlowProportionSeries<
             if (node == null) continue;
             label.radius = outerRadius + labelSpacing;
             label.angle = normalizeAngle360(node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2);
+            label.datumIndex = node.datumIndex;
+            label.nodeDatum = node;
         }
         labelData.sort((a, b) => a.angle - b.angle);
 
@@ -352,10 +358,20 @@ export class ChordSeries extends FlowProportionSeries<
             size: Number.NaN,
         } satisfies RequireOptional<AgChordSeriesLabelFormatterParams>;
 
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, { size, text, centerX, centerY, radius, angle }) => {
+        const activeHighlightDatum = this.getHighlightedDatum();
+        opts.labelSelection.each((label, labelNodeDatum) => {
+            const { size, text, centerX, centerY, radius, angle, datumIndex, nodeDatum } = labelNodeDatum;
             params.size = size;
-            const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
+            const isHighlight = this.isLabelHighlighted(nodeDatum, activeHighlightDatum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+            const style = getLabelStyles(
+                this,
+                undefined,
+                params,
+                this.properties.label,
+                isHighlight,
+                activeHighlightDatum
+            );
             const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
             label.visible = true;
             label.translationX = centerX + radius * Math.cos(angle);
@@ -374,6 +390,9 @@ export class ChordSeries extends FlowProportionSeries<
                 label.textAlign = 'right';
                 label.rotation = angle - Math.PI;
             }
+            const opacity = highlightStyle.opacity ?? 1;
+            label.opacity = opacity;
+            label.fillOpacity = opacity;
             label.setBoxing(style);
         });
     }

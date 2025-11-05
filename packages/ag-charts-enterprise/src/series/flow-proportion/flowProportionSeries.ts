@@ -4,7 +4,8 @@ import type { InternalAgColorType, Point } from 'ag-charts-core';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
-const { Series, DataController, keyProperty, valueProperty, Selection, Group, TransformableText } = _ModuleSupport;
+const { Series, DataController, keyProperty, valueProperty, Selection, Group, TransformableText, HighlightState } =
+    _ModuleSupport;
 
 export enum FlowProportionDatumType {
     Link,
@@ -135,7 +136,6 @@ export abstract class FlowProportionSeries<
     private readonly focusLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly focusNodeGroup = this.highlightGroup.appendChild(new Group({ name: 'nodeGroup' }));
     private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly highlightNodeGroup = this.highlightGroup.appendChild(new Group({ name: 'nodeGroup' }));
 
     private labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel> = Selection.select(
         this.labelGroup,
@@ -451,22 +451,11 @@ export abstract class FlowProportionSeries<
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
 
-        let highlightedDatum: TDatum<TNodeDatum, TLinkDatum> | undefined =
-            this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum?.series === this && (highlightedDatum as any).type == null) {
-            // Handle highlighting legend items
-            const { itemId } = highlightedDatum;
-            highlightedDatum =
-                itemId == null
-                    ? undefined
-                    : nodeData.find((node) => node.type === FlowProportionDatumType.Node && node.id === itemId);
-        } else if (highlightedDatum?.series !== this) {
-            highlightedDatum = undefined;
-        }
+        const highlightedDatum = this.getHighlightedDatum();
 
         this.contentGroup.visible = this.visible;
-        this.contentGroup.opacity =
-            highlightedDatum == null ? 1 : this.properties.highlight.unhighlightedItem.opacity ?? 1;
+        const highlightState = highlightedDatum == null ? HighlightState.None : HighlightState.OtherItem;
+        this.contentGroup.opacity = this.properties.highlight.getStyle(highlightState).opacity ?? 1;
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
         this.updateLabelNodes({ labelSelection: this.labelSelection });
@@ -535,6 +524,38 @@ export abstract class FlowProportionSeries<
             datumSelection: this.highlightNodeSelection,
         });
         this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
+    }
+
+    protected getHighlightedDatum() {
+        let highlightedDatum: TDatum<TNodeDatum, TLinkDatum> | undefined =
+            this.ctx.highlightManager?.getActiveHighlight() as any;
+        if (highlightedDatum?.series === this && (highlightedDatum as any).type == null) {
+            // Handle highlighting legend items
+            const { itemId } = highlightedDatum;
+            const nodeData = this.contextNodeData?.nodeData ?? [];
+            highlightedDatum =
+                itemId == null
+                    ? undefined
+                    : nodeData.find((node) => node.type === FlowProportionDatumType.Node && node.id === itemId);
+        } else if (highlightedDatum?.series !== this) {
+            highlightedDatum = undefined;
+        }
+
+        return highlightedDatum;
+    }
+
+    protected isLabelHighlighted(datum: TNodeDatum, activeHighlight?: TNodeDatum | TLinkDatum): boolean {
+        if (activeHighlight == null) return false;
+
+        if (activeHighlight.type === FlowProportionDatumType.Node) {
+            return activeHighlight === datum;
+        }
+
+        if (activeHighlight.type === FlowProportionDatumType.Link) {
+            return activeHighlight.fromNode === datum || activeHighlight.toNode === datum;
+        }
+
+        return false;
     }
 
     protected abstract updateLabelSelection(opts: {

@@ -37,7 +37,7 @@ import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
-import type { Node } from '../../scene/node';
+import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
 import { isGradientFill, isPatternFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
@@ -280,6 +280,18 @@ export abstract class Series<
         name: `${this.internalId}-highlight`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
     });
+
+    readonly highlightNodeGroup = this.highlightGroup.appendChild(
+        new TranslatableGroup({ name: `${this.internalId}-highlight-node` })
+    );
+
+    readonly highlightLabelGroup = this.highlightGroup.appendChild(
+        new TranslatableGroup({
+            name: `${this.internalId}-highlight-label`,
+            pointerEvents: PointerEvents.None,
+            zIndex: SeriesContentZIndexMap.LABEL,
+        })
+    );
 
     // Error bars etc.
     readonly annotationGroup = new TranslatableGroup({
@@ -633,9 +645,6 @@ export abstract class Series<
             const itemHighlighted = this.isItemHighlighted(highlightedDatum, datumIndex);
             if (itemHighlighted == null) {
                 return HighlightState.Series;
-            }
-            if (itemHighlighted) {
-                return HighlightState.Series; // TODO: should be HighlightState.Item but we do that in the highlight layer
             }
             return HighlightState.OtherItem;
         }

@@ -1,13 +1,17 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {}
+interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    legendItemName?: string;
+}
 
 interface TopologySeriesNodeDataContext<
     TDatum extends TopologySeriesNodeDatum = TopologySeriesNodeDatum,
     TLabel extends object = object,
 > extends _ModuleSupport.DataModelSeriesNodeDataContext<TDatum, TLabel> {}
 
-abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport.SeriesProperties<T> {}
+abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport.SeriesProperties<T> {
+    legendItemName?: string;
+}
 
 export abstract class TopologySeries<
     TDatum extends TopologySeriesNodeDatum,
@@ -39,5 +43,23 @@ export abstract class TopologySeries<
         _visibleRange: [any, any]
     ): [number, number] {
         return [Number.NaN, Number.NaN];
+    }
+
+    protected getHighlightedDatum(): TDatum | undefined {
+        let highlightedDatum: TDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        const { legendItemName } = this.properties;
+        const matchingLegendItemName =
+            legendItemName != null &&
+            highlightedDatum?.datum == null &&
+            legendItemName === highlightedDatum?.legendItemName;
+
+        if (
+            highlightedDatum != null &&
+            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
+        ) {
+            highlightedDatum = undefined;
+        }
+
+        return highlightedDatum;
     }
 }

@@ -67,26 +67,6 @@ exports[`BarSeries AG-11673 styler highlights sequenced 1 1`] = `
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
-      "highlightState": "highlighted-series",
-      "highlighted": false,
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "seriesId": "BarSeries-1",
-      "stackGroup": undefined,
-      "stroke": "#aa4520",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "sales",
-    },
-  ],
-  [
-    {
-      "cornerRadius": 0,
-      "fill": "#f3622d",
-      "fillOpacity": 1,
       "highlightState": "unhighlighted-item",
       "highlighted": false,
       "lineDash": [
@@ -225,26 +205,6 @@ exports[`BarSeries AG-11673 styler highlights sequenced 1 1`] = `
   [
     {
       "cornerRadius": 0,
-      "fill": "#f3622d",
-      "fillOpacity": 1,
-      "highlightState": "highlighted-series",
-      "highlighted": false,
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "seriesId": "BarSeries-1",
-      "stackGroup": undefined,
-      "stroke": "#aa4520",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "sales",
-    },
-  ],
-  [
-    {
-      "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
@@ -369,26 +329,6 @@ exports[`BarSeries AG-11673 styler highlights sequenced 1 1`] = `
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
       "highlighted": true,
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "seriesId": "BarSeries-2",
-      "stackGroup": undefined,
-      "stroke": "#b07513",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "expenses",
-    },
-  ],
-  [
-    {
-      "cornerRadius": 0,
-      "fill": "#fba71b",
-      "fillOpacity": 1,
-      "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -947,26 +887,6 @@ exports[`BarSeries AG-11673 styler highlights single series[0].datum[0] 1`] = `
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
-      "highlightState": "highlighted-series",
-      "highlighted": false,
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "seriesId": "BarSeries-1",
-      "stackGroup": undefined,
-      "stroke": "#aa4520",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "sales",
-    },
-  ],
-  [
-    {
-      "cornerRadius": 0,
-      "fill": "#f3622d",
-      "fillOpacity": 1,
       "highlightState": "unhighlighted-item",
       "highlighted": false,
       "lineDash": [
@@ -1090,26 +1010,6 @@ exports[`BarSeries AG-11673 styler highlights single series[0].datum[2] 1`] = `
   [
     {
       "cornerRadius": 0,
-      "fill": "#f3622d",
-      "fillOpacity": 1,
-      "highlightState": "highlighted-series",
-      "highlighted": false,
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "seriesId": "BarSeries-1",
-      "stackGroup": undefined,
-      "stroke": "#aa4520",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "sales",
-    },
-  ],
-  [
-    {
-      "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
@@ -1199,26 +1099,6 @@ exports[`BarSeries AG-11673 styler highlights single series[1].datum[0] 1`] = `
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
       "highlighted": true,
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "seriesId": "BarSeries-2",
-      "stackGroup": undefined,
-      "stroke": "#b07513",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "expenses",
-    },
-  ],
-  [
-    {
-      "cornerRadius": 0,
-      "fill": "#fba71b",
-      "fillOpacity": 1,
-      "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],

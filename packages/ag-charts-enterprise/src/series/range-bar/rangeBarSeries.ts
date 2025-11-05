@@ -710,7 +710,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeBarNodeLabelDatum>;
+        isHighlight?: boolean;
     }) {
+        const { isHighlight = false } = opts;
         const params: RequireOptional<AgRangeBarSeriesLabelFormatterParams> = {
             xKey: this.properties.xKey,
             xName: this.properties.xName ?? this.properties.xKey,
@@ -723,9 +725,17 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
-            textNode.fillOpacity = this.getHighlightStyle(false, datum?.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, false, activeHighlight);
+            textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
+            updateLabelNode(this, textNode, params, this.properties.label, datum, isHighlight, activeHighlight);
         });
+    }
+
+    protected override getHighlightLabelData(labelData: RangeBarNodeLabelDatum[], highlightedItem: RangeBarNodeDatum) {
+        if (highlightedItem.labels?.length) {
+            return highlightedItem.labels;
+        }
+
+        return super.getHighlightLabelData(labelData, highlightedItem);
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
@@ -817,7 +827,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: RangeBarAnimationData) {
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'), 'unknown');
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        seriesLabelFadeInAnimation(
+            this,
+            'labels',
+            this.ctx.animationManager,
+            labelSelection,
+            this.highlightLabelSelection
+        );
     }
 
     override animateWaitingUpdateReady(data: RangeBarAnimationData) {
@@ -847,7 +863,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         );
 
         if (dataDiff?.changed || !areScalingEqual(contextData.groupScale, previousContextData?.groupScale)) {
-            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+            seriesLabelFadeInAnimation(
+                this,
+                'labels',
+                this.ctx.animationManager,
+                labelSelection,
+                this.highlightLabelSelection
+            );
         }
     }
 

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import { Point } from 'ag-charts-core';
+import type { Point } from 'ag-charts-core';
 import type { AgPolarChartOptions } from 'ag-charts-types';
 import type { InteractionRange } from 'ag-charts-types';
 
@@ -12,7 +12,7 @@ import { ChartUpdateType } from '../../chartUpdateType';
 import type { ChartOrProxy } from '../../test/utils';
 import type { PolarTestCase } from '../../test/utils';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     deproxy,
@@ -468,7 +468,7 @@ describe('PolarSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -496,7 +496,7 @@ describe('PolarSeries', () => {
             },
             getHighlightNode: (_chartInstance, series) =>
                 Selection.selectAll(
-                    series.highlightGroup,
+                    series.highlightNodeGroup,
                     (node): node is Sector => node instanceof Sector && node.visible
                 )[0],
         });

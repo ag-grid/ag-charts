@@ -353,23 +353,6 @@ export function getSequentialColors(colors: { [key: string]: string }) {
     });
 }
 
-const ITEM_HIGHLIGHT_BASE_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
-    stroke: `rgba(0, 0, 0, 0.4)`,
-    strokeWidth: 2,
-    opacity: { $if: [{ $eq: [{ $path: ['/highlight/drawingMode', undefined] }, 'cutout'] }, 0.67, 1] },
-};
-
-const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
-    ...ITEM_HIGHLIGHT_BASE_STYLE,
-    fill: {
-        $if: [
-            { $eq: [{ $path: ['/highlight/drawingMode', undefined] }, 'cutout'] },
-            undefined,
-            `rgba(255,255,255, 0.33)`,
-        ],
-    },
-};
-
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     padding: 8,
     cornerRadius: 4,
@@ -392,19 +375,37 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     },
 };
 
-export function multiSeriesHighlightStyle(
-    hasFill: boolean = true
-): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
+export function multiSeriesHighlightStyle(): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
     return {
         enabled: true,
-        highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
+        unhighlightedItem: {
+            opacity: 0.6,
+        },
+        unhighlightedSeries: {
+            opacity: 0.2,
+        },
     };
 }
 
-export function singleSeriesHighlightStyle(
-    hasFill: boolean = true
-): WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> {
-    return multiSeriesHighlightStyle(hasFill);
+export function partWholeHighlightStyle(): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        enabled: true,
+        unhighlightedItem: {
+            opacity: 0.2,
+        },
+        unhighlightedSeries: {
+            opacity: 0.2,
+        },
+    };
+}
+
+export function singleSeriesHighlightStyle(): WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        enabled: true,
+        unhighlightedItem: {
+            opacity: 0.2,
+        },
+    };
 }
 
 export const LEGEND_CONTAINER_THEME: any = {

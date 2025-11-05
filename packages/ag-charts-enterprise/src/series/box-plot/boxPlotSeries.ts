@@ -669,16 +669,19 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 ]) as DeepRequired<AgBoxPlotHighlightStyleOptions>;
             applyShapeFillBBox(boxPlotNode, style.fill, fillBBox);
 
+            const nodeOpacity = style.opacity ?? 1;
+            const whiskerOpacity = style.whisker?.strokeOpacity ?? style.strokeOpacity;
+
             boxPlotNode.fill = style.fill;
-            boxPlotNode.fillOpacity = style.fillOpacity;
+            boxPlotNode.fillOpacity = style.fillOpacity * nodeOpacity;
             boxPlotNode.stroke = style.stroke;
             boxPlotNode.strokeWidth = style.strokeWidth;
-            boxPlotNode.strokeOpacity = style.strokeOpacity;
+            boxPlotNode.strokeOpacity = style.strokeOpacity * nodeOpacity;
             boxPlotNode.lineDash = style.lineDash;
             boxPlotNode.lineDashOffset = style.lineDashOffset;
             boxPlotNode.wickStroke = style.whisker.stroke;
             boxPlotNode.wickStrokeWidth = style.whisker.strokeWidth;
-            boxPlotNode.wickStrokeOpacity = style.whisker.strokeOpacity;
+            boxPlotNode.wickStrokeOpacity = whiskerOpacity * nodeOpacity;
             boxPlotNode.wickLineDash = style.whisker.lineDash;
             boxPlotNode.wickLineDashOffset = style.whisker.lineDashOffset;
             boxPlotNode.cornerRadius = style.cornerRadius;

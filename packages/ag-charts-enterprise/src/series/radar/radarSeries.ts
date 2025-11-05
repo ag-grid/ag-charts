@@ -29,6 +29,7 @@ const {
     seriesLabelFadeInAnimation,
     markerFadeInAnimation,
     resetMarkerFn,
+    resetLabelFn,
     animationValidation,
     computeMarkerFocusBounds,
     BBox,
@@ -114,6 +115,7 @@ export abstract class RadarSeries<
             canHaveAxes: true,
             animationResetFns: {
                 item: resetMarkerFn,
+                label: resetLabelFn,
             },
             clipFocusBox: false,
         });
@@ -418,9 +420,22 @@ export abstract class RadarSeries<
     protected updateLabels() {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightData =
+            activeHighlight?.series === this && activeHighlight?.datum
+                ? [{ ...(activeHighlight as RadarNodeDatum) }]
+                : [];
+
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             if (datum.label) {
-                const isHighlight = false; // Labels are not highlighted in radar series
+                const isHighlight = false;
+                node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+                updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
+            }
+        });
+
+        this.highlightLabelSelection.update(highlightData).each((node, datum) => {
+            if (datum.label) {
+                const isHighlight = true;
                 node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
                 updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
             }
@@ -710,7 +725,7 @@ export abstract class RadarSeries<
         });
 
         markerFadeInAnimation(this, animationManager, 'added', itemSelection);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection, this.highlightLabelSelection);
     }
 
     override animateWaitingUpdateReady(data: _ModuleSupport.PolarAnimationData) {

@@ -674,8 +674,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return labelSelection.update(data);
     }
 
-    protected updateLabelNodes(opts: {
+    protected updateLabelNodes({
+        labelSelection,
+        isHighlight,
+    }: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
+        isHighlight: boolean;
     }) {
         const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {
             itemId: 'positive',
@@ -685,11 +689,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             yName: this.properties.yName ?? this.properties.yName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((textNode, datum) => {
+        labelSelection.each((textNode, datum) => {
             params.itemId = datum.itemId;
-            textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
+            const styleOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
+            textNode.visible = true;
+            textNode.fillOpacity = styleOpacity;
             const label = this.getItemConfig(datum.itemId).label;
-            updateLabelNode(this, textNode, params, label, datum.label, false, activeHighlight);
+            updateLabelNode(this, textNode, params, label, datum.label, isHighlight, activeHighlight);
         });
     }
 

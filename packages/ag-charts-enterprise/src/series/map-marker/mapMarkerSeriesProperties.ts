@@ -12,7 +12,10 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 const { Property, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 
-export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
+export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {
+    readonly datumIndex: number;
+    readonly datumId: string | number | boolean;
+}
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;

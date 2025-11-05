@@ -451,11 +451,25 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected updateLabels() {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightDatum =
+            activeHighlight?.series === this && activeHighlight?.datum
+                ? (activeHighlight as RadialBarNodeDatum)
+                : undefined;
+        const highlightData = highlightDatum ? [highlightDatum] : [];
+
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            const isHighlight = false; // Labels are not highlighted in radial bar series
+            const isHighlight = false;
             updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
         });
+
+        this.highlightLabelSelection
+            .update(highlightData, undefined, (datum) => this.getDatumId(datum))
+            .each((node, datum) => {
+                const isHighlight = true;
+                updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
+                node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+            });
     }
 
     private getBarTransitionFunctions() {
@@ -479,7 +493,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const fns = this.getBarTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        seriesLabelFadeInAnimation(
+            this,
+            'labels',
+            this.ctx.animationManager,
+            labelSelection,
+            this.highlightLabelSelection
+        );
     }
 
     override animateClearingUpdateEmpty() {
@@ -489,7 +509,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const fns = this.getBarTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
 
-        seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
+        seriesLabelFadeOutAnimation(
+            this,
+            'labels',
+            animationManager,
+            this.labelSelection,
+            this.highlightLabelSelection
+        );
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {

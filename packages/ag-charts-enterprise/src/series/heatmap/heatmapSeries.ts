@@ -366,11 +366,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(data);
     }
 
-    protected getItemStyle({ datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>, isHighlight: boolean) {
+    protected getItemStyle(
+        { datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>,
+        isHighlight: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ) {
         const { properties } = this;
         const { itemStyler, stroke, strokeWidth, strokeOpacity } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const style = mergeDefaults(highlightStyle, {
             fill: this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : 'transparent',
             fillOpacity: 1,
@@ -423,8 +427,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, HeatmapNodeDatum>;
         isHighlight: boolean;
     }) {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         datumSelection.each((_, nodeDatum) => {
-            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+            const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, highlightState);
         });
     }
 
@@ -465,15 +471,25 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, HeatmapLabelDatum>;
+        isHighlight?: boolean;
     }) {
+        const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((text, datum) => {
             text.pointerEvents = PointerEvents.None;
             text.text = datum.text;
-            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
+            text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
             type P = AgHeatmapSeriesLabelFormatterParams;
             type D = HeatmapLabelDatum;
-            updateLabelNode<P, D>(this, text, this.properties, this.properties.label, datum, false, activeHighlight);
+            updateLabelNode<P, D>(
+                this,
+                text,
+                this.properties,
+                this.properties.label,
+                datum,
+                isHighlight,
+                activeHighlight
+            );
         });
     }
 
@@ -622,6 +638,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.itemStyler != null || this.properties.label.itemStyler != null || this.isColorScaleValid()
+        );
     }
 }

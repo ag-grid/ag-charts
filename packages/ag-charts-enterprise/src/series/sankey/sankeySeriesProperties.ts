@@ -14,7 +14,11 @@ import {
 } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
+import type {
+    FlowProportionLinkDatum,
+    FlowProportionNodeDatum,
+    FlowProportionNodeDatumIndex,
+} from '../flow-proportion/flowProportionSeries';
 
 const {
     BaseProperties,
@@ -51,6 +55,8 @@ export interface SankeyNodeLabelDatum {
     textAlign: 'left' | 'right' | 'center';
     text: string;
     size: number;
+    nodeDatum: SankeyNodeDatum;
+    datumIndex: FlowProportionNodeDatumIndex;
 }
 
 class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {

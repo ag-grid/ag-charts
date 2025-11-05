@@ -90,7 +90,7 @@ describe('MapMarkerSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            const seriesImpl = chart.series[0] as MapMarkerSeries;
+            const seriesImpl = chart.series[1] as MapMarkerSeries;
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
@@ -277,7 +277,7 @@ describe('MapMarkerSeries', () => {
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
             getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         });
     });
 
