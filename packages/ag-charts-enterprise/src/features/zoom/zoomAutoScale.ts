@@ -49,6 +49,12 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         return this.properties.enabled && !this.manuallyAdjusted;
     }
 
+    onChange(opts: ZoomAutoScalingOpts): void {
+        if (opts.enabled) {
+            this.zoomManager.updateChanges('zoom-auto-scaler', this.autoScaleYZoom() ?? {})
+        }
+    }
+
     onChangeRequest(event: _ModuleSupport.ZoomChangeRequestedEvent) {
         if (event.changeType == 'reset') {
             for (const id of event.changedAxes) {
