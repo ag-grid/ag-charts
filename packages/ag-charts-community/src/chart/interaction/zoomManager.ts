@@ -19,6 +19,7 @@ import type {
     AxisZoomState,
     EventsHub,
     ZoomChangeRequestedEvent,
+    ZoomChangeState,
     ZoomChangeType,
     ZoomMemento,
     ZoomState,
@@ -572,8 +573,34 @@ export class ZoomManager extends BaseManager {
         //*/
         const { x, y } = this.getZoom() ?? {};
         const state = this.state.stateValue();
-        const newEvent: ZoomChangeRequestedEvent = { callerId, changeType, changedAxes, state, x, y };
-        this.eventsHub.emit('zoom:change-request', newEvent);
+        let constrainedState: typeof state | undefined;
+
+        const event = {
+            callerId,
+            changeType,
+            changedAxes,
+            state,
+            x,
+            y,
+            constrainChanges(restrictions: ZoomChangeState): void {
+                constrainedState ??= deepClone(state);
+                for (const id of strictObjectKeys(restrictions)) {
+                    const src = restrictions[id];
+                    const dst = constrainedState[id];
+                    if (src && dst) {
+                        dst.min = src.min;
+                        dst.max = src.max;
+                    }
+                }
+                event.state = constrainedState;
+            },
+        } satisfies ZoomChangeRequestedEvent;
+
+        this.eventsHub.emit('zoom:change-request', event);
+
+        if (constrainedState) {
+            this.state.set(callerId, constrainedState);
+        }
         return true;
     }
 

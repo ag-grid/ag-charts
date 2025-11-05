@@ -68,7 +68,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
             }
         }
         if (this.enabled) {
-            event.constrainChanges(this.autoScaleYZoom(event.state));
+            event.constrainChanges(this.autoScaleYZoom(event.state) ?? {});
         }
     }
 
