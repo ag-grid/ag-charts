@@ -1,5 +1,6 @@
 import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
-import { getData, DataPoint } from './data';
+
+import { DataPoint, getData } from './data';
 
 const POINTS_PER_UPDATE = 10;
 
@@ -139,5 +140,3 @@ function updateButton() {
 }
 
 chart = AgCharts.create(options);
-
-
