@@ -33,6 +33,7 @@ export class ZoomAutoScalingProperties extends BaseProperties implements ZoomAut
 
 // `chart.zoom` options that ZoomAutoScaler is affected by.
 interface ZoomAutoScalerPropertiesDeps {
+    get enabled(): boolean;
     get enableIndependentAxes(): boolean;
 }
 
@@ -46,7 +47,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
     public manuallyAdjusted: boolean = false;
 
     get enabled(): boolean {
-        return this.properties.enabled && !this.manuallyAdjusted;
+        return this.deps.enabled && this.properties.enabled && !this.manuallyAdjusted;
     }
 
     onChange(opts: ZoomAutoScalingOpts): void {
