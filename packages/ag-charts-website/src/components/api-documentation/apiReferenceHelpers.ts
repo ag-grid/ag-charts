@@ -187,6 +187,8 @@ export function formatTypeToCode(
                 if (!isInterfaceHidden(memberType) && !seen.has(memberType)) {
                     additionalTypes.add(memberType);
                 }
+            } else if (!isInterfaceHidden(nodeMember.type) && !seen.has(nodeMember.type)) {
+                additionalTypes.add(nodeMember.type);
             }
             if (nodeMember.docs?.length && nodeMember.docs[0] !== '') {
                 return nodeMember.docs
@@ -197,6 +199,7 @@ export function formatTypeToCode(
             return memberString;
         });
         const result = [`interface ${apiNode.name} {\n    ${typesList.join('\n    ')}\n}`];
+
         for (const type of additionalTypes) {
             const typeRef = reference.get(type);
             if (typeRef) {
@@ -216,10 +219,7 @@ export function formatTypeToCode(
                 kind: 'union',
                 type: apiNode.type.type
                     .map((type) => normalizeType(type))
-                    .filter(
-                        (type) =>
-                            typeof type !== 'string' || !reference.has(type) || !('deprecated' in reference.get(type)!)
-                    ),
+                    .filter((type) => !reference.has(type) || !('deprecated' in reference.get(type)!)),
             });
             nodeType = '\n    ' + addNewLineOnPipe(nodeType);
 
