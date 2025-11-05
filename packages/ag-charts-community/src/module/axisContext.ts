@@ -1,4 +1,4 @@
-import type { BoxBounds, Point, Scale } from 'ag-charts-core';
+import type { AxisID, BoxBounds, Point, Scale } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, FormatterParams, TextOrSegments } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
@@ -27,7 +27,7 @@ export interface AxisBandDatum {
 
 export interface AxisContext {
     context?: unknown;
-    axisId: string;
+    axisId: AxisID;
     continuous: boolean;
     direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;

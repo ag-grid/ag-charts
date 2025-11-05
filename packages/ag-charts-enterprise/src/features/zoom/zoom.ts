@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, debounce, entries, roundTo } from 'ag-charts-core';
+import { AbstractModuleInstance, type AxisID, debounce, entries, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -34,7 +34,7 @@ const { ActionOnSet, ChartAxisDirection, ChartUpdateType, Property, InteractionS
 type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
 type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
 
-type AxisHit = { axisId: string; direction: _ModuleSupport.ChartAxisDirection };
+type AxisHit = { axisId: AxisID; direction: _ModuleSupport.ChartAxisDirection };
 
 const round = (value: number) => roundTo(value, 10);
 
@@ -514,7 +514,7 @@ export class Zoom extends AbstractModuleInstance {
         this.ctx.tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 
-    private onAxisDoubleClick(id: string) {
+    private onAxisDoubleClick(id: AxisID) {
         const {
             enabled,
             enableDoubleClickToReset,
@@ -552,7 +552,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisDragMove(
-        axisId: string,
+        axisId: AxisID,
         direction: _ModuleSupport.ChartAxisDirection,
         event: _Widget.DragWidgetEvent<'drag-move'>
     ) {
@@ -673,7 +673,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisWheel(
-        axisId: string,
+        axisId: AxisID,
         axisDirection: _ModuleSupport.ChartAxisDirection,
         event: _ModuleSupport.WheelWidgetEvent
     ) {
@@ -1003,7 +1003,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private updateAxisZoom(
-        axisId: string,
+        axisId: AxisID,
         direction: _ModuleSupport.CartesianAxisDirection,
         axisZoom: _ModuleSupport.ZoomState | undefined,
         validOptions?: { directional?: boolean }

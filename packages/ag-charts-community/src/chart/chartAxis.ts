@@ -1,4 +1,4 @@
-import type { Scale } from 'ag-charts-core';
+import type { AxisID, Scale } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -124,7 +124,7 @@ export interface ChartAxis {
     gridLength: number;
     gridLine: AxisGridLine;
     gridPadding: number;
-    id: string;
+    id: AxisID;
     interactionEnabled: boolean;
     interval: AxisInterval;
     keys: string[];

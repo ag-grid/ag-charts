@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { CleanupRegistry, createElement, debounce, entries } from 'ag-charts-core';
+import { type AxisID, CleanupRegistry, createElement, debounce, entries } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -90,7 +90,7 @@ export class ZoomToolbar extends BaseProperties {
         private readonly canResetZoom: (zoom: Readonly<DefinedZoomState>) => boolean,
         private readonly updateZoom: (zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
-            axisId: string,
+            axisId: AxisID,
             direction: _ModuleSupport.CartesianAxisDirection,
             partialZoom: _ModuleSupport.ZoomState | undefined
         ) => void,
@@ -266,7 +266,7 @@ export class ZoomToolbar extends BaseProperties {
     private onButtonPressAxis(
         event: { value: AgZoomButtonValue },
         props: ZoomProperties,
-        axisId: string,
+        axisId: AxisID,
         direction: _ModuleSupport.CartesianAxisDirection,
         zoom: _ModuleSupport.ZoomState
     ) {

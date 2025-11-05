@@ -1,28 +1,28 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type BaseStyleTypeMap, boxEmpty } from 'ag-charts-core';
+import { type AxisID, type BaseStyleTypeMap, boxEmpty } from 'ag-charts-core';
 
 const { ChartAxisDirection } = _ModuleSupport;
 
-type AxisHit = { axisId: string; direction: _ModuleSupport.ChartAxisDirection };
+type AxisHit = { axisId: AxisID; direction: _ModuleSupport.ChartAxisDirection };
 
 type AxesHandlers = {
     onAxisDragStart: (direction: _ModuleSupport.ChartAxisDirection) => void;
     onAxisDragMove: (
-        id: string,
+        id: AxisID,
         direction: _ModuleSupport.ChartAxisDirection,
         event: _Widget.DragWidgetEvent<'drag-move'>
     ) => void;
     onAxisDragEnd: () => void;
-    onAxisDoubleClick: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
+    onAxisDoubleClick: (id: AxisID, direction: _ModuleSupport.ChartAxisDirection) => void;
     onAxisWheel: (
-        id: string,
+        id: AxisID,
         direction: _ModuleSupport.ChartAxisDirection,
         event: _ModuleSupport.WheelWidgetEvent
     ) => void;
 };
 
 type ProxyAxis = {
-    axisId: string;
+    axisId: AxisID;
     direction: _ModuleSupport.ChartAxisDirection;
     div: _Widget.NativeWidget<HTMLDivElement>;
     bounds?: _ModuleSupport.BBox;
@@ -196,7 +196,7 @@ export class ZoomDOMProxy {
 
     private initAxis(
         ctx: Pick<_ModuleSupport.ModuleContext, 'proxyInteractionService' | 'localeManager'>,
-        axisId: string,
+        axisId: AxisID,
         handlers: AxesHandlers,
         direction: _ModuleSupport.ChartAxisDirection
     ): ProxyAxis {
