@@ -1,12 +1,21 @@
-import type { AxisID, Scale } from 'ag-charts-core';
+import type { AxisID, DeepReadonly, Scale } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
-import type { AgAnnotation, AgContextMenuItemShowOn, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type {
+    AgAnnotation,
+    AgAutoScaledAxes,
+    AgContextMenuItemShowOn,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
+    AgZoomRange,
+    AgZoomRatio,
+} from 'ag-charts-types';
 
 import type { CartesianAxisDirection, ChartAxisDirection } from '../chart/chartAxisDirection';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
 import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
+import type { DefinedZoomState } from '../module-support';
 import type { BBox } from '../scene/bbox';
 import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
 
@@ -53,6 +62,7 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
+    'zoom:load-memento': ZoomLoadMementoEvent;
     'zoom:change-request': ZoomChangeRequestedEvent;
     'zoom:change-complete': null;
     'zoom:pan-start': ZoomPanStartEvent;
@@ -119,9 +129,27 @@ export interface SeriesKeyNavZoomEvent {
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 
+export type ZoomMemento = {
+    rangeX?: AgZoomRange;
+    rangeY?: AgZoomRange;
+    ratioX?: AgZoomRatio;
+    ratioY?: AgZoomRatio;
+    autoScaledAxes?: AgAutoScaledAxes;
+};
+
+export interface ZoomLoadMementoEvent {
+    // Note: `zoom` is intentionally mutable. At the time of writing, only one feature (autoScaling) depends on zoom
+    // memento events, so it's safe because we do not have multiple writers. We may need to consider adding a
+    // `constrain()` method to this event.
+    zoom: DefinedZoomState;
+    readonly memento: DeepReadonly<ZoomMemento> | undefined;
+    readonly navigatorModule: boolean;
+    readonly zoomModule: boolean;
+}
+
 export type ZoomChangeType = 'layoutComplete' | 'panToBBox' | 'reset' | 'restoreMemento' | 'update' | 'setAxes';
 
-export interface ZoomChangeRequestedEvent extends AxisZoomState {
+export interface ZoomChangeRequestedEvent {
     readonly callerId: string;
     readonly changeType: ZoomChangeType;
     readonly changedAxes: readonly AxisID[];

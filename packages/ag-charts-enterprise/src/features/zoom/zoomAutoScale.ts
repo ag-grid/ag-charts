@@ -72,7 +72,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         }
     }
 
-    onLoadMemento(event: unknown) {
+    onLoadMemento(event: _ModuleSupport.ZoomLoadMementoEvent) {
         const { zoom, memento, navigatorModule, zoomModule } = event;
         // Do not adjust the y-axis zoom if the navigator module is enabled by itself
         if (!navigatorModule || zoomModule) {
@@ -96,7 +96,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
             }
 
             if (yAutoScale != undefined) {
-                this.overrideEnabled = yAutoScale;
+                this.manuallyAdjusted = !yAutoScale;
             }
         }
     }

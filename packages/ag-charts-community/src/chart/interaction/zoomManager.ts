@@ -20,6 +20,7 @@ import type {
     EventsHub,
     ZoomChangeRequestedEvent,
     ZoomChangeType,
+    ZoomMemento,
     ZoomState,
 } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -43,14 +44,6 @@ export interface DefinedZoomState {
 type CoreZoomEntry = ZoomState & { direction: CartesianAxisDirection };
 export type CoreZoomState = Record<AxisID, CoreZoomEntry>;
 export type CoreZoomStateSafeRetrieval = { readonly [K in AxisID]: CoreZoomEntry | undefined };
-
-export type ZoomMemento = {
-    rangeX?: AgZoomRange;
-    rangeY?: AgZoomRange;
-    ratioX?: AgZoomRatio;
-    ratioY?: AgZoomRatio;
-    autoScaledAxes?: AgAutoScaledAxes;
-};
 
 export type SimpleAxis = {
     id: AxisID;
