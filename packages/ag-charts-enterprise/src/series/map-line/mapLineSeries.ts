@@ -449,14 +449,16 @@ export class MapLineSeries extends TopologySeries<
         const { properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const style = mergeDefaults(highlightStyle, properties.getStyle());
+        const baseStyle = properties.getStyle();
 
-        if (!isHighlight && colorValue != null) {
-            style.stroke = this.isColorScaleValid()
+        if (colorValue != null) {
+            baseStyle.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.stroke;
         }
+
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const style = mergeDefaults(highlightStyle, baseStyle);
 
         if (sizeValue != null) {
             style.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
