@@ -512,13 +512,16 @@ const EXAMPLES: Record<string, TestCase> = {
         BASIC_ORDINAL_TIME_AXIS_EXAMPLE: {
             options: BASIC_ORDINAL_TIME_AXIS_EXAMPLE,
             compare: ['ordinal-time'],
-            assertions: cartesianChartAssertions({ axisTypes: ['ordinal-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'ordinal-time', y: 'number' },
+                seriesTypes: ['bar'],
+            }),
         },
         ORDINAL_TIME_AXIS_TICK_MIN_SPACING: {
             options: ORDINAL_TIME_AXIS_TICK_MIN_SPACING,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar'],
             }),
         },
@@ -526,7 +529,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_TICK_VALUES,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar'],
             }),
         },
@@ -534,7 +537,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_TIME_STAMP_DATA,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar'],
             }),
         },
@@ -542,7 +545,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_YEARLY_DATA,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['line'],
             }),
         },
@@ -550,7 +553,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_TIME_ZONE_OFFSET_DATA,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar', 'bar'],
             }),
         },
@@ -558,7 +561,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar', 'bar'],
             }),
         },

@@ -81,14 +81,14 @@ const EXAMPLES: Record<string, TestCase> = {
     CATEGORY_AXIS_INTERVAL_ON_ZOOMED: {
         options: applyZoom(applyIntervalOn(DOCS_EXAMPLES['grouped-column'])),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 7),
         }),
     },
     CATEGORY_AXIS_INTERVAL_BETWEEN_ZOOMED: {
         options: applyZoom(applyIntervalBetween(DOCS_EXAMPLES['grouped-column'])),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 7),
         }),
     },

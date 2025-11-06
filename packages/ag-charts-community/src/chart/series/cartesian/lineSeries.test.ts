@@ -44,7 +44,7 @@ const buildLogAxisTestCase = (
 ): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'line'),
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['line'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['line'] }),
         ...extra,
     };
 };
@@ -54,25 +54,25 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         LINE_TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: repeat('line', 2),
             }),
         },
         LINE_NUMBER_X_AXIS_TIME_Y_AXIS: {
             options: examples.LINE_NUMBER_X_AXIS_TIME_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'unit-time'],
+                axisTypes: { x: 'number', y: 'unit-time' },
                 seriesTypes: repeat('line', 2),
             }),
         },
         LINE_MISSING_Y_DATA_EXAMPLE: {
             options: examples.LINE_MISSING_Y_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
         },
         LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: ['line'],
             }),
             warnings: [
@@ -83,7 +83,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['line'],
             }),
             warnings: [
@@ -95,28 +95,28 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('line', 2),
             }),
         },
         LINE_NUMBER_AXES_0_Y_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_Y_DOMAIN,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('line', 2),
             }),
         },
         LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: {
             options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
         LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: {
             options: examples.LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
         LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: {
             options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
         LINE_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
         LINE_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
@@ -135,7 +135,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         }),
         LINE_STACKED_DATA_PER_SERIES: {
             options: examples.LINE_STACKED_DATA_PER_SERIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'line'] }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: ['line', 'line'],
+            }),
         },
         LINE_NORMALISED_SINGLE_LINE: {
             options: {
@@ -149,7 +152,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('line', 1),
             }),
         },
@@ -166,7 +169,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('line', 1),
             }),
         },

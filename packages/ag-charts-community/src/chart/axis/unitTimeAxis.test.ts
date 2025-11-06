@@ -423,13 +423,13 @@ const EXAMPLES: Record<string, TestCase> = {
         BASIC_TIME_AXIS_EXAMPLE: {
             options: BASIC_TIME_AXIS_EXAMPLE,
             compare: ['unit-time'],
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['bar'] }),
         },
         TIME_AXIS_TIME_STAMP_DATA: {
             options: TIME_AXIS_TIME_STAMP_DATA,
             compare: ['unit-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['bar'],
             }),
         },
@@ -437,7 +437,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: TIME_AXIS_YEARLY_DATA,
             compare: ['unit-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['line'],
             }),
         },
@@ -445,7 +445,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: TIME_AXIS_MONTHLY_DATA,
             compare: ['unit-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['bar', 'bar'],
             }),
         },
@@ -453,7 +453,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA,
             compare: ['unit-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['bar', 'bar'],
             }),
         },

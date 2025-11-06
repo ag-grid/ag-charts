@@ -21,7 +21,7 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     TRUNCATED_LEGEND_ITEMS: {
         options: examples.TRUNCATED_LEGEND_ITEMS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'number', y: 'category' },
             seriesTypes: repeat('bar', 4),
         }),
     },

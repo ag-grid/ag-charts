@@ -36,6 +36,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
+import { fromPairs } from '../../util/object';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -239,14 +240,18 @@ export async function waitForChartStability<
     }
 }
 
-export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
-    const { axisTypes = ['category', 'number'], seriesTypes = ['bar', 'bar'] } = params ?? {};
+export function cartesianChartAssertions(params?: {
+    type?: string;
+    axisTypes?: Record<string, string>;
+    seriesTypes?: string[];
+}) {
+    const { axisTypes = { x: 'category', y: 'number' }, seriesTypes = ['bar', 'bar'] } = params ?? {};
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('CartesianChart');
-        expect(chart.axes).toHaveLength(axisTypes.length);
-        expect(chart.axes.map((a) => a.type)).toEqual(axisTypes);
+        expect(chart.axes).toHaveLength(Object.keys(axisTypes).length);
+        expect(fromPairs(chart.axes.map((a) => [a.id, a.type]))).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
 }

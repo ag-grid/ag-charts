@@ -45,7 +45,7 @@ const buildLogAxisTestCase = (
 ): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'bar'),
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['bar'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['bar'] }),
         ...extra,
     };
 };
@@ -54,38 +54,38 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
     ...mixinReversedAxesCases({
         COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['bar'] }),
         },
         COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['bar'] }),
         },
         STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['bar'] }),
         },
         BAR_TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.BAR_TIME_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'unit-time' }, seriesTypes: ['bar'] }),
         },
         STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
@@ -101,7 +101,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 1),
             }),
         },
@@ -118,21 +118,21 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 1),
             }),
         },
         STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: {
             options: examples.STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
@@ -147,124 +147,142 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         }),
         COLUMN_SINGLE_DATE_CATEGORY_AXIS: {
             options: examples.COLUMN_SINGLE_DATE_CATEGORY_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
         },
         COLUMN_SINGLE_DATE_TIME_AXIS: {
             options: examples.COLUMN_SINGLE_DATE_TIME_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['bar'] }),
         },
         GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: {
             options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 5),
+            }),
         },
         STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: {
             options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 5),
+            }),
         },
         STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: {
             options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 5),
+            }),
         },
         GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: {
             options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 2) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 2),
+            }),
         },
         STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: {
             options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 2) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 2),
+            }),
         },
         STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: {
             options: examples.STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 4) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 4),
+            }),
         },
         STACKED_COLUMN_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_PATTERN_FILL: {
             options: examples.STACKED_COLUMN_PATTERN_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
             imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
@@ -272,7 +290,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         GROUPED_COLUMN_PATTERN_FILL: {
             options: examples.GROUPED_COLUMN_PATTERN_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
             imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
@@ -280,7 +298,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         GROUPED_COLUMN_SMALL_PATTERN_FILL: {
             options: examples.GROUPED_COLUMN_SMALL_PATTERN_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
             imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,

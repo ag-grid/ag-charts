@@ -70,7 +70,7 @@ const EXAMPLES: Record<string, TestCase> = {
         INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE: {
             options: INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
             compare: ['grouped-category'],

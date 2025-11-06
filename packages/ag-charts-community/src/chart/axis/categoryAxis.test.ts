@@ -169,42 +169,42 @@ const EXAMPLES: Record<string, TestCase> = {
     CATEGORY_AXIS_INTERVAL_ON: {
         options: applyIntervalOn(DOCS_EXAMPLES['grouped-column']),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 7),
         }),
     },
     CATEGORY_AXIS_INTERVAL_BETWEEN: {
         options: applyIntervalBetween(DOCS_EXAMPLES['grouped-column']),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 7),
         }),
     },
     CATEGORY_AXIS_HORIZONTAL_INTERVAL_ON: {
         options: applyIntervalOn(DOCS_EXAMPLES['grouped-bar']),
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'number', y: 'category' },
             seriesTypes: ['bar', 'bar'],
         }),
     },
     CATEGORY_AXIS_HORIZONTAL_INTERVAL_BETWEEN: {
         options: applyIntervalBetween(DOCS_EXAMPLES['grouped-bar']),
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'number', y: 'category' },
             seriesTypes: ['bar', 'bar'],
         }),
     },
     UNIT_TIME_AXIS_INTERVAL_ON: {
         options: applyIntervalOn(BASIC_TIME_AXIS_EXAMPLE),
         assertions: cartesianChartAssertions({
-            axisTypes: ['unit-time', 'number'],
+            axisTypes: { x: 'unit-time', y: 'number' },
             seriesTypes: ['bar'],
         }),
     },
     UNIT_TIME_INTERVAL_BETWEEN: {
         options: applyIntervalBetween(BASIC_TIME_AXIS_EXAMPLE),
         assertions: cartesianChartAssertions({
-            axisTypes: ['unit-time', 'number'],
+            axisTypes: { x: 'unit-time', y: 'number' },
             seriesTypes: ['bar'],
         }),
     },

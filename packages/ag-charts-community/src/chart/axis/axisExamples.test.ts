@@ -72,22 +72,22 @@ const EXAMPLES: Record<string, TestCase> = {
         },
         BASIC_TIME_AXIS: {
             options: axesExamples.TIME_AXIS_BASIC_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
         BASIC_TIME_MIN_MAX_DATE_AXIS: {
             options: axesExamples.TIME_AXIS_MIN_MAX_DATE_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
             compare: ['unit-time'],
         },
         BASIC_TIME_MIN_MAX_NUMBER_AXIS: {
             options: axesExamples.TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
             compare: ['unit-time'],
         },
         NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE: {
             options: axesExamples.NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: ['line'],
             }),
         },
@@ -97,79 +97,79 @@ const EXAMPLES: Record<string, TestCase> = {
 const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
     NUMBER_AXIS_NO_SERIES: {
         options: axesExamples.NUMBER_AXIS_NO_SERIES,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
     },
     NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
     },
     TIME_AXIS_NO_SERIES: {
         options: axesExamples.TIME_AXIS_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['time', 'number'],
+            axisTypes: { x: 'time', y: 'number' },
             seriesTypes: repeat('line', 4),
         }),
     },
     TIME_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.TIME_AXIS_NO_SERIES_FIXED_DOMAIN,
         assertions: cartesianChartAssertions({
-            axisTypes: ['time', 'number'],
+            axisTypes: { x: 'time', y: 'number' },
             seriesTypes: repeat('line', 4),
         }),
     },
     COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES: {
         options: axesExamples.COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     AREA_CHART_NO_SERIES: {
         options: axesExamples.AREA_CHART_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['unit-time', 'number'],
+            axisTypes: { x: 'unit-time', y: 'number' },
             seriesTypes: repeat('area', 6),
         }),
     },
     AREA_CHART_STACKED_NORMALISED_NO_SERIES: {
         options: axesExamples.AREA_CHART_STACKED_NORMALISED_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('area', 7),
         }),
     },
@@ -179,19 +179,19 @@ const EXAMPLES_TICK_VALUES: Record<string, TestCase> = {
     ...mixinReversedAxesCases({
         NUMBER_AXIS_TICK_VALUES: {
             options: axesExamples.NUMBER_AXIS_TICK_VALUES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
         },
         TIME_AXIS_TICK_VALUES: {
             options: axesExamples.TIME_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({
-                axisTypes: ['time', 'number'],
+                axisTypes: { x: 'time', y: 'number' },
                 seriesTypes: repeat('line', 4),
             }),
         },
         CATEGORY_AXIS_TICK_VALUES: {
             options: axesExamples.CATEGORY_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 7),
             }),
         },
@@ -203,18 +203,18 @@ const EXAMPLES_TICK_SPACING: Record<string, TestCase> = {
         AXIS_TICK_MIN_SPACING: {
             options: axesExamples.AXIS_TICK_MIN_SPACING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['time', 'number'],
+                axisTypes: { x: 'time', y: 'number' },
                 seriesTypes: repeat('line', 4),
             }),
         },
         AXIS_TICK_MAX_SPACING: {
             options: axesExamples.AXIS_TICK_MAX_SPACING,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
         },
         AXIS_TICK_MIN_MAX_SPACING: {
             options: axesExamples.AXIS_TICK_MIN_MAX_SPACING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 7),
             }),
         },
@@ -226,7 +226,7 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
         GRIDLINE_TICKLINE_CLIPPING: {
             options: axesExamples.GRIDLINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
         },
@@ -237,7 +237,15 @@ const EXAMPLES_LAYOUT: Record<string, TestCase> = {
     COMBO_SERIES_COMPLEX_LAYOUT: {
         options: axesExamples.COMBO_SERIES_COMPLEX_LAYOUT,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number', 'number', 'number', 'number', 'number'],
+            axisTypes: {
+                x: 'category',
+                y: 'number',
+                ySecondary: 'number',
+                yStart1: 'number',
+                yStart2: 'number',
+                yEnd1: 'number',
+                yEnd2: 'number',
+            },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },

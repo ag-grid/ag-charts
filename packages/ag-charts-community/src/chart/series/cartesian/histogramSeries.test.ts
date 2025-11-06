@@ -33,7 +33,7 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     HISTOGRAM_DATE_BASED_BUCKETS: {
         options: HISTOGRAM_DATE_BASED_BUCKETS,
         enterprise: true,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'time'], seriesTypes: ['histogram'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'time', y: 'number' }, seriesTypes: ['histogram'] }),
     },
 };
 
@@ -177,12 +177,15 @@ describe('HistogramSeries', () => {
         const examples = {
             HISTOGRAM_SERIES_LABELS: {
                 options: HISTOGRAM_SERIES_LABELS,
-                assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'number', y: 'number' },
+                    seriesTypes: ['histogram'],
+                }),
             },
             HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: {
                 options: HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
                 assertions: cartesianChartAssertions({
-                    axisTypes: ['number', 'number', 'number'],
+                    axisTypes: { x: 'number', y: 'number', ySecondary: 'number' },
                     seriesTypes: ['histogram', 'scatter'],
                 }),
             },

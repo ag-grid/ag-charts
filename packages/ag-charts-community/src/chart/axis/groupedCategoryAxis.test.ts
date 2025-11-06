@@ -111,7 +111,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: ['bar'],
             }),
             compare: ['grouped-category'],
@@ -119,7 +119,7 @@ const EXAMPLES: Record<string, TestCase> = {
         INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: {
             options: examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
             compare: ['grouped-category'],
@@ -127,7 +127,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE: {
             options: examples.GROUPED_CATEGORY_CHART_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
             compare: ['grouped-category'],
@@ -135,7 +135,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE_LABELS_DISABLED: {
             options: disableLabelsDepth0(examples.GROUPED_CATEGORY_CHART_EXAMPLE),
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
             compare: ['grouped-category'],
@@ -143,7 +143,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_WITH_CROSSLINES: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE_WITH_CROSSLINES,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: ['bar'],
             }),
             compare: ['grouped-category'],
@@ -152,7 +152,7 @@ const EXAMPLES: Record<string, TestCase> = {
     INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: {
         options: examples.INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE,
         assertions: cartesianChartAssertions({
-            axisTypes: ['grouped-category', 'number'],
+            axisTypes: { x: 'grouped-category', y: 'number' },
             seriesTypes: repeat('bar', 21),
         }),
         compare: ['grouped-category'],
@@ -160,7 +160,7 @@ const EXAMPLES: Record<string, TestCase> = {
     GROUPED_CATEGORY_AXIS_FILLS: {
         options: applyGridLineStyle(axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE),
         assertions: cartesianChartAssertions({
-            axisTypes: ['grouped-category', 'number'],
+            axisTypes: { x: 'grouped-category', y: 'number' },
             seriesTypes: ['bar'],
         }),
         compare: ['grouped-category'],
@@ -172,7 +172,7 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: ['bar'],
             }),
             compare: ['grouped-category'],
