@@ -1,8 +1,12 @@
+import { describe as jestDescribe } from '@jest/globals';
+
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
-import { benchmark, setupBenchmark } from './benchmark';
+import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
-describe('high-frequency data ohlc benchmark', () => {
+const describeWhenSupported = isAtOrAfterVersion(12, 3, 0) ? jestDescribe : jestDescribe.skip;
+
+describeWhenSupported('high-frequency data ohlc benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-ohlc', { isEnterprise: true });
 
     type Datum = {
