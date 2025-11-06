@@ -30,7 +30,7 @@ export class PolarChart extends Chart {
 
     protected async performLayout(ctx: LayoutContext) {
         const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
-        const seriesRect = ctx.layoutBox.clone().shrink(seriesArea.getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(seriesArea?.getPadding() ?? {});
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;

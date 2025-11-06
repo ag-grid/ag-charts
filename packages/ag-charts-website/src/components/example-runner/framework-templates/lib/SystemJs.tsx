@@ -137,7 +137,7 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
             var setupModules = function() {
                 return System.import('ag-charts-community').then(function(mod) {
                     if (mod && typeof mod.setupCommunityModules === 'function') {
-                        mod.setupCommunityModules();
+                        // mod.setupCommunityModules();
                     }
                 });
             };
