@@ -7,6 +7,8 @@ import * as os from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import { createProgressState, displayProgress, finishProgress, updateProgress } from './progress-tracker';
+
 export type TaskResult = {
     success: boolean;
     terminalOutput: string;
@@ -132,7 +134,11 @@ export function batchExecutor<ExecutorOptions>(
     };
 }
 
-export function batchWorkerExecutor<ExecutorOptions>(workerModule: string, extraMsgContent?: () => object) {
+export function batchWorkerExecutor<ExecutorOptions>(
+    workerModule: string,
+    extraMsgContent?: () => object,
+    timeout: number = 5_000 // 5s timeout includes queue time + execution time
+) {
     return async function* (
         taskGraph: TaskGraph,
         inputs: Record<string, ExecutorOptions>,
@@ -161,7 +167,27 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string, extra
 
         const tasks = Object.keys(inputs);
 
-        console.info(`Batched execution of ${tasks.length} tasks, using ${pool.threads.length} threads...`);
+        console.info(
+            `Batched execution of ${tasks.length} tasks, using ${threadCount} threads (${timeout}ms timeout per task)...`
+        );
+        const inProgressTasks = new Set<string>(tasks.slice(0, threadCount));
+        const progressState = createProgressState(tasks.length);
+        const progressOptions = {
+            isTTY: process.stdout.isTTY,
+            maxInProgressToShow: threadCount,
+        };
+        let nextTaskIndex = threadCount;
+        const finished = (result: BatchExecutorTaskResult) => {
+            inProgressTasks.delete(result.task);
+            if (tasks[nextTaskIndex]) {
+                // FIFO queue, so next sequential task is always the next in the list
+                inProgressTasks.add(tasks[nextTaskIndex++]);
+            }
+            updateProgress(progressState, result.result.success, [...inProgressTasks]);
+            displayProgress(progressState, progressOptions, false, result.result.success);
+            return result;
+        };
+
         const start = performance.now();
         const contents = extraMsgContent?.() ?? {};
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
@@ -177,16 +203,30 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string, extra
                     configurationName: task.target.configuration,
                 },
                 taskName,
+                timeout, // Pass timeout to worker for per-execution timeout
                 ...contents,
             };
-            results.set(taskName, pool.run(opts));
+
+            results.set(
+                taskName,
+                pool
+                    .run(opts)
+                    .then((r) => finished(r))
+                    .catch((e) => finished({ task: taskName, result: { success: false, terminalOutput: `${e}` } }))
+            );
         }
 
-        // Run yield loop after dispatch to avoid serializing execution.
+        // Initial progress display
+        updateProgress(progressState, true, [...inProgressTasks]);
+        displayProgress(progressState, progressOptions, true, true);
+
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
             const taskName = tasks[taskIndex];
             yield results.get(taskName)!;
         }
+
+        // Finish progress display
+        finishProgress(progressOptions);
 
         await Promise.allSettled(results.values());
 
