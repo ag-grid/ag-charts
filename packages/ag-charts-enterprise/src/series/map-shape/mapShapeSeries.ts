@@ -534,9 +534,7 @@ export class MapShapeSeries
         const baseStyle = properties.getStyle();
 
         if (colorValue != null) {
-            const fillOverride = this.isColorScaleValid()
-                ? colorScale.convert(colorValue)
-                : colorRange?.[0];
+            const fillOverride = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange?.[0];
             if (fillOverride != null) {
                 baseStyle.fill = fillOverride;
             }
