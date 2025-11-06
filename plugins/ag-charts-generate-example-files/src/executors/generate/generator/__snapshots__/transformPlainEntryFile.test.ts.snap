@@ -18,22 +18,22 @@ exports[`transformPlainEntryFile Adjust padding 1`] = `
 
 exports[`transformPlainEntryFile Remove axes titles 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "position": "bottom",
       "title": {
         "text": "CATEGORY AXIS TITLE",
       },
       "type": "category",
     },
-    {
+    "y": {
       "position": "left",
       "title": {
         "text": "NUMBER AXIS TITLE",
       },
       "type": "number",
     },
-  ],
+  },
 }
 `;
 
