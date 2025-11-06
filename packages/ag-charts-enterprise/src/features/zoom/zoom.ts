@@ -180,7 +180,7 @@ export class Zoom extends AbstractModuleInstance {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.autoScaler = new ZoomAutoScaler(this.autoScaling, ctx.zoomManager, this);
+        this.autoScaler = new ZoomAutoScaler(this.autoScaling, ctx.zoomManager, this, ctx.eventsHub, this.cleanup);
         const selectionRect = new ZoomRect();
         this.selector = new ZoomSelector(selectionRect, this.getZoom.bind(this), this.isZoomValid.bind(this));
         this.contextMenu = new ZoomContextMenu(

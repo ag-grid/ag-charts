@@ -103,6 +103,32 @@ function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>
     return result;
 }
 
+function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
+    const pKeys = strictObjectKeys(p);
+    const qKeys = strictObjectKeys(q);
+
+    // Check that pKeys & qKeys are the same set of strings:
+    if (pKeys.length !== qKeys.length) return false;
+    for (const k of pKeys) if (qKeys.indexOf(k) === -1) return false;
+
+    for (const k of pKeys) {
+        const pVal = p[k];
+        const qVal = q[k];
+        if (pVal === qVal) {
+            continue;
+        } else if (
+            pVal == undefined ||
+            qVal == undefined ||
+            pVal.direction !== qVal.direction ||
+            pVal.min !== qVal.min ||
+            pVal.max !== qVal.max
+        ) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
@@ -577,11 +603,15 @@ export class ZoomManager extends BaseManager {
 
         this.eventsHub.emit('zoom:change-request', event);
 
-        if (constrainedState) {
+        let wasChangeConstrained: boolean;
+        if (constrainedState && !areEqualCoreZooms(state, constrainedState)) {
+            wasChangeConstrained = true;
             this.state.set(callerId, constrainedState);
+        } else {
+            wasChangeConstrained = false;
         }
 
-        const changeAccepted = changedAxes.length > 0 || constrainedState != undefined;
+        const changeAccepted: boolean = changedAxes.length > 0 || wasChangeConstrained;
         if (changeAccepted) {
             const acceptedZoom = this.getZoom() ?? {};
             this.eventsHub.emit('zoom:change-complete', { x: acceptedZoom.x });

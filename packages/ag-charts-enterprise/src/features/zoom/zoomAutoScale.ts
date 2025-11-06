@@ -1,6 +1,6 @@
 import type { AgZoomAutoScaling } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type DeepRequired, isFiniteNumber } from 'ag-charts-core';
+import { CleanupRegistry, type DeepRequired, isFiniteNumber } from 'ag-charts-core';
 
 const { ChartAxisDirection, ActionOnSet, BaseProperties, Property } = _ModuleSupport;
 type ZoomState = _ModuleSupport.ZoomState;
@@ -44,8 +44,15 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
     constructor(
         private readonly properties: ZoomAutoScalingProperties,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
-        private readonly deps: ZoomAutoScalerPropertiesDeps
-    ) {}
+        private readonly deps: ZoomAutoScalerPropertiesDeps,
+        eventsHub: _ModuleSupport.EventsHub,
+        eventsCleanup: CleanupRegistry
+    ) {
+        eventsCleanup.register(
+            eventsHub.on('zoom:load-memento', (e) => this.onLoadMemento(e)),
+            eventsHub.on('zoom:change-request', (e) => this.onChangeRequest(e))
+        );
+    }
 
     public manuallyAdjusted: boolean = false;
 
@@ -59,7 +66,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         }
     }
 
-    onChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+    private onChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
         if (event.changeType == 'reset') {
             for (const id of event.changedAxes) {
                 if (event.state[id]?.direction === ChartAxisDirection.Y) {
@@ -68,11 +75,14 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
             }
         }
         if (this.enabled) {
-            event.constrainChanges(this.autoScaleYZoom(event.state) ?? {});
+            const constrainedZoom = this.autoScaleYZoom(event.state);
+            if (constrainedZoom) {
+                event.constrainChanges(constrainedZoom);
+            }
         }
     }
 
-    onLoadMemento(event: _ModuleSupport.ZoomLoadMementoEvent) {
+    private onLoadMemento(event: _ModuleSupport.ZoomLoadMementoEvent) {
         const { zoom, memento, navigatorModule, zoomModule } = event;
         // Do not adjust the y-axis zoom if the navigator module is enabled by itself
         if (!navigatorModule || zoomModule) {
