@@ -11,7 +11,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
-    multiSeriesHighlightStyle,
+    markerSeriesHighlightStyle,
 } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
@@ -61,7 +61,7 @@ const themeTemplate: ExtensibleTheme<'line'> = {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: markerSeriesHighlightStyle(),
         segmentation: SEGMENTATION_DEFAULTS,
     },
 };

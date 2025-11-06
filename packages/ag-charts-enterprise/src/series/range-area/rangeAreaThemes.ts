@@ -149,7 +149,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        highlight: _ModuleSupport.markerSeriesHighlightStyle(),
         segmentation: _ModuleSupport.SEGMENTATION_DEFAULTS,
         invertedStyle: {
             enabled: false,

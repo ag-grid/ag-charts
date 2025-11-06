@@ -387,6 +387,15 @@ export function multiSeriesHighlightStyle(): WithThemeParams<AgMultiSeriesHighli
     };
 }
 
+export function markerSeriesHighlightStyle(): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        enabled: true,
+        unhighlightedSeries: {
+            opacity: 0.2,
+        },
+    };
+}
+
 export function partWholeHighlightStyle(): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
     return {
         enabled: true,

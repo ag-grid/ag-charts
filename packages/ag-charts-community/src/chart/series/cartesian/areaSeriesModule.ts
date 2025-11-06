@@ -12,7 +12,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
-    multiSeriesHighlightStyle,
+    markerSeriesHighlightStyle,
 } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
@@ -75,7 +75,7 @@ const themeTemplate: ExtensibleTheme<'area'> = {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: markerSeriesHighlightStyle(),
         segmentation: SEGMENTATION_DEFAULTS,
     },
 };
