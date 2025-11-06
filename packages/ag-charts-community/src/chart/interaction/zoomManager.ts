@@ -148,9 +148,7 @@ export class ZoomManager extends BaseManager {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 }
 
-                /* FIXME - caused infinite-loop / stalls the page
                 this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'layoutComplete', changes: {} });
-                //*/
             })
         );
     }
