@@ -59,7 +59,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         }
     }
 
-    onChangeRequest(event: _ModuleSupport.ZoomChangeRequestedEvent) {
+    onChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
         if (event.changeType == 'reset') {
             for (const id of event.changedAxes) {
                 if (event.state[id]?.direction === ChartAxisDirection.Y) {

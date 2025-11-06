@@ -176,7 +176,6 @@ export class Zoom extends AbstractModuleInstance {
         this.isFirstWheelEvent = true;
         this.wasFirstWheelEventZoomCapped = undefined;
     }, 100);
-    private wasZoomChangeRequested = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -763,16 +762,9 @@ export class Zoom extends AbstractModuleInstance {
         if (this.enableAxisDragging) {
             this.toggleAxisDraggingCursorsDebounced();
         }
-
-        if (this.wasZoomChangeRequested) {
-            this.wasZoomChangeRequested = false;
-            this.ctx.eventsHub.emit('zoom:change-complete', null);
-        }
     }
 
-    private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestedEvent) {
-        this.wasZoomChangeRequested = true;
-
+    private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestEvent) {
         if (event.callerId !== 'zoom') {
             this.panner.stopInteractions();
         }

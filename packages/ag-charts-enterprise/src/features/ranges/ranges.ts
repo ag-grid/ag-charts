@@ -31,7 +31,7 @@ export class Ranges extends AbstractModuleInstance {
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
-            ctx.eventsHub.on('zoom:change-request', this.onZoomChanged.bind(this)),
+            ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
             this.teardown.bind(this)
         );
     }

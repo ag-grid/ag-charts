@@ -70,7 +70,7 @@ export class Navigator extends AbstractModuleInstance {
             ctx.eventsHub.on('locale:change', () => this.updateZoom()),
             ctx.layoutManager.registerElement(_ModuleSupport.LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChange(event))
+            ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChange(event))
         );
 
         this.domProxy = new NavigatorDOMProxy(ctx, this);
@@ -172,7 +172,7 @@ export class Navigator extends AbstractModuleInstance {
         this.updateZoom();
     }
 
-    private onZoomChange(event: _ModuleSupport.ZoomChangeRequestedEvent) {
+    private onZoomChange(event: _ModuleSupport.ZoomChangeCompleteEvent) {
         const { x: xZoom } = event;
         if (!xZoom) return;
 

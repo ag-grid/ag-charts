@@ -19,7 +19,7 @@ import type {
     AxisZoomState,
     DefinedZoomState,
     EventsHub,
-    ZoomChangeRequestedEvent,
+    ZoomChangeRequestEvent,
     ZoomChangeState,
     ZoomChangeType,
     ZoomMemento,
@@ -575,7 +575,7 @@ export class ZoomManager extends BaseManager {
                 }
                 event.state = constrainedState;
             },
-        } satisfies ZoomChangeRequestedEvent;
+        } satisfies ZoomChangeRequestEvent;
 
         this.eventsHub.emit('zoom:change-request', event);
 
@@ -583,7 +583,12 @@ export class ZoomManager extends BaseManager {
             this.state.set(callerId, constrainedState);
         }
 
-        return changedAxes.length > 0 || constrainedState != undefined;
+        const changeAccepted = changedAxes.length > 0 || constrainedState != undefined;
+        if (changeAccepted) {
+            const acceptedZoom = this.getZoom() ?? {};
+            this.eventsHub.emit('zoom:change-complete', { x: acceptedZoom.x });
+        }
+        return changeAccepted;
     }
 
     private getRangeDirection(ratio: ZoomState, direction: CartesianAxisDirection): AgZoomRange | undefined {
