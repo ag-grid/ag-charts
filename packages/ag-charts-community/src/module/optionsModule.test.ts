@@ -701,9 +701,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -760,9 +757,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1098,9 +1092,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1157,9 +1148,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1495,9 +1483,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1554,9 +1539,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
