@@ -1,23 +1,11 @@
 #!/usr/bin/env bash
 
+set -Eeuo pipefail
+
 excluded=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular" "ag-charts-locale")
 frameworks=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular")
-expected_package_files=(
-  "dist/packages/ag-charts-vue3.tgz"
-  "dist/packages/ag-charts-react.tgz"
-  "dist/packages/ag-charts-types.tgz"
-  "dist/packages/ag-charts-angular.tgz"
-  "dist/packages/ag-charts-locale.tgz"
-  "dist/packages/ag-charts-enterprise.tgz"
-  "dist/packages/ag-charts-community.tgz"
-  "dist/packages/contents/ag-charts-angular"
-  "dist/packages/contents/ag-charts-community"
-  "dist/packages/contents/ag-charts-react"
-  "dist/packages/contents/ag-charts-vue3"
-  "dist/packages/contents/ag-charts-types"
-  "dist/packages/contents/ag-charts-locale"
-  "dist/packages/contents/ag-charts-enterprise"
-)
+
+ENV=${1:-prod}
 
 validatePackageJsonExists()
 {
@@ -27,25 +15,6 @@ validatePackageJsonExists()
   then
     echo "ERROR: $directory/package.json empty or does not exist"
     exit 1
-  fi
-}
-
-checkFilesExist() {
-  local -n expected_files=$1
-  local missing_files=()
-  
-  for file in "${expected_files[@]}"; do
-    if [[ ! -e "$file" ]]; then
-      missing_files+=("$file")
-    fi
-  done
-
-  if [[ ${#missing_files[@]} -eq 0 ]]; then
-    return 0
-  else
-    echo "The following expected files or directories are missing:"
-    printf "%s\n" "${missing_files[@]}"
-    return 1
   fi
 }
 
@@ -76,7 +45,10 @@ validateCommonDist()
   then
       expected_count=8
   fi
-  
+  if [[ "$directory" == "dist/packages/contents/ag-charts-types/package" ]]
+  then
+      expected_count=4
+  fi
   local count=`find "$directory/dist/package" -type f | wc -l | tr -d ' '`;
   if [[ $count -ne $expected_count ]]
   then
@@ -88,6 +60,13 @@ validateCommonDist()
   if [[ $count -eq 0 ]]
   then
     echo "ERROR: $directory/dist/types should have at type files - none found"
+    exit 1
+  fi
+
+  local sourceMappingCount=`grep sourceMappingURL $directory/dist/package/*.*js | wc -l`
+  if [[ $sourceMappingCount -ne 0 ]]
+  then
+    echo "ERROR: $directory/dist/package has source map references"
     exit 1
   fi
 }
@@ -169,8 +148,8 @@ validateLocale()
 }
 
 # check all expected modules & packages are there
-checkFilesExist expected_package_files # NOTE: Send expected as a reference, not by value
+script_dir=$(dirname "$0")
+node $script_dir/validatePackageFolderContents.js $ENV
+
 validateModules "dist/packages/contents"
 validateLocale "dist/packages/contents/ag-charts-locale/package"
-
-
