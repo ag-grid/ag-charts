@@ -55,7 +55,11 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+        highlight: {
+            unhighlightedItem: {
+                opacity: 0.6,
+            },
+        },
     },
     seriesArea: {
         padding: {

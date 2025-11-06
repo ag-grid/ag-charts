@@ -128,7 +128,11 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+        highlight: {
+            unhighlightedItem: {
+                opacity: 0.6,
+            },
+        },
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {
