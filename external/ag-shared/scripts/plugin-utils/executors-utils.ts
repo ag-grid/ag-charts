@@ -7,7 +7,13 @@ import * as os from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import { createProgressState, displayProgress, finishProgress, updateProgress } from './progress-tracker';
+import {
+    createProgressState,
+    displayProgress,
+    finishProgress,
+    setInProgressTasks,
+    updateProgress,
+} from './progress-tracker';
 
 export type TaskResult = {
     success: boolean;
@@ -217,7 +223,7 @@ export function batchWorkerExecutor<ExecutorOptions>(
         }
 
         // Initial progress display
-        updateProgress(progressState, true, [...inProgressTasks]);
+        setInProgressTasks(progressState, [...inProgressTasks]);
         displayProgress(progressState, progressOptions, true, true);
 
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
