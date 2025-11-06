@@ -1063,7 +1063,7 @@ export class Legend extends BaseProperties {
                 series,
                 itemId,
                 datum: undefined,
-                datumIndex: undefined,
+                datumIndex: typeof itemId === 'number' ? itemId : undefined,
                 legendItemName,
             });
         } else {
@@ -1181,7 +1181,7 @@ export class Legend extends BaseProperties {
                 series,
                 itemId: datum?.itemId,
                 datum: undefined,
-                datumIndex: undefined,
+                datumIndex: typeof datum?.itemId === 'number' ? datum.itemId : undefined,
                 legendItemName: datum?.legendItemName,
             });
         } else {
