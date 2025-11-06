@@ -143,7 +143,7 @@ export function batchExecutor<ExecutorOptions>(
 export function batchWorkerExecutor<ExecutorOptions>(
     workerModule: string,
     extraMsgContent?: () => object,
-    timeout: number = 5_000 // 5s timeout includes queue time + execution time
+    timeout?: number // Optional timeout (includes queue time + execution time)
 ) {
     return async function* (
         taskGraph: TaskGraph,
@@ -173,9 +173,8 @@ export function batchWorkerExecutor<ExecutorOptions>(
 
         const tasks = Object.keys(inputs);
 
-        console.info(
-            `Batched execution of ${tasks.length} tasks, using ${threadCount} threads (${timeout}ms timeout per task)...`
-        );
+        const timeoutMsg = timeout != null ? ` (${timeout}ms timeout per task)` : '';
+        console.info(`Batched execution of ${tasks.length} tasks, using ${threadCount} threads${timeoutMsg}...`);
         const inProgressTasks = new Set<string>(tasks.slice(0, threadCount));
         const progressState = createProgressState(tasks.length);
         const progressOptions = {
@@ -209,7 +208,7 @@ export function batchWorkerExecutor<ExecutorOptions>(
                     configurationName: task.target.configuration,
                 },
                 taskName,
-                timeout, // Pass timeout to worker for per-execution timeout
+                ...(timeout != null ? { timeout } : {}), // Only pass timeout to worker if defined
                 ...contents,
             };
 
