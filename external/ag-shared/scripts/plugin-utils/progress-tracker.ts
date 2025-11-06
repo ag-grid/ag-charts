@@ -48,6 +48,10 @@ export function updateProgress(state: ProgressState, success: boolean, inProgres
     state.inProgressTasks = inProgressTasks;
 }
 
+export function setInProgressTasks(state: ProgressState, inProgressTasks: string[]): void {
+    state.inProgressTasks = inProgressTasks;
+}
+
 export function displayProgress(
     state: ProgressState,
     options: ProgressTrackerOptions,
