@@ -99,7 +99,8 @@
         "ag-charts-website-benchmarks_high-perf-line_main.ts:generate-example",
         "ag-charts-website-benchmarks_high-perf-ohlc_main.ts:generate-example",
         "ag-charts-website-benchmarks_high-perf-range-area_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-range-bar_main.ts:generate-example"
+        "ag-charts-website-benchmarks_high-perf-range-bar_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-freq-candlestick_main.ts:generate-example"
       ]
     },
     "pack": {

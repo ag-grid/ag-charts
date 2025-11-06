@@ -89,7 +89,8 @@
         "ag-charts-website-benchmarks_large-scale-multi-series_main.ts:generate-example",
         "ag-charts-website-benchmarks_multi-series_main.ts:generate-example",
         "ag-charts-website-benchmarks_resize_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-freq-high-volume_main.ts:generate-example"
+        "ag-charts-website-benchmarks_high-freq-high-volume_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-freq-bar_main.ts:generate-example"
       ]
     },
     "pack": {
