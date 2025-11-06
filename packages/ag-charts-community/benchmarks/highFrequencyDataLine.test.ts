@@ -1,11 +1,14 @@
-import { beforeEach, describe } from '@jest/globals';
+import { describe as jestDescribe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { benchmark, setupBenchmark } from './benchmark';
+import { isAtOrAfterVersion } from './compatibility';
 
-describe('high-frequency data benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-high-volume');
+const describeWhenSupported = isAtOrAfterVersion(12, 3, 0) ? jestDescribe : jestDescribe.skip;
+
+describeWhenSupported('high-frequency data line benchmark', () => {
+    const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-line');
 
     type Datum = {
         timestamp: number;
@@ -17,39 +20,50 @@ describe('high-frequency data benchmark', () => {
     const DATA_INTERVAL_MS = 250;
     const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 
-    let data: Datum[] = [];
-    let nextIndex = 0;
+    class HighFrequencyLineDataGenerator {
+        private index = 0;
 
-    function generateDatum(index: number): Datum {
-        const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
-        const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
-        const volatility = Math.sin(index / 15) * 5;
-        const baseline = 1_000 + index * 0.02;
-        return {
-            timestamp,
-            value: Number((baseline + trend + volatility).toFixed(2)),
-        };
+        reset() {
+            this.index = 0;
+        }
+
+        take(count: number): Datum[] {
+            const batch: Datum[] = [];
+            for (let i = 0; i < count; i++) {
+                batch.push(this.next());
+            }
+            return batch;
+        }
+
+        private next(): Datum {
+            const index = this.index++;
+            const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
+            const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
+            const volatility = Math.sin(index / 15) * 5;
+            const baseline = 1_000 + index * 0.02;
+
+            return {
+                timestamp,
+                value: Number((baseline + trend + volatility).toFixed(2)),
+            };
+        }
     }
 
+    const lineDataGenerator = new HighFrequencyLineDataGenerator();
+
+    let data: Datum[] = [];
+
     function createSeedData(count: number): Datum[] {
-        const result: Datum[] = [];
-        for (let i = 0; i < count; i++) {
-            result.push(generateDatum(i));
-        }
-        return result;
+        lineDataGenerator.reset();
+        return lineDataGenerator.take(count);
     }
 
     function createBatch(count: number): Datum[] {
-        const batch: Datum[] = [];
-        for (let i = 0; i < count; i++) {
-            batch.push(generateDatum(nextIndex++));
-        }
-        return batch;
+        return lineDataGenerator.take(count);
     }
 
     beforeEach(() => {
         data = createSeedData(INITIAL_POINTS);
-        nextIndex = data.length;
     });
 
     describe('applyTransaction updates', () => {
@@ -147,10 +161,7 @@ describe('high-frequency data benchmark', () => {
             async () => {
                 const batchSize = 10;
                 const remove = data.slice(0, batchSize);
-                const append: Datum[] = [];
-                for (let i = 0; i < batchSize; i++) {
-                    append.push(generateDatum(nextIndex++));
-                }
+                const append = createBatch(batchSize);
                 data = data.slice(batchSize).concat(append);
                 await (ctx.chart as any).applyTransaction({ append, remove });
             },
@@ -164,10 +175,7 @@ describe('high-frequency data benchmark', () => {
             async () => {
                 const batchSize = 500;
                 const remove = data.slice(0, batchSize);
-                const append: Datum[] = [];
-                for (let i = 0; i < batchSize; i++) {
-                    append.push(generateDatum(nextIndex++));
-                }
+                const append = createBatch(batchSize);
                 data = data.slice(batchSize).concat(append);
                 await (ctx.chart as any).applyTransaction({ append, remove });
             },
@@ -181,10 +189,7 @@ describe('high-frequency data benchmark', () => {
             async () => {
                 const batchSize = 1000;
                 const remove = data.slice(0, batchSize);
-                const append: Datum[] = [];
-                for (let i = 0; i < batchSize; i++) {
-                    append.push(generateDatum(nextIndex++));
-                }
+                const append = createBatch(batchSize);
                 data = data.slice(batchSize).concat(append);
                 await (ctx.chart as any).applyTransaction({ append, remove });
             },

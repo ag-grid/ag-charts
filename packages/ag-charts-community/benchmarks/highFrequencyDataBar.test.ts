@@ -1,8 +1,13 @@
+import { describe as jestDescribe } from '@jest/globals';
+
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { benchmark, setupBenchmark } from './benchmark';
+import { isAtOrAfterVersion } from './compatibility';
 
-describe('high-frequency data bar benchmark', () => {
+const describeWhenSupported = isAtOrAfterVersion(12, 3, 0) ? jestDescribe : jestDescribe.skip;
+
+describeWhenSupported('high-frequency data bar benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-bar');
 
     type Datum = {
