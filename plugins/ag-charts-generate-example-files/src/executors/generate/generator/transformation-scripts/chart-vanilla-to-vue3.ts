@@ -162,6 +162,15 @@ export async function vanillaToVue3(
                     ${methods.join(`;
                     `)}
 
+                    ${
+                        bindings.init.length > 0
+                            ? `
+                    ${bindings.init.join(`;
+                    `)}
+                    `
+                            : ''
+                    }
+
                     return {
                         ${propertyNames.concat(methodNames).join(`,
                         `)}
@@ -209,6 +218,15 @@ export async function vanillaToVue3(
                 setup(props) {
                     ${propertyVars.join(`
                     `)}
+
+                    ${
+                        bindings.init.length > 0
+                            ? `
+                    ${bindings.init.join(`
+                    `)}
+                    `
+                            : ''
+                    }
 
                     ${methods.join(`
                     `)}

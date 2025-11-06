@@ -219,6 +219,11 @@ export async function vanillaToAngular(
                 ${propertyAssignments.join(';\n')}
             }
 
+            ${instanceMethods
+                .concat(externalEventHandlers)
+                .map((snippet) => snippet.trim())
+                .join('\n\n')}
+
             ${
                 bindings.init.length !== 0
                     ? `
@@ -228,11 +233,6 @@ export async function vanillaToAngular(
             `
                     : ''
             }
-
-            ${instanceMethods
-                .concat(externalEventHandlers)
-                .map((snippet) => snippet.trim())
-                .join('\n\n')}
         }
         `;
 

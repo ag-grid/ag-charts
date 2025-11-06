@@ -103,10 +103,12 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
     const tsCollectors = [];
     const tsOptionsCollectors = [];
     const registered = [chartVariableName, optionsVariableName];
+    const initNodes = new Set(); // Track nodes that should go to init instead of globals
+    const unboundInstanceMethods = extractUnboundInstanceMethods(tsTree);
 
     // handler is the function name, params are any function parameters
     domEventHandlers.forEach(([_, handler, params]) => {
-        if (registered.indexOf(handler) > -1) {
+        if (registered.indexOf(handler) > -1 || unboundInstanceMethods.indexOf(handler) > -1) {
             return;
         }
 
@@ -124,8 +126,6 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
             },
         });
     });
-
-    const unboundInstanceMethods = extractUnboundInstanceMethods(tsTree);
     // functions marked as "inScope" will be added to "instance" methods, as opposed to "global" ones
     tsCollectors.push({
         matches: (node) => tsNodeIsInScope(node, unboundInstanceMethods),
@@ -175,11 +175,58 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
         },
     });
 
+    // Collect variable declarations that reference chart in their initializer (must run BEFORE globals collector)
+    tsCollectors.push({
+        matches: (node) => {
+            if (ts.isVariableDeclarationList(node) && node.parent && ts.isSourceFile(node.parent.parent)) {
+                // Check each variable declaration in the list
+                for (const declaration of node.declarations) {
+                    if (declaration.initializer) {
+                        const initializerCode = tsGenerate(declaration.initializer, tsTree);
+                        // Check if initializer references 'chart' (but not AgCharts.create or document.getElementById)
+                        if (
+                            /\bchart\b/.test(initializerCode) &&
+                            !initializerCode.includes('AgCharts.create') &&
+                            !initializerCode.includes('document.getElementById')
+                        ) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        },
+        apply: (bindings, node) => {
+            initNodes.add(node); // Mark this node so it won't be added to globals
+            bindings.init.push(tsGenerate(node.parent, tsTree)); // Generate the parent VariableStatement
+        },
+    });
+
     // anything vars is considered an "global" var
     tsCollectors.push({
-        matches: (node) => tsNodeIsTopLevelVariable(node, registered),
+        matches: (node) => {
+            if (!tsNodeIsTopLevelVariable(node, registered)) return false;
+
+            // Exclude variables whose initializer references chart - they go to init instead
+            if (ts.isVariableDeclarationList(node)) {
+                for (const declaration of node.declarations) {
+                    if (declaration.initializer) {
+                        const initializerCode = tsGenerate(declaration.initializer, tsTree);
+                        if (
+                            /\bchart\b/.test(initializerCode) &&
+                            !initializerCode.includes('AgCharts.create') &&
+                            !initializerCode.includes('document.getElementById')
+                        ) {
+                            return false; // Don't match - it should go to init
+                        }
+                    }
+                }
+            }
+
+            return true;
+        },
         apply: (bindings, node) => {
-            const code = tsGenerate(node, tsTree);
+            const code = tsGenerate(node.parent, tsTree); // Generate the parent VariableStatement
 
             // FIXME - removes AgChartOptions. There's got to be a better way to do this...
             if (code.includes('document.getElementById')) return;
@@ -205,6 +252,29 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
 
     tsCollectors.push({
         matches: (node) => tsNodeIsGlobalFunctionCall(node),
+        apply: (bindings, node) => bindings.init.push(tsGenerate(node, tsTree)),
+    });
+
+    // Collect top-level assignment expressions (e.g., stream = createUpdateSource(...))
+    // but exclude assignments to registered variables like 'chart' and 'options'
+    tsCollectors.push({
+        matches: (node) => {
+            if (
+                ts.isExpressionStatement(node) &&
+                ts.isSourceFile(node.parent) &&
+                ts.isBinaryExpression(node.expression) &&
+                node.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            ) {
+                const left = node.expression.left;
+                if (ts.isIdentifier(left)) {
+                    const varName = left.getText();
+                    // Exclude assignments to registered variables
+                    return registered.indexOf(varName) === -1;
+                }
+                return true;
+            }
+            return false;
+        },
         apply: (bindings, node) => bindings.init.push(tsGenerate(node, tsTree)),
     });
 
@@ -290,7 +360,7 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
     tsBindings.template = domTree.html()?.replace(hrPlaceholderRegex, '<hr />');
     tsBindings.imports = extractImportStatements(tsTree);
     tsBindings.optionsTypeInfo = extractTypeInfoForVariable(tsTree, 'options');
-    tsBindings.usesChartApi = usesChartApi(tsTree);
+    tsBindings.usesChartApi = usesChartApi(tsTree) || tsBindings.init.some((code) => /\bchart\b/.test(code));
     tsBindings.chartSettings = exampleSettings;
 
     return tsBindings;

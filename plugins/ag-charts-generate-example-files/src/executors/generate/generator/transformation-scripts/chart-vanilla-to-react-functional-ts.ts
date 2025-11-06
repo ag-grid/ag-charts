@@ -38,6 +38,7 @@ function getImports(componentFilenames: string[], bindings: any, styleFileNames:
     const reactImports = ['useState'];
     if (bindings.usesChartApi) reactImports.push('useRef');
     if (needsWrappingInFragment(bindings)) reactImports.push('Fragment');
+    if (bindings.init.length > 0) reactImports.push('useEffect');
 
     const imports = [
         `import React, { ${reactImports.join(', ')} } from 'react';`,
@@ -174,6 +175,16 @@ export async function vanillaToReactFunctionalTs(
 
                 ${instanceMethods.concat(externalEventHandlers).join('\n\n    ')}
 
+                ${
+                    bindings.init.length > 0
+                        ? `
+                useEffect(() => {
+                    ${bindings.init.join('\n                    ')}
+                }, []);
+                `
+                        : ''
+                }
+
                 return ${template};
             }
 
@@ -238,8 +249,15 @@ export async function vanillaToReactFunctionalTs(
         indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current!');
         // Split multi-variable declarations containing 'chart' to avoid breaking syntax
         indexFile = indexFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
-        // Replace 'chart' references but not in variable declarations
-        indexFile = indexFile.replace(/(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g, 'chartRef.current!');
+        // Transform object shorthand properties: { chart, } -> { chart: chartRef.current!, }
+        indexFile = indexFile.replace(/(\{[^}]*)\bchart\b(\s*[,}])/g, '$1chart: chartRef.current!$2');
+        // Handle negation patterns: !chart -> !chartRef.current (without trailing !)
+        indexFile = indexFile.replace(/!\s*\bchart\b(?!\s*:)/g, '!chartRef.current');
+        // Replace 'chart' references but not in variable declarations or object properties
+        indexFile = indexFile.replace(
+            /(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b(?!\s*:)/g,
+            'chartRef.current!'
+        );
     }
 
     return indexFile;
