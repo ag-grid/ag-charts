@@ -1206,6 +1206,7 @@ export class AreaSeries extends CartesianSeries<
                         label: yName,
                         fallbackLabel: yKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
+                        missing: yValue == null,
                     },
                 ],
             },

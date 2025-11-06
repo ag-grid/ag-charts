@@ -545,6 +545,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                         label: angleName,
                         fallbackLabel: angleKey,
                         value: this.getAxisValueText(angleAxis, 'tooltip', angleValue, datum, angleKey, undefined),
+                        missing: angleValue == null,
                     },
                 ],
             },

@@ -888,31 +888,36 @@ export class BubbleSeries extends CartesianSeries<
                 label: xName,
                 fallbackLabel: xKey,
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                missing: xValue == null,
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
+                missing: yValue == null,
             }
         );
 
         if (sizeKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'number',
-                value,
-                datum,
-                seriesId,
-                legendItemName,
-                key: sizeKey,
-                source: 'tooltip',
-                property: 'size',
-                boundSeries: this.getFormatterContext('size'),
-                domain,
-                fractionDigits: undefined,
-            });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
+            // Only add size row if value is not null/undefined
+            if (value != null) {
+                const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+                const content = formatManager.format(this.callWithContext.bind(this), {
+                    type: 'number',
+                    value,
+                    datum,
+                    seriesId,
+                    legendItemName,
+                    key: sizeKey,
+                    source: 'tooltip',
+                    property: 'size',
+                    boundSeries: this.getFormatterContext('size'),
+                    domain,
+                    fractionDigits: undefined,
+                });
+                data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
+            }
         }
 
         const activeStyle = this.getMarkerStyle(

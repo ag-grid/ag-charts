@@ -921,7 +921,14 @@ export class RangeAreaSeries extends BaseSeries {
             {
                 heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
+                data: [
+                    {
+                        label: yName,
+                        fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
+                        value,
+                        missing: yHighValue == null && yLowValue == null,
+                    },
+                ],
             },
             {
                 seriesId,
