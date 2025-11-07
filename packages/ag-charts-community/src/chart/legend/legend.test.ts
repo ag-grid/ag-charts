@@ -135,7 +135,8 @@ describe('Legend', () => {
         await waitForChartStability(chartInstance);
 
         const imageData = extractImageData(ctx);
-        const defaults = useLooserDefaults ? looserSnapshotDefaults(0.075, 600) : IMAGE_SNAPSHOT_DEFAULTS;
+        // Try tighter threshold: 0.06 per-pixel (closer to default 0.05) and 550 pixel count
+        const defaults = useLooserDefaults ? looserSnapshotDefaults(0.06, 550) : IMAGE_SNAPSHOT_DEFAULTS;
         expect(imageData).toMatchImageSnapshot({ ...defaults, customSnapshotIdentifier });
     };
 

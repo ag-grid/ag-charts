@@ -82,8 +82,8 @@ describe('NightingaleSeries', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        // Use much higher threshold for nightingale AG-15016 changes: 11-20% differences = 50k-100k pixels
-        const defaults = useLooserDefaults ? looserSnapshotDefaults(0.1, 105000) : IMAGE_SNAPSHOT_DEFAULTS;
+        // Try tighter per-pixel threshold (0.08 vs 0.1) but keep pixel count high for CI variations
+        const defaults = useLooserDefaults ? looserSnapshotDefaults(0.08, 100000) : IMAGE_SNAPSHOT_DEFAULTS;
         expect(imageData).toMatchImageSnapshot({ ...defaults, customSnapshotIdentifier });
     };
 
