@@ -321,7 +321,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
-        removeUnregisteredModuleOptions(this.chartDef.name, processedOptions, true);
+        removeUnregisteredModuleOptions(this.chartDef.name, processedOptions);
 
         this.validateSeriesOptions(processedOptions);
         this.validateAxesOptions(processedOptions);

@@ -32,7 +32,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 
     for (const module of ExpectedModules) {
         if (chartType && module.chartType && chartType !== module.chartType) continue;
-        if (!module.enterprise && ModuleRegistry.hasModule(module.name)) continue;
+        if (ModuleRegistry.hasModule(module.name)) continue;
 
         switch (module.type) {
             case 'chart':
