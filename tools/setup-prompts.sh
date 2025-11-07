@@ -105,9 +105,33 @@ function setup_commands() {
     local mode=${3:-link}
     local source_dir=${4:-tools/prompts/commands}
 
+    local prompt_files=()
+    while IFS= read -r -d '' file; do
+        local dir_path
+        dir_path=$(dirname "$file")
+        local skip_dir=false
+
+        while [[ "$dir_path" == "$source_dir"* ]]; do
+            if [[ -f "$dir_path/.nosymlink" ]]; then
+                skip_dir=true
+                break
+            fi
+            if [[ "$dir_path" == "$source_dir" ]]; then
+                break
+            fi
+            dir_path=$(dirname "$dir_path")
+        done
+
+        if [[ "$skip_dir" == true ]]; then
+            continue
+        fi
+
+        prompt_files+=("${file#${source_dir}/}")
+    done < <(find "$source_dir" -type f -name '*.md' -print0 | sort -z)
+
     mkdir -p $target_dir
     if [[ "$format" == "md" && "$mode" == "link" ]]; then
-        for file in $(cd $source_dir && echo **/*.md); do
+        for file in "${prompt_files[@]}"; do
             if [[ -f "$target_dir/$file" ]]; then
                 rm "$target_dir/$file"
             fi
@@ -115,7 +139,7 @@ function setup_commands() {
             ln -sf "$(pwd)/$source_dir/$file" "$target_dir/$file"
         done
     elif [[ "$format" == "md" && "$mode" == "copy" ]]; then
-        for file in $(cd $source_dir && echo **/*.md); do
+        for file in "${prompt_files[@]}"; do
             if [[ -f "$target_dir/$file" ]]; then
                 rm "$target_dir/$file"
             fi
@@ -123,7 +147,7 @@ function setup_commands() {
             cp "$source_dir/$file" "$target_dir/$file"
         done
     elif [[ "$format" == "toml" ]]; then
-        for file in $(cd $source_dir && echo **/*.md); do
+        for file in "${prompt_files[@]}"; do
             cat > "$target_dir/$(basename ${file%.md}).toml" <<EOF
 prompt = """
 @$(path_to_root $target_dir)${source_dir}/${file}
