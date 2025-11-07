@@ -64,6 +64,9 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
     const out: GroupedTooltipContent[] = [];
     const groupedContents = new Map<TextOrSegments, GroupedStructuredContent>();
     for (const item of content) {
+        // Filter out items with all missing data
+        if (hasAllMissingData(item)) continue;
+
         if (item.type === 'structured') {
             const { heading } = item;
             const insertionTarget = textOrSegmentsIsDefined(heading) ? groupedContents.get(heading) : undefined;

@@ -80,7 +80,6 @@ import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { DatumIndexType, ISeries } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
-import { hasAllMissingData } from './tooltip/tooltipContent';
 import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -462,8 +461,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
             const seriesTooltipContent =
                 seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
-            // Exclude series with all missing data from shared tooltips
-            if (seriesTooltipContent == null || hasAllMissingData(seriesTooltipContent)) return [];
+            if (seriesTooltipContent == null) return [];
             return [seriesTooltipContent];
         });
     }

@@ -357,31 +357,31 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 label: minName,
                 fallbackLabel: minKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', minValue, datum, minKey, legendItemName),
-                missing: minValue == null,
+                missing: minValue == null || !Number.isFinite(minValue),
             },
             {
                 label: q1Name,
                 fallbackLabel: q1Key,
                 value: this.getAxisValueText(yAxis, 'tooltip', q1Value, datum, q1Key, legendItemName),
-                missing: q1Value == null,
+                missing: q1Value == null || !Number.isFinite(q1Value),
             },
             {
                 label: medianName,
                 fallbackLabel: medianKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', medianValue, datum, medianKey, legendItemName),
-                missing: medianValue == null,
+                missing: medianValue == null || !Number.isFinite(medianValue),
             },
             {
                 label: q3Name,
                 fallbackLabel: q3Key,
                 value: this.getAxisValueText(yAxis, 'tooltip', q3Value, datum, q3Key, legendItemName),
-                missing: q3Value == null,
+                missing: q3Value == null || !Number.isFinite(q3Value),
             },
             {
                 label: maxName,
                 fallbackLabel: maxKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', maxValue, datum, maxKey, legendItemName),
-                missing: maxValue == null,
+                missing: maxValue == null || !Number.isFinite(maxValue),
             },
         ];
 

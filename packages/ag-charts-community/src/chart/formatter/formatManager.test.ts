@@ -250,6 +250,6 @@ describe('Format Manager', () => {
         await waitForChartStability(chart);
 
         const element = getDocument('body').getElementsByClassName('ag-charts-tooltip')[0];
-        expect(element.textContent).toMatchInlineSnapshot(`"product Apple iPhone iPhone 140.000 growth 5.000000"`);
+        expect(element.textContent).toMatchInlineSnapshot(`"iPhone 140.000 growth 5.000000"`);
     });
 });

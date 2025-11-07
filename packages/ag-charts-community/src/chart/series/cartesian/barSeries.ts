@@ -496,7 +496,7 @@ export class BarSeries extends AbstractBarSeries<
                                   rect,
                               }),
                           },
-                missing: yValue == null,
+                missing: yValue == null || !Number.isFinite(yValue),
                 focusable: !phantom,
             };
         };
@@ -1004,7 +1004,7 @@ export class BarSeries extends AbstractBarSeries<
                         label: yName,
                         fallbackLabel: yKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
-                        missing: yValue == null,
+                        missing: yValue == null || !Number.isFinite(yValue),
                     },
                 ],
             },

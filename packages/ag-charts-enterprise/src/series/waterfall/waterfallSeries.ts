@@ -752,7 +752,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                         label: yName,
                         fallbackLabel: yKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', total, datum, yKey, legendItemName),
-                        missing: yValue == null,
+                        missing: yValue == null || !Number.isFinite(yValue),
                     },
                 ],
             },

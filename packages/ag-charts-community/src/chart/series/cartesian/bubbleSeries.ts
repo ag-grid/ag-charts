@@ -888,13 +888,13 @@ export class BubbleSeries extends CartesianSeries<
                 label: xName,
                 fallbackLabel: xKey,
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
-                missing: xValue == null,
+                missing: xValue == null || !Number.isFinite(xValue),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
-                missing: yValue == null,
+                missing: yValue == null || !Number.isFinite(yValue),
             }
         );
 

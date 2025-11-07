@@ -399,5 +399,36 @@ describe('Tooltip', () => {
             expect(content).toContain('label 1');
             expect(content).toContain('label 2');
         });
+
+        it('should not show rows for series with non-finite values (NaN, Infinity) in shared tooltips', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'Q1', y1: 10, y2: Number.NaN, y3: Infinity },
+                    { x: 'Q2', y1: 15, y2: 25, y3: 30 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y1', yName: 'Valid Series' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yName: 'NaN Series' },
+                    { type: 'line', xKey: 'x', yKey: 'y3', yName: 'Infinity Series' },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            // Hover near the first data point (Q1) - use a coordinate that should trigger the tooltip
+            await hoverAction(150, 200)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should contain only Valid Series, not NaN or Infinity series
+            expect(content).toContain('Valid Series');
+            expect(content).not.toContain('NaN Series');
+            expect(content).not.toContain('Infinity Series');
+            // Should not show the formatted NaN or Infinity values
+            expect(content).not.toContain('NaN');
+            expect(content).not.toContain('∞');
+            expect(content).not.toContain('Infinity');
+        });
     });
 });

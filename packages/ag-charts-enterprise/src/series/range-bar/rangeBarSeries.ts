@@ -765,7 +765,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                         label: yName,
                         fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
                         value,
-                        missing: yHighValue == null && yLowValue == null,
+                        missing:
+                            (yHighValue == null || !Number.isFinite(yHighValue)) &&
+                            (yLowValue == null || !Number.isFinite(yLowValue)),
                     },
                 ],
             },
