@@ -134,15 +134,7 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
             <script
                 dangerouslySetInnerHTML={{
                     __html: `
-            var setupModules = function() {
-                return System.import('ag-charts-community').then(function(mod) {
-                    if (mod && typeof mod.setupCommunityModules === 'function') {
-                        // mod.setupCommunityModules();
-                    }
-                });
-            };
-
-            setupModules()
+            System.import('ag-charts-community')
                 .catch(function(err) {
                     console.warn('AG Charts community module registration failed', err);
                 })
