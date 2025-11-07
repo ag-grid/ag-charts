@@ -45,7 +45,7 @@ import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
@@ -1206,6 +1206,7 @@ export class AreaSeries extends CartesianSeries<
                         label: yName,
                         fallbackLabel: yKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
+                        missing: isTooltipValueMissing(yValue),
                     },
                 ],
             },

@@ -470,6 +470,7 @@ export abstract class RadarSeries<
                         label: radiusName,
                         fallbackLabel: radiusKey,
                         value: this.getAxisValueText(radiusAxis, 'tooltip', radiusValue, datum, radiusKey, undefined),
+                        missing: _ModuleSupport.isTooltipValueMissing(radiusValue),
                     },
                 ],
             },

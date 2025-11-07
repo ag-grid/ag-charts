@@ -302,4 +302,133 @@ describe('Tooltip', () => {
             expect(element?.innerHTML).toContain('fill="red"');
         });
     });
+
+    describe('AG-16272 Missing Values', () => {
+        it('should not show rows for series with missing data in shared tooltips', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'Q1', y1: 10, y2: 20, y3: null },
+                    { x: 'Q2', y1: 15, y2: 25, y3: 30 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1', yName: 'Series 1' },
+                    { type: 'bar', xKey: 'x', yKey: 'y2', yName: 'Series 2' },
+                    { type: 'bar', xKey: 'x', yKey: 'y3', yName: 'Series 3' },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            // Hover over the first bar group (Q1)
+            await hoverAction(200, 250)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should contain Series 1 and 2, but not Series 3 (missing data)
+            expect(content).toContain('Series 1');
+            expect(content).toContain('Series 2');
+            expect(content).not.toContain('Series 3');
+        });
+
+        it('should not show empty row for missing bubble size', async () => {
+            const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+            try {
+                chart = await createChart({
+                    data: [
+                        { x: 10, y: 20, size: 30, age: 25 },
+                        { x: 15, y: 25 }, // Missing size and age
+                    ],
+                    series: [
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            xName: 'X Value',
+                            yKey: 'y',
+                            yName: 'Y Value',
+                            sizeKey: 'size',
+                            sizeName: 'Size',
+                            labelKey: 'age',
+                            labelName: 'Age',
+                        },
+                    ],
+                });
+                // Hover the second bubble (at far right, missing size and age)
+                await hoverAction(500, 300)(chart);
+                await waitForChartStability(chart);
+
+                const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+                const content = element?.textContent ?? '';
+                // Should show X and Y, but not Size or Age
+                expect(content).toContain('X Value');
+                expect(content).toContain('Y Value');
+                expect(content).not.toContain('Size');
+                expect(content).not.toContain('Age');
+            } finally {
+                consoleWarnSpy.mockRestore();
+            }
+        });
+
+        it('should show label with empty string value from custom renderer', async () => {
+            chart = await createChart({
+                data: [{ x: 'Q1', y: 10 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: {
+                            renderer: () => {
+                                return {
+                                    data: [
+                                        { label: 'label 1', value: '' },
+                                        { label: 'label 2', value: 'value 2' },
+                                    ],
+                                };
+                            },
+                        },
+                    },
+                ],
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should show both labels even though first has empty value
+            expect(content).toContain('label 1');
+            expect(content).toContain('label 2');
+        });
+
+        it('should not show rows for series with non-finite values (NaN, Infinity) in shared tooltips', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'Q1', y1: 10, y2: Number.NaN, y3: Infinity },
+                    { x: 'Q2', y1: 15, y2: 25, y3: 30 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y1', yName: 'Valid Series' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yName: 'NaN Series' },
+                    { type: 'line', xKey: 'x', yKey: 'y3', yName: 'Infinity Series' },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            // Hover near the first data point (Q1) - use a coordinate that should trigger the tooltip
+            await hoverAction(150, 200)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should contain only Valid Series, not NaN or Infinity series
+            expect(content).toContain('Valid Series');
+            expect(content).not.toContain('NaN Series');
+            expect(content).not.toContain('Infinity Series');
+            // Should not show the formatted NaN or Infinity values
+            expect(content).not.toContain('NaN');
+            expect(content).not.toContain('∞');
+            expect(content).not.toContain('Infinity');
+        });
+    });
 });

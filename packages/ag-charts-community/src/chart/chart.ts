@@ -461,7 +461,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
             const seriesTooltipContent =
                 seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
-            return seriesTooltipContent == null ? [] : [seriesTooltipContent];
+            if (seriesTooltipContent == null) return [];
+            return [seriesTooltipContent];
         });
     }
 

@@ -760,7 +760,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             {
                 heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
+                data: [
+                    {
+                        label: yName,
+                        fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
+                        value,
+                        missing:
+                            _ModuleSupport.isTooltipValueMissing(yHighValue) &&
+                            _ModuleSupport.isTooltipValueMissing(yLowValue),
+                    },
+                ],
             },
             {
                 seriesId,
