@@ -12,11 +12,9 @@ export type Message = {
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, taskName: string): Promise<T> {
     let timeoutHandle: NodeJS.Timeout;
-    let timeoutFired = false;
 
     const timeoutPromise = new Promise<T>((_, reject) => {
         timeoutHandle = setTimeout(() => {
-            timeoutFired = true;
             if (process.env.DEBUG_TIMEOUT) {
                 console.log(`[Worker] Timeout fired for ${taskName} after ${timeoutMs}ms`);
             }
@@ -31,20 +29,7 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, taskName: string
                 clearTimeout(timeoutHandle);
             }
         }),
-        timeoutPromise.then(
-            (result) => result,
-            async (error) => {
-                // If timeout fired, wait for the original promise to complete
-                // to avoid leaving the worker in an inconsistent state and prevent
-                // overlapping file operations when the worker picks up the next task
-                if (timeoutFired) {
-                    await promise.catch(() => {
-                        // Ignore errors from the original promise after timeout
-                    });
-                }
-                throw error;
-            }
-        ),
+        timeoutPromise,
     ]);
 }
 
@@ -57,6 +42,12 @@ export default async function processor(msg: Message) {
         result = { task: taskName, result: { success: true, terminalOutput: '' } };
     } catch (e) {
         const isTimeout = e instanceof Error && e.message.includes('timeout');
+        if (isTimeout) {
+            console.error(`[Worker] Task ${taskName} timed out`);
+            // Exit the worker process to prevent it from picking up another task
+            // while the timed-out task is still running
+            process.exit(1);
+        }
         const terminalOutput = isTimeout ? e.message : `${e}`;
         result = { task: taskName, result: { success: false, terminalOutput } };
     }
