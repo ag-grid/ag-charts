@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MockNightingaleStyler,
     clickAction,
+    deproxy,
     doubleClickAction,
     doubleTapAction,
     extractImageData,
@@ -82,8 +83,8 @@ describe('NightingaleSeries', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        // Try tighter per-pixel threshold (0.08 vs 0.1) but keep pixel count high for CI variations
-        const defaults = useLooserDefaults ? looserSnapshotDefaults(0.08, 100000) : IMAGE_SNAPSHOT_DEFAULTS;
+        // Use tighter threshold - highlight state is now cleared in tests where needed
+        const defaults = useLooserDefaults ? looserSnapshotDefaults(0.06, 600) : IMAGE_SNAPSHOT_DEFAULTS;
         expect(imageData).toMatchImageSnapshot({ ...defaults, customSnapshotIdentifier });
     };
 
@@ -233,40 +234,46 @@ describe('NightingaleSeries', () => {
         describe('click', () => {
             for (const x of xs) {
                 test(`mouse {x: ${x}, y: ${y}}`, async () => {
-                    // Use looser threshold for AG-15016 scene graph changes
-                    await compare(`nightingale-test-ts-nightingale-series-legend-All`, true);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                     await clickAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await clickAction(x, y)(chart);
-                    // Use looser threshold for AG-15016 scene graph changes
-                    await compare(`nightingale-test-ts-nightingale-series-legend-All`, true);
+                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
+                    const chartInstance = deproxy(chart);
+                    for (const { legend } of chartInstance.modulesManager.legends()) {
+                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    }
+                    await waitForChartStability(chart);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
             for (const x of xs) {
                 test(`touch {x: ${x}, y: ${y}}`, async () => {
-                    // Use looser threshold for AG-15016 scene graph changes
-                    await compare(`nightingale-test-ts-nightingale-series-legend-All`, true);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                     await tapAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await tapAction(x, y)(chart);
-                    // Use looser threshold for AG-15016 scene graph changes
-                    await compare(`nightingale-test-ts-nightingale-series-legend-All`, true);
+                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
+                    const chartInstance = deproxy(chart);
+                    for (const { legend } of chartInstance.modulesManager.legends()) {
+                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    }
+                    await waitForChartStability(chart);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
         });
         describe('dblclick', () => {
             for (const x of xs) {
                 test(`mouse {x: ${x}, y: ${y}}`, async () => {
-                    // Use looser threshold for AG-15016 scene graph changes
-                    await compare(`nightingale-test-ts-nightingale-series-legend-All`, true);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                     await doubleClickAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-dblclick-${x}`);
                 });
             }
             for (const x of xs) {
                 test(`touch {x: ${x}, y: ${y}}`, async () => {
-                    // Use looser threshold for AG-15016 scene graph changes
-                    await compare(`nightingale-test-ts-nightingale-series-legend-All`, true);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                     await doubleTapAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-dblclick-${x}`);
                 });
