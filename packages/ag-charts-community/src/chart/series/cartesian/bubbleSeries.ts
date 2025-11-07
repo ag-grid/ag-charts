@@ -51,7 +51,7 @@ import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import {
     type PickFocusInputs,
     type SeriesNodePickMatch,
@@ -888,13 +888,13 @@ export class BubbleSeries extends CartesianSeries<
                 label: xName,
                 fallbackLabel: xKey,
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
-                missing: xValue == null || !Number.isFinite(xValue),
+                missing: isTooltipValueMissing(xValue),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
-                missing: yValue == null || !Number.isFinite(yValue),
+                missing: isTooltipValueMissing(yValue),
             }
         );
 

@@ -927,8 +927,8 @@ export class RangeAreaSeries extends BaseSeries {
                         fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
                         value,
                         missing:
-                            (yHighValue == null || !Number.isFinite(yHighValue)) &&
-                            (yLowValue == null || !Number.isFinite(yLowValue)),
+                            _ModuleSupport.isTooltipValueMissing(yHighValue) &&
+                            _ModuleSupport.isTooltipValueMissing(yLowValue),
                     },
                 ],
             },

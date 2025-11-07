@@ -44,7 +44,7 @@ import {
 import { adjustLabelPlacement, updateLabelNode } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
-import { type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
@@ -496,7 +496,7 @@ export class BarSeries extends AbstractBarSeries<
                                   rect,
                               }),
                           },
-                missing: yValue == null || !Number.isFinite(yValue),
+                missing: isTooltipValueMissing(yValue),
                 focusable: !phantom,
             };
         };
@@ -1004,7 +1004,7 @@ export class BarSeries extends AbstractBarSeries<
                         label: yName,
                         fallbackLabel: yKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
-                        missing: yValue == null || !Number.isFinite(yValue),
+                        missing: isTooltipValueMissing(yValue),
                     },
                 ],
             },

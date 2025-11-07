@@ -20,6 +20,7 @@ export {
     DEFAULT_TOOLTIP_DARK_CLASS,
     tooltipHtml,
     tooltipContentAriaLabel,
+    isTooltipValueMissing,
     type TooltipContent,
     type TooltipPaginationState,
     type TooltipContentDataRow,

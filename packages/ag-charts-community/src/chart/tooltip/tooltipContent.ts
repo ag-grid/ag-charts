@@ -51,6 +51,17 @@ function textOrSegmentsIsDefined(value: TextOrSegments | undefined): value is Te
 }
 
 /**
+ * Determines if a value should be treated as missing in tooltips.
+ * Only null, undefined, NaN, and Infinity are considered missing.
+ * Strings, Dates, and other non-numeric values are valid for category/time axes.
+ */
+export function isTooltipValueMissing(value: any): boolean {
+    if (value == null) return true;
+    if (typeof value === 'number' && !Number.isFinite(value)) return true;
+    return false;
+}
+
+/**
  * Check if tooltip content has all data marked as missing.
  * Used to filter out series with no valid data in shared tooltips.
  */
