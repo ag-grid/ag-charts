@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MockNightingaleStyler,
     clickAction,
+    deproxy,
     doubleClickAction,
     doubleTapAction,
     extractImageData,
@@ -234,6 +235,12 @@ describe('NightingaleSeries', () => {
                     await clickAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await clickAction(x, y)(chart);
+                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
+                    const chartInstance = deproxy(chart);
+                    for (const { legend } of chartInstance.modulesManager.legends()) {
+                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    }
+                    await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
@@ -243,6 +250,12 @@ describe('NightingaleSeries', () => {
                     await tapAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await tapAction(x, y)(chart);
+                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
+                    const chartInstance = deproxy(chart);
+                    for (const { legend } of chartInstance.modulesManager.legends()) {
+                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    }
+                    await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
