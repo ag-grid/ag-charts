@@ -101,7 +101,7 @@ describeWhenSupported('high-frequency data bar benchmark', () => {
 
         benchmark(
             '1x remove batch (100 points)',
-            ctx,
+            ctx.repeatCount(1),
             { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
                 const remove = data.slice(0, BATCH_SIZE);
@@ -113,7 +113,7 @@ describeWhenSupported('high-frequency data bar benchmark', () => {
 
         benchmark(
             '1x rolling window update (append + remove)',
-            ctx,
+            ctx.repeatCount(1),
             { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
                 const remove = data.slice(0, BATCH_SIZE);
