@@ -1,4 +1,4 @@
-import type { ModuleDefinition } from 'ag-charts-core';
+import { type ModuleDefinition, ModuleRegistry } from 'ag-charts-core';
 
 import { SparklinePresetModule } from '../api/preset/presetModules';
 import { GaugePresetModule, PriceVolumePresetModule } from '../api/preset/presetModules';
@@ -19,3 +19,7 @@ export const AllCommunityModules: ModuleDefinition[] = [
     GaugePresetModule,
     SparklinePresetModule,
 ];
+
+export function registerAllCommunityModules(): void {
+    ModuleRegistry.registerModules(AllCommunityModules);
+}
