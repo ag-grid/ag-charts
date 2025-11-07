@@ -18,7 +18,6 @@ import {
     doubleTapAction,
     extractImageData,
     hoverAction,
-    looserSnapshotDefaults,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
@@ -79,13 +78,11 @@ describe('NightingaleSeries', () => {
         ],
     };
 
-    const compare = async (customSnapshotIdentifier?: string, useLooserDefaults = false) => {
+    const compare = async (customSnapshotIdentifier?: string) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        // Use tighter threshold - highlight state is now cleared in tests where needed
-        const defaults = useLooserDefaults ? looserSnapshotDefaults(0.06, 600) : IMAGE_SNAPSHOT_DEFAULTS;
-        expect(imageData).toMatchImageSnapshot({ ...defaults, customSnapshotIdentifier });
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
     };
 
     it(`should render stacked nightingale chart as expected`, async () => {
