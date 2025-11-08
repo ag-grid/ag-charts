@@ -1,55 +1,85 @@
-import { beforeEach, describe } from '@jest/globals';
+import { describe as jestDescribe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
 
-import { benchmark, setupBenchmark } from './benchmark';
+import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
-describe('high-frequency data benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-high-volume');
+const describeWhenSupported = isAtOrAfterVersion(12, 3, 0) ? jestDescribe : jestDescribe.skip;
+
+describeWhenSupported('high-frequency data candlestick benchmark', () => {
+    const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-candlestick', { isEnterprise: true });
 
     type Datum = {
         timestamp: number;
-        value: number;
+        open: number;
+        high: number;
+        low: number;
+        close: number;
+        volume: number;
     };
 
     const INITIAL_POINTS = 100_000;
     const BATCH_SIZE = 100;
     const DATA_INTERVAL_MS = 250;
     const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
+    const BASE_PRICE = 100;
 
-    let data: Datum[] = [];
-    let nextIndex = 0;
+    class HighFrequencyCandlestickGenerator {
+        private index = 0;
+        private price = BASE_PRICE;
 
-    function generateDatum(index: number): Datum {
-        const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
-        const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
-        const volatility = Math.sin(index / 15) * 5;
-        const baseline = 1_000 + index * 0.02;
-        return {
-            timestamp,
-            value: Number((baseline + trend + volatility).toFixed(2)),
-        };
+        reset() {
+            this.index = 0;
+            this.price = BASE_PRICE;
+        }
+
+        take(count: number): Datum[] {
+            const batch: Datum[] = [];
+            for (let i = 0; i < count; i++) {
+                batch.push(this.next());
+            }
+            return batch;
+        }
+
+        private next(): Datum {
+            const index = this.index++;
+            const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
+            const drift = Math.sin(index / 12) * 0.7 + Math.cos(index / 24) * 0.4;
+            this.price = Number((this.price + drift).toFixed(2));
+
+            // Generate realistic OHLC data with some volatility
+            const volatility = 0.5 + Math.sin(index / 20) * 0.3;
+            const open = this.price;
+            const close = Number((open + Math.sin(index / 5) * volatility).toFixed(2));
+            const high = Number(Math.max(open, close, open + Math.abs(Math.cos(index / 7)) * volatility).toFixed(2));
+            const low = Number(Math.min(open, close, open - Math.abs(Math.sin(index / 9)) * volatility).toFixed(2));
+
+            return {
+                timestamp,
+                open,
+                high,
+                low,
+                close,
+                volume: 600 + Math.round((Math.sin(index / 8) + 1) * 220),
+            };
+        }
     }
 
+    const candlestickGenerator = new HighFrequencyCandlestickGenerator();
+
+    let data: Datum[] = [];
+
     function createSeedData(count: number): Datum[] {
-        const result: Datum[] = [];
-        for (let i = 0; i < count; i++) {
-            result.push(generateDatum(i));
-        }
-        return result;
+        candlestickGenerator.reset();
+        return candlestickGenerator.take(count);
     }
 
     function createBatch(count: number): Datum[] {
-        const batch: Datum[] = [];
-        for (let i = 0; i < count; i++) {
-            batch.push(generateDatum(nextIndex++));
-        }
-        return batch;
+        return candlestickGenerator.take(count);
     }
 
     beforeEach(() => {
         data = createSeedData(INITIAL_POINTS);
-        nextIndex = data.length;
     });
 
     describe('applyTransaction updates', () => {
@@ -84,7 +114,7 @@ describe('high-frequency data benchmark', () => {
 
         benchmark(
             '1x remove batch (100 points)',
-            ctx,
+            ctx.repeatCount(1),
             { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
                 const remove = data.slice(0, BATCH_SIZE);
@@ -96,7 +126,7 @@ describe('high-frequency data benchmark', () => {
 
         benchmark(
             '1x rolling window update (append + remove)',
-            ctx,
+            ctx.repeatCount(1),
             { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
                 const remove = data.slice(0, BATCH_SIZE);
@@ -147,10 +177,7 @@ describe('high-frequency data benchmark', () => {
             async () => {
                 const batchSize = 10;
                 const remove = data.slice(0, batchSize);
-                const append: Datum[] = [];
-                for (let i = 0; i < batchSize; i++) {
-                    append.push(generateDatum(nextIndex++));
-                }
+                const append = createBatch(batchSize);
                 data = data.slice(batchSize).concat(append);
                 await (ctx.chart as any).applyTransaction({ append, remove });
             },
@@ -164,10 +191,7 @@ describe('high-frequency data benchmark', () => {
             async () => {
                 const batchSize = 500;
                 const remove = data.slice(0, batchSize);
-                const append: Datum[] = [];
-                for (let i = 0; i < batchSize; i++) {
-                    append.push(generateDatum(nextIndex++));
-                }
+                const append = createBatch(batchSize);
                 data = data.slice(batchSize).concat(append);
                 await (ctx.chart as any).applyTransaction({ append, remove });
             },
@@ -181,10 +205,7 @@ describe('high-frequency data benchmark', () => {
             async () => {
                 const batchSize = 1000;
                 const remove = data.slice(0, batchSize);
-                const append: Datum[] = [];
-                for (let i = 0; i < batchSize; i++) {
-                    append.push(generateDatum(nextIndex++));
-                }
+                const append = createBatch(batchSize);
                 data = data.slice(batchSize).concat(append);
                 await (ctx.chart as any).applyTransaction({ append, remove });
             },
