@@ -416,10 +416,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
@@ -453,10 +453,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
@@ -500,10 +500,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
@@ -555,10 +555,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
@@ -622,10 +622,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
@@ -681,10 +681,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
@@ -720,10 +720,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
@@ -772,10 +772,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
@@ -827,10 +827,10 @@ describe('Chart highlighting', () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
