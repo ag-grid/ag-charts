@@ -433,14 +433,23 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     ) {
         if (!domains.dirty) return domains.derived;
 
-        const previousDerived = domains.derived;
-        domains.derived = unique(
-            Object.values(domains.sources)
-                .map((d) => Object.values(d))
-                .flat(2)
-        );
+        let previousDerived = domains.derived;
+        const newDerivedBySource = Object.values(domains.sources).map((d) => Object.values(d));
+        let newDerived: unknown[];
+        if (ContinuousScale.is(axis.scale)) {
+            newDerived = newDerivedBySource.flat(2);
+        } else {
+            // Sort category scale sources by their length, largest to smallest, so missing datums are not appended
+            // to the end.
+            newDerived = newDerivedBySource
+                .flat()
+                .toSorted((a, b) => (a.length > b.length ? -1 : 1))
+                .flat();
+        }
+        domains.derived = unique(newDerived);
 
         if (ContinuousScale.is(axis.scale)) {
+            previousDerived = findMinMax(previousDerived as number[]);
             domains.derived = findMinMax(domains.derived as number[]);
         }
         domains.dirty = false;
