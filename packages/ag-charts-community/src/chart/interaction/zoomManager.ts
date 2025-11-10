@@ -56,12 +56,6 @@ export type CartesianAxisLike = SimpleAxis & {
     max?: number;
 };
 
-class ZoomManagerAutoScaleAxis {
-    enabled = false;
-    padding = 0;
-    manuallyAdjusted = false;
-}
-
 const rangeValidator = (axis?: CartesianAxisLike) =>
     attachDescription((value, { options }) => {
         if (!ContinuousScale.is(axis?.scale) && !DiscreteTimeScale.is(axis?.scale)) return true;
@@ -141,7 +135,6 @@ export class ZoomManager extends BaseManager {
     private didLayoutAxes = false;
     private didCompleteChange = false;
 
-    private readonly autoScaleYAxis = new ZoomManagerAutoScaleAxis();
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
     private independentAxes = false;
     private navigatorModule = false;
@@ -385,12 +378,6 @@ export class ZoomManager extends BaseManager {
         this.applyUpdateZoom({ callerId, changeType: 'reset', changes: { [axisId]: this.getRestoredZoom()[axisId] } });
     }
 
-    public setAxisManuallyAdjusted(_callerId: string, axisId: AxisID) {
-        const direction = this.state.stateValue()[axisId]?.direction;
-        if (direction !== ChartAxisDirection.Y) return;
-        this.autoScaleYAxis.manuallyAdjusted = true;
-    }
-
     public panToBBox(callerId: string, seriesRect: BBox, target: BoxBounds): boolean {
         if (!this.isZoomEnabled() && !this.isNavigatorEnabled()) return false;
 
@@ -527,18 +514,15 @@ export class ZoomManager extends BaseManager {
     public isVisibleItemsCountAtLeast(
         zoom: DefinedZoomState,
         minVisibleItems: number,
-        includeYVisibleRange?: boolean
+        opts: { autoScaleYAxis: boolean; includeYVisibleRange: boolean }
     ): boolean {
-        const { autoScaleYAxis } = this;
         const boundSeries = this.getBoundSeries();
 
         // Note: `series.getVisibleItems` has much better performance when `autoScaling.enabled: true`, because it only
         // needs to consider the X axis to count the number of visible items.
         const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
         const yVisibleRange: [number, number] | undefined =
-            !includeYVisibleRange && autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted
-                ? undefined
-                : [zoom.y.min, zoom.y.max];
+            !opts.includeYVisibleRange && opts.autoScaleYAxis ? undefined : [zoom.y.min, zoom.y.max];
 
         let visibleItemsCount = 0;
 

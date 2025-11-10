@@ -55,10 +55,16 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         );
     }
 
-    public manuallyAdjusted: boolean = false;
+    private manuallyAdjusted: boolean = false;
 
     get enabled(): boolean {
         return this.deps.enabled && this.properties.enabled && !this.manuallyAdjusted;
+    }
+
+    onManualAdjustment(direction: _ModuleSupport.ChartAxisDirection) {
+        if (direction === ChartAxisDirection.Y) {
+            this.manuallyAdjusted = true;
+        }
     }
 
     onChange(opts: ZoomAutoScalingOpts): void {

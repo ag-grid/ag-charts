@@ -198,7 +198,7 @@ export class Zoom extends AbstractModuleInstance {
             onAxisDragMove: (id, direction, event) => this.onAxisDragMove(id, direction, event),
             onAxisDragEnd: () => this.onAxisDragEnd(),
             onAxisDoubleClick: (id) => this.onAxisDoubleClick(id),
-            onAxisWheel: (id, direction, event) => this.onAxisWheel(id, direction, event),
+            onAxisWheel: (direction, event) => this.onAxisWheel(direction, event),
         });
 
         if (ctx.widgets.seriesDragInterpreter) {
@@ -551,7 +551,7 @@ export class Zoom extends AbstractModuleInstance {
             if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
             const axisZoom = zoomManager.getAxisZoom(axisId);
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
-            zoomManager.setAxisManuallyAdjusted('zoom', axisId);
+            this.autoScaler.onManualAdjustment(direction);
             this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, newZoom, {
                 directional: true,
             });
@@ -637,16 +637,8 @@ export class Zoom extends AbstractModuleInstance {
         this.handleWheelScrolling(event, isZoomCapped);
     }
 
-    private onAxisWheel(
-        axisId: AxisID,
-        axisDirection: _ModuleSupport.ChartAxisDirection,
-        event: _ModuleSupport.WheelWidgetEvent
-    ) {
-        const {
-            enableAxisScrolling,
-            ctx: { zoomManager },
-        } = this;
-        if (!enableAxisScrolling) return;
+    private onAxisWheel(axisDirection: _ModuleSupport.ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) {
+        if (!this.enableAxisScrolling) return;
         if (axisDirection !== ChartAxisDirection.X && axisDirection !== ChartAxisDirection.Y) {
             return;
         }
@@ -660,8 +652,7 @@ export class Zoom extends AbstractModuleInstance {
         const isZoomCapped =
             event.deltaY > 0 && zoom[axisDirection].min === UNIT_MIN && zoom[axisDirection].max === UNIT_MAX;
 
-        zoomManager.setAxisManuallyAdjusted('zoom', axisId);
-
+        this.autoScaler.onManualAdjustment(axisDirection);
         this.handleWheelScrolling(event, isZoomCapped, props);
     }
 
@@ -859,7 +850,12 @@ export class Zoom extends AbstractModuleInstance {
             return false;
         }
 
-        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems, options?.includeYVisibleRange);
+        const includeYVisibleRange = options?.includeYVisibleRange ?? false;
+        const autoScaleYAxis = this.autoScaler.enabled;
+        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems, {
+            includeYVisibleRange,
+            autoScaleYAxis,
+        });
         this.previousZoomValid = options?.directional ? valid : true;
 
         return valid;
@@ -896,7 +892,8 @@ export class Zoom extends AbstractModuleInstance {
             return false;
         }
 
-        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
+        const opts = { includeYVisibleRange: false, autoScaleYAxis: this.autoScaler.enabled };
+        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems, opts);
         this.previousAxisZoomValid[direction] = options?.directional ? valid : true;
 
         return valid;
