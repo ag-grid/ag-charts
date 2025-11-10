@@ -15,6 +15,7 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
+import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
@@ -108,6 +109,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 }
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
+    phantomNodeData: BarNodeDatum[];
     styles: SeriesNodeStyleContext<AgBarSeriesStyle>;
     segments?: Segment[];
 }
@@ -137,6 +139,13 @@ export class BarSeries extends AbstractBarSeries<
         return this.properties.sparklineMode ? 'main' : undefined;
     }
 
+    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom' }));
+    private phantomSelection: Selection<BarShape, BarNodeDatum> = Selection.select(
+        this.phantomGroup,
+        () => this.nodeFactory(),
+        false
+    );
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -156,6 +165,8 @@ export class BarSeries extends AbstractBarSeries<
                 label: resetLabelFn,
             },
         });
+
+        this.phantomGroup.opacity = 0.2;
     }
 
     private crossFilteringEnabled() {
@@ -714,7 +725,8 @@ export class BarSeries extends AbstractBarSeries<
 
         return {
             itemId: yKey,
-            nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
+            nodeData: nodes,
+            phantomNodeData: phantomNodes,
             labelData: labels,
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
@@ -726,6 +738,25 @@ export class BarSeries extends AbstractBarSeries<
 
     protected nodeFactory() {
         return new BarShape();
+    }
+
+    protected override updateSeriesSelections() {
+        super.updateSeriesSelections();
+
+        this.phantomSelection = this.updateDatumSelection({
+            nodeData: this.contextNodeData?.phantomNodeData ?? [],
+            datumSelection: this.phantomSelection,
+        });
+    }
+
+    protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
+        super.updateNodes(itemHighlighted, nodeRefresh);
+
+        this.updateDatumNodes({
+            datumSelection: this.phantomSelection,
+            isHighlight: false,
+            drawingMode: 'overlay',
+        });
     }
 
     protected override getHighlightData(
@@ -1074,17 +1105,20 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
+        const { phantomSelection } = this;
+
         const fns = prepareBarAnimationFunctions(
             collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'),
             'unknown'
         );
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection, phantomSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
+        const { phantomSelection } = this;
         const { datumSelection, labelSelection, annotationSelections, contextData, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
@@ -1108,7 +1142,7 @@ export class BarSeries extends AbstractBarSeries<
             this.id,
             'nodes',
             this.ctx.animationManager,
-            [datumSelection],
+            [datumSelection, phantomSelection],
             fns,
             (_, datum) => this.getDatumId(datum),
             dataDiff

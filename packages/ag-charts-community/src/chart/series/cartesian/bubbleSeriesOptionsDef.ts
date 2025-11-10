@@ -10,6 +10,7 @@ import {
     required,
     shapeHighlightOptionsDef,
     string,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
@@ -62,3 +63,10 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     legendItemName: string,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
+
+// @ts-expect-error undocumented option
+bubbleSeriesOptionsDef.xFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
+bubbleSeriesOptionsDef.yFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
+bubbleSeriesOptionsDef.sizeFilterKey = undocumented(string);
