@@ -37,7 +37,7 @@ export class ZoomAutoScalingProperties extends BaseProperties implements ZoomAut
 // `chart.zoom` options that ZoomAutoScaler is affected by.
 interface ZoomAutoScalerPropertiesDeps {
     readonly enabled: boolean;
-    readonly enableIndependentAxes?: boolean | undefined;
+    readonly enableIndependentAxes?: boolean;
 }
 
 export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {

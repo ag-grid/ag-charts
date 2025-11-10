@@ -109,7 +109,7 @@ function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRe
 
     // Check that pKeys & qKeys are the same set of strings:
     if (pKeys.length !== qKeys.length) return false;
-    for (const k of pKeys) if (qKeys.indexOf(k) === -1) return false;
+    for (const k of pKeys) if (!qKeys.includes(k)) return false;
 
     for (const k of pKeys) {
         const pVal = p[k];
