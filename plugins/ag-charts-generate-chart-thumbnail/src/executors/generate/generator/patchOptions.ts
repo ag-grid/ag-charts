@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgChartTheme, AgChartThemeName } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { jsonWalk } from 'ag-charts-core';
 import { ExampleSubstitutions } from 'ag-charts-generate-example-files';
 
 export function patchOptions(
@@ -93,7 +93,7 @@ const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
 
 const maybeApplySubstitutions = (node: unknown) => {
     if (typeof node === 'object') {
-        _ModuleSupport.jsonWalk(node, (nodes) => {
+        jsonWalk(node, (nodes) => {
             for (const key of Object.keys(nodes)) {
                 const value = nodes[key];
                 if (typeof value === 'string') {

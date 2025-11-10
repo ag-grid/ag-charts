@@ -183,8 +183,7 @@ export { ExtendedPath2D } from './scene/extendedPath2D';
 export * from './scene/util/bezier';
 export * as easing from './motion/easing';
 
-const motion = { ...fromToMotion, ...resetMotion };
-export { motion };
+export const motion = { ...fromToMotion, ...resetMotion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
 
 export { Caption } from './chart/caption';
