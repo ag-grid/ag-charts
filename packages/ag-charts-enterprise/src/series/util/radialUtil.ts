@@ -7,9 +7,10 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Callback, CallbackParam, InternalAgColorType } from 'ag-charts-core';
+import type { Callback, CallbackParam, CallbackParamRules, InternalAgColorType } from 'ag-charts-core';
+import { mergeDefaults } from 'ag-charts-core';
 
-const { createDatumId, mergeDefaults, toHighlightString } = _ModuleSupport;
+const { createDatumId, toHighlightString } = _ModuleSupport;
 
 type BaseNodeDatum = _ModuleSupport.DataModelSeriesNodeDatum;
 
@@ -77,7 +78,7 @@ export function makeStylerParams(
     const highlightState = toHighlightString(highlightStateEnum ?? _ModuleSupport.HighlightState.None);
 
     type T = ReturnType<typeof makeStylerParams>;
-    type Rules = _ModuleSupport.CallbackParamRules<T>;
+    type Rules = CallbackParamRules<T>;
     return {
         angleKey,
         cornerRadius,

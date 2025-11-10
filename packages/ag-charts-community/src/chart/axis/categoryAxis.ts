@@ -1,11 +1,10 @@
-import { isFiniteNumber } from 'ag-charts-core';
+import { Property, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { UnitTimeScale } from '../../scale/unitTimeScale';
-import { Property } from '../../util/properties';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import type { AxisFillDatum, AxisLineDatum, TickDatum } from './axisUtil';

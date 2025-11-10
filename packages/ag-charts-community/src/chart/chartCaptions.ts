@@ -1,9 +1,8 @@
-import { cachedTextMeasurer, isArray, measureTextSegments } from 'ag-charts-core';
+import { Property, cachedTextMeasurer, isArray, measureTextSegments } from 'ag-charts-core';
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
 import type { BBox } from '../scene/bbox';
-import { Property } from '../util/properties';
 import { Caption } from './caption';
 import type { LayoutContext } from './layout/layoutManager';
 

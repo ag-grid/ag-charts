@@ -8,9 +8,12 @@ import {
     type Scale,
     ScaleAlignment,
     attachDescription,
+    deepClone,
     defined,
     isFiniteNumber,
     isObject,
+    objectsEqual,
+    strictObjectKeys,
     validate,
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
@@ -26,8 +29,6 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
-import { deepClone } from '../../util/json';
-import { objectsEqual, strictObjectKeys } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { NonNullableStateTracker } from '../../util/stateTracker';

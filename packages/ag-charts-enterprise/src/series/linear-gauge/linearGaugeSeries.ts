@@ -14,6 +14,7 @@ import {
     findRangeExtent,
     isArray,
     measureTextSegments,
+    mergeDefaults,
     toRadians,
 } from 'ag-charts-core';
 
@@ -57,7 +58,6 @@ const {
     NiceMode,
     easing,
     tickFormat,
-    mergeDefaults,
     applyShapeStyle,
 } = _ModuleSupport;
 

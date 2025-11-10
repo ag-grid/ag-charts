@@ -1,7 +1,7 @@
-import type { Intersection, PlainObject } from 'ag-charts-core';
-import { entries, isArray, isObject, isPlainObject } from 'ag-charts-core';
-
+import type { Intersection, PlainObject } from '../interfaces/globalTypes';
 import { isDecoratedObject, listDecoratedProperties } from './decorator';
+import { entries } from './iterators';
+import { isArray, isObject, isPlainObject } from './typeGuards';
 
 type FalsyType = false | null | undefined;
 

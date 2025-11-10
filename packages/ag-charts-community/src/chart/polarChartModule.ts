@@ -1,8 +1,7 @@
-import { type ChartModuleDefinition, UnknownError, ValidationError, validate } from 'ag-charts-core';
+import { type ChartModuleDefinition, UnknownError, ValidationError, validate, without } from 'ag-charts-core';
 import type { AgPolarChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
-import { without } from '../util/object';
 import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
 import { polarChartOptionsDefs } from './chartOptionsDefs';

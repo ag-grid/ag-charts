@@ -10,9 +10,10 @@ import {
     required,
     string,
     undocumented,
+    without,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, mapLineSeriesThemeableOptionsDef, without } = _ModuleSupport;
+const { commonSeriesOptionsDefs, mapLineSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),

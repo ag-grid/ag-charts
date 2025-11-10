@@ -13,9 +13,9 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { BaseProperties, Property } from 'ag-charts-core';
 
-const { BaseProperties, Property, AbstractBarSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
-
+const { AbstractBarSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 class OhlcSeriesItem extends BaseProperties {
     @Property
     stroke: string = '#333';

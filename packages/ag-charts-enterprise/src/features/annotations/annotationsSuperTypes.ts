@@ -1,5 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type { Point } from 'ag-charts-core';
+import { BaseProperties } from 'ag-charts-core';
 
 import type { AnnotationContext, AnnotationType, Constructor, DataPoint } from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
@@ -119,22 +120,22 @@ export interface AnnotationsStateMachineContext {
     update: () => void;
 }
 
-export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BaseProperties, Scene extends AnnotationSceneNode> {
+export interface AnnotationTypeConfig<Datum extends BaseProperties, Scene extends AnnotationSceneNode> {
     type: AnnotationType;
     isDatum: (value: unknown) => value is Datum;
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
-    update: (node: AnnotationSceneNode, datum: _ModuleSupport.BaseProperties, context: AnnotationContext) => void;
+    update: (node: AnnotationSceneNode, datum: BaseProperties, context: AnnotationContext) => void;
     translate: (
         node: AnnotationSceneNode,
-        datum: _ModuleSupport.BaseProperties,
+        datum: BaseProperties,
         translation: Point,
         context: AnnotationContext
     ) => void;
     copy: (
         node: AnnotationSceneNode,
-        datum: _ModuleSupport.BaseProperties,
-        copiedDatum: _ModuleSupport.BaseProperties,
+        datum: BaseProperties,
+        copiedDatum: BaseProperties,
         context: AnnotationContext
     ) => Datum | undefined;
     createState: (

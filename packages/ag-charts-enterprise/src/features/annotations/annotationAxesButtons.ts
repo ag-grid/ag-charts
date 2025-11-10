@@ -1,6 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
-const { BaseProperties, Property } = _ModuleSupport;
+import { BaseProperties, Property } from 'ag-charts-core';
 
 export class AxesButtons extends BaseProperties {
     @Property

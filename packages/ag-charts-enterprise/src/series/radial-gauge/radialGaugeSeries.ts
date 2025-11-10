@@ -16,6 +16,7 @@ import {
     isArray,
     isBetweenAngles,
     measureTextSegments,
+    mergeDefaults,
     normalizeAngle360,
     normalizeAngle360Inclusive,
     toPlainText,
@@ -63,7 +64,6 @@ const {
     Marker,
     tickFormat,
     applyShapeStyle,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface TargetLabel {

@@ -1,7 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, type Scale } from 'ag-charts-core';
-
-const { BaseProperties, Property } = _ModuleSupport;
+import { BaseProperties, Logger, Property, type Scale } from 'ag-charts-core';
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property

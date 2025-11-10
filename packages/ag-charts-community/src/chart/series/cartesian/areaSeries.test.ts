@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { deepClone } from 'ag-charts-core';
 import type {
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesOptions,
@@ -17,7 +18,6 @@ import type {
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
-import { deepClone } from '../../../util/json';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import { CUSTOM_SVG_PATHS, INVALID_CUSTOM_SVG_PATHS } from '../../test/customSvgPaths';
 import {

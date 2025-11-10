@@ -1,3 +1,4 @@
+import { Property } from 'ag-charts-core';
 import type {
     AgLineSeriesLabelFormatterParams,
     AgLineSeriesMarkerItemStylerParams,
@@ -8,7 +9,6 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';

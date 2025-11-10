@@ -1,7 +1,7 @@
+import { deepClone } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 import { type AgChartInstance, type AgChartOptions } from 'ag-charts-types';
 
-import { deepClone } from '../../util/json';
 import { expectWarningMessages, resetMockConsole, waitForChartStability } from './utils';
 
 type TSeries = {

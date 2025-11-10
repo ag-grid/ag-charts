@@ -1,6 +1,6 @@
+import { BaseProperties, Property } from 'ag-charts-core';
 import type { StrokeOptions } from 'ag-charts-types';
 
-import { BaseProperties, Property } from './properties';
 import { ActionOnSet, ProxyPropertyOnWrite } from './proxy';
 
 export class Border extends BaseProperties implements StrokeOptions {

@@ -1,11 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, Logger, calcLineHeight } from 'ag-charts-core';
+import { AbstractModuleInstance, Logger, Property, calcLineHeight } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
-const { Property, ZIndexMap, ActionOnSet, CategoryAxis, Padding, Group, BBox, ProxyProperty, stackCartesianSeries } =
+const { ZIndexMap, ActionOnSet, CategoryAxis, Padding, Group, BBox, ProxyProperty, stackCartesianSeries } =
     _ModuleSupport;
-
 class MiniChartPadding {
     @Property
     top: number = 0;

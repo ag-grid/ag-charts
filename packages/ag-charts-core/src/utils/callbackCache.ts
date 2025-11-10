@@ -1,4 +1,5 @@
-import { type Callback, type CallbackParam, Logger, type RequireOptional } from 'ag-charts-core';
+import { Logger } from '../globals';
+import type { Callback, CallbackParam, RequireOptional } from '../interfaces/globalTypes';
 
 type Caller = { context?: unknown } | undefined;
 

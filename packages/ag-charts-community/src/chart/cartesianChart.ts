@@ -1,10 +1,9 @@
-import { Logger, type ModuleInstance, type Size, clampArray, entries, groupBy } from 'ag-charts-core';
+import { Logger, type ModuleInstance, type Size, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
-import { fromPairs } from '../util/object';
 import { ActionOnSet } from '../util/proxy';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import { CartesianAxis } from './axis/cartesianAxis';

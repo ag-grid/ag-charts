@@ -10,10 +10,10 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const { AbstractBarSeriesProperties, makeSeriesTooltip, Property, DropShadow, Label } = _ModuleSupport;
-
+const { AbstractBarSeriesProperties, makeSeriesTooltip, DropShadow, Label } = _ModuleSupport;
 class RangeBarSeriesLabel extends Label<AgRangeBarSeriesLabelFormatterParams> {
     @Property
     placement: AgRangeBarSeriesLabelPlacement = 'inside';

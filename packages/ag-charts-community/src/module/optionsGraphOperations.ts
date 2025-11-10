@@ -9,11 +9,11 @@ import {
     isObjectLike,
     isPlainObject,
     isString,
+    without,
 } from 'ag-charts-core';
 
 import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
 import { Color } from '../util/color';
-import { without } from '../util/object';
 import {
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,

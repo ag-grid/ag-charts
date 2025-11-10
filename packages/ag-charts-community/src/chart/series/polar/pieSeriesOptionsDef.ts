@@ -20,6 +20,7 @@ import {
     string,
     strokeOptionsDef,
     undocumented,
+    without,
 } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
@@ -29,7 +30,6 @@ import type {
     AgPieSeriesThemeableOptions,
 } from 'ag-charts-types';
 
-import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,

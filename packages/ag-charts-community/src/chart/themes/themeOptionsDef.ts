@@ -24,6 +24,7 @@ import {
     themeOperator,
     undocumented,
     unionSymbol,
+    without,
 } from 'ag-charts-core';
 import type {
     AgCartesianAxesTheme,
@@ -49,7 +50,6 @@ import { LogAxisModule } from '../../module/axis-modules/logAxisModule';
 import { NumberAxisModule } from '../../module/axis-modules/numberAxisModule';
 import { TimeAxisModule } from '../../module/axis-modules/timeAxisModule';
 import { UnitTimeAxisModule } from '../../module/axis-modules/unitTimeAxisModule';
-import { without } from '../../util/object';
 import {
     cartesianCrossLineOptionsDefs,
     commonCrossLineLabelOptionsDefs,

@@ -8,10 +8,10 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const { Property, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
-
+const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {
     readonly datumIndex: number;
     readonly datumId: string | number | boolean;

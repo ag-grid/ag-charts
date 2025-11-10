@@ -9,11 +9,11 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const { CartesianSeriesProperties, makeSeriesTooltip, Property } = _ModuleSupport;
-
+const { CartesianSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions> {
     @Property
     title?: string;

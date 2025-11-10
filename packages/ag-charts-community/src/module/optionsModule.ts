@@ -1,11 +1,14 @@
 import {
     type ChartModuleDefinition,
+    type CloneOptions,
     Debug,
     type DeepPartial,
     Logger,
     ModuleRegistry,
     ModuleType,
     type PlainObject,
+    deepClone,
+    deepFreeze,
     entries,
     getDocument,
     getWindow,
@@ -15,6 +18,11 @@ import {
     isObject,
     isSymbol,
     joinFormatted,
+    jsonDiff,
+    jsonPropertyCompare,
+    jsonWalk,
+    merge,
+    mergeDefaults,
     setDocument,
     setWindow,
     unique,
@@ -38,8 +46,6 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
-import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
-import { deepFreeze, merge, mergeDefaults } from '../util/object';
 import { OptionsGraph, createOptionsGraph } from './optionsGraph';
 
 export interface ChartSpecialOverrides {

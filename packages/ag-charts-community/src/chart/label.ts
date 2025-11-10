@@ -1,4 +1,4 @@
-import { type RequireOptional, isArray } from 'ag-charts-core';
+import { BaseProperties, Property, type RequireOptional, isArray } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -15,7 +15,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { ContextFormatter } from '../module/axisContext';
-import { BaseProperties, Property } from '../util/properties';
 import { FormatManager } from './formatter/formatManager';
 
 interface FormatterCache {

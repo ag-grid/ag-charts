@@ -1,9 +1,7 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { BaseProperties } from 'ag-charts-core';
 
 import { Annotation, Handle, Point } from '../annotationProperties';
 import { type AnnotationOptionsColorPickerType } from '../annotationTypes';
-
-const { BaseProperties } = _ModuleSupport;
 
 export class PointProperties extends Annotation(Point(Handle(BaseProperties))) {
     getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType): string | undefined {

@@ -9,8 +9,12 @@ import {
     type Point,
     type RequireOptional,
     type SeriesPluginModuleInstance,
+    callWithContext,
     createId,
     isEmptyObject,
+    jsonDiff,
+    mergeDefaults,
+    without,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -41,10 +45,7 @@ import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
 import { isGradientFill, isPatternFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
-import { callWithContext } from '../../util/callbackCache';
-import { jsonDiff } from '../../util/json';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { mergeDefaults, without } from '../../util/object';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';

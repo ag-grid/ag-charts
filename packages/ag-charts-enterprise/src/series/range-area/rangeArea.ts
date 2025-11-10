@@ -8,8 +8,15 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AreExact, ConstructorReturnType, DeepRequired, Point, RequireOptional } from 'ag-charts-core';
-import { extent, findMinMax } from 'ag-charts-core';
+import type {
+    AreExact,
+    CallbackParamRules,
+    ConstructorReturnType,
+    DeepRequired,
+    Point,
+    RequireOptional,
+} from 'ag-charts-core';
+import { extent, findMinMax, mergeDefaults } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
@@ -20,7 +27,6 @@ const {
     valueProperty,
     keyProperty,
     ChartAxisDirection,
-    mergeDefaults,
     updateLabelNode,
     fixNumericExtent,
     buildResetPathFn,
@@ -841,7 +847,7 @@ export class RangeAreaSeries extends BaseSeries {
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
 
         type ParamsRules = DeepRequired<AgRangeAreaSeriesStylerParams<unknown, unknown>, 'fill'>;
-        type ResultRules = _ModuleSupport.CallbackParamRules<ParamsRules>;
+        type ResultRules = CallbackParamRules<ParamsRules>;
 
         const makeItemParam = (lowOrHigh: 'low' | 'high'): ResultRules['item'][typeof lowOrHigh] => {
             const { lineDash, lineDashOffset, marker, stroke, strokeOpacity, strokeWidth } = item[lowOrHigh];

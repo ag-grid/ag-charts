@@ -6,6 +6,7 @@ import {
     cachedTextMeasurer,
     isArray,
     measureTextSegments,
+    mergeDefaults,
     toPlainText,
 } from 'ag-charts-core';
 import type {
@@ -41,7 +42,6 @@ const {
     PointerEvents,
     applyShapeStyle,
     getLabelStyles,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext

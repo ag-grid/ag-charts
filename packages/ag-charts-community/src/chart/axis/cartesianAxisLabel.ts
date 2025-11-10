@@ -1,4 +1,5 @@
-import { Property } from '../../util/properties';
+import { Property } from 'ag-charts-core';
+
 import { AxisLabel } from './axisLabel';
 
 export class CartesianAxisLabel extends AxisLabel {

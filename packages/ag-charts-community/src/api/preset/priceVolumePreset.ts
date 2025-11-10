@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, mergeDefaults } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
@@ -22,7 +22,6 @@ import type {
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
 import { SAFE_STROKE_FILL_OPERATION } from '../../chart/themes/util';
-import { mergeDefaults } from '../../util/object';
 import { annotationsTheme } from './priceVolumePresetTheme';
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];

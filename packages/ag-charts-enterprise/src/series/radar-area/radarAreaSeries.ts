@@ -5,7 +5,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
+import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
 
 import { type RadarPathPoint, RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
@@ -171,7 +171,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
-        type ParamsRules = _ModuleSupport.CallbackParamRules<AgRadarAreaSeriesStylerParams & MarkerRules>;
+        type ParamsRules = CallbackParamRules<AgRadarAreaSeriesStylerParams & MarkerRules>;
         return {
             marker: {
                 fill: properties.marker.fill,

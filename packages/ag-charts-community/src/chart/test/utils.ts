@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { type AnyFn, type PlainObject, entries, getDocument } from 'ag-charts-core';
+import { type AnyFn, type PlainObject, entries, fromPairs, getDocument } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -36,7 +36,6 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import { fromPairs } from '../../util/object';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';

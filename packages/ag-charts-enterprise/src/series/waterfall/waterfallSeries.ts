@@ -7,6 +7,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Point, RequireOptional } from 'ag-charts-core';
+import { mergeDefaults } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -36,7 +37,6 @@ const {
     Rect,
     motion,
     applyShapeStyle,
-    mergeDefaults,
     getItemStylesPerItemId,
     DataSet,
 } = _ModuleSupport;

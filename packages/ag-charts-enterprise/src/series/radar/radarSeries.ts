@@ -14,6 +14,7 @@ import {
     extent,
     isFiniteNumber,
     isNumberEqual,
+    mergeDefaults,
 } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
@@ -40,7 +41,6 @@ const {
     Marker,
     updateLabelNode,
     getMarkerStyles,
-    mergeDefaults,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {

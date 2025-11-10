@@ -1,9 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 
 import { Image } from '../image/image';
 
-const { ActionOnSet, Property } = _ModuleSupport;
-
+const { ActionOnSet } = _ModuleSupport;
 export class Background extends _ModuleSupport.Background<Image> {
     @Property
     @ActionOnSet<Background>({

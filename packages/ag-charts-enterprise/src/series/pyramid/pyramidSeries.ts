@@ -11,6 +11,7 @@ import {
     cachedTextMeasurer,
     isArray,
     measureTextSegments,
+    mergeDefaults,
     toPlainText,
 } from 'ag-charts-core';
 
@@ -29,7 +30,6 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
-    mergeDefaults,
     fromToMotion,
     seriesLabelFadeInAnimation,
     getLabelStyles,

@@ -1,4 +1,4 @@
-import { BaseProperties } from '../../util/properties';
+import { BaseProperties } from 'ag-charts-core';
 
 export class ChangeDetectableProperties extends BaseProperties {
     protected _dirty: boolean = true;

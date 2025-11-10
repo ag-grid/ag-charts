@@ -1,8 +1,7 @@
-import { AbstractModuleInstance } from 'ag-charts-core';
+import { AbstractModuleInstance, Property } from 'ag-charts-core';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
-import { Property } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
 
 export class Locale extends AbstractModuleInstance {

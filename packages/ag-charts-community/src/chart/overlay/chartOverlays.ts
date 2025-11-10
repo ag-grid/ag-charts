@@ -1,6 +1,7 @@
+import { BaseProperties, Property } from 'ag-charts-core';
+
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
-import { BaseProperties, Property } from '../../util/properties';
 import { Overlay } from './overlay';
 
 export class ChartOverlays extends BaseProperties {

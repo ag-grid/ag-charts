@@ -1,4 +1,5 @@
 import {
+    type CallbackParamRules,
     type Point,
     type RequireOptional,
     cachedTextMeasurer,
@@ -37,7 +38,6 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import type { CallbackParamRules } from '../../../util/callbackCache';
 import { formatValue } from '../../../util/format.util';
 import { dateToNumber } from '../../../util/timeFormatDefaults';
 import { rescaleVisibleRange } from '../../../util/visibleRange';

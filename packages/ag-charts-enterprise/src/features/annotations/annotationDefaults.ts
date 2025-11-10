@@ -1,4 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { deepClone } from 'ag-charts-core';
 
 import {
     type AnnotationLineStyle,
@@ -16,8 +17,6 @@ import {
 } from './annotationTypes';
 import type { AnnotationProperties } from './annotationsSuperTypes';
 import { setColor, setFontSize, setLineStyle } from './utils/styles';
-
-const { deepClone } = _ModuleSupport;
 
 interface DefaultsMemento {
     colors: DefaultColors;

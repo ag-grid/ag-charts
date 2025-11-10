@@ -1,6 +1,5 @@
-import { isObject } from 'ag-charts-core';
+import { every, isObject } from 'ag-charts-core';
 
-import { every } from '../util/object';
 import type { CartesianAxis } from './axis/cartesianAxis';
 import type { PolarAxis } from './axis/polarAxis';
 import type { ChartAxis } from './chartAxis';

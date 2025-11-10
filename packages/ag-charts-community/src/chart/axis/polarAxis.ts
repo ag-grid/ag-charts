@@ -1,7 +1,7 @@
 import type { Scale } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
-import { Property } from '../../util/properties';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { PolarCrossLine } from '../crossline/crossLine';

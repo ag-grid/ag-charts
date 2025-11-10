@@ -6,6 +6,7 @@ import {
     cachedTextMeasurer,
     calcLineHeight,
     isBetweenAngles,
+    mergeDefaults,
     normalizeAngle360,
     toPlainText,
     wrapText,
@@ -32,7 +33,6 @@ const {
     getShapeStyle,
     getLabelStyles,
     BBox,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {

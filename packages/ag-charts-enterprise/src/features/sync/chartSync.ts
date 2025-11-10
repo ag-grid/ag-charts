@@ -1,15 +1,18 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     AsyncAwaitQueue,
+    BaseProperties,
     Debug,
     Logger,
     type ModuleInstance,
+    Property,
     type Scale,
     arraysEqual,
     findMinMax,
     isDate,
     isDefined,
     isFiniteNumber,
+    isObjectWithStringProperty,
     unique,
 } from 'ag-charts-core';
 
@@ -17,7 +20,6 @@ import { readDatum } from '../../utils/datum';
 import { definedZoomState } from '../zoom/zoomUtils';
 
 const {
-    BaseProperties,
     CartesianAxis,
     ChartAxisDirection,
     ContinuousScale,
@@ -26,8 +28,6 @@ const {
     ChartUpdateType,
     ObserveChanges,
     TooltipManager,
-    Property,
-    isObjectWithStringProperty,
 } = _ModuleSupport;
 
 const debug = Debug.create('sync');

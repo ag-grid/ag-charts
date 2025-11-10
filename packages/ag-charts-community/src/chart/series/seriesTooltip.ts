@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import { BaseProperties, Property, type RequireOptional, callWithContext, mergeDefaults } from 'ag-charts-core';
 import type {
     AgSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -7,9 +7,6 @@ import type {
     InteractionRange,
 } from 'ag-charts-types';
 
-import { callWithContext } from '../../util/callbackCache';
-import { mergeDefaults } from '../../util/object';
-import { BaseProperties, Property } from '../../util/properties';
 import type { LegendSymbolOptions } from '../legend/legendSymbol';
 import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
 

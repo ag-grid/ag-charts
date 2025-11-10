@@ -1,3 +1,5 @@
+import type { CallbackCache } from 'ag-charts-core';
+
 import type { HistoryManager } from '../api/state/historyManager';
 import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
@@ -24,7 +26,6 @@ import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
 import type { Scene } from '../scene/scene';
-import type { CallbackCache } from '../util/callbackCache';
 
 export interface ModuleContext {
     readonly scene: Scene;

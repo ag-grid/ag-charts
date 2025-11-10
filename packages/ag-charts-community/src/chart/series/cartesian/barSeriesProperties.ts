@@ -1,4 +1,5 @@
 import type { InternalAgColorType } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -12,7 +13,6 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';

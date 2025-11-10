@@ -1,3 +1,4 @@
+import { mergeArrayDefaults, mergeDefaults } from 'ag-charts-core';
 import {
     type AgBaseGaugePresetOptions,
     type AgChartTooltipOptions,
@@ -12,7 +13,6 @@ import {
     type AgSeriesTooltip,
 } from 'ag-charts-types';
 
-import { mergeArrayDefaults, mergeDefaults } from '../../util/object';
 import { IGNORED_PROP, pickProps } from './presetUtils';
 
 interface UndocumentedProperties {

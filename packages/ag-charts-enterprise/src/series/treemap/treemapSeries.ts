@@ -16,6 +16,7 @@ import {
     cachedTextMeasurer,
     calcLineHeight,
     isNumberEqual,
+    mergeDefaults,
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
@@ -33,7 +34,6 @@ const {
     Transformable,
     applyShapeStyle,
     getLabelStyles,
-    mergeDefaults,
     formatValue,
 } = _ModuleSupport;
 

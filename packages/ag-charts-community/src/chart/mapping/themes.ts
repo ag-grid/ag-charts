@@ -9,6 +9,7 @@ import {
     fontFamilyFull,
     gradientStrict,
     isObject,
+    mergeDefaults,
     number,
     object,
     or,
@@ -25,7 +26,6 @@ import type {
 } from 'ag-charts-types';
 
 import { simpleMemorize } from '../../util/memo';
-import { mergeDefaults } from '../../util/object';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { FinancialDark } from '../themes/financialDark';

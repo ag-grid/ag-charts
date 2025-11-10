@@ -19,6 +19,7 @@ import {
     positiveNumber,
     ratio,
     typeUnion,
+    without,
 } from 'ag-charts-core';
 import type {
     AgMiniChartSeriesOptions,
@@ -45,7 +46,7 @@ import { RangeAreaSeriesModule } from '../../series/range-area';
 import { RangeBarSeriesModule } from '../../series/range-bar';
 import { WaterfallSeriesModule } from '../../series/waterfall';
 
-const { numberFormatValidator, textOrSegments, without } = _ModuleSupport;
+const { numberFormatValidator, textOrSegments } = _ModuleSupport;
 
 export const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
     width: positiveNumber,

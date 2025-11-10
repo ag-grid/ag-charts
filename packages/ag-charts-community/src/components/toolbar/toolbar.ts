@@ -1,11 +1,11 @@
 import type { BoxBounds } from 'ag-charts-core';
+import { BaseProperties } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
-import { BaseProperties } from '../../util/properties';
 import { CollapseMode } from '../../widget/collapseMode';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import type { RovingDirection } from '../../widget/rovingDirection';

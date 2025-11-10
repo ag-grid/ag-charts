@@ -1,12 +1,10 @@
-import { isArray } from 'ag-charts-core';
+import { deepClone, isArray, mergeDefaults } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import type { EventsHub } from '../../core/eventsHub';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import { deepClone } from '../../util/json';
-import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 
 type AnnotationsMemento = AgAnnotation[];

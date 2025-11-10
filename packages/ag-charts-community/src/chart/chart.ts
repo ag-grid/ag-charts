@@ -7,13 +7,19 @@ import {
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
+    Property,
+    callWithContext,
     createId,
     entries,
     getWindow,
     isFiniteNumber,
+    jsonApply,
+    jsonDiff,
+    mergeDefaults,
     pause,
     roundTo,
     toPlainText,
+    without,
 } from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
@@ -34,15 +40,11 @@ import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
-import { callWithContext } from '../util/callbackCache';
 import { isInputPending } from '../util/dom';
-import { jsonApply, jsonDiff } from '../util/json';
 import { Mutex } from '../util/mutex';
-import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
-import { Property } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { Widget } from '../widget/widget';

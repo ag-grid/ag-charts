@@ -5,7 +5,8 @@ import {
     type AgBoxPlotSeriesStylerParams,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DeepRequired } from 'ag-charts-core';
+import type { CallbackParamRules, DeepRequired } from 'ag-charts-core';
+import { deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
@@ -15,7 +16,6 @@ import type { BoxPlotNodeDatum } from './boxPlotTypes';
 const {
     fixNumericExtent,
     keyProperty,
-    mergeDefaults,
     SeriesNodePickMode,
     SMALLEST_KEY_INTERVAL,
     valueProperty,
@@ -276,7 +276,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         return {
             marker: {
-                fill: _ModuleSupport.deepClone(fill),
+                fill: deepClone(fill),
                 fillOpacity,
                 stroke,
                 strokeOpacity,
@@ -482,7 +482,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         // -   `fill` is a required color property that can be a string or a partial-object.
         // -   `yName` key has no `yKey` fallback like `xName`.
         type T = ReturnType<BoxPlotSeries['makeStylerParams']>;
-        type Rules = _ModuleSupport.CallbackParamRules<DeepRequired<Omit<T, 'yName'>, 'fill'> & Pick<T, 'yName'>>;
+        type Rules = CallbackParamRules<DeepRequired<Omit<T, 'yName'>, 'fill'> & Pick<T, 'yName'>>;
         return {
             cap: { lengthRatio },
             cornerRadius,

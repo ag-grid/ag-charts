@@ -1,5 +1,6 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import {
+    Property,
     type ScaleTickParams,
     angleBetween,
     findMinMax,
@@ -11,8 +12,6 @@ import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
-
-const { Property } = _ModuleSupport;
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';

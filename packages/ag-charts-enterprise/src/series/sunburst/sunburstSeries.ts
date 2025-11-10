@@ -3,6 +3,7 @@ import {
     type InternalAgColorType,
     type Point,
     type RequireOptional,
+    mergeDefaults,
     normalizeAngle360,
     toPlainText,
 } from 'ag-charts-core';
@@ -22,7 +23,6 @@ const {
     TransformableText,
     BBox,
     applyShapeStyle,
-    mergeDefaults,
     formatValue,
     getLabelStyles,
 } = _ModuleSupport;

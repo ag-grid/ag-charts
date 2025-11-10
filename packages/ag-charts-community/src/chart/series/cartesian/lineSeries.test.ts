@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { deepClone } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -12,7 +13,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { deepClone } from '../../../util/json';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,

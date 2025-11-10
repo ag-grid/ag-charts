@@ -1,6 +1,5 @@
+import { Property } from 'ag-charts-core';
 import type { AgAxisGridStyle } from 'ag-charts-types';
-
-import { Property } from '../../util/properties';
 
 export class AxisGridLine {
     @Property

@@ -7,6 +7,7 @@ import {
     createElementId,
     entries,
     getWindow,
+    mapValues,
     setAttribute,
     setAttributes,
 } from 'ag-charts-core';
@@ -24,7 +25,6 @@ const {
     createTextArea,
     initRovingTabIndex,
     getIconClassNames,
-    mapValues,
 } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
