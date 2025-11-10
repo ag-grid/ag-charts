@@ -55,7 +55,7 @@ const options: AgCartesianChartOptions = {
 };
 ```
 
-### Always Specify axes.*.type
+### Always Specify axes.\*.type
 
 ```typescript
 axes: {
