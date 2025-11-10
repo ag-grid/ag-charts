@@ -1,4 +1,13 @@
-import { ActionOnSet,Logger, type ModuleInstance, type Size, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    Logger,
+    type ModuleInstance,
+    type Size,
+    clampArray,
+    entries,
+    fromPairs,
+    groupBy,
+} from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
