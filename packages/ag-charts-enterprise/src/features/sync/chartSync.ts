@@ -92,7 +92,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     @Property
     @ObserveChanges<ChartSync>((target) => target.onAxesChange())
-    domainMode: 'direction' | 'position' | 'key' = 'key';
+    domainMode: 'direction' | 'position' | 'id' = 'id';
 
     private readonly domainSync = new AsyncAwaitQueue();
 
@@ -253,9 +253,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         eventValue: any
     ) {
         return (series: _ModuleSupport.ISeries<any, any, any, any>) => {
-            const seriesKeys = series.getKeys(axis.direction);
-
-            if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
+            const seriesKeyAxis = series.getKeyAxis(axis.direction);
+            if (seriesKeyAxis !== axis.id) return;
 
             const nodeData: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>[] =
                 (series as any).contextNodeData?.nodeData ?? [];
@@ -312,7 +311,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
             return;
         }
 
-        const { groupState, directionDomains, domainsByKey, positionDomains } = this.updateDomainState(axis);
+        const { groupState, directionDomains, idDomains, positionDomains } = this.updateDomainState(axis);
         this.validateAxis(axis, groupState);
 
         await this.waitForDomainsToBeReady();
@@ -321,11 +320,11 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
             return this.calculateDerivedDomain(axis, positionDomains);
         }
 
-        if (this.domainMode === 'direction' || axis.keys.length === 0) {
+        if (this.domainMode === 'direction') {
             return this.calculateDerivedDomain(axis, directionDomains);
         }
 
-        return this.calculateKeyDerivedDomain(axis, domainsByKey);
+        return this.calculateDerivedDomain(axis, idDomains);
     }
 
     private updateDomainState(axis: _ModuleSupport.CartesianAxis<any, any>) {
@@ -342,13 +341,11 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         chartDirectionDomains[axisId] = axis.dataDomain.domain;
         directionDomains.dirty = true;
 
-        const domainsByKey = (groupState.domainsByKey ??= {});
-        for (const key of axis.keys ?? []) {
-            const keyDomains = (domainsByKey[key] ??= { derived: [], sources: {}, dirty: true });
-            const chartKeyDomains = (keyDomains.sources[chartId] ??= {});
-            chartKeyDomains[axisId] = axis.dataDomain.domain;
-            keyDomains.dirty = true;
-        }
+        const domainsById = (groupState.domainsById ??= {});
+        const idDomains = (domainsById[axisId] ??= { derived: [], sources: {}, dirty: true });
+        const chartIdDomains = (idDomains.sources[chartId] ??= {});
+        chartIdDomains[axisId] = axis.dataDomain.domain;
+        idDomains.dirty = true;
 
         const domainsByPosition = (groupState.domainsByPosition ??= {});
         const positionDomains = (domainsByPosition[axis.position] ??= { derived: [], sources: {}, dirty: true });
@@ -356,7 +353,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         chartPositionDomains[axisId] = axis.dataDomain.domain;
         positionDomains.dirty = true;
 
-        return { groupState, directionDomains, domainsByKey, positionDomains };
+        return { groupState, directionDomains, idDomains, positionDomains };
     }
 
     private validateAxis(axis: _ModuleSupport.CartesianAxis<any, any>, groupState: _ModuleSupport.SyncGroupState) {
@@ -432,72 +429,37 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private calculateDerivedDomain(
         axis: _ModuleSupport.CartesianAxis<any, any>,
-        directionDomains: _ModuleSupport.SyncDerivedDomain
+        domains: _ModuleSupport.SyncDerivedDomain
     ) {
-        if (!directionDomains.dirty) return directionDomains.derived;
+        if (!domains.dirty) return domains.derived;
 
-        const previousDerived = directionDomains.derived;
-        directionDomains.derived = unique(
-            Object.values(directionDomains.sources)
-                .map((d) => Object.values(d))
-                .flat(2)
-        );
-
+        let previousDerived = domains.derived;
+        const newDerivedBySource = Object.values(domains.sources).map((d) => Object.values(d));
+        let newDerived: unknown[];
         if (ContinuousScale.is(axis.scale)) {
-            directionDomains.derived = findMinMax(directionDomains.derived as number[]);
+            newDerived = newDerivedBySource.flat(2);
+        } else {
+            // Sort category scale sources by their length, largest to smallest, so missing datums are not appended
+            // to the end.
+            newDerived = newDerivedBySource
+                .flat()
+                .toSorted((a, b) => (a.length > b.length ? -1 : 1))
+                .flat();
         }
-        directionDomains.dirty = false;
-
-        if (domainChanged(axis.scale, previousDerived, directionDomains.derived)) {
-            debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: directionDomains.derived });
-            this.updateSiblings();
-        }
-
-        return directionDomains.derived;
-    }
-
-    private calculateKeyDerivedDomain(
-        axis: _ModuleSupport.CartesianAxis<any, any>,
-        domainsByKey: { [key: string]: _ModuleSupport.SyncDerivedDomain }
-    ) {
-        let previousDerived = [];
-        let newDerived = [];
-        let updated = false;
-        for (const key of axis.keys ?? []) {
-            const keyDomains = domainsByKey[key];
-            const previousDerivedForKey = keyDomains.derived;
-            previousDerived.push(...previousDerivedForKey);
-
-            if (!keyDomains.dirty) {
-                newDerived.push(...keyDomains.derived);
-                continue;
-            }
-
-            keyDomains.derived = unique(
-                Object.values(keyDomains.sources)
-                    .map((d) => Object.values(d))
-                    .flat(2)
-            );
-            if (ContinuousScale.is(axis.scale)) {
-                keyDomains.derived = findMinMax(keyDomains.derived as number[]);
-            }
-            newDerived.push(...keyDomains.derived);
-
-            keyDomains.dirty = false;
-            updated ||= !arraysEqual(previousDerivedForKey, keyDomains.derived);
-        }
+        domains.derived = unique(newDerived);
 
         if (ContinuousScale.is(axis.scale)) {
             previousDerived = findMinMax(previousDerived as number[]);
-            newDerived = findMinMax(newDerived as number[]);
+            domains.derived = findMinMax(domains.derived as number[]);
         }
+        domains.dirty = false;
 
-        if (updated && domainChanged(axis.scale, previousDerived, newDerived)) {
-            debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: newDerived });
+        if (domainChanged(axis.scale, previousDerived, domains.derived)) {
+            debug(axis.id, 'updated', { before: previousDerived, after: domains.derived });
             this.updateSiblings();
         }
 
-        return newDerived;
+        return domains.derived;
     }
 
     removeAxis(axis: unknown) {
@@ -511,10 +473,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         const chartId = syncManager.getChart().id;
         const axisId = axis.id;
         delete syncGroup?.domains?.[axis.direction]?.sources?.[chartId]?.[axisId];
-        for (const key of axis.keys ?? []) {
-            delete syncGroup?.domainsByKey?.[key]?.sources?.[chartId]?.[axisId];
-        }
         delete syncGroup?.domainsByPosition?.[axis.position]?.sources?.[chartId]?.[axisId];
+        delete syncGroup?.domainsById?.[axisId]?.sources?.[chartId]?.[axisId];
     }
 
     private async waitForDomainsToBeReady() {

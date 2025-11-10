@@ -37,13 +37,13 @@ const options: AgChartOptions = {
             strokeWidth: 1,
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-category',
             innerRadiusRatio: 0.1,
             paddingInner: 0.2,
         },
-        {
+        angle: {
             type: 'angle-number',
             line: {
                 enabled: false,
@@ -60,7 +60,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     formatter: {
         angle: ({ value }) => `$${value}M`,
     },

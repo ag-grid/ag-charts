@@ -14,15 +14,15 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
                 text: 'Operating System',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -30,19 +30,19 @@ const options: AgCartesianChartOptions = {
             },
             interval: { step: 20 },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function setMinMaxSpacing(minSpacing: number, maxSpacing: number) {
-    const axis = options.axes?.[1]! as AgNumberAxisOptions;
+    const axis = options.axes?.y as AgNumberAxisOptions;
     axis.interval = { minSpacing, maxSpacing };
     chart.update(options);
 }
 
 function reset() {
-    const axis = options.axes?.[1]! as AgNumberAxisOptions;
+    const axis = options.axes?.y as AgNumberAxisOptions;
     axis.interval = {};
     chart.update(options);
 }

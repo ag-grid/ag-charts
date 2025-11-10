@@ -23,8 +23,8 @@ const options: AgCartesianChartOptions = {
             xName: 'Day',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -37,7 +37,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        x: {
             type: 'time',
             position: 'bottom',
             crosshair: {
@@ -46,7 +46,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
     formatter: {
         y: (params) => `${(params.value as number) / 1000000}M`,
     },

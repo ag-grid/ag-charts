@@ -54,6 +54,8 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     yName: string,
     labelName: string,
     legendItemName: string,
+    xKeyAxis: string,
+    yKeyAxis: string,
     errorBar: errorBarOptionsDefs,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };

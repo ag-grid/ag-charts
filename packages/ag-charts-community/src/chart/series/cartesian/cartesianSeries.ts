@@ -136,6 +136,12 @@ export interface CartesianAnimationData<
 
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
     @Property
+    xKeyAxis: string = 'x';
+
+    @Property
+    yKeyAxis: string = 'y';
+
+    @Property
     legendItemName?: string;
 
     @Property
@@ -306,6 +312,11 @@ export abstract class CartesianSeries<
             this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
             this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
         );
+    }
+
+    override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        if (direction === ChartAxisDirection.X) return this.properties.xKeyAxis;
+        if (direction === ChartAxisDirection.Y) return this.properties.yKeyAxis;
     }
 
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {

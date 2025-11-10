@@ -21,85 +21,85 @@ import * as examples from './test/examples';
 const EXAMPLES: Record<string, ChartTestCase> = {
     COLUMN_SERIES_LABELS: {
         options: examples.COLUMN_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['bar'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
     },
     STACKED_COLUMN_SERIES_LABELS: {
         options: examples.STACKED_COLUMN_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 5),
         }),
     },
     GROUPED_COLUMN_SERIES_LABELS: {
         options: examples.GROUPED_COLUMN_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 5),
         }),
     },
     BAR_SERIES_LABELS: {
         options: examples.BAR_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['bar'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'category' }, seriesTypes: ['bar'] }),
     },
     STACKED_BAR_SERIES_LABELS: {
         options: examples.STACKED_BAR_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'number', y: 'category' },
             seriesTypes: repeat('bar', 5),
         }),
     },
     GROUPED_BAR_SERIES_LABELS: {
         options: examples.GROUPED_BAR_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'number', y: 'category' },
             seriesTypes: repeat('bar', 5),
         }),
     },
     AREA_SERIES_LABELS: {
         options: examples.AREA_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
     },
     STACKED_AREA_SERIES_LABELS: {
         options: examples.STACKED_AREA_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('area', 4),
         }),
     },
     GROUPED_AREA_SERIES_LABELS: {
         options: examples.GROUPED_AREA_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('area', 3),
         }),
     },
     LINE_SERIES_LABELS: {
         options: examples.LINE_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('line', 3),
         }),
     },
     SCATTER_SERIES_LABELS: {
         options: examples.SCATTER_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     GROUPED_SCATTER_SERIES_LABELS: {
         options: examples.GROUPED_SCATTER_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['time', 'number'],
+            axisTypes: { x: 'time', y: 'number' },
             seriesTypes: repeat('scatter', 4),
         }),
     },
     BUBBLE_SERIES_LABELS: {
         options: examples.BUBBLE_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bubble'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['bubble'] }),
     },
     GROUPED_BUBBLE_SERIES_LABELS: {
         options: examples.GROUPED_BUBBLE_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
+            axisTypes: { x: 'number', y: 'number' },
             seriesTypes: repeat('bubble', 2),
         }),
     },
@@ -118,14 +118,14 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     LINE_COLUMN_COMBO_SERIES_LABELS: {
         options: examples.LINE_COLUMN_COMBO_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     AREA_COLUMN_COMBO_SERIES_LABELS: {
         options: examples.AREA_COLUMN_COMBO_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
             seriesTypes: ['area', 'bar', 'bar'],
         }),
     },

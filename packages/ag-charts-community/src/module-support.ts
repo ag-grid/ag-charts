@@ -39,6 +39,7 @@ export * from './chart/background/background';
 export * from './chart/background/backgroundModule';
 export * from './chart/chartAnimationPhase';
 export * from './chart/chartAxisDirection';
+export * from './chart/chartAxes';
 export * from './chart/axis/axisUtil';
 export * from './chart/axis/generateTicks';
 export * from './chart/axis/generateTicksUtils';

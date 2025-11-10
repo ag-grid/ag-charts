@@ -118,6 +118,8 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     type: required(constant('pie')),
     angleKey: required(string),
     radiusKey: string,
+    angleKeyAxis: string,
+    radiusKeyAxis: string,
     calloutLabelKey: string,
     sectorLabelKey: string,
     legendItemKey: string,

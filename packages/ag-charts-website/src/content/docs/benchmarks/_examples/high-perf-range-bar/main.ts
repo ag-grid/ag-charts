@@ -26,10 +26,10 @@ const options: AgChartOptions = {
             yLowKey: 'low',
         },
     ],
-    axes: [
-        { type: 'number', position: 'left' },
-        { type: 'unit-time', position: 'bottom' },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left' },
+        x: { type: 'unit-time', position: 'bottom' },
+    },
 };
 /* @ag-options-end */
 

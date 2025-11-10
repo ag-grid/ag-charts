@@ -130,6 +130,7 @@ const OPTIONS: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'portions',
             yName: 'Portions',
+            yKeyAxis: 'ySecondary',
             strokeWidth: 3,
             marker: { enabled: true },
             label: { enabled: true },
@@ -153,33 +154,29 @@ const OPTIONS: AgCartesianChartOptions = {
             label: { enabled: true },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: {
                 style: [{ lineDash: [0] }],
             },
         },
-        {
-            // primary y axis
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men', 'children', 'adults'],
             title: { text: 'Adults Who Eat 5 A Day (%)' },
             crossLines: [
                 { type: 'range', strokeWidth: 10, stroke: 'red', range: [20, 30] },
                 { type: 'line', strokeWidth: 5, stroke: 'red', lineDash: [8, 3], value: 15 },
             ],
         },
-        {
-            // secondary y axis
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: { text: 'Portions Consumed (Per Day)' },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
         item: { marker: { strokeWidth: 0 } },
@@ -274,8 +271,8 @@ describe('CartesianChart', () => {
         it.each([80, 160, 240, 320, 400])('should render chart correctly at width [%s]', async (width) => {
             const options: AgCartesianChartOptions = {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'unit-time',
                         position: 'bottom',
                         title: {
@@ -285,14 +282,14 @@ describe('CartesianChart', () => {
                             maxSpacing: 80,
                         },
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         title: {
                             text: 'Price in pence',
                         },
                     },
-                ],
+                },
                 legend: {
                     position: 'right',
                 },

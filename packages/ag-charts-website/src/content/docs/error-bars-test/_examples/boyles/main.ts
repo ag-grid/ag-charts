@@ -7,12 +7,12 @@ const options: AgCartesianChartOptions<DataType> = {
     title: {
         text: 'Volume-Pressure Relationship with Confidence Intervals',
     },
-    axes: [
+    axes: {
         // Note: axis configuration is required only for line series.
         // The bottom axis defaults to 'number' for scatter series.
-        { type: 'number', position: 'left' },
-        { type: 'number', position: 'bottom' },
-    ],
+        y: { type: 'number', position: 'left' },
+        x: { type: 'number', position: 'bottom' },
+    },
     series: [
         {
             data: getOxygen(),

@@ -37,13 +37,13 @@ const commonOptions: AgCartesianChartOptions = {
     title: {
         text: 'Renewable Fuel Sources',
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             crosshair: { enabled: false },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'category',
             crosshair: { enabled: false },
@@ -51,7 +51,7 @@ const commonOptions: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-    ],
+    },
     series: [
         {
             type: 'bar',

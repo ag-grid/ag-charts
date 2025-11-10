@@ -35,12 +35,17 @@ export type AgPolarAxisOptions<TContext = ContextDefault> =
 
 export type AgPolarAxisType<TContext = ContextDefault> = AgPolarAxisOptions<TContext>['type'];
 
+export type AgPolarAxesOptions<TContext = ContextDefault> = Record<string, AgPolarAxisOptions<TContext>> & {
+    angle?: AgAngleCategoryAxisOptions<TContext> | AgAngleNumberAxisOptions<TContext>;
+    radius?: AgRadiusCategoryAxisOptions<TContext> | AgRadiusNumberAxisOptions<TContext>;
+};
+
 export interface AgBasePolarChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Series configurations. */
     series?: AgPolarSeriesOptions<TDatum, TContext>[];
 
     /** Axis configurations. */
-    axes?: AgPolarAxisOptions<TContext>[];
+    axes?: AgPolarAxesOptions<TContext>;
 }
 
 type ThemeOmittedAxisOptions = 'type' | 'crossLines';

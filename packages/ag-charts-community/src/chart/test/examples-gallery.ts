@@ -33,27 +33,42 @@ export type TestCase = ChartTestCase | GaugeTestCase;
 export const COMMUNITY_AND_ENTERPRISE_EXAMPLES = {
     BAR_CHART_EXAMPLE: {
         options: examples.BAR_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 1) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'number', y: 'category' },
+            seriesTypes: repeat('bar', 1),
+        }),
         enterprise: false,
     },
     GROUPED_BAR_CHART_EXAMPLE: {
         options: examples.GROUPED_BAR_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'number', y: 'category' },
+            seriesTypes: repeat('bar', 2),
+        }),
         enterprise: false,
     },
     STACKED_BAR_CHART_EXAMPLE: {
         options: examples.STACKED_BAR_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 4) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'number', y: 'category' },
+            seriesTypes: repeat('bar', 4),
+        }),
         enterprise: false,
     },
     ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE: {
         options: examples.ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 3) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'number', y: 'category' },
+            seriesTypes: repeat('bar', 3),
+        }),
         enterprise: false,
     },
     BAR_CHART_WITH_LABELS_EXAMPLE: {
         options: examples.BAR_CHART_WITH_LABELS_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 1) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'number', y: 'category' },
+            seriesTypes: repeat('bar', 1),
+        }),
         enterprise: false,
     },
     SIMPLE_COLUMN_CHART_EXAMPLE: {
@@ -93,7 +108,10 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES = {
     },
     SIMPLE_LINE_CHART_EXAMPLE: {
         options: examples.SIMPLE_LINE_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line', 'line'] }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: ['line', 'line'],
+        }),
         enterprise: false,
     },
     LINE_GRAPH_WITH_GAPS_EXAMPLE: {
@@ -103,28 +121,34 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES = {
     },
     SIMPLE_SCATTER_CHART_EXAMPLE: {
         options: examples.SIMPLE_SCATTER_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
         enterprise: false,
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: {
         options: examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bubble'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['bubble'] }),
         enterprise: false,
     },
     BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE: {
         options: examples.BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'category'], seriesTypes: ['bubble'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'category' }, seriesTypes: ['bubble'] }),
         enterprise: false,
     },
     SIMPLE_AREA_GRAPH_EXAMPLE: {
         options: examples.SIMPLE_AREA_GRAPH_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('area', 4) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('area', 4),
+        }),
         enterprise: false,
     },
     STACKED_AREA_GRAPH_EXAMPLE: {
         options: examples.STACKED_AREA_GRAPH_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('area', 6) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('area', 6),
+        }),
         enterprise: false,
     },
     ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: {
@@ -149,7 +173,7 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES = {
     },
     SIMPLE_HISTOGRAM_CHART_EXAMPLE: {
         options: examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['histogram'] }),
         enterprise: true,
     },
     SIMPLE_SANKEY_EXAMPLE: {
@@ -164,18 +188,18 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES = {
     },
     HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: {
         options: examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['histogram'] }),
         enterprise: true,
     },
     XY_HISTOGRAM_WITH_MEAN_EXAMPLE: {
         options: examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['histogram'] }),
         enterprise: true,
     },
     GROUPED_CATEGORY_AXIS_EXAMPLE: {
         options: examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
         assertions: cartesianChartAssertions({
-            axisTypes: ['grouped-category', 'number'],
+            axisTypes: { x: 'grouped-category', y: 'number' },
             seriesTypes: ['bar'],
         }),
         enterprise: false,
@@ -188,7 +212,7 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES = {
     ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS: {
         options: examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['time', 'number'],
+            axisTypes: { x: 'time', y: 'number' },
             seriesTypes: ['line', 'line', 'line', 'line'],
         }),
         enterprise: false,

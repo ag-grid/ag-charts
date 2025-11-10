@@ -307,10 +307,10 @@ describe('Chart', () => {
                 yKey: datasets.economy.valueKey,
             },
             chartOptions: {
-                axes: [
-                    { type: 'number', position: 'left' },
-                    { type: 'category', position: 'bottom' },
-                ],
+                axes: {
+                    y: { type: 'number', position: 'left' },
+                    x: { type: 'category', position: 'bottom' },
+                },
             },
             getNodePoint: (item) => [item.point.x, item.point.y],
             getNodeExitPoint: (item) => [item.point.x, item.point.y + 8],

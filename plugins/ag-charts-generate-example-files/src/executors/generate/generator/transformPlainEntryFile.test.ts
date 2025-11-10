@@ -64,22 +64,22 @@ describe('transformPlainEntryFile', () => {
     test('Remove axes titles', () => {
         expect(
             getChartsOptionsPlainEntryFile({
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'category',
                         position: 'bottom',
                         title: {
                             text: 'CATEGORY AXIS TITLE',
                         },
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         title: {
                             text: 'NUMBER AXIS TITLE',
                         },
                     },
-                ],
+                },
             })
         ).toMatchSnapshot();
     });

@@ -113,8 +113,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -155,7 +155,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -193,7 +193,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

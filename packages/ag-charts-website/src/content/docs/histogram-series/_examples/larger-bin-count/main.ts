@@ -19,18 +19,18 @@ const options: AgChartOptions = {
             binCount: 20,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: { text: 'Age (years)' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: { text: 'Number of participants' },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

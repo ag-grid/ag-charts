@@ -47,12 +47,12 @@ const options: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             interval: {
@@ -68,7 +68,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
     data: getData(),
     series: [
         {

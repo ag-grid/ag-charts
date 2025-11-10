@@ -16,12 +16,12 @@ const options: AgCartesianChartOptions = {
             enabled: true,
         },
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
@@ -33,7 +33,7 @@ const options: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-    ],
+    },
     data: getData(),
     animation: {
         duration: 1500, // ms

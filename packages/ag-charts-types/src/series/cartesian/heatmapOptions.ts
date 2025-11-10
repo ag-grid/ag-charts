@@ -3,7 +3,7 @@ import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOpt
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
-import type { FillOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, StrokeOptions } from './commonOptions';
 
 export type AgHeatmapSeriesItemStylerParams<
     TDatum = DatumDefault,
@@ -65,6 +65,7 @@ export interface AgHeatmapSeriesOptionsNames {
 
 export interface AgHeatmapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgHeatmapSeriesOptionsKeys<TDatum>,
         AgHeatmapSeriesOptionsNames,
         AgHeatmapSeriesThemeableOptions<TDatum, TContext> {

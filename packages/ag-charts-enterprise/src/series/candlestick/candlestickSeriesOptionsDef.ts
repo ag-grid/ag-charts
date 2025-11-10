@@ -18,6 +18,8 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
     highName: string,
     lowName: string,
     closeName: string,
+    xKeyAxis: string,
+    yKeyAxis: string,
 };
 
 // @ts-expect-error undocumented option

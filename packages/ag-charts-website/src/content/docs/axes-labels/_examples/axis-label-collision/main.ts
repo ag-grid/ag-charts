@@ -19,25 +19,25 @@ const options: AgCartesianChartOptions = {
             yKey: 'value',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             label: {},
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {},
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function reset() {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+    const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
+    const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
     delete categoryAxis.label!.rotation;
     delete categoryAxis.label!.autoRotate;
@@ -53,8 +53,8 @@ function reset() {
 }
 
 function rotationChange(e: Event) {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+    const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
+    const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
     delete categoryAxis.label!.rotation;
     delete numberAxis.label!.rotation;
@@ -87,8 +87,8 @@ function labelChange(e: Event) {
 }
 
 function truncationChange(e: Event) {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+    const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
+    const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
     delete categoryAxis.label!.rotation;
     delete numberAxis.label!.rotation;
@@ -102,8 +102,8 @@ function truncationChange(e: Event) {
 }
 
 function avoidanceChange(e: Event) {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+    const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
+    const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
     delete categoryAxis.label!.rotation;
     delete numberAxis.label!.rotation;
@@ -117,8 +117,8 @@ function avoidanceChange(e: Event) {
 }
 
 function wrapChange(e: Event) {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+    const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
+    const numberAxis = options.axes!.y! as AgNumberAxisOptions;
     const value = (e.target as HTMLInputElement).value as TextWrap;
 
     categoryAxis.label!.wrapping = value;

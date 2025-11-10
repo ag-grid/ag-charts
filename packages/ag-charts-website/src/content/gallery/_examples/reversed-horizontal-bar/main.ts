@@ -48,21 +48,21 @@ const options: AgChartOptions = {
             yName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             line: {
                 enabled: false,
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             reverse: true,
             interval: { step: 60 },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

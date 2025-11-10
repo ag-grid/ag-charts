@@ -532,6 +532,10 @@ export abstract class Series<
         return values;
     }
 
+    getKeyAxis(_direction: ChartAxisDirection): string | undefined {
+        return undefined;
+    }
+
     getKeys(direction: ChartAxisDirection): string[] {
         return this.getPropertyValues(axisDirectionProperty(direction), this.propertyKeys);
     }

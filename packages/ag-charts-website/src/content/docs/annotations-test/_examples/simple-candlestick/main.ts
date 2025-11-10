@@ -25,19 +25,19 @@ const options: AgChartOptions = {
             closeKey: 'close',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             crosshair: {
                 snap: true,
             },
         },
-        {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

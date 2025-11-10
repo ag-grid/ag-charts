@@ -23,54 +23,54 @@ const options: AgCartesianChartOptions = {
             yKey: 'value',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             title: { text: 'Unit Time Axis' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function setContinuousTimeAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'time',
             position: 'bottom',
             title: { text: 'Continuous Time Axis' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ];
+    };
     chart.update(options);
 }
 
 function setUnitTimeAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             title: { text: 'Unit Time Axis' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ];
+    };
     chart.update(options);
 }
 
 function setOrdinalTimeAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             interval: {
@@ -78,10 +78,10 @@ function setOrdinalTimeAxis() {
             },
             title: { text: 'Ordinal Time Axis' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ];
+    };
     chart.update(options);
 }

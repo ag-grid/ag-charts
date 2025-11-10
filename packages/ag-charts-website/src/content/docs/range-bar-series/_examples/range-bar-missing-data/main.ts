@@ -17,19 +17,19 @@ const options: AgCartesianChartOptions = {
             yHighKey: 'high',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             crosshair: {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

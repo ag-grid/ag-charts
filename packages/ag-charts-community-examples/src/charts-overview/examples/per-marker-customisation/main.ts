@@ -57,22 +57,22 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
                 text: 'Depth (m)',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Minimum distance (km)',
             },
         },
-    ],
+    },
     seriesArea: {
         padding: {
             left: 20,

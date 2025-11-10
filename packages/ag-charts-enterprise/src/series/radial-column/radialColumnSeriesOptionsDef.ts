@@ -9,6 +9,8 @@ export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptio
     type: required(constant('radial-column')),
     angleKey: required(string),
     radiusKey: required(string),
+    angleKeyAxis: string,
+    radiusKeyAxis: string,
     angleName: string,
     radiusName: string,
     legendItemName: string,

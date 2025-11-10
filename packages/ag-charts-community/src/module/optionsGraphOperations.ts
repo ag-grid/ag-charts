@@ -25,7 +25,6 @@ import {
     USER_OPTIONS_EDGE,
     type VertexInterface,
     getPathLastIndex,
-    getPathLastIndexIndex,
     getPathSafe,
     isRatio,
     resolvePath,
@@ -900,12 +899,10 @@ function findFirstSiblingNotOperationOperation(
     const [defaultValueVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
-    const indexIndex = getPathLastIndexIndex(pathArray);
-    if (indexIndex < 0) {
-        return graph.resolveVertexValue(vertex, defaultValueVertex);
-    }
 
-    const parentPathArray = pathArray.slice(0, indexIndex);
+    const parentPathArray = resolvePath(pathArray, '..');
+    if (parentPathArray === UNRESOLVABLE_PATH) return;
+
     const parentVertex = graph.findVertexAtPath(parentPathArray);
     if (!parentVertex) {
         return graph.resolveVertexValue(vertex, defaultValueVertex);
@@ -915,9 +912,10 @@ function findFirstSiblingNotOperationOperation(
 
     if (siblings) {
         for (let index = 0; index < siblings.length; index++) {
-            if (`${index}` === pathArray[indexIndex]) continue;
+            const siblingPathArray = graph.getPathArray(siblings[index]);
+            if (siblingPathArray[parentPathArray.length] === pathArray[parentPathArray.length]) continue;
 
-            const siblingChildPathArray = parentPathArray.concat([`${index}`, ...pathArray.slice(indexIndex + 1)]);
+            const siblingChildPathArray = siblingPathArray.concat(pathArray.slice(parentPathArray.length + 1));
             const siblingChildVertex = graph.findVertexAtPath(siblingChildPathArray);
             if (!siblingChildVertex) continue;
 

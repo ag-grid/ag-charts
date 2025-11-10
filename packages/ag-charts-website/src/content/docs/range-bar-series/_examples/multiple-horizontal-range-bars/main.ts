@@ -27,6 +27,7 @@ const options: AgChartOptions = {
             yLowName: 'Lowest Cost',
             yHighName: 'Highest Cost',
             yName: 'Production Cost Range',
+            xKeyAxis: 'xSecondary',
             fill: '#D1C0A8',
             stroke: '#D1C0A8',
         },
@@ -40,6 +41,7 @@ const options: AgChartOptions = {
             yLowName: 'Lowest Price',
             yHighName: 'Highest Price',
             yName: 'Retail Price Range',
+            xKeyAxis: 'xSecondary',
             fill: '#205C37',
             stroke: '#205C37',
         },
@@ -61,19 +63,17 @@ const options: AgChartOptions = {
             size: 15,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
-            keys: ['smartphone'],
             groupPaddingInner: 0,
             paddingInner: 0.9,
             paddingOuter: 0.8,
         },
-        {
+        x: {
             type: 'number',
             position: 'top',
-            keys: ['profitMargin'],
             label: {
                 formatter: ({ value }) => `${value}%`,
             },
@@ -81,10 +81,9 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
+        xSecondary: {
             type: 'number',
             position: 'bottom',
-            keys: ['lowRetail', 'highRetail', 'lowCost', 'highCost'],
             label: {
                 formatter: ({ value }) =>
                     `${Number(value).toLocaleString('en-US', {
@@ -97,7 +96,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

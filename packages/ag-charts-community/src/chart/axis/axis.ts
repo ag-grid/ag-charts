@@ -9,7 +9,6 @@ import {
     WeakCache,
     callWithContext,
     clampArray,
-    createId,
     deepFreeze,
     findMinMax,
     findRangeExtent,
@@ -155,7 +154,7 @@ export abstract class Axis<
 
     protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
 
-    readonly id: AxisID = createId(this);
+    id: AxisID = 'unknown' as AxisID;
 
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
@@ -186,9 +185,6 @@ export abstract class Axis<
     /** Reverse the axis scale domain. */
     @Property
     reverse: boolean = false;
-
-    @Property
-    keys: string[] = [];
 
     @Property
     readonly interval = new AxisInterval();

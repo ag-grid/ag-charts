@@ -4,9 +4,9 @@ import { iterate } from 'ag-charts-core';
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Padding } from '../util/padding';
-import { PolarAxis } from './axis/polarAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
+import { PolarChartAxes } from './chartAxes';
 import { ChartAxisDirection } from './chartAxisDirection';
 import type { LayoutContext } from './layout/layoutManager';
 import type { SeriesArea } from './series-area/seriesArea';
@@ -16,6 +16,11 @@ import { ZIndexMap } from './zIndexMap';
 export class PolarChart extends Chart {
     static readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
+
+    override axes = this.createChartAxes();
+    override createChartAxes() {
+        return new PolarChartAxes();
+    }
 
     override padding = new Padding(40);
 
@@ -48,9 +53,11 @@ export class PolarChart extends Chart {
     }
 
     protected updateAxes(seriesBox: BBox, cx: number, cy: number, radius: number) {
-        const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Angle);
-        const radiusAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Radius);
-        if (!(angleAxis instanceof PolarAxis) || !(radiusAxis instanceof PolarAxis)) return;
+        // pie & donut series do not have axes
+        if (this.axes.length === 0) return;
+
+        const angleAxis = this.axes[ChartAxisDirection.Angle];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
 
         const angleScale: Scale<number, number> = angleAxis.scale;
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
@@ -80,7 +87,6 @@ export class PolarChart extends Chart {
 
     private async computeCircle(seriesBox: BBox) {
         const polarSeries = this.series.filter(isPolarSeries);
-        const polarAxes = this.axes.filter(isPolarAxis);
 
         const setSeriesCircle = (cx: number, cy: number, r: number) => {
             this.updateAxes(seriesBox, cx, cy, r);
@@ -113,7 +119,7 @@ export class PolarChart extends Chart {
 
         const shake = async ({ hideWhenNecessary = false } = {}) => {
             const labelBoxes = [];
-            for (const series of iterate(polarAxes, polarSeries)) {
+            for (const series of iterate(this.axes, polarSeries)) {
                 const box = await series.computeLabelsBBox({ hideWhenNecessary }, seriesBox);
                 if (box) {
                     labelBoxes.push(box);
@@ -139,7 +145,7 @@ export class PolarChart extends Chart {
         await shake({ hideWhenNecessary: true }); // Final result
 
         // Must compute labels again in case last shake changed niceDomain
-        for (const series of iterate(polarAxes, polarSeries)) {
+        for (const series of iterate(this.axes, polarSeries)) {
             await series.computeLabelsBBox({ hideWhenNecessary: true }, seriesBox);
         }
 
@@ -214,8 +220,4 @@ export class PolarChart extends Chart {
 
 function isPolarSeries(series: unknown): series is UnknownPolarSeries {
     return series instanceof PolarSeries;
-}
-
-function isPolarAxis(axis: unknown): axis is PolarAxis {
-    return axis instanceof PolarAxis;
 }

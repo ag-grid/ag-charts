@@ -20,8 +20,8 @@ const options: AgChartOptions = {
             fillOpacity: 0.8,
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             interval: { values: [1, 3, 5] },
             reverse: true,
@@ -38,7 +38,7 @@ const options: AgChartOptions = {
                 enabled: true,
             },
         },
-        {
+        angle: {
             type: 'angle-category',
             paddingInner: 0.1,
             gridLine: {
@@ -51,7 +51,7 @@ const options: AgChartOptions = {
                 spacing: 5,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -102,8 +102,8 @@ const options: AgChartOptions<DataType> = {
     },
     data,
     series: allSeries.slice(0, 2),
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
             position: 'bottom',
             interval: { step: { unit: 'month', step: 2 } },
@@ -111,14 +111,14 @@ const options: AgChartOptions<DataType> = {
                 autoRotate: false,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 autoRotate: false,
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options as AgChartOptions<DataType>);

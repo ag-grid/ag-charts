@@ -288,35 +288,29 @@ export class SankeySeries extends FlowProportionSeries<
         let columnLabelInsetBefore = 0;
         let columnLabelInsetAfter = 0;
 
-        if (this.isLabelEnabled()) {
-            if (labelPlacement == null && edgeLabelPlacement == null) {
-                // If labels are unplaced, add an extra column of spacing before and after to place them into.
-                columnLabelInsetBefore = (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1));
-                columnLabelInsetAfter = columnLabelInsetBefore;
-            } else if (edgeLabelPlacement === 'outside' || edgeLabelPlacement == null) {
-                // Otherwise, if the labels are either placed outside or unplaced, add extra spacing before and after
-                // based on the width of the longest label in the first and last columns, respectively.
-                const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
-                    const node = n as EnhancedNodeGraphEntry;
-                    if (node.datum.label == null || node.datum.label === '') return acc;
-                    let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
-                    if (labelPlacement === 'center' && edgeLabelPlacement == null) maxWidth /= 2;
-                    const text = wrapText(node.datum.label, {
-                        maxWidth,
-                        maxHeight: node.datum.height,
-                        font: this.properties.label,
-                        textWrap: 'never',
-                    });
-                    let { width } = measurer.measureLines(text);
-                    if (labelPlacement === 'center' && edgeLabelPlacement == null) width /= 2;
-                    return Math.max(acc, width);
-                };
-                if (labelPlacement !== 'right' || edgeLabelPlacement === 'outside') {
-                    columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
-                }
-                if (labelPlacement !== 'left' || edgeLabelPlacement === 'outside') {
-                    columnLabelInsetAfter = nodeWidth + columns.at(-1)!.nodes.reduce(reduceLabelWidthFn, 0);
-                }
+        if (this.isLabelEnabled() && (edgeLabelPlacement === 'outside' || edgeLabelPlacement == null)) {
+            // If the labels are either placed outside or unplaced, add extra spacing before and after
+            // based on the width of the longest label in the first and last columns, respectively.
+            const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
+                const node = n as EnhancedNodeGraphEntry;
+                if (node.datum.label == null || node.datum.label === '') return acc;
+                let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
+                if (labelPlacement === 'center' && edgeLabelPlacement == null) maxWidth /= 2;
+                const text = wrapText(node.datum.label, {
+                    maxWidth,
+                    maxHeight: node.datum.height,
+                    font: this.properties.label,
+                    textWrap: 'never',
+                });
+                let { width } = measurer.measureLines(text);
+                if (labelPlacement === 'center' && edgeLabelPlacement == null) width /= 2;
+                return Math.max(acc, width);
+            };
+            if (labelPlacement !== 'right' || edgeLabelPlacement === 'outside') {
+                columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
+            }
+            if (labelPlacement !== 'left' || edgeLabelPlacement === 'outside') {
+                columnLabelInsetAfter = nodeWidth + columns.at(-1)!.nodes.reduce(reduceLabelWidthFn, 0);
             }
         }
 
@@ -383,6 +377,17 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     private weightNodes(columns: Column[]) {
+        const { properties } = this;
+
+        if (properties.node.sort === 'data') return;
+
+        if (properties.node.sort !== 'auto') {
+            for (const column of columns) {
+                column.nodes.sort((a, b) => this.sortNodes(a as EnhancedNodeGraphEntry, b as EnhancedNodeGraphEntry));
+            }
+            return;
+        }
+
         // Weight the columns into powers of 10 so that columns with fewer and larger nodes have more influence on each
         // node's weight.
         const sortedColumns = columns.toSorted((a, b) => {
@@ -397,27 +402,38 @@ export class SankeySeries extends FlowProportionSeries<
         }
 
         // Sort nodes within columns by their weight plus the weight of their links, influenced by the column weight.
+        // An initial pass sorts nodes exclusively by their own weight. The second pass then applies an influence
+        // from their neighbours based on the now sorted index and column weight. This ensures nodes are always
+        // sorted into groups next to their neighbours, even with close or identical neighbour sizes.
         for (const column of columns) {
             for (const node of column.nodes) {
+                if ('ghost' in node && node.ghost) {
+                    node.weight = (node.size / column.size) * columnWeights[column.index];
+                    continue;
+                }
                 node.weight = (node.datum.size / column.size) * columnWeights[column.index];
+            }
+            column.nodes.sort((a, b) => a.weight - b.weight);
+        }
 
+        for (const column of columns) {
+            for (const node of column.nodes) {
                 // Ghost nodes ignore the weight of their links, as this is already factored in by the concrete nodes.
                 if ('ghost' in node && node.ghost) {
-                    node.weight = ((node as any).size / column.size) * columnWeights[column.index];
                     continue;
                 }
 
                 node.weight += node.linksBefore.reduce((acc, before: any) => {
                     if (before.node.columnIndex !== column.index - 1) return acc;
                     const weight =
-                        (before.node.datum.size / columns[before.node.columnIndex].size) *
+                        columns[before.node.columnIndex].nodes.indexOf(before.node) *
                         columnWeights[before.node.columnIndex];
                     return Math.max(acc, weight);
                 }, 0);
                 node.weight += node.linksAfter.reduce((acc, after: any) => {
                     if (after.node.columnIndex !== column.index + 1) return acc;
                     const weight =
-                        (after.node.datum.size / columns[after.node.columnIndex].size) *
+                        columns[after.node.columnIndex].nodes.indexOf(after.node) *
                         columnWeights[after.node.columnIndex];
                     return Math.max(acc, weight);
                 }, 0);

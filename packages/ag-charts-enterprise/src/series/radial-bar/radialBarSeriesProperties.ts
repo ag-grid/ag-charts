@@ -26,6 +26,12 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     radiusName?: string;
 
     @Property
+    angleKeyAxis: string = 'angle';
+
+    @Property
+    radiusKeyAxis: string = 'radius';
+
+    @Property
     legendItemName?: string;
 
     @Property

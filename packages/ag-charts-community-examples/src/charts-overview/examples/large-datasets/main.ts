@@ -60,10 +60,10 @@ const options: AgCartesianChartOptions = {
             bar: { series: highlightTheme },
         },
     },
-    axes: [
-        { type: 'number', position: 'left', min: 0, max: 10_000 },
-        { type: 'unit-time', position: 'bottom' },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left', min: 0, max: 10_000 },
+        x: { type: 'unit-time', position: 'bottom' },
+    },
     series,
 };
 

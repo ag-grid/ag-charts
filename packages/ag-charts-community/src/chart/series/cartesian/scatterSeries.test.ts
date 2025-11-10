@@ -153,18 +153,18 @@ describe('ScatterSeries', () => {
                         strokeWidth: 0,
                     } as AgScatterSeriesOptions,
                 ],
-                axes: [
-                    {
+                axes: {
+                    y: {
                         position: 'left',
                         type: 'number',
                     },
-                    {
+                    x: {
                         position: 'bottom',
                         type: 'number',
                         min: 100,
                         max: 500,
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -191,18 +191,18 @@ describe('ScatterSeries', () => {
                         strokeWidth: 0,
                     } as AgScatterSeriesOptions,
                 ],
-                axes: [
-                    {
+                axes: {
+                    y: {
                         position: 'left',
                         type: 'number',
                         min: 60,
                         max: 100,
                     },
-                    {
+                    x: {
                         position: 'bottom',
                         type: 'number',
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -228,18 +228,18 @@ describe('ScatterSeries', () => {
                         strokeWidth: 0,
                     } as AgScatterSeriesOptions,
                 ],
-                axes: [
-                    {
+                axes: {
+                    y: {
                         position: 'left',
                         type: 'number',
                     },
-                    {
+                    x: {
                         position: 'bottom',
                         type: 'number',
                         min: 100,
                         max: 500,
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -266,18 +266,18 @@ describe('ScatterSeries', () => {
                         strokeWidth: 0,
                     } as AgScatterSeriesOptions,
                 ],
-                axes: [
-                    {
+                axes: {
+                    y: {
                         position: 'left',
                         type: 'number',
                         min: 60,
                         max: 100,
                     },
-                    {
+                    x: {
                         position: 'bottom',
                         type: 'number',
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -408,18 +408,18 @@ describe('ScatterSeries', () => {
     it('should render scatter series with reversed axes', async () => {
         const options: AgChartOptions = {
             ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'number',
                     position: 'left',
                     reverse: true,
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                     reverse: true,
                 },
-            ],
+            },
         };
 
         prepareTestOptions(options);

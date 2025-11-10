@@ -56,8 +56,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             line: {
@@ -80,7 +80,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             interval: { step: 0.01 },
@@ -106,7 +106,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     tooltip: {
         position: {
             anchorTo: 'chart',

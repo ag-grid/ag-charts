@@ -32,8 +32,8 @@ const options: AgChartOptions = {
             areaPlot: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -43,14 +43,14 @@ const options: AgChartOptions = {
                 step: 500,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 formatter: () => '',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

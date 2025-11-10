@@ -13,6 +13,8 @@ export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     medianKey: required(string),
     q3Key: required(string),
     maxKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     minName: string,

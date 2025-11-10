@@ -14,8 +14,8 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
@@ -33,20 +33,20 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Market Share (%)',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function setPlacement(placement: 'on' | 'between') {
-    (options.axes![0] as AgCategoryAxisOptions).interval!.placement = placement;
-    (options.axes![0] as AgCategoryAxisOptions).title!.text = `placement: '${placement}'`;
+    (options.axes!.x! as AgCategoryAxisOptions).interval!.placement = placement;
+    (options.axes!.x! as AgCategoryAxisOptions).title!.text = `placement: '${placement}'`;
     chart.update(options);
 }

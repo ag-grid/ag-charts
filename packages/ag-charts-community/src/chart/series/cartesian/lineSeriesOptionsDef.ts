@@ -63,6 +63,8 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     type: required(constant('line')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     stacked: boolean,

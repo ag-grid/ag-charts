@@ -89,10 +89,10 @@ describe('Polar Axes', () => {
     it(`should render polar axes with angle offset as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                { type: 'angle-category', startAngle: 330 },
-                { type: 'radius-number', title: { text: 'Skill Score' } },
-            ],
+            axes: {
+                angle: { type: 'angle-category', startAngle: 330 },
+                radius: { type: 'radius-number', title: { text: 'Skill Score' } },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -104,10 +104,10 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
-            axes: [
-                { type: 'angle-category', shape: 'circle' },
-                { type: 'radius-number', shape: 'circle' },
-            ],
+            axes: {
+                angle: { type: 'angle-category', shape: 'circle' },
+                radius: { type: 'radius-number', shape: 'circle' },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -119,8 +119,8 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     crossLines: [
                         {
@@ -135,8 +135,8 @@ describe('Polar Axes', () => {
                         },
                     ],
                 },
-                { type: 'radius-number' },
-            ],
+                radius: { type: 'radius-number' },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -148,8 +148,8 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     crossLines: [
                         {
@@ -163,8 +163,8 @@ describe('Polar Axes', () => {
                         },
                     ],
                 },
-                { type: 'radius-number' },
-            ],
+                radius: { type: 'radius-number' },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -176,8 +176,8 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     shape: 'circle',
                     crossLines: [
@@ -192,8 +192,8 @@ describe('Polar Axes', () => {
                         },
                     ],
                 },
-                { type: 'radius-number', shape: 'circle' },
-            ],
+                radius: { type: 'radius-number', shape: 'circle' },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -205,9 +205,9 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
-            axes: [
-                { type: 'angle-category' },
-                {
+            axes: {
+                angle: { type: 'angle-category' },
+                radius: {
                     type: 'radius-number',
                     crossLines: [
                         {
@@ -223,7 +223,7 @@ describe('Polar Axes', () => {
                         },
                     ],
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -235,9 +235,9 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
-            axes: [
-                { type: 'angle-category', shape: 'circle', startAngle: 330 },
-                {
+            axes: {
+                angle: { type: 'angle-category', shape: 'circle', startAngle: 330 },
+                radius: {
                     type: 'radius-number',
                     shape: 'circle',
                     crossLines: [
@@ -254,7 +254,7 @@ describe('Polar Axes', () => {
                         },
                     ],
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -266,9 +266,9 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
-            axes: [
-                { type: 'angle-category' },
-                {
+            axes: {
+                angle: { type: 'angle-category' },
+                radius: {
                     type: 'radius-number',
                     crossLines: [
                         {
@@ -299,7 +299,7 @@ describe('Polar Axes', () => {
                         },
                     ],
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -311,9 +311,9 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
-            axes: [
-                { type: 'angle-category', shape: 'circle' },
-                {
+            axes: {
+                angle: { type: 'angle-category', shape: 'circle' },
+                radius: {
                     type: 'radius-number',
                     shape: 'circle',
                     crossLines: [
@@ -345,7 +345,7 @@ describe('Polar Axes', () => {
                         },
                     ],
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -360,10 +360,10 @@ describe('Polar Axes', () => {
                 { skill: 'Test 1', Bob: 7, Collin: 4, Giovanni: 10 },
                 { skill: 'Test2', Bob: 8, Collin: 10, Giovanni: 3 },
             ]),
-            axes: [
-                { type: 'angle-category', label: { orientation: 'parallel' } },
-                { type: 'radius-number', title: { text: 'Skill Score' } },
-            ],
+            axes: {
+                angle: { type: 'angle-category', label: { orientation: 'parallel' } },
+                radius: { type: 'radius-number', title: { text: 'Skill Score' } },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -378,10 +378,10 @@ describe('Polar Axes', () => {
                 { skill: 'Test 1', Bob: 7, Collin: 4, Giovanni: 10 },
                 { skill: 'Test2', Bob: 8, Collin: 10, Giovanni: 3 },
             ]),
-            axes: [
-                { type: 'angle-category', label: { orientation: 'perpendicular' } },
-                { type: 'radius-number', title: { text: 'Skill Score' } },
-            ],
+            axes: {
+                angle: { type: 'angle-category', label: { orientation: 'perpendicular' } },
+                radius: { type: 'radius-number', title: { text: 'Skill Score' } },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 

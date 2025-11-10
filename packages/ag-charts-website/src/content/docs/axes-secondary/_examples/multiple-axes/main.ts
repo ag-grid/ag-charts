@@ -30,21 +30,21 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'exportedTonnes',
             yName: 'Beef exports',
+            yKeyAxis: 'ySecondary',
             strokeWidth: 5,
             marker: {
                 enabled: false,
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['male', 'female'],
             title: {
                 text: 'Number of cattle',
             },
@@ -54,10 +54,9 @@ const options: AgChartOptions = {
                 },
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['exportedTonnes'],
             title: {
                 text: 'Exports (tonnes)',
             },
@@ -67,7 +66,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

@@ -11,18 +11,18 @@ const options: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
             crosshair: { snap: false },
         },
-    ],
+    },
     data: getData(),
     series: [
         {

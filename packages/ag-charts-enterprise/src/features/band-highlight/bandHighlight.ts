@@ -152,8 +152,7 @@ export class BandHighlight extends AbstractModuleInstance {
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
-        const axisLayout = axes.find((a) => a.id === axisId);
-
+        const axisLayout = axes[axisId];
         if (!axisLayout) return;
 
         this.axisLayout = axisLayout;

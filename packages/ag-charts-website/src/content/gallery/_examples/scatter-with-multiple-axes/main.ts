@@ -28,6 +28,7 @@ const options: AgCartesianChartOptions<DataType> = {
             xName: 'Year',
             yKey: 'lifeExpectancy',
             yName: 'Age',
+            yKeyAxis: 'ySecondary',
             title: 'Life Expectancy',
             size: 5,
         },
@@ -42,8 +43,8 @@ const options: AgCartesianChartOptions<DataType> = {
             strokeWidth: 1.5,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
@@ -71,10 +72,9 @@ const options: AgCartesianChartOptions<DataType> = {
             max: 2030,
             label: { format: 'd' },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
-            keys: ['numberOfDeaths'],
             title: {
                 text: 'Number of Deaths',
             },
@@ -94,7 +94,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'left',
             title: {
@@ -103,7 +103,6 @@ const options: AgCartesianChartOptions<DataType> = {
             nice: false,
             min: 25,
             max: 85,
-            keys: ['lifeExpectancy'],
             crosshair: {
                 enabled: true,
                 label: {
@@ -117,7 +116,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 formatter: ({ value }) => `${Math.round(value)} Years`,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

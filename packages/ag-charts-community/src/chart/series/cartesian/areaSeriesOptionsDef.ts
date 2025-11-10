@@ -59,6 +59,8 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     type: required(constant('area')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     legendItemName: string,

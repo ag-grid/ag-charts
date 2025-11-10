@@ -28,22 +28,22 @@ const options: AgCartesianChartOptions = {
     },
     title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
     data: getData(),
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             crossAt: {
                 value: 0,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             crossAt: {
                 value: 0,
             },
         },
-    ],
+    },
     series: [
         {
             type: 'line',

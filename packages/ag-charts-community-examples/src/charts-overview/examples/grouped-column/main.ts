@@ -42,19 +42,19 @@ const options: AgChartOptions = {
     { type: "bar", xKey: "year", yKey: "65-74" },
     { type: "bar", xKey: "year", yKey: "75+" },
   ],
-  axes: [
-    {
+  axes: {
+    x: {
       type: "category",
       position: "bottom",
     },
-    {
+    y: {
       type: "number",
       position: "left",
       label: {
         formatter: ({ value }) => `${value / 1000}M`,
       },
     },
-  ],
+  },
 }
 
 AgCharts.create(options)

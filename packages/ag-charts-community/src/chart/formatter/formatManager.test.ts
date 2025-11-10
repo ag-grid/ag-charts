@@ -196,10 +196,10 @@ describe('Format Manager', () => {
                     },
                 },
             ],
-            axes: [
-                { type: 'category', position: 'bottom' },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
             formatter: {
                 x: () => 'x',
                 y: () => 'y',
@@ -232,10 +232,10 @@ describe('Format Manager', () => {
                     },
                 },
             ],
-            axes: [
-                { type: 'category', position: 'bottom' },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
             formatter: {
                 x: 'Apple %s',
                 y: '#{f}',

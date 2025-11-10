@@ -85,6 +85,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Food',
             yKey: 'calories',
             yName: 'Calories',
+            yKeyAxis: 'yCalories',
         },
         {
             type: 'line',
@@ -92,6 +93,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Food',
             yKey: 'bloodSugarSpike',
             yName: 'Blood Sugar Spike',
+            yKeyAxis: 'ySugar',
             interpolation: {
                 type: 'smooth',
             },
@@ -102,6 +104,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Food',
             yKey: 'fiber',
             yName: 'Fiber',
+            yKeyAxis: 'yGrams',
         },
         {
             type: 'bar',
@@ -109,6 +112,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Food',
             yKey: 'carbohydrates',
             yName: 'Carbohydrates',
+            yKeyAxis: 'yGrams',
         },
         {
             type: 'bar',
@@ -116,6 +120,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Food',
             yKey: 'protein',
             yName: 'Protein',
+            yKeyAxis: 'yGrams',
         },
         {
             type: 'bar',
@@ -123,13 +128,13 @@ const options: AgCartesianChartOptions = {
             xName: 'Food',
             yKey: 'fat',
             yName: 'Fat',
+            yKeyAxis: 'yGrams',
         },
     ],
-    axes: [
-        {
+    axes: {
+        ySugar: {
             position: 'left',
             type: 'number',
-            keys: ['bloodSugarSpike'],
             thickness: 40,
             title: {
                 text: 'Sugar Spike',
@@ -139,25 +144,22 @@ const options: AgCartesianChartOptions = {
                 values: [0, 20, 60, 80],
             },
         },
-        {
+        yCalories: {
             position: 'left',
             type: 'number',
-            keys: ['calories'],
             label: {
                 formatter: ({ value }) => `${value} kcal`,
             },
             thickness: 75,
         },
-
-        {
+        yGrams: {
             position: 'right',
             type: 'number',
-            keys: ['protein', 'fat', 'carbohydrates', 'fiber'],
             label: {
                 formatter: ({ value }) => `${value}g`,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'grouped-category',
             depthOptions: [{ tick: { enabled: false } }, { tick: { enabled: false } }],
@@ -165,7 +167,7 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-    ],
+    },
     legend: {
         maxWidth: 300,
         position: {

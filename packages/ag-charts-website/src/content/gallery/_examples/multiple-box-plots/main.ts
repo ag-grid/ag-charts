@@ -71,8 +71,8 @@ const options: AgCartesianChartOptions = {
             ...shared,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
             paddingInner: 0.5,
@@ -98,7 +98,7 @@ const options: AgCartesianChartOptions = {
                 spacing: 10,
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             nice: false,
@@ -126,7 +126,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -29,8 +29,8 @@ const options: AgCartesianChartOptions = {
     animation: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: { text: 'Longitude' },
@@ -38,7 +38,7 @@ const options: AgCartesianChartOptions = {
                 step: 0.1,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: { text: 'Latitude' },
@@ -46,7 +46,7 @@ const options: AgCartesianChartOptions = {
                 step: 0.1,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

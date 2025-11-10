@@ -23,22 +23,22 @@ const options: AgChartOptions<DataType> = {
             tooltip: { renderer: customTooltipRenderer },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
                 text: 'Expiry Date (Months)',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Option Price (£)',
             },
         },
-    ],
+    },
 };
 
 function customTooltipRenderer({ datum }: AgLineSeriesTooltipRendererParams<DataType>) {

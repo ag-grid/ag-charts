@@ -87,8 +87,8 @@ const options: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             crosshair: {
@@ -96,7 +96,7 @@ const options: AgCartesianChartOptions = {
                 lineDash: [3, 3],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             gridLine: {
@@ -109,7 +109,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Percentage of Total Energy',
             },
         },
-    ],
+    },
     legend: {
         item: {
             showSeriesStroke: false,

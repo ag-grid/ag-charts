@@ -85,7 +85,7 @@ export interface LayoutCompleteEvent {
     readonly chart: Readonly<{ width: number; height: number }>;
     readonly series: Readonly<{ rect: BBox; paddedRect: BBox; visible: boolean }>;
     readonly clipSeries: boolean;
-    readonly axes?: Readonly<AxisLayout>[];
+    readonly axes: Readonly<Record<string, AxisLayout>>;
 }
 
 export interface LegendChangeEvent {

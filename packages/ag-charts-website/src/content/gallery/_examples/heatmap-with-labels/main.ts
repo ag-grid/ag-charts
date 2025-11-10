@@ -30,22 +30,22 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'right',
             type: 'category',
             tick: {
                 size: 20,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'category',
             line: {
                 enabled: false,
             },
         },
-    ],
+    },
     gradientLegend: {
         scale: {
             label: {

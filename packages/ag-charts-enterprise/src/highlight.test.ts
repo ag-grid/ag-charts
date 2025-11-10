@@ -281,10 +281,10 @@ describe('Enterprise highlight defaults', () => {
             name: 'candlestick',
             options: {
                 data: financialData,
-                axes: [
-                    { type: 'time', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
                 series: [
                     {
                         type: 'candlestick',
@@ -309,10 +309,10 @@ describe('Enterprise highlight defaults', () => {
             name: 'ohlc',
             options: {
                 data: financialData,
-                axes: [
-                    { type: 'time', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
                 series: [
                     {
                         type: 'ohlc',
@@ -361,7 +361,7 @@ describe('Enterprise highlight defaults', () => {
             options: {
                 data: polarCategoryData,
                 legend: { enabled: false },
-                axes: [{ type: 'angle-category' }, { type: 'radius-number' }],
+                axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
                 series: [
                     {
                         type: 'radar-area',
@@ -392,7 +392,7 @@ describe('Enterprise highlight defaults', () => {
             options: {
                 data: polarCategoryData,
                 legend: { enabled: false },
-                axes: [{ type: 'angle-category' }, { type: 'radius-number' }],
+                axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
                 series: [
                     {
                         type: 'radar-line',
@@ -418,7 +418,7 @@ describe('Enterprise highlight defaults', () => {
             name: 'radial-bar',
             options: {
                 data: polarCategoryData,
-                axes: [{ type: 'angle-number' }, { type: 'radius-category' }],
+                axes: { angle: { type: 'angle-number' }, radius: { type: 'radius-category' } },
                 series: [
                     {
                         type: 'radial-bar',
@@ -442,7 +442,7 @@ describe('Enterprise highlight defaults', () => {
             name: 'radial-column',
             options: {
                 data: polarCategoryData,
-                axes: [{ type: 'angle-category' }, { type: 'radius-number' }],
+                axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
                 series: [
                     {
                         type: 'radial-column',
@@ -465,10 +465,10 @@ describe('Enterprise highlight defaults', () => {
             name: 'range-area',
             options: {
                 data: rangeAreaData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 series: [
                     {
                         type: 'range-area',

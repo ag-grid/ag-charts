@@ -36,29 +36,27 @@ const options: AgCartesianChartOptions = {
         { type: 'bar', xKey: 'year', yKey: 'revenue', yName: 'Revenue' },
         { type: 'bar', xKey: 'year', yKey: 'revenue_benchmark', yName: 'Revenue Benchmark' },
 
-        { type: 'line', xKey: 'year', yKey: 'growth', yName: 'Growth' },
-        { type: 'line', xKey: 'year', yKey: 'growth_benchmark', yName: 'Growth Benchmark' },
+        { type: 'line', xKey: 'year', yKey: 'growth', yName: 'Growth', yKeyAxis: 'ySecondary' },
+        { type: 'line', xKey: 'year', yKey: 'growth_benchmark', yName: 'Growth Benchmark', yKeyAxis: 'ySecondary' },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        {
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: {
             type: 'number',
             position: 'left',
             title: { text: 'Revenue (M)' },
             max: 500,
-            keys: ['revenue', 'revenue_benchmark'],
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             title: { text: 'Growth Rate (%)' },
             nice: false,
             max: 0.5,
             min: -0.5,
-            keys: ['growth', 'growth_benchmark'],
             label: { formatter: ({ value }) => `${(value * 100).toFixed(0)}%` },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

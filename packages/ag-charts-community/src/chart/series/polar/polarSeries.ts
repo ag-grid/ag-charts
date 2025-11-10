@@ -38,8 +38,10 @@ export type PolarAnimationData = { duration?: number };
 type PolarSeriesProperties = {
     angleKey: string;
     angleName?: string;
+    angleKeyAxis?: string;
     radiusKey?: string;
     radiusName?: string;
+    radiusKeyAxis?: string;
 };
 
 export const DEFAULT_POLAR_DIRECTION_KEYS = {
@@ -187,6 +189,11 @@ export abstract class PolarSeries<
             this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
             this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
         );
+    }
+
+    override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        if (direction === ChartAxisDirection.Angle) return this.properties.angleKeyAxis;
+        if (direction === ChartAxisDirection.Radius) return this.properties.radiusKeyAxis;
     }
 
     override setZIndex(zIndex: number) {

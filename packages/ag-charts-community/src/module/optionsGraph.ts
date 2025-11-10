@@ -8,6 +8,7 @@ import {
     distribute,
     isObject,
     isObjectLike,
+    mapValues,
     pick,
     without,
 } from 'ag-charts-core';
@@ -15,7 +16,6 @@ import type { DatumDefault, SeriesPredictAxis, SeriesType } from 'ag-charts-type
 
 import { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartTheme } from '../chart/themes/chartTheme';
-import { CARTESIAN_AXIS_TYPE } from '../chart/themes/constants';
 import { simpleMemorize } from '../util/memo';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
@@ -1117,7 +1117,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.isRollingBack = false;
     }
 
-    private predictAxes(seriesType: SeriesType, userSeriesOptions?: any, data?: DatumDefault[]) {
+    // TODO: this should not be part of the OptionsGraph
+    private predictAxes(
+        seriesType: SeriesType,
+        userSeriesOptions?: any,
+        data?: DatumDefault[]
+    ): Record<string, any> | undefined {
         if (!userSeriesOptions) return;
 
         const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
@@ -1159,16 +1164,19 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         // If we predicted a single axis, merge this with the defaults by replacing the category axis.
         if (axes.size === 1) {
             const [predictedAxis] = axes.values();
-            return this.cloneDefaultAxes(seriesType).map((axis) =>
-                axis.type === CARTESIAN_AXIS_TYPE.CATEGORY ? predictedAxis : axis
-            );
+            return mapValues(this.cloneDefaultAxes(seriesType), (axis) => {
+                if (!('position' in axis) || !('position' in predictedAxis!)) {
+                    return axis;
+                }
+                return axis.position === predictedAxis.position ? predictedAxis : axis;
+            });
         }
 
-        return Array.from(axes.values());
+        return Object.fromEntries(axes);
     }
 
     private cloneDefaultAxes(seriesType: SeriesType) {
         const seriesModule = ModuleRegistry.getSeriesModule(seriesType);
-        return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : [];
+        return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : {};
     }
 }

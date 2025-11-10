@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import { AgChartOptions } from 'ag-charts-types';
 
+import { mapValues } from '../src/chart/test/utils';
 import { VERSION } from '../src/version';
 
 const PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf8')).version;
@@ -129,7 +130,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
             return s;
         });
 
-        (options as any).axes = (options as any).axes?.map((a) => {
+        (options as any).axes = mapValues((options as any).axes ?? {}, (a) => {
             if (a.interval != null) {
                 const { interval, ...aOther } = a;
                 return { ...aOther, tick: { ...aOther.tick, ...interval } };
@@ -141,7 +142,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     if (
         !isAtOrAfterVersion(11, 0, 0) &&
         (options as any).mode === 'integrated' &&
-        (options as any).axes?.some((a) => a.type === 'grouped-category')
+        Object.values((options as any).axes ?? {}).some((a) => a.type === 'grouped-category')
     ) {
         for (const d of (options as any).data) {
             const labels = d['ag-Grid-AutoColumn'];

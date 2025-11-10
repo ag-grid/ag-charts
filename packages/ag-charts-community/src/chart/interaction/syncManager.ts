@@ -17,7 +17,6 @@ type GroupId = string | symbol;
 export type SyncAxisLike = {
     boundSeries: ISeries<any, any, any>[];
     direction: ChartAxisDirection;
-    keys: string[];
     reverse?: boolean;
     nice: boolean;
     min?: number;
@@ -63,7 +62,7 @@ export type SyncDerivedDomain = {
 export type SyncGroupState = {
     members: Set<SyncChartLike>;
     domains?: { [key in 'x' | 'y']?: SyncDerivedDomain };
-    domainsByKey?: { [key: string]: SyncDerivedDomain };
+    domainsById?: { [key: string]: SyncDerivedDomain };
     domainsByPosition?: { [key: string]: SyncDerivedDomain };
 };
 

@@ -30,8 +30,8 @@ const options: AgChartOptions = {
             strokeWidth: 0,
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
 
             gridLine: {
@@ -41,10 +41,10 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
+        radius: {
             type: 'radius-number',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -45,16 +45,16 @@ Use `axes.position` to control the position of the axis, and `axes.type` to defi
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category', // category | grouped-category | number | log | time | ordinal-time
             position: 'bottom', // top | right | bottom | left
         },
-        {
+        y: {
             type: 'number', // category | grouped-category | number | log | time | ordinal-time
             position: 'left', // top | right | bottom | left
         },
-    ],
+    },
 }
 ```
 
@@ -70,25 +70,20 @@ Use the axes `keys` property to link the series `_Key` property to the axis.
 
 ```js format="snippet"
 {
-    axes: [
-        // x-axis
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        // primary y-axis
-        {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men'],
         },
-        // secondary y-axis
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
         },
-    ],
+    },
 }
 ```
 
@@ -101,13 +96,13 @@ Use `axes.interval` to control the interval of the axis.
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
         },
-    ],
+    },
 }
 ```
 
@@ -119,8 +114,8 @@ Use `axes.label` to control the appearance of the axis labels.
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             label: {
@@ -129,7 +124,7 @@ Use `axes.label` to control the appearance of the axis labels.
                 autoRotate: false, // enabled by default
             },
         },
-    ],
+    },
 }
 ```
 
@@ -171,8 +166,8 @@ Use the `crossLines` array in the axis options to add `line` or `range` [Cross L
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        y: {
             crossLines: [
                 {
                     type: 'line',
@@ -184,7 +179,7 @@ Use the `crossLines` array in the axis options to add `line` or `range` [Cross L
                 },
             ],
         },
-    ],
+    },
 }
 ```
 

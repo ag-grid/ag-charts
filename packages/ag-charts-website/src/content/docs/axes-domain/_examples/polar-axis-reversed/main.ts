@@ -13,23 +13,23 @@ const options: AgPolarChartOptions = {
             radiusName: 'Quality',
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             shape: 'circle',
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             reverse: true,
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function toggleAxisReverse() {
-    const radiusNumberAxisOptions = options.axes![1];
+    const radiusNumberAxisOptions = options.axes!.y!;
     radiusNumberAxisOptions.reverse = !radiusNumberAxisOptions.reverse;
     chart.update(options);
 }

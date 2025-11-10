@@ -118,8 +118,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
             position: 'bottom',
             nice: false,
@@ -127,14 +127,14 @@ const options: AgChartOptions = {
                 format: '%H:%M:%S',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Stacked Value',
             },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
     },

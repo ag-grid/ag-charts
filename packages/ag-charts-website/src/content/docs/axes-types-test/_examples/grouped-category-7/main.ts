@@ -24,16 +24,16 @@ const options: AgCartesianChartOptions = {
             label: {},
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     legend: {
         enabled: false,
     },

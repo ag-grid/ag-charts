@@ -59,10 +59,10 @@ const options: AgCartesianChartOptions<DataType> = {
         { type: 'line', marker: { size: 14 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'China' },
         { type: 'line', marker: { size: 14 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'India' },
     ],
-    axes: [
-        { type: 'number', position: 'left', title: { text: 'GDP (Trillions USD)' } },
-        { type: 'category', position: 'bottom', title: { text: 'Year' }, label: { autoRotate: false } },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left', title: { text: 'GDP (Trillions USD)' } },
+        x: { type: 'category', position: 'bottom', title: { text: 'Year' }, label: { autoRotate: false } },
+    },
 };
 
 AgCharts.create(options);

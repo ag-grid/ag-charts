@@ -58,7 +58,10 @@ This is changed via the `innerRadiusRatio` option on the Radius Number Axis.
 
 ```js format="snippet"
 {
-    axes: [{ type: 'angle-category' }, { type: 'radius-number', innerRadiusRatio: 0.2 }],
+    axes: {
+        angle: { type: 'angle-category' },
+        radius: { type: 'radius-number', innerRadiusRatio: 0.2 },
+    },
 }
 ```
 
@@ -75,10 +78,10 @@ The following options are used to control the padding between different elements
 
 ```js format="snippet"
 {
-    axes: [
-        { type: 'angle-category', groupPaddingInner: 0.5, paddingInner: 0.5 },
-        { type: 'radius-number', innerRadiusRatio: 0.2 },
-    ],
+    axes: {
+        angle: { type: 'angle-category', groupPaddingInner: 0.5, paddingInner: 0.5 },
+        radius: { type: 'radius-number', innerRadiusRatio: 0.2 },
+    },
 }
 ```
 
@@ -96,15 +99,15 @@ The following configuration changes the orientation of the Axis Labels to `paral
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             label: {
                 orientation: 'parallel',
             },
         },
-        { type: 'radius-number' },
-    ],
+        radius: { type: 'radius-number' },
+    },
 }
 ```
 
@@ -116,16 +119,16 @@ Customise the Radius Axis Line position via `positionAngle` and Axis Label rotat
 
 ```js format="snippet"
 {
-    axes: [
-        { type: 'angle-category' },
-        {
+    axes: {
+        angle: { type: 'angle-category' },
+        radius: {
             type: 'radius-number',
             positionAngle: 90,
             label: {
                 rotation: -90,
             },
         },
-    ],
+    },
 }
 ```
 

@@ -68,18 +68,18 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: { text: 'Revenue (millions)' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: { text: 'Employees (hundreds)' },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

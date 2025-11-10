@@ -42,10 +42,10 @@ To switch to the `circle` shape, use the following `axes` configuration:
 
 ```js format="snippet"
 {
-    axes: [
-        { type: 'angle-category', shape: 'circle' },
-        { type: 'radius-number', shape: 'circle' },
-    ],
+    axes: {
+        angle: { type: 'angle-category', shape: 'circle' },
+        radius: { type: 'radius-number', shape: 'circle' },
+    },
 }
 ```
 
@@ -63,15 +63,15 @@ The following configuration changes the orientation of the Axis Labels to `paral
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             label: {
                 orientation: 'parallel',
             },
         },
-        { type: 'radius-number' },
-    ],
+        radius: { type: 'radius-number' },
+    },
 }
 ```
 
@@ -83,16 +83,16 @@ Customise the Radius Axis Line position via `positionAngle` and Axis Label rotat
 
 ```js format="snippet"
 {
-    axes: [
-        { type: 'angle-category' },
-        {
+    axes: {
+        angle: { type: 'angle-category' },
+        radius: {
             type: 'radius-number',
             positionAngle: 72,
             label: {
                 rotation: -72,
             },
         },
-    ],
+    },
 }
 ```
 

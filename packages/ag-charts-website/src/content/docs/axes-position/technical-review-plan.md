@@ -78,11 +78,11 @@
 **Expected Configuration Pattern**:
 
 ```js
-axes: [
-    { type: 'category', position: 'bottom', title: { text: 'Quarter' } },
-    { type: 'number', position: 'left', keys: ['revenue'], title: { text: 'Revenue ($M)' } },
-    { type: 'number', position: 'right', keys: ['profitMargin'], title: { text: 'Profit Margin (%)' } },
-];
+axes: {
+    x: { type: 'category', position: 'bottom', title: { text: 'Quarter' } },
+    y: { type: 'number', position: 'left', title: { text: 'Revenue ($M)' } },
+    ySecondary: { type: 'number', position: 'right', title: { text: 'Profit Margin (%)' } },
+};
 ```
 
 **Expected Behaviors:**
@@ -116,10 +116,10 @@ axes: [
 **Expected Configuration Pattern**:
 
 ```js
-axes: [
-    { type: 'number', position: 'left', crossAt: { value: 0 } },
-    { type: 'number', position: 'bottom', crossAt: { value: 0 } },
-];
+axes: {
+    y: { type: 'number', position: 'left', crossAt: { value: 0 } },
+    x: { type: 'number', position: 'bottom', crossAt: { value: 0 } },
+};
 ```
 
 **Expected Behaviors:**

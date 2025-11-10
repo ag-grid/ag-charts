@@ -62,16 +62,16 @@ export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions>
 
     options: scatterSeriesOptionsDef,
     predictAxis: predictCartesianAxis,
-    defaultAxes: [
-        {
+    defaultAxes: {
+        x: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
             position: CARTESIAN_POSITION.BOTTOM,
         },
-        {
+        y: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
             position: CARTESIAN_POSITION.LEFT,
         },
-    ],
+    },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new ScatterSeries(ctx),

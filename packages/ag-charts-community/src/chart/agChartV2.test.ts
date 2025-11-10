@@ -9,6 +9,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    mapValues,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -20,7 +21,7 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     TRUNCATED_LEGEND_ITEMS: {
         options: examples.TRUNCATED_LEGEND_ITEMS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'number', y: 'category' },
             seriesTypes: repeat('bar', 4),
         }),
     },
@@ -163,7 +164,7 @@ describe('AgChartV2', () => {
                 { ...examples.GROUPED_BAR_CHART_EXAMPLE },
             ].map(({ axes, ...opts }, idx) => ({
                 ...opts,
-                axes: axes?.map((a) => adjustPosition(a, idx)),
+                axes: mapValues(axes ?? {}, (a) => adjustPosition(a, idx)),
             }));
             for (const opts of exampleCycle) {
                 prepareTestOptions(opts);

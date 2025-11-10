@@ -14,25 +14,20 @@ links the series to the axis.
 
 ```js format="snippet"
 {
-    axes: [
-        // x-axis
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        // primary y-axis
-        {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['male', 'female'],
         },
-        // secondary y-axis
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['exportedTonnes'],
         },
-    ],
+    },
 }
 ```
 

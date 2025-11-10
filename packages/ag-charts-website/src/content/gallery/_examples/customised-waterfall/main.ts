@@ -86,8 +86,8 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'right',
             type: 'number',
             title: {
@@ -138,14 +138,14 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                 formatter: ({ value }) => `${value > 0 ? '+' : ''}${value.toFixed(1)}%`,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'category',
             bandHighlight: {
                 enabled: true,
             },
         },
-    ],
+    },
     legend: {
         position: {
             floating: true,

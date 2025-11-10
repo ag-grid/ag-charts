@@ -1,6 +1,6 @@
 import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisThemeOptions } from 'ag-charts-community';
 
-const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Monthly average daily temperatures in the UK',
@@ -12,8 +12,8 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
             yKey: 'temp',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
             nice: false,
             position: 'bottom',
@@ -24,14 +24,14 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
                 autoRotate: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 format: '#{~f} °C',
             },
         },
-    ],
+    },
     data: [
         { date: new Date('2025-01-01'), temp: 4.2 },
         { date: new Date('2025-01-08'), temp: 4.9 },
@@ -58,16 +58,20 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
 const chart = AgCharts.create(options);
 
 function setOneWeekInterval() {
-    options.axes![0].interval!.step = { unit: 'day', step: 7, epoch: new Date('2025-01-01') };
+    (options.axes!.x as AgUnitTimeAxisThemeOptions).interval!.step = {
+        unit: 'day',
+        step: 7,
+        epoch: new Date('2025-01-01'),
+    };
     chart.update(options);
 }
 
 function setOneMonthInterval() {
-    options.axes![0].interval!.step = 'month';
+    (options.axes!.x as AgUnitTimeAxisThemeOptions).interval!.step = 'month';
     chart.update(options);
 }
 
 function setTwoMonthInterval() {
-    options.axes![0].interval!.step = { unit: 'month', step: 2 };
+    (options.axes!.x as AgUnitTimeAxisThemeOptions).interval!.step = { unit: 'month', step: 2 };
     chart.update(options);
 }

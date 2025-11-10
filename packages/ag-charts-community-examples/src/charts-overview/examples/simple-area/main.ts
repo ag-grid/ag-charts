@@ -53,15 +53,15 @@ const options: AgChartOptions = {
             yName: 'Tate St Ives',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             interval: {
                 step: { unit: 'year', step: 2 },
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -73,7 +73,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

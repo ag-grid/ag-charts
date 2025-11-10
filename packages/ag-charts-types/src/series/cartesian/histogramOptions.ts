@@ -9,7 +9,7 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgHistogramSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>, TContext>, 'yKey'>,
@@ -83,6 +83,7 @@ export interface AgHistogramSeriesOptionsNames {
 
 export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesOptionsNames,
         AgHistogramSeriesThemeableOptions<TDatum, TContext> {

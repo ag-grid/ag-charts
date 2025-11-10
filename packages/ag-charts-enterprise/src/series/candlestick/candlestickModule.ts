@@ -16,16 +16,16 @@ export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeries
     version: VERSION,
 
     options: candlestickSeriesOptionsDef,
-    defaultAxes: [
-        {
+    defaultAxes: {
+        y: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
             position: CARTESIAN_POSITION.LEFT,
         },
-        {
+        x: {
             type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME,
             position: CARTESIAN_POSITION.BOTTOM,
         },
-    ],
+    },
     themeTemplate: CANDLESTICK_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new CandlestickSeries(ctx),

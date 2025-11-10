@@ -86,8 +86,8 @@ const options: AgCartesianChartOptions = {
             yName: 'Landfill Gas',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'unit-time',
             interval: {
@@ -113,7 +113,7 @@ const options: AgCartesianChartOptions = {
                 strokeWidth: 0,
             },
         },
-        {
+        y: {
             position: 'right',
             type: 'number',
             title: {
@@ -131,7 +131,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
     formatter: {
         y: (params) => `${(params.value as number) / 1000}K`,
     },

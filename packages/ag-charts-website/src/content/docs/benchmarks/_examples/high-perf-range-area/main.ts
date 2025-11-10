@@ -27,10 +27,10 @@ const options: AgChartOptions = {
             marker: { enabled: false },
         },
     ],
-    axes: [
-        { type: 'number', position: 'left' },
-        { type: 'unit-time', position: 'bottom' },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left' },
+        x: { type: 'unit-time', position: 'bottom' },
+    },
 };
 /* @ag-options-end */
 

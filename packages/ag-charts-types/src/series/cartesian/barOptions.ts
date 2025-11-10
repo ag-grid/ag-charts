@@ -17,7 +17,7 @@ import type {
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgBarSeriesLabelPlacement =
     | 'inside-center'
@@ -131,6 +131,7 @@ export interface AgBarSeriesOptionsNames {
 
 export interface AgBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgBarSeriesOptionsKeys<TDatum>,
         AgBarSeriesOptionsNames,
         AgBarSeriesThemeableOptions<TDatum, TContext> {

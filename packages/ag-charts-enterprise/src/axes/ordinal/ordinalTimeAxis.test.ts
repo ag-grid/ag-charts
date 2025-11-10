@@ -12,6 +12,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    mapValues,
     reverseAxes,
     setupMockCanvas,
     setupMockConsole,
@@ -102,10 +103,10 @@ const DATA = [
 
 const BASIC_ORDINAL_TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA,
-    axes: [
-        { type: 'ordinal-time', position: 'bottom', interval: { step: { unit: 'day', step: 7 } } },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'ordinal-time', position: 'bottom', interval: { step: { unit: 'day', step: 7 } } },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             xKey: 'date',
@@ -119,8 +120,8 @@ const BASIC_ORDINAL_TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
 
 const ORDINAL_TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
     data: DATA,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             interval: {
@@ -131,11 +132,11 @@ const ORDINAL_TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             xKey: 'date',
@@ -149,19 +150,19 @@ const ORDINAL_TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
 
 const ORDINAL_TIME_AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
     data: DATA,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             interval: {
                 minSpacing: 300,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             xKey: 'date',
@@ -272,16 +273,16 @@ const ORDINAL_TIME_AXIS_TIME_STAMP_DATA: AgCartesianChartOptions = {
             open: 177.84,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             xKey: 'date',
@@ -309,16 +310,16 @@ const ORDINAL_TIME_AXIS_YEARLY_DATA: AgCartesianChartOptions = {
             y: 10,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'line',
@@ -363,16 +364,16 @@ const ORDINAL_TIME_AXIS_TIME_ZONE_OFFSET_DATA: AgCartesianChartOptions = {
             services: 36,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -430,7 +431,7 @@ const ORDINAL_TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA: AgCartesianChartOptions = 
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation } })),
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
     };
 }
 
@@ -452,7 +453,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 
@@ -470,7 +471,7 @@ function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axis.type === 'ordinal-time'
                     ? {
                           ...axis,
@@ -487,7 +488,7 @@ function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axis.type === 'ordinal-time'
                     ? {
                           ...axis,
@@ -511,13 +512,16 @@ const EXAMPLES: Record<string, TestCase> = {
         BASIC_ORDINAL_TIME_AXIS_EXAMPLE: {
             options: BASIC_ORDINAL_TIME_AXIS_EXAMPLE,
             compare: ['ordinal-time'],
-            assertions: cartesianChartAssertions({ axisTypes: ['ordinal-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'ordinal-time', y: 'number' },
+                seriesTypes: ['bar'],
+            }),
         },
         ORDINAL_TIME_AXIS_TICK_MIN_SPACING: {
             options: ORDINAL_TIME_AXIS_TICK_MIN_SPACING,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar'],
             }),
         },
@@ -525,7 +529,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_TICK_VALUES,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar'],
             }),
         },
@@ -533,7 +537,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_TIME_STAMP_DATA,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar'],
             }),
         },
@@ -541,7 +545,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_YEARLY_DATA,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['line'],
             }),
         },
@@ -549,7 +553,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_TIME_ZONE_OFFSET_DATA,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar', 'bar'],
             }),
         },
@@ -557,7 +561,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: ORDINAL_TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA,
             compare: ['ordinal-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['ordinal-time', 'number'],
+                axisTypes: { x: 'ordinal-time', y: 'number' },
                 seriesTypes: ['bar', 'bar'],
             }),
         },
@@ -660,14 +664,14 @@ describe('Ordinal Time Axis Examples', () => {
                         marker: { enabled: false },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'left' },
-                    {
+                axes: {
+                    y: { type: 'number', position: 'left' },
+                    x: {
                         type: 'ordinal-time',
                         position: 'bottom',
                         parentLevel: { enabled: true },
                     },
-                ],
+                },
             });
 
             const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;

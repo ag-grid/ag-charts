@@ -40,22 +40,22 @@ const options: AgChartOptions = {
             yKey: 'magnitude',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'time',
             label: {
                 format: '%d/%m',
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
                 text: 'Magnitude',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

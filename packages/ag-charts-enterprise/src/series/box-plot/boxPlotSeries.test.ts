@@ -89,16 +89,16 @@ describe('BoxPlotSeries', () => {
         const options: AgChartOptions = {
             ...BOX_PLOT_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -108,17 +108,17 @@ describe('BoxPlotSeries', () => {
         const options: AgChartOptions = {
             ...BOX_PLOT_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'time',
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -128,16 +128,16 @@ describe('BoxPlotSeries', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(BOX_PLOT_BAR_OPTIONS, 'horizontal'),
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -147,17 +147,17 @@ describe('BoxPlotSeries', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(BOX_PLOT_BAR_OPTIONS, 'horizontal'),
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'time',
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -166,18 +166,18 @@ describe('BoxPlotSeries', () => {
     it(`should render a box-plot chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...BOX_PLOT_BAR_OPTIONS,
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                     reverse: true,
                 },
-                {
+                y: {
                     type: 'number',
                     position: 'left',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -186,18 +186,18 @@ describe('BoxPlotSeries', () => {
     it(`should render a horizontal box-plot chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...switchSeriesType(BOX_PLOT_BAR_OPTIONS, 'horizontal'),
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'category',
                     position: 'left',
                     reverse: true,
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -207,17 +207,17 @@ describe('BoxPlotSeries', () => {
         const options: AgChartOptions = {
             ...BOX_PLOT_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -227,18 +227,18 @@ describe('BoxPlotSeries', () => {
         const options: AgChartOptions = {
             ...BOX_PLOT_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'time',
                     nice: false,
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -248,17 +248,17 @@ describe('BoxPlotSeries', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(BOX_PLOT_BAR_OPTIONS, 'horizontal'),
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'unit-time',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -268,18 +268,18 @@ describe('BoxPlotSeries', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(BOX_PLOT_BAR_OPTIONS, 'horizontal'),
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'time',
                     nice: false,
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));

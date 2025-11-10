@@ -123,6 +123,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksTM',
             yName: 'Number of Looks - Transparent Mirror',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Number of Looks - Transparent Mirror',
             stackGroup: 'NOL',
         },
@@ -131,15 +132,15 @@ const options: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksYM',
             yName: 'Number of Looks - Yellow Mirror',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Number of Looks - Yellow Mirror',
             stackGroup: 'NOL',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'top',
             type: 'category',
-            keys: ['dolphin'],
             title: {
                 text: 'Dolphin',
             },
@@ -158,23 +159,21 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
-            keys: ['interactionDurationTM', 'interactionDurationYM'],
             title: {
                 text: 'Duration of Interaction (seconds)',
             },
         },
-        {
+        ySecondary: {
             position: 'right',
             type: 'number',
             title: {
-                text: 'Numer of Looks',
+                text: 'Number of Looks',
             },
-            keys: ['numberOfLooksTM', 'numberOfLooksYM'],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

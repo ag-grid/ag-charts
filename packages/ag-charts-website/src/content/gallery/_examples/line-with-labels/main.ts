@@ -45,8 +45,8 @@ const options: AgChartOptions = {
             strokeWidth: 2,
         },
     })),
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             line: {
@@ -56,7 +56,7 @@ const options: AgChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -93,7 +93,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     formatter: {
         y(params) {
             const value = params.value as number;

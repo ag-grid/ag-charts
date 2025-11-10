@@ -673,12 +673,22 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (xValue == null) return;
 
+        const label = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
+            xValue,
+            datum,
+            stageKey,
+            'x',
+            dataModel.getDomain(this, 'xValue', 'value', processedData),
+            this.properties.stageLabel,
+            { datum, value: xValue, stageKey, valueKey }
+        );
+
         const format = this.getItemStyle({ datumIndex, datum }, false);
         return this.formatTooltipWithContext(
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label: toPlainText(xValue), value: toPlainText(yValue) }],
+                data: [{ label: toPlainText(label), value: toPlainText(yValue) }],
             },
             {
                 seriesId,

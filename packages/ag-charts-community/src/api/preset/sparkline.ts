@@ -370,22 +370,24 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     chartOpts.data = data;
     chartOpts.series = [seriesOptions];
 
-    const swapAxes = seriesOptions.type !== 'bar' || seriesOptions.direction !== 'horizontal';
-    const [xAxisPosition, yAxisPosition] = swapAxes ? (['bottom', 'left'] as const) : (['left', 'bottom'] as const);
+    const swapAxes = seriesOptions.type === 'bar' && seriesOptions.direction === 'horizontal';
+    const [crossAxisPosition, numberAxisPosition] = swapAxes
+        ? (['left', 'bottom'] as const)
+        : (['bottom', 'left'] as const);
 
-    const xAxis: AgCartesianAxisOptions = {
+    const crossAxis: AgCartesianAxisOptions = {
         ...axisPreset(axis),
-        position: xAxisPosition,
+        position: crossAxisPosition,
         ...pickProps<Pick<AgCartesianAxisOptions, 'crosshair'>>(opts, { crosshair }),
     };
-    const yAxis: AgCartesianAxisOptions = {
+    const numberAxis: AgCartesianAxisOptions = {
         type: 'number',
         gridLine: gridLinePreset(axis, false, opts),
-        position: yAxisPosition,
+        position: numberAxisPosition,
         ...pickProps<Pick<AgNumberAxisOptions, 'min' | 'max'>>(opts, { min, max }),
     };
 
-    chartOpts.axes = swapAxes ? [yAxis, xAxis] : [xAxis, yAxis];
+    chartOpts.axes = swapAxes ? { x: numberAxis, y: crossAxis } : { x: crossAxis, y: numberAxis };
 
     return chartOpts;
 }

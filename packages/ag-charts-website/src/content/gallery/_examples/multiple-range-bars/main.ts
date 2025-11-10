@@ -53,8 +53,8 @@ const options: AgCartesianChartOptions = {
             placement: ['right', 'left', 'top', 'bottom'],
         },
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             paddingInner: 0.5,
@@ -86,7 +86,7 @@ const options: AgCartesianChartOptions = {
                 size: 6,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             gridLine: {
@@ -146,7 +146,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         spacing: 40,
         item: {

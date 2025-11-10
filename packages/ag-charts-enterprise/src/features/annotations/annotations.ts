@@ -727,13 +727,8 @@ export class Annotations extends AbstractModuleInstance {
         // clip annotations to series padded rect
         this.container.setClipRect(seriesRect);
 
-        for (const axisLayout of event.axes ?? []) {
-            if (axisLayout.direction === _ModuleSupport.ChartAxisDirection.X) {
-                this.xAxis = this.getAxis(axisLayout, seriesRect, this.xAxis?.button);
-            } else {
-                this.yAxis = this.getAxis(axisLayout, seriesRect, this.yAxis?.button);
-            }
-        }
+        this.xAxis = this.getAxis(event.axes[ChartAxisDirection.X], seriesRect, this.xAxis?.button);
+        this.yAxis = this.getAxis(event.axes[ChartAxisDirection.Y], seriesRect, this.yAxis?.button);
 
         if (this.showAnnotations()) {
             this.animateAnnotations({ from: 0, to: 1, phase: 'trailing' });

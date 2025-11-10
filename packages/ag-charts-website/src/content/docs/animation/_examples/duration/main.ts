@@ -59,12 +59,12 @@ const barOptions: AgCartesianChartOptions<DataType> = {
             tooltip,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
@@ -73,7 +73,7 @@ const barOptions: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 const lineOptions: AgCartesianChartOptions<DataType> = {
@@ -114,12 +114,12 @@ const lineOptions: AgCartesianChartOptions<DataType> = {
             tooltip,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
@@ -128,7 +128,7 @@ const lineOptions: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 const areaOptions: AgCartesianChartOptions<DataType> = {
@@ -174,12 +174,12 @@ const areaOptions: AgCartesianChartOptions<DataType> = {
             tooltip,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
@@ -188,7 +188,7 @@ const areaOptions: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 const donutOptions: AgPolarChartOptions<DataType> = {

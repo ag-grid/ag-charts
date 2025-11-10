@@ -87,8 +87,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             paddingInner: 0.4,
@@ -96,7 +96,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             gridLine: {
@@ -130,7 +130,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
         },
-    ],
+    },
     seriesArea: {
         padding: {
             right: 25,

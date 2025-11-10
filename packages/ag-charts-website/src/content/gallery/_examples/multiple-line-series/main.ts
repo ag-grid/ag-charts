@@ -85,8 +85,8 @@ const options: AgChartOptions<DataType> = {
             yName: 'With Coworkers',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
@@ -107,7 +107,7 @@ const options: AgChartOptions<DataType> = {
                 ],
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -128,7 +128,7 @@ const options: AgChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     formatter: {
         y: (params) => {
             const value = params.value as number;

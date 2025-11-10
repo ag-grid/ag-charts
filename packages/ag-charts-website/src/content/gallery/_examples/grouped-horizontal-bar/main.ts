@@ -50,8 +50,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             line: {
@@ -128,7 +128,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
@@ -153,7 +153,7 @@ const options: AgChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

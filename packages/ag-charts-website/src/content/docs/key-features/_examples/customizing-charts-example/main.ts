@@ -74,10 +74,10 @@ const options: AgChartOptions = {
             fill: { type: 'pattern' },
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom', paddingOuter: 0 },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom', paddingOuter: 0 },
+        y: { type: 'number', position: 'left' },
+    },
     legend: {
         fill: '#f6f6f6',
         border: {

@@ -9,6 +9,8 @@ export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions
     type: required(constant('nightingale')),
     angleKey: required(string),
     radiusKey: required(string),
+    angleKeyAxis: string,
+    radiusKeyAxis: string,
     angleName: string,
     radiusName: string,
     legendItemName: string,

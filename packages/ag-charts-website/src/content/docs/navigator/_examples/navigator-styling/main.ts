@@ -43,15 +43,15 @@ const options: AgChartOptions = {
             stroke: '#5a7088',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             interval: {
                 maxSpacing: 200,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
@@ -60,7 +60,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
     legend: {
         enabled: false,
     },

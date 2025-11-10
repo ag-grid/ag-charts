@@ -47,6 +47,8 @@ export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = 
     type: required(constant('histogram')),
     xKey: required(string),
     yKey: string,
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
 };
