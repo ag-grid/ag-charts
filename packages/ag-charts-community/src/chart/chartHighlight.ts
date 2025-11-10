@@ -7,5 +7,5 @@ export class ChartHighlight extends BaseProperties {
     public range: 'tooltip' | 'node' = 'tooltip';
 
     @Property
-    drawingMode: AgDrawingMode = 'overlay';
+    drawingMode: AgDrawingMode = 'cutout';
 }
