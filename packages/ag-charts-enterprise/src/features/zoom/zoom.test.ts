@@ -124,6 +124,8 @@ describe('Zoom', () => {
         }
     });
 
+    // Set the customSnapshotIdentifier string to check for behavioural equivalence
+    // E.g. double-clicking (mouse) or double-tapping (touch) should generate the same 'reset' image-snapshot.
     const compare = async (customSnapshotIdentifier?: string) => {
         await waitForChartStability(chart);
 
