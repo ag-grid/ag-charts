@@ -49,6 +49,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         eventsCleanup: CleanupRegistry
     ) {
         eventsCleanup.register(
+            eventsHub.on('zoom:save-memento', (e) => this.onSaveMemento(e)),
             eventsHub.on('zoom:load-memento', (e) => this.onLoadMemento(e)),
             eventsHub.on('zoom:change-request', (e) => this.onChangeRequest(e))
         );
@@ -80,6 +81,10 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
                 event.constrainChanges(constrainedZoom);
             }
         }
+    }
+
+    private onSaveMemento(event: _ModuleSupport.ZoomSaveMementoEvent) {
+        event.memento.autoScaledAxes = this.enabled ? [] : ['y'];
     }
 
     private onLoadMemento(event: _ModuleSupport.ZoomLoadMementoEvent) {

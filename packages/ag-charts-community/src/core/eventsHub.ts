@@ -61,6 +61,7 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
+    'zoom:save-memento': ZoomSaveMementoEvent;
     'zoom:load-memento': ZoomLoadMementoEvent;
     /**
      * `change-request` means that something has requested the `ZoomManager` to update the zoom state in some way. The
@@ -144,6 +145,12 @@ export type ZoomMemento = {
     ratioY?: AgZoomRatio;
     autoScaledAxes?: AgAutoScaledAxes;
 };
+
+export interface ZoomSaveMementoEvent {
+    // Note: `memento` is intentionally mutable. At the time of writing, only one feature (autoScaling) writes to the
+    // memento state.
+    memento: ZoomMemento;
+}
 
 export interface ZoomLoadMementoEvent {
     // Note: `zoom` is intentionally mutable. At the time of writing, only one feature (autoScaling) depends on zoom

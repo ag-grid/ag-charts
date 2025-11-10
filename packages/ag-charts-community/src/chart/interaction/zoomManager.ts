@@ -13,7 +13,7 @@ import {
     isObject,
     validate,
 } from 'ag-charts-core';
-import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
+import type { AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type {
     AxisZoomState,
@@ -232,8 +232,8 @@ export class ZoomManager extends BaseManager {
         }
     }
 
-    public createMemento() {
-        return this.getMementoRanges() as ZoomMemento;
+    public createMemento(): ZoomMemento {
+        return this.getMementoRanges();
     }
 
     public guardMemento(blob: unknown, messages: string[]): blob is ZoomMemento | undefined {
@@ -554,10 +554,6 @@ export class ZoomManager extends BaseManager {
 
     private getMementoRanges() {
         const zoom = this.getDefinedZoom();
-        let autoScaledAxes: AgAutoScaledAxes | undefined;
-        if (this.autoScaleYAxis.enabled) {
-            autoScaledAxes = this.autoScaleYAxis.manuallyAdjusted ? [] : ['y'];
-        }
         const memento: RequireOptional<ZoomMemento> & {
             ratioX: Required<AgZoomRatio>;
             ratioY: Required<AgZoomRatio>;
@@ -566,8 +562,10 @@ export class ZoomManager extends BaseManager {
             rangeY: this.getRangeDirection(zoom.y, ChartAxisDirection.Y),
             ratioX: { start: zoom.x.min, end: zoom.x.max },
             ratioY: { start: zoom.y.min, end: zoom.y.max },
-            autoScaledAxes,
+            autoScaledAxes: undefined,
         };
+
+        this.eventsHub.emit('zoom:save-memento', { memento });
         return memento;
     }
 
