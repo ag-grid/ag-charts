@@ -6,8 +6,8 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Point, RequireOptional, CallbackParamRules } from 'ag-charts-core';
-import { findMinMax, mergeDefaults} from 'ag-charts-core';
+import type { CallbackParamRules, Point, RequireOptional } from 'ag-charts-core';
+import { findMinMax, mergeDefaults } from 'ag-charts-core';
 
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';

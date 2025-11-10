@@ -6,7 +6,15 @@ import type {
     AgContextMenuItemShowOn,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, Logger, clamp, createElement, toPlainText, Property, callWithContext} from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    Logger,
+    Property,
+    callWithContext,
+    clamp,
+    createElement,
+    toPlainText,
+} from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';

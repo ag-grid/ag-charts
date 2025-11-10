@@ -1,5 +1,5 @@
 import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, required, string, without} from 'ag-charts-core';
+import { type OptionsDefs, constant, required, string, without } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, sunburstSeriesThemeableOptionsDef } = _ModuleSupport;
 

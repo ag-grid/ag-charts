@@ -1,9 +1,9 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { PickNodeDatumResult } from 'ag-charts-core';
+import { mergeDefaults, partialAssign } from 'ag-charts-core';
 import type { HighlightState } from 'ag-charts-types';
 
-import { mergeDefaults, partialAssign } from 'ag-charts-core';
 const { nearestSquared, nearestSquaredInContainer, BBox } = _ModuleSupport;
 type NearestResult<T> = _ModuleSupport.NearestResult<T>;
 

@@ -6,10 +6,10 @@ import {
     cachedTextMeasurer,
     calcLineHeight,
     isBetweenAngles,
+    mergeDefaults,
     normalizeAngle360,
     toPlainText,
     wrapText,
-    mergeDefaults,
 } from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
 

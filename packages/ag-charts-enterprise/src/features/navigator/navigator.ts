@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type BoxBounds, Logger, clamp, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, type BoxBounds, Logger, Property, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';

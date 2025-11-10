@@ -7,9 +7,9 @@ import {
     createElementId,
     entries,
     getWindow,
+    mapValues,
     setAttribute,
     setAttributes,
-    mapValues,
 } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 

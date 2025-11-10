@@ -9,17 +9,11 @@ import {
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Property, BaseProperties} from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { BaseProperties, Property } from 'ag-charts-core';
 
-const {
-    FillGradientDefaults,
-    FillPatternDefaults,
-    FillImageDefaults,
-    makeSeriesTooltip,
-    SeriesProperties,
-    Label,
-} = _ModuleSupport;
+const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, makeSeriesTooltip, SeriesProperties, Label } =
+    _ModuleSupport;
 
 class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
     @Property

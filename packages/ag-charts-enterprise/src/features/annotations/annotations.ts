@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
     _Widget,
 } from 'ag-charts-community';
-import { AbstractModuleInstance, type Point, Vec2, isValidDate, Property, PropertiesArray} from 'ag-charts-core';
+import { AbstractModuleInstance, type Point, PropertiesArray, Property, Vec2, isValidDate } from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';

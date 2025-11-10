@@ -8,7 +8,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, mergeDefaults} from 'ag-charts-core';
+import { Logger, mergeDefaults } from 'ag-charts-core';
 
 import {
     CLOSE,

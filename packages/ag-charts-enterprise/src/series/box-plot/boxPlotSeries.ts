@@ -5,14 +5,14 @@ import {
     type AgBoxPlotSeriesStylerParams,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DeepRequired, CallbackParamRules } from 'ag-charts-core';
+import type { CallbackParamRules, DeepRequired } from 'ag-charts-core';
+import { deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
 import { BoxPlotSeriesProperties } from './boxPlotSeriesProperties';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
-import { deepClone, mergeDefaults} from 'ag-charts-core';
 const {
     fixNumericExtent,
     keyProperty,

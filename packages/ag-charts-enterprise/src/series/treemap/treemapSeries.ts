@@ -16,9 +16,9 @@ import {
     cachedTextMeasurer,
     calcLineHeight,
     isNumberEqual,
+    mergeDefaults,
     toPlainText,
     wrapText,
-    mergeDefaults,
 } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';

@@ -8,8 +8,15 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AreExact, ConstructorReturnType, DeepRequired, Point, RequireOptional, CallbackParamRules } from 'ag-charts-core';
-import { extent, findMinMax, mergeDefaults} from 'ag-charts-core';
+import type {
+    AreExact,
+    CallbackParamRules,
+    ConstructorReturnType,
+    DeepRequired,
+    Point,
+    RequireOptional,
+} from 'ag-charts-core';
+import { extent, findMinMax, mergeDefaults } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';

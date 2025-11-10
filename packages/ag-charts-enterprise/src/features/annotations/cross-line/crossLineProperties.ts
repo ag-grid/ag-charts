@@ -1,10 +1,9 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { isObject, Property, BaseProperties} from 'ag-charts-core';
+import { BaseProperties, Property, isObject } from 'ag-charts-core';
 
 import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
 import { AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
-
 
 export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineStyle(BaseProperties)))))) {
     readonly direction = 'horizontal';

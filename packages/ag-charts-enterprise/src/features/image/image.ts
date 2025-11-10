@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { createElement, Property, BaseProperties} from 'ag-charts-core';
+import { BaseProperties, Property, createElement } from 'ag-charts-core';
 
 const { ObserveChanges, ProxyProperty, calculatePlacement } = _ModuleSupport;
 export class Image extends BaseProperties {

@@ -6,8 +6,8 @@ import {
     cachedTextMeasurer,
     isArray,
     measureTextSegments,
-    toPlainText,
     mergeDefaults,
+    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgMapShapeSeriesLabelFormatterParams,

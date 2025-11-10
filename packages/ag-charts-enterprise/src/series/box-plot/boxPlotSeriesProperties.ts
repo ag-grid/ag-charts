@@ -7,8 +7,8 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Property, BaseProperties, mergeDefaults} from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { BaseProperties, Property, mergeDefaults } from 'ag-charts-core';
 
 const { AbstractBarSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 class BoxPlotSeriesCap extends BaseProperties {

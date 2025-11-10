@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AxisID, createId, Property } from 'ag-charts-core';
+import { type AxisID, Property, createId } from 'ag-charts-core';
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
 const { Chart, MercatorScale, ChartAxisDirection } = _ModuleSupport;

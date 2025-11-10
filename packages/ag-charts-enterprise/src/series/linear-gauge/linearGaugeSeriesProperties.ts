@@ -1,6 +1,6 @@
 import { type RichFormatter, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import { Property, BaseProperties, PropertiesArray} from 'ag-charts-core';
 import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
+import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
@@ -19,13 +19,7 @@ import type {
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const {
-    makeSeriesTooltip,
-    SeriesProperties,
-    Label,
-    AxisLabel,
-    getColorStops,
-} = _ModuleSupport;
+const { makeSeriesTooltip, SeriesProperties, Label, AxisLabel, getColorStops } = _ModuleSupport;
 
 export enum NodeDataType {
     Node,

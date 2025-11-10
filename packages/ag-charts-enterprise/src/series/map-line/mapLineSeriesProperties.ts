@@ -8,8 +8,8 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {
     readonly datumIndex: number;

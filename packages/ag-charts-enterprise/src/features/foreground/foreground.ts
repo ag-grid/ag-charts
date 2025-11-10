@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 import { Image } from '../image/image';
 
 const { ZIndexMap, ActionOnSet, ProxyPropertyOnWrite } = _ModuleSupport;

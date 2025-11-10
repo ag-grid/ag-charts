@@ -1,7 +1,21 @@
-import { Debug, type DeepPartial, type LicenseManager, ModuleRegistry, deepClone, deepFreeze, enterpriseRegistry, jsonWalk } from 'ag-charts-core';
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeOptions, AgSparklineOptions, DatumDefault } from 'ag-charts-types';
-
-
+import {
+    Debug,
+    type DeepPartial,
+    type LicenseManager,
+    ModuleRegistry,
+    deepClone,
+    deepFreeze,
+    enterpriseRegistry,
+    jsonWalk,
+} from 'ag-charts-core';
+import type {
+    AgChartInstance,
+    AgChartOptions,
+    AgFinancialChartOptions,
+    AgGaugeOptions,
+    AgSparklineOptions,
+    DatumDefault,
+} from 'ag-charts-types';
 
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
@@ -11,7 +25,6 @@ import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverri
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
-
 
 const debug = Debug.create(true, 'opts');
 

@@ -1,6 +1,7 @@
 import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    Property,
     type Scale,
     type ScaleTickParams,
     type WrapOptions,
@@ -10,7 +11,6 @@ import {
     normalizeAngle360Inclusive,
     toRadians,
     wrapTextOrSegments,
-    Property,
 } from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';

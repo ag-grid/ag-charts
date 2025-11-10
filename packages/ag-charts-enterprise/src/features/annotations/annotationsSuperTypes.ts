@@ -1,5 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type { Point } from 'ag-charts-core';
+import { BaseProperties } from 'ag-charts-core';
 
 import type { AnnotationContext, AnnotationType, Constructor, DataPoint } from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
@@ -35,7 +36,6 @@ import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotation
 import type { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
-import { BaseProperties } from 'ag-charts-core';
 type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;

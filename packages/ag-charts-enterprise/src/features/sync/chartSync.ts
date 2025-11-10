@@ -1,19 +1,19 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     AsyncAwaitQueue,
+    BaseProperties,
     Debug,
     Logger,
     type ModuleInstance,
+    Property,
     type Scale,
     arraysEqual,
     findMinMax,
     isDate,
     isDefined,
     isFiniteNumber,
-    unique,
-    Property,
-    BaseProperties,
     isObjectWithStringProperty,
+    unique,
 } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';

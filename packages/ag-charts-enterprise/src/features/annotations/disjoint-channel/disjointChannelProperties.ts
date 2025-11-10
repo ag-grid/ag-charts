@@ -1,5 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { Logger, isObject, Property, BaseProperties} from 'ag-charts-core';
+import { BaseProperties, Logger, Property, isObject } from 'ag-charts-core';
 
 import {
     Annotation,
@@ -13,7 +13,6 @@ import {
 } from '../annotationProperties';
 import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
-
 
 export class DisjointChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))

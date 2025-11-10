@@ -1,11 +1,11 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import {
+    Property,
     type ScaleTickParams,
     angleBetween,
     findMinMax,
     isNumberEqual,
     normalisedExtentWithMetadata,
-    Property,
 } from 'ag-charts-core';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';

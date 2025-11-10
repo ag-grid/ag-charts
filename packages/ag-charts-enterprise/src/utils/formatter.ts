@@ -1,7 +1,6 @@
 import type { Formatter, RichFormatter, TextOrSegments } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { callWithContext } from 'ag-charts-core';
+
 interface Ctx {
     chartService: { context?: unknown };
 }

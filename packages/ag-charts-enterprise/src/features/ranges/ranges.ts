@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, Property, PropertiesArray} from 'ag-charts-core';
+import { AbstractModuleInstance, PropertiesArray, Property } from 'ag-charts-core';
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 

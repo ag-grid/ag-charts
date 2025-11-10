@@ -9,8 +9,8 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 const { SeriesProperties, makeSeriesTooltip, Label, DropShadow } = _ModuleSupport;
 class PyramidSeriesLabel extends Label<AgPyramidSeriesLabelFormatterParams> {}
 

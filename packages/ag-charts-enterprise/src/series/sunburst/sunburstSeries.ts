@@ -3,9 +3,9 @@ import {
     type InternalAgColorType,
     type Point,
     type RequireOptional,
+    mergeDefaults,
     normalizeAngle360,
     toPlainText,
-    mergeDefaults,
 } from 'ag-charts-core';
 import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 

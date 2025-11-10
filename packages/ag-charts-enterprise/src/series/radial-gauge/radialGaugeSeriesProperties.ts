@@ -1,6 +1,13 @@
 import { type RichFormatter, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
-import { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, Property, BaseProperties, PropertiesArray} from 'ag-charts-core';
+import {
+    BaseProperties,
+    PropertiesArray,
+    Property,
+    normalizeAngle360,
+    normalizeAngle360Inclusive,
+    toDegrees,
+} from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,

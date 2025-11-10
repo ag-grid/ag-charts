@@ -1,6 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 import { LabelTextProperties } from '../annotationProperties';
 import type { AnnotationOptionsColorPickerType, FibonacciBands } from '../annotationTypes';
 import { LineTypeProperties } from '../line/lineProperties';

@@ -7,8 +7,8 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 const { HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip } = _ModuleSupport;

@@ -1,5 +1,5 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, createId, toPlainText, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, Property, createId, toPlainText } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';

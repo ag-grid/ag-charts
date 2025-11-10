@@ -1,5 +1,5 @@
 import { type AgConeFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, required, string, without} from 'ag-charts-core';
+import { type OptionsDefs, constant, required, string, without } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, coneFunnelSeriesThemeableOptionsDef } = _ModuleSupport;
 

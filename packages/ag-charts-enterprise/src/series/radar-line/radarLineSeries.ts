@@ -6,7 +6,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { RequireOptional, CallbackParamRules } from 'ag-charts-core';
+import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
 
 import { RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';

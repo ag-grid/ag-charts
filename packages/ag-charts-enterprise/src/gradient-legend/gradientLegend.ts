@@ -9,7 +9,8 @@ import { BaseProperties, CleanupRegistry, Property, createId } from 'ag-charts-c
 
 import { AxisTicks } from './axisTicks';
 
-const { ZIndexMap, ProxyProperty, LayoutElement, Group, Rect, Marker, TranslatableGroup, BBox, expandLegendPosition } = _ModuleSupport;
+const { ZIndexMap, ProxyProperty, LayoutElement, Group, Rect, Marker, TranslatableGroup, BBox, expandLegendPosition } =
+    _ModuleSupport;
 class GradientBar extends BaseProperties {
     @Property
     thickness = 16;

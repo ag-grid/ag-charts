@@ -4,7 +4,6 @@ import { type AgChartInstance, type AgChartOptions } from 'ag-charts-types';
 
 import { expectWarningMessages, resetMockConsole, waitForChartStability } from './utils';
 
-
 type TSeries = {
     legendItemName?: string;
 };

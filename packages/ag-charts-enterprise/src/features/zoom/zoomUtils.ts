@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, clamp, isNumberEqual, jsonDiff} from 'ag-charts-core';
+import { type BoxBounds, clamp, isNumberEqual, jsonDiff } from 'ag-charts-core';
 
 import type { DefinedZoomState } from './zoomTypes';
 

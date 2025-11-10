@@ -1,6 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 import { Font, Label, Localisable } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
 import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';

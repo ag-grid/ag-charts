@@ -1,5 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { isObject, Property } from 'ag-charts-core';
+import { Property, isObject } from 'ag-charts-core';
 
 import { Cappable, Extendable, LineStyle, LineTextProperties, Localisable, Stroke } from '../annotationProperties';
 import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';

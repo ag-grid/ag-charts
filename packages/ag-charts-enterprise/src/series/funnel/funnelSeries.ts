@@ -5,6 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
+import { mergeDefaults } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -15,7 +16,6 @@ import {
 } from './baseFunnelSeries';
 import { FunnelProperties } from './funnelProperties';
 
-import { mergeDefaults } from 'ag-charts-core';
 const {
     ChartAxisDirection,
     resetBarSelectionsFn,

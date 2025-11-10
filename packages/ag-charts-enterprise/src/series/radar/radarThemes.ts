@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { ExtensibleTheme } from 'ag-charts-types';
 import { mergeDefaults } from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE },

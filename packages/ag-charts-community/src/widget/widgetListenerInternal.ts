@@ -4,7 +4,6 @@ import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mo
 import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
 import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
 
-
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
 type EventHandler<T, K extends EventType = EventType> = (event: EventMap[K], current: T) => unknown;

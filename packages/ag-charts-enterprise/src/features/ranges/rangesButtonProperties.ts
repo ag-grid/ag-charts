@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 const { ToolbarButtonProperties } = _ModuleSupport;
 type RangesButtonValue =
     | number

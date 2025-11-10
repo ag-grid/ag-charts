@@ -14,8 +14,8 @@ import {
     findRangeExtent,
     isArray,
     measureTextSegments,
-    toRadians,
     mergeDefaults,
+    toRadians,
 } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';

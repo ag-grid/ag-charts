@@ -1,7 +1,6 @@
 import type { AgBaseRadialColumnSeriesOptions } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 import { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProperties';
 
 export class RadialColumnSeriesProperties<

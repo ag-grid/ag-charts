@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type InternalAgColorType, createId, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, type InternalAgColorType, Property, createId } from 'ag-charts-core';
 
 const {
     Range,

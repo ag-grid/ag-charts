@@ -7,7 +7,15 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, TextMeasurer, cachedTextMeasurer, calcLineHeight, toPlainText, wrapText, mergeDefaults} from 'ag-charts-core';
+import {
+    Logger,
+    TextMeasurer,
+    cachedTextMeasurer,
+    calcLineHeight,
+    mergeDefaults,
+    toPlainText,
+    wrapText,
+} from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -26,16 +34,8 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const {
-    Transformable,
-    applyShapeStyle,
-    SeriesNodePickMode,
-    createDatumId,
-    getShapeStyle,
-    getLabelStyles,
-    Rect,
-    BBox,
-} = _ModuleSupport;
+const { Transformable, applyShapeStyle, SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles, Rect, BBox } =
+    _ModuleSupport;
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;

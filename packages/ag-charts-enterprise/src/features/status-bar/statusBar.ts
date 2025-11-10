@@ -1,5 +1,5 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, cachedTextMeasurer, calcLineHeight, Property, BaseProperties} from 'ag-charts-core';
+import { AbstractModuleInstance, BaseProperties, Property, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 
 const { ZIndexMap, LayoutElement, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
 enum LabelConfiguration {

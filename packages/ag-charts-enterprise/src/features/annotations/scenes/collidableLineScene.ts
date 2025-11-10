@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Vec2, jsonDiff} from 'ag-charts-core';
+import { Vec2, jsonDiff } from 'ag-charts-core';
 
 type ShapeClipMask = { x: number; y: number; radius: number };
 

@@ -1,6 +1,6 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 import { RadiusAxis } from '../radius/radiusAxis';
 
 const { ProxyPropertyOnWrite, CategoryScale } = _ModuleSupport;

@@ -16,11 +16,11 @@ import {
     isArray,
     isBetweenAngles,
     measureTextSegments,
+    mergeDefaults,
     normalizeAngle360,
     normalizeAngle360Inclusive,
     toPlainText,
     toRadians,
-    mergeDefaults,
 } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';

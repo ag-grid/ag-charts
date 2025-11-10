@@ -9,7 +9,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgColorType, Logger, type Point, extent, toPlainText, mergeDefaults} from 'ag-charts-core';
+import { type InternalAgColorType, Logger, type Point, extent, mergeDefaults, toPlainText } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';

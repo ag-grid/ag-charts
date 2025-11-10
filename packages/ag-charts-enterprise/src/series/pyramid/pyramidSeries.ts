@@ -11,8 +11,8 @@ import {
     cachedTextMeasurer,
     isArray,
     measureTextSegments,
-    toPlainText,
     mergeDefaults,
+    toPlainText,
 } from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';

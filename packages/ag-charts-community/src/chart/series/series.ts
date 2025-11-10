@@ -1,9 +1,41 @@
-import { type Callback, type CallbackParam, CleanupRegistry, EventEmitter, type InternalAgColorType, LRUCache, Logger, type Point, type RequireOptional, type SeriesPluginModuleInstance, callWithContext, createId, isEmptyObject, jsonDiff, mergeDefaults, without } from 'ag-charts-core';
-import type { AgChartLabelFormatterParams, AgColorType, AgInitialStateLegendOptions, AgSeriesMarkerStyle, AgSeriesTooltipRendererParams, AgSeriesVisibilityChange, FormatterParams, FormatterPropertyType, HighlightState as PublicHighlightState, SeriesType, TextOrSegments } from 'ag-charts-types';
+import {
+    type Callback,
+    type CallbackParam,
+    CleanupRegistry,
+    EventEmitter,
+    type InternalAgColorType,
+    LRUCache,
+    Logger,
+    type Point,
+    type RequireOptional,
+    type SeriesPluginModuleInstance,
+    callWithContext,
+    createId,
+    isEmptyObject,
+    jsonDiff,
+    mergeDefaults,
+    without,
+} from 'ag-charts-core';
+import type {
+    AgChartLabelFormatterParams,
+    AgColorType,
+    AgInitialStateLegendOptions,
+    AgSeriesMarkerStyle,
+    AgSeriesTooltipRendererParams,
+    AgSeriesVisibilityChange,
+    FormatterParams,
+    FormatterPropertyType,
+    HighlightState as PublicHighlightState,
+    SeriesType,
+    TextOrSegments,
+} from 'ag-charts-types';
 
-
-
-import type { HighlightChangeEvent, HighlightNodeDatum, LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../core/eventsHub';
+import type {
+    HighlightChangeEvent,
+    HighlightNodeDatum,
+    LegendItemClickEvent,
+    LegendItemDoubleClickEvent,
+} from '../../core/eventsHub';
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -31,10 +63,16 @@ import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type { DatumIndexType, INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
+import type {
+    DatumIndexType,
+    INodeEvent,
+    ISeries,
+    NodeDataDependencies,
+    SeriesNodeDatum,
+    SeriesNodeEventTypes,
+} from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
-
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;

@@ -1,5 +1,5 @@
 import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, arrayOf, color, constant, required, string, undocumented, without} from 'ag-charts-core';
+import { type OptionsDefs, arrayOf, color, constant, required, string, undocumented, without } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, treemapSeriesThemeableOptionsDef } = _ModuleSupport;
 

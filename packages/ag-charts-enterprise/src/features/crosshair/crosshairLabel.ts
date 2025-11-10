@@ -7,7 +7,7 @@ import type {
     FormatterParams,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, createId, setAttribute, Property, BaseProperties} from 'ag-charts-core';
+import { BaseProperties, type Point, Property, createId, setAttribute } from 'ag-charts-core';
 
 const { FormatManager } = _ModuleSupport;
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';

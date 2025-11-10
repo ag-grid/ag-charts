@@ -1,5 +1,5 @@
 import { type AgMapMarkerSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, geoJson, required, string, without} from 'ag-charts-core';
+import { type OptionsDefs, constant, geoJson, required, string, without } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, mapMarkerSeriesThemeableOptionsDef } = _ModuleSupport;
 

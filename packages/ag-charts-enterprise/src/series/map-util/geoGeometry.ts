@@ -1,9 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { objectsEqual } from 'ag-charts-core';
 
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
 
-import { objectsEqual } from 'ag-charts-core';
 const { Path, ExtendedPath2D, BBox, SceneChangeDetection, SceneObjectChangeDetection } = _ModuleSupport;
 
 export enum GeoGeometryRenderMode {

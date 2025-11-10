@@ -7,9 +7,9 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Callback, CallbackParam, InternalAgColorType, CallbackParamRules } from 'ag-charts-core';
-
+import type { Callback, CallbackParam, CallbackParamRules, InternalAgColorType } from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
+
 const { createDatumId, toHighlightString } = _ModuleSupport;
 
 type BaseNodeDatum = _ModuleSupport.DataModelSeriesNodeDatum;

@@ -1,4 +1,5 @@
 import { BaseProperties, PropertiesArray, Property, isProperties } from 'ag-charts-core';
+
 import { expectWarningsCalls, setupMockConsole } from './test/mockConsole';
 
 describe('BaseProperties', () => {

@@ -5,8 +5,8 @@ import {
     type FormatterParams,
     _ModuleSupport,
 } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 const {
     OrdinalTimeScale,
     TimeAxisParentLevel,

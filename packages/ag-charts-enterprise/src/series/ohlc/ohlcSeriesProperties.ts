@@ -13,8 +13,8 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { BaseProperties, Property } from 'ag-charts-core';
 
-import { Property, BaseProperties} from 'ag-charts-core';
 const { AbstractBarSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 class OhlcSeriesItem extends BaseProperties {
     @Property

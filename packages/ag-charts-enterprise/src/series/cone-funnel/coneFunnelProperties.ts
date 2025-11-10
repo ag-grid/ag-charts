@@ -6,8 +6,8 @@ import type {
     AgConeFunnelSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-
 import { Property } from 'ag-charts-core';
+
 import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties';
 
 const { Label, AbstractBarSeriesProperties, makeSeriesTooltip, AxisLabel } = _ModuleSupport;
