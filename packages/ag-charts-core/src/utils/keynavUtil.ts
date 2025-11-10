@@ -1,4 +1,7 @@
-import { CleanupRegistry, attachListener, getAttribute, getWindow, setAttribute } from 'ag-charts-core';
+import { getAttribute, setAttribute } from './attributeUtil';
+import { CleanupRegistry } from './cleanupRegistry';
+import { attachListener } from './dom/domEvents';
+import { getWindow } from './dom/globalsProxy';
 
 export function addEscapeEventListener(
     elem: HTMLElement,

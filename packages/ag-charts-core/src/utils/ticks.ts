@@ -1,6 +1,8 @@
-import { Logger, clamp, countFractionDigits, createNumberFormatter, parseNumberFormat } from 'ag-charts-core';
 import type { AgTimeInterval } from 'ag-charts-types';
 
+import { Logger } from '../globals';
+import { createNumberFormatter, parseNumberFormat } from '../modules/format/numberFormat';
+import { clamp, countFractionDigits } from './numbers';
 import {
     durationMonth,
     durationWeek,

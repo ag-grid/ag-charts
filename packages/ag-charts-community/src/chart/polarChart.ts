@@ -1,9 +1,8 @@
 import type { Scale } from 'ag-charts-core';
-import { iterate } from 'ag-charts-core';
+import { Padding, iterate } from 'ag-charts-core';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
-import { Padding } from '../util/padding';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { PolarChartAxes } from './chartAxes';

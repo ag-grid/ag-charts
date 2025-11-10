@@ -1,7 +1,6 @@
-import { AbstractModuleInstance, type Point, createElement } from 'ag-charts-core';
+import { AbstractModuleInstance, type Point, createElement, getLastFocus } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
-import { getLastFocus } from '../../util/keynavUtil';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 
 const canvasOverlay = 'canvas-overlay';

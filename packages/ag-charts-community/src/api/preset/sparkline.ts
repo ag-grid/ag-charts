@@ -1,3 +1,4 @@
+import { simpleMemorize } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgAreaSeriesTooltipRendererParams,
@@ -24,7 +25,6 @@ import type {
 } from 'ag-charts-types';
 
 import { DEFAULT_SPARKLINE_CROSSHAIR_STROKE } from '../../chart/themes/symbols';
-import { simpleMemorize } from '../../util/memo';
 import { IGNORED_PROP, pickProps } from './presetUtils';
 
 const commonAxisProperties = {

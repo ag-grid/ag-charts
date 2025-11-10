@@ -1,8 +1,7 @@
-import { type BoxBounds, boxContains, boxesEqual, clamp } from 'ag-charts-core';
+import type { DistantObject, NearestResult } from 'ag-charts-core';
+import { type BoxBounds, boxContains, boxesEqual, clamp, nearestSquared } from 'ag-charts-core';
 
 import { type Interpolating, interpolate } from '../util/interpolating';
-import type { DistantObject, NearestResult } from '../util/nearest';
-import { nearestSquared } from '../util/nearest';
 
 // For small data structs like a bounding box, objects are superior to arrays
 // in terms of performance (by 3-4% in Chrome 71, Safari 12 and by 20% in Firefox 64).

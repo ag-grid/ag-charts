@@ -5,6 +5,7 @@ import {
     Property,
     type WrapOptions,
     angularPadding,
+    createIdsGenerator,
     extent,
     getMaxInnerRectSize,
     inRange,
@@ -23,7 +24,6 @@ import { BBox } from '../../scene/bbox';
 import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { createIdsGenerator } from '../../util/tempUtils';
 import { createDatumId } from '../data/processors';
 import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';

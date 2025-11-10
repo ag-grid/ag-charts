@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { Logger } from 'ag-charts-core';
-
+import { Logger } from '../globals';
 import { Deprecated, DeprecatedAndRenamedTo } from './deprecation';
 
 interface TestDeprecationObject {

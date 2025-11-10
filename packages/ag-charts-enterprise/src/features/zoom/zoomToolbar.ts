@@ -1,5 +1,6 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
+    ActionOnSet,
     type AxisID,
     BaseProperties,
     CleanupRegistry,
@@ -30,7 +31,7 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-const { ActionOnSet, ChartAxisDirection, NativeWidget, Toolbar, ToolbarButtonProperties } = _ModuleSupport;
+const { ChartAxisDirection, NativeWidget, Toolbar, ToolbarButtonProperties } = _ModuleSupport;
 
 class ZoomButtonProperties extends ToolbarButtonProperties {
     @Property

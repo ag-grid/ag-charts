@@ -1,14 +1,18 @@
-import { Property, objectsEqual } from 'ag-charts-core';
+import {
+    Property,
+    dateTruncationForDomain,
+    intervalEpoch,
+    intervalFloor,
+    intervalStep,
+    intervalUnit,
+    lowestGranularityUnitForTicks,
+    lowestGranularityUnitForValue,
+    objectsEqual,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { intervalEpoch, intervalFloor, intervalStep, intervalUnit } from '../../util/time';
-import {
-    dateTruncationForDomain,
-    lowestGranularityUnitForTicks,
-    lowestGranularityUnitForValue,
-} from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';

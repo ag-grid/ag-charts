@@ -3,6 +3,7 @@ import {
     type InternalAgColorType,
     type Point,
     type RequireOptional,
+    formatValue,
     mergeDefaults,
     normalizeAngle360,
     toPlainText,
@@ -23,7 +24,6 @@ const {
     TransformableText,
     BBox,
     applyShapeStyle,
-    formatValue,
     getLabelStyles,
 } = _ModuleSupport;
 

@@ -1,9 +1,11 @@
 import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    ActionOnSet,
     type AxisID,
     BaseProperties,
     Property,
+    ProxyProperty,
     debounce,
     entries,
     roundTo,
@@ -36,7 +38,7 @@ import {
     scaleZoomAxisWithAnchor,
 } from './zoomUtils';
 
-const { ActionOnSet, ChartAxisDirection, ChartUpdateType, InteractionState, ProxyProperty } = _ModuleSupport;
+const { ChartAxisDirection, ChartUpdateType, InteractionState } = _ModuleSupport;
 type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
 type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
 

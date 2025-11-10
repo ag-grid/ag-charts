@@ -4,6 +4,8 @@ import {
     cachedTextMeasurer,
     countFractionDigits,
     createId,
+    createIdsGenerator,
+    estimateTickCount,
     findMinMax,
     findRangeExtent,
     isArray,
@@ -14,18 +16,7 @@ import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
-const {
-    AxisInterval,
-    AxisLabel,
-    ZIndexMap,
-    LinearScale,
-    BBox,
-    TranslatableGroup,
-    Selection,
-    Text,
-    createIdsGenerator,
-    estimateTickCount,
-} = _ModuleSupport;
+const { AxisInterval, AxisLabel, ZIndexMap, LinearScale, BBox, TranslatableGroup, Selection, Text } = _ModuleSupport;
 
 interface TickDatum {
     tick: any;

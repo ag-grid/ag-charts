@@ -1,5 +1,12 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
+import {
+    type ITextMeasurer,
+    Logger,
+    type Point,
+    StateMachine,
+    cachedTextMeasurer,
+    mergeDefaults,
+} from 'ag-charts-core';
 import { type AgMapMarkerSeriesLabelFormatterParams, type AgMapMarkerSeriesOptions } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -16,7 +23,6 @@ import {
 
 const {
     fromToMotion,
-    StateMachine,
     getMissCount,
     createDatumId,
     SeriesNodePickMode,
@@ -114,7 +120,7 @@ export class MapMarkerSeries
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
-    private readonly animationState: _ModuleSupport.StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
+    private readonly animationState: StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({

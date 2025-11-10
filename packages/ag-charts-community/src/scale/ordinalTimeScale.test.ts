@@ -1,16 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
-import { datesSortOrder } from '../util/date';
 import {
+    datesSortOrder,
     durationDay,
     durationHour,
     durationMinute,
     durationMonth,
     durationWeek,
     durationYear,
-} from '../util/time/duration';
+} from 'ag-charts-core';
+import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+
 import { OrdinalTimeScale } from './ordinalTimeScale';
 
 describe('OrdinalTimeScale', () => {

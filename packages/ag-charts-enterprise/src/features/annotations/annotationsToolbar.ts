@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
+    ActionOnSet,
     BaseProperties,
     type BoxBounds,
     CleanupRegistry,
@@ -18,7 +19,7 @@ import {
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
 
-const { ActionOnSet, LayoutElement, Menu, ToolbarButtonProperties, ChartAxisDirection } = _ModuleSupport;
+const { LayoutElement, Menu, ToolbarButtonProperties, ChartAxisDirection } = _ModuleSupport;
 interface EventMap {
     'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };
@@ -47,7 +48,7 @@ class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
 export class AnnotationsToolbar extends BaseProperties {
     @Property
     @ActionOnSet<AnnotationsToolbar>({
-        changeValue(enabled) {
+        changeValue(enabled: boolean) {
             this.toolbar?.setHidden(!enabled);
         },
     })

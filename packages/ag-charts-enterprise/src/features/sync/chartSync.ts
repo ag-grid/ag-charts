@@ -5,6 +5,7 @@ import {
     Debug,
     Logger,
     type ModuleInstance,
+    ObserveChanges,
     Property,
     type Scale,
     arraysEqual,
@@ -26,7 +27,6 @@ const {
     TimeScale,
     UnitTimeScale,
     ChartUpdateType,
-    ObserveChanges,
     TooltipManager,
 } = _ModuleSupport;
 

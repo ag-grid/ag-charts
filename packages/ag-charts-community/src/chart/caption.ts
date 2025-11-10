@@ -1,6 +1,7 @@
 import {
     BaseProperties,
     Property,
+    ProxyPropertyOnWrite,
     createId,
     isArray,
     isSegmentTruncated,
@@ -15,7 +16,6 @@ import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
-import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';

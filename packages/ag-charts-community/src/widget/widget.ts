@@ -5,13 +5,14 @@ import {
     type ElementID,
     attachListener,
     getAttribute,
+    getElementBBox,
     getWindow,
     setAttribute,
+    setElementBBox,
     setElementStyle,
     setElementStyles,
 } from 'ag-charts-core';
 
-import { getElementBBox, setElementBBox } from '../util/dom';
 import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
 import { WidgetListenerInternal } from './widgetListenerInternal';

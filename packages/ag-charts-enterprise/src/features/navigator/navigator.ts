@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type BoxBounds, Logger, Property, clamp } from 'ag-charts-core';
+import { AbstractModuleInstance, type BoxBounds, Logger, ObserveChanges, Property, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -7,7 +7,6 @@ import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
-const { ObserveChanges } = _ModuleSupport;
 interface BBoxProvider {
     id: string;
     visible?: boolean;

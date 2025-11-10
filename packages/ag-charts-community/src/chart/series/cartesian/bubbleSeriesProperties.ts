@@ -1,5 +1,5 @@
 import type { InternalAgColorType } from 'ag-charts-core';
-import { Property } from 'ag-charts-core';
+import { Property, ProxyProperty } from 'ag-charts-core';
 import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
@@ -19,7 +19,6 @@ import type {
 } from 'ag-charts-types';
 
 import { SceneArrayChangeDetection, SceneChangeDetection } from '../../../scene/changeDetectable';
-import { ProxyProperty } from '../../../util/proxy';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';

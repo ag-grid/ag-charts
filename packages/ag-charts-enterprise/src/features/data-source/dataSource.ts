@@ -1,8 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, ActionOnSet, Property } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
-const { ActionOnSet } = _ModuleSupport;
 export class DataSource extends AbstractModuleInstance {
     @ActionOnSet<DataSource>({
         newValue(enabled) {

@@ -1,8 +1,7 @@
-import { Debug, Logger, throttle } from 'ag-charts-core';
+import { ActionOnSet, Debug, Logger, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
-import { ActionOnSet } from '../../util/proxy';
 import type { AnimationManager } from '../interaction/animationManager';
 
 type DataSourceCallback = (params: AgDataSourceCallbackParams<unknown>) => Promise<unknown>;

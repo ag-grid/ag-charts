@@ -1,9 +1,9 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, Logger, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, ActionOnSet, Logger, Property } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 
-const { ActionOnSet, LayoutElement, Menu } = _ModuleSupport;
+const { LayoutElement, Menu } = _ModuleSupport;
 const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
     { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series', value: 'candlestick' },

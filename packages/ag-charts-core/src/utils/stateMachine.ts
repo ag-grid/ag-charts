@@ -1,9 +1,5 @@
-import {
-    Debug,
-    addObserverToInstanceProperty,
-    extractDecoratedProperties,
-    listDecoratedProperties,
-} from 'ag-charts-core';
+import { Debug } from '../globals';
+import { addObserverToInstanceProperty, extractDecoratedProperties, listDecoratedProperties } from './decorator';
 
 type StateDefinition<State extends string, Events extends Record<string, any>> = {
     [key in keyof Events]?: Destination<State, Events[key]>;

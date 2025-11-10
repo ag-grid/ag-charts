@@ -1,5 +1,7 @@
-import { type BoxBounds, getDocument, getWindow } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
+
+import type { BoxBounds } from './boxBounds';
+import { getDocument, getWindow } from './dom/globalsProxy';
 
 export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BoxBounds>) {
     if (!element) return;

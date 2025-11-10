@@ -6,6 +6,7 @@ import {
     type Point,
     type RequireOptional,
     type WrapOptions,
+    formatValue,
     jsonDiff,
     mergeDefaults,
     modulus,
@@ -40,7 +41,6 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
-import { formatValue } from '../../../util/format.util';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
 import type { DataController } from '../../data/dataController';

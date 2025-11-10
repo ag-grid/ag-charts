@@ -10,11 +10,13 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type DistantObject,
     type InternalAgColorType,
     type Point,
     type RequireOptional,
     cachedTextMeasurer,
     calcLineHeight,
+    formatValue,
     isNumberEqual,
     mergeDefaults,
     toPlainText,
@@ -24,18 +26,8 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const {
-    createDatumId,
-    Rect,
-    Group,
-    BBox,
-    Selection,
-    Text,
-    Transformable,
-    applyShapeStyle,
-    getLabelStyles,
-    formatValue,
-} = _ModuleSupport;
+const { createDatumId, Rect, Group, BBox, Selection, Text, Transformable, applyShapeStyle, getLabelStyles } =
+    _ModuleSupport;
 
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
@@ -93,7 +85,7 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-class DistantGroup extends _ModuleSupport.Group implements _ModuleSupport.DistantObject {
+class DistantGroup extends _ModuleSupport.Group implements DistantObject {
     distanceSquared(x: number, y: number): number {
         return this.getBBox().distanceSquared(x, y);
     }

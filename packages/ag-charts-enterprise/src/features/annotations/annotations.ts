@@ -5,7 +5,15 @@ import {
     _ModuleSupport,
     _Widget,
 } from 'ag-charts-community';
-import { AbstractModuleInstance, type Point, PropertiesArray, Property, Vec2, isValidDate } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ObserveChanges,
+    type Point,
+    PropertiesArray,
+    Property,
+    Vec2,
+    isValidDate,
+} from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -33,16 +41,8 @@ import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
 
-const {
-    ChartUpdateType,
-    InteractionState,
-    ChartAxisDirection,
-    keyProperty,
-    valueProperty,
-    Selection,
-    BBox,
-    ObserveChanges,
-} = _ModuleSupport;
+const { ChartUpdateType, InteractionState, ChartAxisDirection, keyProperty, valueProperty, Selection, BBox } =
+    _ModuleSupport;
 
 type AnnotationPropertiesArray = PropertiesArray<AnnotationProperties>;
 
@@ -68,10 +68,11 @@ export class Annotations extends AbstractModuleInstance {
     public axesButtons = new AxesButtons();
 
     @Property
-    @ObserveChanges<Annotations>((target, value) => {
-        target.toolbar.enabled = value;
-        target.optionsToolbar.enabled = value;
-        target.axesButtons.enabled = value;
+    @ObserveChanges<Annotations>((target: Annotations, value?: boolean) => {
+        const enabled = value ?? true;
+        target.toolbar.enabled = enabled;
+        target.optionsToolbar.enabled = enabled;
+        target.axesButtons.enabled = enabled;
     })
     public enabled: boolean = true;
 

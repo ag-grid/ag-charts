@@ -1,4 +1,5 @@
 import {
+    Color,
     Debug,
     Logger,
     ModuleRegistry,
@@ -13,7 +14,6 @@ import {
 } from 'ag-charts-core';
 
 import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
-import { Color } from '../util/color';
 import {
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,

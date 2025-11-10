@@ -3,6 +3,7 @@ import {
     type Callback,
     type CallbackParam,
     CleanupRegistry,
+    ObserveChanges,
     type Point,
     Property,
     type RequireOptional,
@@ -40,7 +41,6 @@ import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';

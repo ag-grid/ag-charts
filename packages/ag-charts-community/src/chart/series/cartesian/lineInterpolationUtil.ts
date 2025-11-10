@@ -1,4 +1,5 @@
-import { transformIntegratedCategoryValue } from '../../../util/value';
+import { transformIntegratedCategoryValue } from 'ag-charts-core';
+
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { type Span, clipSpanX, collapseSpanToPoint, rescaleSpan, spanRange } from './lineInterpolation';
 import type { Scaling } from './scaling';

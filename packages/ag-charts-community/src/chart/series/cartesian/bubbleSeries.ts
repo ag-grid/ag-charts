@@ -4,9 +4,12 @@ import {
     type RequireOptional,
     cachedTextMeasurer,
     clamp,
+    dateToNumber,
     extent,
+    formatValue,
     isArray,
     measureTextSegments,
+    rescaleVisibleRange,
     toPlainText,
 } from 'ag-charts-core';
 import {
@@ -38,9 +41,6 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { formatValue } from '../../../util/format.util';
-import { dateToNumber } from '../../../util/timeFormatDefaults';
-import { rescaleVisibleRange } from '../../../util/visibleRange';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';

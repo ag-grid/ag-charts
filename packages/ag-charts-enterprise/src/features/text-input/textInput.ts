@@ -1,11 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { CleanupRegistry, type Point, attachListener, setAttributes } from 'ag-charts-core';
+import { CleanupRegistry, type Point, attachListener, focusCursorAtEnd, setAttributes } from 'ag-charts-core';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
 import textInputTemplate from './textInputTemplate.html';
-
-const { focusCursorAtEnd } = _ModuleSupport;
 
 const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';

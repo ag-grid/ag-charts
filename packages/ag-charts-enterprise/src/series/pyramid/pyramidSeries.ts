@@ -7,6 +7,7 @@ import {
 } from 'ag-charts-community';
 import {
     type Point,
+    StateMachine,
     type Writeable,
     cachedTextMeasurer,
     isArray,
@@ -20,7 +21,6 @@ import { PyramidProperties } from './pyramidProperties';
 import { applyPyramidDatum, preparePyramidAnimationFunctions } from './pyramidUtil';
 
 const {
-    StateMachine,
     valueProperty,
     SeriesNodePickMode,
     createDatumId,
