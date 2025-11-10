@@ -18,6 +18,7 @@ import {
     setupMockConsole,
     spyOnAnimationManager,
     testLegendItemName,
+    MIN_UNHIGHLIGHT_DELAY,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { NonNullablePath } from 'ag-charts-core';
@@ -691,8 +692,7 @@ describe('RadarAreaSeries', () => {
                     await hover(legendItem0);
                     await hover(legendItem1);
                     // Wait for delayed unhighlights to complete
-                    await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
-                    await waitForChartStability(chart);
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });

@@ -21,6 +21,7 @@ import {
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    MIN_TOOLTIP_HIDE_DELAY,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -417,9 +418,7 @@ describe('SankeySeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
-            await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });

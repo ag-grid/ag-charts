@@ -23,6 +23,7 @@ import {
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
+    MIN_UNHIGHLIGHT_DELAY,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -596,9 +597,7 @@ describe('ErrorBars', () => {
 
         // Unhighlight Canada (Australia opacity to should be restored)
         await hoverAction(0, 0)(chart);
-        await waitForChartStability(chart);
-        await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
-        await waitForChartStability(chart);
+        await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
         await compare();
     });
 
@@ -795,9 +794,7 @@ describe('ErrorBars', () => {
 
         // Hover over nothing
         await hoverAction(0, 0)(chart);
-        await waitForChartStability(chart);
-        await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
-        await waitForChartStability(chart);
+        await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
         expect(result).toStrictEqual([false]);
     });
 
@@ -857,9 +854,7 @@ describe('ErrorBars', () => {
 
         // Hover over nothing
         await hoverAction(x, y - 100)(chart);
-        await waitForChartStability(chart);
-        await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
-        await waitForChartStability(chart);
+        await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
         expect(getCursor(chart)).toBe('default');
     });
 
