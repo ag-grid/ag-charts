@@ -504,32 +504,23 @@ export class ZoomManager extends BaseManager {
         return boundSeries;
     }
 
-    public constrainZoomToItemCount(zoom: DefinedZoomState, minVisibleItems: number): DefinedZoomState | undefined {
-        const { autoScaleYAxis } = this;
-        const shouldAutoscale = autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted;
-
+    public constrainZoomToItemCount(
+        zoom: DefinedZoomState,
+        minVisibleItems: number,
+        shouldAutoscale: boolean
+    ): DefinedZoomState {
         let xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
         let yVisibleRange: [number, number] | undefined = shouldAutoscale ? undefined : [zoom.y.min, zoom.y.max];
         for (const series of this.getBoundSeries()) {
             const nextZoom = series.getZoomRangeFittingItems(xVisibleRange, yVisibleRange, minVisibleItems);
-            if (nextZoom == null) return;
+            if (nextZoom == null) continue;
 
             xVisibleRange = nextZoom.x;
             yVisibleRange = nextZoom.y;
         }
 
         const xZoom: ZoomState = { min: xVisibleRange[0], max: xVisibleRange[1] };
-        let yZoom: ZoomState | undefined;
-
-        /* TODO: move to enterprise
-        yZoom ??= this.getAutoScaleYZoom(xZoom);
-        //*/
-        if (yVisibleRange) {
-            yZoom = { min: yVisibleRange[0], max: yVisibleRange[1] };
-        }
-
-        if (yZoom == null) return;
-
+        const yZoom: ZoomState = { min: yVisibleRange?.[0] ?? 0, max: yVisibleRange?.[1] ?? 1 };
         return { x: xZoom, y: yZoom };
     }
 
@@ -541,6 +532,8 @@ export class ZoomManager extends BaseManager {
         const { autoScaleYAxis } = this;
         const boundSeries = this.getBoundSeries();
 
+        // Note: `series.getVisibleItems` has much better performance when `autoScaling.enabled: true`, because it only
+        // needs to consider the X axis to count the number of visible items.
         const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
         const yVisibleRange: [number, number] | undefined =
             !includeYVisibleRange && autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted

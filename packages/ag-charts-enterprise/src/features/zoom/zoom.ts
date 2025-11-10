@@ -825,15 +825,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private constrainZoom(newZoom: DefinedZoomState) {
-        const {
-            minVisibleItems,
-            ctx: { zoomManager },
-        } = this;
-
-        if (minVisibleItems === 0) return newZoom;
-
-        const constrainedZoom = zoomManager.constrainZoomToItemCount(newZoom, minVisibleItems);
-        return constrainedZoom ?? newZoom;
+        return this.ctx.zoomManager.constrainZoomToItemCount(newZoom, this.minVisibleItems, this.autoScaler.enabled);
     }
 
     private previousZoomValid = true;
