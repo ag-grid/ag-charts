@@ -378,6 +378,17 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     private weightNodes(columns: Column[]) {
+        const { properties } = this;
+
+        if (properties.node.sort === 'data') return;
+
+        if (properties.node.sort !== 'auto') {
+            for (const column of columns) {
+                column.nodes.sort((a, b) => this.sortNodes(a as EnhancedNodeGraphEntry, b as EnhancedNodeGraphEntry));
+            }
+            return;
+        }
+
         // Weight the columns into powers of 10 so that columns with fewer and larger nodes have more influence on each
         // node's weight.
         const sortedColumns = columns.toSorted((a, b) => {
@@ -392,27 +403,38 @@ export class SankeySeries extends FlowProportionSeries<
         }
 
         // Sort nodes within columns by their weight plus the weight of their links, influenced by the column weight.
+        // An initial pass sorts nodes exclusively by their own weight. The second pass then applies an influence
+        // from their neighbours based on the now sorted index and column weight. This ensures nodes are always
+        // sorted into groups next to their neighbours, even with close or identical neighbour sizes.
         for (const column of columns) {
             for (const node of column.nodes) {
+                if ('ghost' in node && node.ghost) {
+                    node.weight = (node.size / column.size) * columnWeights[column.index];
+                    continue;
+                }
                 node.weight = (node.datum.size / column.size) * columnWeights[column.index];
+            }
+            column.nodes.sort((a, b) => a.weight - b.weight);
+        }
 
+        for (const column of columns) {
+            for (const node of column.nodes) {
                 // Ghost nodes ignore the weight of their links, as this is already factored in by the concrete nodes.
                 if ('ghost' in node && node.ghost) {
-                    node.weight = ((node as any).size / column.size) * columnWeights[column.index];
                     continue;
                 }
 
                 node.weight += node.linksBefore.reduce((acc, before: any) => {
                     if (before.node.columnIndex !== column.index - 1) return acc;
                     const weight =
-                        (before.node.datum.size / columns[before.node.columnIndex].size) *
+                        columns[before.node.columnIndex].nodes.indexOf(before.node) *
                         columnWeights[before.node.columnIndex];
                     return Math.max(acc, weight);
                 }, 0);
                 node.weight += node.linksAfter.reduce((acc, after: any) => {
                     if (after.node.columnIndex !== column.index + 1) return acc;
                     const weight =
-                        (after.node.datum.size / columns[after.node.columnIndex].size) *
+                        columns[after.node.columnIndex].nodes.indexOf(after.node) *
                         columnWeights[after.node.columnIndex];
                     return Math.max(acc, weight);
                 }, 0);

@@ -16,6 +16,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -49,28 +50,28 @@ describe('SankeySeries', () => {
     describe('layout', () => {
         const layoutScenarios = {
             ghosts: [
-                { from: 'Les Saintes', to: 'Total', size: 3 },
-                { from: 'Tynemouth', to: 'Total', size: 3 },
-                { from: 'Ellerton Lake', to: 'Total', size: 1 },
-                { from: 'Tenerife', to: 'Total', size: 1 },
-                { from: 'Hyers Islands', to: 'Total', size: 1 },
-                { from: 'Banyuls-sur-Mer', to: 'Total', size: 1 },
-                { from: 'Orpheus Island Resort', to: 'Australia 1999', size: 6 },
-                { from: 'Lizard Island', to: 'Australia 1999', size: 1 },
-                { from: 'Northern Ribbon Reefs', to: 'Australia 1999', size: 2 },
-                { from: 'Australia 1999', to: 'Total', size: 9 },
-                { from: 'Sharm El Sheikh', to: 'Red Sea Advanced PADI', size: 13 },
-                { from: 'Red Sea Advanced PADI', to: 'Total', size: 13 },
-                { from: 'Mahe', to: 'Seychelles', size: 8 },
-                { from: 'Praslin', to: 'Seychelles', size: 4 },
-                { from: 'Seychelles', to: 'Total', size: 12 },
-                { from: 'Bonaire', to: 'Total', size: 19 },
-                { from: 'Faafu Atoll', to: 'Maldives', size: 11 },
-                { from: 'Maldives', to: 'Total', size: 11 },
-                { from: 'Palau', to: 'Total', size: 19 },
-                { from: 'El Quseir', to: 'Roots Red Sea', size: 19 },
-                { from: 'Safaga', to: 'Roots Red Sea', size: 2 },
-                { from: 'Roots Red Sea', to: 'Total', size: 21 },
+                { from: 'One', to: 'Total', size: 3 },
+                { from: 'Two', to: 'Total', size: 3 },
+                { from: 'Three', to: 'Total', size: 1 },
+                { from: 'Four', to: 'Total', size: 1 },
+                { from: 'Five', to: 'Total', size: 1 },
+                { from: 'Six', to: 'Total', size: 1 },
+                { from: 'Seven', to: 'Eight', size: 6 },
+                { from: 'Nine', to: 'Eight', size: 1 },
+                { from: 'Ten', to: 'Eight', size: 2 },
+                { from: 'Eight', to: 'Total', size: 9 },
+                { from: 'Eleven', to: 'Twelve', size: 13 },
+                { from: 'Twelve', to: 'Total', size: 13 },
+                { from: 'Thirteen', to: 'Fourteen', size: 8 },
+                { from: 'Fifteen', to: 'Fourteen', size: 4 },
+                { from: 'Fourteen', to: 'Total', size: 12 },
+                { from: 'Sixteen', to: 'Total', size: 19 },
+                { from: 'Seventeen', to: 'Eighteen', size: 11 },
+                { from: 'Eighteen', to: 'Total', size: 11 },
+                { from: 'Nineteen', to: 'Total', size: 19 },
+                { from: 'Twenty', to: 'Twenty One', size: 19 },
+                { from: 'Twenty Two', to: 'Twenty One', size: 2 },
+                { from: 'Twenty One', to: 'Total', size: 21 },
             ],
             crossoverAvoidance: [
                 { from: 'Netherlands', to: 'European Union', size: 798744 },
@@ -158,6 +159,65 @@ describe('SankeySeries', () => {
                 chart = deproxy(AgCharts.create(options));
                 await compare();
             });
+        });
+
+        it('should avoid crossovers for nodes with similar sizes', async () => {
+            const options: AgStandaloneChartOptions = {
+                data: [
+                    { from: 'Node 4', to: 'Node 1', size: 0.22 },
+                    { from: 'Node 5', to: 'Node 1', size: 0.12 },
+                    { from: 'Node 6', to: 'Node 1', size: 0.09 },
+                    { from: 'Node 7', to: 'Node 1', size: 0.11 },
+                    { from: 'Node 8', to: 'Node 1', size: 0.18 },
+                    { from: 'Node 9', to: 'Node 2', size: 0.19 },
+                    { from: 'Node 11', to: 'Node 2', size: 0.23 },
+                    { from: 'Node 12', to: 'Node 2', size: 0.16 },
+                    { from: 'Node 13', to: 'Node 2', size: 0.19 },
+                    { from: 'Node 14', to: 'Node 3', size: 0.39 },
+                    { from: 'Node 15', to: 'Node 3', size: 0.17 },
+                    { from: 'Node 16', to: 'Node 3', size: 0.13 },
+                    { from: 'Node 17', to: 'Node 3', size: 0.28 },
+                    { from: 'Node 18', to: 'Node 2', size: 0.15 },
+                    { from: 'Node 10', to: 'Node 2', size: 0.01 },
+                    { from: 'Node 19', to: 'Node 2', size: 0.08 },
+                    { from: 'Node 20', to: 'Node 2', size: 0.01 },
+                    { from: 'Node 22', to: 'Node 1', size: 0.11 },
+                    { from: 'Node 23', to: 'Node 1', size: 0.19 },
+                    { from: 'Node 3', to: 'Node 29', size: 0.68 },
+                    { from: 'Node 2', to: 'Node 29', size: 0.13 },
+                    { from: 'Node 1', to: 'Node 29', size: 0.18 },
+                    { from: 'Node 29', to: 'Node 28', size: 0.85 },
+                    { from: 'Node 24', to: 'Node 28', size: 0.62 },
+                    { from: 'Node 25', to: 'Node 28', size: 0.33 },
+                    { from: 'Node 26', to: 'Node 28', size: 0.06 },
+                    { from: 'Node 27', to: 'Node 28', size: 0.04 },
+                    { from: 'Node 28', to: 'Node 28', size: 0.23 },
+                    { from: 'Node 30', to: 'Node 29', size: 0.04 },
+                ],
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'size',
+                        label: { enabled: false },
+                        link: { strokeWidth: 1 },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Some links formed circular references. These will be removed from the output.",
+  ],
+]
+`);
         });
     });
 
