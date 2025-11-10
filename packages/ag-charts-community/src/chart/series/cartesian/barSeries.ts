@@ -1,5 +1,5 @@
 import type { CallbackParamRules, Point, RequireOptional } from 'ag-charts-core';
-import { isFiniteNumber, mergeDefaults } from 'ag-charts-core';
+import { isFiniteNumber, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -20,7 +20,6 @@ import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
 import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
-import { simpleMemorize2 } from '../../../util/memo';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';

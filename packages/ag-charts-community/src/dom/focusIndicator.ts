@@ -1,9 +1,8 @@
-import { createElement, createSvgElement, getWindow } from 'ag-charts-core';
+import { createElement, createSvgElement, getWindow, setElementBBox } from 'ag-charts-core';
 
 import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import { setElementBBox } from '../util/dom';
 import type { FocusSwapChain } from './focusSwapChain';
 
 export class FocusIndicator {

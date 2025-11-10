@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { EventEmitter } from 'ag-charts-core';
+import { EventEmitter, focusCursorAtEnd } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
@@ -20,8 +20,6 @@ import type {
     MeasurerPropertiesType,
 } from '../annotationsSuperTypes';
 import { isChannelType, isFibonacciType } from '../utils/types';
-
-const { focusCursorAtEnd } = _ModuleSupport;
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';

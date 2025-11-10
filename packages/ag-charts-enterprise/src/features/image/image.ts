@@ -1,7 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, Property, createElement } from 'ag-charts-core';
+import {
+    BaseProperties,
+    ObserveChanges,
+    type Placement,
+    Property,
+    ProxyProperty,
+    calculatePlacement,
+    createElement,
+} from 'ag-charts-core';
 
-const { ObserveChanges, ProxyProperty, calculatePlacement } = _ModuleSupport;
 export class Image extends BaseProperties {
     @Property
     top?: number;
@@ -49,7 +56,7 @@ export class Image extends BaseProperties {
     private containerHeight: number = 0;
     onLoad?: () => void = undefined;
 
-    performLayout(containerWidth: number, containerHeight: number): _ModuleSupport.Placement {
+    performLayout(containerWidth: number, containerHeight: number): Placement {
         this.containerWidth = containerWidth;
         this.containerHeight = containerHeight;
         const container = { width: containerWidth, height: containerHeight };

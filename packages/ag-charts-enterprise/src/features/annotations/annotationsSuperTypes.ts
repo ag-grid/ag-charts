@@ -1,6 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type { Point } from 'ag-charts-core';
-import { BaseProperties } from 'ag-charts-core';
+import { BaseProperties, type StateMachine } from 'ag-charts-core';
 
 import type { AnnotationContext, AnnotationType, Constructor, DataPoint } from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
@@ -141,11 +141,11 @@ export interface AnnotationTypeConfig<Datum extends BaseProperties, Scene extend
     createState: (
         ctx: AnnotationsCreateStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
-    ) => _ModuleSupport.StateMachine<any, any>;
+    ) => StateMachine<any, any>;
     dragState: (
         ctx: AnnotationsStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
-    ) => _ModuleSupport.StateMachine<any, any>;
+    ) => StateMachine<any, any>;
 }
 
 export interface AnnotationsStateMachineHelperFns {

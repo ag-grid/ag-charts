@@ -1,7 +1,10 @@
+import type { PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
+    ActionOnSet,
     type Callback,
     type CallbackParam,
     CleanupRegistry,
+    type DistantObject,
     EventEmitter,
     type InternalAgColorType,
     LRUCache,
@@ -12,8 +15,11 @@ import {
     callWithContext,
     createId,
     isEmptyObject,
+    isGradientFill,
+    isPatternFill,
     jsonDiff,
     mergeDefaults,
+    nearestSquared,
     without,
 } from 'ag-charts-core';
 import type {
@@ -43,12 +49,8 @@ import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
-import { isGradientFill, isPatternFill } from '../../scene/util/fill';
-import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
-import { type DistantObject, nearestSquared } from '../../util/nearest';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
-import { ActionOnSet } from '../../util/proxy';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';

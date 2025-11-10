@@ -16,7 +16,7 @@ import type {
     Point,
     RequireOptional,
 } from 'ag-charts-core';
-import { extent, findMinMax, mergeDefaults } from 'ag-charts-core';
+import { extent, findMinMax, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
@@ -54,7 +54,6 @@ const {
     BBox,
     applyShapeStyle,
     processedDataIsAnimatable,
-    simpleMemorize2,
     markerEnabled,
     getMarkerStyles,
     calculateSegments,

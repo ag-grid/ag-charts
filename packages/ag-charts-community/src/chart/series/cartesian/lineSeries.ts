@@ -1,5 +1,5 @@
 import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
-import { extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import { extent, isDefined, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -21,7 +21,6 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
-import { simpleMemorize2 } from '../../../util/memo';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';

@@ -1,13 +1,16 @@
-import { CleanupRegistry, createElementId, getDocument, setAttribute } from 'ag-charts-core';
-
 import {
+    CleanupRegistry,
     addEscapeEventListener,
     addMouseCloseListener,
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
+    createElementId,
+    getDocument,
     getLastFocus,
     hasNoModifiers,
-} from '../util/keynavUtil';
+    setAttribute,
+} from 'ag-charts-core';
+
 import { CollapseMode } from './collapseMode';
 import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWidget';
 import { MenuItemWidget } from './menuItemWidget';

@@ -1,5 +1,14 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
+import {
+    type ITextMeasurer,
+    Logger,
+    type PlacedLabel,
+    type Point,
+    type SizedPoint,
+    StateMachine,
+    cachedTextMeasurer,
+    mergeDefaults,
+} from 'ag-charts-core';
 import { type AgMapMarkerSeriesLabelFormatterParams, type AgMapMarkerSeriesOptions } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -16,7 +25,6 @@ import {
 
 const {
     fromToMotion,
-    StateMachine,
     getMissCount,
     createDatumId,
     SeriesNodePickMode,
@@ -95,13 +103,11 @@ export class MapMarkerSeries
 
     private readonly markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
 
-    private labelSelection: _ModuleSupport.Selection<
-        _ModuleSupport.Text,
-        _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>
-    > = Selection.select(this.labelGroup, Text, false);
+    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapMarkerNodeLabelDatum>> =
+        Selection.select(this.labelGroup, Text, false);
     private highlightLabelSelection: _ModuleSupport.Selection<
         _ModuleSupport.Text,
-        _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>
+        PlacedLabel<MapMarkerNodeLabelDatum>
     > = Selection.select(this.highlightLabelGroup, Text, false);
     private markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> = Selection.select(
         this.markerGroup,
@@ -110,11 +116,11 @@ export class MapMarkerSeries
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
         Selection.select(this.highlightNodeGroup, Marker);
-    private placedLabelData: _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>[] = [];
+    private placedLabelData: PlacedLabel<MapMarkerNodeLabelDatum>[] = [];
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
-    private readonly animationState: _ModuleSupport.StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
+    private readonly animationState: StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -415,7 +421,7 @@ export class MapMarkerSeries
         datum: any,
         datumIndex: number,
         index: number,
-        point: _ModuleSupport.SizedPoint,
+        point: SizedPoint,
         dataValues: MarkerDataValues
     ): MapMarkerNodeDatum {
         return {
@@ -637,7 +643,7 @@ export class MapMarkerSeries
         this.animationState.transition('update');
     }
 
-    public override updatePlacedLabelData(labelData: _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>[]) {
+    public override updatePlacedLabelData(labelData: PlacedLabel<MapMarkerNodeLabelDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection = this.labelSelection.update(labelData, (text) => {
             text.pointerEvents = _ModuleSupport.PointerEvents.None;
@@ -650,10 +656,7 @@ export class MapMarkerSeries
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<
-            _ModuleSupport.Text,
-            _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>
-        >;
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapMarkerNodeLabelDatum>>;
         isHighlight: boolean;
     }) {
         const { properties } = this;

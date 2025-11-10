@@ -1,3 +1,5 @@
+import { StateMachine } from 'ag-charts-core';
+
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
@@ -8,7 +10,6 @@ import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import {

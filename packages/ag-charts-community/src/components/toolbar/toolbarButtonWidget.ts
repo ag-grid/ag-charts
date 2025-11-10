@@ -1,4 +1,4 @@
-import { type BaseAttributeTypeMap, setAttribute } from 'ag-charts-core';
+import { type BaseAttributeTypeMap, getIconClassNames, setAttribute } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
@@ -9,7 +9,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import { getIconClassNames } from '../../util/dom';
 import { ButtonWidget } from '../../widget/buttonWidget';
 
 type ButtonValue =

@@ -9,7 +9,16 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgColorType, Logger, type Point, extent, mergeDefaults, toPlainText } from 'ag-charts-core';
+import {
+    type InternalAgColorType,
+    Logger,
+    type Point,
+    type SizedPoint,
+    extent,
+    formatValue,
+    mergeDefaults,
+    toPlainText,
+} from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
@@ -27,14 +36,13 @@ const {
     Rect,
     PointerEvents,
     applyShapeStyle,
-    formatValue,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
     updateLabelNode,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
-    readonly point: Readonly<_ModuleSupport.SizedPoint>;
+    readonly point: Readonly<SizedPoint>;
     readonly itemId: string;
     midPoint: Readonly<Point>;
     readonly width: number;

@@ -1,4 +1,5 @@
 import {
+    ActionOnSet,
     AsyncAwaitQueue,
     type AxisID,
     CleanupRegistry,
@@ -7,12 +8,15 @@ import {
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
+    Padding,
     Property,
+    ProxyProperty,
     callWithContext,
     createId,
     entries,
     getWindow,
     isFiniteNumber,
+    isInputPending,
     jsonApply,
     jsonDiff,
     mergeDefaults,
@@ -40,12 +44,9 @@ import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
-import { isInputPending } from '../util/dom';
 import { Mutex } from '../util/mutex';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
-import { Padding } from '../util/padding';
-import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { Widget } from '../widget/widget';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';

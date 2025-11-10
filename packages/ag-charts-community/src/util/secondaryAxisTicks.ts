@@ -1,6 +1,4 @@
-import { countFractionDigits, findMinMax } from 'ag-charts-core';
-
-import { createTicks, niceTicksDomain } from './ticks';
+import { countFractionDigits, createTicks, findMinMax, niceTicksDomain } from 'ag-charts-core';
 
 interface SecondaryTickScale<D> {
     toDomain(d: number): D;

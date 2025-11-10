@@ -1,6 +1,6 @@
+import type { DistantObject } from 'ag-charts-core';
 import { boxesEqual, isNumberEqual } from 'ag-charts-core';
 
-import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';

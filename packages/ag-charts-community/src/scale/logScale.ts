@@ -1,7 +1,6 @@
 import type { ScaleTickParams } from 'ag-charts-core';
-import { findMinMax, findRangeExtent, isInteger } from 'ag-charts-core';
+import { createTicks, findMinMax, findRangeExtent, isDenseInterval, isInteger, range } from 'ag-charts-core';
 
-import { createTicks, isDenseInterval, range } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 import { filterVisibleTicks } from './scaleUtil';
 

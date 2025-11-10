@@ -12,6 +12,7 @@ import {
 } from 'ag-charts-community';
 import {
     type Point,
+    StateMachine,
     cachedTextMeasurer,
     isArray,
     isBetweenAngles,
@@ -19,6 +20,7 @@ import {
     mergeDefaults,
     normalizeAngle360,
     normalizeAngle360Inclusive,
+    tickFormat,
     toPlainText,
     toRadians,
 } from 'ag-charts-core';
@@ -51,7 +53,6 @@ const {
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
-    StateMachine,
     createDatumId,
     sectorBox,
     BBox,
@@ -62,7 +63,6 @@ const {
     SectorBox,
     Text,
     Marker,
-    tickFormat,
     applyShapeStyle,
 } = _ModuleSupport;
 
@@ -208,7 +208,7 @@ export class RadialGaugeSeries
         Selection.select(this.tickGroup, _ModuleSupport.TransformableText);
 
     public datumUnion: DatumUnion<_ModuleSupport.Sector, RadialGaugeNodeDatum> = new DatumUnion();
-    private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
+    private readonly animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 

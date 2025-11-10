@@ -10,13 +10,13 @@ import {
     isObjectLike,
     mapValues,
     pick,
+    simpleMemorize,
     without,
 } from 'ag-charts-core';
 import type { DatumDefault, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
 import { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartTheme } from '../chart/themes/chartTheme';
-import { simpleMemorize } from '../util/memo';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
 import {

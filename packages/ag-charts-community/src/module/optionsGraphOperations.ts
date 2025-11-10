@@ -1,19 +1,21 @@
 import {
+    Color,
     Debug,
     Logger,
     ModuleRegistry,
     type PlainObject,
     circularSliceArray,
     isArray,
+    isGradientFill,
+    isImageFill,
     isNumber,
     isObjectLike,
+    isPatternFill,
     isPlainObject,
     isString,
     without,
 } from 'ag-charts-core';
 
-import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
-import { Color } from '../util/color';
 import {
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,

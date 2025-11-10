@@ -1,4 +1,4 @@
-import type { AnyFn } from 'ag-charts-core';
+import type { AnyFn } from '../interfaces/globalTypes';
 
 const memorizedFns = new WeakMap<Function, Map<string, Function>>();
 

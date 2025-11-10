@@ -1,4 +1,4 @@
-import type { Point, Scale } from 'ag-charts-core';
+import type { Point, Scale, SizedPoint } from 'ag-charts-core';
 import { clamp, findRangeExtent } from 'ag-charts-core';
 import type { AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
 
@@ -7,7 +7,6 @@ import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
 import type { AnimationManager } from '../../interaction/animationManager';

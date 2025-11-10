@@ -1,11 +1,13 @@
 import {
     type Point,
     type RequireOptional,
+    createTicks,
     deepClone,
     findMinMax,
     isDate,
     isNumber,
     mergeDefaults,
+    tickStep,
 } from 'ag-charts-core';
 import type {
     AgHistogramBinDatum,
@@ -23,7 +25,6 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { createTicks, tickStep } from '../../../util/ticks';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';

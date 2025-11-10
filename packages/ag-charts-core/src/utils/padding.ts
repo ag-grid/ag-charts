@@ -1,4 +1,4 @@
-import { BaseProperties, Property } from 'ag-charts-core';
+import { BaseProperties, Property } from './properties';
 
 export class Padding extends BaseProperties {
     @Property

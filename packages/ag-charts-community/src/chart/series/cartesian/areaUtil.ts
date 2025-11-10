@@ -1,8 +1,7 @@
-import type { InternalAgColorType, Point } from 'ag-charts-core';
+import type { InternalAgColorType, Point, SizedPoint } from 'ag-charts-core';
 import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import type { SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { SeriesNodeStyleContext } from '../series';

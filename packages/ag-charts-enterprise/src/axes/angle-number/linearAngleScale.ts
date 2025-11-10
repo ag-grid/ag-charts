@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
+import { type ScaleTickParams, isDenseInterval, isNumberEqual, range } from 'ag-charts-core';
 
-const { range, isDenseInterval, LinearScale } = _ModuleSupport;
+const { LinearScale } = _ModuleSupport;
 
 export class LinearAngleScale extends LinearScale {
     static getNiceStepAndTickCount(ticks: ScaleTickParams<number>, domain: number[]) {
@@ -33,7 +33,8 @@ export class LinearAngleScale extends LinearScale {
             const step = Math.abs(interval);
             const availableRange = this.getPixelRange();
             if (!isDenseInterval((d1 - d0) / step, availableRange)) {
-                return range(d0, d1, step);
+                const result = range(d0, d1, step);
+                return { ticks: result.ticks, count: result.count };
             }
         }
 
@@ -45,7 +46,8 @@ export class LinearAngleScale extends LinearScale {
             step = LinearScale.getTickStep(d0, d1, ticks);
         }
 
-        return range(d0, d1, step);
+        const result = range(d0, d1, step);
+        return { ticks: result.ticks, count: result.count };
     }
 
     private hasNiceRange() {

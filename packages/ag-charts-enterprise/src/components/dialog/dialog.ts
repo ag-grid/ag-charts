@@ -1,12 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    Color,
     type ElementID,
     type Point,
     Vec2,
     createElement,
     createElementId,
     entries,
+    getIconClassNames,
     getWindow,
+    initRovingTabIndex,
     mapValues,
     setAttribute,
     setAttributes,
@@ -15,17 +18,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
 
-const {
-    Color,
-    DraggablePopover,
-    NativeWidget,
-    createButton,
-    createCheckbox,
-    createSelect,
-    createTextArea,
-    initRovingTabIndex,
-    getIconClassNames,
-} = _ModuleSupport;
+const { DraggablePopover, NativeWidget, createButton, createCheckbox, createSelect, createTextArea } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 

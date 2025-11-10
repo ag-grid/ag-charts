@@ -1,6 +1,7 @@
 import type { Scale } from 'ag-charts-core';
 import {
     Property,
+    StateMachine,
     arraysEqual,
     calcLineHeight,
     countLines,
@@ -24,7 +25,6 @@ import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import { StateMachine } from '../../util/stateMachine';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartLayout } from '../chartAxis';

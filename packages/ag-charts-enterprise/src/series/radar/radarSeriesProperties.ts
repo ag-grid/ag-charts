@@ -10,6 +10,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { SizedPoint } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
 export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -21,7 +22,7 @@ export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum 
         textAlign: CanvasTextAlign;
         textBaseline: CanvasTextBaseline;
     };
-    readonly point: Readonly<_ModuleSupport.SizedPoint>;
+    readonly point: Readonly<SizedPoint>;
     readonly angleValue: any;
     readonly radiusValue: any;
     style?: AgSeriesMarkerStyle;

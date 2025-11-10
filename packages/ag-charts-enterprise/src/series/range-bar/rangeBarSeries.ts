@@ -7,7 +7,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { CallbackParamRules, Point, RequireOptional } from 'ag-charts-core';
-import { findMinMax, mergeDefaults } from 'ag-charts-core';
+import { findMinMax, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
 
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
@@ -44,7 +44,6 @@ const {
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
-    simpleMemorize2,
     getItemStyles,
     calculateSegments,
     toHighlightString,

@@ -7,7 +7,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Point, RequireOptional } from 'ag-charts-core';
-import { mergeDefaults } from 'ag-charts-core';
+import { isContinuous, mergeDefaults } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -33,7 +33,6 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     computeBarFocusBounds,
-    isContinuous,
     Rect,
     motion,
     applyShapeStyle,

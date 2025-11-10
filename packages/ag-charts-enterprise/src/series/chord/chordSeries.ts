@@ -5,6 +5,7 @@ import {
     angleBetween,
     cachedTextMeasurer,
     calcLineHeight,
+    evaluateBezier,
     isBetweenAngles,
     mergeDefaults,
     normalizeAngle360,
@@ -24,16 +25,8 @@ import {
 import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const {
-    SeriesNodePickMode,
-    createDatumId,
-    Sector,
-    evaluateBezier,
-    applyShapeStyle,
-    getShapeStyle,
-    getLabelStyles,
-    BBox,
-} = _ModuleSupport;
+const { SeriesNodePickMode, createDatumId, Sector, applyShapeStyle, getShapeStyle, getLabelStyles, BBox } =
+    _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;

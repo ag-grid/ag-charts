@@ -1,5 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, Point } from 'ag-charts-core';
+import type { DistantObject, InternalAgColorType, Point } from 'ag-charts-core';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -96,8 +96,8 @@ export abstract class FlowProportionSeries<
     TLabel,
     TOpts extends object,
     TProps extends FlowProportionSeriesProperties<TOpts>,
-    TNode extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
-    TLink extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
+    TNode extends _ModuleSupport.Node & DistantObject,
+    TLink extends _ModuleSupport.Node & DistantObject,
 > extends Series<
     FlowProportionNodeDatumIndex,
     TDatum<TNodeDatum, TLinkDatum>,

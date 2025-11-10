@@ -13,6 +13,7 @@ import {
     number,
     object,
     or,
+    simpleMemorize,
     string,
     union,
     validate,
@@ -25,7 +26,6 @@ import type {
     AgChartThemeParams,
 } from 'ag-charts-types';
 
-import { simpleMemorize } from '../../util/memo';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { FinancialDark } from '../themes/financialDark';

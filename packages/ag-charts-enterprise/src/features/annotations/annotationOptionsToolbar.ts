@@ -3,6 +3,7 @@ import {
     BaseProperties,
     type BoxBounds,
     CleanupRegistry,
+    Color,
     EventEmitter,
     PropertiesArray,
     Property,
@@ -26,7 +27,7 @@ import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, has
 import { getLineStyle } from './utils/line';
 import { isTextType } from './utils/types';
 
-const { Color, FloatingToolbar, Menu, ToolbarButtonProperties, ToolbarButtonWidget } = _ModuleSupport;
+const { FloatingToolbar, Menu, ToolbarButtonProperties, ToolbarButtonWidget } = _ModuleSupport;
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };

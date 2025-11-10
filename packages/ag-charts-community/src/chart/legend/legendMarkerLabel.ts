@@ -1,3 +1,4 @@
+import { ObserveChanges, ProxyPropertyOnWrite } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
@@ -6,7 +7,6 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { ChildNodeCounts, RenderContext } from '../../scene/node';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
-import { ObserveChanges, ProxyPropertyOnWrite } from '../../util/proxy';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import { Marker } from '../marker/marker';
 

@@ -3,6 +3,7 @@ import {
     type Point,
     Property,
     type Scale,
+    StateMachine,
     findMaxIndex,
     findMinIndex,
     findMinMax,
@@ -26,7 +27,6 @@ import { Path } from '../../../scene/shape/path';
 import { type Segment, SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { StateMachine } from '../../../util/stateMachine';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';

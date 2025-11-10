@@ -8,6 +8,11 @@ export interface Point {
     y: number;
 }
 
+export interface SizedPoint extends Point {
+    size: number;
+    focusSize?: number;
+}
+
 export interface Bounds4 {
     x1: number;
     y1: number;

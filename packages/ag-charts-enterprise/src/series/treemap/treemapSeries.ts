@@ -10,11 +10,14 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type DistantObject,
     type InternalAgColorType,
     type Point,
     type RequireOptional,
     cachedTextMeasurer,
     calcLineHeight,
+    formatValue,
+    isGradientFill,
     isNumberEqual,
     mergeDefaults,
     toPlainText,
@@ -24,18 +27,8 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const {
-    createDatumId,
-    Rect,
-    Group,
-    BBox,
-    Selection,
-    Text,
-    Transformable,
-    applyShapeStyle,
-    getLabelStyles,
-    formatValue,
-} = _ModuleSupport;
+const { createDatumId, Rect, Group, BBox, Selection, Text, Transformable, applyShapeStyle, getLabelStyles } =
+    _ModuleSupport;
 
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
@@ -93,7 +86,7 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-class DistantGroup extends _ModuleSupport.Group implements _ModuleSupport.DistantObject {
+class DistantGroup extends _ModuleSupport.Group implements DistantObject {
     distanceSquared(x: number, y: number): number {
         return this.getBBox().distanceSquared(x, y);
     }
@@ -823,7 +816,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             lineDashOffset: 0,
         };
 
-        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+        if (isGradientFill(markerStyle.fill)) {
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
         }
 

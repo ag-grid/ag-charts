@@ -1,5 +1,5 @@
-import type { CallbackParamRules, Point, RequireOptional } from 'ag-charts-core';
-import { extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import type { CallbackParamRules, Point, RequireOptional, SizedPoint } from 'ag-charts-core';
+import { extent, isContinuous, isDefined, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
     type AgAreaSeriesMarkerItemStylerParams,
@@ -17,13 +17,10 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
-import { simpleMemorize2 } from '../../../util/memo';
-import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';

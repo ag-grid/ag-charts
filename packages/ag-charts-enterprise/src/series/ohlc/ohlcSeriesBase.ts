@@ -8,7 +8,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, mergeDefaults } from 'ag-charts-core';
+import { Logger, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
 
 import {
     CLOSE,
@@ -36,7 +36,6 @@ const {
     visibleRangeIndices,
     BandScale,
     processedDataIsAnimatable,
-    simpleMemorize2,
     getItemStylesPerItemId,
 } = _ModuleSupport;
 

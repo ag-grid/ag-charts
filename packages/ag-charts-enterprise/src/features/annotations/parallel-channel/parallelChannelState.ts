@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, type Point, isNumber } from 'ag-charts-core';
+import { Debug, type Point, StateMachine, StateMachineProperty, isNumber } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -8,8 +7,6 @@ import { snapPoint } from '../utils/coords';
 import { getGroupingValue } from '../utils/scale';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
-
-const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface ParallelChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: ParallelChannelProperties) => void;

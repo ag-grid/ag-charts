@@ -1,6 +1,13 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, type Point } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    Debug,
+    ParallelStateMachine,
+    type Point,
+    StateMachine,
+    StateMachineProperty,
+} from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -17,8 +24,6 @@ import { maybeWrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isEphemeralType, isTextType } from './utils/types';
-
-const { ActionOnSet, ParallelStateMachine, StateMachine, StateMachineProperty } = _ModuleSupport;
 
 enum States {
     Idle = 'idle',
@@ -186,14 +191,14 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 type,
                 config.createState(createStateMachineContext, stateMachineHelpers),
             ])
-        ) as Record<AnnotationType, _ModuleSupport.StateMachine<any, any>>;
+        ) as Record<AnnotationType, StateMachine<any, any>>;
 
         const dragStateMachines = Object.fromEntries(
             Object.entries(annotationConfigs).map(([type, config]) => [
                 type,
                 config.dragState(ctx, stateMachineHelpers),
             ])
-        ) as Record<Partial<AnnotationType>, _ModuleSupport.StateMachine<any, any>>;
+        ) as Record<Partial<AnnotationType>, StateMachine<any, any>>;
 
         const actionColor = ({
             colorPickerType,

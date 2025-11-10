@@ -12,7 +12,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType } from 'ag-charts-core';
+import type { InternalAgColorType, SizedPoint } from 'ag-charts-core';
 import { BaseProperties, Property } from 'ag-charts-core';
 
 export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
@@ -22,7 +22,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
     readonly yHighKey: string;
     readonly yLowValue: number;
     readonly yHighValue: number;
-    readonly point: Readonly<_ModuleSupport.SizedPoint>;
+    readonly point: Readonly<SizedPoint>;
     readonly enabled: boolean;
     style?: AgSeriesMarkerStyle;
 }

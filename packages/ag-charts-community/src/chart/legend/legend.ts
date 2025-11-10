@@ -1,11 +1,13 @@
 import {
     BaseProperties,
+    Border,
     type Callback,
     type CallbackParam,
     CleanupRegistry,
     type ITextMeasurer,
     LineSplitter,
     Logger,
+    ObserveChanges,
     Property,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
@@ -15,6 +17,8 @@ import {
     clamp,
     createId,
     deepClone,
+    isImageFill,
+    isPatternFill,
     isTextTruncated,
     objectsEqual,
     toPlainText,
@@ -45,9 +49,6 @@ import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
-import { isImageFill, isPatternFill } from '../../scene/util/fill';
-import { Border } from '../../util/border';
-import { ObserveChanges } from '../../util/proxy';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ChartUpdateType } from '../chartUpdateType';
