@@ -141,8 +141,6 @@ export class TooltipManager {
         // Remove from pending map before clearing state
         this.pendingRemovals.delete(callerId);
 
-        console.log('applyPendingRemoval', callerId);
-
         // Actually remove the tooltip
         this.stateTracker.delete(callerId);
         this.applyStates();
