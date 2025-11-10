@@ -569,6 +569,9 @@ describe('RadarLineSeries', () => {
                     await hover(miss);
                     await hover(legendItem0);
                     await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
+                    await waitForChartStability(chart);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });

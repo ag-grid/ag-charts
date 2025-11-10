@@ -139,6 +139,6 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     private handleMouseLeave(moduleCtx: ModuleContext, _event: MouseWidgetEvent<'mouseleave'>) {
-        moduleCtx.tooltipManager.removeTooltip(this.id);
+        moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
     }
 }

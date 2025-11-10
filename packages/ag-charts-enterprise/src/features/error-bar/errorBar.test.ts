@@ -596,6 +596,9 @@ describe('ErrorBars', () => {
 
         // Unhighlight Canada (Australia opacity to should be restored)
         await hoverAction(0, 0)(chart);
+        await waitForChartStability(chart);
+        await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
+        await waitForChartStability(chart);
         await compare();
     });
 
@@ -793,6 +796,8 @@ describe('ErrorBars', () => {
         // Hover over nothing
         await hoverAction(0, 0)(chart);
         await waitForChartStability(chart);
+        await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
+        await waitForChartStability(chart);
         expect(result).toStrictEqual([false]);
     });
 
@@ -852,6 +857,8 @@ describe('ErrorBars', () => {
 
         // Hover over nothing
         await hoverAction(x, y - 100)(chart);
+        await waitForChartStability(chart);
+        await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
         await waitForChartStability(chart);
         expect(getCursor(chart)).toBe('default');
     });

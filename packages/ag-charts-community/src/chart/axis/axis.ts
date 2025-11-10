@@ -339,7 +339,7 @@ export abstract class Axis<
 
     private endHovering() {
         if (this.isHovering) {
-            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+            this.moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
             this.isHovering = false;
         }
     }

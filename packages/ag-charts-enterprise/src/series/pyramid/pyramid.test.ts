@@ -212,6 +212,8 @@ describe('PyramidSeries', () => {
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart);
+            await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
+            await waitForChartStability(chart);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });

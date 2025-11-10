@@ -199,8 +199,10 @@ describe('Chart', () => {
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden
+            // Check the tooltip is hidden (wait for delayed removal to complete)
             await hoverAction(0, 0)(chart);
+            await waitForChartStability(chart);
+            await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for 100ms delay + buffer
             await waitForChartStability(chart);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
