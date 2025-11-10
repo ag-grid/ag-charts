@@ -1,12 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
 import { OptionsGraph } from './optionsGraph';
 
 describe('OptionsGraph', () => {
     beforeAll(() => {
-        registerInbuiltModules();
         setupModules();
     });
 

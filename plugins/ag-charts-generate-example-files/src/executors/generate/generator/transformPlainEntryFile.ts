@@ -5,7 +5,7 @@ import { parseExampleOptions } from 'ag-charts-test';
 
 import { filterPropertyKeys } from './jsCodeShiftUtils';
 
-agCharts.setupCommunityModules?.();
+agCharts.ModuleRegistry.registerModules(agCharts.AllCommunityModules);
 
 /**
  * JS Code Shift transformer to generate plain entry file

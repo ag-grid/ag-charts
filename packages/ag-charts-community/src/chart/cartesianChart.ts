@@ -146,9 +146,9 @@ export class CartesianChart extends Chart {
         this.lastLayoutHeight = ctx.height;
 
         const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
-        const seriesPaddedRect = seriesRect.clone().grow(seriesArea.getPadding());
+        const seriesPaddedRect = seriesRect.clone().grow(seriesArea?.getPadding() ?? {});
 
-        const clipRect = seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
+        const clipRect = seriesArea?.clip || clipSeries ? seriesPaddedRect : undefined;
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 
@@ -230,7 +230,7 @@ export class CartesianChart extends Chart {
 
         for (const dir of directions) {
             const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
-            const padding = seriesArea.getPadding()[dir];
+            const padding = seriesArea?.getPadding()[dir] ?? 0;
             const axis = this.axes.findLast((a) => a.position === dir);
 
             if (axis) {

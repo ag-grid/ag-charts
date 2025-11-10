@@ -1,19 +1,37 @@
 import { Logger, ModuleRegistry, ModuleType, isArray } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
-import { ExpectedModules } from './expectedModules';
+import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
 
-export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
+function mapModuleName(module: ModulePlaceholder): string {
+    switch (module.type) {
+        case 'axis':
+            return `axis[type=${module.name}]`;
+
+        case 'series':
+            return `series[type=${module.name}]`;
+
+        case 'axis:plugin':
+            return `axis.${module.name}`;
+
+        case 'series:plugin':
+            return `series.${module.name}`;
+
+        case 'plugin':
+        default:
+            return module.name;
+    }
+}
+
+export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string,
     options: T,
     silent?: boolean
 ) {
-    let usedOptions: string[] = [];
-    const optsType: string | undefined = options?.series?.[0]?.type;
-    const isGaugeChart = optsType === 'linear-gauge' || optsType === 'radial-gauge';
+    const missingModules: ModulePlaceholder[] = [];
 
     for (const module of ExpectedModules) {
-        if (!module.enterprise || module.removable === false) continue;
+        if (ModuleRegistry.hasModule(module.name)) continue;
         if (chartType && module.chartType && chartType !== module.chartType) continue;
 
         switch (module.type) {
@@ -26,14 +44,14 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
                     isArray(options.axes) &&
                     options.axes.some((axis) => axis.type === module.name)
                 ) {
-                    usedOptions.push(`axis[type=${module.name}]`);
+                    missingModules.push(module);
                     options.axes = (options.axes as any[]).filter((axis) => axis.type !== module.name);
                 }
                 break;
 
             case 'series':
                 if (isArray(options.series) && options.series.some((series) => series.type === module.name)) {
-                    usedOptions.push(`series[type=${module.name}]`);
+                    missingModules.push(module);
                     options.series = (options.series as any[]).filter((series) => series.type !== module.name);
                 }
                 break;
@@ -41,7 +59,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
             case 'plugin':
                 const optionsKey = module.name as keyof T;
                 if (options[optionsKey] != null) {
-                    usedOptions.push(module.name);
+                    missingModules.push(module);
                     delete options[optionsKey];
                 }
                 break;
@@ -52,7 +70,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
                     isArray(options.axes) &&
                     options.axes.some((axis) => axis[module.name as keyof typeof axis])
                 ) {
-                    usedOptions.push(`axis.${module.name}`);
+                    missingModules.push(module);
                     for (const axis of options.axes) {
                         if (axis[module.name as keyof typeof axis]) {
                             delete axis[module.name as keyof typeof axis];
@@ -66,7 +84,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
                     isArray(options.series as unknown) &&
                     options.series?.some((series) => series[module.name as keyof typeof series])
                 ) {
-                    usedOptions.push(`series.${module.name}`);
+                    missingModules.push(module);
                     for (const series of options.series) {
                         type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
                         if (series[module.name as SeriesModuleKey]) {
@@ -77,11 +95,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
                 break;
         }
     }
-    if (usedOptions.length && !silent) {
-        if (isGaugeChart) {
-            usedOptions = ['AgCharts.createGauge'];
-        }
-
+    if (missingModules.length && !silent) {
         let enterprisePackageName = 'ag-charts-enterprise';
         let enterpriseReferenceUrl = 'https://www.ag-grid.com/charts/javascript/installation/';
 
@@ -90,27 +104,59 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(
             enterpriseReferenceUrl = 'https://www.ag-grid.com/javascript-data-grid/integrated-charts-installation/';
         }
 
-        Logger.warnOnce(
-            [
-                `unable to use these enterprise features as '${enterprisePackageName}' has not been loaded:`,
-                '',
-                ...usedOptions,
-                '',
-                `See: ${enterpriseReferenceUrl}`,
-            ].join('\n')
+        const messages: string[] = [];
+        const missingOptions = missingModules.reduce<{ enterprise: string[]; community: string[] }>(
+            (data, module) => {
+                data[module.enterprise ? 'enterprise' : 'community'].push(mapModuleName(module));
+                return data;
+            },
+            { enterprise: [], community: [] }
         );
+
+        const optsType: string | undefined = options?.series?.[0]?.type;
+        if (optsType === 'linear-gauge' || optsType === 'radial-gauge') {
+            missingOptions.enterprise = ['AgCharts.createGauge'];
+        }
+
+        if (missingOptions.enterprise.length) {
+            messages.push(
+                [
+                    `unable to use these enterprise features as '${enterprisePackageName}' has not been loaded:`,
+                    '',
+                    ...missingOptions.enterprise,
+                    '',
+                    `See: ${enterpriseReferenceUrl}`,
+                ].join('\n')
+            );
+        }
+
+        if (missingOptions.community.length) {
+            messages.push(
+                [
+                    `unable to use these features as the required community modules have not been registered:`,
+                    '',
+                    ...missingOptions.community,
+                    '',
+                    `Call ModuleRegistry.registerModules([...]) with the necessary modules before creating the chart.`,
+                ].join('\n')
+            );
+        }
+
+        if (messages.length) {
+            Logger.warnOnce(messages.join('\n\n'));
+        }
     }
 }
 
-export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>(chartType: string, options: T) {
+export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions>>(chartType: string, options: T) {
     for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-        if (module.enterprise && module.chartType && module.chartType !== chartType) {
+        if (module.chartType && module.chartType !== chartType) {
             delete options[module.name as keyof AgChartOptions];
         }
     }
     if ('axes' in options && isArray(options.axes)) {
         for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-            if (module.enterprise && module.chartType && module.chartType !== chartType) {
+            if (module.chartType && module.chartType !== chartType) {
                 for (const axis of options.axes) {
                     delete axis[module.name as keyof typeof axis];
                 }
@@ -119,7 +165,7 @@ export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>
     }
     if ('series' in options && isArray(options.series)) {
         for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
-            if (module.enterprise && module.chartType && module.chartType !== chartType) {
+            if (module.chartType && module.chartType !== chartType) {
                 for (const series of options.series) {
                     delete series[module.name as Exclude<keyof typeof series, 'type'>];
                 }

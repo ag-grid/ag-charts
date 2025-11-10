@@ -11,7 +11,6 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
-import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
@@ -415,7 +414,6 @@ const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
 
 describe('ChartOptions', () => {
     beforeAll(() => {
-        registerInbuiltModules();
         setupModules();
     });
 
@@ -1624,7 +1622,7 @@ describe('ChartOptions', () => {
                 (seriesType) => {
                     const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: true }));
                     const options = prepareOptions({ series: testOptions });
-                    const { stackable } = seriesTypes[seriesType as SeriesType]!;
+                    const { stackable, groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
@@ -1642,7 +1640,16 @@ describe('ChartOptions', () => {
                             expect(console.warn).toHaveBeenCalledWith(
                                 `AG Charts - unsupported stacking of series type "${seriesType}".`
                             );
-                            expect(series.seriesGrouping).toBe(undefined);
+                            if (groupable) {
+                                expect(series.seriesGrouping).toMatchSnapshot({
+                                    groupIndex: expect.any(Number),
+                                    groupCount: expect.any(Number),
+                                    stackIndex: expect.any(Number),
+                                    stackCount: expect.any(Number),
+                                });
+                            } else {
+                                expect(series.seriesGrouping).toBe(undefined);
+                            }
                         }
                     }
                 }
@@ -1808,7 +1815,7 @@ describe('ChartOptions', () => {
 
                         if (!stackable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].stacked`, ignoring./)
+                                `AG Charts - unsupported stacking of series type "${seriesType}".`
                             );
                         }
                         if (!groupable) {
@@ -1934,9 +1941,7 @@ describe('ChartOptions', () => {
                         } else {
                             if (!stackable) {
                                 expect(console.warn).toHaveBeenCalledWith(
-                                    expect.stringMatching(
-                                        /AG Charts - Unknown option `series\[\d+].stacked`, ignoring./
-                                    )
+                                    `AG Charts - unsupported stacking of series type "${seriesType}".`
                                 );
                             }
                             if (!groupable) {
