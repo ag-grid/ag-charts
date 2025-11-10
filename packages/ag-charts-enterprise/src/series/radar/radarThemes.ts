@@ -35,7 +35,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleTheme<'radar-line' | 'radar-area'> = {
             strokeOpacity: 1,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
-        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        highlight: _ModuleSupport.markerSeriesHighlightStyle(),
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },

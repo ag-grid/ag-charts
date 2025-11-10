@@ -20,12 +20,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
-            highlight: _ModuleSupport.mergeDefaults(
-                {
-                    unhighlightedItem: { opacity: 0.2 },
-                },
-                _ModuleSupport.singleSeriesHighlightStyle()
-            ),
+            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
             label: {
                 ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 fontFamily: { $ref: 'fontFamily' },
