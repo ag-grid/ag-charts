@@ -11,6 +11,9 @@ import {
     waitForChartUpdate,
 } from './util';
 
+// Timeout to wait for delayed tooltip/crosshair removal (100ms delay + 50ms buffer)
+const DELAYED_REMOVAL_TIMEOUT = 150;
+
 test.describe('synchronised', () => {
     // Some tests are flaky due to a race between page load and animations firing.
     test.describe.configure({ retries: 3 });
@@ -506,6 +509,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowDown'); // Activate tooltips on all charts so they are present.
                 await page.keyboard.press('ArrowUp');
                 await waitForAllChartUpdates(page);
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -518,6 +522,7 @@ test.describe('synchronised', () => {
 
                 await page.keyboard.press('ArrowDown');
                 await waitForAllChartUpdates(page);
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -646,6 +651,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowDown'); // Force all crosshairs to render
                 await page.keyboard.press('ArrowUp'); // 1st series.
                 await waitForAllChartUpdates(page);
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await expect(crosshairLocator).toHaveCount(3);
 
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -659,6 +665,7 @@ test.describe('synchronised', () => {
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
                 await waitForAllChartUpdates(page);
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
                 await expect(crosshairLocator.nth(1)).toBeVisible();
                 await expect(crosshairLocator.nth(2)).not.toBeVisible();
@@ -775,6 +782,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowDown'); // Activate tooltips on all charts so they are present.
                 await page.keyboard.press('ArrowUp');
                 await waitForAllChartUpdates(page);
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -787,6 +795,7 @@ test.describe('synchronised', () => {
 
                 await page.keyboard.press('ArrowDown');
                 await waitForAllChartUpdates(page);
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -903,6 +912,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowDown'); // Force all crosshairs to render
                 await page.keyboard.press('ArrowUp'); // 1st series.
                 await waitForAllChartUpdates(page);
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await expect(crosshairLocator).toHaveCount(3);
 
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -916,6 +926,7 @@ test.describe('synchronised', () => {
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
                 await waitForAllChartUpdates(page);
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
                 await expect(crosshairLocator.nth(1)).toBeVisible();
                 await expect(crosshairLocator.nth(2)).not.toBeVisible();
