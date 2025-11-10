@@ -180,6 +180,12 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         () => this.nodeFactory(),
         false
     );
+    protected phantomHighlightGroup = this.highlightGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    private readonly phantomHighlightSelection: Selection<Sector, PieDonutNodeDatum> = Selection.select(
+        this.phantomHighlightGroup,
+        () => this.nodeFactory(),
+        false
+    );
     private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
     private readonly calloutLabelSelection: Selection<Group, PieDonutNodeDatum> = new Selection(
         this.calloutLabelGroup,
@@ -230,6 +236,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         this.angleScale.range = [-Math.PI, Math.PI].map((angle) => angle + Math.PI / 2);
 
         this.phantomGroup.opacity = 0.2;
+        this.phantomHighlightGroup.opacity = 0.2;
 
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
     }
@@ -946,12 +953,19 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             itemSelection,
             highlightSelection,
             phantomSelection,
+            phantomHighlightSelection,
             calloutLabelSelection,
             labelSelection,
             highlightLabelSelection,
             innerLabelsSelection,
         } = this;
         const highlightedNodeData = this.nodeData.map((datum) => ({
+            ...datum,
+            // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
+            // between normal and highlighted cases.
+            sectorFormat: { ...datum.sectorFormat },
+        }));
+        const phantomHighlightedNodeData = this.phantomNodeData?.map((datum) => ({
             ...datum,
             // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
             // between normal and highlighted cases.
@@ -968,6 +982,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         update(itemSelection, this.nodeData);
         update(highlightSelection, highlightedNodeData);
         update(phantomSelection, this.phantomNodeData ?? []);
+        update(phantomHighlightSelection, phantomHighlightedNodeData ?? []);
 
         calloutLabelSelection.update(this.calloutNodeData, (group) => {
             const line = new Line();
@@ -1073,6 +1088,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
 
         this.highlightSelection.each((node, datum, index) => {
+            updateSectorFn(node, datum, index, true, drawingMode);
+
+            node.visible = datum.itemId === highlightedDatum?.itemId;
+        });
+        this.phantomHighlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
 
             node.visible = datum.itemId === highlightedDatum?.itemId;
@@ -1803,7 +1823,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             this.id,
             'nodes',
             animationManager,
-            [this.itemSelection, this.highlightSelection, this.phantomSelection],
+            [this.itemSelection, this.highlightSelection, this.phantomSelection, this.phantomHighlightSelection],
             fns.nodes,
             (_, datum) => this.getDatumId(datum.datumIndex)
         );
@@ -1817,8 +1837,15 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     override animateWaitingUpdateReady() {
-        const { itemSelection, highlightSelection, phantomSelection, processedData, radiusScale, previousRadiusScale } =
-            this;
+        const {
+            itemSelection,
+            highlightSelection,
+            phantomSelection,
+            phantomHighlightSelection,
+            processedData,
+            radiusScale,
+            previousRadiusScale,
+        } = this;
         const { animationManager } = this.ctx;
         const dataDiff = processedData?.reduced?.diff?.[this.id];
 
@@ -1842,7 +1869,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             this.id,
             'nodes',
             animationManager,
-            [itemSelection, highlightSelection, phantomSelection],
+            [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
             (_, datum) => this.getDatumId(datum.datumIndex),
             dataDiff
@@ -1867,7 +1894,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     override animateClearingUpdateEmpty() {
-        const { itemSelection, highlightSelection, phantomSelection, radiusScale, previousRadiusScale } = this;
+        const {
+            itemSelection,
+            highlightSelection,
+            phantomSelection,
+            phantomHighlightSelection,
+            radiusScale,
+            previousRadiusScale,
+        } = this;
         const { animationManager } = this.ctx;
 
         const fns = preparePieSeriesAnimationFunctions(
@@ -1880,7 +1914,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             this.id,
             'nodes',
             animationManager,
-            [itemSelection, highlightSelection, phantomSelection],
+            [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
             (_, datum) => this.getDatumId(datum.datumIndex)
         );

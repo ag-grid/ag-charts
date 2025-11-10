@@ -282,13 +282,12 @@ export abstract class Series<
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new TranslatableGroup({ name: `${this.internalId}-highlight-node` })
+        new Group({ name: `${this.internalId}-highlight-node` })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(
-        new TranslatableGroup({
+        new Group({
             name: `${this.internalId}-highlight-label`,
-            pointerEvents: PointerEvents.None,
             zIndex: SeriesContentZIndexMap.LABEL,
         })
     );
@@ -415,6 +414,8 @@ export abstract class Series<
         this.canHaveAxes = canHaveAxes;
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
+
+        this.highlightLabelGroup.pointerEvents = PointerEvents.None;
 
         this.cleanup.register(
             this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),

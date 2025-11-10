@@ -148,6 +148,15 @@ export class BarSeries extends AbstractBarSeries<
         false
     );
 
+    readonly phantomHighlightGroup = this.highlightGroup.appendChild(
+        new Group({ name: `${this.internalId}-highlight-node` })
+    );
+    private phantomHighlightSelection: Selection<BarShape, BarNodeDatum> = Selection.select(
+        this.phantomHighlightGroup,
+        () => this.nodeFactory(),
+        false
+    );
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -169,6 +178,7 @@ export class BarSeries extends AbstractBarSeries<
         });
 
         this.phantomGroup.opacity = 0.2;
+        this.phantomHighlightGroup.opacity = 0.2;
     }
 
     private crossFilteringEnabled() {
@@ -751,6 +761,24 @@ export class BarSeries extends AbstractBarSeries<
         });
     }
 
+    protected override updateHighlightSelectionItem(opts: {
+        items?: BarNodeDatum[];
+        highlightSelection: Selection<BarShape<BarNodeDatum>, BarNodeDatum>;
+    }) {
+        const out = super.updateHighlightSelectionItem(opts);
+
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+        const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as BarNodeDatum) : undefined;
+
+        this.phantomHighlightSelection = this.updateDatumSelection({
+            nodeData: item ? this.getHighlightData(this.contextNodeData?.phantomNodeData ?? [], item) ?? [] : [],
+            datumSelection: this.phantomHighlightSelection,
+        });
+
+        return out;
+    }
+
     protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
         super.updateNodes(itemHighlighted, nodeRefresh);
 
@@ -759,15 +787,18 @@ export class BarSeries extends AbstractBarSeries<
             isHighlight: false,
             drawingMode: 'overlay',
         });
+        this.updateDatumNodes({
+            datumSelection: this.phantomHighlightSelection,
+            isHighlight: true,
+            drawingMode: 'overlay',
+        });
     }
 
     protected override getHighlightData(
         nodeData: BarNodeDatum[],
         highlightedItem: BarNodeDatum
     ): BarNodeDatum[] | undefined {
-        const highlightItem = nodeData.find(
-            (nodeDatum) => nodeDatum.datum === highlightedItem.datum && !nodeDatum.phantom
-        );
+        const highlightItem = nodeData.find((nodeDatum) => nodeDatum.datum === highlightedItem.datum);
         return highlightItem == null ? undefined : [{ ...highlightItem }];
     }
 
@@ -1112,6 +1143,12 @@ export class BarSeries extends AbstractBarSeries<
         super.resetDatumAnimation(data);
 
         resetMotion([this.phantomSelection], resetBarSelectionsFn);
+    }
+
+    override animateReadyHighlight(data: Selection<BarShape<BarNodeDatum>, BarNodeDatum>) {
+        super.animateReadyHighlight(data);
+
+        resetMotion([this.phantomHighlightSelection], resetBarSelectionsFn);
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
