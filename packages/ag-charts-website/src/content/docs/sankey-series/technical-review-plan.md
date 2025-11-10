@@ -24,7 +24,7 @@
 1. **simple-sankey** (`_examples/simple-sankey/`)
 
     - Demonstrates: Basic sankey configuration
-    - Key config: `fromKey`, `toKey`, `sizeKey`, `sizeName`, `label.edgePlacement: 'outside'`
+    - Key config: `fromKey`, `toKey`, `sizeKey`, `sizeName`
     - Expected: UK Power Generation data visualization
 
 2. **alignment** (`_examples/alignment/`)
