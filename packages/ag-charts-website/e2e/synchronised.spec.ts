@@ -534,6 +534,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('Tab');
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await page.keyboard.press('Tab');
                 await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
@@ -559,6 +560,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('Tab');
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await page.keyboard.press('Tab');
                 await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
@@ -807,6 +809,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('Tab');
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await page.keyboard.press('Tab');
                 await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
@@ -832,6 +835,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('Tab');
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
                 await page.keyboard.press('Tab');
                 await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
