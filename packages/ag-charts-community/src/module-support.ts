@@ -114,8 +114,6 @@ export { BASE_FONT_SIZE, FONT_SIZE, FONT_SIZE_RATIO } from './chart/themes/const
 export { type DefaultColors } from './chart/themes/defaultColors';
 export { ChartUpdateType } from './chart/chartUpdateType';
 export { type MementoOriginator } from './api/state/memento';
-export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
-export { isGradientFill, isPatternFill, isImageFill, isGradientOrPatternFill } from './scene/util/fill';
 export * from './scene/util/quadtree';
 export * from './scale/unitTimeScale';
 export * from './scale/logScale';
@@ -131,13 +129,11 @@ export * from './scale/invalidating';
 export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
 
 export { DropShadow } from './scene/dropShadow';
-export { ChangeDetectableProperties } from './scene/util/changeDetectableProperties';
 export { Node, PointerEvents } from './scene/node';
 export * from './scene/changeDetectable';
 export type { RenderContext, ChildNodeCounts } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
-export type { SizedPoint } from './scene/point';
 export { Gradient, type GradientParams } from './scene/gradient/gradient';
 export * from './scene/gradient/stops';
 export { LinearGradient } from './scene/gradient/linearGradient';
@@ -160,7 +156,6 @@ export { SectorBox } from './scene/sectorBox';
 export { HdpiCanvas } from './scene/canvas/hdpiCanvas';
 export { Image } from './scene/image';
 export { ExtendedPath2D } from './scene/extendedPath2D';
-export * from './scene/util/bezier';
 export * as easing from './motion/easing';
 
 export const motion = { ...fromToMotion, ...resetMotion };

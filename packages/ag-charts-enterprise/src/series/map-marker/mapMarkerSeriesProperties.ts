@@ -8,11 +8,11 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType, LabelPlacement, PointLabelDatum, SizedPoint } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
-import type { InternalAgColorType } from 'ag-charts-core';
 
 const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
-export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {
+export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly datumId: string | number | boolean;
 }
@@ -27,13 +27,13 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
     readonly legendItemName: string | undefined;
-    readonly point: Readonly<_ModuleSupport.SizedPoint>;
+    readonly point: Readonly<SizedPoint>;
     style: AgMapMarkerSeriesStyle;
 }
 
 class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> {
     @Property
-    placement: _ModuleSupport.LabelPlacement = 'bottom';
+    placement: LabelPlacement = 'bottom';
 }
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {

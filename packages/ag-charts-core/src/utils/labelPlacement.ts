@@ -1,7 +1,7 @@
 import { type BoxBounds, type Point, boxCollides, boxContains } from 'ag-charts-core';
 import type { TextOrSegments } from 'ag-charts-types';
 
-import type { SizedPoint } from '../point';
+import type { SizedPoint } from '../interfaces/sceneTypes';
 
 export type LabelPlacement =
     | 'top'

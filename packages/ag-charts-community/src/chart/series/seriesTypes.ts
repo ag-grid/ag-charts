@@ -1,9 +1,7 @@
-import type { Point } from 'ag-charts-core';
+import type { PlacedLabel, Point, PointLabelDatum, SizedPoint } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
-import type { SizedPoint } from '../../scene/point';
-import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import type { TypedEvent } from '../../util/observable';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';

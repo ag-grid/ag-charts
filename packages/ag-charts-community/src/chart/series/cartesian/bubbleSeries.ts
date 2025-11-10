@@ -1,7 +1,11 @@
 import {
     type CallbackParamRules,
+    type LabelPlacement,
+    type MeasuredLabel,
+    type PlacedLabel,
     type Point,
     type RequireOptional,
+    type SizedPoint,
     cachedTextMeasurer,
     clamp,
     dateToNumber,
@@ -36,10 +40,8 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
-import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';

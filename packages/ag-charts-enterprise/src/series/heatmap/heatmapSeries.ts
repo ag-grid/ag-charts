@@ -13,6 +13,7 @@ import {
     type InternalAgColorType,
     Logger,
     type Point,
+    type SizedPoint,
     extent,
     formatValue,
     mergeDefaults,
@@ -41,7 +42,7 @@ const {
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
-    readonly point: Readonly<_ModuleSupport.SizedPoint>;
+    readonly point: Readonly<SizedPoint>;
     readonly itemId: string;
     midPoint: Readonly<Point>;
     readonly width: number;

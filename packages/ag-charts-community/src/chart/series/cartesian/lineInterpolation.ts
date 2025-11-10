@@ -1,6 +1,4 @@
-import type { Point } from 'ag-charts-core';
-
-import { solveBezier, splitBezier2D } from '../../../scene/util/bezier';
+import { type Point, solveBezier, splitBezier2D } from 'ag-charts-core';
 
 export type LinearSpan = {
     type: 'linear';

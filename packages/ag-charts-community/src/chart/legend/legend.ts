@@ -17,6 +17,8 @@ import {
     clamp,
     createId,
     deepClone,
+    isImageFill,
+    isPatternFill,
     isTextTruncated,
     objectsEqual,
     toPlainText,
@@ -47,7 +49,6 @@ import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
-import { isImageFill, isPatternFill } from '../../scene/util/fill';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ChartUpdateType } from '../chartUpdateType';

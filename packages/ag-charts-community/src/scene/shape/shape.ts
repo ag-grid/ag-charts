@@ -4,6 +4,9 @@ import {
     boxesEqual,
     clamp,
     generateUUID,
+    isGradientFill,
+    isImageFill,
+    isPatternFill,
     isString,
     objectsEqual,
 } from 'ag-charts-core';
@@ -27,7 +30,6 @@ import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
 import { Node, SceneChangeDetection } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { isGradientFill, isImageFill, isPatternFill } from '../util/fill';
 import { align } from '../util/pixel';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from './svgUtils';
 

@@ -17,6 +17,7 @@ import {
     cachedTextMeasurer,
     calcLineHeight,
     formatValue,
+    isGradientFill,
     isNumberEqual,
     mergeDefaults,
     toPlainText,
@@ -815,7 +816,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             lineDashOffset: 0,
         };
 
-        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+        if (isGradientFill(markerStyle.fill)) {
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
         }
 

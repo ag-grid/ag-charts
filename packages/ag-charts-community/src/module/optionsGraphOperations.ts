@@ -6,14 +6,16 @@ import {
     type PlainObject,
     circularSliceArray,
     isArray,
+    isGradientFill,
+    isImageFill,
     isNumber,
     isObjectLike,
+    isPatternFill,
     isPlainObject,
     isString,
     without,
 } from 'ag-charts-core';
 
-import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
 import {
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,

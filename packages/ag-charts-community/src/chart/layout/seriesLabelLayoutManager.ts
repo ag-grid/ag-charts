@@ -1,7 +1,6 @@
-import type { Padding } from 'ag-charts-core';
+import { type Padding, type PointLabelDatum, isPointLabelDatum, placeLabels } from 'ag-charts-core';
 
 import { BBox } from '../../scene/bbox';
-import { type PointLabelDatum, isPointLabelDatum, placeLabels } from '../../scene/util/labelPlacement';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 
 export class SeriesLabelLayoutManager {
