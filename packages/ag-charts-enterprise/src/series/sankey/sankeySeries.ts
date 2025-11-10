@@ -289,35 +289,29 @@ export class SankeySeries extends FlowProportionSeries<
         let columnLabelInsetBefore = 0;
         let columnLabelInsetAfter = 0;
 
-        if (this.isLabelEnabled()) {
-            if (labelPlacement == null && edgeLabelPlacement == null) {
-                // If labels are unplaced, add an extra column of spacing before and after to place them into.
-                columnLabelInsetBefore = (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1));
-                columnLabelInsetAfter = columnLabelInsetBefore;
-            } else if (edgeLabelPlacement === 'outside' || edgeLabelPlacement == null) {
-                // Otherwise, if the labels are either placed outside or unplaced, add extra spacing before and after
-                // based on the width of the longest label in the first and last columns, respectively.
-                const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
-                    const node = n as EnhancedNodeGraphEntry;
-                    if (node.datum.label == null || node.datum.label === '') return acc;
-                    let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
-                    if (labelPlacement === 'center' && edgeLabelPlacement == null) maxWidth /= 2;
-                    const text = wrapText(node.datum.label, {
-                        maxWidth,
-                        maxHeight: node.datum.height,
-                        font: this.properties.label,
-                        textWrap: 'never',
-                    });
-                    let { width } = measurer.measureLines(text);
-                    if (labelPlacement === 'center' && edgeLabelPlacement == null) width /= 2;
-                    return Math.max(acc, width);
-                };
-                if (labelPlacement !== 'right' || edgeLabelPlacement === 'outside') {
-                    columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
-                }
-                if (labelPlacement !== 'left' || edgeLabelPlacement === 'outside') {
-                    columnLabelInsetAfter = nodeWidth + columns.at(-1)!.nodes.reduce(reduceLabelWidthFn, 0);
-                }
+        if (this.isLabelEnabled() && (edgeLabelPlacement === 'outside' || edgeLabelPlacement == null)) {
+            // If the labels are either placed outside or unplaced, add extra spacing before and after
+            // based on the width of the longest label in the first and last columns, respectively.
+            const reduceLabelWidthFn = (acc: number, n: Column['nodes'][number]) => {
+                const node = n as EnhancedNodeGraphEntry;
+                if (node.datum.label == null || node.datum.label === '') return acc;
+                let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
+                if (labelPlacement === 'center' && edgeLabelPlacement == null) maxWidth /= 2;
+                const text = wrapText(node.datum.label, {
+                    maxWidth,
+                    maxHeight: node.datum.height,
+                    font: this.properties.label,
+                    textWrap: 'never',
+                });
+                let { width } = measurer.measureLines(text);
+                if (labelPlacement === 'center' && edgeLabelPlacement == null) width /= 2;
+                return Math.max(acc, width);
+            };
+            if (labelPlacement !== 'right' || edgeLabelPlacement === 'outside') {
+                columnLabelInsetBefore = nodeWidth + columns[0].nodes.reduce(reduceLabelWidthFn, 0);
+            }
+            if (labelPlacement !== 'left' || edgeLabelPlacement === 'outside') {
+                columnLabelInsetAfter = nodeWidth + columns.at(-1)!.nodes.reduce(reduceLabelWidthFn, 0);
             }
         }
 

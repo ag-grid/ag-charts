@@ -35,9 +35,6 @@ const options: AgChartOptions = {
                 strokeWidth: 1,
                 strokeOpacity: 0.25,
             },
-            label: {
-                edgePlacement: 'outside',
-            },
         },
     ],
 };
