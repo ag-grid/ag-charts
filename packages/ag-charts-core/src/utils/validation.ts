@@ -1,5 +1,5 @@
 import { warnOnce } from '../globals/logger';
-import type { IsUnion } from '../interfaces/globalTypes';
+import type { AreExact, IsUnion } from '../interfaces/globalTypes';
 import { safeCall } from './functions';
 import { joinFormatted, levenshteinDistance, stringifyValue } from './strings';
 import {
@@ -508,6 +508,18 @@ export function union(...allowed: any[]) {
     }
     const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`);
     return attachDescription((value) => allowed.includes(value), `a keyword such as ${keywords}`);
+}
+
+/**
+ * A defensive version of `union` that intentionally breaks compilation if a string union type is changed.
+ * @example
+ * type U = 'a' | 'b';
+ * strictUnion<U>()('a', 'b'); // compilation breaks if U is changed to `'a' | 'b' | 'c'`.
+ */
+export function strictUnion<T extends string>(): <U extends readonly T[]>(
+    ...args: U & (AreExact<T, U[number]> extends true ? U : never)
+) => Validator {
+    return union;
 }
 
 /**

@@ -1,5 +1,12 @@
-import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { AbstractModuleInstance, type AxisID, debounce, entries, roundTo } from 'ag-charts-core';
+import type { DeepRequired } from 'ag-charts-core';
+import type {
+    AgZoomAnchorPoint,
+    AgZoomAxisDraggingMode,
+    AgZoomOnDataChange,
+    AgZoomOnDataChangeStrategy,
+} from 'ag-charts-types';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAutoScaler, ZoomAutoScalingProperties } from './zoomAutoScale';
@@ -47,6 +54,11 @@ enum DragState {
     Pan,
     Select,
     TwoFingers,
+}
+
+class ZoomOnDataChange extends _ModuleSupport.BaseProperties implements DeepRequired<AgZoomOnDataChange> {
+    @Property
+    strategy: AgZoomOnDataChangeStrategy = 'preserveDomain';
 }
 
 export class Zoom extends AbstractModuleInstance {
@@ -140,6 +152,9 @@ export class Zoom extends AbstractModuleInstance {
         this.resetZoom.bind(this),
         this.isZoomValid.bind(this)
     );
+
+    @Property
+    public onDataChange = new ZoomOnDataChange();
 
     // Scenes
     private seriesRect?: _ModuleSupport.BBox;
