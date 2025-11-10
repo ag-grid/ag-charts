@@ -5,9 +5,8 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { Property } from 'ag-charts-core';
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
-
-const { Property } = _ModuleSupport;
 
 export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarAreaSeriesStyle, AgRadarAreaSeriesOptions> {
     @Property

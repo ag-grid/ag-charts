@@ -3,8 +3,9 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Annotation, Handle, Line } from '../annotationProperties';
 import { type AnnotationOptionsColorPickerType } from '../annotationTypes';
 
-const { BaseProperties } = _ModuleSupport;
 
+
+import { BaseProperties } from 'ag-charts-core';
 export class StartEndProperties extends Annotation(Line(Handle(BaseProperties))) {
     snapToAngle: number = 45;
 

@@ -6,8 +6,8 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
-import { findMinMax } from 'ag-charts-core';
+import type { Point, RequireOptional, CallbackParamRules } from 'ag-charts-core';
+import { findMinMax, mergeDefaults} from 'ag-charts-core';
 
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
@@ -44,7 +44,6 @@ const {
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
-    mergeDefaults,
     simpleMemorize2,
     getItemStyles,
     calculateSegments,
@@ -592,7 +591,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             xKey,
             yLowKey,
             yHighKey,
-        } satisfies _ModuleSupport.CallbackParamRules<AgRangeBarSeriesStylerParams<unknown, unknown>>;
+        } satisfies CallbackParamRules<AgRangeBarSeriesStylerParams<unknown, unknown>>;
     }
 
     protected override updateDatumSelection(opts: {

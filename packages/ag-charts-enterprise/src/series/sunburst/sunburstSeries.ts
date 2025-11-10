@@ -5,6 +5,7 @@ import {
     type RequireOptional,
     normalizeAngle360,
     toPlainText,
+    mergeDefaults,
 } from 'ag-charts-core';
 import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
@@ -22,7 +23,6 @@ const {
     TransformableText,
     BBox,
     applyShapeStyle,
-    mergeDefaults,
     formatValue,
     getLabelStyles,
 } = _ModuleSupport;

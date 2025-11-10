@@ -1,4 +1,4 @@
-import { BaseProperties, Property } from '../../../util/properties';
+import { BaseProperties, Property } from 'ag-charts-core';
 
 export class InterpolationProperties extends BaseProperties {
     @Property

@@ -7,6 +7,7 @@ import {
     isArray,
     measureTextSegments,
     toPlainText,
+    mergeDefaults,
 } from 'ag-charts-core';
 import type {
     AgMapShapeSeriesLabelFormatterParams,
@@ -41,7 +42,6 @@ const {
     PointerEvents,
     applyShapeStyle,
     getLabelStyles,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext

@@ -10,12 +10,12 @@ import {
     normalizeAngle360Inclusive,
     toRadians,
     wrapTextOrSegments,
+    Property,
 } from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const { ChartAxisDirection, Property, Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
-
+const { ChartAxisDirection, Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
 export interface AngleAxisLabelDatum {
     text: TextOrSegments;
     x: number;

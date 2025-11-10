@@ -9,6 +9,7 @@ import {
     shapeHighlightOptionsDef,
     string,
     union,
+    without,
 } from 'ag-charts-core';
 import type {
     AgScatterSeriesOptions,
@@ -16,7 +17,6 @@ import type {
     AgScatterSeriesThemeableOptions,
 } from 'ag-charts-types';
 
-import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,

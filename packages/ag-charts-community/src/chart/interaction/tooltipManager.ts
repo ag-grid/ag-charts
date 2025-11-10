@@ -1,9 +1,8 @@
-import { type BoxBounds, CleanupRegistry } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry, objectsEqual } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { objectsEqual } from '../../util/object';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';

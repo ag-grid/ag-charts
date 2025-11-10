@@ -20,6 +20,7 @@ import {
     normalizeAngle360Inclusive,
     toPlainText,
     toRadians,
+    mergeDefaults,
 } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
@@ -63,7 +64,6 @@ const {
     Marker,
     tickFormat,
     applyShapeStyle,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface TargetLabel {

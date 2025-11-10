@@ -1,6 +1,5 @@
-import { arraysEqual } from 'ag-charts-core';
+import { arraysEqual, objectsEqual } from 'ag-charts-core';
 
-import { objectsEqual } from '../../util/object';
 import type { DataModel, DataModelOptions, UngroupedData } from './dataModel';
 import type { PropertyDefinition } from './dataModelTypes';
 import type { DataSet } from './dataSet';

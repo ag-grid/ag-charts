@@ -17,8 +17,9 @@ import {
 import type { AnnotationProperties } from './annotationsSuperTypes';
 import { setColor, setFontSize, setLineStyle } from './utils/styles';
 
-const { deepClone } = _ModuleSupport;
 
+
+import { deepClone } from 'ag-charts-core';
 interface DefaultsMemento {
     colors: DefaultColors;
     fontSizes: DefaultFontSizes;

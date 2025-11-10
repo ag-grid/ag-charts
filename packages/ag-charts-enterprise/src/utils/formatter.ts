@@ -1,6 +1,7 @@
 import type { Formatter, RichFormatter, TextOrSegments } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { callWithContext } from 'ag-charts-core';
 interface Ctx {
     chartService: { context?: unknown };
 }
@@ -12,5 +13,5 @@ export function formatWithContext<P>(
     formatter: Formatter<P> | RichFormatter<P>,
     params: P
 ): TextOrSegments | undefined {
-    return _ModuleSupport.callWithContext(ctx.chartService, formatter, params);
+    return callWithContext(ctx.chartService, formatter, params);
 }

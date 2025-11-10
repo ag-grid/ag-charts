@@ -1,8 +1,7 @@
-import { Logger } from 'ag-charts-core';
+import { BaseProperties, Logger, Property } from 'ag-charts-core';
 import type { AgGradientColorMode, AgGradientColorStop } from 'ag-charts-types';
 
 import { ColorScale } from '../../scale/colorScale';
-import { BaseProperties, Property } from '../../util/properties';
 
 export interface GradientColorStop {
     stop: number;

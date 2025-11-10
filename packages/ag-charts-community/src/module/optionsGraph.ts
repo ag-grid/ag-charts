@@ -4,18 +4,19 @@ import {
     ModuleRegistry,
     type PlainObject,
     type Vertex,
+    deepClone,
     distribute,
     isObject,
     isObjectLike,
+    pick,
+    without,
 } from 'ag-charts-core';
 import type { DatumDefault, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
 import { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { CARTESIAN_AXIS_TYPE } from '../chart/themes/constants';
-import { deepClone } from '../util/json';
 import { simpleMemorize } from '../util/memo';
-import { pick, without } from '../util/object';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
 import {

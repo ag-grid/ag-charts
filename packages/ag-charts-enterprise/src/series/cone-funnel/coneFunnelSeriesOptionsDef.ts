@@ -1,7 +1,7 @@
 import { type AgConeFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, required, string } from 'ag-charts-core';
+import { type OptionsDefs, constant, required, string, without} from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, coneFunnelSeriesThemeableOptionsDef, without } = _ModuleSupport;
+const { commonSeriesOptionsDefs, coneFunnelSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> = {
     ...without(commonSeriesOptionsDefs, ['showInLegend']),

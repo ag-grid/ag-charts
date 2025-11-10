@@ -5,6 +5,7 @@ import {
     clamp,
     generateUUID,
     isString,
+    objectsEqual,
 } from 'ag-charts-core';
 import type {
     AgDrawingMode,
@@ -15,7 +16,6 @@ import type {
     StrokeOptions,
 } from 'ag-charts-types';
 
-import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
 import { SceneArrayChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../changeDetectable';
 import type { DropShadow } from '../dropShadow';

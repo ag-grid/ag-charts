@@ -1,4 +1,5 @@
-import { Property } from '../util/properties';
+import { Property } from 'ag-charts-core';
+
 import { SceneChangeDetection } from './node';
 import { ChangeDetectableProperties } from './util/changeDetectableProperties';
 

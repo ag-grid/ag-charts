@@ -1,7 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { Property } = _ModuleSupport;
-
+import { Property } from 'ag-charts-core';
 const VALID_COLOR = '#2196f3';
 const INVALID_COLOR = '#8a8a8a';
 

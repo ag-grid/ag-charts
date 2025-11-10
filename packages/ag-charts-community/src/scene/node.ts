@@ -1,6 +1,5 @@
-import { Logger, createId, createSvgElement } from 'ag-charts-core';
+import { Logger, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
 
-import { objectsEqual } from '../util/object';
 import { BBox } from './bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
 import type { ImageLoader } from './image/imageLoader';

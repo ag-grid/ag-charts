@@ -7,7 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, TextMeasurer, cachedTextMeasurer, calcLineHeight, toPlainText, wrapText } from 'ag-charts-core';
+import { Logger, TextMeasurer, cachedTextMeasurer, calcLineHeight, toPlainText, wrapText, mergeDefaults} from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -35,7 +35,6 @@ const {
     getLabelStyles,
     Rect,
     BBox,
-    mergeDefaults,
 } = _ModuleSupport;
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &

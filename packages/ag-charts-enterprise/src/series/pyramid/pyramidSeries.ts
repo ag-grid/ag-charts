@@ -12,6 +12,7 @@ import {
     isArray,
     measureTextSegments,
     toPlainText,
+    mergeDefaults,
 } from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
@@ -29,7 +30,6 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
-    mergeDefaults,
     fromToMotion,
     seriesLabelFadeInAnimation,
     getLabelStyles,

@@ -15,6 +15,7 @@ import {
 } from './baseFunnelSeries';
 import { FunnelProperties } from './funnelProperties';
 
+import { mergeDefaults } from 'ag-charts-core';
 const {
     ChartAxisDirection,
     resetBarSelectionsFn,
@@ -24,7 +25,6 @@ const {
     Rect,
     motion,
     applyShapeStyle,
-    mergeDefaults,
 } = _ModuleSupport;
 
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {

@@ -5,14 +5,13 @@ import {
     findMinMax,
     isNumberEqual,
     normalisedExtentWithMetadata,
+    Property,
 } from 'ag-charts-core';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
-
-const { Property } = _ModuleSupport;
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';

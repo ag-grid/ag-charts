@@ -5,6 +5,7 @@ import type {
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
+import { BaseProperties, PropertiesArray, Property, mergeDefaults } from 'ag-charts-core';
 import type {
     AgColorRepeat,
     AgColorType,
@@ -22,8 +23,6 @@ import type {
     HighlightState as PublicHighlightState,
 } from 'ag-charts-types';
 
-import { mergeDefaults } from '../../util/object';
-import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import type { SeriesTooltip } from './seriesTooltip';
 
 export enum HighlightState {

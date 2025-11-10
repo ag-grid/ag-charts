@@ -18,6 +18,7 @@ import {
     isNumberEqual,
     toPlainText,
     wrapText,
+    mergeDefaults,
 } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -33,7 +34,6 @@ const {
     Transformable,
     applyShapeStyle,
     getLabelStyles,
-    mergeDefaults,
     formatValue,
 } = _ModuleSupport;
 

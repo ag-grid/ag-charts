@@ -1,8 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { createElement } from 'ag-charts-core';
+import { createElement, Property, BaseProperties} from 'ag-charts-core';
 
-const { BaseProperties, ObserveChanges, ProxyProperty, Property, calculatePlacement } = _ModuleSupport;
-
+const { ObserveChanges, ProxyProperty, calculatePlacement } = _ModuleSupport;
 export class Image extends BaseProperties {
     @Property
     top?: number;

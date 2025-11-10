@@ -9,6 +9,7 @@ import {
     getWindow,
     setAttribute,
     setAttributes,
+    mapValues,
 } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
@@ -24,7 +25,6 @@ const {
     createTextArea,
     initRovingTabIndex,
     getIconClassNames,
-    mapValues,
 } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}

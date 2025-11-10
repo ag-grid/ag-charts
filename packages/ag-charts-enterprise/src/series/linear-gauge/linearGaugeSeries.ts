@@ -15,6 +15,7 @@ import {
     isArray,
     measureTextSegments,
     toRadians,
+    mergeDefaults,
 } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
@@ -57,7 +58,6 @@ const {
     NiceMode,
     easing,
     tickFormat,
-    mergeDefaults,
     applyShapeStyle,
 } = _ModuleSupport;
 

@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isObject } from 'ag-charts-core';
+import { isObject, Property } from 'ag-charts-core';
 
 import { Fill, Stroke } from '../annotationProperties';
 import {
@@ -10,8 +10,7 @@ import {
 } from '../annotationTypes';
 import { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 
-const { Property, Color } = _ModuleSupport;
-
+const { Color } = _ModuleSupport;
 const DEFAULT_CALLOUT_PADDING = {
     top: 6,
     right: 12,

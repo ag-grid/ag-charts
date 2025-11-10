@@ -1,9 +1,9 @@
-import { type AnyFn, CleanupRegistry, attachListener, boxContains } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, attachListener, boxContains, partialAssign } from 'ag-charts-core';
 
-import { partialAssign } from '../util/object';
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
 import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
 import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
+
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;

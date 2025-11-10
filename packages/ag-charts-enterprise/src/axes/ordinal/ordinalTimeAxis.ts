@@ -6,9 +6,9 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { Property } from 'ag-charts-core';
 const {
     OrdinalTimeScale,
-    Property,
     TimeAxisParentLevel,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,

@@ -1,5 +1,12 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
+import {
+    BaseProperties,
+    type BoxBounds,
+    CleanupRegistry,
+    EventEmitter,
+    PropertiesArray,
+    Property,
+} from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
 import {
@@ -19,9 +26,7 @@ import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, has
 import { getLineStyle } from './utils/line';
 import { isTextType } from './utils/types';
 
-const { Color, FloatingToolbar, Menu, PropertiesArray, ToolbarButtonProperties, ToolbarButtonWidget, Property } =
-    _ModuleSupport;
-
+const { Color, FloatingToolbar, Menu, ToolbarButtonProperties, ToolbarButtonWidget } = _ModuleSupport;
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
@@ -109,7 +114,7 @@ class FloatingAnnotationOptionsToolbar extends FloatingToolbar<
     }
 }
 
-export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
+export class AnnotationOptionsToolbar extends BaseProperties {
     @Property
     public enabled?: boolean = true;
 

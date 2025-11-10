@@ -6,12 +6,12 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property, BaseProperties} from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
 
 import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 
-const { BaseProperties, makeSeriesTooltip, Property } = _ModuleSupport;
-
+const { makeSeriesTooltip } = _ModuleSupport;
 class CandlestickSeriesWick extends BaseProperties {
     @Property
     stroke?: string;

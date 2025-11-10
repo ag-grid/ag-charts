@@ -1,6 +1,6 @@
+import { Property } from 'ag-charts-core';
 import type { AgColorType } from 'ag-charts-types';
 
-import { Property } from '../../../util/properties';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 

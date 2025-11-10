@@ -11,6 +11,7 @@ import {
     shapeHighlightOptionsDef,
     string,
     union,
+    without,
 } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
@@ -18,7 +19,6 @@ import type {
     AgBubbleSeriesThemeableOptions,
 } from 'ag-charts-types';
 
-import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,

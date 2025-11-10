@@ -12,6 +12,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property, BaseProperties} from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
 
 export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
@@ -27,12 +28,10 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
 }
 
 const {
-    BaseProperties,
     CartesianSeriesProperties,
     InterpolationProperties,
     SeriesMarker,
     makeSeriesTooltip,
-    Property,
     DropShadow,
     Label,
 } = _ModuleSupport;

@@ -1,9 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { Property } from 'ag-charts-core';
 import { Image } from '../image/image';
 
-const { ZIndexMap, ActionOnSet, Property, ProxyPropertyOnWrite } = _ModuleSupport;
-
+const { ZIndexMap, ActionOnSet, ProxyPropertyOnWrite } = _ModuleSupport;
 export class Foreground extends _ModuleSupport.Background<Image> {
     @Property
     @ActionOnSet<Foreground>({

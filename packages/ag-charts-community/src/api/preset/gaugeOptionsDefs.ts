@@ -24,6 +24,7 @@ import {
     strokeOptionsDef,
     undocumented,
     union,
+    without,
 } from 'ag-charts-core';
 import type {
     AgGaugeColorStop,
@@ -44,7 +45,6 @@ import {
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
 } from '../../chart/commonOptionsDefs';
-import { without } from '../../util/object';
 
 export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
     fills: and(

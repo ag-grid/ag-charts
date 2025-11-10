@@ -11,6 +11,7 @@ import type { Point, RequireOptional } from 'ag-charts-core';
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
 
+import { mergeDefaults } from 'ag-charts-core';
 const {
     adjustLabelPlacement,
     SeriesNodePickMode,
@@ -36,7 +37,6 @@ const {
     Rect,
     motion,
     applyShapeStyle,
-    mergeDefaults,
     getItemStylesPerItemId,
     DataSet,
 } = _ModuleSupport;

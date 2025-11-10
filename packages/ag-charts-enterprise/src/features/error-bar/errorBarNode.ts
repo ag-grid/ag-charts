@@ -3,7 +3,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { PickNodeDatumResult } from 'ag-charts-core';
 import type { HighlightState } from 'ag-charts-types';
 
-const { nearestSquared, nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
+import { mergeDefaults, partialAssign } from 'ag-charts-core';
+const { nearestSquared, nearestSquaredInContainer, BBox } = _ModuleSupport;
 type NearestResult<T> = _ModuleSupport.NearestResult<T>;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;

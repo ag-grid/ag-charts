@@ -1,8 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance } from 'ag-charts-core';
+import { AbstractModuleInstance, Property } from 'ag-charts-core';
 
-const { ObserveChanges, Property } = _ModuleSupport;
-
+const { ObserveChanges } = _ModuleSupport;
 export class Animation extends AbstractModuleInstance {
     @ObserveChanges<Animation>((target, newValue) => {
         target.ctx.animationManager.skip(!newValue);

@@ -1,7 +1,7 @@
-import { Logger, isArray, isPlainObject } from 'ag-charts-core';
-
+import { Logger } from '../globals';
 import { listDecoratedProperties } from './decorator';
 import { merge } from './object';
+import { isArray, isPlainObject } from './typeGuards';
 
 export { addFakeTransformToInstanceProperty as Property } from './decorator';
 

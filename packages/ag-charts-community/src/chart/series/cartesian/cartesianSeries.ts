@@ -1,4 +1,13 @@
-import { Debug, type Point, type Scale, findMaxIndex, findMinIndex, findMinMax, isFiniteNumber } from 'ag-charts-core';
+import {
+    Debug,
+    type Point,
+    Property,
+    type Scale,
+    findMaxIndex,
+    findMinIndex,
+    findMinMax,
+    isFiniteNumber,
+} from 'ag-charts-core';
 import type { AgDrawingMode, AgSeriesSegmentation } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
@@ -17,7 +26,6 @@ import { Path } from '../../../scene/shape/path';
 import { type Segment, SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { Property } from '../../../util/properties';
 import { StateMachine } from '../../../util/stateMachine';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';

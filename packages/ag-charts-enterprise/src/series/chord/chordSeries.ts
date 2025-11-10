@@ -9,6 +9,7 @@ import {
     normalizeAngle360,
     toPlainText,
     wrapText,
+    mergeDefaults,
 } from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
 
@@ -32,7 +33,6 @@ const {
     getShapeStyle,
     getLabelStyles,
     BBox,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {

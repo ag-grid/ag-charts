@@ -1,13 +1,12 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import { type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
+import { type ScaleTickParams, isNumberEqual, Property } from 'ag-charts-core';
 
 import { loopSymmetrically } from '../../utils/polar';
 import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { Property, CategoryScale } = _ModuleSupport;
-
+const { CategoryScale } = _ModuleSupport;
 export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScale<string>> {
     static readonly className = 'AngleCategoryAxis';
     static readonly type = 'angle-category' as const;

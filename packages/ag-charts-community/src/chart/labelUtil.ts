@@ -1,4 +1,5 @@
 import type { Callback, CallbackParam, IsAny, Point, RequireOptional } from 'ag-charts-core';
+import { mergeDefaults } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
@@ -10,7 +11,6 @@ import type {
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
-import { mergeDefaults } from '../util/object';
 import type { Label } from './label';
 import type { DatumIndexType, SeriesNodeDatum } from './series/seriesTypes';
 

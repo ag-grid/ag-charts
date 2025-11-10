@@ -35,6 +35,7 @@ import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotation
 import type { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
+import { BaseProperties } from 'ag-charts-core';
 type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
@@ -119,22 +120,22 @@ export interface AnnotationsStateMachineContext {
     update: () => void;
 }
 
-export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BaseProperties, Scene extends AnnotationSceneNode> {
+export interface AnnotationTypeConfig<Datum extends BaseProperties, Scene extends AnnotationSceneNode> {
     type: AnnotationType;
     isDatum: (value: unknown) => value is Datum;
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
-    update: (node: AnnotationSceneNode, datum: _ModuleSupport.BaseProperties, context: AnnotationContext) => void;
+    update: (node: AnnotationSceneNode, datum: BaseProperties, context: AnnotationContext) => void;
     translate: (
         node: AnnotationSceneNode,
-        datum: _ModuleSupport.BaseProperties,
+        datum: BaseProperties,
         translation: Point,
         context: AnnotationContext
     ) => void;
     copy: (
         node: AnnotationSceneNode,
-        datum: _ModuleSupport.BaseProperties,
-        copiedDatum: _ModuleSupport.BaseProperties,
+        datum: BaseProperties,
+        copiedDatum: BaseProperties,
         context: AnnotationContext
     ) => Datum | undefined;
     createState: (

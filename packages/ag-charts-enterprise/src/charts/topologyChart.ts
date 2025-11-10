@@ -1,9 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AxisID, createId } from 'ag-charts-core';
+import { type AxisID, createId, Property } from 'ag-charts-core';
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
-const { Chart, MercatorScale, ChartAxisDirection, Property } = _ModuleSupport;
-
+const { Chart, MercatorScale, ChartAxisDirection } = _ModuleSupport;
 function isTopologySeries(
     series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>
 ): series is _ModuleSupport.ITopology {

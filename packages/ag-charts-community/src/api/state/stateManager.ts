@@ -1,4 +1,5 @@
-import { objectsEqual } from '../../util/object';
+import { objectsEqual } from 'ag-charts-core';
+
 import { VERSION } from '../../version';
 import { MementoCaretaker, type MementoOriginator } from './memento';
 

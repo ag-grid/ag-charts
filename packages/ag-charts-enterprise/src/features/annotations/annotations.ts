@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
     _Widget,
 } from 'ag-charts-community';
-import { AbstractModuleInstance, type Point, Vec2, isValidDate } from 'ag-charts-core';
+import { AbstractModuleInstance, type Point, Vec2, isValidDate, Property, PropertiesArray} from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -36,8 +36,6 @@ import { invertCoords } from './utils/values';
 const {
     ChartUpdateType,
     InteractionState,
-    PropertiesArray,
-    Property,
     ChartAxisDirection,
     keyProperty,
     valueProperty,
@@ -46,7 +44,7 @@ const {
     ObserveChanges,
 } = _ModuleSupport;
 
-type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
+type AnnotationPropertiesArray = PropertiesArray<AnnotationProperties>;
 
 type AnnotationAxis = {
     layout: _ModuleSupport.AxisLayout;

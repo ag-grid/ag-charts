@@ -1,18 +1,21 @@
-import type { Scale } from 'ag-charts-core';
+import type { AxisID, Scale } from 'ag-charts-core';
 import {
     type Callback,
     type CallbackParam,
     CleanupRegistry,
     type Point,
+    Property,
     type RequireOptional,
     WeakCache,
+    callWithContext,
     clampArray,
     createId,
+    deepFreeze,
     findMinMax,
     findRangeExtent,
     isArray,
+    mergeDefaults,
 } from 'ag-charts-core';
-import type { AxisID } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -38,9 +41,6 @@ import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { callWithContext } from '../../util/callbackCache';
-import { deepFreeze, mergeDefaults } from '../../util/object';
-import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';

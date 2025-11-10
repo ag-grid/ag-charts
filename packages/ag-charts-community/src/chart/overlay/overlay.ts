@@ -1,10 +1,8 @@
-import { createElement, isArray } from 'ag-charts-core';
+import { BaseProperties, Property, callWithContext, createElement, isArray } from 'ag-charts-core';
 import type { AgChartOverlayRendererParams, DatumDefault, TextOrSegments } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
-import { callWithContext } from '../../util/callbackCache';
-import { BaseProperties, Property } from '../../util/properties';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';

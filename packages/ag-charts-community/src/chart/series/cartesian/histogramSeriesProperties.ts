@@ -1,4 +1,5 @@
 import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 import type {
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
@@ -9,7 +10,6 @@ import type {
 
 import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
-import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';

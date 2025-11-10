@@ -18,6 +18,8 @@ export * from './modules/format';
 export * from './options/commonOptionsDefs';
 
 // Utils
+export * from './utils/callbackCache';
+export * from './utils/decorator';
 export * from './utils/dom';
 export * from './utils/math';
 export * from './utils/arrays';
@@ -34,12 +36,15 @@ export * from './utils/extent';
 export * from './utils/functions';
 export * from './utils/geoJson';
 export * from './utils/graph';
+export * from './utils/json';
 export * from './utils/id';
 export * from './utils/idBranding';
 export * from './utils/iterators';
 export * from './utils/linkedList';
 export * from './utils/numberArray';
 export * from './utils/numbers';
+export * from './utils/object';
+export * from './utils/properties';
 export * from './utils/strings';
 export * from './utils/textMeasurer';
 export * from './utils/textUtils';

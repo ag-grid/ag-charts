@@ -11,13 +11,15 @@ import {
     isDefined,
     isFiniteNumber,
     unique,
+    Property,
+    BaseProperties,
+    isObjectWithStringProperty,
 } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { definedZoomState } from '../zoom/zoomUtils';
 
 const {
-    BaseProperties,
     CartesianAxis,
     ChartAxisDirection,
     ContinuousScale,
@@ -26,8 +28,6 @@ const {
     ChartUpdateType,
     ObserveChanges,
     TooltipManager,
-    Property,
-    isObjectWithStringProperty,
 } = _ModuleSupport;
 
 const debug = Debug.create('sync');

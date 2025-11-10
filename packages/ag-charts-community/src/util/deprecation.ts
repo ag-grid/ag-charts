@@ -1,7 +1,4 @@
-import { Logger } from 'ag-charts-core';
-
-import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
-import { getPath, setPath } from './object';
+import { BREAK_TRANSFORM_CHAIN, Logger, addTransformToInstanceProperty, getPath, setPath } from 'ag-charts-core';
 
 // Note: These deprecation utilities are currently unused but are kept for future deprecations.
 // They provide decorators for marking properties as deprecated with helpful migration messages.

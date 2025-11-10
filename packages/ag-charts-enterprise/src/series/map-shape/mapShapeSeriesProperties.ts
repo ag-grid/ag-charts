@@ -8,12 +8,12 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
 
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { Property, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
-
+const { SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 export interface MapShapeNodeLabelDatum {
     readonly x: number;
     readonly y: number;

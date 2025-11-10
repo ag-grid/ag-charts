@@ -1,6 +1,5 @@
-import { Debug, Logger, getWindow } from 'ag-charts-core';
+import { Debug, Logger, getWindow, jsonDiff } from 'ag-charts-core';
 
-import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
 import { type CachedData, canReuseCachedData } from './caching';
 import {

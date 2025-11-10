@@ -1,4 +1,13 @@
-import { ModuleRegistry, ModuleType, groupBy, isArray } from 'ag-charts-core';
+import {
+    ModuleRegistry,
+    ModuleType,
+    deepClone,
+    deepFreeze,
+    groupBy,
+    isArray,
+    jsonWalk,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeOptions,
@@ -14,8 +23,6 @@ import type {
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import { Color } from '../../util/color';
-import { deepClone, jsonWalk } from '../../util/json';
-import { deepFreeze, mergeDefaults } from '../../util/object';
 import type { ChartType } from '../factory/expectedModules';
 import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';

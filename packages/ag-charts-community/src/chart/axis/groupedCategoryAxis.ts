@@ -1,5 +1,8 @@
 import type { ScaleTickParams } from 'ag-charts-core';
 import {
+    BaseProperties,
+    PropertiesArray,
+    Property,
     type WrapOptions,
     angularPadding,
     extent,
@@ -20,7 +23,6 @@ import { BBox } from '../../scene/bbox';
 import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { createDatumId } from '../data/processors';
 import { LabelBorder } from '../label';

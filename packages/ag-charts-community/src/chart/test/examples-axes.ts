@@ -1,6 +1,6 @@
+import { mergeDefaults } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
-import { mergeDefaults } from '../../util/object';
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
 import * as examples from './examples';

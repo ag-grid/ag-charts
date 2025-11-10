@@ -1,9 +1,8 @@
+import { Property, objectsEqual } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { objectsEqual } from '../../util/object';
-import { Property } from '../../util/properties';
 import { intervalEpoch, intervalFloor, intervalStep, intervalUnit } from '../../util/time';
 import {
     dateTruncationForDomain,

@@ -19,6 +19,7 @@ import {
     typeUnion,
     undocumented,
     union,
+    without,
 } from 'ag-charts-core';
 import type {
     AgBaseFinancialPresetOptions,
@@ -39,7 +40,6 @@ import { commonChartOptionsDefs, tooltipOptionsDefs } from '../../chart/commonOp
 import { areaSeriesOptionsDef } from '../../chart/series/cartesian/areaSeriesOptionsDef';
 import { barSeriesOptionsDef } from '../../chart/series/cartesian/barSeriesOptionsDef';
 import { lineSeriesOptionsDef } from '../../chart/series/cartesian/lineSeriesOptionsDef';
-import { without } from '../../util/object';
 import { VERSION } from '../../version';
 import { gauge } from './gauge';
 import { linearGaugeSeriesOptionsDef, radialGaugeSeriesOptionsDef } from './gaugeOptionsDefs';

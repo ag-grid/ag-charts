@@ -9,16 +9,15 @@ import {
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { Property, BaseProperties} from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
 
 const {
     FillGradientDefaults,
     FillPatternDefaults,
     FillImageDefaults,
-    BaseProperties,
     makeSeriesTooltip,
     SeriesProperties,
-    Property,
     Label,
 } = _ModuleSupport;
 

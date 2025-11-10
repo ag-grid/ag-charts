@@ -3,7 +3,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
 
-const { Path, ExtendedPath2D, BBox, SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } = _ModuleSupport;
+import { objectsEqual } from 'ag-charts-core';
+const { Path, ExtendedPath2D, BBox, SceneChangeDetection, SceneObjectChangeDetection } = _ModuleSupport;
 
 export enum GeoGeometryRenderMode {
     All = 0b11,
