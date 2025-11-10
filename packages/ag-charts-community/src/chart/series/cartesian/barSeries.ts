@@ -1,3 +1,5 @@
+import { resetMotion } from 'packages/ag-charts-community/src/module-support';
+
 import type { Point, RequireOptional } from 'ag-charts-core';
 import { isFiniteNumber } from 'ag-charts-core';
 import type {
@@ -74,6 +76,7 @@ import {
     resetBarSelectionsFn,
 } from './barUtil';
 import {
+    type CartesianAnimationData,
     type CartesianSeriesNodeDatum,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
@@ -114,7 +117,7 @@ interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarN
     segments?: Segment[];
 }
 
-type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
+type BarAnimationData = AbstractBarSeriesAnimationData<BarShape<BarNodeDatum>, BarNodeDatum>;
 
 const memoizedAggregateBarData = simpleMemorize2(aggregateBarData);
 
@@ -1102,6 +1105,14 @@ export class BarSeries extends AbstractBarSeries<
                 hideInLegend: !showInLegend,
             },
         ];
+    }
+
+    protected override resetDatumAnimation(
+        data: CartesianAnimationData<BarShape<BarNodeDatum>, BarNodeDatum, BarNodeDatum, BarSeriesNodeDataContext>
+    ) {
+        super.resetDatumAnimation(data);
+
+        resetMotion([this.phantomSelection], resetBarSelectionsFn);
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
