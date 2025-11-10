@@ -169,6 +169,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
+    private isSyncing = false;
     private isFirstWheelEvent = true;
     private wasFirstWheelEventZoomCapped?: boolean;
     private firstWheelEventDirection?: boolean;
@@ -906,7 +907,9 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     public updateSyncZoom(zoom: DefinedZoomState) {
+        this.isSyncing = true;
         this.updateZoom(zoom);
+        this.isSyncing = false;
     }
 
     private updateChanges(changes: _ModuleSupport.CoreZoomState) {
@@ -938,7 +941,11 @@ export class Zoom extends AbstractModuleInstance {
             return false;
         }
 
-        this.ctx.zoomManager.updateZoom('zoom', zoom);
+        if (this.isSyncing) {
+            this.ctx.zoomManager.syncZoom('zoom', zoom);
+        } else {
+            this.ctx.zoomManager.updateZoom('zoom', zoom);
+        }
         return true;
     }
 
@@ -975,7 +982,11 @@ export class Zoom extends AbstractModuleInstance {
 
         if (!this.isAxisZoomValid(direction, axisZoom, validOptions)) return false;
 
-        zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
+        if (this.isSyncing) {
+            zoomManager.syncAxisZoom('zoom', axisId, axisZoom);
+        } else {
+            zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
+        }
         return true;
     }
 

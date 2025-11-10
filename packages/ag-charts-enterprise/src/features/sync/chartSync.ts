@@ -121,10 +121,10 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private enabledZoomSync() {
         const { eventsHub } = this.moduleContext;
         this.disableZoomSync?.(); // Cleanup any existing listeners.
-        this.disableZoomSync = eventsHub.on('zoom:change-complete', this.onZoom.bind(this));
+        this.disableZoomSync = eventsHub.on('zoom:change-complete', (e) => this.onZoom(e));
     }
 
-    private onZoom() {
+    private onZoom(e: _ModuleSupport.ZoomChangeCompleteEvent) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
             const syncModule: any = chart.modulesManager.getModule('sync');
@@ -134,8 +134,20 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
             const zoom = this.prepareZoomUpdate();
 
-            debug('ChartsSyncManager.enabledZoomSync()', chart.id, zoom);
-            zoomModule.updateSyncZoom(zoom);
+            // Zoom.updateSyncZoom emits change-requests with `changeType: 'sync'`. This allows the ChartSync to ignore
+            // these change-requests. Otherwise, we end with infinite recursion on `updateSyncZoom`, caused by ChartSync:
+            //
+            // 1. Let Chart A and Chart B be synchronised charts.
+            // 2. User interacts with Chart A (updates the zoom).
+            // 3. ChartSync of Chart B calls `updateSyncZoom`.
+            // 4. ChartSync of Chart A calls `updateSyncZoom`.
+            // 5. ChartSync of Chart B calls `updateSyncZoom`.
+            // 6. Add so on...
+            //
+            if (e.changeType !== 'sync') {
+                debug('ChartsSyncManager.enabledZoomSync()', chart.id, zoom);
+                zoomModule.updateSyncZoom(zoom);
+            }
         }
     }
 

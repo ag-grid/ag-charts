@@ -336,6 +336,16 @@ export class ZoomManager extends BaseManager {
         return this.applyUpdateZoom({ callerId, changeType: 'update', changes });
     }
 
+    public syncZoom(callerId: string, newZoom?: AxisZoomState): boolean {
+        const changes = this.toCoreZoomState(newZoom ?? this.getZoom() ?? {});
+        return this.applyUpdateZoom({ callerId, changeType: 'sync', changes });
+    }
+
+    public syncAxisZoom(callerId: string, axisId: AxisID, newZoom?: ZoomState): boolean {
+        const changes = { [axisId]: newZoom ?? this.getAxisZoom(axisId) };
+        return this.applyUpdateZoom({ callerId, changeType: 'sync', changes });
+    }
+
     private computeChangedAxesIds(newState: UpdateZoomChanges): readonly AxisID[] {
         const result: AxisID[] = [];
         const oldState = this.state.stateValue();
@@ -592,7 +602,7 @@ export class ZoomManager extends BaseManager {
         const changeAccepted: boolean = changedAxes.length > 0 || wasChangeConstrained;
         if (changeAccepted) {
             const acceptedZoom = this.getZoom() ?? {};
-            this.eventsHub.emit('zoom:change-complete', { x: acceptedZoom.x });
+            this.eventsHub.emit('zoom:change-complete', { changeType, x: acceptedZoom.x });
             this.didCompleteChange = true; // emit API AgZoomEvent when the redraw completes
         }
         return changeAccepted;

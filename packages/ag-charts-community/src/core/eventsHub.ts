@@ -162,7 +162,14 @@ export interface ZoomLoadMementoEvent {
     readonly zoomModule: boolean;
 }
 
-export type ZoomChangeType = 'layoutComplete' | 'panToBBox' | 'reset' | 'restoreMemento' | 'update' | 'setAxes';
+export type ZoomChangeType =
+    | 'layoutComplete'
+    | 'panToBBox'
+    | 'reset'
+    | 'restoreMemento'
+    | 'setAxes'
+    | 'sync'
+    | 'update';
 
 export type ZoomChangeState = {
     readonly [K in AxisID]: Readonly<ZoomStateDirection> | undefined;
@@ -179,6 +186,7 @@ export interface ZoomChangeRequestEvent {
 }
 
 export interface ZoomChangeCompleteEvent {
+    readonly changeType: ZoomChangeType;
     readonly x?: Readonly<ZoomState>;
 }
 
