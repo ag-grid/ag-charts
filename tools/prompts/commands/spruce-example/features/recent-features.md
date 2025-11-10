@@ -89,8 +89,8 @@ formatter: {
         { text: ' %', opacity: 0.7 },
     ],
 },
-axes: [
-    {
+axes: {
+    x: {
         type: 'time',
         position: 'bottom',
         label: {
@@ -100,7 +100,7 @@ axes: [
             ],
         },
     },
-];
+};
 ```
 
 _Scope_: Works for axes, labels, navigator mini-chart labels, and chart-level captions.
@@ -110,8 +110,8 @@ _Scope_: Works for axes, labels, navigator mini-chart labels, and chart-level ca
 _New Mar 2025 • Apply: 4 minutes • Impact: MEDIUM_
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number',
         position: 'left',
         crossAt: {
@@ -119,12 +119,12 @@ axes: [
             sticky: true, // Keep origin locked to the plotted domain
         },
     },
-    {
+    x: {
         type: 'time',
         position: 'bottom',
         crossAt: { value: new Date('2025-01-01') },
     },
-];
+};
 ```
 
 _Use for_: Center-origin charts, quadrant layouts, and custom axis intersections without manual offsets.
@@ -197,8 +197,8 @@ _Replaces: Repetitive itemStyler implementations, manual series state management
 _New Jan 2025 • Apply: 5 minutes • Impact: MEDIUM_
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number', // Required
         position: 'left',
         label: {
@@ -216,7 +216,7 @@ axes: [
             },
         },
     },
-];
+};
 ```
 
 _Replaces: Complex label formatter workarounds, custom label rendering_
@@ -692,8 +692,8 @@ _Replaces: Static chart loading and manual animation implementations_
 _New May 2023 • Apply: 8 minutes • Impact: Medium_
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number', // Required
         position: 'left',
         title: {
@@ -703,7 +703,7 @@ axes: [
             },
         },
     },
-];
+};
 ```
 
 _Replaces: Static axis titles and manual title generation logic_
@@ -713,8 +713,8 @@ _Replaces: Static axis titles and manual title generation logic_
 _New Apr 2023 • Apply: 4 minutes • Impact: Low_
 
 ```typescript
-axes: [
-    {
+axes: {
+    x: {
         type: 'category', // Required
         position: 'bottom',
         label: {
@@ -724,7 +724,7 @@ axes: [
             // Don't set color - theme handles label colors
         },
     },
-];
+};
 ```
 
 _Note: Only use rotation if labels truly overlap, otherwise leave default_

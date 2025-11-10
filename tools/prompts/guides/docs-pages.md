@@ -441,10 +441,10 @@ Display code snippets with syntax highlighting.
         { type: 'bar', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone', fill: '#007bff', stacked: true },
         { type: 'bar', xKey: 'quarter', yKey: 'mac', yName: 'Mac', fill: '#28a745', stacked: true },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     legend: { enabled: true },
 }
 ```
@@ -797,12 +797,12 @@ A category axis is used to display distinct categories or groups of data in a ch
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-    ],
+    },
 }
 ```
 ````
@@ -979,10 +979,10 @@ See the [Default Values Guide](./defaults.md) for complete details.
     series: [
         { type: 'bar', xKey: 'month', yKey: 'sales', yName: 'Sales', fill: '#007bff', stacked: true },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 }
 ```
 

@@ -11,8 +11,8 @@ _Apply: 8 minutes, Impact: MEDIUM_ ⭐ **RECOMMENDED for data-heavy charts**
 ### Basic Crosshairs
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number', // Required field
         position: 'left',
         crosshair: {
@@ -23,14 +23,14 @@ axes: [
             },
         },
     },
-    {
+    x: {
         type: 'category', // Required field
         position: 'bottom',
         crosshair: {
             enabled: true,
         },
     },
-];
+};
 ```
 
 ### Advanced Crosshair Configuration

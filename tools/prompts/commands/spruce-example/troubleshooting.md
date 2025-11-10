@@ -50,24 +50,24 @@ const options: AgChartOptions = { ... };
 // ✅ Specific types
 import { AgCartesianChartOptions } from 'ag-charts-enterprise';
 const options: AgCartesianChartOptions = {
-    axes: [...],  // Now properly typed
+    axes: { x: {...}, y: {...} },  // Now properly typed
     series: [...]
 };
 ```
 
-### Always Specify axes[].type
+### Always Specify axes.*.type
 
 ```typescript
-axes: [
-    {
+axes: {
+    x: {
         type: 'category', // ⚠️ REQUIRED
         position: 'bottom',
     },
-    {
+    y: {
         type: 'number', // ⚠️ REQUIRED
         position: 'left',
     },
-];
+};
 ```
 
 ## 🎯 When Things Fail
