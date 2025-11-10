@@ -1,18 +1,13 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { AbstractModuleInstance, type AxisID, debounce, entries, roundTo } from 'ag-charts-core';
-import type { DeepRequired } from 'ag-charts-core';
-import type {
-    AgZoomAnchorPoint,
-    AgZoomAxisDraggingMode,
-    AgZoomOnDataChange,
-    AgZoomOnDataChangeStrategy,
-} from 'ag-charts-types';
+import type { AgZoomAnchorPoint, AgZoomAxisDraggingMode } from 'ag-charts-types';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAutoScaler, ZoomAutoScalingProperties } from './zoomAutoScale';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomContextMenu } from './zoomContextMenu';
 import { ZoomDOMProxy } from './zoomDOMProxy';
+import { ZoomOnDataChange, ZoomOnDataChangeProperties } from './zoomOnDataChange';
 import { type ZoomPanUpdate, ZoomPanner } from './zoomPanner';
 import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
@@ -54,11 +49,6 @@ enum DragState {
     Pan,
     Select,
     TwoFingers,
-}
-
-class ZoomOnDataChange extends _ModuleSupport.BaseProperties implements DeepRequired<AgZoomOnDataChange> {
-    @Property
-    strategy: AgZoomOnDataChangeStrategy = 'preserveDomain';
 }
 
 export class Zoom extends AbstractModuleInstance {
@@ -154,7 +144,7 @@ export class Zoom extends AbstractModuleInstance {
     );
 
     @Property
-    public onDataChange = new ZoomOnDataChange();
+    public readonly onDataChange: ZoomOnDataChangeProperties = new ZoomOnDataChangeProperties();
 
     // Scenes
     private seriesRect?: _ModuleSupport.BBox;
@@ -164,6 +154,7 @@ export class Zoom extends AbstractModuleInstance {
     private readonly axisDragger = new ZoomAxisDragger();
     private readonly autoScaler: ZoomAutoScaler;
     private readonly contextMenu: ZoomContextMenu;
+    private readonly dataChangeHandler = new ZoomOnDataChange(this.onDataChange);
     private readonly panner = new ZoomPanner();
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
