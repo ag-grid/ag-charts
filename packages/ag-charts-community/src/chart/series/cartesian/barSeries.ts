@@ -1,5 +1,3 @@
-import { resetMotion } from 'packages/ag-charts-community/src/module-support';
-
 import type { Point, RequireOptional } from 'ag-charts-core';
 import { isFiniteNumber } from 'ag-charts-core';
 import type {
@@ -14,6 +12,7 @@ import type {
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
+import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
@@ -142,7 +141,7 @@ export class BarSeries extends AbstractBarSeries<
         return this.properties.sparklineMode ? 'main' : undefined;
     }
 
-    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom' }));
+    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
     private phantomSelection: Selection<BarShape, BarNodeDatum> = Selection.select(
         this.phantomGroup,
         () => this.nodeFactory(),

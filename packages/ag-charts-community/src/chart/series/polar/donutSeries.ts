@@ -174,7 +174,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    protected phantomGroup = this.backgroundGroup.appendChild(new Group({ name: 'phantom' }));
+    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
     private readonly phantomSelection: Selection<Sector, PieDonutNodeDatum> = Selection.select(
         this.phantomGroup,
         () => this.nodeFactory(),
