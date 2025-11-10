@@ -37,8 +37,8 @@ not set.
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             label: {
@@ -47,7 +47,7 @@ not set.
                 },
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             context: 'my axis context',
@@ -57,16 +57,16 @@ not set.
                 },
             },
         },
-    ],
+    },
 }
 ```
 
 In this snippet:
 
--   `series[0]` and `axes[0]` do not have their own `context` defined, so the
+-   `series[0]` and `axes.x` do not have their own `context` defined, so the
     callbacks use the `context` defined at the root.
 
--   `series[1]` and `axes[1]` have custom `context` values defined, and these will be used callbacks.
+-   `series[1]` and `axes.y` have custom `context` values defined, and these will be used callbacks.
 
 ## Context Object Example
 

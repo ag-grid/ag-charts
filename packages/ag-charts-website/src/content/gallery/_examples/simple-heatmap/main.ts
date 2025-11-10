@@ -59,15 +59,15 @@ const options: AgChartOptions = {
             strokeOpacity: 0.1,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             line: {
                 enabled: false,
             },
         },
-        {
+        x: {
             type: 'category',
             position: 'bottom',
             label: {
@@ -77,7 +77,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     gradientLegend: {
         enabled: true,
         gradient: {

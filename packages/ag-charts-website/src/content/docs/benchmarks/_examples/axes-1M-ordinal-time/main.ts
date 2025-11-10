@@ -26,10 +26,10 @@ const options: AgCartesianChartOptions = {
             marker: { enabled: false },
         },
     ],
-    axes: [
-        { type: 'number', position: 'left' },
-        { type: 'ordinal-time', position: 'bottom', parentLevel: { enabled: false } },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left' },
+        x: { type: 'ordinal-time', position: 'bottom', parentLevel: { enabled: false } },
+    },
 };
 /* @ag-options-end */
 
@@ -41,6 +41,6 @@ chart.waitForUpdate().then(() => {
 });
 
 function setParentLevel(enabled: boolean) {
-    (options.axes![1] as AgOrdinalTimeAxisOptions).parentLevel = { enabled };
+    (options.axes!.y! as AgOrdinalTimeAxisOptions).parentLevel = { enabled };
     chart.update(options);
 }

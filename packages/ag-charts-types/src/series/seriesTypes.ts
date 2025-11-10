@@ -33,4 +33,4 @@ export type SeriesDefaultAxes<TSeries extends SeriesType> = WithThemeParams<
 >;
 export type SeriesPredictAxis<TSeries extends SeriesType> = NonNullable<
     SeriesToAxesType<DatumDefault, ContextDefault>[TSeries]
->[number];
+>[string];

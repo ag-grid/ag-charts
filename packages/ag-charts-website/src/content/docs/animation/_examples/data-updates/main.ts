@@ -47,19 +47,19 @@ const barOptions: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'category',
             position: 'bottom',
             label: {
                 autoRotate: false,
             },
         },
-    ],
+    },
 };
 
 const lineOptions: AgCartesianChartOptions = {
@@ -95,12 +95,12 @@ const lineOptions: AgCartesianChartOptions = {
             yName: 'Five',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
@@ -108,7 +108,7 @@ const lineOptions: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-    ],
+    },
 };
 
 const areaOptions: AgCartesianChartOptions = {
@@ -149,12 +149,12 @@ const areaOptions: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
@@ -162,7 +162,7 @@ const areaOptions: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-    ],
+    },
 };
 
 const donutOptions: AgPolarChartOptions = {

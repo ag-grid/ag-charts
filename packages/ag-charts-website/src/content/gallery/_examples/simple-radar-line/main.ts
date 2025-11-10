@@ -43,17 +43,17 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
         },
-        {
+        radius: {
             type: 'radius-number',
             label: {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         enabled: true,
         position: {

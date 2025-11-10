@@ -26,8 +26,8 @@ const options: AgChartOptions<DataType> = {
             maxSize: 100,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
@@ -35,7 +35,7 @@ const options: AgChartOptions<DataType> = {
             },
             nice: false,
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -43,7 +43,7 @@ const options: AgChartOptions<DataType> = {
             },
             nice: false,
         },
-    ],
+    },
     seriesArea: {
         padding: {
             left: 40,

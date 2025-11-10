@@ -39,8 +39,8 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
     animation: { enabled: false },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
             position: 'bottom',
             nice: false,
@@ -48,14 +48,14 @@ const options: AgChartOptions = {
                 format: '%H:%M:%S',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Value',
             },
         },
-    ],
+    },
     series: [
         {
             type: 'line',

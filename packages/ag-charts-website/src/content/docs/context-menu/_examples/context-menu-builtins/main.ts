@@ -26,10 +26,10 @@ const options: AgCartesianChartOptions = {
         { type: 'line', xKey: 'year', yKey: 'GBP' },
         { type: 'line', xKey: 'year', yKey: 'JPY' },
     ],
-    axes: [
-        { type: 'category', position: 'bottom', label: { autoRotate: false } },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom', label: { autoRotate: false } },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 const chart = AgCharts.create(options);

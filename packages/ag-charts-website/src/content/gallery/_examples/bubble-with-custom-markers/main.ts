@@ -46,8 +46,8 @@ const options: AgChartOptions<DataType> = {
             shape: rainDrop,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             interval: { values: [1, 2, 3, 4] },
@@ -72,7 +72,7 @@ const options: AgChartOptions<DataType> = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             gridLine: {
@@ -88,7 +88,7 @@ const options: AgChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

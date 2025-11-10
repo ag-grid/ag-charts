@@ -77,12 +77,12 @@ const options: AgCartesianChartOptions<DataType> = {
             tooltip,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -94,7 +94,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

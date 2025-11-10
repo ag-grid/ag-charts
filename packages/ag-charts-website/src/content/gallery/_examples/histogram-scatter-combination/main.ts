@@ -33,8 +33,8 @@ const options: AgCartesianChartOptions = {
             fillOpacity: 1,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -54,7 +54,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Engine Size',
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             nice: false,
@@ -74,7 +74,7 @@ const options: AgCartesianChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         enabled: false,
     },

@@ -12,17 +12,17 @@ const options: AgChartOptions = {
             yKey: 'temp',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             interval: { step: 'month' },
         },
-    ],
+    },
     formatter: {
         x: '%b %Y',
         y: '$#{0>6.2f}',

@@ -15,22 +15,22 @@ const options: AgChartOptions<DataType> = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             label: {
                 formatter: ({ value }) => (value === 'Windows' ? '== Windows ==' : value),
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 formatter: ({ value }) => `${value * 100}%`,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

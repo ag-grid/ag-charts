@@ -22,22 +22,22 @@ const options: AgCartesianChartOptions = {
             yKey: 'count',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             gridLine: {
                 enabled: true,
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
@@ -53,8 +53,8 @@ function setGridStyle1() {
             lineDash: [5, 5],
         },
     ];
-    options.axes![0].gridLine!.style = gridStyle;
-    options.axes![1].gridLine!.style = gridStyle;
+    options.axes!.x!.gridLine!.style = gridStyle;
+    options.axes!.y!.gridLine!.style = gridStyle;
     chart.update(options);
 }
 
@@ -71,13 +71,13 @@ function setGridStyle2() {
             lineDash: [8, 3, 3, 3],
         },
     ];
-    options.axes![0].gridLine!.style = xGridStyle;
-    options.axes![1].gridLine!.style = yGridStyle;
+    options.axes!.x!.gridLine!.style = xGridStyle;
+    options.axes!.y!.gridLine!.style = yGridStyle;
     chart.update(options);
 }
 
 function setDefaultGridStyle() {
-    delete options.axes![0].gridLine!.style;
-    delete options.axes![1].gridLine!.style;
+    delete options.axes!.x!.gridLine!.style;
+    delete options.axes!.y!.gridLine!.style;
     chart.update(options);
 }

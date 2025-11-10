@@ -82,8 +82,8 @@ const options: AgCartesianChartOptions = {
             normalizedTo: 100,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             paddingInner: 0.1,
@@ -95,7 +95,7 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -117,7 +117,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
     formatter: {
         x(params) {
             if (params.source === 'axis-label') {

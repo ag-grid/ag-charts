@@ -4,7 +4,7 @@ import { AgCharts } from 'ag-charts-community';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
-    AgCartesianAxisOptions,
+    AgCartesianAxesOptions,
     AgCartesianAxisPosition,
     AgCartesianChartOptions,
     AgChartOptions,
@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
     hoverAction,
+    mapValues,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -38,14 +39,14 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts['axes']?.map((axis) => ({ ...axis, position: positionFlip(axis?.position) })) ?? undefined,
+        axes: mapValues(opts['axes'] ?? {}, (axis) => ({ ...axis, position: positionFlip(axis?.position) })),
     };
 }
 
 function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: boolean): T {
     return {
         ...opts,
-        axes: opts['axes']?.map((axis) => ({
+        axes: mapValues(opts['axes'] ?? {}, (axis) => ({
             ...axis,
             crosshair: {
                 ...axis.crosshair,
@@ -99,54 +100,52 @@ const BASE_OPTIONS: AgCartesianChartOptions = {
     ],
 };
 
-const SIMPLE_AXIS_OPTIONS: AgCartesianAxisOptions[] = [
-    {
+const SIMPLE_AXIS_OPTIONS: AgCartesianAxesOptions = {
+    y: {
         position: 'left',
         type: 'number',
         crosshair: CROSSHAIR_OPTIONS,
     },
-    {
+    x: {
         position: 'bottom',
         type: 'number',
         crosshair: CROSSHAIR_OPTIONS,
     },
-];
+};
 
-const CATEGORY_AXIS_OPTIONS: AgCartesianAxisOptions[] = [
-    {
+const CATEGORY_AXIS_OPTIONS: AgCartesianAxesOptions = {
+    y: {
         position: 'left',
         type: 'number',
         crosshair: CROSSHAIR_OPTIONS,
     },
-    {
+    x: {
         position: 'bottom',
         type: 'category',
         crosshair: CROSSHAIR_OPTIONS,
     },
-];
+};
 
-const SECONDARY_AXIS_OPTIONS: AgCartesianAxisOptions[] = [
-    {
+const SECONDARY_AXIS_OPTIONS: AgCartesianAxesOptions = {
+    y: {
         position: 'left',
         type: 'number',
-        keys: ['y1', 'y3'],
         crosshair: CROSSHAIR_OPTIONS,
     },
-    {
+    ySecondary: {
         position: 'left',
         type: 'number',
-        keys: ['y2'],
         crosshair: {
             ...CROSSHAIR_OPTIONS,
             stroke: '#73C0DE',
         },
     },
-    {
+    x: {
         position: 'bottom',
         type: 'number',
         crosshair: CROSSHAIR_OPTIONS,
     },
-];
+};
 
 const SIMPLE_LINE_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
@@ -163,6 +162,7 @@ const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
 const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SECONDARY_AXIS_OPTIONS,
+    series: BASE_OPTIONS.series?.map((s) => ({ ...s, yKeyAxis: 'yKey' in s && s.yKey === 'y2' ? 'ySecondary' : 'y' })),
 };
 
 const STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
@@ -200,18 +200,18 @@ const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
         { x: 3, y1: 75, y2: 2000, y3: 72 },
     ],
     tooltip: { range: 'exact' },
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             crosshair: CROSSHAIR_OPTIONS,
         },
-        {
+        y: {
             position: 'left',
             type: 'category',
             crosshair: CROSSHAIR_OPTIONS,
         },
-    ],
+    },
     series: BASE_OPTIONS.series?.map((s) => ({
         ...s,
         type: 'bar',

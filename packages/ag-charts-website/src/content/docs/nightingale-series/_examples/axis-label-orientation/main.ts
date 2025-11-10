@@ -31,17 +31,17 @@ const options: AgChartOptions = {
             radiusName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             label: {
                 orientation: 'parallel',
             },
         },
-        {
+        radius: {
             type: 'radius-number',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

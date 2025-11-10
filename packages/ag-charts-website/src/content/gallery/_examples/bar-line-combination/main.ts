@@ -78,8 +78,8 @@ const options: AgCartesianChartOptions = {
             yName: 'Billboard',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'top',
             paddingInner: 0.4,
@@ -102,7 +102,7 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             interval: { values: [0] },
@@ -116,7 +116,7 @@ const options: AgCartesianChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

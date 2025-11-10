@@ -39,8 +39,8 @@ const options: AgPolarChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             interval: { step: 0.1 },
@@ -48,7 +48,7 @@ const options: AgPolarChartOptions = {
                 enabled: false,
             },
         },
-        {
+        angle: {
             type: 'angle-category',
             line: {
                 enabled: false,
@@ -60,7 +60,7 @@ const options: AgPolarChartOptions = {
                 enabled: true,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

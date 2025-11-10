@@ -29,19 +29,19 @@ const options: AgChartOptions = {
     legend: {
         enabled: true,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Total visitors',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

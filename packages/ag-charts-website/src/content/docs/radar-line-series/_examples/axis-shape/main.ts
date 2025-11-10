@@ -22,16 +22,16 @@ const options: AgPolarChartOptions = {
             radiusName: 'Efficiency',
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             shape: 'circle',
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -46,16 +46,16 @@ const options: AgCartesianChartOptions = {
             yName: 'Services',
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        {
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: {
             type: 'number',
             position: 'left',
             interval: {
                 maxSpacing: 10,
             },
         },
-    ],
+    },
 };
 /* @ag-options-end */
 

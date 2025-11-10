@@ -92,18 +92,18 @@ describe('BubbleSeries', () => {
         it('should render bubble series with reversed axes', async () => {
             const options: AgChartOptions = {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
-                axes: [
-                    {
+                axes: {
+                    y: {
                         type: 'number',
                         position: 'left',
                         reverse: true,
                     },
-                    {
+                    x: {
                         type: 'number',
                         position: 'bottom',
                         reverse: true,
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -728,10 +728,10 @@ describe('BubbleSeries', () => {
                 highlight: {
                     drawingMode: 'cutout',
                 },
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -771,10 +771,10 @@ describe('BubbleSeries', () => {
                 highlight: {
                     drawingMode: 'cutout',
                 },
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -826,10 +826,10 @@ describe('BubbleSeries', () => {
                 highlight: {
                     drawingMode: 'cutout',
                 },
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);

@@ -100,15 +100,15 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             bandHighlight: {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             label: {
@@ -129,7 +129,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

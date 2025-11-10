@@ -139,18 +139,18 @@ describe('HeatmapSeries', () => {
                         label: {},
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         position: 'bottom',
                         type: 'category',
                         label: {},
                     },
-                    {
+                    y: {
                         position: 'left',
                         type: 'category',
                         label: {},
                     },
-                ],
+                },
             });
 
             chart = AgCharts.create(options);
@@ -185,18 +185,18 @@ describe('HeatmapSeries', () => {
                         label: {},
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         position: 'bottom',
                         type: 'category',
                         label: {},
                     },
-                    {
+                    y: {
                         position: 'left',
                         type: 'category',
                         label: {},
                     },
-                ],
+                },
             });
 
             chart = AgCharts.create(options);
@@ -227,18 +227,18 @@ describe('HeatmapSeries', () => {
                         label: {},
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         position: 'bottom',
                         type: 'category',
                         label: {},
                     },
-                    {
+                    y: {
                         position: 'left',
                         type: 'category',
                         label: {},
                     },
-                ],
+                },
             });
 
             chart = AgCharts.create(options);
@@ -273,18 +273,18 @@ describe('HeatmapSeries', () => {
                         label: {},
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         position: 'bottom',
                         type: 'category',
                         label: {},
                     },
-                    {
+                    y: {
                         position: 'left',
                         type: 'category',
                         label: {},
                     },
-                ],
+                },
             });
 
             chart = AgCharts.create(options);

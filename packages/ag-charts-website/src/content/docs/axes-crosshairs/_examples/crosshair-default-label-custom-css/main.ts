@@ -16,8 +16,8 @@ const options: AgCartesianChartOptions = {
             xName: 'Planet Radius',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -29,7 +29,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -41,7 +41,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -64,8 +64,8 @@ const options: AgChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             interval: {
@@ -76,7 +76,7 @@ const options: AgChartOptions = {
                 autoRotate: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -88,7 +88,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

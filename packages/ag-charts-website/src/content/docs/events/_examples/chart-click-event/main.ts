@@ -20,16 +20,16 @@ const options: AgChartOptions = {
             yKey: 'units',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     listeners: {
         click: (_event: AgChartClickEvent) => {
             console.log('[click]');

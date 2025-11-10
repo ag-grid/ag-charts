@@ -11,15 +11,15 @@ let dataLabel = '1K';
 let seriesType = 'Line';
 let datapoints = 1e3;
 
-const timeAxes: AgCartesianAxisOptions[] = [
-    { type: 'number', position: 'left' },
-    { type: 'ordinal-time', position: 'bottom', parentLevel: { enabled: true } },
-];
+const timeAxes: Record<string, AgCartesianAxisOptions> = {
+    y: { type: 'number', position: 'left' },
+    x: { type: 'ordinal-time', position: 'bottom', parentLevel: { enabled: true } },
+};
 
-const numberAxes: AgCartesianAxisOptions[] = [
-    { type: 'number', position: 'left' },
-    { type: 'number', position: 'bottom' },
-];
+const numberAxes: Record<string, AgCartesianAxisOptions> = {
+    y: { type: 'number', position: 'left' },
+    x: { type: 'number', position: 'bottom' },
+};
 
 const baseData = getData(1e6);
 const options: AgCartesianChartOptions = {

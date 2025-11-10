@@ -55,8 +55,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             bandHighlight: {
@@ -80,7 +80,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -113,7 +113,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     animation: {
         enabled: true,
         duration: 800,

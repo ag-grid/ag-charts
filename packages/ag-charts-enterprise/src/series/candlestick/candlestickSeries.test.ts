@@ -52,16 +52,16 @@ describe('CandlestickSeries', () => {
     it(`should render a candlestick chart with a unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...CANDLESTICK_OPTIONS,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -70,18 +70,18 @@ describe('CandlestickSeries', () => {
     it(`should render a candlestick chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...CANDLESTICK_OPTIONS,
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'number',
                     position: 'left',
                     reverse: true,
                 },
-                {
+                x: {
                     type: 'ordinal-time',
                     position: 'bottom',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -90,17 +90,17 @@ describe('CandlestickSeries', () => {
     it(`should render a candlestick chart with a reversed unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...CANDLESTICK_OPTIONS,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));

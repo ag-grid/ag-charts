@@ -44,8 +44,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -74,7 +74,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
         },
-        {
+        y: {
             position: 'right',
             type: 'number',
             gridLine: {
@@ -89,7 +89,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 values: [0, 10],
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

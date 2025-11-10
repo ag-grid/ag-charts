@@ -32,8 +32,8 @@ const options: AgChartOptions = {
             sizeName: 'Age',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -45,7 +45,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -57,7 +57,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

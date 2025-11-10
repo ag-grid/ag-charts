@@ -60,5 +60,7 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     sizeName: string,
     labelName: string,
     legendItemName: string,
+    xKeyAxis: string,
+    yKeyAxis: string,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };

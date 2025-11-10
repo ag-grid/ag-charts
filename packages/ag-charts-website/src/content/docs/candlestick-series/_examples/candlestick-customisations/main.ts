@@ -41,15 +41,15 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             label: {
                 format: '%H:%M',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             label: {
@@ -61,7 +61,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -29,9 +29,9 @@ const options: AgChartOptions = {
             yName: 'Ice Cream Sales',
         },
     ],
-    axes: [
-        { position: 'left', type: 'number', label: { fontFamily: ['Helvetica', 'Arial', 'sans-serif'] } },
-        {
+    axes: {
+        y: { position: 'left', type: 'number', label: { fontFamily: ['Helvetica', 'Arial', 'sans-serif'] } },
+        x: {
             position: 'bottom',
             type: 'category',
             label: {
@@ -39,7 +39,7 @@ const options: AgChartOptions = {
                 fontSize: 12,
             },
         },
-    ],
+    },
     loadGoogleFonts: true,
 };
 

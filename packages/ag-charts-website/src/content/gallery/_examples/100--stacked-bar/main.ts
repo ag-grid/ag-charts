@@ -40,19 +40,19 @@ const options: AgChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             label: {
                 format: '.0%',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -6,6 +6,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    mapValues,
     repeat,
     setupMockCanvas,
     setupMockConsole,
@@ -31,7 +32,7 @@ function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axesToTest.includes(axis.type)
                     ? {
                           ...axis,
@@ -48,7 +49,7 @@ function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axesToTest.includes(axis.type)
                     ? {
                           ...axis,
@@ -80,14 +81,14 @@ const EXAMPLES: Record<string, TestCase> = {
     CATEGORY_AXIS_INTERVAL_ON_ZOOMED: {
         options: applyZoom(applyIntervalOn(DOCS_EXAMPLES['grouped-column'])),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 7),
         }),
     },
     CATEGORY_AXIS_INTERVAL_BETWEEN_ZOOMED: {
         options: applyZoom(applyIntervalBetween(DOCS_EXAMPLES['grouped-column'])),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 7),
         }),
     },

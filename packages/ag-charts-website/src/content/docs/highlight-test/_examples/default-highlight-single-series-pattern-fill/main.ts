@@ -25,22 +25,22 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Total Visitors',
             },
         },
-    ],
+    },
     formatter: {
         y(params) {
             let value = params.value as number;

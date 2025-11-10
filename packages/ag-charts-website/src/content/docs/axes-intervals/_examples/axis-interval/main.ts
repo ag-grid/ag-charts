@@ -14,34 +14,34 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
                 text: 'Operating System',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Market Share (%)',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function setStep(step: number) {
-    const axis = options.axes?.[1]! as AgNumberAxisOptions;
+    const axis = options.axes?.y as AgNumberAxisOptions;
     axis.interval = { step: step };
     chart.update(options);
 }
 
 function clearInterval() {
-    const axis = options.axes?.[1]! as AgNumberAxisOptions;
+    const axis = options.axes?.y as AgNumberAxisOptions;
     axis.interval = {};
     chart.update(options);
 }

@@ -122,8 +122,8 @@ const options: AgChartOptions = {
             },
         };
     }),
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -179,7 +179,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             nice: false,
@@ -213,7 +213,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         spacing: 10,
         item: {

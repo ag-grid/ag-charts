@@ -6,7 +6,7 @@ import type {
     AgBaseSeriesOptions,
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
-import type { AxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, AxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 import type {
     AgOhlcSeriesBaseItemStylerParams,
     AgOhlcSeriesBaseOptions,
@@ -55,6 +55,7 @@ export interface AgOhlcHighlightStyleOptions extends AgOhlcSeriesItemOptions {
 export interface AgOhlcSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOhlcSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgOhlcSeriesBaseOptions<TDatum>,
         Omit<AxisOptions<TDatum>, 'yKey'> {
     /** Configuration for the OHLC Series. */

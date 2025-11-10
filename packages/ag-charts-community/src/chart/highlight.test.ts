@@ -171,10 +171,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     { type: 'bar', xKey: 'category', yKey: 'apples', label: { enabled: true } },
@@ -189,10 +189,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: cartesianSeriesData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -219,10 +219,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: cartesianSeriesData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -251,10 +251,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: scatterData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -283,10 +283,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: scatterData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -318,10 +318,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: histogramData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {

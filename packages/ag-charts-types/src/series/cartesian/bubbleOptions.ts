@@ -14,7 +14,7 @@ import type {
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
-import type { FillOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgBubbleSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
@@ -113,6 +113,7 @@ export interface AgBubbleSeriesOptionsNames {
 
 export interface AgBubbleSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgBubbleSeriesThemeableOptions<TDatum, TContext>,
         AgBubbleSeriesOptionsKeys<TDatum>,
         AgBubbleSeriesOptionsNames {

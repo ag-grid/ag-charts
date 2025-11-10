@@ -72,8 +72,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             line: {
@@ -94,7 +94,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'top',
             title: {
@@ -132,7 +132,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         enabled: false,
     },

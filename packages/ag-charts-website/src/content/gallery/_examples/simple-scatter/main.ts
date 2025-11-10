@@ -43,8 +43,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -79,7 +79,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             nice: false,
@@ -114,7 +114,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
         },
-    ],
+    },
     formatter: {
         x: '#{.0f} lbs',
         y: (params) => {

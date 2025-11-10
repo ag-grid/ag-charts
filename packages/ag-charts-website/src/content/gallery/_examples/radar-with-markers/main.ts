@@ -25,8 +25,8 @@ const options: AgChartOptions = {
             fillOpacity: 0.9,
         },
     })),
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-number',
             label: {
                 enabled: false,
@@ -35,7 +35,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             label: {
@@ -83,7 +83,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         position: 'top',
     },

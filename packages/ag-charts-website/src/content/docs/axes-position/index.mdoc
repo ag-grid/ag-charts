@@ -13,25 +13,23 @@ The axis `position` property controls where the axis is rendered. By default, ho
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: { text: 'Quarter' },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['revenue'],
             title: { text: 'Revenue ($M)' },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['profitMargin'],
             title: { text: 'Profit Margin (%)' },
         },
-    ],
+    },
 }
 ```
 
@@ -47,20 +45,20 @@ This is useful for centring the chart origin or aligning axes to highlight parti
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             // place the left axis at '0' on the bottom axis scale
             crossAt: { value: 0 },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             // place the bottom axis at '0' on the left axis scale
             crossAt: { value: 0 },
         },
-    ],
+    },
 }
 ```
 

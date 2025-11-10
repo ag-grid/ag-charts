@@ -27,10 +27,10 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        { type: 'unit-time', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 AgCharts.create(options);

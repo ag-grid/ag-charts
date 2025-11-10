@@ -9,15 +9,15 @@ const options: AgChartOptions = {
             yKey: 'temp',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 format: '$#{0>6.2f}',
             },
         },
-        {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             interval: { step: 'month' },
@@ -25,7 +25,7 @@ const options: AgChartOptions = {
                 format: '%b %Y',
             },
         },
-    ],
+    },
     data: [
         { date: new Date('2019-01-01'), temp: 82.0 },
         { date: new Date('2019-02-01'), temp: 75.0 },

@@ -31,15 +31,15 @@ const options: AgChartOptions = {
             angleName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-number',
         },
-        {
+        radius: {
             type: 'radius-category',
             innerRadiusRatio: 0.3,
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

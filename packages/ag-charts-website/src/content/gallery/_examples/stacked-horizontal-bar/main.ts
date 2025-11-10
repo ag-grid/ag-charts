@@ -94,8 +94,8 @@ const options: AgChartOptions<DataType> = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             interval: { values: [2013, 2018, 2023] },
@@ -112,7 +112,7 @@ const options: AgChartOptions<DataType> = {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
@@ -148,7 +148,7 @@ const options: AgChartOptions<DataType> = {
                 },
             ],
         },
-    ],
+    },
     tooltip: {
         mode: 'shared',
         position: {

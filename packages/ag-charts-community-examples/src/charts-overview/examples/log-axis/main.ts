@@ -2,8 +2,8 @@ import type { AgCartesianAxisOptions, AgCartesianChartOptions} from "ag-charts-c
 import { AgCharts } from "ag-charts-community"
 import { getData } from "./data"
 
-const logAxes: AgCartesianAxisOptions[] = [
-  {
+const logAxes: Record<string, AgCartesianAxisOptions> = {
+  y: {
     type: "log",
     position: "left",
     title: {
@@ -14,7 +14,7 @@ const logAxes: AgCartesianAxisOptions[] = [
       fontSize: 10,
     },
   },
-  {
+  x: {
     type: "number",
     position: "bottom",
     title: {
@@ -24,10 +24,10 @@ const logAxes: AgCartesianAxisOptions[] = [
       fontSize: 10,
     },
   },
-]
+}
 
-const linearAxes: AgCartesianAxisOptions[] = [
-  {
+const linearAxes: Record<string, AgCartesianAxisOptions> = {
+  y: {
     type: "number",
     position: "left",
     title: {
@@ -38,7 +38,7 @@ const linearAxes: AgCartesianAxisOptions[] = [
       fontSize: 10,
     },
   },
-  {
+  x: {
     type: "number",
     position: "bottom",
     title: {
@@ -48,7 +48,7 @@ const linearAxes: AgCartesianAxisOptions[] = [
       fontSize: 10,
     },
   },
-]
+}
 
 const options: AgCartesianChartOptions = {
   container: document.getElementById("myChart"),

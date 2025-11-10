@@ -75,16 +75,16 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
 
     options: lineSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,
-    defaultAxes: [
-        {
+    defaultAxes: {
+        y: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
             position: CARTESIAN_POSITION.LEFT,
         },
-        {
+        x: {
             type: CARTESIAN_AXIS_TYPE.CATEGORY,
             position: CARTESIAN_POSITION.BOTTOM,
         },
-    ],
+    },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new LineSeries(ctx),

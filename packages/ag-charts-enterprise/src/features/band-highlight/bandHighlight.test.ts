@@ -4,7 +4,7 @@ import { AgCharts } from 'ag-charts-community';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
-    AgCartesianAxisOptions,
+    AgCartesianAxesOptions,
     AgCartesianAxisPosition,
     AgCartesianChartOptions,
     AgChartOptions,
@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
     hoverAction,
+    mapValues,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -38,7 +39,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts['axes']?.map((axis) => ({ ...axis, position: positionFlip(axis?.position) })) ?? undefined,
+        axes: mapValues(opts['axes'] ?? {}, (axis) => ({ ...axis, position: positionFlip(axis?.position) })),
     };
 }
 
@@ -75,58 +76,56 @@ const BASE_OPTIONS: AgCartesianChartOptions = {
     ],
 };
 
-const SIMPLE_AXIS_OPTIONS: AgCartesianAxisOptions[] = [
-    {
+const SIMPLE_AXIS_OPTIONS: AgCartesianAxesOptions = {
+    y: {
         position: 'left',
         type: 'number',
     },
-    {
+    x: {
         position: 'bottom',
         type: 'category',
         bandHighlight: {
             enabled: true,
         },
     },
-];
+};
 
-const SECONDARY_AXIS_OPTIONS: AgCartesianAxisOptions[] = [
-    {
+const SECONDARY_AXIS_OPTIONS: AgCartesianAxesOptions = {
+    y: {
         position: 'left',
         type: 'number',
-        keys: ['y1', 'y3'],
     },
-    {
+    ySecondary: {
         position: 'left',
         type: 'number',
-        keys: ['y2'],
     },
-    {
+    x: {
         position: 'bottom',
         type: 'category',
         bandHighlight: {
             enabled: true,
         },
     },
-];
+};
 
 const SIMPLE_LINE_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'category',
             bandHighlight: {
                 enabled: true,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'category',
             bandHighlight: {
                 enabled: true,
             },
         },
-    ],
+    },
 };
 
 const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
@@ -139,6 +138,7 @@ const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
 const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SECONDARY_AXIS_OPTIONS,
+    series: BASE_OPTIONS.series?.map((s) => ({ ...s, yKeyAxis: 'yKey' in s && s.yKey === 'y2' ? 'ySecondary' : 'y' })),
 };
 
 const GROUPED_STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
@@ -218,6 +218,7 @@ const GROUPED_STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksTM',
             yName: 'Number of Looks - Transparent Mirror',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Number of Looks - Transparent Mirror',
             stackGroup: 'NOL',
         },
@@ -226,47 +227,45 @@ const GROUPED_STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksYM',
             yName: 'Number of Looks - Yellow Mirror',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Number of Looks - Yellow Mirror',
             stackGroup: 'NOL',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'top',
             type: 'category',
-            keys: ['dolphin'],
             bandHighlight: {
                 enabled: true,
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
-            keys: ['interactionDurationTM', 'interactionDurationYM'],
         },
-        {
+        ySecondary: {
             position: 'right',
             type: 'number',
-            keys: ['numberOfLooksTM', 'numberOfLooksYM'],
         },
-    ],
+    },
 };
 
 const STACKED_BAR_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
         },
-        {
+        y: {
             position: 'left',
             type: 'category',
             bandHighlight: {
                 enabled: true,
             },
         },
-    ],
+    },
     tooltip: { range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({
         ...s,
@@ -285,19 +284,19 @@ const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
         { x: 3, y1: 75, y2: 2000, y3: 72 },
     ],
     tooltip: { range: 'exact' },
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
         },
-        {
+        y: {
             position: 'left',
             type: 'category',
             bandHighlight: {
                 enabled: true,
             },
         },
-    ],
+    },
     series: BASE_OPTIONS.series?.map((s) => ({
         ...s,
         type: 'bar',

@@ -14,15 +14,15 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
                 text: 'Operating System',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -32,17 +32,17 @@ const options: AgCartesianChartOptions = {
                 values: [0, 20, 40, 60, 80, 100],
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function setTickValues(values: number[]) {
-    options.axes![1].interval!.values = values;
+    options.axes!.y!.interval!.values = values;
     chart.update(options);
 }
 
 function reset() {
-    options.axes![1].interval!.values = undefined;
+    options.axes!.y!.interval!.values = undefined;
     chart.update(options);
 }

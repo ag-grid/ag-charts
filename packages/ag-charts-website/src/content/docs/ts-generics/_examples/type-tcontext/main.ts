@@ -35,12 +35,12 @@ const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
@@ -49,7 +49,7 @@ const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
                 },
             },
         },
-    ],
+    },
     contextMenu: {
         items: [
             {

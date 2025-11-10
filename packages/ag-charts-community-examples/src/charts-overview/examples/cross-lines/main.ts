@@ -66,8 +66,8 @@ const options: AgChartOptions = {
             yName: 'Female',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             crossLines: [
@@ -109,7 +109,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             crossLines: [
@@ -143,7 +143,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

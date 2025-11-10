@@ -38,8 +38,8 @@ const options: AgChartOptions = {
             angleName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-category',
             reverse: true,
             innerRadiusRatio: 0.1,
@@ -56,7 +56,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-        {
+        angle: {
             type: 'angle-number',
             reverse: true,
             line: {
@@ -67,7 +67,7 @@ const options: AgChartOptions = {
                 style: [{ lineDash: [2, 2] }],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

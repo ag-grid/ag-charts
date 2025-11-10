@@ -11,6 +11,7 @@ import {
     deproxy,
     extractImageData,
     hoverAction,
+    mapValues,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -32,7 +33,7 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     HISTOGRAM_DATE_BASED_BUCKETS: {
         options: HISTOGRAM_DATE_BASED_BUCKETS,
         enterprise: true,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'time'], seriesTypes: ['histogram'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'time', y: 'number' }, seriesTypes: ['histogram'] }),
     },
 };
 
@@ -92,7 +93,7 @@ describe('HistogramSeries', () => {
     describe('#reversed axes', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                const axes = (example.options as AgCartesianChartOptions).axes?.map((a) => ({
+                const axes = mapValues((example.options as AgCartesianChartOptions).axes ?? {}, (a) => ({
                     ...a,
                     reverse: true,
                 })) ?? [
@@ -113,7 +114,7 @@ describe('HistogramSeries', () => {
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const axes = (example.options as AgCartesianChartOptions).axes?.map((a) => ({
+                const axes = mapValues((example.options as AgCartesianChartOptions).axes ?? {}, (a) => ({
                     ...a,
                     reverse: true,
                 })) ?? [
@@ -176,12 +177,15 @@ describe('HistogramSeries', () => {
         const examples = {
             HISTOGRAM_SERIES_LABELS: {
                 options: HISTOGRAM_SERIES_LABELS,
-                assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'number', y: 'number' },
+                    seriesTypes: ['histogram'],
+                }),
             },
             HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: {
                 options: HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
                 assertions: cartesianChartAssertions({
-                    axisTypes: ['number', 'number', 'number'],
+                    axisTypes: { x: 'number', y: 'number', ySecondary: 'number' },
                     seriesTypes: ['histogram', 'scatter'],
                 }),
             },

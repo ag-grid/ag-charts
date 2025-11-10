@@ -13,7 +13,7 @@ import type {
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 interface BoxPlotOptionsKeys<TDatum = DatumDefault> {
     /** The key used to retrieve x-values (categories) from the data. */
@@ -121,6 +121,7 @@ export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
 export interface AgBoxPlotSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames,
         BoxPlotOptionsNamesNoKey {

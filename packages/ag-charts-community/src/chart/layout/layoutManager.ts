@@ -10,7 +10,7 @@ export interface LayoutContext {
 }
 
 export interface LayoutState {
-    axes?: AxisLayout[];
+    axes?: Record<string, AxisLayout>;
     clipSeries?: boolean;
     series: { rect: BBox; paddedRect: BBox; visible: boolean };
 }
@@ -54,7 +54,7 @@ export class LayoutManager {
 
     emitLayoutComplete({ width, height }: LayoutContext, options: LayoutState) {
         this.eventsHub.emit('layout:complete', {
-            axes: options.axes ?? [],
+            axes: options.axes ?? {},
             chart: { width, height },
             clipSeries: options.clipSeries ?? false,
             series: options.series,

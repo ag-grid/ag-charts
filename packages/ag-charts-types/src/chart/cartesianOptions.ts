@@ -35,8 +35,6 @@ export interface AgBaseCartesianAxisOptions<
     CrosshairLabelType = AgCrosshairLabel<any, ContextDefault>,
     TContext = ContextDefault,
 > extends AgBaseAxisOptions<LabelType, TContext> {
-    /** An array of keys determining which series are charted on this axis. */
-    keys?: string[];
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Value on the first perpendicular axis' domain where this axis should intersect. */
@@ -119,9 +117,14 @@ export interface AgGroupedCategoryAxisLabelStylerParams<TContext = ContextDefaul
     readonly depth: number;
 }
 
+export type AgCartesianAxesOptions<TContext = ContextDefault> = Record<string, AgCartesianAxisOptions<TContext>> & {
+    x?: AgCartesianAxisOptions<TContext>;
+    y?: AgCartesianAxisOptions<TContext>;
+};
+
 export interface AgBaseCartesianChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Axis configurations. */
-    axes?: AgCartesianAxisOptions<TContext>[];
+    axes?: AgCartesianAxesOptions<TContext>;
     /** Series configurations. */
     series?: AgCartesianSeriesOptions<TDatum, TContext>[];
     /** Annotations configurations. */

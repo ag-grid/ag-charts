@@ -27,15 +27,15 @@ const options: AgPolarChartOptions<DataType> = {
             stackGroup: undefined,
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
         },
-        {
+        radius: {
             type: 'radius-number',
             nice: false,
         },
-    ],
+    },
     legend: {
         position: 'right',
     },
@@ -59,7 +59,7 @@ function updateData() {
 }
 
 function toggleRadiusReverse() {
-    const radiusAxis = options.axes?.find((axis: any) => axis.type === 'radius-number');
+    const radiusAxis = Object.values(options.axes ?? {}).find((axis: any) => axis.type === 'radius-number');
     if (radiusAxis) {
         radiusAxis.reverse = !radiusAxis.reverse;
         chart.update(options as any);
@@ -67,7 +67,7 @@ function toggleRadiusReverse() {
 }
 
 function toggleAngleReverse() {
-    const angleAxis = options.axes?.find((axis: any) => axis.type === 'angle-category');
+    const angleAxis = Object.values(options.axes ?? {}).find((axis: any) => axis.type === 'angle-category');
     if (angleAxis) {
         angleAxis.reverse = !angleAxis.reverse;
         chart.update(options as any);

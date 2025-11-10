@@ -19,8 +19,8 @@ const options: AgChartOptions = {
             yName: 'Diesel',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'unit-time',
             title: {
@@ -41,7 +41,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -98,7 +98,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

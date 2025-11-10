@@ -12,6 +12,8 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     highKey: required(string),
     lowKey: required(string),
     closeKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     openName: string,

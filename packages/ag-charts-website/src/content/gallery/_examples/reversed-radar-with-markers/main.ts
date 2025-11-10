@@ -24,14 +24,14 @@ const options: AgChartOptions = {
             fillOpacity: 0.1,
         },
     })),
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-number',
             line: {
                 enabled: false,
             },
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             reverse: true,
@@ -42,7 +42,7 @@ const options: AgChartOptions = {
                 step: 0.4,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

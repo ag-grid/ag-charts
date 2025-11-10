@@ -66,8 +66,8 @@ const options: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             label: {
@@ -95,7 +95,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
@@ -119,7 +119,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
     legend: {
         item: {
             showSeriesStroke: false,

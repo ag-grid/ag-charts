@@ -140,6 +140,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'startups',
             yName: 'Startups (Count)',
+            yKeyAxis: 'ySecondary',
         },
         {
             type: 'line',
@@ -147,13 +148,13 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'funding',
             yName: 'Funding ($M)',
+            yKeyAxis: 'ySecondary',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
-            keys: ['researchInstitutions', 'incubators', 'accelerators', 'coWorkingSpaces'],
             title: {
                 text: 'Infrastructure Count',
             },
@@ -169,10 +170,9 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        ySecondary: {
             position: 'right',
             type: 'number',
-            keys: ['startups', 'funding'],
             title: {
                 text: 'Startups & Funding',
             },
@@ -187,14 +187,14 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'grouped-category',
             bandHighlight: {
                 enabled: true,
             },
         },
-    ],
+    },
     legend: {
         item: {
             paddingX: 12,

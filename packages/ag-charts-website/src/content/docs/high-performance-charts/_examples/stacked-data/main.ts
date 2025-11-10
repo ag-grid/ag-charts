@@ -42,17 +42,17 @@ const options: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
         },
-        {
+        x: {
             type: 'ordinal-time',
             position: 'bottom',
             parentLevel: { enabled: true },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
@@ -114,7 +114,7 @@ function setAxes(type: string) {
             return;
     }
 
-    options.axes = [{ type: 'number', position: 'left' }, axis];
+    options.axes = { y: { type: 'number', position: 'left' }, x: axis };
     chart.update(options);
 }
 

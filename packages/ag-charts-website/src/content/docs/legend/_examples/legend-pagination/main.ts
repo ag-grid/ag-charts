@@ -70,12 +70,12 @@ const options: AgCartesianChartOptions = {
             yName: 'Sewage Gas',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'unit-time',
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -85,7 +85,7 @@ const options: AgCartesianChartOptions = {
                 formatter: (params) => `${params.value / 1000}K`,
             },
         },
-    ],
+    },
     legend: {
         maxHeight: 40,
         maxWidth: 800,

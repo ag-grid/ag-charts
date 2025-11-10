@@ -50,22 +50,22 @@ const options: AgCartesianChartOptions = {
             label: {},
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
             position: 'bottom',
             label: {},
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 document.getElementById('myRotation')?.addEventListener('input', (e: any) => {
-    options.axes![0].label!.rotation = Number(e.target.value);
+    options.axes!.x!.label!.rotation = Number(e.target.value);
     chart.update(options);
 });

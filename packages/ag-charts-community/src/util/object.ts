@@ -129,6 +129,25 @@ export function pick(object: object | undefined, keys: readonly string[]) {
     return picked;
 }
 
+export function every<T, K extends keyof T>(object: T | undefined, fn: (key: K, value: unknown) => boolean): boolean;
+export function every(object: object | undefined, fn: (key: string, value: unknown) => boolean): boolean;
+export function every(object: object | undefined, fn: (key: string, value: unknown) => boolean): boolean {
+    if (object == null) return true;
+    for (const [key, value] of entries(object)) {
+        if (!fn(key, value)) return false;
+    }
+    return true;
+}
+
+export function fromPairs<K extends string>(pairs?: Array<[K, any]>): Record<K, any> {
+    const object = {} as Record<K, any>;
+    if (pairs == null) return object;
+    for (const [key, value] of pairs) {
+        object[key] = value;
+    }
+    return object;
+}
+
 export function getPath(object: object, path: string | string[]) {
     const pathArray = isArray(path) ? path : path.split('.');
     return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);

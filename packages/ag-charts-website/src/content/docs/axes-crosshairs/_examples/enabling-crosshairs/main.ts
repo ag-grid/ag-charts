@@ -15,22 +15,22 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             crosshair: {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'category',
             position: 'bottom',
             crosshair: {
                 enabled: true,
             },
         },
-    ],
+    },
     tooltip: {
         enabled: false,
     },

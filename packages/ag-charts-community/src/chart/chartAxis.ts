@@ -127,7 +127,6 @@ export interface ChartAxis {
     id: AxisID;
     interactionEnabled: boolean;
     interval: AxisInterval;
-    keys: string[];
     label: ChartAxisLabel;
     layoutConstraints: AxisLayoutConstraints;
     line: AxisLine;

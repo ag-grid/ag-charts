@@ -196,8 +196,8 @@ const options: AgChartOptions = {
       yName: "Brazil",
     },
   ],
-  axes: [
-    {
+  axes: {
+    x: {
       type: "category",
       position: "bottom",
       title: {
@@ -207,7 +207,7 @@ const options: AgChartOptions = {
         formatter: params => (params.index % 3 ? "" : params.value),
       },
     },
-    {
+    y: {
       type: "number",
       position: "left",
       title: {
@@ -217,7 +217,7 @@ const options: AgChartOptions = {
       min: 0.2,
       max: 1,
     },
-  ],
+  },
   legend: {
     item: {
       paddingY: 15,

@@ -66,19 +66,19 @@ const options: AgChartOptions = {
       yName: "Manufactured fuels",
     },
   ],
-  axes: [
-    {
+  axes: {
+    x: {
       type: "category",
       position: "bottom",
     },
-    {
+    y: {
       type: "number",
       position: "left",
       title: {
         text: "Thousand tonnes of oil equivalent",
       },
     },
-  ],
+  },
 }
 
 AgCharts.create(options)

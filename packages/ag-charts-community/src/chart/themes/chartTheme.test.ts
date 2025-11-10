@@ -564,17 +564,17 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
 
-            const axis0 = chart.axes[0] as any;
-            expect(axis0.type).toBe('number');
-            expect(axis0.position).toBe('left');
-            expect(axis0.line.stroke).toBe('#b4b6b6');
-            expect(axis0.label.fontSize).toBe(12);
+            const axisY = chart.axes.y as any;
+            expect(axisY.type).toBe('number');
+            expect(axisY.position).toBe('left');
+            expect(axisY.line.stroke).toBe('#b4b6b6');
+            expect(axisY.label.fontSize).toBe(12);
 
-            const axis1 = chart.axes[1] as any;
-            expect(axis1.type).toBe('category');
-            expect(axis1.position).toBe('bottom');
-            expect(axis1.line.stroke).toBe('blue');
-            expect(axis1.label.fontSize).toBe(18);
+            const axisX = chart.axes.x as any;
+            expect(axisX.type).toBe('category');
+            expect(axisX.position).toBe('bottom');
+            expect(axisX.line.stroke).toBe('blue');
+            expect(axisX.label.fontSize).toBe(18);
         });
 
         test('Specialized chart type themed bottom category, unthemed left number', async () => {
@@ -614,17 +614,17 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
 
-            const axis0 = chart.axes[0] as any;
-            expect(axis0.type).toBe('number');
-            expect(axis0.position).toBe('left');
-            expect(axis0.line.stroke).toBe('#b4b6b6');
-            expect(axis0.label.fontSize).toBe(12);
+            const axisY = chart.axes.y as any;
+            expect(axisY.type).toBe('number');
+            expect(axisY.position).toBe('left');
+            expect(axisY.line.stroke).toBe('#b4b6b6');
+            expect(axisY.label.fontSize).toBe(12);
 
-            const axis1 = chart.axes[1] as any;
-            expect(axis1.type).toBe('category');
-            expect(axis1.position).toBe('bottom');
-            expect(axis1.line.stroke).toBe('blue');
-            expect(axis1.label.fontSize).toBe(18);
+            const axisX = chart.axes.x as any;
+            expect(axisX.type).toBe('category');
+            expect(axisX.position).toBe('bottom');
+            expect(axisX.line.stroke).toBe('blue');
+            expect(axisX.label.fontSize).toBe(18);
         });
 
         test('Themed right number, unthemed top category', async () => {
@@ -632,16 +632,16 @@ describe('ChartTheme', () => {
                 AgCharts.create({
                     theme,
                     data,
-                    axes: [
-                        {
+                    axes: {
+                        y: {
                             type: 'number',
                             position: 'right',
                         },
-                        {
+                        x: {
                             type: 'category',
                             position: 'top',
                         },
-                    ],
+                    },
                     series: [
                         {
                             type: 'area',
@@ -674,17 +674,17 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
 
-            const axis0 = chart.axes[0] as any;
-            expect(axis0.type).toBe('number');
-            expect(axis0.position).toBe('right');
-            expect(axis0.line.stroke).toBe('blue');
-            expect(axis0.label.fontSize).toBe(18);
+            const axisY = chart.axes.y as any;
+            expect(axisY.type).toBe('number');
+            expect(axisY.position).toBe('right');
+            expect(axisY.line.stroke).toBe('blue');
+            expect(axisY.label.fontSize).toBe(18);
 
-            const axis1 = chart.axes[1] as any;
-            expect(axis1.type).toBe('category');
-            expect(axis1.position).toBe('top');
-            expect(axis1.line.stroke).toBe('red');
-            expect(axis1.label.fontSize).toBe(12);
+            const axisX = chart.axes.x as any;
+            expect(axisX.type).toBe('category');
+            expect(axisX.position).toBe('top');
+            expect(axisX.line.stroke).toBe('red');
+            expect(axisX.label.fontSize).toBe(12);
         });
 
         test('Partially themed axes', async () => {
@@ -692,8 +692,8 @@ describe('ChartTheme', () => {
                 AgCharts.create({
                     theme,
                     data,
-                    axes: [
-                        {
+                    axes: {
+                        y: {
                             type: 'number',
                             position: 'right',
                             line: {
@@ -704,7 +704,7 @@ describe('ChartTheme', () => {
                                 fontFamily: 'Tahoma',
                             },
                         },
-                        {
+                        x: {
                             type: 'category',
                             position: 'bottom',
                             line: {
@@ -718,7 +718,7 @@ describe('ChartTheme', () => {
                                 text: 'Test',
                             },
                         },
-                    ],
+                    },
                     series: [
                         {
                             type: 'area',
@@ -751,32 +751,32 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
 
-            const axis0 = chart.axes[0] as any;
-            expect(axis0.type).toBe('number');
-            expect(axis0.position).toBe('right');
-            expect(axis0.line.stroke).toBe('red');
-            expect(axis0.label.fontSize).toBe(18);
-            expect(axis0.label.fontStyle).toBe('italic');
-            expect(axis0.label.fontFamily).toBe('Tahoma');
-            expect(axis0.label.fontWeight).toBe(400);
-            expect(axis0.label.padding).toBe(undefined);
-            expect(axis0.label.rotation).toBe(undefined);
+            const axisY = chart.axes.y as any;
+            expect(axisY.type).toBe('number');
+            expect(axisY.position).toBe('right');
+            expect(axisY.line.stroke).toBe('red');
+            expect(axisY.label.fontSize).toBe(18);
+            expect(axisY.label.fontStyle).toBe('italic');
+            expect(axisY.label.fontFamily).toBe('Tahoma');
+            expect(axisY.label.fontWeight).toBe(400);
+            expect(axisY.label.padding).toBe(undefined);
+            expect(axisY.label.rotation).toBe(undefined);
 
-            const axis1 = chart.axes[1] as any;
-            expect(axis1.type).toBe('category');
-            expect(axis1.position).toBe('bottom');
-            expect(axis1.line.stroke).toBe('blue');
-            expect(axis1.line.width).toBe(5);
-            expect(axis1.label.fontSize).toBe(18);
-            expect(axis1.label.fontStyle).toBe(undefined);
-            expect(axis1.label.fontFamily).toBe('Verdana, sans-serif');
+            const axisX = chart.axes.x as any;
+            expect(axisX.type).toBe('category');
+            expect(axisX.position).toBe('bottom');
+            expect(axisX.line.stroke).toBe('blue');
+            expect(axisX.line.width).toBe(5);
+            expect(axisX.label.fontSize).toBe(18);
+            expect(axisX.label.fontStyle).toBe(undefined);
+            expect(axisX.label.fontFamily).toBe('Verdana, sans-serif');
 
-            expect(axis1.label.fontWeight).toBe('bold');
-            expect(axis1.label.rotation).toBe(45);
-            expect(axis1.title?.text).toBe('Test');
+            expect(axisX.label.fontWeight).toBe('bold');
+            expect(axisX.label.rotation).toBe(45);
+            expect(axisX.title?.text).toBe('Test');
             // Since config is provided, the `enabled` should be auto-set to `true`,
             // even though theme's default is `false`.
-            expect(axis1.title?.enabled).toBe(true);
+            expect(axisX.title?.enabled).toBe(true);
         });
     });
 

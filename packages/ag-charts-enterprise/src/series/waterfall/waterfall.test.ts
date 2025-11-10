@@ -190,17 +190,17 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'time',
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -212,18 +212,18 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'bottom',
                     type: 'time',
                     reverse: true,
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -235,17 +235,17 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal'),
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'time',
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -257,18 +257,18 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal'),
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'time',
                     reverse: true,
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -281,18 +281,18 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                     reverse: true,
                 },
-                {
+                y: {
                     type: 'number',
                     position: 'left',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -306,18 +306,18 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...WATERFALL_BAR_OPTIONS,
             series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'category',
                     position: 'left',
                     reverse: true,
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 

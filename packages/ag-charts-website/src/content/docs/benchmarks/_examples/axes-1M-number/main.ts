@@ -26,10 +26,10 @@ const options: AgChartOptions = {
             marker: { enabled: false },
         },
     ],
-    axes: [
-        { type: 'number', position: 'left' },
-        { type: 'number', position: 'bottom', nice: false },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left' },
+        x: { type: 'number', position: 'bottom', nice: false },
+    },
 };
 /* @ag-options-end */
 
