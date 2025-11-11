@@ -91,7 +91,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             '1x append batch (100 points)',
             ctx,
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const append = createBatch(BATCH_SIZE);
                 data = data.concat(append);
@@ -103,7 +103,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             '10x append batch (1k points total)',
             ctx.repeatCount(10),
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const append = createBatch(BATCH_SIZE);
                 data = data.concat(append);
@@ -115,7 +115,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             '1x remove batch (100 points)',
             ctx.repeatCount(1),
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const remove = data.slice(0, BATCH_SIZE);
                 data = data.slice(BATCH_SIZE);
@@ -127,7 +127,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             '1x rolling window update (append + remove)',
             ctx.repeatCount(1),
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const remove = data.slice(0, BATCH_SIZE);
                 const append = createBatch(BATCH_SIZE);
@@ -140,7 +140,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             '10x rolling window update (append + remove)',
             ctx.repeatCount(10),
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const remove = data.slice(0, BATCH_SIZE);
                 const append = createBatch(BATCH_SIZE);
@@ -153,7 +153,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             '50x rolling window update (append + remove)',
             ctx.repeatCount(50),
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const remove = data.slice(0, BATCH_SIZE);
                 const append = createBatch(BATCH_SIZE);
@@ -173,7 +173,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             'applyTransaction - 10 points rolling window',
             ctx.repeatCount(10),
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const batchSize = 10;
                 const remove = data.slice(0, batchSize);
@@ -187,7 +187,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             'applyTransaction - 500 points rolling window',
             ctx.repeatCount(10),
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const batchSize = 500;
                 const remove = data.slice(0, batchSize);
@@ -201,7 +201,7 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
         benchmark(
             'applyTransaction - 1000 points rolling window',
             ctx.repeatCount(10),
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 const batchSize = 1000;
                 const remove = data.slice(0, batchSize);

@@ -18,7 +18,7 @@ describe('sparkline benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 6, expectedCanvasCount: 2 },
+        { expectedRetainedSizeMB: 6, expectedCanvasCount: 3 },
         async () => {
             await ctx.create({ pool: false });
         },

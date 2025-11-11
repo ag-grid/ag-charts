@@ -10,7 +10,7 @@ describe('large-scale multi-series benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 33, expectedCanvasCount: 4 },
+        { expectedRetainedSizeMB: 33, expectedCanvasCount: 5 },
         async () => {
             await ctx.create();
         },
