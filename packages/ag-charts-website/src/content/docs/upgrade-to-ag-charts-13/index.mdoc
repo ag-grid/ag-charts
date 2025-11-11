@@ -63,15 +63,18 @@ This release includes the following behaviour changes:
 
 ### Axes
 
--   `interval.placement` defaults to `'between'` instead of `on`.
+-   `axes` is a dictionary instead of an array. Use default `'x'`, `'y'`, `'angle'`, `'radius'` keys or define your own.
+-   `interval.placement` defaults to `'between'` instead of `'on'`.
 
 ### Highlighting
 
--   `highlight.bringToFront` defaults to `true` for all series.
+-   `highlight.bringToFront` defaults to `true` for all series. Use `bringToFront: false` to disable.
+-   `highlight.drawingMode` defaults to `'cutout'` instead of `'overlay'`.
 
 ### Other Changes
 
--   `zoom.enableAxisScrolling` defaults to `true`. Use `enabled: false` to disable.
+-   `zoom.enableAxisScrolling` defaults to `true`. Use `enableAxisScrolling: false` to disable.
+-   Sankey series use the full width of the series area when `edgePlacement: undefined`. Use `seriesArea.padding` to adjust.
 
 {% /expandingSection %}
 
