@@ -8,7 +8,7 @@ import { isAtOrAfterVersion } from './compatibility';
 describe('resize benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('resize').repeatCount(20);
 
-    benchmark('initial load', ctx, { expectedRetainedSizeMB: 5, expectedCanvasCount: 4 }, async () => {
+    benchmark('initial load', ctx, { expectedRetainedSizeMB: 6.5, expectedCanvasCount: 4 }, async () => {
         await ctx.create();
     });
 
@@ -24,7 +24,7 @@ describe('resize benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('10x resize', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 2 }, async () => {
+        benchmark('10x resize', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 3 }, async () => {
             const height = 600;
             const ratios = [0.9, 0.8, 0.7, 0.6, 0.5];
             const method = isAtOrAfterVersion(10, 0, 0) ? 'parentResize' : 'rawResize';

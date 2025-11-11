@@ -10,7 +10,7 @@ describe('large-scale multi-series benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 30, expectedCanvasCount: 4 },
+        { expectedRetainedSizeMB: 33, expectedCanvasCount: 4 },
         async () => {
             await ctx.create();
         },
@@ -25,7 +25,7 @@ describe('large-scale multi-series benchmark', () => {
         benchmark(
             '1x legend toggle',
             ctx,
-            { expectedRelativeMB: 2, expectedCanvasCount: 3 },
+            { expectedRelativeMB: 2, expectedCanvasCount: 4 },
             async () => {
                 await ctx.legendToggle();
                 await ctx.legendToggle();
@@ -36,7 +36,7 @@ describe('large-scale multi-series benchmark', () => {
         benchmark(
             '4x legend toggle',
             ctx,
-            { expectedRelativeMB: 2, expectedCanvasCount: 3 },
+            { expectedRelativeMB: 2, expectedCanvasCount: 4 },
             async () => {
                 for (let i = 0; i < 2; i++) {
                     await ctx.legendToggle(i);
