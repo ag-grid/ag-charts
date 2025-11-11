@@ -11,7 +11,8 @@
                 {
                     "moduleName": "PolarChartModule",
                     "name": "Polar charts",
-                    "path": "pie-series"
+                    "path": "nightingale-series",
+                    "isEnterprise": true
                 },
                 {
                     "moduleName": "StandaloneChartModule",
@@ -426,11 +427,6 @@
         {
             "name": "Presets",
             "children": [
-                {
-                    "moduleName": "SparklinePresetModule",
-                    "name": "Sparklines",
-                    "path": "sparklines"
-                },
                 {
                     "moduleName": "GaugePresetModule",
                     "name": "Gauge preset",
