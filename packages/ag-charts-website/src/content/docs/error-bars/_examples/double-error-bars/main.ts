@@ -43,7 +43,7 @@ const options: AgChartOptions<DataType> = {
 
 function customTooltipRenderer({ datum }: AgLineSeriesTooltipRendererParams<DataType>) {
     return {
-        heading: undefined,
+        heading: '',
         data: [
             { label: 'Expiry', value: `${datum.expiryLo} to ${datum.expiryHi} months` },
             { label: 'Price', value: `${datum.priceLo} to ${datum.priceHi} pounds` },
