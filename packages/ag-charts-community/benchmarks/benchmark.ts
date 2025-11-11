@@ -27,13 +27,13 @@ import {
     isHistoricBenchmarkTest,
     prepareTestOptions,
     waitForUpdate,
-} from './compatibility.ts';
+} from './compatibility';
 
 if (isHistoricBenchmarkTest()) {
     console.warn('Attempting to run against version: ', getVersion().join('.'));
 }
 
-globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
+(globalThis as any).agChartsDebugTimeout = 60_000; // Use Jest timeouts
 const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT
     ? Number.parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT)
     : undefined;
@@ -59,7 +59,7 @@ const expectationBreaches: ExpectationBreach[] = [];
 
 export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     chart?: AgChartInstance<T>;
-    options: T;
+    options!: T;
     nodePositions: { x: number; y: number }[][] = [];
     repeat = 1;
 
@@ -229,10 +229,10 @@ function runAutoSnapshot(ctx: BenchmarkContext, expectations: BenchmarkExpectati
 }
 
 function runExpectations(
-    ctx: BenchmarkContext,
+    _ctx: BenchmarkContext,
     expectations: BenchmarkExpectations,
     currentTestName: string,
-    memory: ReturnType<typeof recordTiming>,
+    _memory: ReturnType<typeof recordTiming>,
     canvasInstances: unknown[],
     initialRetainedSize: number,
     finalRetainedSizeResult: SizeMetadata | undefined
