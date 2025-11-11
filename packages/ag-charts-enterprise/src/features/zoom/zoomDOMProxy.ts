@@ -14,11 +14,7 @@ type AxesHandlers = {
     ) => void;
     onAxisDragEnd: () => void;
     onAxisDoubleClick: (id: AxisID, direction: _ModuleSupport.ChartAxisDirection) => void;
-    onAxisWheel: (
-        id: AxisID,
-        direction: _ModuleSupport.ChartAxisDirection,
-        event: _ModuleSupport.WheelWidgetEvent
-    ) => void;
+    onAxisWheel: (direction: _ModuleSupport.ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) => void;
 };
 
 type ProxyAxis = {
@@ -217,7 +213,7 @@ export class ZoomDOMProxy {
             handlers.onAxisDragEnd();
         });
         div.addListener('dblclick', () => handlers.onAxisDoubleClick(axisId, direction));
-        div.addListener('wheel', (event) => handlers.onAxisWheel(axisId, direction, event));
+        div.addListener('wheel', (event) => handlers.onAxisWheel(direction, event));
         return { axisId, div, direction };
     }
 

@@ -1,6 +1,14 @@
-import type { AxisID, Scale } from 'ag-charts-core';
+import type { AxisID, DeepReadonly, Scale } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
-import type { AgAnnotation, AgContextMenuItemShowOn, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type {
+    AgAnnotation,
+    AgAutoScaledAxes,
+    AgContextMenuItemShowOn,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
+    AgZoomRange,
+    AgZoomRatio,
+} from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import { DataSet } from '../chart/data/dataSet';
@@ -53,8 +61,19 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
-    'zoom:change-request': ZoomChangeRequestedEvent;
-    'zoom:change-complete': null;
+    'zoom:save-memento': ZoomSaveMementoEvent;
+    'zoom:load-memento': ZoomLoadMementoEvent;
+    /**
+     * `change-request` means that something has requested the `ZoomManager` to update the zoom state in some way. The
+     * changes might be modified, constrained, rejected or ignored depending on what options/listeners are registered.
+     */
+    'zoom:change-request': ZoomChangeRequestEvent;
+    /**
+     * `change-complete` is dispatched when an effective `change-request` was processed, and the `ZoomManager`
+     * internal state has been updated (but no redraw has occurred yet). `change-request` that are "no-op" (i.e. nothing
+     * has changed) are not followed by a `change-complete`.
+     */
+    'zoom:change-complete': ZoomChangeCompleteEvent;
     'zoom:pan-start': ZoomPanStartEvent;
 }
 
@@ -119,15 +138,56 @@ export interface SeriesKeyNavZoomEvent {
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 
-export type ZoomChangeType = 'layoutComplete' | 'panToBBox' | 'reset' | 'restoreMemento' | 'update' | 'setAxes';
+export type ZoomMemento = {
+    rangeX?: AgZoomRange;
+    rangeY?: AgZoomRange;
+    ratioX?: AgZoomRatio;
+    ratioY?: AgZoomRatio;
+    autoScaledAxes?: AgAutoScaledAxes;
+};
 
-export interface ZoomChangeRequestedEvent extends AxisZoomState {
+export interface ZoomSaveMementoEvent {
+    // Note: `memento` is intentionally mutable. At the time of writing, only one feature (autoScaling) writes to the
+    // memento state.
+    memento: ZoomMemento;
+}
+
+export interface ZoomLoadMementoEvent {
+    // Note: `zoom` is intentionally mutable. At the time of writing, only one feature (autoScaling) depends on zoom
+    // memento events, so it's safe because we do not have multiple writers. We may need to consider adding a
+    // `constrain()` method to this event.
+    zoom: DefinedZoomState;
+    readonly memento: DeepReadonly<ZoomMemento> | undefined;
+    readonly navigatorModule: boolean;
+    readonly zoomModule: boolean;
+}
+
+export type ZoomChangeType =
+    | 'layoutComplete'
+    | 'panToBBox'
+    | 'reset'
+    | 'restoreMemento'
+    | 'setAxes'
+    | 'sync'
+    | 'update';
+
+export type ZoomChangeState = {
+    readonly [K in AxisID]: Readonly<ZoomStateDirection> | undefined;
+};
+
+export interface ZoomChangeRequestEvent {
     readonly callerId: string;
     readonly changeType: ZoomChangeType;
     readonly changedAxes: readonly AxisID[];
-    readonly state: { readonly [K in AxisID]: Readonly<ZoomState> | undefined };
+    readonly state: ZoomChangeState;
     readonly x?: Readonly<ZoomState>;
     readonly y?: Readonly<ZoomState>;
+    constrainChanges(changes: ZoomChangeState): void;
+}
+
+export interface ZoomChangeCompleteEvent {
+    readonly changeType: ZoomChangeType;
+    readonly x?: Readonly<ZoomState>;
 }
 
 export interface ZoomPanStartEvent {
@@ -149,6 +209,15 @@ export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> e
 export interface ZoomState {
     min: number;
     max: number;
+}
+
+export interface ZoomStateDirection extends ZoomState {
+    direction: 'x' | 'y';
+}
+
+export interface DefinedZoomState {
+    x: ZoomState;
+    y: ZoomState;
 }
 
 export interface AxisZoomState {

@@ -90,7 +90,7 @@ export class BandHighlight extends AbstractModuleInstance {
             eventsHub.on('layout:complete', (event) => this.layout(event)),
             eventsHub.on('series:focus-change', () => this.onKeyPress()),
             eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
-            eventsHub.on('zoom:change-request', () => this.clearAllHighlight()),
+            eventsHub.on('zoom:change-complete', () => this.clearAllHighlight()),
             eventsHub.on('dom:resize', () => this.clearAllHighlight()),
             eventsHub.on('axis:change', () => this.axisChange())
         );

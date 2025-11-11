@@ -227,7 +227,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
-            chart.ctx.eventsHub.on('zoom:change-request', () => this.clearAll()),
+            chart.ctx.eventsHub.on('zoom:change-complete', () => this.clearAll()),
             chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
         );
         if (seriesDragInterpreter) {
