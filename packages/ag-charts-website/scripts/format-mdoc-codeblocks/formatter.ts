@@ -93,39 +93,35 @@ function extractCodeBlocks(content: string): CodeBlock[] {
 }
 
 /**
- * Parse metadata string to extract format strategy.
+ * Parse metadata string to extract formatting options.
  *
- * The metadata string appears after the language identifier in code blocks and
- * specifies how the code should be formatted. Format strategies help handle
- * partial code snippets that aren't valid standalone code.
- *
- * Supported format strategies:
- * - `snippet`: For object/array properties or partial syntax that needs wrapping
- *   Example: ```ts format="snippet"
- *            contextMenu: { enabled: false }
- *            ```
- *
- * - `reactHooks`: For React hook usage that should appear at component root level
- *   Example: ```jsx format="reactHooks"
- *            const [options, setOptions] = useState({...});
- *            return <Component />;
- *            ```
+ * Supported options:
+ * - format: string ('snippet' | 'reactHooks' | ...)
+ * - printWidth | width: number (prettier printWidth override)
  *
  * The function also supports the deprecated `wrapper` attribute name for backward compatibility.
- *
- * @param meta - The metadata string from the code block (e.g., 'format="snippet"')
- * @returns An object containing the format strategy, or empty if no strategy specified
  */
-function parseMetadata(meta?: string): { format?: string } {
+function parseMetadata(meta?: string): { format?: string; printWidth?: number } {
     if (!meta) return {};
 
-    // Extract format strategy (supports both 'format' and deprecated 'wrapper')
+    const result: { format?: string; printWidth?: number } = {};
+
+    // format/wrapper e.g. format="snippet" or wrapper="snippet"
     const formatMatch = meta.match(/(?:format|wrapper)=["']([^"']+)["']/);
     if (formatMatch) {
-        return { format: formatMatch[1] };
+        result.format = formatMatch[1];
     }
 
-    return {};
+    // printWidth override: accept printWidth=120 or width=120 (quoted or unquoted)
+    const widthMatch = meta.match(/(?:printWidth|width)=["']?(\d{2,3})["']?/);
+    if (widthMatch) {
+        const n = Number(widthMatch[1]);
+        if (Number.isFinite(n) && n > 0) {
+            result.printWidth = n;
+        }
+    }
+
+    return result;
 }
 
 /**
@@ -175,7 +171,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
     const config: prettier.Options & Record<string, unknown> = {
         ...prettierConfig,
         parser,
-        printWidth: 160,
+        printWidth: metadata.printWidth ?? 110,
         tabWidth: 4,
         semi: true,
         singleQuote: true,

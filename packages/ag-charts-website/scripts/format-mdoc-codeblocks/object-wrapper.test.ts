@@ -6,21 +6,10 @@ describe('mdoc object wrapper formatting', () => {
     it('adds outer braces to property-only snippets with object values', async () => {
         const input = ['```ts format="snippet"', 'contextMenu: {', '    enabled: false,', '}', '```', ''].join('\n');
 
-        const expected = [
-            '```ts format="snippet"',
-            '{',
-            '    contextMenu: {',
-            '        enabled: false,',
-            '    },',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('strips trailing semicolons from full object literals', async () => {
@@ -37,19 +26,8 @@ describe('mdoc object wrapper formatting', () => {
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        const expected = [
-            '```ts format="snippet"',
-            '{',
-            '    animation: {',
-            '        duration: 500,',
-            '    },',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('strips trailing commas even when present in the original snippet', async () => {
@@ -67,20 +45,8 @@ describe('mdoc object wrapper formatting', () => {
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        const expected = [
-            '```ts format="snippet"',
-            'axes: [',
-            '    {',
-            "        type: 'number',",
-            "        position: 'left',",
-            '    },',
-            ']',
-            '```',
-            '',
-        ].join('\n');
-
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('preserves nested blocks that close with `};` inside the snippet', async () => {
@@ -106,43 +72,19 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```ts format="snippet"',
-            'template: `<ag-gauge :options="options"/>`,',
-            'components: {',
-            "    'ag-gauge': AgGauge,",
-            '},',
-            'data() {',
-            '    return {',
-            '        options: {',
-            "            type: 'linear-gauge',",
-            '            value: 80,',
-            '            scale: {',
-            '                min: 0,',
-            '                max: 100,',
-            '            },',
-            '        },',
-            '    };',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('formats json code blocks using prettier without wrappers', async () => {
         const input = ['```json', '{"properties":{"name":"United Kingdom"}}', '```', ''].join('\n');
 
-        const expected = ['```json', '{ "properties": { "name": "United Kingdom" } }', '```', ''].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('strips trailing semicolons even when code is valid JavaScript', async () => {
@@ -161,23 +103,10 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```ts format="snippet"',
-            '{',
-            '    value: 80,',
-            '    scale: {',
-            '        min: 0,',
-            '        max: 100,',
-            '    },',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('does not wrap complete statements (const, import, etc.)', async () => {
@@ -196,7 +125,7 @@ describe('mdoc object wrapper formatting', () => {
 
         // Code is already properly formatted, so no changes expected
         expect(changed).toBe(false);
-        expect(formatted).toBe(input);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('handles objects with function bodies containing semicolons', async () => {
@@ -217,27 +146,10 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    formatter: {',
-            '        x: (params) => {',
-            '            const value = params.value;',
-            '            return value.toString();',
-            '        },',
-            '        y: (params) => {',
-            '            return `Value: ${params.value}`;',
-            '        },',
-            '    },',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(false);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('handles Angular decorators with export statements', async () => {
@@ -254,23 +166,10 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```ts format="snippet"',
-            '@Component({',
-            "    selector: 'app-root',",
-            '    standalone: true,',
-            '})',
-            'export class AppComponent {',
-            '    constructor() {}',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(false);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('handles decorators with leading comments', async () => {
@@ -285,21 +184,10 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```ts format="snippet"',
-            '// Angular Chart Component',
-            '@Component({',
-            "    selector: 'app-root',",
-            '})',
-            'export class AppComponent {}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(false);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('handles import statements with leading comments', async () => {
@@ -313,32 +201,20 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```ts format="snippet"',
-            '// Angular Chart Component',
-            "import { AgCharts } from 'ag-charts-angular';",
-            '// Chart Options Type Interface',
-            "import { AgChartOptions } from 'ag-charts-community';",
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(false);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('converts semicolons in simple property lines', async () => {
         const input = ['```js format="snippet"', 'padding: 4; //padding of 4px on all sides', '```', ''].join('\n');
 
-        // Semicolon is stripped, and since it's wrapped in an object, Prettier adds a comma
-        const expected = ['```js format="snippet"', 'padding: 4, //padding of 4px on all sides', '```', ''].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        // Semicolon is stripped, and since it's wrapped in an object, Prettier adds a comma
+        expect(formatted).toMatchSnapshot();
     });
 
     it('fixes semicolons inside complete object literals', async () => {
@@ -348,7 +224,7 @@ describe('mdoc object wrapper formatting', () => {
 
         // Already has comma, no changes needed
         expect(changed).toBe(false);
-        expect(formatted).toBe(input);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('removes indentation from reactHooks code blocks', async () => {
@@ -368,7 +244,7 @@ describe('mdoc object wrapper formatting', () => {
 
         // Should remain without indentation
         expect(changed).toBe(false);
-        expect(formatted).toBe(input);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('removes incorrect indentation added by previous formatter runs', async () => {
@@ -384,22 +260,10 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```jsx format="reactHooks"',
-            'const [options, setOptions] = useState({',
-            "    type: 'linear-gauge',",
-            '    value: 80,',
-            '});',
-            '',
-            'return <AgGauge options={options} />;',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('handles very long lines gracefully', async () => {
@@ -458,25 +322,10 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```ts format="snippet"',
-            '{',
-            '    contextMenu: {',
-            '        enabled: false,',
-            '    },',
-            '}',
-            '```',
-            '',
-            '```json',
-            '{ "name": "test" }',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('handles code with emoji characters', async () => {
@@ -524,42 +373,19 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    series: [',
-            "        { type: 'area', xKey: 'month', yKey: 'subscriptions' },",
-            "        { type: 'area', xKey: 'month', yKey: 'services' },",
-            '    ],',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('strips trailing semicolons from property assignments with objects and adds outer braces', async () => {
         const input = ['```ts format="snippet"', 'contextMenu: {', '    enabled: false,', '};', '```', ''].join('\n');
 
-        const expected = [
-            '```ts format="snippet"',
-            '{',
-            '    contextMenu: {',
-            '        enabled: false,',
-            '    },',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('handles complete array literals with semicolons', async () => {
@@ -573,31 +399,19 @@ describe('mdoc object wrapper formatting', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '[',
-            "    { type: 'bar', xKey: 'month' },",
-            "    { type: 'line', xKey: 'month' },",
-            ']',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('handles simple property with array value and semicolon and adds outer braces', async () => {
         const input = ['```ts format="snippet"', "axes: [{ type: 'number' }];", '```', ''].join('\n');
 
-        const expected = ['```ts format="snippet"', '{', "    axes: [{ type: 'number' }],", '}', '```', ''].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('formats code with placeholder comments correctly', async () => {
@@ -620,22 +434,8 @@ describe('mdoc object wrapper formatting', () => {
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        const expected = [
-            '```js format="snippet"',
-            'series: [',
-            '    {',
-            '        // ...',
-            '        interpolation: {',
-            "            type: 'smooth',", // Trailing comma added
-            '        },',
-            '    },',
-            ']', // Trailing comma removed
-            '```',
-            '',
-        ].join('\n');
-
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('formats code with block comment placeholders and adds outer braces', async () => {
@@ -653,22 +453,8 @@ describe('mdoc object wrapper formatting', () => {
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    marker: {',
-            '        /* ... */',
-            '        fill: {',
-            "            type: 'gradient',",
-            '        },',
-            '    },',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('formats code with regular comments (not placeholders) and adds outer braces', async () => {
@@ -686,22 +472,8 @@ describe('mdoc object wrapper formatting', () => {
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    axes: [',
-            '        {',
-            '            // This is a regular comment',
-            "            type: 'number',",
-            '        },',
-            '    ],',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 });
 
@@ -784,24 +556,8 @@ describe('previously masked syntax errors', () => {
 
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    series: [',
-            '        {',
-            '            // ...',
-            '            fill: {',
-            "                type: 'gradient',",
-            '            },',
-            '        },',
-            '    ],',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 });
 
@@ -814,19 +570,10 @@ describe('preserve braces for array-of-objects properties', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            "    series: [{ type: 'bar', xKey: 'month', yKey: 'sales' }],",
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('preserves outer braces for multi-line series with array of objects', async () => {
@@ -841,23 +588,10 @@ describe('preserve braces for array-of-objects properties', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    series: [',
-            "        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software', grouped: true },",
-            "        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware', grouped: true },",
-            "        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services', grouped: true },",
-            '    ],',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('preserves outer braces for bubble series configuration', async () => {
@@ -875,26 +609,10 @@ describe('preserve braces for array-of-objects properties', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    series: [',
-            '        {',
-            '            //...',
-            '            size: 10, //defaults to 7',
-            '            maxSize: 20, //defaults to 30',
-            '            domain: [0, 100], //defaults to the series data domain',
-            '        },',
-            '    ],',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('preserves outer braces and strips trailing semicolon', async () => {
@@ -907,61 +625,37 @@ describe('preserve braces for array-of-objects properties', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            "    series: [{ type: 'bar', xKey: 'month' }],",
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('does not add outer braces for simple array properties without objects', async () => {
         const input = ['```js format="snippet"', 'labels: ["Q1", "Q2", "Q3", "Q4"]', '```', ''].join('\n');
 
-        const expected = ['```js format="snippet"', "labels: ['Q1', 'Q2', 'Q3', 'Q4']", '```', ''].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('does not add outer braces for simple property assignments', async () => {
         const input = ['```js format="snippet"', 'padding: 10', '```', ''].join('\n');
 
-        const expected = ['```js format="snippet"', 'padding: 10', '```', ''].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(false);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('preserves outer braces for object properties', async () => {
         const input = ['```js format="snippet"', 'tooltip: {', '    pagination: true,', '}', '```', ''].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    tooltip: {',
-            '        pagination: true,',
-            '    },',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 
     it('preserves outer braces for multi-line object properties', async () => {
@@ -977,24 +671,10 @@ describe('preserve braces for array-of-objects properties', () => {
             '',
         ].join('\n');
 
-        const expected = [
-            '```js format="snippet"',
-            '{',
-            '    tooltip: {',
-            '        position: {',
-            "            anchorTo: 'node',",
-            "            placement: 'top',",
-            '        },',
-            '    },',
-            '}',
-            '```',
-            '',
-        ].join('\n');
-
         const { formatted, changed } = await processMdocContent(input, 'virtual.mdoc');
 
         expect(changed).toBe(true);
-        expect(formatted).toBe(expected);
+        expect(formatted).toMatchSnapshot();
     });
 });
 
