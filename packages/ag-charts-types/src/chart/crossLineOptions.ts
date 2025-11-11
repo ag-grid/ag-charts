@@ -1,7 +1,7 @@
 import type { AxisValue, CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 export interface AgCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions>
-    extends Omit<AgBaseCrossLineOptions<LabelType>, 'type'> {}
+    extends Omit<AgBaseCrossLineOptions<LabelType>, 'type' | 'value' | 'range'> {}
 
 export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
     /** Whether to show the Cross Line. */

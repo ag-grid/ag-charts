@@ -175,7 +175,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
+        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
     },
     log: {
         ...without(LogAxisModule.options, ['type', 'crossLines']),
@@ -183,7 +183,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
+        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
     },
     category: {
         ...without(CategoryAxisModule.options, ['type', 'crossLines']),
@@ -191,7 +191,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
+        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
     },
     time: {
         ...without(TimeAxisModule.options, ['type', 'crossLines']),
@@ -199,7 +199,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
+        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
     },
     'unit-time': {
         ...without(UnitTimeAxisModule.options, ['type', 'crossLines']),
@@ -207,7 +207,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
+        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
     },
     'grouped-category': {
         ...without(GroupedCategoryAxisModule.options, ['type']),
@@ -215,7 +215,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(GroupedCategoryAxisModule.options, ['type', 'position']),
         bottom: without(GroupedCategoryAxisModule.options, ['type', 'position']),
         left: without(GroupedCategoryAxisModule.options, ['type', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
+        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
     },
     'ordinal-time': {
         ...without(ordinalTimeAxisOptionsDefs, ['type', 'crossLines']),
@@ -223,7 +223,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(ordinalTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
         bottom: without(ordinalTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
         left: without(ordinalTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
+        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
     },
 };
 
