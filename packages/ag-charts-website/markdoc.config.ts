@@ -121,6 +121,9 @@ export default defineMarkdocConfig({
                 specialTypes: { type: 'Object' },
             },
         },
+        moduleMappings: {
+            render: component('./src/components/module-mappings/ModuleMappings.astro'),
+        },
         majorTable,
     },
 });
