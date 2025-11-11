@@ -90,14 +90,14 @@ theme: {
 
 ```typescript
 // Note: Axes typically configured directly, not through overrides
-axes: [
-    {
+axes: {
+    x: {
         type: 'category', // Required field
         position: 'bottom',
         bandHighlight: { enabled: true },
         // Don't set label fontSize - theme handles it
     },
-    {
+    y: {
         type: 'number', // Required field
         position: 'left',
         gridLine: {
@@ -107,7 +107,7 @@ axes: [
             ],
         },
     },
-];
+};
 ```
 
 ### 3. Complex Shared Behaviors

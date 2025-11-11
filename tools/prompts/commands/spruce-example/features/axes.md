@@ -8,9 +8,9 @@ _Apply: 6 minutes, Impact: VERY HIGH_ ⭐ **STRONGLY RECOMMENDED**
 
 ```typescript
 // Add visual depth with alternating background bands
-axes: [
-    {
-        type: 'number', // ⚠️ REQUIRED - axes[].type must always be specified
+axes: {
+    y: {
+        type: 'number', // ⚠️ REQUIRED - axes.*.type must always be specified
         position: 'left',
         gridLine: {
             style: [
@@ -26,7 +26,7 @@ axes: [
             ],
         },
     },
-];
+};
 ```
 
 ### Why this matters
@@ -44,16 +44,16 @@ _Apply: 4 minutes, Impact: HIGH_ ⭐ **RECOMMENDED**
 
 ```typescript
 // Add interactive hover highlighting to axis bands
-axes: [
-    {
-        type: 'category', // ⚠️ REQUIRED - always specify axes[].type
+axes: {
+    x: {
+        type: 'category', // ⚠️ REQUIRED - always specify axes.*.type
         position: 'bottom',
         bandHighlight: {
             enabled: true,
             // Don't set fill - theme provides appropriate highlight color
         },
     },
-];
+};
 ```
 
 ### Visual Benefits
@@ -81,18 +81,18 @@ const options = {
                 year: 'numeric',
             }), // Applied to all x-values (dates)
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number', // ⚠️ REQUIRED field
             position: 'left',
             // Automatically uses root formatter.y
         },
-        {
+        x: {
             type: 'time', // ⚠️ REQUIRED field
             position: 'bottom',
             // Automatically uses root formatter.x
         },
-    ],
+    },
     series: [
         // All series labels and tooltips also use root formatters
     ],
@@ -102,8 +102,8 @@ const options = {
 ### Only use axis-specific formatters when they differ:
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number', // ⚠️ REQUIRED field
         position: 'left',
         label: {
@@ -111,7 +111,7 @@ axes: [
             formatter: (params) => `${params.value}%`, // Specific to percentage axis
         },
     },
-];
+};
 ```
 
 ### 🎨 NEW: Axis Label Item Styler (b12.2.0)
@@ -120,8 +120,8 @@ _Apply: 6 minutes, Impact: MEDIUM_
 
 ```typescript
 // Style specific axis labels based on value or position
-axes: [
-    {
+axes: {
+    y: {
         type: 'number', // ⚠️ REQUIRED field
         position: 'left',
         label: {
@@ -149,7 +149,7 @@ axes: [
             },
         },
     },
-];
+};
 ```
 
 ### Use Cases for Label Stylers
@@ -164,8 +164,8 @@ axes: [
 _Apply: 6 minutes, Impact: HIGH_
 
 ```typescript
-axes: [
-    {
+axes: {
+    x: {
         type: 'time',
         position: 'bottom',
         label: {
@@ -181,7 +181,7 @@ axes: [
             ],
         },
     },
-];
+};
 ```
 
 ### Why this matters
@@ -195,8 +195,8 @@ axes: [
 _Apply: 5 minutes, Impact: MEDIUM_
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number',
         position: 'left',
         crossAt: {
@@ -204,14 +204,14 @@ axes: [
             sticky: true, // Keep the horizontal axis locked to domain 0
         },
     },
-    {
+    x: {
         type: 'time',
         position: 'bottom',
         crossAt: {
             value: new Date('2025-01-01'),
         },
     },
-];
+};
 ```
 
 ### When to use crossAt
@@ -226,20 +226,20 @@ _Apply: 2 minutes, Impact: Medium_
 
 ```typescript
 // For continuous axes (number, time, log), control axis range padding
-axes: [
-    {
+axes: {
+    y: {
         type: 'number', // ⚠️ REQUIRED field
         position: 'left',
         nice: false, // ✅ Data fits exactly to min/max (no padding)
         // Default nice: true adds padding for round numbers
     },
-    {
+    x: {
         type: 'time', // ⚠️ REQUIRED field
         position: 'bottom',
         nice: false, // ✅ Time scale starts/ends at data boundaries
         // Useful for showing exact date ranges
     },
-];
+};
 ```
 
 ### When to use `nice: false`
@@ -260,8 +260,8 @@ axes: [
 _Apply: 10 minutes, Impact: HIGH_
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number', // ⚠️ REQUIRED field
         position: 'left',
         nice: false, // ✅ Data fits snugly to scale (no extra padding)
@@ -276,7 +276,7 @@ axes: [
         gridLine: { style: [{ lineDash: [2, 3] }] }, // Don't set stroke color
         tick: { width: 1 }, // Don't set stroke color
     },
-    {
+    x: {
         type: 'category', // ⚠️ REQUIRED field
         position: 'bottom',
         bandHighlight: {
@@ -288,7 +288,7 @@ axes: [
             // ❌ Don't set fontSize
         },
     },
-];
+};
 ```
 
 ## 🎨 Advanced Grid Line Styling
@@ -323,8 +323,8 @@ gridLine: {
 }
 
 // BEST PRACTICE: Combine with bandHighlight for maximum impact
-axes: [
-    {
+axes: {
+    x: {
         type: 'category', // ⚠️ REQUIRED field
         position: 'bottom',
         gridLine: {
@@ -337,7 +337,7 @@ axes: [
             enabled: true,
         },
     },
-];
+};
 ```
 
 ### Visual Impact
@@ -363,8 +363,8 @@ Creates a layered visual experience where:
 ### Financial Charts
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number',
         position: 'left',
         label: {
@@ -377,7 +377,7 @@ axes: [
             ],
         },
     },
-];
+};
 ```
 
 ### Financial Chart Axis Positioning Convention
@@ -387,8 +387,8 @@ _Apply: 2 minutes, Impact: VERY HIGH for financial data_ ⭐⭐ **INDUSTRY STAND
 For financial and monetary data, follow standard industry conventions:
 
 ```typescript
-axes: [
-    {
+axes: {
+    y: {
         type: 'number',
         position: 'right', // ✅ PREFERRED for price/monetary values
         label: {
@@ -404,12 +404,12 @@ axes: [
             ],
         },
     },
-    {
+    x: {
         type: 'time',
         position: 'bottom',
         // Date/time axis configuration
     },
-];
+};
 ```
 
 ### Why right-side positioning for financial data:
@@ -436,8 +436,8 @@ axes: [
 ### Time Series
 
 ```typescript
-axes: [
-    {
+axes: {
+    x: {
         type: 'time',
         position: 'bottom',
         nice: false, // Exact date range
@@ -451,14 +451,14 @@ axes: [
             },
         },
     },
-];
+};
 ```
 
 ### Category Axes with Many Items
 
 ```typescript
-axes: [
-    {
+axes: {
+    x: {
         type: 'category',
         position: 'bottom',
         bandHighlight: { enabled: true },
@@ -467,7 +467,7 @@ axes: [
             autoRotate: true, // Automatic rotation when needed
         },
     },
-];
+};
 ```
 
 ## ⚠️ Special Considerations for Radial/Polar Charts
@@ -478,23 +478,23 @@ Radial and polar charts can quickly become cluttered. Follow these guidelines:
 
 ```typescript
 // ❌ AVOID - Too many axis elements in radial charts
-axes: [
-    {
+axes: {
+    angle: {
         type: 'angle-category',
         gridLine: { enabled: true, style: [...] }, // Often clutters
         label: { enabled: true, formatter: ... },  // Can overlap
         crossLines: [...],                          // Usually overkill
     },
-    {
+    radius: {
         type: 'radius-number',
         gridLine: { enabled: true },               // Multiple circles can overwhelm
         label: { enabled: true },                  // Often unnecessary
     },
-];
+};
 
 // ✅ BETTER - Minimal, focused approach
-axes: [
-    {
+axes: {
+    angle: {
         type: 'angle-category',
         gridLine: { enabled: false },              // Clean look
         label: {
@@ -502,7 +502,7 @@ axes: [
             // Keep labels short to avoid overlap
         },
     },
-    {
+    radius: {
         type: 'radius-number',
         gridLine: {
             enabled: true,
@@ -510,7 +510,7 @@ axes: [
         },
         label: { enabled: false },                 // Often not needed
     },
-];
+};
 ```
 
 ### Guidelines for Radial/Polar Charts:
