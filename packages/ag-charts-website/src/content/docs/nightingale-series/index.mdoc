@@ -39,9 +39,27 @@ To group sectors in a Nightingale Series, enable the `grouped` series property.
 ```js format="snippet"
 {
     series: [
-        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software', grouped: true },
-        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware', grouped: true },
-        { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services', grouped: true },
+        {
+            type: 'nightingale',
+            angleKey: 'quarter',
+            radiusKey: 'software',
+            radiusName: 'Software',
+            grouped: true,
+        },
+        {
+            type: 'nightingale',
+            angleKey: 'quarter',
+            radiusKey: 'hardware',
+            radiusName: 'Hardware',
+            grouped: true,
+        },
+        {
+            type: 'nightingale',
+            angleKey: 'quarter',
+            radiusKey: 'services',
+            radiusName: 'Services',
+            grouped: true,
+        },
     ],
 }
 ```

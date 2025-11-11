@@ -19,9 +19,19 @@ Add your registration call near the bootstrap of your application so it runs exa
 
 ```js
 import { AgCharts, ModuleRegistry } from 'ag-charts-community';
-import { CartesianChartModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule } from 'ag-charts-community';
+import {
+    CartesianChartModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
-ModuleRegistry.registerModules([CartesianChartModule, LineSeriesModule, NumberAxisModule, CategoryAxisModule]);
+ModuleRegistry.registerModules([
+    CartesianChartModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    CategoryAxisModule,
+]);
 
 AgCharts.create({
     container: document.getElementById('myChart'),

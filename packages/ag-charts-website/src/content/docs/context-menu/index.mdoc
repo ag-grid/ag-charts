@@ -137,7 +137,8 @@ To add Sub-Menus to the Context Menu, simply use the `items` property recursivel
                     {
                         showOn: 'series-node',
                         label: `On 'series-node'`,
-                        action: ({ datum, xKey, yKey }) => console.log(`On 'series-node' clicked -`, yKey, datum[xKey], datum[yKey]),
+                        action: ({ datum, xKey, yKey }) =>
+                            console.log(`On 'series-node' clicked -`, yKey, datum[xKey], datum[yKey]),
                     },
                     {
                         showOn: 'legend-item',
