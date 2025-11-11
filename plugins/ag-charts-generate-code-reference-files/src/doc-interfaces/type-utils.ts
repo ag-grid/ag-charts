@@ -195,7 +195,7 @@ export function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }
                     // Re-join lines split due to line-length constraints; paragraphs should
                     // end on a double newline or use `\` at the end of the line. (standard markdown)
                     const last = result.at(-1);
-                    if (next && last && !last.endsWith('\\')) {
+                    if (next && last && !last.endsWith('\\') && !next.startsWith('-')) {
                         result[result.length - 1] += ' ' + next;
                     } else {
                         result.push(next);

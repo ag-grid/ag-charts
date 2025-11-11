@@ -205,6 +205,31 @@ const homepageGallery = defineCollection({
     schema: z.record(z.string(), z.string()),
 });
 
+const moduleMappingsChild: z.ZodTypeAny = z.lazy(() =>
+    z.object({
+        name: z.string(),
+        moduleName: z.string().optional(),
+        path: z.string().optional(),
+        isEnterprise: z.boolean().optional(),
+        hide: z.boolean().optional(),
+        ssrmBundled: z.boolean().optional(),
+        children: z.array(moduleMappingsChild).optional(),
+    })
+);
+
+const moduleMappings = defineCollection({
+    loader: glob({ base: './src/content/module-mappings', pattern: '*.json' }),
+    schema: z.object({
+        groups: z.array(
+            z.object({
+                name: z.string(),
+                hideFromSelection: z.boolean().optional(),
+                children: z.array(moduleMappingsChild),
+            })
+        ),
+    }),
+});
+
 export const collections = {
     docs,
     apiMenu,
@@ -216,4 +241,5 @@ export const collections = {
     metadata,
     gallery,
     homepageGallery,
+    moduleMappings,
 };
