@@ -27,7 +27,16 @@ describe('getModuleMappingsSnippet', () => {
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n          } from 'ag-charts-community';\n          import {\n              HeatmapSeriesModule,\n              AnnotationsModule,\n          } from 'ag-charts-enterprise';\n\n          ModuleRegistry.registerModules([\n              HeatmapSeriesModule,\n              AnnotationsModule,\n          ]);"
+          "import {
+              ModuleRegistry,
+              HeatmapSeriesModule,
+              AnnotationsModule,
+          } from 'ag-charts-enterprise';
+
+          ModuleRegistry.registerModules([
+              HeatmapSeriesModule,
+              AnnotationsModule,
+          ]);"
         `);
     });
 
@@ -53,7 +62,12 @@ describe('getModuleMappingsSnippet', () => {
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n          } from 'ag-charts-community';\n          import {\n              AllCommunityAndEnterpriseModules,\n          } from 'ag-charts-enterprise';\n\n          ModuleRegistry.registerModules([\n              ...AllCommunityAndEnterpriseModules,\n          ]);"
+          "import {
+              ModuleRegistry,
+              AllCommunityAndEnterpriseModules,
+          } from 'ag-charts-enterprise';
+
+          ModuleRegistry.registerModules(AllCommunityAndEnterpriseModules);"
         `);
     });
 });
