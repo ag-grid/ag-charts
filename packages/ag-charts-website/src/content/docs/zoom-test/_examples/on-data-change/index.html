@@ -2,6 +2,11 @@
     <div class="example-controls">
         <div class="controls-row">
             <button onclick="onUpdateData()">Update Data</button>
+            <label for="xAxisType">X Axis Type:</label>
+            <select id="xAxisType" onchange="onXAxisTypeChange(event.target.value)">
+                <option value="number">number</option>
+                <option value="category">category</option>
+            </select>
         </div>
         <div class="data-table-container">
             <table class="data-table" id="dataTable">

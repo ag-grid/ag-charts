@@ -28,6 +28,16 @@ const options: AgCartesianChartOptions<DatumType> = {
             yKey: 'y3',
         },
     ],
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
 };
 
 const chart = AgCharts.create(options);
@@ -35,4 +45,8 @@ const chart = AgCharts.create(options);
 function onUpdateData(): void {
     options.data = getData();
     chart.update(options);
+}
+
+function onXAxisTypeChange(value: 'number' | 'category'): void {
+    options.axes![0]!.type = value;
 }
