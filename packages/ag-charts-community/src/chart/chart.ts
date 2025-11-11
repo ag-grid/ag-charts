@@ -376,6 +376,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.title.registerInteraction(moduleContext, 'beforebegin'),
             this.subtitle.registerInteraction(moduleContext, 'beforebegin'),
             this.footnote.registerInteraction(moduleContext, 'afterend'),
+            () => this.title.destroy(),
+            () => this.subtitle.destroy(),
+            () => this.footnote.destroy(),
 
             Widget.addWindowEvent('page-left', () => this.destroy()),
 
