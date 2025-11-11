@@ -7,7 +7,7 @@ import { mapValues } from '../src/chart/test/utils';
 import { VERSION } from '../src/version';
 
 const PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf8')).version;
-const IS_LATEST_VERSION = process.env.AG_BENCHMARK_LATEST_VERSION === '1';
+const IS_LATEST_VERSION = (process.env.AG_BENCHMARK_LATEST_VERSION ?? '1') === '1';
 
 export function isHistoricBenchmarkTest() {
     return PACKAGE_VERSION !== VERSION;
