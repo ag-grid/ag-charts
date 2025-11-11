@@ -3,7 +3,6 @@ import {
     AbstractModuleInstance,
     ActionOnSet,
     type AxisID,
-    BaseProperties,
     Property,
     ProxyProperty,
     debounce,

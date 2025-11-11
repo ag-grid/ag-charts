@@ -1,8 +1,17 @@
-import type { AgZoomAutoScaling } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { CleanupRegistry, type DeepRequired, isFiniteNumber } from 'ag-charts-core';
+import type { AgZoomAutoScaling } from 'ag-charts-community';
+import {
+    ActionOnSet,
+    BaseProperties,
+    CleanupRegistry,
+    Property,
+    isFiniteNumber,
+    objectsEqual,
+    strictObjectKeys,
+} from 'ag-charts-core';
+import type { DeepRequired } from 'ag-charts-core';
 
-const { ChartAxisDirection, ActionOnSet, BaseProperties, Property } = _ModuleSupport;
+const { ChartAxisDirection } = _ModuleSupport;
 type ZoomState = _ModuleSupport.ZoomState;
 type CartesianAxisDirection = _ModuleSupport.CartesianAxisDirection;
 type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
@@ -147,7 +156,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
             // The `zoom` is outdated, let's patch in the updates from `changes`.
             const state = this.zoomManager.getAxisZooms();
             for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
-                for (const id of _ModuleSupport.strictObjectKeys(changes)) {
+                for (const id of strictObjectKeys(changes)) {
                     if (state[id]?.direction === dir) {
                         zoom[dir] = changes[id];
                         break;
@@ -158,7 +167,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         if (zoom?.x == null) return;
 
         const zoomY = this.getAutoScaleYZoom(zoom.x);
-        if (zoomY == null || _ModuleSupport.objectsEqual(zoom.y, zoomY)) return;
+        if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;
 
         return this.zoomManager.toCoreZoomState({ x: zoom.x, y: zoomY });
     }
