@@ -18,7 +18,7 @@ import {
     TreeDataModule,
 } from 'ag-grid-enterprise';
 import { AgGridReact } from 'ag-grid-react';
-import { type FunctionComponent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ModuleCellRenderer } from './ModuleCellRenderer';
 import { ModuleConfiguration } from './ModuleConfiguration';

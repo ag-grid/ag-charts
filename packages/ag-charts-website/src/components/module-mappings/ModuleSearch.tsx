@@ -1,14 +1,10 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import type { AgGridReact } from 'ag-grid-react';
-import { type FunctionComponent, type RefObject, useCallback } from 'react';
+import { type RefObject, useCallback } from 'react';
 
 import styles from './ModuleSearch.module.scss';
 
-interface Props {
-    gridRef: RefObject<AgGridReact>;
-}
-
-export const ModuleSearch: FunctionComponent<Props> = ({ gridRef }) => {
+export function ModuleSearch({ gridRef }: { gridRef: RefObject<AgGridReact> }) {
     const onInput = useCallback(
         (searchText: string) => {
             gridRef?.current?.api.setGridOption('quickFilterText', searchText);
@@ -30,4 +26,4 @@ export const ModuleSearch: FunctionComponent<Props> = ({ gridRef }) => {
             />
         </div>
     );
-};
+}
