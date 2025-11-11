@@ -44,6 +44,7 @@ export function useModuleConfig(gridRef: RefObject<AgGridReact>) {
                     break;
 
                 case ALL_COMMUNITY_AND_ENTERPRISE_MODULE:
+                default:
                     (isEnterprise ? enterprise : community).push(moduleName);
             }
         });

@@ -1,7 +1,6 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { type FunctionComponent, type RefObject, useCallback } from 'react';
-
 import type { AgGridReact } from 'ag-grid-react';
+import { type FunctionComponent, type RefObject, useCallback } from 'react';
 
 import styles from './ModuleSearch.module.scss';
 
