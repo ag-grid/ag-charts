@@ -131,6 +131,8 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
+pieSeriesOptionsDef.angleFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
 pieSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));

@@ -456,7 +456,7 @@ export abstract class CartesianSeries<
         return nodeDataRefresh;
     }
 
-    private updateSeriesSelections() {
+    protected updateSeriesSelections() {
         const { datumSelection, labelSelection, paths } = this;
         const contextData = this._contextNodeData;
         if (!contextData) return;

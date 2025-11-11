@@ -12,9 +12,11 @@ import type {
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
+import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
+import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
@@ -70,6 +72,7 @@ import {
     resetBarSelectionsFn,
 } from './barUtil';
 import {
+    type CartesianAnimationData,
     type CartesianSeriesNodeDatum,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
@@ -105,11 +108,12 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 }
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
+    phantomNodeData: BarNodeDatum[];
     styles: SeriesNodeStyleContext<AgBarSeriesStyle>;
     segments?: Segment[];
 }
 
-type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
+type BarAnimationData = AbstractBarSeriesAnimationData<BarShape<BarNodeDatum>, BarNodeDatum>;
 
 const memoizedAggregateBarData = simpleMemorize2(aggregateBarData);
 
@@ -134,6 +138,22 @@ export class BarSeries extends AbstractBarSeries<
         return this.properties.sparklineMode ? 'main' : undefined;
     }
 
+    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    private phantomSelection: Selection<BarShape, BarNodeDatum> = Selection.select(
+        this.phantomGroup,
+        () => this.nodeFactory(),
+        false
+    );
+
+    readonly phantomHighlightGroup = this.highlightGroup.appendChild(
+        new Group({ name: `${this.internalId}-highlight-node` })
+    );
+    private phantomHighlightSelection: Selection<BarShape, BarNodeDatum> = Selection.select(
+        this.phantomHighlightGroup,
+        () => this.nodeFactory(),
+        false
+    );
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -153,6 +173,9 @@ export class BarSeries extends AbstractBarSeries<
                 label: resetLabelFn,
             },
         });
+
+        this.phantomGroup.opacity = 0.2;
+        this.phantomHighlightGroup.opacity = 0.2;
     }
 
     private crossFilteringEnabled() {
@@ -711,7 +734,8 @@ export class BarSeries extends AbstractBarSeries<
 
         return {
             itemId: yKey,
-            nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
+            nodeData: nodes,
+            phantomNodeData: phantomNodes,
             labelData: labels,
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
@@ -725,13 +749,53 @@ export class BarSeries extends AbstractBarSeries<
         return new BarShape();
     }
 
+    protected override updateSeriesSelections() {
+        super.updateSeriesSelections();
+
+        this.phantomSelection = this.updateDatumSelection({
+            nodeData: this.contextNodeData?.phantomNodeData ?? [],
+            datumSelection: this.phantomSelection,
+        });
+    }
+
+    protected override updateHighlightSelectionItem(opts: {
+        items?: BarNodeDatum[];
+        highlightSelection: Selection<BarShape<BarNodeDatum>, BarNodeDatum>;
+    }) {
+        const out = super.updateHighlightSelectionItem(opts);
+
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+        const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as BarNodeDatum) : undefined;
+
+        this.phantomHighlightSelection = this.updateDatumSelection({
+            nodeData: item ? this.getHighlightData(this.contextNodeData?.phantomNodeData ?? [], item) ?? [] : [],
+            datumSelection: this.phantomHighlightSelection,
+        });
+
+        return out;
+    }
+
+    protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
+        super.updateNodes(itemHighlighted, nodeRefresh);
+
+        this.updateDatumNodes({
+            datumSelection: this.phantomSelection,
+            isHighlight: false,
+            drawingMode: 'overlay',
+        });
+        this.updateDatumNodes({
+            datumSelection: this.phantomHighlightSelection,
+            isHighlight: true,
+            drawingMode: 'overlay',
+        });
+    }
+
     protected override getHighlightData(
         nodeData: BarNodeDatum[],
         highlightedItem: BarNodeDatum
     ): BarNodeDatum[] | undefined {
-        const highlightItem = nodeData.find(
-            (nodeDatum) => nodeDatum.datum === highlightedItem.datum && !nodeDatum.phantom
-        );
+        const highlightItem = nodeData.find((nodeDatum) => nodeDatum.datum === highlightedItem.datum);
         return highlightItem == null ? undefined : [{ ...highlightItem }];
     }
 
@@ -1070,18 +1134,35 @@ export class BarSeries extends AbstractBarSeries<
         ];
     }
 
+    protected override resetDatumAnimation(
+        data: CartesianAnimationData<BarShape<BarNodeDatum>, BarNodeDatum, BarNodeDatum, BarSeriesNodeDataContext>
+    ) {
+        super.resetDatumAnimation(data);
+
+        resetMotion([this.phantomSelection], resetBarSelectionsFn);
+    }
+
+    override animateReadyHighlight(data: Selection<BarShape<BarNodeDatum>, BarNodeDatum>) {
+        super.animateReadyHighlight(data);
+
+        resetMotion([this.phantomHighlightSelection], resetBarSelectionsFn);
+    }
+
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
+        const { phantomSelection } = this;
+
         const fns = prepareBarAnimationFunctions(
             collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'),
             'unknown'
         );
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection, phantomSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
+        const { phantomSelection } = this;
         const { datumSelection, labelSelection, annotationSelections, contextData, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
@@ -1105,7 +1186,7 @@ export class BarSeries extends AbstractBarSeries<
             this.id,
             'nodes',
             this.ctx.animationManager,
-            [datumSelection],
+            [datumSelection, phantomSelection],
             fns,
             (_, datum) => this.getDatumId(datum),
             dataDiff

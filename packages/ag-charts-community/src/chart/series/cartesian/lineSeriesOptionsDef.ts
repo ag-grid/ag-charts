@@ -75,6 +75,8 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
+lineSeriesOptionsDef.yFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
 lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
 lineSeriesOptionsDef.focusPriority = undocumented(number);

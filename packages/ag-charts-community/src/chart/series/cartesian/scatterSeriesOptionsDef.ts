@@ -8,6 +8,7 @@ import {
     required,
     shapeHighlightOptionsDef,
     string,
+    undocumented,
     union,
     without,
 } from 'ag-charts-core';
@@ -59,3 +60,10 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     errorBar: errorBarOptionsDefs,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
+
+// @ts-expect-error undocumented option
+scatterSeriesOptionsDef.xFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
+scatterSeriesOptionsDef.yFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
+scatterSeriesOptionsDef.sizeFilterKey = undocumented(string);
