@@ -162,7 +162,7 @@ export class Zoom extends AbstractModuleInstance {
     private readonly axisDragger = new ZoomAxisDragger();
     private readonly autoScaler: ZoomAutoScaler;
     private readonly contextMenu: ZoomContextMenu;
-    private readonly dataChangeHandler = new ZoomOnDataChange(this.onDataChange);
+    private readonly dataChangeHandler: ZoomOnDataChange;
     private readonly panner = new ZoomPanner();
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
@@ -207,6 +207,7 @@ export class Zoom extends AbstractModuleInstance {
             this.updateZoom.bind(this),
             this.isZoomValid.bind(this)
         );
+        this.dataChangeHandler = new ZoomOnDataChange(this.onDataChange, this.ctx, this.cleanup);
 
         this.domProxy = new ZoomDOMProxy({
             onAxisDragStart: (direction) => this.onAxisDragStart(direction),
