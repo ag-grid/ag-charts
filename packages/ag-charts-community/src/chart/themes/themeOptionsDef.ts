@@ -168,6 +168,8 @@ const navigatorOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
     },
 };
 
+const cartesianCrossLineThemeableOptionsDefs = without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']);
+
 const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
     number: {
         ...without(NumberAxisModule.options, ['type', 'crossLines']),
@@ -175,7 +177,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
+        crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     log: {
         ...without(LogAxisModule.options, ['type', 'crossLines']),
@@ -183,7 +185,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
+        crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     category: {
         ...without(CategoryAxisModule.options, ['type', 'crossLines']),
@@ -191,7 +193,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
+        crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     time: {
         ...without(TimeAxisModule.options, ['type', 'crossLines']),
@@ -199,7 +201,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
+        crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     'unit-time': {
         ...without(UnitTimeAxisModule.options, ['type', 'crossLines']),
@@ -207,7 +209,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
         bottom: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
         left: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
+        crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     'grouped-category': {
         ...without(GroupedCategoryAxisModule.options, ['type']),
@@ -215,7 +217,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(GroupedCategoryAxisModule.options, ['type', 'position']),
         bottom: without(GroupedCategoryAxisModule.options, ['type', 'position']),
         left: without(GroupedCategoryAxisModule.options, ['type', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
+        crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     'ordinal-time': {
         ...without(ordinalTimeAxisOptionsDefs, ['type', 'crossLines']),
@@ -223,7 +225,7 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         right: without(ordinalTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
         bottom: without(ordinalTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
         left: without(ordinalTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']),
+        crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
 };
 
