@@ -4,11 +4,9 @@ import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 
-import { AllCommunityModules } from 'ag-charts-community';
-import { ModuleRegistry } from 'ag-charts-core';
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
-import { setupEnterpriseModules } from './src/setup';
+import { isAtOrAfterVersion } from './benchmarks/benchmark';
 
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
@@ -56,5 +54,9 @@ expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 jest.mock('./src/license/licenseManager');
 
-ModuleRegistry.registerModules(AllCommunityModules);
-setupEnterpriseModules();
+// ModuleRegistry was introduced in pre-13.0.0
+if (isAtOrAfterVersion(12, 4, 0)) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { setupEnterpriseModules } = require('./src/setup');
+    setupEnterpriseModules();
+}
