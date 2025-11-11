@@ -4,10 +4,18 @@ import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 
-import { ModuleRegistry } from 'ag-charts-core';
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
-import { AllCommunityModules } from './src/module-bundles/all';
+import { isAtOrAfterVersion } from './benchmarks/compatibility';
+
+// ModuleRegistry was introduced in pre-13.0.0
+if (isAtOrAfterVersion(12, 4, 0)) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { ModuleRegistry } = require('ag-charts-core');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { AllCommunityModules } = require('./src/module-bundles/all');
+    ModuleRegistry.registerModules(AllCommunityModules);
+}
 
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
@@ -52,5 +60,3 @@ declare module 'expect' {
 }
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });
-
-ModuleRegistry.registerModules(AllCommunityModules);
