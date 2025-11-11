@@ -249,6 +249,7 @@ export class Zoom extends AbstractModuleInstance {
         this.buttons.destroy();
         this.destroyContextMenuActions?.();
         this.domProxy.destroy();
+        this.dataChangeHandler.destroy();
     }
 
     private onEnabledChange(enabled: boolean) {

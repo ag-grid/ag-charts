@@ -22,6 +22,8 @@ export class ZoomOnDataChange {
         eventsCleanup.register(ctx.eventsHub.on('data:update', (e) => this.onDataUpdate(e)));
     }
 
+    destroy(): void {}
+
     private onDataLoad(_e: _ModuleSupport.EventsHubMap['data:load']): void {
         this.performUpdateStrategy();
     }
