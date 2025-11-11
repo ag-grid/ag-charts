@@ -9,6 +9,8 @@ export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = 
     type: required(constant('radar-line')),
     angleKey: required(string),
     radiusKey: required(string),
+    angleKeyAxis: string,
+    radiusKeyAxis: string,
     angleName: string,
     radiusName: string,
     legendItemName: string,

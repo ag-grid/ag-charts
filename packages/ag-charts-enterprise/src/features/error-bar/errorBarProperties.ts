@@ -4,10 +4,8 @@ import {
     type AgErrorBarThemeableOptions,
     type ErrorBarCapOptions,
     type Styler,
-    _ModuleSupport,
 } from 'ag-charts-community';
-
-const { BaseProperties, Property } = _ModuleSupport;
+import { BaseProperties, Property } from 'ag-charts-core';
 
 class ErrorBarCap extends BaseProperties<ErrorBarCapOptions> {
     @Property

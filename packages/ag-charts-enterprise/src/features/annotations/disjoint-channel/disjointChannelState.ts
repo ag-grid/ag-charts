@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, type Point, isNumber } from 'ag-charts-core';
+import { Debug, type Point, StateMachine, StateMachineProperty, isNumber } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -8,8 +7,6 @@ import { snapPoint } from '../utils/coords';
 import { getGroupingValue } from '../utils/scale';
 import { DisjointChannelProperties } from './disjointChannelProperties';
 import type { DisjointChannelScene } from './disjointChannelScene';
-
-const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface DisjointChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: DisjointChannelProperties) => void;

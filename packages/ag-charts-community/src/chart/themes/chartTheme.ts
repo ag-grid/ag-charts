@@ -1,4 +1,14 @@
-import { ModuleRegistry, ModuleType, groupBy, isArray } from 'ag-charts-core';
+import {
+    Color,
+    ModuleRegistry,
+    ModuleType,
+    deepClone,
+    deepFreeze,
+    groupBy,
+    isArray,
+    jsonWalk,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeOptions,
@@ -13,9 +23,6 @@ import type {
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
-import { Color } from '../../util/color';
-import { deepClone, jsonWalk } from '../../util/json';
-import { deepFreeze, mergeDefaults } from '../../util/object';
 import type { ChartType } from '../factory/expectedModules';
 import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
@@ -286,18 +293,15 @@ export class ChartTheme {
                         },
                         undefined,
                         // TODO: can we just infer this common path?
-                        {
-                            $pathString: [
-                                '/common/axes/$axisType/crossLines',
-                                { axisType: { $path: ['/axes/$index/type'] } },
-                            ],
-                        },
+                        // `axisType` path is relative to the axis that is currently being resolved
+                        // e.g. `/axes/x/crossLines/[variables]` + `../type` = `/axes/x/type`
+                        { $pathString: ['/common/axes/$axisType/crossLines', { axisType: { $path: ['../type'] } }] },
                         {
                             $pathString: [
                                 '/$seriesType/axes/$axisType/crossLines',
                                 {
                                     seriesType: { $path: ['/series/0/type', 'line'] },
-                                    axisType: { $path: ['/axes/$index/type'] },
+                                    axisType: { $path: ['../type'] },
                                 },
                             ],
                         },
@@ -486,7 +490,6 @@ export class ChartTheme {
     private static readonly axisDefault = {
         [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults(
             {
-                keys: [],
                 line: { enabled: false },
                 crosshair: { enabled: true },
             },
@@ -494,7 +497,6 @@ export class ChartTheme {
         ),
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(
             {
-                keys: [],
                 base: 10,
                 line: { enabled: false },
                 crosshair: { enabled: true },
@@ -503,7 +505,6 @@ export class ChartTheme {
         ),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(
             {
-                keys: [],
                 groupPaddingInner: 0.1,
                 label: { autoRotate: true, wrapping: 'on-space' },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
@@ -513,7 +514,6 @@ export class ChartTheme {
         ),
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(
             {
-                keys: [],
                 tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
                 label: { spacing: 10, rotation: 270, wrapping: 'on-space' },
                 maxThicknessRatio: 0.5,
@@ -525,7 +525,6 @@ export class ChartTheme {
         ),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
             {
-                keys: [],
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
             },
@@ -533,7 +532,6 @@ export class ChartTheme {
         ),
         [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(
             {
-                keys: [],
                 groupPaddingInner: 0.1,
                 label: { autoRotate: false },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
@@ -544,7 +542,6 @@ export class ChartTheme {
         ),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(
             {
-                keys: [],
                 groupPaddingInner: 0,
                 label: { autoRotate: false },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },

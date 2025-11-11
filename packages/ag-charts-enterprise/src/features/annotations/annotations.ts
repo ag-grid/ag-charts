@@ -5,7 +5,15 @@ import {
     _ModuleSupport,
     _Widget,
 } from 'ag-charts-community';
-import { AbstractModuleInstance, type Point, Vec2, isValidDate } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ObserveChanges,
+    type Point,
+    PropertiesArray,
+    Property,
+    Vec2,
+    isValidDate,
+} from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -33,20 +41,10 @@ import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
 
-const {
-    ChartUpdateType,
-    InteractionState,
-    PropertiesArray,
-    Property,
-    ChartAxisDirection,
-    keyProperty,
-    valueProperty,
-    Selection,
-    BBox,
-    ObserveChanges,
-} = _ModuleSupport;
+const { ChartUpdateType, InteractionState, ChartAxisDirection, keyProperty, valueProperty, Selection, BBox } =
+    _ModuleSupport;
 
-type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
+type AnnotationPropertiesArray = PropertiesArray<AnnotationProperties>;
 
 type AnnotationAxis = {
     layout: _ModuleSupport.AxisLayout;
@@ -70,10 +68,11 @@ export class Annotations extends AbstractModuleInstance {
     public axesButtons = new AxesButtons();
 
     @Property
-    @ObserveChanges<Annotations>((target, value) => {
-        target.toolbar.enabled = value;
-        target.optionsToolbar.enabled = value;
-        target.axesButtons.enabled = value;
+    @ObserveChanges<Annotations>((target: Annotations, value?: boolean) => {
+        const enabled = value ?? true;
+        target.toolbar.enabled = enabled;
+        target.optionsToolbar.enabled = enabled;
+        target.axesButtons.enabled = enabled;
     })
     public enabled: boolean = true;
 
@@ -729,13 +728,8 @@ export class Annotations extends AbstractModuleInstance {
         // clip annotations to series padded rect
         this.container.setClipRect(seriesRect);
 
-        for (const axisLayout of event.axes ?? []) {
-            if (axisLayout.direction === _ModuleSupport.ChartAxisDirection.X) {
-                this.xAxis = this.getAxis(axisLayout, seriesRect, this.xAxis?.button);
-            } else {
-                this.yAxis = this.getAxis(axisLayout, seriesRect, this.yAxis?.button);
-            }
-        }
+        this.xAxis = this.getAxis(event.axes[ChartAxisDirection.X], seriesRect, this.xAxis?.button);
+        this.yAxis = this.getAxis(event.axes[ChartAxisDirection.Y], seriesRect, this.yAxis?.button);
 
         if (this.showAnnotations()) {
             this.animateAnnotations({ from: 0, to: 1, phase: 'trailing' });

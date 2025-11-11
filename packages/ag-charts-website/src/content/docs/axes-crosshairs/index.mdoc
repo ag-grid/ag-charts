@@ -16,15 +16,15 @@ To enable the crosshair feature for a given axis, use the `crosshair` property o
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             crosshair: {
                 enabled: true,
             },
         },
-    ],
+    },
 }
 ```
 
@@ -36,15 +36,15 @@ This default behaviour can be modified by using the crosshair `snap` option. Whe
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             crosshair: {
                 snap: false,
             },
         },
-    ],
+    },
 }
 ```
 
@@ -199,14 +199,14 @@ To enable the band highlight for a given axis, use the `bandHighlight` property 
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             bandHighlight: {
                 enabled: true,
             },
         },
-    ],
+    },
 }
 ```
 

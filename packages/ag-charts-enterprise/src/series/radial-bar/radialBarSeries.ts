@@ -5,7 +5,7 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, angleBetween, isDefined } from 'ag-charts-core';
+import { type Point, angleBetween, isDefined, isGradientFill } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -34,7 +34,6 @@ const {
     Sector,
     SectorBox,
     motion,
-    isGradientFill,
     applyShapeStyle,
     updateLabelNode,
     getItemStyles,
@@ -424,9 +423,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 const fill = style.fill;
                 const fillParams: _ModuleSupport.GradientParams | undefined =
-                    _ModuleSupport.isGradientFill(fill) && fill.bounds !== 'item'
-                        ? { centerX: 0, centerY: 0 }
-                        : undefined;
+                    isGradientFill(fill) && fill.bounds !== 'item' ? { centerX: 0, centerY: 0 } : undefined;
 
                 applyShapeStyle(node, style, fillBBox, fillParams);
 
@@ -545,6 +542,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                         label: angleName,
                         fallbackLabel: angleKey,
                         value: this.getAxisValueText(angleAxis, 'tooltip', angleValue, datum, angleKey, undefined),
+                        missing: _ModuleSupport.isTooltipValueMissing(angleValue),
                     },
                 ],
             },

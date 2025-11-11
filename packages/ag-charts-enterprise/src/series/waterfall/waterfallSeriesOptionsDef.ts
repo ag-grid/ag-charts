@@ -9,6 +9,8 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
     type: required(constant('waterfall')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     totals: arrayOfDefs<WaterfallSeriesTotalMeta>(

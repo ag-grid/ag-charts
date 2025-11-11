@@ -1,8 +1,8 @@
 import type { AgMapLineBackgroundOptions, AgMapLineSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 
-const { Property, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
-
+const { SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 export interface MapLineBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
     readonly projectedGeometry: _ModuleSupport.Geometry;

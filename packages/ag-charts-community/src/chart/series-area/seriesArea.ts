@@ -1,13 +1,10 @@
-import { CleanupRegistry } from 'ag-charts-core';
+import { BaseProperties, Border, CleanupRegistry, Property, ProxyPropertyOnWrite } from 'ag-charts-core';
 import type { Padding } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
-import { Border } from '../../util/border';
-import { BaseProperties, Property } from '../../util/properties';
-import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { ZIndexMap } from '../zIndexMap';
 
 export class SeriesArea extends BaseProperties {

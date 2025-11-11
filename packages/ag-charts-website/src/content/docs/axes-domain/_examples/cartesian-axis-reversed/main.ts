@@ -14,15 +14,15 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
                 text: 'Operating System',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             reverse: false,
@@ -30,13 +30,13 @@ const options: AgCartesianChartOptions = {
                 text: 'Market Share (%)',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function toggleAxisReverse() {
-    const numberAxisOptions = options.axes![1];
+    const numberAxisOptions = options.axes!.y!;
     numberAxisOptions.reverse = !numberAxisOptions.reverse;
     chart.update(options);
 }

@@ -4,13 +4,15 @@ import type {
     AgMapLineSeriesOptions,
     AgMapLineSeriesStyle,
     AgMapLineSeriesTooltipRendererParams,
+    Opacity,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { PointLabelDatum } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 
-const { Property, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
-
-export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {
+const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
+export interface MapLineNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly idValue: string;
 }
@@ -96,7 +98,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     @Property
     readonly tooltip = makeSeriesTooltip<AgMapLineSeriesTooltipRendererParams<any>>();
 
-    getStyle(): Required<AgMapLineSeriesStyle> {
+    getStyle(): Required<AgMapLineSeriesStyle> & { opacity: Opacity } {
         const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this;
         return {
             stroke,
@@ -104,6 +106,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
             strokeWidth,
             lineDash,
             lineDashOffset,
+            opacity: 1,
         };
     }
 }

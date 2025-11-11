@@ -1,9 +1,9 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { Property, ProxyPropertyOnWrite } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { ProxyPropertyOnWrite, Property, CategoryScale } = _ModuleSupport;
-
+const { CategoryScale } = _ModuleSupport;
 export class RadiusCategoryAxis extends RadiusAxis {
     static readonly className = 'RadiusCategoryAxis';
     static readonly type = 'radius-category' as const;

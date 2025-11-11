@@ -12,8 +12,8 @@ const options: AgChartOptions = {
             yKey: 'temp',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
             title: {
@@ -26,7 +26,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -39,7 +39,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

@@ -22,8 +22,8 @@ const options: AgCartesianChartOptions = {
             yKey: 'count',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: {
@@ -37,11 +37,11 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

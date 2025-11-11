@@ -1,15 +1,17 @@
-import type {
-    InternalAgColorType,
-    RequiredInternalAgColorType,
-    RequiredInternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
+import {
+    type InternalAgColorType,
+    type RequiredInternalAgColorType,
+    type RequiredInternalAgGradientColor,
+    type RequiredInternalAgImageFill,
+    type RequiredInternalAgPatternColor,
+    isGradientFill,
+    isImageFill,
+    isPatternFill,
 } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
 import type { Shape, ShapeColor } from '../../scene/shape/shape';
-import { isGradientFill, isImageFill, isPatternFill } from '../../scene/util/fill';
 
 export type ShapeStyle = Partial<
     Pick<

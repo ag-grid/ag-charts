@@ -6,23 +6,21 @@ import { formatBytes, formatMillis, labelFormatter } from './utils';
 const commonOptions: AgCartesianChartOptions = {
     sync: { axes: 'xy' },
     tooltip: { mode: 'single' },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
-            keys: [`timeMs`],
             label: { formatter: labelFormatter(formatMillis) },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: [`heapUsed`, `canvasBytes`],
             label: { formatter: labelFormatter(formatBytes) },
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -36,6 +34,7 @@ const commonOptions: AgCartesianChartOptions = {
             xKey: 'name',
             yKey: `heapUsed`,
             yName: `Heap`,
+            yKeyAxis: 'ySecondary',
             stackGroup: 'memory',
         },
         {
@@ -43,6 +42,7 @@ const commonOptions: AgCartesianChartOptions = {
             xKey: 'name',
             yKey: `canvasBytes`,
             yName: `Canvas`,
+            yKeyAxis: 'ySecondary',
             stackGroup: 'memory',
         },
     ],

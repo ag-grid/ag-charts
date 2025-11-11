@@ -92,19 +92,19 @@ const options: AgCartesianChartOptions<DataType> = {
     legend: {},
     data: getData(),
     series: allSeries.slice(0, 2),
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'time',
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             label: {
                 autoRotate: false,
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

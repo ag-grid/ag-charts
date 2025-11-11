@@ -49,8 +49,8 @@ const options: AgPolarChartOptions = {
             radiusName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             innerRadiusRatio: 0.15,
             interval: {
@@ -93,14 +93,14 @@ const options: AgPolarChartOptions = {
                 },
             ],
         },
-        {
+        angle: {
             type: 'angle-category',
             paddingInner: 0.25,
             line: {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -158,17 +158,16 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             nodeInteraction: true,
         },
         legend: { enabled: false },
-        axes: [
-            {
+        axes: {
+            x: {
                 type: 'category',
                 label: {
                     fontSize: 8,
                 },
             },
-            {
+            y: {
                 type: 'number',
                 position: 'left',
-                keys: [`timeMs`],
                 min: 0,
                 label: {
                     formatter: (params) => {
@@ -178,10 +177,9 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                     },
                 },
             },
-            {
+            ySecondary: {
                 type: 'number',
                 position: 'right',
-                keys: [`heapUsed`, `canvasBytes`],
                 min: 0,
                 label: {
                     formatter: (params) => {
@@ -191,7 +189,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                     },
                 },
             },
-        ],
+        },
         series: [
             {
                 type: 'bar',
@@ -208,6 +206,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 xKey: 'name',
                 yKey: `heapUsed`,
                 yName: `Heap`,
+                yKeyAxis: 'ySecondary',
                 stackGroup: 'memory',
                 tooltip: {
                     enabled: true,
@@ -218,6 +217,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 xKey: 'name',
                 yKey: `canvasBytes`,
                 yName: `Canvas`,
+                yKeyAxis: 'ySecondary',
                 stackGroup: 'memory',
                 tooltip: {
                     enabled: true,

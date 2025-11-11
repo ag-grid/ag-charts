@@ -1,10 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance } from 'ag-charts-core';
+import { AbstractModuleInstance, PropertiesArray, Property } from 'ag-charts-core';
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 
-const { ChartAxisDirection, LayoutElement, PropertiesArray, Toolbar, Property } = _ModuleSupport;
-
+const { ChartAxisDirection, LayoutElement, Toolbar } = _ModuleSupport;
 const ZOOM_ID = 'ranges';
 
 export class Ranges extends AbstractModuleInstance {

@@ -46,7 +46,7 @@ Gallery examples are used by thousands of developers who:
 
 ## ⚠️ Required Fields
 
--   **`axes[].type`** - MUST always be specified for every axis configuration
+-   **`axes.*.type`** - MUST always be specified for every axis configuration (axes are now a dictionary/object: `axes: { x: { type: 'category' }, y: { type: 'number' } }`)
 -   All TypeScript types must be properly defined - NEVER use `any`
 -   Use specific chart types (`AgCartesianChartOptions`, `AgPolarChartOptions`, etc.) instead of generic `AgChartOptions` to avoid compiler errors
 
@@ -90,7 +90,7 @@ Gallery examples are used by thousands of developers who:
 2.  ✅ Example MUST generate without warnings
 3.  ✅ **Validation MUST pass** (`yarn nx run ag-charts-website-gallery_[example-name]_main.ts:typecheck`) - **DO NOT SKIP THIS**
 4.  ✅ Thumbnail generation MUST succeed (`yarn nx generate-thumbnails`)
-5.  ✅ All `axes[].type` fields MUST be specified
+5.  ✅ All `axes.*.type` fields MUST be specified (axes use dictionary format: `axes: { x: {...}, y: {...} }`)
 
 ### Failure Conditions (STOP IMMEDIATELY):
 

@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 
-const { ToolbarButtonProperties, Property } = _ModuleSupport;
-
+const { ToolbarButtonProperties } = _ModuleSupport;
 type RangesButtonValue =
     | number
     | [Date | number, Date | number]

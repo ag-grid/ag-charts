@@ -63,8 +63,8 @@ const options: AgCartesianChartOptions<DataType> = {
                 fill: index % 3 === 1 ? { type: 'pattern' } : undefined,
             }) satisfies AgHistogramSeriesOptions<DataType>
     ),
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             nice: false,
@@ -91,7 +91,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -109,7 +109,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     legend: {
         maxHeight: 240,
         maxWidth: 280,

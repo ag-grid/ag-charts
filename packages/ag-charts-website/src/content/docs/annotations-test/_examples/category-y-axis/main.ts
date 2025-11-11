@@ -32,8 +32,8 @@ const options: AgChartOptions = {
             cornerRadius: 3,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'category',
             paddingInner: 0.7,
@@ -48,7 +48,7 @@ const options: AgChartOptions = {
                 spacing: 10,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'number',
             line: {
@@ -58,7 +58,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

@@ -13,32 +13,30 @@ const options: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Spending',
             },
-            keys: ['spending'],
             interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             title: {
                 text: 'Tonnes',
             },
-            keys: ['tonnes'],
             interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             nice: false,
@@ -50,7 +48,7 @@ const options: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-    ],
+    },
     data: getData(),
     series: [
         {
@@ -62,6 +60,7 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             xKey: 'year',
             yKey: 'tonnes',
+            yKeyAxis: 'ySecondary',
         },
     ],
 };

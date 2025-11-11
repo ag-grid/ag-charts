@@ -23,27 +23,27 @@ const options: AgChartOptions<DataType> = {
             tooltip: { renderer: customTooltipRenderer },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
                 text: 'Expiry Date (Months)',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Option Price (£)',
             },
         },
-    ],
+    },
 };
 
 function customTooltipRenderer({ datum }: AgLineSeriesTooltipRendererParams<DataType>) {
     return {
-        heading: undefined,
+        heading: '',
         data: [
             { label: 'Expiry', value: `${datum.expiryLo} to ${datum.expiryHi} months` },
             { label: 'Price', value: `${datum.priceLo} to ${datum.priceHi} pounds` },

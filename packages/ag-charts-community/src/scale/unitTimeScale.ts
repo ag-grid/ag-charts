@@ -1,15 +1,18 @@
 import type { NormalizedDomain, ScaleAlignment, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
-import { Logger, findMaxIndex, findMinIndex, isPlainObject } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
 import {
+    Logger,
+    findMaxIndex,
+    findMinIndex,
     intervalFloor,
     intervalMilliseconds,
     intervalNext,
     intervalRange,
     intervalRangeCount,
     intervalRangeStartIndex,
-} from '../util/time';
+    isPlainObject,
+} from 'ag-charts-core';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import { visibleTickSliceIndices } from './scaleUtil';

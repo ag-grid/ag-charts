@@ -13,10 +13,10 @@ const options: AgChartOptions = {
             yKey: 'spending',
         },
     ],
-    axes: [
-        { type: 'number', position: 'left', title: { text: 'Year' } },
-        { type: 'number', position: 'bottom', title: { text: 'Spending' } },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left', title: { text: 'Year' } },
+        x: { type: 'number', position: 'bottom', title: { text: 'Spending' } },
+    },
     overlays: {
         noData: {
             text: 'No data to display',

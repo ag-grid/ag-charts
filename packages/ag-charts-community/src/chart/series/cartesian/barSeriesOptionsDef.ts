@@ -70,6 +70,8 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     type: required(constant('bar')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     direction: union('horizontal', 'vertical'),
@@ -81,6 +83,8 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     errorBar: errorBarOptionsDefs,
 };
 
+// @ts-expect-error undocumented option
+barSeriesOptionsDef.yFilterKey = undocumented(string);
 // @ts-expect-error undocumented option
 barSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option

@@ -1,0 +1,28 @@
+@use 'design-system' as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-2;
+    min-height: 800px;
+
+    :global(.ag-root-wrapper) {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    :global(.ag-group-child-count) {
+        opacity: 0.6666;
+        margin-left: 4px;
+    }
+}
+
+.moduleSnippet pre {
+    margin-top: -9px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+
+    #{$selector-darkmode} & {
+        border-color: color-mix(in srgb, var(--color-fg-primary) 15%, transparent);
+    }
+}

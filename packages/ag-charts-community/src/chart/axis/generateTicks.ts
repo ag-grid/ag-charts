@@ -5,8 +5,12 @@ import {
     type ScaleTickParams,
     cachedTextMeasurer,
     countFractionDigits,
+    estimateTickCount,
     findMinMax,
     findRangeExtent,
+    getTickTimeInterval,
+    intervalMilliseconds,
+    lowestGranularityForInterval,
     normalizeAngle360FromDegrees,
     rotatePoint,
 } from 'ag-charts-core';
@@ -19,9 +23,6 @@ import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
-import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
-import { intervalMilliseconds } from '../../util/time';
-import { lowestGranularityForInterval } from '../../util/timeFormatDefaults';
 import { expandLabelPadding } from '../label';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';

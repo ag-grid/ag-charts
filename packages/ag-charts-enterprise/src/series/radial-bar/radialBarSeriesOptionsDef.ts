@@ -9,6 +9,8 @@ export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions> = 
     type: required(constant('radial-bar')),
     angleKey: required(string),
     radiusKey: required(string),
+    angleKeyAxis: string,
+    radiusKeyAxis: string,
     angleName: string,
     radiusName: string,
     legendItemName: string,

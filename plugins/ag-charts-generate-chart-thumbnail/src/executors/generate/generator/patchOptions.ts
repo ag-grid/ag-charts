@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgChartTheme, AgChartThemeName } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { jsonWalk } from 'ag-charts-core';
 import { ExampleSubstitutions } from 'ag-charts-generate-example-files';
 
 export function patchOptions(
@@ -51,11 +51,12 @@ export function patchOptions(
         },
     } as AgChartTheme;
 
-    (options as any as AgCartesianChartOptions).axes?.forEach((axis) => {
+    for (const id of Object.keys((options as any as AgCartesianChartOptions).axes ?? {})) {
+        const axis = (options as any as AgCartesianChartOptions).axes[id];
         if (typeof axis.title !== 'undefined') {
             axis.title = { enabled: false };
         }
-    });
+    }
 
     if (api === 'createGauge') {
         delete options.title;
@@ -93,7 +94,7 @@ const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
 
 const maybeApplySubstitutions = (node: unknown) => {
     if (typeof node === 'object') {
-        _ModuleSupport.jsonWalk(node, (nodes) => {
+        jsonWalk(node, (nodes) => {
             for (const key of Object.keys(nodes)) {
                 const value = nodes[key];
                 if (typeof value === 'string') {

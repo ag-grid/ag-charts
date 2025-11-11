@@ -225,18 +225,18 @@ describe('RangeAreaSeries', () => {
     it(`should render a range-area chart with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                     reverse: true,
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -248,16 +248,16 @@ describe('RangeAreaSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -269,17 +269,17 @@ describe('RangeAreaSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -295,16 +295,16 @@ describe('RangeAreaSeries', () => {
                 ...datum,
                 month: invalidDataIndices.includes(index) ? `invalid` : datum.month,
             })),
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -328,17 +328,17 @@ describe('RangeAreaSeries', () => {
                 ...datum,
                 month: invalidDataIndices.includes(index) ? `invalid` : datum.month,
             })),
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -358,16 +358,16 @@ describe('RangeAreaSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -551,10 +551,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -609,10 +609,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -667,10 +667,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -734,10 +734,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -788,10 +788,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1194,10 +1194,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'time', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options);
 
@@ -1279,10 +1279,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options);
 

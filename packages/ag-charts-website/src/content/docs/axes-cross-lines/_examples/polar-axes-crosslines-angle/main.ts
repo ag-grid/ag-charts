@@ -15,8 +15,8 @@ const options: AgChartOptions = {
             radiusKey: 'value',
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             shape: 'circle',
             crossLines: [
@@ -29,7 +29,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             crossLines: [
@@ -44,7 +44,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

@@ -63,6 +63,8 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     type: required(constant('line')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     stacked: boolean,
@@ -72,6 +74,8 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     errorBar: errorBarOptionsDefs,
 };
 
+// @ts-expect-error undocumented option
+lineSeriesOptionsDef.yFilterKey = undocumented(string);
 // @ts-expect-error undocumented option
 lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option

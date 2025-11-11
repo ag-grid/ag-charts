@@ -1,9 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { DistantObject } from 'ag-charts-core';
+import { objectsEqual } from 'ag-charts-core';
 
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
 
-const { Path, ExtendedPath2D, BBox, SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } = _ModuleSupport;
+const { Path, ExtendedPath2D, BBox, SceneChangeDetection, SceneObjectChangeDetection } = _ModuleSupport;
 
 export enum GeoGeometryRenderMode {
     All = 0b11,
@@ -11,7 +13,7 @@ export enum GeoGeometryRenderMode {
     Lines = 0b10,
 }
 
-export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.DistantObject {
+export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
     @SceneObjectChangeDetection({ equals: objectsEqual })
     projectedGeometry: _ModuleSupport.Geometry | undefined = undefined;
 

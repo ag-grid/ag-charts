@@ -21,8 +21,8 @@ const commonOptions: AgChartOptions = {
         enabled: true,
         enableSelecting: true,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             interval: {
@@ -34,14 +34,14 @@ const commonOptions: AgChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 format: '$~s',
             },
         },
-    ],
+    },
 };
 
 const chartOptions1: AgChartOptions = {

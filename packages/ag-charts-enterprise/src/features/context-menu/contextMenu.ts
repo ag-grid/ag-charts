@@ -6,7 +6,16 @@ import type {
     AgContextMenuItemShowOn,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, Logger, clamp, createElement, toPlainText } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    Logger,
+    Property,
+    callWithContext,
+    clamp,
+    createElement,
+    getIconClassNames,
+    toPlainText,
+} from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
@@ -14,8 +23,7 @@ import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
 
-const { Property, ContextMenuRegistry, callWithContext, getIconClassNames } = _ModuleSupport;
-
+const { ContextMenuRegistry } = _ModuleSupport;
 type UnknownSeries = _ModuleSupport.ISeries<
     _ModuleSupport.DatumIndexType,
     unknown,

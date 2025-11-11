@@ -1,6 +1,5 @@
+import { BaseProperties, Property } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
-
-import { BaseProperties, Property } from '../util/properties';
 
 export class ChartHighlight extends BaseProperties {
     @Property

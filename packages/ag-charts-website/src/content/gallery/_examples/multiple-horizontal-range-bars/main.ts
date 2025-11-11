@@ -60,8 +60,8 @@ const options: AgCartesianChartOptions = {
             placement: ['right', 'left', 'top', 'bottom'],
         },
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'right',
             groupPaddingInner: 0.2,
@@ -86,7 +86,7 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'top',
             nice: false,
@@ -108,7 +108,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

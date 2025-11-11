@@ -1,11 +1,19 @@
 import {
+    type CallbackParamRules,
+    type LabelPlacement,
+    type MeasuredLabel,
+    type PlacedLabel,
     type Point,
     type RequireOptional,
+    type SizedPoint,
     cachedTextMeasurer,
     clamp,
+    dateToNumber,
     extent,
+    formatValue,
     isArray,
     measureTextSegments,
+    rescaleVisibleRange,
     toPlainText,
 } from 'ag-charts-core';
 import {
@@ -32,15 +40,9 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
-import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import type { CallbackParamRules } from '../../../util/callbackCache';
-import { formatValue } from '../../../util/format.util';
-import { dateToNumber } from '../../../util/timeFormatDefaults';
-import { rescaleVisibleRange } from '../../../util/visibleRange';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -51,7 +53,7 @@ import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import {
     type PickFocusInputs,
     type SeriesNodePickMatch,
@@ -888,31 +890,36 @@ export class BubbleSeries extends CartesianSeries<
                 label: xName,
                 fallbackLabel: xKey,
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                missing: isTooltipValueMissing(xValue),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
+                missing: isTooltipValueMissing(yValue),
             }
         );
 
         if (sizeKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'number',
-                value,
-                datum,
-                seriesId,
-                legendItemName,
-                key: sizeKey,
-                source: 'tooltip',
-                property: 'size',
-                boundSeries: this.getFormatterContext('size'),
-                domain,
-                fractionDigits: undefined,
-            });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
+            // Only add size row if value is not null/undefined
+            if (value != null) {
+                const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+                const content = formatManager.format(this.callWithContext.bind(this), {
+                    type: 'number',
+                    value,
+                    datum,
+                    seriesId,
+                    legendItemName,
+                    key: sizeKey,
+                    source: 'tooltip',
+                    property: 'size',
+                    boundSeries: this.getFormatterContext('size'),
+                    domain,
+                    fractionDigits: undefined,
+                });
+                data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
+            }
         }
 
         const activeStyle = this.getMarkerStyle(

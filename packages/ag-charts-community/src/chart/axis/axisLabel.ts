@@ -1,4 +1,4 @@
-import { isArray } from 'ag-charts-core';
+import { BaseProperties, Property, isArray, objectsEqual } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -15,8 +15,6 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-import { objectsEqual } from '../../util/object';
-import { BaseProperties, Property } from '../../util/properties';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 import { LabelBorder } from '../label';

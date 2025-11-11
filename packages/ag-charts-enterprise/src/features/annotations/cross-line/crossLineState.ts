@@ -1,13 +1,11 @@
-import { type Direction, _ModuleSupport } from 'ag-charts-community';
-import { Debug } from 'ag-charts-core';
+import { type Direction } from 'ag-charts-community';
+import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
 import { AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
-
-const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface CrossLineStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: CrossLineProperties) => void;

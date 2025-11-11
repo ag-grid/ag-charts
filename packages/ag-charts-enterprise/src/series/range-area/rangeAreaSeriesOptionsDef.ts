@@ -20,6 +20,8 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     xKey: required(string),
     yLowKey: required(string),
     yHighKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     yLowName: string,

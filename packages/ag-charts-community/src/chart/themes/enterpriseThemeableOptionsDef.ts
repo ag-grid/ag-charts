@@ -20,6 +20,7 @@ import {
     string,
     strokeOptionsDef,
     union,
+    without,
 } from 'ag-charts-core';
 import {
     type AgBoxPlotHighlightStyleOptions,
@@ -74,7 +75,6 @@ import {
     type AgWaterfallSeriesThemeableOptions,
 } from 'ag-charts-types';
 
-import { without } from '../../util/object';
 import { commonAxisLabelOptionsDefs } from '../axesOptionsDefs';
 import {
     autoSizedLabelOptionsDefs,

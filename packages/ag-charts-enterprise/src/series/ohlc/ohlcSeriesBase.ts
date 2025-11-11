@@ -8,7 +8,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
 
 import {
     CLOSE,
@@ -36,8 +36,6 @@ const {
     visibleRangeIndices,
     BandScale,
     processedDataIsAnimatable,
-    mergeDefaults,
-    simpleMemorize2,
     getItemStylesPerItemId,
 } = _ModuleSupport;
 
@@ -597,21 +595,25 @@ export abstract class OhlcSeriesBase<
                         label: openName,
                         fallbackLabel: openKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', openValue, datum, openKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(openValue),
                     },
                     {
                         label: highName,
                         fallbackLabel: highKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', highValue, datum, highKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(highValue),
                     },
                     {
                         label: lowName,
                         fallbackLabel: lowKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', lowValue, datum, lowKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(lowValue),
                     },
                     {
                         label: closeName,
                         fallbackLabel: closeKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', closeValue, datum, closeKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(closeValue),
                     },
                 ],
             },

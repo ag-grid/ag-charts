@@ -89,16 +89,16 @@ describe('RadialColumnSeries', () => {
     it(`should render radial column chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         chart = AgCharts.create(options);
@@ -148,16 +148,16 @@ describe('RadialColumnSeries', () => {
                     stacked: true,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -192,16 +192,16 @@ describe('RadialColumnSeries', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -245,16 +245,16 @@ describe('RadialColumnSeries', () => {
                     radiusKey: 'value',
                 },
             ],
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
         chart = AgCharts.create(options);
@@ -286,15 +286,15 @@ describe('RadialColumnSeries', () => {
                     stackGroup: 'stack',
                 },
             ],
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                 },
-                {
+                radius: {
                     type: 'radius-number',
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
         chart = AgCharts.create(options);

@@ -8,10 +8,10 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const { SeriesProperties, makeSeriesTooltip, Property, Label } = _ModuleSupport;
-
+const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> extends SeriesProperties<T> {
     @Property
     angleKey!: string;
@@ -24,6 +24,12 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
 
     @Property
     radiusName?: string;
+
+    @Property
+    angleKeyAxis: string = 'angle';
+
+    @Property
+    radiusKeyAxis: string = 'radius';
 
     @Property
     legendItemName?: string;

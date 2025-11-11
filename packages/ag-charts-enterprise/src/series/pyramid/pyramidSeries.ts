@@ -7,10 +7,12 @@ import {
 } from 'ag-charts-community';
 import {
     type Point,
+    StateMachine,
     type Writeable,
     cachedTextMeasurer,
     isArray,
     measureTextSegments,
+    mergeDefaults,
     toPlainText,
 } from 'ag-charts-core';
 
@@ -19,7 +21,6 @@ import { PyramidProperties } from './pyramidProperties';
 import { applyPyramidDatum, preparePyramidAnimationFunctions } from './pyramidUtil';
 
 const {
-    StateMachine,
     valueProperty,
     SeriesNodePickMode,
     createDatumId,
@@ -29,7 +30,6 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
-    mergeDefaults,
     fromToMotion,
     seriesLabelFadeInAnimation,
     getLabelStyles,
@@ -673,12 +673,22 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (xValue == null) return;
 
+        const label = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
+            xValue,
+            datum,
+            stageKey,
+            'x',
+            dataModel.getDomain(this, 'xValue', 'value', processedData),
+            this.properties.stageLabel,
+            { datum, value: xValue, stageKey, valueKey }
+        );
+
         const format = this.getItemStyle({ datumIndex, datum }, false);
         return this.formatTooltipWithContext(
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label: toPlainText(xValue), value: toPlainText(yValue) }],
+                data: [{ label: toPlainText(label), value: toPlainText(yValue) }],
             },
             {
                 seriesId,

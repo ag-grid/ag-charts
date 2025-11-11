@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, mergeDefaults } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
@@ -22,7 +22,6 @@ import type {
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
 import { SAFE_STROKE_FILL_OPERATION } from '../../chart/themes/util';
-import { mergeDefaults } from '../../util/object';
 import { annotationsTheme } from './priceVolumePresetTheme';
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
@@ -180,11 +179,10 @@ export function priceVolume(
         : null;
 
     const volumeAxis = volume
-        ? [
-              {
+        ? {
+              yVolume: {
                   type: 'number',
                   position: 'left',
-                  keys: [volumeKey],
                   label: { enabled: false },
                   crosshair: { enabled: false },
                   gridLine: { enabled: false },
@@ -197,8 +195,8 @@ export function priceVolume(
                       align: 'end',
                   },
               } satisfies AgNumberAxisOptions,
-          ]
-        : [];
+          }
+        : {};
 
     return {
         theme: {
@@ -297,11 +295,10 @@ export function priceVolume(
         animation: { enabled: false },
         legend: { enabled: false },
         series: [...volumeSeries, ...priceSeries],
-        axes: [
-            {
+        axes: {
+            y: {
                 type: 'number',
                 position: 'right',
-                keys: [openKey, closeKey, highKey, lowKey],
                 crosshair: {
                     enabled: true,
                     snap: false,
@@ -315,7 +312,7 @@ export function priceVolume(
                 },
             },
             ...volumeAxis,
-            {
+            x: {
                 type: 'ordinal-time',
                 position: 'bottom',
                 line: {
@@ -328,7 +325,7 @@ export function priceVolume(
                     enabled: true,
                 },
             },
-        ],
+        },
         tooltip: { enabled: false },
         data,
         formatter,
@@ -356,6 +353,7 @@ function createVolumeSeries(
             type: 'bar',
             xKey: 'date',
             yKey: volumeKey,
+            yKeyAxis: 'yVolume',
             tooltip: { enabled: false },
             itemStyler({ datum }: AgBarSeriesItemStylerParams<any>) {
                 const { up, down } = getTheme().palette;

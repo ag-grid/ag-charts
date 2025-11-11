@@ -34,17 +34,17 @@ const options: AgChartOptions = {
             grouped: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             groupPaddingInner: 0.5,
             paddingInner: 0.5,
         },
-        {
+        radius: {
             type: 'radius-number',
             innerRadiusRatio: 0.2,
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -22,32 +22,31 @@ const commonOptions: AgCartesianChartOptions = {
             xKey: 'date',
             yKey: 'product',
             yName: 'Product',
+            yKeyAxis: 'ySecondary',
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'services',
             yName: 'Services',
+            yKeyAxis: 'ySecondary',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             max: 100,
-            keys: ['domestic', 'international'],
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-
-            keys: ['product', 'services'],
         },
-    ],
+    },
     tooltip: { mode: 'single' },
 };
 

@@ -1,10 +1,14 @@
-import { normalizeAngle360 } from 'ag-charts-core';
+import {
+    bezier2DDistance,
+    bezier2DExtrema,
+    evaluateBezier,
+    lineDistanceSquared,
+    normalizeAngle360,
+} from 'ag-charts-core';
 
-import { lineDistanceSquared } from '../util/distance';
 import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';
 import { cubicSegmentIntersections, segmentIntersection } from './intersection';
-import { bezier2DDistance, bezier2DExtrema, evaluateBezier } from './util/bezier';
 
 enum Command {
     Move,

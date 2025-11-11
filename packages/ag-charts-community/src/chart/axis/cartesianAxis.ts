@@ -1,5 +1,14 @@
 import type { Scale } from 'ag-charts-core';
-import { arraysEqual, calcLineHeight, countLines, diffArrays, findMinMax, isPlainObject } from 'ag-charts-core';
+import {
+    Property,
+    StateMachine,
+    arraysEqual,
+    calcLineHeight,
+    countLines,
+    diffArrays,
+    findMinMax,
+    isPlainObject,
+} from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -15,9 +24,7 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
-import { Property } from '../../util/properties';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import { StateMachine } from '../../util/stateMachine';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartLayout } from '../chartAxis';

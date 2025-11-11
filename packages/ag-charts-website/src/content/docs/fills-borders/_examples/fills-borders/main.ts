@@ -150,8 +150,8 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -167,7 +167,7 @@ const options: AgChartOptions<DataType> = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -183,7 +183,7 @@ const options: AgChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

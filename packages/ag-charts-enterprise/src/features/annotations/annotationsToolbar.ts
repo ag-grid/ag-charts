@@ -1,5 +1,13 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    BaseProperties,
+    type BoxBounds,
+    CleanupRegistry,
+    EventEmitter,
+    PropertiesArray,
+    Property,
+} from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { type AnnotationType } from './annotationTypes';
@@ -11,9 +19,7 @@ import {
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
 
-const { ActionOnSet, LayoutElement, Menu, PropertiesArray, ToolbarButtonProperties, Property, ChartAxisDirection } =
-    _ModuleSupport;
-
+const { LayoutElement, Menu, ToolbarButtonProperties, ChartAxisDirection } = _ModuleSupport;
 interface EventMap {
     'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };
@@ -39,10 +45,10 @@ class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
     value!: AnnotationsToolbarButtonValue;
 }
 
-export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
+export class AnnotationsToolbar extends BaseProperties {
     @Property
     @ActionOnSet<AnnotationsToolbar>({
-        changeValue(enabled) {
+        changeValue(enabled: boolean) {
             this.toolbar?.setHidden(!enabled);
         },
     })

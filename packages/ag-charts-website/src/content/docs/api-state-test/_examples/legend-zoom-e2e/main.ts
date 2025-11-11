@@ -50,12 +50,12 @@ const options: AgCartesianChartOptions = {
             id: 'tate-st-ives',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -67,7 +67,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 let chart = AgCharts.create(options);

@@ -10,10 +10,13 @@ import {
 } from 'ag-charts-community';
 import {
     type Point,
+    StateMachine,
     cachedTextMeasurer,
     findRangeExtent,
     isArray,
     measureTextSegments,
+    mergeDefaults,
+    tickFormat,
     toRadians,
 } from 'ag-charts-core';
 
@@ -42,7 +45,6 @@ const {
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
-    StateMachine,
     createDatumId,
     BBox,
     Group,
@@ -56,8 +58,6 @@ const {
     generateTicks,
     NiceMode,
     easing,
-    tickFormat,
-    mergeDefaults,
     applyShapeStyle,
 } = _ModuleSupport;
 
@@ -178,7 +178,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         Selection.select(this.tickGroup, TransformableText);
 
     public datumUnion: DatumUnion<_ModuleSupport.Rect, LinearGaugeNodeDatum> = new DatumUnion();
-    private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
+    private readonly animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: LinearGaugeNodeDataContext;
 

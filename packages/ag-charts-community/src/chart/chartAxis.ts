@@ -1,4 +1,4 @@
-import type { AxisID, Scale } from 'ag-charts-core';
+import type { AxisID, Padding, Scale } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -19,7 +19,6 @@ import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
-import type { Padding } from '../util/padding';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
@@ -127,7 +126,6 @@ export interface ChartAxis {
     id: AxisID;
     interactionEnabled: boolean;
     interval: AxisInterval;
-    keys: string[];
     label: ChartAxisLabel;
     layoutConstraints: AxisLayoutConstraints;
     line: AxisLine;

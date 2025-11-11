@@ -45,20 +45,20 @@ const options: AgPolarChartOptions = {
             radiusName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             innerRadiusRatio: 0.4,
             label: {
                 enabled: false,
             },
         },
-        {
+        angle: {
             type: 'angle-category',
             groupPaddingInner: 0.3,
             paddingInner: 0.3,
         },
-    ],
+    },
     legend: {
         spacing: 40,
         item: {

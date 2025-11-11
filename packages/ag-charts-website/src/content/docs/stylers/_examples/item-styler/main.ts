@@ -79,12 +79,12 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             interval: { step: 0.2 },
@@ -105,7 +105,7 @@ const options: AgChartOptions<DataType> = {
                 text: 'Normalized Percentage Energy',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

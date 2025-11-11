@@ -29,17 +29,17 @@ const options: AgCartesianChartOptions = {
             marker: { size: 15, fill: 'red', shape: 'cross' },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: { style: [{ stroke: 'gray', lineDash: [10, 5] }] },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
 };
 
 let chart = AgCharts.create(options);

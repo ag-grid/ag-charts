@@ -1,8 +1,15 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
-import { deepClone, jsonApply, jsonDiff, jsonPropertyCompare, jsonWalk } from './json';
-import { mergeDefaults } from './object';
-import { BaseProperties, Property } from './properties';
+import {
+    BaseProperties,
+    Property,
+    deepClone,
+    jsonApply,
+    jsonDiff,
+    jsonPropertyCompare,
+    jsonWalk,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
 

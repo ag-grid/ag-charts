@@ -21,8 +21,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
             position: 'bottom',
             label: {
@@ -30,14 +30,14 @@ const options: AgChartOptions = {
             },
             nice: false,
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {
                 formatter: ({ value }) => value.toFixed(0),
             },
         },
-    ],
+    },
 };
 
 let chart: AgChartInstance;

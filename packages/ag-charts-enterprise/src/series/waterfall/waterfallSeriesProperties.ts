@@ -12,10 +12,9 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 
-const { AbstractBarSeriesProperties, BaseProperties, PropertiesArray, makeSeriesTooltip, Property, DropShadow, Label } =
-    _ModuleSupport;
-
+const { AbstractBarSeriesProperties, makeSeriesTooltip, DropShadow, Label } = _ModuleSupport;
 export class WaterfallSeriesTotal extends BaseProperties {
     @Property
     totalType!: 'subtotal' | 'total';

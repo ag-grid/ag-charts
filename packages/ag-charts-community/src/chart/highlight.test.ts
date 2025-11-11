@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -171,10 +171,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: categoryData,
-                axes: [
-                    { position: 'bottom', type: 'category' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     { type: 'bar', xKey: 'category', yKey: 'apples', label: { enabled: true } },
@@ -189,10 +189,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: cartesianSeriesData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -219,10 +219,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: cartesianSeriesData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -251,10 +251,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: scatterData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -283,10 +283,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: scatterData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -318,10 +318,10 @@ describe('Chart highlighting', () => {
             options: {
                 animation: { enabled: false },
                 data: histogramData,
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number' },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
                 legend: { enabled: false },
                 series: [
                     {
@@ -404,6 +404,471 @@ describe('Chart highlighting', () => {
                     await runHighlightSnapshot(testCase);
                 });
             }
+        });
+    });
+
+    describe('Delayed unhighlight', () => {
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('highlighting is immediate with no delay', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerId = chart.id;
+            const datum = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            expect(datum).toBeDefined();
+
+            // Highlight directly (should be immediate, no delay)
+            highlightManager.updateHighlight(callerId, datum);
+
+            // Verify highlight is active immediately (no timer advancement needed)
+            const highlightedNode = highlightManager.getActiveHighlight();
+            expect(highlightedNode).toBeDefined();
+            expect(highlightedNode).toBe(datum);
+        });
+
+        it('unhighlighting is delayed by 100ms', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerId = chart.id;
+            const datum = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            expect(datum).toBeDefined();
+
+            // Highlight a bar
+            highlightManager.updateHighlight(callerId, datum);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Unhighlight with delayed=true (schedules delayed unhighlight)
+            highlightManager.updateHighlight(callerId, undefined, true);
+
+            // Immediately check - should still be highlighted
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Advance timer by 50ms - still highlighted (delay is 100ms)
+            jest.advanceTimersByTime(50);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Advance timer by another 60ms (total 110ms) - now unhighlighted
+            jest.advanceTimersByTime(60);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+
+        it('highlighting new item cancels pending unhighlight for same caller', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers after chart creation
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerId = chart.id;
+
+            // Get a datum to highlight
+            const datum = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            expect(datum).toBeDefined();
+
+            // Highlight bar 1
+            highlightManager.updateHighlight(callerId, datum);
+            const firstHighlight = highlightManager.getActiveHighlight();
+            expect(firstHighlight).toBeDefined();
+
+            // Unhighlight with delayed=true (triggers pending unhighlight)
+            highlightManager.updateHighlight(callerId, undefined, true);
+
+            // Advance timer by 30ms (less than 100ms delay)
+            jest.advanceTimersByTime(30);
+
+            // Re-highlight before unhighlight completes - should cancel pending unhighlight
+            highlightManager.updateHighlight(callerId, datum);
+            const secondHighlight = highlightManager.getActiveHighlight();
+
+            // Should immediately switch to highlighted state
+            expect(secondHighlight).toBeDefined();
+            expect(secondHighlight).toBe(datum);
+
+            // Advance timer by remaining 70ms (total 100ms) - should still be highlighted
+            jest.advanceTimersByTime(70);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+            expect(highlightManager.getActiveHighlight()).toBe(datum);
+        });
+
+        it('multiple callers can have independent pending unhighlights', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers after chart creation
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerA = 'callerA';
+            const callerB = 'callerB';
+
+            // Get data to highlight
+            const datumA = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            const datumB = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+            expect(datumA).toBeDefined();
+            expect(datumB).toBeDefined();
+
+            // Caller A highlights
+            highlightManager.updateHighlight(callerA, datumA);
+            expect(highlightManager.getActiveHighlight()).toBe(datumA);
+
+            // Caller B highlights (should override A)
+            highlightManager.updateHighlight(callerB, datumB);
+            expect(highlightManager.getActiveHighlight()).toBe(datumB);
+
+            // Caller A unhighlights with delayed=true (schedules delayed unhighlight for A)
+            highlightManager.updateHighlight(callerA, undefined, true);
+            // B should still be active (A's entry is still in StateTracker until delay fires)
+            expect(highlightManager.getActiveHighlight()).toBe(datumB);
+
+            // Advance timer by 100ms - A's unhighlight fires, clearing A's entry
+            jest.advanceTimersByTime(100);
+            // B should still be active (only A's entry was cleared)
+            expect(highlightManager.getActiveHighlight()).toBe(datumB);
+
+            // Now caller B unhighlights with delayed=true (schedules delayed unhighlight for B)
+            highlightManager.updateHighlight(callerB, undefined, true);
+            // Should still show B (delay pending)
+            expect(highlightManager.getActiveHighlight()).toBe(datumB);
+
+            // Advance timer by 100ms - B's unhighlight fires
+            jest.advanceTimersByTime(100);
+            // Now should be unhighlighted
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+
+        it("highlighting from one caller does not cancel another caller's pending unhighlight", async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers after chart creation
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerA = 'callerA';
+            const callerB = 'callerB';
+
+            // Get data to highlight
+            const datumA = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            const datumB = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+            expect(datumA).toBeDefined();
+            expect(datumB).toBeDefined();
+
+            // Caller A highlights
+            highlightManager.updateHighlight(callerA, datumA);
+            expect(highlightManager.getActiveHighlight()).toBe(datumA);
+
+            // Caller A unhighlights with delayed=true (schedules delayed unhighlight)
+            highlightManager.updateHighlight(callerA, undefined, true);
+            expect(highlightManager.getActiveHighlight()).toBe(datumA); // Still active due to delay
+
+            // Advance timer by 30ms
+            jest.advanceTimersByTime(30);
+
+            // Caller B highlights (should NOT cancel A's pending unhighlight)
+            highlightManager.updateHighlight(callerB, datumB);
+            expect(highlightManager.getActiveHighlight()).toBe(datumB);
+
+            // Advance timer by 70ms (total 100ms) - A's unhighlight should fire
+            jest.advanceTimersByTime(70);
+            // B should still be active (A's entry cleared, but B remains)
+            expect(highlightManager.getActiveHighlight()).toBe(datumB);
+        });
+
+        it('unhighlighting is immediate when delayed=false', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerId = chart.id;
+            const datum = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            expect(datum).toBeDefined();
+
+            // Highlight a bar
+            highlightManager.updateHighlight(callerId, datum);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Unhighlight with delayed=false (immediate unhighlight)
+            highlightManager.updateHighlight(callerId, undefined, false);
+
+            // Should be immediately unhighlighted (no wait needed)
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+
+        it('immediate unhighlight cancels pending delayed unhighlight', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerId = chart.id;
+            const datum = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            expect(datum).toBeDefined();
+
+            // Highlight a bar
+            highlightManager.updateHighlight(callerId, datum);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Trigger delayed unhighlight
+            highlightManager.updateHighlight(callerId, undefined, true);
+
+            // Wait 50ms
+            jest.advanceTimersByTime(50);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Trigger immediate unhighlight before delay completes
+            highlightManager.updateHighlight(callerId, undefined, false);
+
+            // Should be immediately unhighlighted
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            // Wait for original delay period
+            jest.advanceTimersByTime(100);
+
+            // Should still be unhighlighted (no double-unhighlight)
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+
+        it('repeated delayed unhighlight calls do not reset countdown', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerId = chart.id;
+            const datum = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            expect(datum).toBeDefined();
+
+            // Highlight a bar
+            highlightManager.updateHighlight(callerId, datum);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // First delayed unhighlight call - starts countdown
+            highlightManager.updateHighlight(callerId, undefined, true);
+
+            // Wait 50ms (halfway through 100ms countdown)
+            jest.advanceTimersByTime(50);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Second delayed unhighlight call - should NOT reset countdown
+            highlightManager.updateHighlight(callerId, undefined, true);
+
+            // Wait another 30ms (total 80ms from first call, 30ms from second call)
+            jest.advanceTimersByTime(30);
+
+            // Third delayed unhighlight call - should still NOT reset countdown
+            highlightManager.updateHighlight(callerId, undefined, true);
+
+            // Wait another 25ms (total 105ms from first call, 55ms from second, 25ms from third)
+            jest.advanceTimersByTime(25);
+
+            // Should be unhighlighted now (100ms from FIRST call has elapsed)
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+
+        it('multiple rapid highlight/unhighlight cycles work correctly', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers after chart creation
+            jest.useFakeTimers();
+
+            const highlightManager = chart.ctx.highlightManager;
+            const callerId = chart.id;
+            const datum = defaultHighlightDatum(chart, {
+                name: 'test',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            expect(datum).toBeDefined();
+
+            // Rapidly hover and unhover multiple times
+            highlightManager.updateHighlight(callerId, datum);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            highlightManager.updateHighlight(callerId, undefined, true); // Unhighlight with delayed=true
+            jest.advanceTimersByTime(50);
+            highlightManager.updateHighlight(callerId, datum); // Re-hover before delay completes
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            highlightManager.updateHighlight(callerId, undefined, true); // Unhover again with delayed=true
+            jest.advanceTimersByTime(50);
+            highlightManager.updateHighlight(callerId, datum); // Re-hover again
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Final unhover with delayed=true and advance timer
+            highlightManager.updateHighlight(callerId, undefined, true);
+            jest.advanceTimersByTime(150);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
     });
 });

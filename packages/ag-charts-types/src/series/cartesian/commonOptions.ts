@@ -10,6 +10,36 @@ import type {
     Ratio,
 } from '../../chart/types';
 
+export interface AgBaseCartesianSeriesAxisOptions {
+    /**
+     * The key of the x-axis to which this series is bound.
+     *
+     * Default: `'x'`
+     */
+    xKeyAxis?: string;
+    /**
+     * The key of the y-axis to which this series is bound.
+     *
+     * Default: `'y'`
+     */
+    yKeyAxis?: string;
+}
+
+export interface AgBasePolarSeriesAxisOptions {
+    /**
+     * The key of the angle-axis to which this series is bound.
+     *
+     * Default: `'angle'`
+     */
+    angleKeyAxis?: string;
+    /**
+     * The key of the radius-axis to which this series is bound.
+     *
+     * Default: `'radius'`
+     */
+    radiusKeyAxis?: string;
+}
+
 /**
  * Represents configuration options for X and Y axes in a chart.
  */

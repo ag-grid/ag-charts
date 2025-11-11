@@ -1,4 +1,14 @@
-import { Debug, type Point, type Scale, findMaxIndex, findMinIndex, findMinMax, isFiniteNumber } from 'ag-charts-core';
+import {
+    Debug,
+    type Point,
+    Property,
+    type Scale,
+    StateMachine,
+    findMaxIndex,
+    findMinIndex,
+    findMinMax,
+    isFiniteNumber,
+} from 'ag-charts-core';
 import type { AgDrawingMode, AgSeriesSegmentation } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
@@ -17,8 +27,6 @@ import { Path } from '../../../scene/shape/path';
 import { type Segment, SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { Property } from '../../../util/properties';
-import { StateMachine } from '../../../util/stateMachine';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
@@ -127,6 +135,12 @@ export interface CartesianAnimationData<
 }
 
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
+    @Property
+    xKeyAxis: string = 'x';
+
+    @Property
+    yKeyAxis: string = 'y';
+
     @Property
     legendItemName?: string;
 
@@ -300,6 +314,11 @@ export abstract class CartesianSeries<
         );
     }
 
+    override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        if (direction === ChartAxisDirection.X) return this.properties.xKeyAxis;
+        if (direction === ChartAxisDirection.Y) return this.properties.yKeyAxis;
+    }
+
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
@@ -437,7 +456,7 @@ export abstract class CartesianSeries<
         return nodeDataRefresh;
     }
 
-    private updateSeriesSelections() {
+    protected updateSeriesSelections() {
         const { datumSelection, labelSelection, paths } = this;
         const contextData = this._contextNodeData;
         if (!contextData) return;

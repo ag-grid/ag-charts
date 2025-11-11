@@ -74,8 +74,8 @@ const options: AgCartesianChartOptions<NameData> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
@@ -106,7 +106,7 @@ const options: AgCartesianChartOptions<NameData> = {
                 formatter: ({ value }) => (value === 0 ? 'Rare' : value === 100 ? 'Popular' : `${value}`),
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -137,7 +137,7 @@ const options: AgCartesianChartOptions<NameData> = {
                 formatter: ({ value }) => (value === 0 ? 'Declining' : value === 10 ? 'Rising' : `${value}`),
             },
         },
-    ],
+    },
     legend: {
         position: {
             placement: 'right-bottom',

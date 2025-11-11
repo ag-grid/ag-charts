@@ -26,8 +26,8 @@ const options: AgChartOptions<DataType> = {
             formatter: ({ datum }) => `${datum.ranking}. ${datum.title}`,
         },
     })),
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
@@ -38,7 +38,7 @@ const options: AgChartOptions<DataType> = {
             },
             nice: false,
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -48,7 +48,7 @@ const options: AgChartOptions<DataType> = {
                 enabled: false,
             },
         },
-    ],
+    },
 
     legend: {
         position: 'top',

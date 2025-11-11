@@ -1,16 +1,25 @@
-import { Logger, type ModuleInstance, type Size, clampArray, entries, groupBy } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    Logger,
+    type ModuleInstance,
+    type Size,
+    clampArray,
+    entries,
+    fromPairs,
+    groupBy,
+} from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
-import { ActionOnSet } from '../util/proxy';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import { CartesianAxis } from './axis/cartesianAxis';
 import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
+import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
@@ -52,7 +61,10 @@ export class CartesianChart extends Chart {
             this.onAxisChange(newValue, oldValue);
         },
     })
-    override axes: CartesianAxis[] = [];
+    override axes = this.createChartAxes();
+    override createChartAxes() {
+        return new CartesianChartAxes();
+    }
 
     private lastAreaWidths?: AreaWidthMap;
 
@@ -146,9 +158,9 @@ export class CartesianChart extends Chart {
         this.lastLayoutHeight = ctx.height;
 
         const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
-        const seriesPaddedRect = seriesRect.clone().grow(seriesArea.getPadding());
+        const seriesPaddedRect = seriesRect.clone().grow(seriesArea?.getPadding() ?? {});
 
-        const clipRect = seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
+        const clipRect = seriesArea?.clip || clipSeries ? seriesPaddedRect : undefined;
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 
@@ -167,7 +179,7 @@ export class CartesianChart extends Chart {
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            axes: this.axes.map((axis) => axis.getLayoutState()),
+            axes: fromPairs(this.axes.map((axis) => [axis.id, axis.getLayoutState()])),
             series: {
                 visible,
                 rect: seriesRect,
@@ -230,7 +242,7 @@ export class CartesianChart extends Chart {
 
         for (const dir of directions) {
             const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
-            const padding = seriesArea.getPadding()[dir];
+            const padding = seriesArea?.getPadding()[dir] ?? 0;
             const axis = this.axes.findLast((a) => a.position === dir);
 
             if (axis) {
@@ -346,11 +358,9 @@ export class CartesianChart extends Chart {
         crossAtAxes: CartesianAxis[]
     ): Map<string, number> {
         const crossPositions = new Map<string, number>();
-        const primaryXAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
-        const primaryYAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
 
         for (const axis of crossAtAxes) {
-            const { crossPosition, visible } = this.calculateAxisCrossPosition(axis, primaryXAxis, primaryYAxis);
+            const { crossPosition, visible } = this.calculateAxisCrossPosition(axis);
 
             axis.setAxisVisible(visible);
 
@@ -364,14 +374,8 @@ export class CartesianChart extends Chart {
         return crossPositions;
     }
 
-    private calculateAxisCrossPosition(
-        axis: CartesianAxis,
-        primaryXAxis: CartesianAxis | undefined,
-        primaryYAxis: CartesianAxis | undefined
-    ): { crossPosition: number | undefined; visible: boolean } {
-        const perpendicularAxis = axis.direction === ChartAxisDirection.X ? primaryYAxis : primaryXAxis;
-        if (!perpendicularAxis) return { crossPosition: undefined, visible: true };
-
+    private calculateAxisCrossPosition(axis: CartesianAxis): { crossPosition: number | undefined; visible: boolean } {
+        const perpendicularAxis = this.axes.perpendicular(axis);
         const {
             scale: { domain, bandwidth },
             range,

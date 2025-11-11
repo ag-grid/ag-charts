@@ -1,4 +1,4 @@
-import { type Point, Vec4, clamp, createId } from 'ag-charts-core';
+import { type Point, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type {
@@ -14,7 +14,6 @@ import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
-import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import type { Widget } from '../../widget/widget';
@@ -402,7 +401,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.chart.ctx.domManager.updateCursor(this.id);
-        if (this.hoverDevice !== 'keyboard') this.clearAll();
+        if (this.hoverDevice !== 'keyboard') this.clearAll(true); // true = delayed
     }
 
     private onWheel(_event: WheelWidgetEvent): void {
@@ -571,7 +570,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'pointer';
         if (!this.maybeEnterInteractiveTooltip(event)) {
-            this.clearAll();
+            this.clearAll(true); // true = delayed
         }
         this.focusIndicator?.overrideFocusVisible(undefined);
     }
@@ -883,20 +882,20 @@ export class SeriesAreaManager extends BaseManager {
         });
     }
 
-    private clearHighlight() {
+    private clearHighlight(delayed: boolean = false) {
         this.highlight.pendingHoverEvent = undefined;
         this.highlight.appliedHoverEvent = undefined;
-        this.chart.ctx.highlightManager.updateHighlight(this.id);
+        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, delayed);
     }
 
-    private clearTooltip() {
-        this.chart.ctx.tooltipManager.removeTooltip(this.id);
+    private clearTooltip(delayed: boolean = false) {
+        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined, delayed);
         this.tooltip.lastHover = undefined;
     }
 
-    private clearAll() {
-        this.clearHighlight();
-        this.clearTooltip();
+    private clearAll(delayed: boolean = false) {
+        this.clearHighlight(delayed);
+        this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
     }
 
@@ -937,7 +936,7 @@ export class SeriesAreaManager extends BaseManager {
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
         const pick = this.pickNodes({ x: currentX, y: currentY }, intent);
         if (!pick || pick.matches.length === 0) {
-            this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
+            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
             return;
         }
 
@@ -977,7 +976,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'tooltip');
         if (!pick || pick.matches.length === 0) {
-            if (this.hoverDevice == 'pointer') this.clearTooltip();
+            if (this.hoverDevice == 'pointer') this.clearTooltip(true); // true = delayed
             return;
         }
 
@@ -1012,7 +1011,7 @@ export class SeriesAreaManager extends BaseManager {
             );
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent, pagination);
         } else {
-            this.chart.ctx.tooltipManager.removeTooltip(this.id);
+            this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         }
     }
 
@@ -1020,7 +1019,7 @@ export class SeriesAreaManager extends BaseManager {
         return this.chart.tooltip.maybeEnterInteractiveTooltip(event, () => {
             this.tooltip.lastHover = undefined;
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
-            this.chart.ctx.highlightManager.updateHighlight(this.id);
+            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
         });
     }
 

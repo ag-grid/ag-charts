@@ -36,8 +36,8 @@ const options: AgChartOptions = {
             yName: 'Highway MPG',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
@@ -45,14 +45,14 @@ const options: AgChartOptions = {
                 text: 'Engine Size (Cubic inches)',
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
                 text: 'Highway MPG',
             },
         },
-    ],
+    },
     legend: {
         enabled: false,
     },

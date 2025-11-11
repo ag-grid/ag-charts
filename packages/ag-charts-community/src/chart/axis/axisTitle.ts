@@ -1,3 +1,4 @@
+import { BaseProperties, Property } from 'ag-charts-core';
 import type {
     AgAxisCaptionFormatterParams,
     AgAxisCaptionOptions,
@@ -7,7 +8,6 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-import { BaseProperties, Property } from '../../util/properties';
 import { Caption } from '../caption';
 import { FONT_SIZE } from '../themes/constants';
 

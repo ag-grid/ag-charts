@@ -3,6 +3,9 @@ import {
     type InternalAgColorType,
     type Point,
     type RequireOptional,
+    formatValue,
+    isGradientFill,
+    mergeDefaults,
     normalizeAngle360,
     toPlainText,
 } from 'ag-charts-core';
@@ -22,8 +25,6 @@ const {
     TransformableText,
     BBox,
     applyShapeStyle,
-    mergeDefaults,
-    formatValue,
     getLabelStyles,
 } = _ModuleSupport;
 
@@ -468,7 +469,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const fill = style.fill;
             const strokeWidth = style.strokeWidth;
 
-            const fillBBox = _ModuleSupport.isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
+            const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             applyShapeStyle(sector, style, fillBBox);
             sector.centerX = 0;
             sector.centerY = 0;
@@ -644,7 +645,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             lineDashOffset: 0,
         };
 
-        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+        if (isGradientFill(markerStyle.fill)) {
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
         }
 

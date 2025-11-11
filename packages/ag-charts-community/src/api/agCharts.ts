@@ -1,4 +1,13 @@
-import { Debug, type DeepPartial, type LicenseManager, ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
+import {
+    Debug,
+    type DeepPartial,
+    type LicenseManager,
+    ModuleRegistry,
+    deepClone,
+    deepFreeze,
+    enterpriseRegistry,
+    jsonWalk,
+} from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -13,8 +22,6 @@ import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { detectChartType } from '../chart/mapping/types';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
-import { deepClone, jsonWalk } from '../util/json';
-import { deepFreeze } from '../util/object';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';

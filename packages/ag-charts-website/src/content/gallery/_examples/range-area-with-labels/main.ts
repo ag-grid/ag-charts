@@ -109,8 +109,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -124,7 +124,7 @@ const options: AgCartesianChartOptions = {
             max: 160,
             interval: { step: 20 },
         },
-        {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             gridLine: {
@@ -132,7 +132,7 @@ const options: AgCartesianChartOptions = {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
-    ],
+    },
     tooltip: {
         position: {
             placement: ['right', 'left', 'top', 'bottom'],

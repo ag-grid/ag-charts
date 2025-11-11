@@ -1,5 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { isObject } from 'ag-charts-core';
+import { BaseProperties, Property, isObject } from 'ag-charts-core';
 
 import {
     Background,
@@ -19,8 +19,6 @@ import {
 } from '../annotationTypes';
 import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
-
-const { BaseProperties, Property } = _ModuleSupport;
 
 class MeasurerStatisticsDivider extends Stroke(BaseProperties) {}
 

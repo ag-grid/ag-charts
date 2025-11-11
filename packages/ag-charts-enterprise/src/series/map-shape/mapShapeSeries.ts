@@ -6,6 +6,7 @@ import {
     cachedTextMeasurer,
     isArray,
     measureTextSegments,
+    mergeDefaults,
     toPlainText,
 } from 'ag-charts-core';
 import type {
@@ -41,7 +42,6 @@ const {
     PointerEvents,
     applyShapeStyle,
     getLabelStyles,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
@@ -531,16 +531,17 @@ export class MapShapeSeries
         const { properties, colorScale } = this;
         const { colorRange, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+        const baseStyle = properties.getStyle();
 
-        if (!isHighlight && colorValue != null) {
-            baseStyle.fill = this.isColorScaleValid()
-                ? colorScale.convert(colorValue)
-                : colorRange?.[0] ?? baseStyle.fill;
+        if (colorValue != null) {
+            const fillOverride = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange?.[0];
+            if (fillOverride != null) {
+                baseStyle.fill = fillOverride;
+            }
         }
 
-        let style = baseStyle;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        let style = mergeDefaults(highlightStyle, baseStyle);
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(

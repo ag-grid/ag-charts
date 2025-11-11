@@ -10,6 +10,8 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { SizedPoint } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 
 export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
@@ -20,14 +22,13 @@ export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum 
         textAlign: CanvasTextAlign;
         textBaseline: CanvasTextBaseline;
     };
-    readonly point: Readonly<_ModuleSupport.SizedPoint>;
+    readonly point: Readonly<SizedPoint>;
     readonly angleValue: any;
     readonly radiusValue: any;
     style?: AgSeriesMarkerStyle;
 }
 
-const { Label, SeriesMarker, SeriesProperties, makeSeriesTooltip, Property } = _ModuleSupport;
-
+const { Label, SeriesMarker, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 export class RadarSeriesProperties<
     TStyle extends AgRadarSeriesStyle,
     TOpts extends AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>,
@@ -43,6 +44,12 @@ export class RadarSeriesProperties<
 
     @Property
     radiusName?: string;
+
+    @Property
+    angleKeyAxis: string = 'angle';
+
+    @Property
+    radiusKeyAxis: string = 'radius';
 
     @Property
     legendItemName?: string;

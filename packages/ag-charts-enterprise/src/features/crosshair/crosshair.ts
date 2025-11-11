@@ -1,12 +1,10 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, createId, toPlainText } from 'ag-charts-core';
+import { AbstractModuleInstance, Property, createId, toPlainText } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
-const { Group, TranslatableGroup, Line, BBox, InteractionState, Property, ZIndexMap, ChartAxisDirection } =
-    _ModuleSupport;
-
+const { Group, TranslatableGroup, Line, BBox, InteractionState, ZIndexMap, ChartAxisDirection } = _ModuleSupport;
 type HoverLikeEvent =
     | _Widget.DragWidgetEvent
     | _Widget.MouseWidgetEvent<'mousemove'>
@@ -106,7 +104,7 @@ export class Crosshair extends AbstractModuleInstance {
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
-        const axisLayout = axes.find((a) => a.id === axisId);
+        const axisLayout = axes[axisId];
 
         if (!axisLayout) return;
 

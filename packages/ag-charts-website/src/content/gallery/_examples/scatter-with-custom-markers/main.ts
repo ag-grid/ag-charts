@@ -49,17 +49,17 @@ const options: AgCartesianChartOptions = {
             xName: 'Date',
             yKey: 'npmDownloads',
             yName: 'NPM Downloads',
+            yKeyAxis: 'ySecondary',
             title: 'NPM Downloads',
             shape: npmLogo,
             size: 20,
             fillOpacity: 1,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'right',
             type: 'number',
-            keys: ['numberOfVisits'],
             gridLine: {
                 style: [
                     {
@@ -78,10 +78,9 @@ const options: AgCartesianChartOptions = {
                 text: 'Website Visits',
             },
         },
-        {
+        ySecondary: {
             position: 'left',
             type: 'number',
-            keys: ['npmDownloads'],
             title: {
                 text: 'NPM Downloads',
             },
@@ -100,7 +99,7 @@ const options: AgCartesianChartOptions = {
                 spacing: 15,
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'unit-time',
             gridLine: {
@@ -122,7 +121,7 @@ const options: AgCartesianChartOptions = {
                 size: 30,
             },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
         spacing: 20,

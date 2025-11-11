@@ -61,19 +61,19 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             title: {
                 text: 'Electricity Generation (TWh)',
             },
         },
-        {
+        x: {
             position: 'bottom',
             type: 'unit-time',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

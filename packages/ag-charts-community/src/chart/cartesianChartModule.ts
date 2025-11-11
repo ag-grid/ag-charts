@@ -1,8 +1,7 @@
-import { type ChartModuleDefinition, ValidationError, isObject, validate } from 'ag-charts-core';
+import { type ChartModuleDefinition, ValidationError, isObject, validate, without } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
-import { without } from '../util/object';
 import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
@@ -24,7 +23,7 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
     validate(options: any, optionsDefs, path) {
         const additionalErrors: ValidationError[] = [];
         if (options?.series?.[0]?.type === 'histogram') {
-            if (options?.axes?.some(validHistogramAxis)) {
+            if (Object.values(options?.axes ?? {}).some(validHistogramAxis)) {
                 additionalErrors.push(
                     new ValidationError(
                         'invalid',

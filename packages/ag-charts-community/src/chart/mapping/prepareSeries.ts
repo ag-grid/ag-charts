@@ -1,6 +1,6 @@
+import { jsonDiff } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
-import { jsonDiff } from '../../util/json';
 import type { ISeries } from '../series/seriesTypes';
 
 const MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];

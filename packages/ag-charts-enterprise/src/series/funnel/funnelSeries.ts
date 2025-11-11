@@ -5,6 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
+import { mergeDefaults } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -24,7 +25,6 @@ const {
     Rect,
     motion,
     applyShapeStyle,
-    mergeDefaults,
 } = _ModuleSupport;
 
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {

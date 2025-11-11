@@ -2,9 +2,11 @@ import {
     Logger,
     buildDateFormatter,
     createNumberFormatter,
+    formatValue,
     isArray,
     isPlainObject,
     parseNumberFormat,
+    simpleMemorize2,
 } from 'ag-charts-core';
 import {
     type AgTimeIntervalUnit,
@@ -15,9 +17,7 @@ import {
     type NumberFormatterParams,
 } from 'ag-charts-types';
 
-import { formatValue } from '../../util/format.util';
 import { Listeners } from '../../util/listeners';
-import { simpleMemorize2 } from '../../util/memo';
 import { defaultTimeFormats, deriveTimeSpecifier } from '../axis/timeFormatUtil';
 
 export type GlobalContextlessFormatterParams =

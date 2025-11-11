@@ -61,10 +61,10 @@ const options: AgCartesianChartOptions = {
             yName: 'Liabilities',
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom', title: { text: 'Year' } },
-        { type: 'number', position: 'left', title: { text: '£ (Millions)' } },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom', title: { text: 'Year' } },
+        y: { type: 'number', position: 'left', title: { text: '£ (Millions)' } },
+    },
     tooltip: {
         enabled: false,
     },

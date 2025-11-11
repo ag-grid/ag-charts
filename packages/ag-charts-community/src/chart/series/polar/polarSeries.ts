@@ -1,3 +1,5 @@
+import { StateMachine } from 'ag-charts-core';
+
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
@@ -8,7 +10,6 @@ import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import {
@@ -38,8 +39,10 @@ export type PolarAnimationData = { duration?: number };
 type PolarSeriesProperties = {
     angleKey: string;
     angleName?: string;
+    angleKeyAxis?: string;
     radiusKey?: string;
     radiusName?: string;
+    radiusKeyAxis?: string;
 };
 
 export const DEFAULT_POLAR_DIRECTION_KEYS = {
@@ -69,7 +72,7 @@ export abstract class PolarSeries<
 > extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
     override directions = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
 
-    protected itemGroup = this.contentGroup.appendChild(new Group());
+    protected itemGroup = this.contentGroup.appendChild(new Group({ name: 'items' }));
     public getItemNodes(): TNode[] {
         return [...this.itemGroup.children()] as TNode[];
     }
@@ -187,6 +190,11 @@ export abstract class PolarSeries<
             this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
             this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
         );
+    }
+
+    override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        if (direction === ChartAxisDirection.Angle) return this.properties.angleKeyAxis;
+        if (direction === ChartAxisDirection.Radius) return this.properties.radiusKeyAxis;
     }
 
     override setZIndex(zIndex: number) {

@@ -1,4 +1,11 @@
-import { CleanupRegistry, EventEmitter, ModuleRegistry, ModuleType, type StrictHTMLElement } from 'ag-charts-core';
+import {
+    CallbackCache,
+    CleanupRegistry,
+    EventEmitter,
+    ModuleRegistry,
+    ModuleType,
+    type StrictHTMLElement,
+} from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
@@ -10,7 +17,6 @@ import { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
-import { CallbackCache } from '../util/callbackCache';
 import type { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
 import { AnnotationManager } from './annotation/annotationManager';

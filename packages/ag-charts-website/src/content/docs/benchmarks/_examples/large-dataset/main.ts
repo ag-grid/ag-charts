@@ -29,10 +29,10 @@ const options: AgCartesianChartOptions = {
             bar: highlightTheme,
         },
     },
-    axes: [
-        { type: 'number', position: 'left' },
-        { type: 'time', position: 'bottom' },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left' },
+        x: { type: 'time', position: 'bottom' },
+    },
     data: getLargeScaleData(size),
     series: [
         {

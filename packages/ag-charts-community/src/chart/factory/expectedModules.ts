@@ -2,12 +2,11 @@ import type { ModuleType } from 'ag-charts-core';
 
 export type ChartType = 'cartesian' | 'polar' | 'topology' | 'standalone';
 
-interface ModulePlaceholder {
+export interface ModulePlaceholder {
     type: `${ModuleType}` | ModuleType;
     name: string;
     chartType?: ChartType;
     enterprise?: boolean;
-    removable?: false | 'standalone';
 }
 
 export const ExpectedModules: ModulePlaceholder[] = [
@@ -69,7 +68,10 @@ export const ExpectedModules: ModulePlaceholder[] = [
     // Plugins
     { type: 'plugin', name: 'animation', enterprise: true },
     { type: 'plugin', name: 'annotations', chartType: 'cartesian', enterprise: true },
-    { type: 'plugin', name: 'background', enterprise: true, removable: false },
+    { type: 'plugin', name: 'background' },
+    { type: 'plugin', name: 'legend' },
+    { type: 'plugin', name: 'seriesArea' },
+    { type: 'plugin', name: 'locale' },
     { type: 'plugin', name: 'foreground', enterprise: true },
     { type: 'plugin', name: 'chartToolbar', chartType: 'cartesian', enterprise: true },
     { type: 'plugin', name: 'contextMenu', enterprise: true },
@@ -88,6 +90,7 @@ export const ExpectedModules: ModulePlaceholder[] = [
 
     { type: 'preset', name: 'gauge-preset', chartType: 'standalone', enterprise: true },
     { type: 'preset', name: 'price-volume', chartType: 'cartesian', enterprise: true },
+    { type: 'preset', name: 'sparkline' },
 ];
 
 const SeriesExpectedChartType = new Map<string, ChartType>(

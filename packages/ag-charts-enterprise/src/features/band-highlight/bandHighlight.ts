@@ -1,11 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type InternalAgColorType, createId } from 'ag-charts-core';
+import { AbstractModuleInstance, type InternalAgColorType, Property, createId } from 'ag-charts-core';
 
 const {
     Range,
     TranslatableGroup,
     BBox,
-    Property,
     ZIndexMap,
     ChartAxisDirection,
     FillGradientDefaults,
@@ -153,8 +152,7 @@ export class BandHighlight extends AbstractModuleInstance {
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
-        const axisLayout = axes.find((a) => a.id === axisId);
-
+        const axisLayout = axes[axisId];
         if (!axisLayout) return;
 
         this.axisLayout = axisLayout;

@@ -41,8 +41,8 @@ const options: AgCartesianChartOptions<DataType> = {
             }),
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             title: {
@@ -63,7 +63,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -85,7 +85,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     tooltip: {
         position: {
             anchorTo: 'pointer',

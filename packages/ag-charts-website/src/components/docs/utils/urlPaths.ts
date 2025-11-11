@@ -15,8 +15,8 @@ export function getFrameworkPath(framework: Framework) {
     return framework;
 }
 
-export function getFrameworkFromPath(path: string) {
-    return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX];
+export function getFrameworkFromPath(path: string): Framework {
+    return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX] as Framework;
 }
 
 export function getPageNameFromPath(path: string): string {

@@ -1,6 +1,5 @@
-import { createElement, getWindow } from 'ag-charts-core';
+import { ObserveChanges, createElement, getWindow } from 'ag-charts-core';
 
-import { ObserveChanges } from '../../util/proxy';
 import { clearContext, debugContext } from './canvasUtil';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { type AnyFn, getDocument } from 'ag-charts-core';
+import { type AnyFn, type PlainObject, entries, fromPairs, getDocument } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -235,18 +235,24 @@ export async function waitForChartStability<
         }
         await chart.waitForUpdate(timeoutMs, true);
     } else if (animationAdvanceMs > 0) {
-        throw new Error(`animationAdvancedMs is non-zero, but no animation mocks are present.`);
+        // No animation mocks present - treat as real-time delay
+        await new Promise((resolve) => setTimeout(resolve, animationAdvanceMs));
+        await chart.waitForUpdate(timeoutMs, true);
     }
 }
 
-export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
-    const { axisTypes = ['category', 'number'], seriesTypes = ['bar', 'bar'] } = params ?? {};
+export function cartesianChartAssertions(params?: {
+    type?: string;
+    axisTypes?: Record<string, string>;
+    seriesTypes?: string[];
+}) {
+    const { axisTypes = { x: 'category', y: 'number' }, seriesTypes = ['bar', 'bar'] } = params ?? {};
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('CartesianChart');
-        expect(chart.axes).toHaveLength(axisTypes.length);
-        expect(chart.axes.map((a) => a.type)).toEqual(axisTypes);
+        expect(chart.axes).toHaveLength(Object.keys(axisTypes).length);
+        expect(fromPairs(chart.axes.map((a) => [a.id, a.type]))).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
 }
@@ -624,6 +630,10 @@ export async function createChart(options: AgChartOptions<any, any>) {
     return chart;
 }
 
+// Minimum delays for delayed removal features (100ms delay + 50ms buffer)
+export const MIN_UNHIGHLIGHT_DELAY = 150;
+export const MIN_TOOLTIP_HIDE_DELAY = 150;
+
 let activeAnimateCb: ((totalDuration: number, ratio: number) => void) | undefined;
 export function spyOnAnimationManager() {
     const mocks: jest.SpiedFunction<AnyFn>[] = [];
@@ -695,7 +705,7 @@ export function spyOnAnimationManager() {
 export function reverseAxes<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, reverse: boolean): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, reverse })),
+        axes: opts.axes ? mapValues(opts.axes, (axis) => ({ ...axis, reverse })) : undefined,
     };
 }
 
@@ -725,6 +735,27 @@ export function computeLegendBBox(chart: Chart): BBox {
 export function getCursor(chart: Chart | AgChartProxy): string {
     const ctx = deproxy(chart).getModuleContext();
     return ctx.domManager.getCursor();
+}
+
+export function mapValues<T extends PlainObject, R>(
+    object: T,
+    mapper: (value: T[keyof T], key: keyof T, object: T) => R
+) {
+    const result = {} as Record<keyof T, R>;
+    for (const [key, value] of entries(object)) {
+        result[key] = mapper(value, key, object);
+    }
+    return result;
+}
+
+export function filterBy<T extends PlainObject, R>(object: T, fn: (value: T[keyof T], key: keyof T, object: T) => R) {
+    const clone = { ...object };
+    for (const key of Object.keys(object)) {
+        if (fn(object[key], key, object)) {
+            delete clone[key as keyof object];
+        }
+    }
+    return clone;
 }
 
 export { toMatchImage } from 'ag-charts-test';

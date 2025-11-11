@@ -20,6 +20,7 @@ import {
     string,
     strokeOptionsDef,
     undocumented,
+    without,
 } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
@@ -29,7 +30,6 @@ import type {
     AgPieSeriesThemeableOptions,
 } from 'ag-charts-types';
 
-import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -118,6 +118,8 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     type: required(constant('pie')),
     angleKey: required(string),
     radiusKey: string,
+    angleKeyAxis: string,
+    radiusKeyAxis: string,
     calloutLabelKey: string,
     sectorLabelKey: string,
     legendItemKey: string,
@@ -128,6 +130,8 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     highlight,
 };
 
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.angleFilterKey = undocumented(string);
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option

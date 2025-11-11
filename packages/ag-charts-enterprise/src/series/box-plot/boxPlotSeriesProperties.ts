@@ -8,9 +8,9 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { BaseProperties, Property, mergeDefaults } from 'ag-charts-core';
 
-const { BaseProperties, AbstractBarSeriesProperties, makeSeriesTooltip, Property, mergeDefaults } = _ModuleSupport;
-
+const { AbstractBarSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 class BoxPlotSeriesCap extends BaseProperties {
     @Property
     lengthRatio = 0.5;

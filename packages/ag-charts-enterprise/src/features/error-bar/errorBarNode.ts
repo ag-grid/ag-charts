@@ -1,10 +1,16 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { PickNodeDatumResult } from 'ag-charts-core';
+import {
+    type NearestResult,
+    mergeDefaults,
+    nearestSquared,
+    nearestSquaredInContainer,
+    partialAssign,
+} from 'ag-charts-core';
 import type { HighlightState } from 'ag-charts-types';
 
-const { nearestSquared, nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
-type NearestResult<T> = _ModuleSupport.NearestResult<T>;
+const { BBox } = _ModuleSupport;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;

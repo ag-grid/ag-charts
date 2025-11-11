@@ -26,8 +26,8 @@ const options: AgChartOptions = {
         size: 0,
         maxSize: 40,
     })),
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
             label: {
@@ -40,14 +40,14 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'category',
             line: {
                 enabled: false,
             },
         },
-    ],
+    },
     seriesArea: {
         padding: {
             top: 20,

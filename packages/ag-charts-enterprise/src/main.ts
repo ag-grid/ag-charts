@@ -11,7 +11,6 @@ export {
     AgChartsCommunityModule,
     ModuleRegistry,
     VERSION,
-    setupCommunityModules,
     time,
     _ModuleSupport,
     _Scene,

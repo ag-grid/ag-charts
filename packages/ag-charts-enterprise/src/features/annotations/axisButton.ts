@@ -1,10 +1,9 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, type Point } from 'ag-charts-core';
+import { AbstractModuleInstance, type Point, Property, getIconClassNames } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
-const { InteractionState, Property, ChartAxisDirection, getIconClassNames } = _ModuleSupport;
-
+const { InteractionState, ChartAxisDirection } = _ModuleSupport;
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
 export class AxisButton extends AbstractModuleInstance {

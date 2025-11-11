@@ -11,7 +11,6 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
-import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
@@ -248,12 +247,12 @@ const COMPLEX_THEME_SCENARIO: AgCartesianChartOptions = {
         { type: 'area', xKey: 'abc', yKey: 'test3' },
         { type: 'area', xKey: 'abc', yKey: 'test4', label: {} },
     ],
-    axes: [
-        { type: 'time', position: 'bottom' },
-        { type: 'time', position: 'bottom', title: { text: 'Time' } },
-        { type: 'number', position: 'left', title: { text: 'Velocity' } },
-        { type: 'number', position: 'right', title: { text: 'G', enabled: true } },
-    ],
+    axes: {
+        x: { type: 'time', position: 'bottom' },
+        xSecondary: { type: 'time', position: 'bottom', title: { text: 'Time' } },
+        y: { type: 'number', position: 'left', title: { text: 'Velocity' } },
+        ySecondary: { type: 'number', position: 'right', title: { text: 'G', enabled: true } },
+    },
     theme: {
         baseTheme: {
             baseTheme: 'ag-default',
@@ -291,8 +290,8 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
         fontSize: 30,
         spacing: 150,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'time',
             interval: {
@@ -324,7 +323,7 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -334,7 +333,7 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
                 autoRotate: true,
             },
         },
-    ],
+    },
     series: [
         {
             ...examples.SIMPLE_LINE_CHART_EXAMPLE.series?.[0],
@@ -393,8 +392,8 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
 
 const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
     ...examples.SIMPLE_LINE_CHART_EXAMPLE,
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'time',
             crossLines: [
@@ -406,16 +405,15 @@ const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
         },
-    ],
+    },
 };
 
 describe('ChartOptions', () => {
     beforeAll(() => {
-        registerInbuiltModules();
         setupModules();
     });
 
@@ -701,9 +699,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -760,9 +755,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1098,9 +1090,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1157,9 +1146,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1495,9 +1481,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1554,9 +1537,6 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
       "unhighlightedSeries": {
         "opacity": 0.2,
       },
@@ -1642,7 +1622,7 @@ describe('ChartOptions', () => {
                 (seriesType) => {
                     const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: true }));
                     const options = prepareOptions({ series: testOptions });
-                    const { stackable } = seriesTypes[seriesType as SeriesType]!;
+                    const { stackable, groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
@@ -1660,7 +1640,16 @@ describe('ChartOptions', () => {
                             expect(console.warn).toHaveBeenCalledWith(
                                 `AG Charts - unsupported stacking of series type "${seriesType}".`
                             );
-                            expect(series.seriesGrouping).toBe(undefined);
+                            if (groupable) {
+                                expect(series.seriesGrouping).toMatchSnapshot({
+                                    groupIndex: expect.any(Number),
+                                    groupCount: expect.any(Number),
+                                    stackIndex: expect.any(Number),
+                                    stackCount: expect.any(Number),
+                                });
+                            } else {
+                                expect(series.seriesGrouping).toBe(undefined);
+                            }
                         }
                     }
                 }
@@ -1826,7 +1815,7 @@ describe('ChartOptions', () => {
 
                         if (!stackable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].stacked`, ignoring./)
+                                `AG Charts - unsupported stacking of series type "${seriesType}".`
                             );
                         }
                         if (!groupable) {
@@ -1952,9 +1941,7 @@ describe('ChartOptions', () => {
                         } else {
                             if (!stackable) {
                                 expect(console.warn).toHaveBeenCalledWith(
-                                    expect.stringMatching(
-                                        /AG Charts - Unknown option `series\[\d+].stacked`, ignoring./
-                                    )
+                                    `AG Charts - unsupported stacking of series type "${seriesType}".`
                                 );
                             }
                             if (!groupable) {
@@ -2045,9 +2032,13 @@ describe('ChartOptions', () => {
 
             const preparedOptions = prepareOptions(options);
 
-            expect(preparedOptions.axes?.length).toEqual(4);
-            expect(preparedOptions.axes?.map((a) => a.type)).toEqual(['time', 'time', 'number', 'number']);
-            expect(preparedOptions.axes?.map((a) => a.title?.enabled)).toEqual([false, true, false, true]);
+            expect(Object.keys(preparedOptions.axes ?? {}).length).toEqual(4);
+            expect(preparedOptions.axes).toMatchObject({
+                x: { type: 'time', title: { enabled: false } },
+                xSecondary: { type: 'time', title: { enabled: true } },
+                y: { type: 'number', title: { enabled: false } },
+                ySecondary: { type: 'number', title: { enabled: true } },
+            });
             expect(preparedOptions.series?.length).toEqual(4);
             expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'bar', 'area', 'area']);
             expect(preparedOptions.series?.map((s) => 'label' in s && s.label?.enabled)).toEqual([
@@ -2080,7 +2071,7 @@ describe('ChartOptions', () => {
             expect(preparedOptions.footnote?.fontSize).toBe(13);
             expect(preparedOptions.footnote?.spacing).toBe(theme.config.line.footnote.spacing);
 
-            const numberAxis = preparedOptions.axes?.[0] as AgNumberAxisOptions;
+            const numberAxis = preparedOptions.axes?.x as AgNumberAxisOptions;
             expect(numberAxis?.tick?.enabled).toBe(false);
             expect(numberAxis?.tick?.width).toBe(theme.config.line.axes.time.tick.width);
             expect(numberAxis?.tick?.size).toBe(theme.config.line.axes.time.tick.size);
@@ -2093,8 +2084,8 @@ describe('ChartOptions', () => {
             expect(numberAxis?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
             expect(numberAxis?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
 
-            expect(preparedOptions.axes![1]?.title?.enabled).toBe(true);
-            expect(preparedOptions.axes![1]?.title?.text).toBe('Custom Left Axis Title');
+            expect(preparedOptions.axes!.y?.title?.enabled).toBe(true);
+            expect(preparedOptions.axes!.y?.title?.text).toBe('Custom Left Axis Title');
 
             const series0 = preparedOptions.series?.[0] as AgLineSeriesOptions | undefined;
             expect(series0?.marker?.enabled).toBe(false);
@@ -2118,7 +2109,7 @@ describe('ChartOptions', () => {
 
             const preparedOptions = prepareOptions(options);
 
-            const numberAxis = preparedOptions.axes?.[0] as AgNumberAxisOptions;
+            const numberAxis = preparedOptions.axes?.x as AgNumberAxisOptions;
             expect(numberAxis.crossLines?.[0].enabled).toBe(true);
             expect(numberAxis.crossLines?.[0].label?.enabled).toBe(undefined);
         });

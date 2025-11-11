@@ -1,6 +1,5 @@
-import { createElement, getAttribute, setAttribute } from 'ag-charts-core';
+import { PREV_NEXT_KEYS, createElement, getAttribute, hasNoModifiers, setAttribute } from 'ag-charts-core';
 
-import { PREV_NEXT_KEYS, hasNoModifiers } from '../util/keynavUtil';
 import type { ButtonWidget } from './buttonWidget';
 import type { MenuItemWidget } from './menuItemWidget';
 import type { NativeWidget } from './nativeWidget';

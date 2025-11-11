@@ -27,8 +27,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: {
@@ -41,7 +41,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -59,7 +59,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     formatter: {
         y(params) {
             const value = params.value as number;

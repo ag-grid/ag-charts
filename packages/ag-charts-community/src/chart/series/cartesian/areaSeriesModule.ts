@@ -12,7 +12,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
-    multiSeriesHighlightStyle,
+    markerSeriesHighlightStyle,
 } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
@@ -75,7 +75,7 @@ const themeTemplate: ExtensibleTheme<'area'> = {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: markerSeriesHighlightStyle(),
         segmentation: SEGMENTATION_DEFAULTS,
     },
 };
@@ -89,16 +89,16 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
 
     options: areaSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,
-    defaultAxes: [
-        {
+    defaultAxes: {
+        y: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
             position: CARTESIAN_POSITION.LEFT,
         },
-        {
+        x: {
             type: CARTESIAN_AXIS_TYPE.CATEGORY,
             position: CARTESIAN_POSITION.BOTTOM,
         },
-    ],
+    },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new AreaSeries(ctx),

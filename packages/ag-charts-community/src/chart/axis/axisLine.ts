@@ -1,4 +1,4 @@
-import { Property } from '../../util/properties';
+import { Property } from 'ag-charts-core';
 
 export class AxisLine {
     @Property

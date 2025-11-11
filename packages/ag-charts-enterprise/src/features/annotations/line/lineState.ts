@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, type Point } from 'ag-charts-core';
+import { Debug, type Point, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -7,8 +6,6 @@ import type { AnnotationStateEvents } from '../states/stateTypes';
 import { snapPoint } from '../utils/coords';
 import { ArrowProperties, LineProperties, LineTypeProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
-
-const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface LineStateMachineContext<Datum extends LineTypeProperties>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {

@@ -2737,16 +2737,16 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category' as const,
             position: 'bottom' as const,
         },
-        {
+        y: {
             type: 'number' as const,
             position: 'left' as const,
         },
-    ],
+    },
     series: [
         {
             type: 'bar' as const,

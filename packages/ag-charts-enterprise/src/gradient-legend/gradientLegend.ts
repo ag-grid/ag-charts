@@ -5,24 +5,11 @@ import {
     type Padding,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { CleanupRegistry, createId } from 'ag-charts-core';
+import { BaseProperties, Border, CleanupRegistry, Property, ProxyProperty, createId } from 'ag-charts-core';
 
 import { AxisTicks } from './axisTicks';
 
-const {
-    BaseProperties,
-    ZIndexMap,
-    ProxyProperty,
-    Property,
-    LayoutElement,
-    Group,
-    Rect,
-    Marker,
-    TranslatableGroup,
-    BBox,
-    expandLegendPosition,
-} = _ModuleSupport;
-
+const { ZIndexMap, LayoutElement, Group, Rect, Marker, TranslatableGroup, BBox, expandLegendPosition } = _ModuleSupport;
 class GradientBar extends BaseProperties {
     @Property
     thickness = 16;
@@ -32,7 +19,7 @@ class GradientBar extends BaseProperties {
 }
 
 class GradientLegendScale
-    extends _ModuleSupport.BaseProperties<AgGradientLegendScaleOptions>
+    extends BaseProperties<AgGradientLegendScaleOptions>
     implements Omit<AgGradientLegendScaleOptions, 'label'>
 {
     constructor(protected axisTicks: AxisTicks) {
@@ -49,7 +36,7 @@ class GradientLegendScale
     padding?: AxisTicks['padding'];
 }
 
-export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLegendOptions> {
+export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
     static readonly className = 'GradientLegend';
 
     readonly id = createId(this);
@@ -89,7 +76,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
     spacing = 20;
 
     @Property
-    border = new _ModuleSupport.Border(this.containerNode);
+    border = new Border(this.containerNode);
 
     @Property
     cornerRadius: number = 0;

@@ -10,6 +10,7 @@ import {
     AgRadarLineSeriesStyle,
 } from 'ag-charts-community';
 import {
+    MIN_UNHIGHLIGHT_DELAY,
     MockRadarLineStyler,
     extractImageData,
     hoverAction,
@@ -80,7 +81,7 @@ describe('RadarLineSeries', () => {
     it(`should render polar chart with circle axes as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [{ type: 'angle-category', shape: 'circle' }, { type: 'radius-number' }],
+            axes: { angle: { type: 'angle-category', shape: 'circle' }, radius: { type: 'radius-number' } },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -91,17 +92,17 @@ describe('RadarLineSeries', () => {
     it(`should render polar chart as expected with reversed circle axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     shape: 'circle',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -112,17 +113,17 @@ describe('RadarLineSeries', () => {
     it(`should render polar chart as expected with reversed polygon axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-category',
                     shape: 'polygon',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -138,10 +139,10 @@ describe('RadarLineSeries', () => {
                 gradeA: 2 * ((i % 5) + 1),
                 gradeB: 2 * (((i + 3) % 5) + 1),
             })),
-            axes: [
-                { type: 'angle-category', label: { avoidCollisions: true, minSpacing: 2 } },
-                { type: 'radius-number' },
-            ],
+            axes: {
+                angle: { type: 'angle-category', label: { avoidCollisions: true, minSpacing: 2 } },
+                radius: { type: 'radius-number' },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -569,6 +570,8 @@ describe('RadarLineSeries', () => {
                     await hover(miss);
                     await hover(legendItem0);
                     await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });

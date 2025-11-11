@@ -56,8 +56,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             label: {
                 enabled: false,
@@ -75,7 +75,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        angle: {
             type: 'angle-category',
             gridLine: {
                 enabled: true,
@@ -88,7 +88,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

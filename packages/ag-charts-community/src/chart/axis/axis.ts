@@ -1,18 +1,21 @@
-import type { Scale } from 'ag-charts-core';
+import type { AxisID, Scale } from 'ag-charts-core';
 import {
     type Callback,
     type CallbackParam,
     CleanupRegistry,
+    ObserveChanges,
     type Point,
+    Property,
     type RequireOptional,
     WeakCache,
+    callWithContext,
     clampArray,
-    createId,
+    deepFreeze,
     findMinMax,
     findRangeExtent,
     isArray,
+    mergeDefaults,
 } from 'ag-charts-core';
-import type { AxisID } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -38,10 +41,6 @@ import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { callWithContext } from '../../util/callbackCache';
-import { deepFreeze, mergeDefaults } from '../../util/object';
-import { Property } from '../../util/properties';
-import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -155,7 +154,7 @@ export abstract class Axis<
 
     protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
 
-    readonly id: AxisID = createId(this);
+    id: AxisID = 'unknown' as AxisID;
 
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
@@ -186,9 +185,6 @@ export abstract class Axis<
     /** Reverse the axis scale domain. */
     @Property
     reverse: boolean = false;
-
-    @Property
-    keys: string[] = [];
 
     @Property
     readonly interval = new AxisInterval();
@@ -343,7 +339,7 @@ export abstract class Axis<
 
     private endHovering() {
         if (this.isHovering) {
-            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+            this.moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
             this.isHovering = false;
         }
     }

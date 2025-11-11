@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals';
 
-import { mergeDefaults } from './object';
+import { mergeDefaults } from 'ag-charts-core';
 
 describe('object module', () => {
     test('mergeDefaults', () => {

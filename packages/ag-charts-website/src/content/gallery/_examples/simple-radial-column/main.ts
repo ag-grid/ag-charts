@@ -28,8 +28,8 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             innerRadiusRatio: 0.5,
             interval: { step: 0.5 },
@@ -37,7 +37,7 @@ const options: AgChartOptions<DataType> = {
                 enabled: false,
             },
         },
-        {
+        angle: {
             type: 'angle-category',
             paddingInner: 0.4,
             label: {
@@ -48,7 +48,7 @@ const options: AgChartOptions<DataType> = {
                 enabled: true,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

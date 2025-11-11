@@ -1,30 +1,38 @@
 import {
+    ActionOnSet,
     AsyncAwaitQueue,
+    type AxisID,
     CleanupRegistry,
     Debug,
     Logger,
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
+    Padding,
+    Property,
+    ProxyProperty,
+    callWithContext,
     createId,
     entries,
     getWindow,
-    groupBy,
     isFiniteNumber,
+    isInputPending,
+    jsonApply,
+    jsonDiff,
+    mergeDefaults,
     pause,
     roundTo,
     toPlainText,
+    without,
 } from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
-    AgCartesianAxisOptions,
     AgChartInstance,
     AgChartOptions,
     AgColorType,
     AgDataTransaction,
     AgInitialStateLegendOptions,
     AgMiniChartSeriesOptions,
-    AgPolarAxisOptions,
     FormatterConfiguration,
     SeriesOptionsTypes,
     SeriesType,
@@ -36,22 +44,16 @@ import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
-import { callWithContext } from '../util/callbackCache';
-import { isInputPending } from '../util/dom';
-import { jsonApply, jsonDiff } from '../util/json';
 import { Mutex } from '../util/mutex';
-import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
-import { Padding } from '../util/padding';
-import { Property } from '../util/properties';
-import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { Widget } from '../widget/widget';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { TimeAxis } from './axis/timeAxis';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
+import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartCaptions } from './chartCaptions';
@@ -461,7 +463,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
             const seriesTooltipContent =
                 seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
-            return seriesTooltipContent == null ? [] : [seriesTooltipContent];
+            if (seriesTooltipContent == null) return [];
+            return [seriesTooltipContent];
         });
     }
 
@@ -533,10 +536,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.destroySeries(this.series);
         this.seriesLayerManager.destroy();
 
-        for (const a of this.axes) {
-            a.destroy();
-        }
-        this.axes = [];
+        this.axes.destroy();
 
         // Reset animation state.
         this.animationRect = undefined;
@@ -874,7 +874,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.onAxisChange(newValue, oldValue);
         },
     })
-    axes: ChartAxis[] = [];
+    axes: ChartAxes = this.createChartAxes();
+    createChartAxes(): ChartAxes {
+        return new ChartAxes();
+    }
 
     @ActionOnSet<Chart>({
         changeValue(newValue, oldValue) {
@@ -957,29 +960,17 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     protected assignAxesToSeries() {
         // This method has to run before `assignSeriesToAxes`.
-        const directionToAxesMap = groupBy(this.axes, (axis) => axis.direction);
 
         for (const series of this.series) {
             for (const direction of series.directions) {
-                const directionAxes = directionToAxesMap[direction];
-                if (!directionAxes) {
-                    Logger.warnOnce(
-                        `no available axis for direction [${direction}]; check series and axes configuration.`
-                    );
-                    return;
-                }
-
-                const seriesKeys = series.getKeys(direction);
-                const newAxis = directionAxes.find(
-                    (axis) => !axis.keys.length || seriesKeys.some((key) => axis.keys.includes(key))
-                );
+                const seriesAxisId = series.getKeyAxis(direction) ?? direction;
+                const newAxis = this.axes.findById(seriesAxisId);
                 if (!newAxis) {
                     Logger.warnOnce(
-                        `no matching axis for direction [${direction}] and keys [${seriesKeys}]; check series and axes configuration.`
+                        `no matching axis for direction [${direction}] and id [${seriesAxisId}]; check series and axes configuration.`
                     );
                     return;
                 }
-
                 series.axes[direction] = newAxis;
             }
         }
@@ -1368,7 +1359,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];
-            miniChart.axes = [];
+            miniChart.axes = []; // TODO axes should be an object, but that throws a "mutex callback error"
         }
 
         this.ctx.annotationManager.setAnnotationStyles(newChartOptions.annotationThemes);
@@ -1491,12 +1482,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.filterMiniChartSeries(oldSeries)
         );
         this.applyAxes(miniChart, completeOptions, oldOpts, miniChartSeriesStatus, [
-            'axes[].tick',
-            'axes[].thickness',
-            'axes[].title',
-            'axes[].crosshair',
-            'axes[].gridLine',
-            'axes[].label',
+            'tick',
+            'thickness',
+            'title',
+            'crosshair',
+            'gridLine',
+            'label',
         ]);
 
         const series: UnknownSeries[] = miniChart.series;
@@ -1664,7 +1655,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private applyAxes(
-        chart: { axes: ChartAxis[] },
+        chart: { axes: ChartAxes },
         options: AgChartOptions,
         oldOpts: AgChartOptions,
         seriesStatus: SeriesChangeType,
@@ -1674,29 +1665,27 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             return false;
         }
 
-        skip = ['axes[].type', ...skip];
+        skip = ['type', ...skip];
 
-        const axes: AgCartesianAxisOptions[] | AgPolarAxisOptions[] = options.axes;
+        const axes = options.axes;
         const forceRecreate = seriesStatus === 'replaced';
-        const matchingTypes =
-            !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);
+        const matchingTypes = !forceRecreate && chart.axes.matches(axes);
 
         // Try to optimise series updates if series count and types didn't change.
         if (matchingTypes && isAgCartesianChartOptions(oldOpts)) {
-            for (const [index, axis] of chart.axes.entries()) {
-                const previousOpts = oldOpts.axes?.[index] ?? {};
-                const axisDiff = jsonDiff(previousOpts, axes[index]) as any;
+            for (const axis of chart.axes) {
+                const previousOpts = oldOpts.axes?.[axis.id] ?? {};
+                const axisDiff = jsonDiff(previousOpts, axes[axis.id]) as any;
 
-                debug(`Chart.applyAxes() - applying axis diff idx ${index}`, axisDiff);
+                debug(`Chart.applyAxes() - applying axis diff idx ${axis.id}`, axisDiff);
 
-                const path = `axes[${index}]`;
-                jsonApply(axis, axisDiff, { path, skip });
+                jsonApply(axis, axisDiff, { skip });
             }
             return true;
         }
 
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
-        chart.axes = this.createAxis(axes, skip);
+        chart.axes = this.createAxes(axes, skip);
         return true;
     }
 
@@ -1758,15 +1747,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
-        const newAxes: ChartAxis[] = [];
+    private createAxes(options: Record<string, AgBaseAxisOptions>, skip: string[]): ChartAxes {
+        const newAxes = this.createChartAxes();
         const moduleContext = this.getModuleContext();
 
-        for (let index = 0; index < options.length; index++) {
-            const axisOptions = options[index];
+        for (const [id, axisOptions] of entries(options)) {
             const axis = ModuleRegistry.getAxisModule(axisOptions.type)!.create(moduleContext) as any;
+            axis.id = id as AxisID;
             this.applyAxisModules(axis, axisOptions);
-            jsonApply(axis, axisOptions, { path: `axes[${index}]`, skip });
+            jsonApply(axis, axisOptions, { skip });
 
             newAxes.push(axis);
         }

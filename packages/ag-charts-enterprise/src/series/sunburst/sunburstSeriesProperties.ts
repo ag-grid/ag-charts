@@ -7,11 +7,11 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip, Property } = _ModuleSupport;
-
+const { HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip } = _ModuleSupport;
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     @Property
     fill?: string;

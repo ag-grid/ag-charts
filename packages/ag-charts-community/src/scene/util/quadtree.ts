@@ -1,4 +1,5 @@
-import { type DistantObject, type NearestResult, nearestSquared } from '../../util/nearest';
+import { type DistantObject, type NearestResult, nearestSquared } from 'ag-charts-core';
+
 import { BBox } from '../bbox';
 
 type QuadtreeNearestResult<V> = NearestResult<QuadtreeElem<HitTesterNearest, V>>;

@@ -6,8 +6,8 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
-import { findMinMax } from 'ag-charts-core';
+import type { CallbackParamRules, Point, RequireOptional } from 'ag-charts-core';
+import { findMinMax, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
 
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
@@ -44,8 +44,6 @@ const {
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
-    mergeDefaults,
-    simpleMemorize2,
     getItemStyles,
     calculateSegments,
     toHighlightString,
@@ -592,7 +590,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             xKey,
             yLowKey,
             yHighKey,
-        } satisfies _ModuleSupport.CallbackParamRules<AgRangeBarSeriesStylerParams<unknown, unknown>>;
+        } satisfies CallbackParamRules<AgRangeBarSeriesStylerParams<unknown, unknown>>;
     }
 
     protected override updateDatumSelection(opts: {
@@ -760,7 +758,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             {
                 heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
+                data: [
+                    {
+                        label: yName,
+                        fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
+                        value,
+                        missing:
+                            _ModuleSupport.isTooltipValueMissing(yHighValue) &&
+                            _ModuleSupport.isTooltipValueMissing(yLowValue),
+                    },
+                ],
             },
             {
                 seriesId,

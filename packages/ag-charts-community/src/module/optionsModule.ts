@@ -1,10 +1,15 @@
 import {
     type ChartModuleDefinition,
+    type CloneOptions,
     Debug,
     type DeepPartial,
     Logger,
     ModuleRegistry,
     ModuleType,
+    type PlainObject,
+    deepClone,
+    deepFreeze,
+    entries,
     getDocument,
     getWindow,
     groupBy,
@@ -13,6 +18,11 @@ import {
     isObject,
     isSymbol,
     joinFormatted,
+    jsonDiff,
+    jsonPropertyCompare,
+    jsonWalk,
+    merge,
+    mergeDefaults,
     setDocument,
     setWindow,
     unique,
@@ -28,12 +38,14 @@ import {
     type SeriesType,
 } from 'ag-charts-types';
 
-import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
+import { ChartAxisDirection } from '../chart/chartAxisDirection';
+import {
+    removeIncompatibleModuleOptions,
+    removeUnregisteredModuleOptions,
+} from '../chart/factory/processModuleOptions';
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
-import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
-import { deepFreeze, merge, mergeDefaults } from '../util/object';
 import { OptionsGraph, createOptionsGraph } from './optionsGraph';
 
 export interface ChartSpecialOverrides {
@@ -70,6 +82,37 @@ enum GroupingType {
 }
 
 const stringFormat = (value: string) => `'${value}'`;
+
+const DIRECTION_KEYS = {
+    [ChartAxisDirection.X]: ['xKey' as const],
+    [ChartAxisDirection.Y]: ['yKey' as const, 'yLowKey' as const, 'yHighKey' as const],
+    [ChartAxisDirection.Angle]: ['angleKey' as const],
+    [ChartAxisDirection.Radius]: ['radiusKey' as const],
+};
+const DIRECTION_AXIS_KEYS = {
+    [ChartAxisDirection.X]: 'xKeyAxis' as const,
+    [ChartAxisDirection.Y]: 'yKeyAxis' as const,
+    [ChartAxisDirection.Angle]: 'angleKeyAxis' as const,
+    [ChartAxisDirection.Radius]: 'radiusKeyAxis' as const,
+};
+const KEY_AXIS_KEYS = {
+    [ChartAxisDirection.X]: 'xKeyAxis' as const,
+    [ChartAxisDirection.Y]: 'yKeyAxis' as const,
+    [ChartAxisDirection.Angle]: 'angleKeyAxis' as const,
+    [ChartAxisDirection.Radius]: 'radiusKeyAxis' as const,
+};
+const DEFAULT_DIRECTION_AXES_OPTIONS = {
+    [ChartAxisDirection.X]: { type: 'category' as const, position: 'bottom' as const },
+    [ChartAxisDirection.Y]: { type: 'number' as const, position: 'left' as const },
+    [ChartAxisDirection.Angle]: { type: 'number' as const },
+    [ChartAxisDirection.Radius]: { type: 'number' as const },
+};
+const POSITION_DIRECTIONS = {
+    top: ChartAxisDirection.X,
+    bottom: ChartAxisDirection.X,
+    left: ChartAxisDirection.Y,
+    right: ChartAxisDirection.Y,
+};
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     public static readonly OPTIONS_CLONE_OPTS_SLOW: CloneOptions = {
@@ -307,6 +350,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // the correct order to the re-ordered series.
         // TODO: move into options graph?
         this.processSeriesOptions(options);
+        this.processAxesOptions(options);
 
         const optionsGraph = createOptionsGraph(activeTheme, options);
         const resolvedOptions = optionsGraph.resolve() as any;
@@ -317,10 +361,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
-        removeUnusedEnterpriseOptions(this.chartDef.name, processedOptions);
-        if (!ModuleRegistry.hasEnterpriseModules()) {
-            removeUsedEnterpriseOptions(this.chartDef.name, processedOptions, true);
-        }
+        removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
+        removeUnregisteredModuleOptions(this.chartDef.name, processedOptions, true);
 
         this.validateSeriesOptions(processedOptions);
         this.validateAxesOptions(processedOptions);
@@ -408,12 +450,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!('axes' in options) || !options.axes) return;
 
         const chartType = this.chartDef?.name;
-        const validatedAxesOptions: any[] = [];
-        const axesCount = options.axes.length ?? 0;
+        const validatedAxesOptions: PlainObject = {};
         let validAxesTypes: string | undefined;
-        for (let index = 0; index < axesCount; index++) {
-            const keyPath = `axes[${index}]`;
-            const axisOptions = options.axes[index];
+
+        for (const [key, axisOptions] of entries(options.axes)) {
+            if (!axisOptions) continue;
+
+            const keyPath = `axes[${key}]`;
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
@@ -444,9 +487,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             if (!hasRequiredInPath(invalid, keyPath)) {
-                validatedAxesOptions.push(cleared);
+                validatedAxesOptions[key] = cleared;
             }
         }
+
         options.axes = validatedAxesOptions;
     }
 
@@ -474,6 +518,127 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         });
 
         options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
+    }
+
+    /**
+     * Collates axis ids from the axis and series options to determine the full set of axis ids, defaults series to
+     * the primary axes and renames the primary axes to the internal direction-based names.
+     */
+    private processAxesOptions(options: T) {
+        if (!('axes' in options)) return;
+
+        const axisKeys = new Set(Object.keys(options.axes ?? {}));
+
+        // TODO: narrow this down based on the first series type (cartesian / polar)
+        const directions = Object.values(ChartAxisDirection);
+        const primaryAxisIds = this.getPrimaryAxisIds(options, directions, axisKeys);
+        const remappedAxisIds = this.remapAxisIds(options, primaryAxisIds);
+
+        for (const seriesOptions of options.series ?? []) {
+            for (const direction of directions) {
+                if (!DIRECTION_KEYS[direction].some((k) => Object.keys(seriesOptions).includes(k))) continue;
+
+                const directionAxisKey = DIRECTION_AXIS_KEYS[direction];
+                if (!(directionAxisKey in seriesOptions)) {
+                    (seriesOptions as any)[directionAxisKey] = direction;
+                    continue;
+                }
+
+                const seriesAxisId: string = (seriesOptions as any)[directionAxisKey];
+                if (remappedAxisIds.has(seriesAxisId)) {
+                    const remappedAxisId = remappedAxisIds.get(seriesAxisId)!;
+                    (seriesOptions as any)[(DIRECTION_AXIS_KEYS as any)[remappedAxisId]] = remappedAxisId;
+                } else {
+                    options.axes ??= {};
+                    options.axes[seriesAxisId] ??= DEFAULT_DIRECTION_AXES_OPTIONS[direction];
+                    axisKeys.add(seriesAxisId);
+                }
+            }
+        }
+    }
+
+    /**
+     * The primary axes are defined, for each direction, as those first in the `axes` object or referenced by a series.
+     * This is irregardless of the specific id of the axis, e.g. an axis with the id `y` may have the position `top`,
+     * and would therefore be classified as the primary `x` axis.
+     */
+    private getPrimaryAxisIds(
+        options: T,
+        directions: Array<ChartAxisDirection>,
+        axisKeys: Set<string>
+    ): Map<ChartAxisDirection, string> {
+        const primaryAxisIds = new Map<ChartAxisDirection, string>();
+        if (!('axes' in options)) return primaryAxisIds;
+
+        for (const direction of directions) {
+            let foundPrimaryAxisId = false;
+
+            for (const [axisKey, axisOptions] of entries(options.axes ?? {})) {
+                if (
+                    'position' in axisOptions &&
+                    axisOptions.position &&
+                    direction === POSITION_DIRECTIONS[axisOptions.position]
+                ) {
+                    primaryAxisIds.set(direction, axisKey);
+                    foundPrimaryAxisId = true;
+                    break;
+                }
+            }
+
+            if (foundPrimaryAxisId) continue;
+
+            for (const seriesOptions of options.series ?? []) {
+                const key = KEY_AXIS_KEYS[direction];
+                const seriesAxisId = (seriesOptions as any)[key];
+                if (!seriesAxisId || axisKeys.has(seriesAxisId)) continue;
+
+                primaryAxisIds.set(direction, seriesAxisId);
+                break;
+            }
+        }
+
+        return primaryAxisIds;
+    }
+
+    /**
+     * Axes that are considered the primary axis for their given direction are internally remapped to the standard
+     * naming, e.g. the user's primary axis for the 'x' direction is named `myXAxis`, then internally it will be
+     * remapped to and accessed as `x`.
+     */
+    private remapAxisIds(options: T, primaryAxisIds: Map<ChartAxisDirection, string>) {
+        const remappedAxisIds = new Map();
+
+        if (!('axes' in options) || !options.axes) return remappedAxisIds;
+
+        const primaryAxisDirections = Array.from(primaryAxisIds.keys()) as string[];
+        const newAxes: Record<string, any> = {};
+
+        // Pick and remap primary axes first
+        for (const [direction, axisId] of primaryAxisIds) {
+            newAxes[direction as string] = options.axes[axisId];
+
+            // Remap the axis id if it is not a direction
+            if (axisId !== (direction as string)) {
+                remappedAxisIds.set(axisId, direction);
+                newAxes[direction as string] ??= DEFAULT_DIRECTION_AXES_OPTIONS[direction];
+            }
+
+            // Delete the axis if it is not a direction, to prevent deleting other directionally named ids
+            // e.g. when swapping both x->y and y->x
+            if (!primaryAxisDirections.includes(axisId)) {
+                delete newAxes[axisId];
+            }
+        }
+
+        // Append secondary axes afterwards, to ensure they occur after primary axes in the array of entries
+        for (const [key, value] of entries(options.axes)) {
+            if (remappedAxisIds.has(key)) continue;
+            newAxes[key] ??= value;
+        }
+
+        options.axes = newAxes;
+
+        return remappedAxisIds;
     }
 
     private processMiniChartSeriesOptions(options: T) {

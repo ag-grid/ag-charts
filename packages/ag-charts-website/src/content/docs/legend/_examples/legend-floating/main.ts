@@ -30,19 +30,19 @@ const options: AgCartesianChartOptions = {
             yKey: '2022',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
             title: { text: 'Stock Ticker' },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             title: { text: 'Dividend Yield (%)' },
             label: { format: '#{.0f}%' },
         },
-    ],
+    },
     legend: {
         position: {
             placement: 'right-top',

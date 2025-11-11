@@ -27,22 +27,22 @@ const options: AgChartOptions = {
     gradientLegend: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'category',
             label: {
                 enabled: false,
             },
         },
-        {
+        x: {
             position: 'top',
             type: 'category',
             line: {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

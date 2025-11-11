@@ -5,20 +5,18 @@ import {
     type FormatterParams,
     _ModuleSupport,
 } from 'ag-charts-community';
-
-const {
-    OrdinalTimeScale,
+import {
     Property,
-    TimeAxisParentLevel,
-    lowestGranularityUnitForTicks,
-    lowestGranularityUnitForValue,
-    minimumTimeAxisDatumGranularity,
     dateTruncationForDomain,
-    intervalUnit,
-    intervalStep,
     intervalEpoch,
     intervalMilliseconds,
-} = _ModuleSupport;
+    intervalStep,
+    intervalUnit,
+    lowestGranularityUnitForTicks,
+    lowestGranularityUnitForValue,
+} from 'ag-charts-core';
+
+const { OrdinalTimeScale, TimeAxisParentLevel, minimumTimeAxisDatumGranularity } = _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupport.OrdinalTimeScale> {
     static override readonly className = 'OrdinalTimeAxis' as const;

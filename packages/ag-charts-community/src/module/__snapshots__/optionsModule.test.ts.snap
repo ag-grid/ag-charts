@@ -2,8 +2,8 @@
 
 exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -35,7 +35,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "unit": "year",
         },
       },
-      "keys": [],
       "label": {
         "autoRotate": false,
         "avoidCollisions": true,
@@ -100,7 +99,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       },
       "type": "unit-time",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -113,7 +112,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -154,7 +152,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "#ecf2f9",
     "visible": true,
@@ -246,9 +244,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -300,15 +295,14 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "marriages",
+      "yKeyAxis": "y",
       "yName": "Marriages",
     },
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -360,15 +354,14 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "civilPartnerships",
+      "yKeyAxis": "y",
       "yName": "Civil partnerships",
     },
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -420,7 +413,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "divorces",
+      "yKeyAxis": "y",
       "yName": "Divorces",
     },
   ],
@@ -470,8 +465,8 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
 
 exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -485,7 +480,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -526,7 +520,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -539,10 +533,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         ],
         "width": 1,
       },
-      "keys": [
-        "male",
-        "female",
-      ],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -582,7 +572,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "type": "number",
     },
-    {
+    "ySecondary": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -595,9 +585,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         ],
         "width": 1,
       },
-      "keys": [
-        "exportedTonnes",
-      ],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -637,7 +624,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -788,7 +775,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "male",
+      "yKeyAxis": "y",
       "yName": "Male cattle",
     },
     {
@@ -854,15 +843,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "female",
+      "yKeyAxis": "y",
       "yName": "Female cattle",
     },
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -914,7 +902,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "exportedTonnes",
+      "yKeyAxis": "ySecondary",
       "yName": "Beef exports",
     },
   ],
@@ -964,8 +954,8 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
 
 exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -979,7 +969,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -1021,7 +1010,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -1034,7 +1023,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -1074,7 +1062,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -1166,9 +1154,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "highlightedSeries": {
           "strokeWidth": 3,
         },
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -1220,16 +1205,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "stillWine",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -1282,16 +1266,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "sparklingWine",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -1344,16 +1327,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "madeWine",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -1406,16 +1388,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "whisky",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -1468,16 +1449,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "potableSpirits",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -1530,16 +1510,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "beer",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -1592,7 +1571,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "cider",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -1641,8 +1622,8 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
 
 exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -1656,7 +1637,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -1697,7 +1677,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -1710,7 +1690,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -1750,7 +1729,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -1900,7 +1879,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "largeHousehold",
+      "yKeyAxis": "y",
       "yName": "Large household appliances",
     },
     {
@@ -1967,7 +1948,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "smallHousehold",
+      "yKeyAxis": "y",
       "yName": "Small household appliances",
     },
     {
@@ -2034,7 +2017,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "itTelecomms",
+      "yKeyAxis": "y",
       "yName": "IT and telecomms equipment",
     },
     {
@@ -2101,7 +2086,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "consumer",
+      "yKeyAxis": "y",
       "yName": "Consumer equipment",
     },
     {
@@ -2168,7 +2155,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "tools",
+      "yKeyAxis": "y",
       "yName": "Electrical and electronic tools",
     },
     {
@@ -2235,7 +2224,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "displays",
+      "yKeyAxis": "y",
       "yName": "Display equipment",
     },
     {
@@ -2302,7 +2293,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "cooling",
+      "yKeyAxis": "y",
       "yName": "Cooling appliances containing refrigerants",
     },
     {
@@ -2369,7 +2362,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "gasLampsLed",
+      "yKeyAxis": "y",
       "yName": "Gas discharge lamps and LED light sources",
     },
   ],
@@ -2419,8 +2414,8 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
 
 exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -2433,7 +2428,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -2472,7 +2466,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       },
       "type": "number",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -2485,7 +2479,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -2524,7 +2517,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -2657,8 +2650,10 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "type": "bubble",
       "visible": true,
       "xKey": "depth",
+      "xKeyAxis": "x",
       "xName": "Depth",
       "yKey": "minDistance",
+      "yKeyAxis": "y",
       "yName": "Minimum Distance",
     },
   ],
@@ -2711,8 +2706,8 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
 
 exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -2725,7 +2720,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -2789,7 +2783,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "type": "time",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -2802,7 +2796,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -2841,7 +2834,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -2930,9 +2923,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -2985,14 +2975,13 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "type": "line",
       "visible": true,
       "xKey": "time",
+      "xKeyAxis": "x",
       "yKey": "magnitude",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -3045,14 +3034,13 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "type": "line",
       "visible": true,
       "xKey": "time",
+      "xKeyAxis": "x",
       "yKey": "magnitude",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -3105,14 +3093,13 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "type": "line",
       "visible": true,
       "xKey": "time",
+      "xKeyAxis": "x",
       "yKey": "magnitude",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -3165,7 +3152,9 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "type": "line",
       "visible": true,
       "xKey": "time",
+      "xKeyAxis": "x",
       "yKey": "magnitude",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -3214,8 +3203,8 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
 
 exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -3229,7 +3218,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -3270,7 +3258,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -3283,7 +3271,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -3322,7 +3309,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -3416,9 +3403,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "highlightedSeries": {
           "strokeWidth": 3,
         },
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.1,
         },
@@ -3478,7 +3462,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "type": "area",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "naturalGas",
+      "yKeyAxis": "y",
       "yName": "Natural gas",
     },
     {
@@ -3488,9 +3474,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.1,
@@ -3551,7 +3534,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "type": "area",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "coal",
+      "yKeyAxis": "y",
       "yName": "Coal",
     },
     {
@@ -3561,9 +3546,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.1,
@@ -3624,7 +3606,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "type": "area",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "primaryOil",
+      "yKeyAxis": "y",
       "yName": "Primary oil",
     },
     {
@@ -3634,9 +3618,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.1,
@@ -3697,7 +3678,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "type": "area",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "petroleum",
+      "yKeyAxis": "y",
       "yName": "Petroleum",
     },
     {
@@ -3707,9 +3690,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.1,
@@ -3770,7 +3750,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "type": "area",
       "visible": true,
       "xKey": "quarter",
+      "xKeyAxis": "x",
       "yKey": "manufacturedFuels",
+      "yKeyAxis": "y",
       "yName": "Manufactured fuels",
     },
   ],
@@ -3820,8 +3802,59 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
 
 exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e8e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "position": "bottom",
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "£/week",
+      },
+      "type": "number",
+    },
+    "y": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -3835,7 +3868,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -3876,59 +3908,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       },
       "type": "category",
     },
-    {
-      "gridLine": {
-        "enabled": true,
-        "style": [
-          {
-            "fillOpacity": 1,
-            "lineDash": [],
-            "stroke": "#e8e8e9",
-            "strokeWidth": 1,
-          },
-        ],
-        "width": 1,
-      },
-      "keys": [],
-      "label": {
-        "avoidCollisions": true,
-        "border": {
-          "enabled": false,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
-        },
-        "color": "#181d1f",
-        "cornerRadius": 4,
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
-        "fontWeight": 400,
-        "spacing": 11,
-      },
-      "line": {
-        "enabled": false,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "position": "bottom",
-      "tick": {
-        "enabled": false,
-        "size": 6,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "title": {
-        "color": "#181d1f",
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 13,
-        "fontWeight": 400,
-        "spacing": 25,
-        "text": "£/week",
-      },
-      "type": "number",
-    },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -4077,7 +4057,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "earnings",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -4127,8 +4109,59 @@ by Occupation",
 
 exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e8e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "position": "bottom",
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Change in number of jobs (thousands)",
+      },
+      "type": "number",
+    },
+    "y": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -4142,7 +4175,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4183,59 +4215,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       },
       "type": "category",
     },
-    {
-      "gridLine": {
-        "enabled": true,
-        "style": [
-          {
-            "fillOpacity": 1,
-            "lineDash": [],
-            "stroke": "#e8e8e9",
-            "strokeWidth": 1,
-          },
-        ],
-        "width": 1,
-      },
-      "keys": [],
-      "label": {
-        "avoidCollisions": true,
-        "border": {
-          "enabled": false,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
-        },
-        "color": "#181d1f",
-        "cornerRadius": 4,
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
-        "fontWeight": 400,
-        "spacing": 11,
-      },
-      "line": {
-        "enabled": false,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "position": "bottom",
-      "tick": {
-        "enabled": false,
-        "size": 6,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "title": {
-        "color": "#181d1f",
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 13,
-        "fontWeight": 400,
-        "spacing": 25,
-        "text": "Change in number of jobs (thousands)",
-      },
-      "type": "number",
-    },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -4388,7 +4368,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "type": "bar",
       "visible": true,
       "xKey": "job",
+      "xKeyAxis": "x",
       "yKey": "change",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -4438,8 +4420,8 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
 
 exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -4457,7 +4439,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4500,14 +4481,13 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [],
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4550,7 +4530,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       },
       "type": "category",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -4682,8 +4662,10 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "type": "bubble",
       "visible": true,
       "xKey": "hour",
+      "xKeyAxis": "x",
       "xName": "Time",
       "yKey": "day",
+      "yKeyAxis": "y",
       "yName": "Day",
     },
   ],
@@ -4733,8 +4715,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
 
 exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -4747,7 +4729,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -4789,7 +4770,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "type": "number",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -4802,7 +4783,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -4844,7 +4824,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -4978,8 +4958,10 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "type": "bubble",
       "visible": true,
       "xKey": "lon",
+      "xKeyAxis": "x",
       "xName": "Longitude",
       "yKey": "lat",
+      "yKeyAxis": "y",
       "yName": "Latitude",
     },
   ],
@@ -5029,8 +5011,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
 
 exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -5044,7 +5026,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -5085,7 +5066,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -5098,7 +5079,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -5137,7 +5117,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -5286,7 +5266,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "type": "bar",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "menDelta",
+      "yKeyAxis": "y",
       "yName": "Male",
     },
     {
@@ -5352,7 +5334,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "type": "bar",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "womenDelta",
+      "yKeyAxis": "y",
       "yName": "Female",
     },
   ],
@@ -5402,8 +5386,59 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
 
 exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e8e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "position": "bottom",
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "%",
+      },
+      "type": "number",
+    },
+    "y": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -5417,7 +5452,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -5458,59 +5492,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "type": "category",
     },
-    {
-      "gridLine": {
-        "enabled": true,
-        "style": [
-          {
-            "fillOpacity": 1,
-            "lineDash": [],
-            "stroke": "#e8e8e9",
-            "strokeWidth": 1,
-          },
-        ],
-        "width": 1,
-      },
-      "keys": [],
-      "label": {
-        "avoidCollisions": true,
-        "border": {
-          "enabled": false,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
-        },
-        "color": "#181d1f",
-        "cornerRadius": 4,
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
-        "fontWeight": 400,
-        "spacing": 11,
-      },
-      "line": {
-        "enabled": false,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "position": "bottom",
-      "tick": {
-        "enabled": false,
-        "size": 6,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "title": {
-        "color": "#181d1f",
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 13,
-        "fontWeight": 400,
-        "spacing": 25,
-        "text": "%",
-      },
-      "type": "number",
-    },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -5662,7 +5644,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "total",
+      "yKeyAxis": "y",
       "yName": "Annual growth in total pay",
     },
     {
@@ -5731,7 +5715,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "regular",
+      "yKeyAxis": "y",
       "yName": "Annual growth in regular pay",
     },
   ],
@@ -5781,8 +5767,8 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
 
 exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -5796,7 +5782,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -5837,7 +5822,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -5850,7 +5835,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -5890,7 +5874,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -6045,7 +6029,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "16-24",
+      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -6116,7 +6102,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "25-34",
+      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -6187,7 +6175,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "35-44",
+      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -6258,7 +6248,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "45-54",
+      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -6329,7 +6321,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "55-64",
+      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -6400,7 +6394,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "65-74",
+      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -6471,7 +6467,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "75+",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -6520,8 +6518,8 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
 
 exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -6535,7 +6533,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -6577,7 +6574,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -6590,7 +6587,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -6632,7 +6628,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -6724,9 +6720,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -6778,7 +6771,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "belize",
+      "yKeyAxis": "y",
       "yName": "Belize",
     },
     {
@@ -6786,9 +6781,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -6841,7 +6833,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "cameroon",
+      "yKeyAxis": "y",
       "yName": "Cameroon",
     },
     {
@@ -6849,9 +6843,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -6904,7 +6895,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "columbia",
+      "yKeyAxis": "y",
       "yName": "Columbia",
     },
     {
@@ -6912,9 +6905,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -6967,7 +6957,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "costaRica",
+      "yKeyAxis": "y",
       "yName": "Costa Rica",
     },
     {
@@ -6975,9 +6967,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7030,7 +7019,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "dominicanRepublic",
+      "yKeyAxis": "y",
       "yName": "Dominican Republic",
     },
     {
@@ -7038,9 +7029,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7093,7 +7081,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "ecuador",
+      "yKeyAxis": "y",
       "yName": "Ecuador",
     },
     {
@@ -7101,9 +7091,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7156,7 +7143,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "ghana",
+      "yKeyAxis": "y",
       "yName": "Ghana",
     },
     {
@@ -7164,9 +7153,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7219,7 +7205,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "honduras",
+      "yKeyAxis": "y",
       "yName": "Honduras",
     },
     {
@@ -7227,9 +7215,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7282,7 +7267,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "ivoryCoast",
+      "yKeyAxis": "y",
       "yName": "Ivory Coast",
     },
     {
@@ -7290,9 +7277,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7345,7 +7329,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "jamaica",
+      "yKeyAxis": "y",
       "yName": "Jamaica",
     },
     {
@@ -7353,9 +7339,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7408,7 +7391,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "mexico",
+      "yKeyAxis": "y",
       "yName": "Mexico",
     },
     {
@@ -7416,9 +7401,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7471,7 +7453,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "panama",
+      "yKeyAxis": "y",
       "yName": "Panama",
     },
     {
@@ -7479,9 +7463,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7534,7 +7515,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "windwardIsles",
+      "yKeyAxis": "y",
       "yName": "Windward Isles",
     },
     {
@@ -7542,9 +7525,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7597,7 +7577,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "guatemala",
+      "yKeyAxis": "y",
       "yName": "Guatemala",
     },
     {
@@ -7605,9 +7587,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7660,7 +7639,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "nicaragua",
+      "yKeyAxis": "y",
       "yName": "Nicaragua",
     },
     {
@@ -7668,9 +7649,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -7723,7 +7701,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "type": "line",
       "visible": true,
       "xKey": "week",
+      "xKeyAxis": "x",
       "yKey": "brazil",
+      "yKeyAxis": "y",
       "yName": "Brazil",
     },
   ],
@@ -7773,8 +7753,59 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
 
 exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e8e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 10,
+        "fontWeight": 400,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "position": "bottom",
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Year",
+      },
+      "type": "number",
+    },
+    "y": {
       "base": 10,
       "gridLine": {
         "enabled": true,
@@ -7788,7 +7819,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -7828,59 +7858,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       },
       "type": "log",
     },
-    {
-      "gridLine": {
-        "enabled": true,
-        "style": [
-          {
-            "fillOpacity": 1,
-            "lineDash": [],
-            "stroke": "#e8e8e9",
-            "strokeWidth": 1,
-          },
-        ],
-        "width": 1,
-      },
-      "keys": [],
-      "label": {
-        "avoidCollisions": true,
-        "border": {
-          "enabled": false,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
-        },
-        "color": "#181d1f",
-        "cornerRadius": 4,
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 10,
-        "fontWeight": 400,
-        "spacing": 11,
-      },
-      "line": {
-        "enabled": false,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "position": "bottom",
-      "tick": {
-        "enabled": false,
-        "size": 6,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "title": {
-        "color": "#181d1f",
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 13,
-        "fontWeight": 400,
-        "spacing": 25,
-        "text": "Year",
-      },
-      "type": "number",
-    },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -7969,9 +7947,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     {
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -8022,7 +7997,9 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "type": "line",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "population",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -8071,8 +8048,8 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
 
 exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -8086,7 +8063,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -8127,7 +8103,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -8140,7 +8116,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -8180,7 +8155,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -8274,9 +8249,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "highlightedSeries": {
           "strokeWidth": 4,
         },
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -8344,7 +8316,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "type": "area",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "coal",
+      "yKeyAxis": "y",
       "yName": "Coal",
     },
     {
@@ -8354,9 +8328,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -8425,7 +8396,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "type": "area",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "petroleum",
+      "yKeyAxis": "y",
       "yName": "Petroleum",
     },
     {
@@ -8435,9 +8408,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -8506,7 +8476,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "type": "area",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "naturalGas",
+      "yKeyAxis": "y",
       "yName": "Natural gas",
     },
     {
@@ -8516,9 +8488,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -8587,7 +8556,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "type": "area",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "bioenergyWaste",
+      "yKeyAxis": "y",
       "yName": "Bioenergy & waste",
     },
     {
@@ -8597,9 +8568,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -8668,7 +8636,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "type": "area",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "nuclear",
+      "yKeyAxis": "y",
       "yName": "Nuclear",
     },
     {
@@ -8678,9 +8648,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -8749,7 +8716,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "type": "area",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "windSolarHydro",
+      "yKeyAxis": "y",
       "yName": "Wind, solar & hydro",
     },
     {
@@ -8759,9 +8728,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -8830,7 +8796,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "type": "area",
       "visible": true,
       "xKey": "month",
+      "xKeyAxis": "x",
       "yKey": "imported",
+      "yKeyAxis": "y",
       "yName": "Imported",
     },
   ],
@@ -8880,8 +8848,60 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
 
 exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e8e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "format": ".0%",
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "position": "bottom",
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+      },
+      "type": "number",
+    },
+    "y": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -8895,7 +8915,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -8937,60 +8956,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "type": "category",
     },
-    {
-      "gridLine": {
-        "enabled": true,
-        "style": [
-          {
-            "fillOpacity": 1,
-            "lineDash": [],
-            "stroke": "#e8e8e9",
-            "strokeWidth": 1,
-          },
-        ],
-        "width": 1,
-      },
-      "keys": [],
-      "label": {
-        "avoidCollisions": true,
-        "border": {
-          "enabled": false,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
-        },
-        "color": "#181d1f",
-        "cornerRadius": 4,
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
-        "fontWeight": 400,
-        "format": ".0%",
-        "spacing": 11,
-      },
-      "line": {
-        "enabled": false,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "position": "bottom",
-      "tick": {
-        "enabled": false,
-        "size": 6,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "title": {
-        "color": "#181d1f",
-        "enabled": false,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 13,
-        "fontWeight": 400,
-        "spacing": 25,
-        "text": "Axis Title",
-      },
-      "type": "number",
-    },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -9143,7 +9109,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "type": "bar",
       "visible": true,
       "xKey": "area",
+      "xKeyAxis": "x",
       "yKey": "usedInLast3Months",
+      "yKeyAxis": "y",
       "yName": "Used in last 3 months",
     },
     {
@@ -9213,7 +9181,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "type": "bar",
       "visible": true,
       "xKey": "area",
+      "xKeyAxis": "x",
       "yKey": "usedOver3MonthsAgo",
+      "yKeyAxis": "y",
       "yName": "Used over 3 months ago",
     },
     {
@@ -9283,7 +9253,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "type": "bar",
       "visible": true,
       "xKey": "area",
+      "xKeyAxis": "x",
       "yKey": "neverUsed",
+      "yKeyAxis": "y",
       "yName": "Never used",
     },
   ],
@@ -9333,8 +9305,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
 
 exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -9348,7 +9320,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9389,7 +9360,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -9402,7 +9373,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -9442,7 +9412,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -9592,7 +9562,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "white",
+      "yKeyAxis": "y",
       "yName": "White",
     },
     {
@@ -9659,7 +9631,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "mixed",
+      "yKeyAxis": "y",
       "yName": "Mixed",
     },
     {
@@ -9726,7 +9700,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "asian",
+      "yKeyAxis": "y",
       "yName": "Asian",
     },
     {
@@ -9793,7 +9769,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "black",
+      "yKeyAxis": "y",
       "yName": "Black",
     },
     {
@@ -9860,7 +9838,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "chinese",
+      "yKeyAxis": "y",
       "yName": "Chinese",
     },
     {
@@ -9927,7 +9907,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "other",
+      "yKeyAxis": "y",
       "yName": "Other",
     },
   ],
@@ -9977,8 +9959,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
 
 exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -9998,7 +9980,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "unit": "year",
         },
       },
-      "keys": [],
       "label": {
         "autoRotate": false,
         "avoidCollisions": true,
@@ -10062,7 +10043,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "type": "unit-time",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -10075,7 +10056,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -10115,7 +10095,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -10206,9 +10186,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -10268,7 +10245,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "Tate Modern",
+      "yKeyAxis": "y",
       "yName": "Tate Modern",
     },
     {
@@ -10276,9 +10255,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -10338,7 +10314,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "Tate Britain",
+      "yKeyAxis": "y",
       "yName": "Tate Britain",
     },
     {
@@ -10346,9 +10324,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -10408,7 +10383,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "Tate Liverpool",
+      "yKeyAxis": "y",
       "yName": "Tate Liverpool",
     },
     {
@@ -10416,9 +10393,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -10478,7 +10452,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "Tate St Ives",
+      "yKeyAxis": "y",
       "yName": "Tate St Ives",
     },
   ],
@@ -10528,8 +10504,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
 
 exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -10543,7 +10519,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -10584,7 +10559,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -10597,7 +10572,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -10637,7 +10611,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -10787,7 +10761,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "type": "bar",
       "visible": true,
       "xKey": "year",
+      "xKeyAxis": "x",
       "yKey": "visitors",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -10836,7 +10812,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
 
 exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [],
+  "axes": {},
   "background": {
     "fill": "white",
     "visible": true,
@@ -11123,8 +11099,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
 
 exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -11144,7 +11120,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "unit": "month",
         },
       },
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11208,7 +11183,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       },
       "type": "unit-time",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -11221,7 +11196,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11261,7 +11235,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -11353,9 +11327,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "highlightedSeries": {
           "strokeWidth": 3,
         },
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -11406,16 +11377,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "type": "line",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "petrol",
+      "yKeyAxis": "y",
     },
     {
       "highlight": {
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "opacity": 0.6,
         },
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -11467,7 +11437,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "type": "line",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "diesel",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -11516,7 +11488,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
 
 exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [],
+  "axes": {},
   "background": {
     "fill": "white",
     "visible": true,
@@ -11768,8 +11740,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
 
 exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -11782,7 +11754,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -11821,7 +11792,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       },
       "type": "number",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -11834,7 +11805,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -11873,7 +11843,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -12001,7 +11971,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "type": "scatter",
       "visible": true,
       "xKey": "weight",
+      "xKeyAxis": "x",
       "yKey": "height",
+      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -12050,8 +12022,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
 
 exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -12068,7 +12040,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "interval": {
         "step": "month",
       },
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -12133,7 +12104,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "type": "unit-time",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -12146,7 +12117,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -12186,7 +12156,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -12277,9 +12247,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -12346,7 +12313,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "Science Museum",
+      "yKeyAxis": "y",
       "yName": "Science Museum",
     },
     {
@@ -12354,9 +12323,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -12423,7 +12389,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "National Media Museum",
+      "yKeyAxis": "y",
       "yName": "National Media Museum",
     },
     {
@@ -12431,9 +12399,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -12500,7 +12465,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "National Railway Museum",
+      "yKeyAxis": "y",
       "yName": "National Railway Museum",
     },
     {
@@ -12508,9 +12475,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -12577,7 +12541,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "Locomotion",
+      "yKeyAxis": "y",
       "yName": "Locomotion",
     },
     {
@@ -12585,9 +12551,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -12654,7 +12617,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "Museum of Science and Industry, Manchester",
+      "yKeyAxis": "y",
       "yName": "Museum of Science and Industry, Manchester",
     },
     {
@@ -12662,9 +12627,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "fillOpacity": 0.8,
       "highlight": {
         "enabled": true,
-        "unhighlightedItem": {
-          "opacity": 0.6,
-        },
         "unhighlightedSeries": {
           "opacity": 0.2,
         },
@@ -12731,7 +12693,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "type": "area",
       "visible": true,
       "xKey": "date",
+      "xKeyAxis": "x",
       "yKey": "National Coal Mining Museum for England",
+      "yKeyAxis": "y",
       "yName": "National Coal Mining Museum for England",
     },
   ],
@@ -12781,8 +12745,60 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
 
 exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e8e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "nice": false,
+      "position": "top",
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+      },
+      "type": "number",
+    },
+    "y": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -12796,7 +12812,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -12837,60 +12852,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "type": "category",
     },
-    {
-      "gridLine": {
-        "enabled": true,
-        "style": [
-          {
-            "fillOpacity": 1,
-            "lineDash": [],
-            "stroke": "#e8e8e9",
-            "strokeWidth": 1,
-          },
-        ],
-        "width": 1,
-      },
-      "keys": [],
-      "label": {
-        "avoidCollisions": true,
-        "border": {
-          "enabled": false,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
-        },
-        "color": "#181d1f",
-        "cornerRadius": 4,
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
-        "fontWeight": 400,
-        "spacing": 11,
-      },
-      "line": {
-        "enabled": false,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "nice": false,
-      "position": "top",
-      "tick": {
-        "enabled": false,
-        "size": 6,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "title": {
-        "color": "#181d1f",
-        "enabled": false,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 13,
-        "fontWeight": 400,
-        "spacing": 25,
-        "text": "Axis Title",
-      },
-      "type": "number",
-    },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -13042,7 +13004,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "ownerOccupied",
+      "yKeyAxis": "y",
       "yName": "Owner occupied",
     },
     {
@@ -13111,7 +13075,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "privateRented",
+      "yKeyAxis": "y",
       "yName": "Private rented",
     },
     {
@@ -13180,7 +13146,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "localAuthority",
+      "yKeyAxis": "y",
       "yName": "Local authority",
     },
     {
@@ -13249,7 +13217,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "type": "bar",
       "visible": true,
       "xKey": "type",
+      "xKeyAxis": "x",
       "yKey": "housingAssociation",
+      "yKeyAxis": "y",
       "yName": "Housing association",
     },
   ],
@@ -13299,8 +13269,8 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
 
 exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "axes": [
-    {
+  "axes": {
+    "x": {
       "gridLine": {
         "enabled": false,
         "style": [
@@ -13314,7 +13284,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "width": 1,
       },
       "groupPaddingInner": 0.1,
-      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -13356,7 +13325,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "type": "category",
     },
-    {
+    "y": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -13369,7 +13338,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         ],
         "width": 1,
       },
-      "keys": [],
       "label": {
         "avoidCollisions": true,
         "border": {
@@ -13409,7 +13377,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "type": "number",
     },
-  ],
+  },
   "background": {
     "fill": "white",
     "visible": true,
@@ -13561,7 +13529,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "type": "bar",
       "visible": true,
       "xKey": "station",
+      "xKeyAxis": "x",
       "yKey": "early",
+      "yKeyAxis": "y",
       "yName": "Early",
     },
     {
@@ -13630,7 +13600,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "type": "bar",
       "visible": true,
       "xKey": "station",
+      "xKeyAxis": "x",
       "yKey": "morningPeak",
+      "yKeyAxis": "y",
       "yName": "Morning peak",
     },
     {
@@ -13699,7 +13671,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "type": "bar",
       "visible": true,
       "xKey": "station",
+      "xKeyAxis": "x",
       "yKey": "interPeak",
+      "yKeyAxis": "y",
       "yName": "Between peak",
     },
     {
@@ -13768,7 +13742,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "type": "bar",
       "visible": true,
       "xKey": "station",
+      "xKeyAxis": "x",
       "yKey": "afternoonPeak",
+      "yKeyAxis": "y",
       "yName": "Afternoon peak",
     },
     {
@@ -13837,7 +13813,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "type": "bar",
       "visible": true,
       "xKey": "station",
+      "xKeyAxis": "x",
       "yKey": "evening",
+      "yKeyAxis": "y",
       "yName": "Evening",
     },
   ],
@@ -14085,6 +14063,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [range-bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [range-bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -14139,6 +14137,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [range-bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [range-bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
   "stackCount": 0,
   "stackIndex": 0,
@@ -14265,6 +14283,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [range-bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [range-bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -14319,6 +14357,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [range-bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [range-bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
   "stackCount": Any<Number>,
   "stackIndex": Any<Number>,
@@ -14385,6 +14443,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [range-bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [range-bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -14445,6 +14523,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [range-bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [range-bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
 exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
@@ -14499,6 +14597,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [range-bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [range-bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
   "stackCount": 0,
   "stackIndex": 0,
@@ -14619,6 +14737,26 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [range-bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [range-bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
   "stackCount": Any<Number>,
   "stackIndex": Any<Number>,

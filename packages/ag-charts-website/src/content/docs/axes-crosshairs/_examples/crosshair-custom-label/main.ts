@@ -29,8 +29,8 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
     series: buildSeries(),
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -43,10 +43,9 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
-            keys: ['year'],
             crosshair: {
                 snap: false,
                 label: {
@@ -54,7 +53,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

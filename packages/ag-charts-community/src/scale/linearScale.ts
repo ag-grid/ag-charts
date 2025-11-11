@@ -1,6 +1,6 @@
 import type { ScaleTickParams } from 'ag-charts-core';
+import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from 'ag-charts-core';
 
-import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 
 /**

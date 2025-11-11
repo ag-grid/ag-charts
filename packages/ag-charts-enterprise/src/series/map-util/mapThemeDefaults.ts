@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { deepClone, jsonWalk } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map-marker'> = {
@@ -22,9 +23,9 @@ export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map
 };
 
 export function applyMapPalette<T extends object>(object: T): T {
-    const clone = _ModuleSupport.deepClone(object);
+    const clone = deepClone(object);
 
-    _ModuleSupport.jsonWalk(clone, (value) => {
+    jsonWalk(clone, (value) => {
         if (typeof value === 'object' && '$palette' in value) {
             (value as any)['$mapPalette'] = value['$palette'];
             delete value['$palette'];

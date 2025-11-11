@@ -11,8 +11,10 @@ import {
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     MockNightingaleStyler,
     clickAction,
+    deproxy,
     doubleClickAction,
     doubleTapAction,
     extractImageData,
@@ -105,16 +107,16 @@ describe('NightingaleSeries', () => {
     it(`should render stacked nightingale chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         chart = AgCharts.create(options);
@@ -146,16 +148,16 @@ describe('NightingaleSeries', () => {
                     grouped: true,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -188,16 +190,16 @@ describe('NightingaleSeries', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -234,6 +236,12 @@ describe('NightingaleSeries', () => {
                     await clickAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await clickAction(x, y)(chart);
+                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
+                    const chartInstance = deproxy(chart);
+                    for (const { legend } of chartInstance.modulesManager.legends()) {
+                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    }
+                    await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
@@ -243,6 +251,12 @@ describe('NightingaleSeries', () => {
                     await tapAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await tapAction(x, y)(chart);
+                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
+                    const chartInstance = deproxy(chart);
+                    for (const { legend } of chartInstance.modulesManager.legends()) {
+                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    }
+                    await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
@@ -754,6 +768,8 @@ describe('NightingaleSeries', () => {
                     await hover(miss);
                     await hover(legendItem0);
                     await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });

@@ -1,4 +1,4 @@
-import { Color } from './color';
+import { Color } from 'ag-charts-core';
 
 export function interpolateNumber(a: number, b: number) {
     return (d: number) => Number(a) * (1 - d) + Number(b) * d;

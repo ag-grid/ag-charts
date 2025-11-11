@@ -39,22 +39,22 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
-    ],
+    },
     formatter: {
         y(params) {
             if (params.source === 'series-label' && !labelDates.includes(params.datum?.date.valueOf() ?? 0)) {

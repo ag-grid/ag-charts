@@ -1,17 +1,26 @@
 import {
+    BaseProperties,
+    Border,
     type Callback,
     type CallbackParam,
     CleanupRegistry,
     type ITextMeasurer,
     LineSplitter,
     Logger,
+    ObserveChanges,
+    Property,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
     cachedTextMeasurer,
+    callWithContext,
     clamp,
     createId,
+    deepClone,
+    isImageFill,
+    isPatternFill,
     isTextTruncated,
+    objectsEqual,
     toPlainText,
     truncateLine,
 } from 'ag-charts-core';
@@ -40,13 +49,6 @@ import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
-import { isImageFill, isPatternFill } from '../../scene/util/fill';
-import { Border } from '../../util/border';
-import { callWithContext } from '../../util/callbackCache';
-import { deepClone } from '../../util/json';
-import { objectsEqual } from '../../util/object';
-import { BaseProperties, Property } from '../../util/properties';
-import { ObserveChanges } from '../../util/proxy';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ChartUpdateType } from '../chartUpdateType';
@@ -1063,7 +1065,7 @@ export class Legend extends BaseProperties {
                 series,
                 itemId,
                 datum: undefined,
-                datumIndex: undefined,
+                datumIndex: typeof itemId === 'number' ? itemId : undefined,
                 legendItemName,
             });
         } else {
@@ -1173,7 +1175,7 @@ export class Legend extends BaseProperties {
                 { type: 'structured', title: this.getItemLabel(datum) },
             ]);
         } else {
-            this.ctx.tooltipManager.removeTooltip(this.id);
+            this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         }
 
         if (datum?.enabled && series) {
@@ -1181,7 +1183,7 @@ export class Legend extends BaseProperties {
                 series,
                 itemId: datum?.itemId,
                 datum: undefined,
-                datumIndex: undefined,
+                datumIndex: typeof datum?.itemId === 'number' ? datum.itemId : undefined,
                 legendItemName: datum?.legendItemName,
             });
         } else {
@@ -1190,7 +1192,7 @@ export class Legend extends BaseProperties {
     }
 
     onLeave() {
-        this.ctx.tooltipManager.removeTooltip(this.id);
+        this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         this.updateHighlight();
     }
 

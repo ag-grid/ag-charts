@@ -1,7 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
-
-const { Property } = _ModuleSupport;
 
 class BaseAutoSizedLabel<FormatterParams> extends _ModuleSupport.Label<FormatterParams> {
     @Property

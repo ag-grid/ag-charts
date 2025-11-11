@@ -8,17 +8,17 @@ const options: AgCartesianChartOptions = {
         text: 'Olympic Medal Counts by Region, Country, and City',
     },
     data: getData(),
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
             position: 'bottom',
             depthOptions: [{}, { label: { fontWeight: 'bold' } }, { label: { fontSize: 10 } }],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',

@@ -1,12 +1,10 @@
-import { AbstractModuleInstance } from 'ag-charts-core';
+import { AbstractModuleInstance, Property, ProxyPropertyOnWrite } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import { Text } from '../../scene/shape/text';
-import { Property } from '../../util/properties';
-import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { ZIndexMap } from '../zIndexMap';
 
 export class Background<TImage = never> extends AbstractModuleInstance {

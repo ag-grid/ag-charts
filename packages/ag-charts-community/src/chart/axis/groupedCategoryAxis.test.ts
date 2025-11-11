@@ -17,6 +17,7 @@ import {
     cartesianChartAssertions,
     createChart,
     extractImageData,
+    mapValues,
     prepareTestOptions,
     repeat,
     reverseAxes,
@@ -38,14 +39,17 @@ const EXAMPLE_GRID_LINE = {
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation, avoidCollisions: false } })),
+        axes: mapValues(opts.axes ?? {}, (axis) => ({
+            ...axis,
+            label: { ...axis.label, rotation, avoidCollisions: false },
+        })),
     };
 }
 
 function disableLabelsDepth0<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) =>
+        axes: mapValues(opts.axes ?? {}, (axis) =>
             axis.type === 'grouped-category'
                 ? {
                       ...axis,
@@ -76,7 +80,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 
@@ -84,7 +88,7 @@ function applyGridLineStyle<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
+            mapValues(opts.axes ?? {}, (axis) =>
                 axis.type === 'grouped-category'
                     ? {
                           ...axis,
@@ -107,7 +111,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: ['bar'],
             }),
             compare: ['grouped-category'],
@@ -115,7 +119,7 @@ const EXAMPLES: Record<string, TestCase> = {
         INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: {
             options: examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
             compare: ['grouped-category'],
@@ -123,7 +127,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE: {
             options: examples.GROUPED_CATEGORY_CHART_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
             compare: ['grouped-category'],
@@ -131,7 +135,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE_LABELS_DISABLED: {
             options: disableLabelsDepth0(examples.GROUPED_CATEGORY_CHART_EXAMPLE),
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
             compare: ['grouped-category'],
@@ -139,7 +143,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_WITH_CROSSLINES: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE_WITH_CROSSLINES,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: ['bar'],
             }),
             compare: ['grouped-category'],
@@ -148,7 +152,7 @@ const EXAMPLES: Record<string, TestCase> = {
     INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: {
         options: examples.INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE,
         assertions: cartesianChartAssertions({
-            axisTypes: ['grouped-category', 'number'],
+            axisTypes: { x: 'grouped-category', y: 'number' },
             seriesTypes: repeat('bar', 21),
         }),
         compare: ['grouped-category'],
@@ -156,7 +160,7 @@ const EXAMPLES: Record<string, TestCase> = {
     GROUPED_CATEGORY_AXIS_FILLS: {
         options: applyGridLineStyle(axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE),
         assertions: cartesianChartAssertions({
-            axisTypes: ['grouped-category', 'number'],
+            axisTypes: { x: 'grouped-category', y: 'number' },
             seriesTypes: ['bar'],
         }),
         compare: ['grouped-category'],
@@ -168,7 +172,7 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: ['bar'],
             }),
             compare: ['grouped-category'],
@@ -269,16 +273,16 @@ describe('Grouped Category Axis Examples', () => {
     describe('AG-15223', () => {
         it('handles lazy data', async () => {
             const options: AgCartesianChartOptions = {
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'time',
                         position: 'bottom',
                     },
-                    {
+                    y: {
                         type: 'grouped-category',
                         position: 'left',
                     },
-                ],
+                },
                 series: [
                     {
                         type: 'scatter',
@@ -326,8 +330,8 @@ describe('Grouped Category Axis Examples', () => {
                 { location: ['Oceania', 'Australia', 'Sydney'], gold: 17, silver: 7, bronze: 22 },
                 { location: ['Oceania', 'New Zealand', 'Auckland'], gold: 10, silver: 5, bronze: 8 },
             ],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'grouped-category',
                     position: 'bottom',
                     label: {
@@ -341,8 +345,8 @@ describe('Grouped Category Axis Examples', () => {
                         { label: { fontSize: 10, fill: 'lime' } },
                     ],
                 },
-                { type: 'number', position: 'left' },
-            ],
+                y: { type: 'number', position: 'left' },
+            },
             series: [
                 { type: 'bar', xKey: 'location', yKey: 'gold' },
                 { type: 'bar', xKey: 'location', yKey: 'silver' },

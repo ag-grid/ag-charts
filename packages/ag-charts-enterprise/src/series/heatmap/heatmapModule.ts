@@ -15,10 +15,10 @@ export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions>
     version: VERSION,
 
     options: heatmapSeriesOptionsDef,
-    defaultAxes: [
-        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.LEFT },
-        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
-    ],
+    defaultAxes: {
+        y: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.LEFT },
+        x: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
+    },
     themeTemplate: HEATMAP_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new HeatmapSeries(ctx),

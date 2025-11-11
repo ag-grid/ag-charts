@@ -8,7 +8,9 @@ import {
     required,
     shapeHighlightOptionsDef,
     string,
+    undocumented,
     union,
+    without,
 } from 'ag-charts-core';
 import type {
     AgScatterSeriesOptions,
@@ -16,7 +18,6 @@ import type {
     AgScatterSeriesThemeableOptions,
 } from 'ag-charts-types';
 
-import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -54,6 +55,15 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     yName: string,
     labelName: string,
     legendItemName: string,
+    xKeyAxis: string,
+    yKeyAxis: string,
     errorBar: errorBarOptionsDefs,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
+
+// @ts-expect-error undocumented option
+scatterSeriesOptionsDef.xFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
+scatterSeriesOptionsDef.yFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
+scatterSeriesOptionsDef.sizeFilterKey = undocumented(string);

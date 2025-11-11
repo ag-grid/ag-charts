@@ -1,9 +1,9 @@
-import { type BoxBounds, CleanupRegistry } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry, objectsEqual } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { objectsEqual } from '../../util/object';
+import { debouncedCallback } from '../../util/render';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
@@ -31,6 +31,18 @@ export class TooltipManager {
     private readonly suppressState = new StateTracker(false);
     private appliedState: TooltipState | null = null;
 
+    // Track pending removals per caller
+    private readonly pendingRemovals = new Map<
+        string,
+        {
+            scheduler: ReturnType<typeof debouncedCallback>;
+            lastMeta: TooltipMeta | undefined;
+        }
+    >();
+
+    // Configurable delay (match highlights at 100ms)
+    private readonly removeDelay: number = 100; // milliseconds
+
     private readonly cleanup = new CleanupRegistry();
 
     public constructor(
@@ -46,6 +58,12 @@ export class TooltipManager {
     }
 
     public destroy() {
+        // Cancel all pending delayed removals
+        for (const { scheduler } of this.pendingRemovals.values()) {
+            scheduler.cancel();
+        }
+        this.pendingRemovals.clear();
+
         this.cleanup.flush();
     }
 
@@ -55,12 +73,53 @@ export class TooltipManager {
         content?: TooltipContent[],
         pagination?: TooltipPaginationState
     ) {
+        // Cancel any pending delayed removal - we're showing a new tooltip
+        const pending = this.pendingRemovals.get(callerId);
+        if (pending) {
+            pending.scheduler.cancel();
+            this.pendingRemovals.delete(callerId);
+        }
+
         content ??= this.stateTracker.get(callerId)?.content;
         this.stateTracker.set(callerId, { meta, content, pagination });
         this.applyStates();
     }
 
-    public removeTooltip(callerId: string) {
+    public removeTooltip(callerId: string, meta?: TooltipMeta, delayed: boolean = false): void {
+        // Case 1: Immediate removal (default behavior - backward compatible)
+        if (delayed && this.removeDelay > 0) {
+            // Case 2: Delayed removal
+            // Check if we already have a pending removal for this caller
+            // This prevents resetting the countdown (same fix as highlights)
+            const existingPending = this.pendingRemovals.get(callerId);
+            if (existingPending) {
+                // Already pending - optionally update position if meta provided
+                // This allows tooltip position to update during delay (future enhancement)
+                if (meta) {
+                    existingPending.lastMeta = meta;
+                }
+                // Don't reset countdown - let it continue
+                return;
+            }
+
+            // First delayed removal call - start the countdown
+            const scheduler = debouncedCallback(() => {
+                this.applyPendingRemoval(callerId);
+            });
+
+            this.pendingRemovals.set(callerId, { scheduler, lastMeta: meta });
+            scheduler.schedule(this.removeDelay);
+            return;
+        }
+
+        // Cancel any pending delayed removal for this caller
+        const pending = this.pendingRemovals.get(callerId);
+        if (pending) {
+            pending.scheduler.cancel();
+            this.pendingRemovals.delete(callerId);
+        }
+
+        // Remove immediately
         this.stateTracker.delete(callerId);
         this.applyStates();
     }
@@ -71,6 +130,20 @@ export class TooltipManager {
 
     public unsuppressTooltip(callerId: string) {
         this.suppressState.delete(callerId);
+    }
+
+    private applyPendingRemoval(callerId: string): void {
+        // Safety check: Make sure there's actually a pending removal
+        if (!this.pendingRemovals.has(callerId)) {
+            return; // No pending removal for this caller
+        }
+
+        // Remove from pending map before clearing state
+        this.pendingRemovals.delete(callerId);
+
+        // Actually remove the tooltip
+        this.stateTracker.delete(callerId);
+        this.applyStates();
     }
 
     private applyStates() {

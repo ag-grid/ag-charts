@@ -1,4 +1,4 @@
-import { Logger, type Point, arraysEqual, clamp } from 'ag-charts-core';
+import { Logger, type Point, StateMachine, arraysEqual, clamp } from 'ag-charts-core';
 import type { FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
@@ -8,7 +8,6 @@ import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
-import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxisDirection } from '../../chartAxisDirection';
 import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';

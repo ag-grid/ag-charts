@@ -1,8 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { mergeDefaults } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
-    mergeDefaults,
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -35,7 +35,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleTheme<'radar-line' | 'radar-area'> = {
             strokeOpacity: 1,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
-        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        highlight: _ModuleSupport.markerSeriesHighlightStyle(),
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },

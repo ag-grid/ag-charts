@@ -1,10 +1,17 @@
-import { CleanupRegistry, clamp, getWindow } from 'ag-charts-core';
+import {
+    BaseProperties,
+    type Bounds,
+    CleanupRegistry,
+    type Placement,
+    Property,
+    calculatePlacement,
+    clamp,
+    getWindow,
+} from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
-import { BaseProperties, Property } from '../../util/properties';
 import { SizeMonitor } from '../../util/sizeMonitor';
 import { SpringAnimation } from './springAnimation';
 import {
@@ -20,6 +27,7 @@ export {
     DEFAULT_TOOLTIP_DARK_CLASS,
     tooltipHtml,
     tooltipContentAriaLabel,
+    isTooltipValueMissing,
     type TooltipContent,
     type TooltipPaginationState,
     type TooltipContentDataRow,

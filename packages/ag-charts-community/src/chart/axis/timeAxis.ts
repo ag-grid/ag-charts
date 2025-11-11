@@ -1,17 +1,23 @@
-import { Logger, extent } from 'ag-charts-core';
+import {
+    BaseProperties,
+    Logger,
+    Property,
+    ProxyPropertyOnWrite,
+    dateTruncationForDomain,
+    extent,
+    intervalEpoch,
+    intervalFloor,
+    intervalMilliseconds,
+    intervalStep,
+    intervalUnit,
+    lowestGranularityForInterval,
+    lowestGranularityUnitForTicks,
+    lowestGranularityUnitForValue,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
-import { BaseProperties, Property } from '../../util/properties';
-import { ProxyPropertyOnWrite } from '../../util/proxy';
-import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
-import {
-    dateTruncationForDomain,
-    lowestGranularityForInterval,
-    lowestGranularityUnitForTicks,
-    lowestGranularityUnitForValue,
-} from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';

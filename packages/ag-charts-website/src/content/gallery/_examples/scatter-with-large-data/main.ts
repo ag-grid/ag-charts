@@ -49,8 +49,8 @@ const options: AgChartOptions = {
             placement: ['right', 'left', 'top', 'bottom'],
         },
     },
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
             nice: false,
@@ -98,14 +98,14 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        x: {
             position: 'bottom',
             type: 'category',
             title: {
                 text: 'Chromosome',
             },
         },
-    ],
+    },
     formatter: {
         y(params) {
             if (params.type !== 'number') return;

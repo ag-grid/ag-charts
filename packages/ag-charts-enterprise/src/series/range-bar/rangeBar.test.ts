@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     MockRangeBarStyler,
     extractImageData,
     hoverAction,
@@ -203,10 +204,10 @@ describe('RangeBarSeries', () => {
                 yHighKey: 'high',
             },
         ],
-        axes: [
-            { type: 'time', position: 'left' },
-            { type: 'category', position: 'bottom' },
-        ],
+        axes: {
+            y: { type: 'time', position: 'left' },
+            x: { type: 'category', position: 'bottom' },
+        },
     };
 
     const compare = async (options = IMAGE_SNAPSHOT_DEFAULTS) => {
@@ -221,7 +222,7 @@ describe('RangeBarSeries', () => {
         direction: 'horizontal' | 'vertical'
     ): T {
         if (axes) {
-            for (const axis of axes) {
+            for (const axis of Object.values(axes)) {
                 switch (axis.position) {
                     case 'left':
                         axis.position = 'bottom';
@@ -335,18 +336,18 @@ describe('RangeBarSeries', () => {
     it(`should render a range-bar chart with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                     reverse: true,
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -357,18 +358,18 @@ describe('RangeBarSeries', () => {
     it(`should render a horizontal range-bar chart with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal'),
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                     reverse: true,
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -380,16 +381,16 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -401,17 +402,17 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -424,16 +425,16 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'unit-time',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -446,17 +447,17 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'unit-time',
                     reverse: true,
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -468,16 +469,16 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -489,17 +490,17 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -512,16 +513,16 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -534,17 +535,17 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                     reverse: true,
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -1064,6 +1065,8 @@ describe('RangeBarSeries', () => {
                     await hover(miss);
                     await hover(legendItem0);
                     await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -1096,10 +1099,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1147,10 +1150,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1191,10 +1194,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'left' },
-                    { type: 'number', position: 'bottom' },
-                ],
+                axes: {
+                    y: { type: 'category', position: 'left' },
+                    x: { type: 'number', position: 'bottom' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1260,10 +1263,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1328,10 +1331,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1390,10 +1393,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1439,10 +1442,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'time', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 

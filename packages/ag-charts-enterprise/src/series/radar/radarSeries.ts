@@ -14,6 +14,7 @@ import {
     extent,
     isFiniteNumber,
     isNumberEqual,
+    mergeDefaults,
 } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
@@ -40,7 +41,6 @@ const {
     Marker,
     updateLabelNode,
     getMarkerStyles,
-    mergeDefaults,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {
@@ -470,6 +470,7 @@ export abstract class RadarSeries<
                         label: radiusName,
                         fallbackLabel: radiusKey,
                         value: this.getAxisValueText(radiusAxis, 'tooltip', radiusValue, datum, radiusKey, undefined),
+                        missing: _ModuleSupport.isTooltipValueMissing(radiusValue),
                     },
                 ],
             },

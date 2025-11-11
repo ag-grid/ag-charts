@@ -13,6 +13,7 @@ import type {
     Ratio,
 } from '../../chart/types';
 import type {
+    AgBasePolarSeriesAxisOptions,
     AgColorType,
     FillOptions,
     FontOptions,
@@ -141,6 +142,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
 
 export interface AgPieSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
+        AgBasePolarSeriesAxisOptions,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {

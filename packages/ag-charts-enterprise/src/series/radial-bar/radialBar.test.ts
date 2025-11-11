@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     MockRadialColumnStyler,
     extractImageData,
     hoverAction,
@@ -89,16 +90,16 @@ describe('RadialBarSeries', () => {
     it(`should render radial bar chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-number',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         chart = AgCharts.create(options);
@@ -130,16 +131,16 @@ describe('RadialBarSeries', () => {
                     stacked: true,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-number',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -175,7 +176,7 @@ describe('RadialBarSeries', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [{ type: 'angle-number', nice: false }, { type: 'radius-category' }],
+            axes: { angle: { type: 'angle-number', nice: false }, radius: { type: 'radius-category' } },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -193,10 +194,10 @@ describe('RadialBarSeries', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [
-                { type: 'angle-number', nice: false, reverse: true },
-                { type: 'radius-category', reverse: true },
-            ],
+            axes: {
+                angle: { type: 'angle-number', nice: false, reverse: true },
+                radius: { type: 'radius-category', reverse: true },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -647,6 +648,8 @@ describe('RadialBarSeries', () => {
                     await hover(miss);
                     await hover(legendItem0);
                     await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });

@@ -20,8 +20,8 @@ const options: AgCartesianChartOptions = {
             yKey: 'population',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'log',
             position: 'left',
             title: {
@@ -31,14 +31,14 @@ const options: AgCartesianChartOptions = {
                 format: ',.0f',
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
@@ -47,7 +47,7 @@ function setNumberAxis() {
     options.subtitle = {
         text: 'linear scale',
     };
-    options.axes![0] = {
+    options.axes!.x! = {
         type: 'number',
         position: 'left',
         title: {
@@ -64,7 +64,7 @@ function setLogAxis() {
     options.subtitle = {
         text: 'log scale',
     };
-    options.axes![0] = {
+    options.axes!.x! = {
         type: 'log',
         position: 'left',
         title: {

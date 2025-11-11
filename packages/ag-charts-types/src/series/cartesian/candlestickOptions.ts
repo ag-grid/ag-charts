@@ -7,7 +7,13 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
-import type { AxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    AxisOptions,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
+} from './commonOptions';
 import type {
     AgOhlcSeriesBaseItemStylerParams,
     AgOhlcSeriesBaseOptions,
@@ -60,6 +66,7 @@ export interface AgCandlestickHighlightStyleOptions extends AgCandlestickSeriesI
 export interface AgCandlestickSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgCandlestickSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgOhlcSeriesBaseOptions<TDatum>,
         Omit<AxisOptions<TDatum>, 'yKey'> {
     /** Configuration for the Candlestick Series. */

@@ -12,6 +12,7 @@ import {
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, AgAreaSeriesStylerResult, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
 
@@ -59,6 +60,8 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     type: required(constant('area')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     legendItemName: string,
@@ -66,3 +69,6 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     stackGroup: string,
     normalizedTo: number,
 };
+
+// @ts-expect-error undocumented option
+areaSeriesOptionsDef.yFilterKey = undocumented(string);

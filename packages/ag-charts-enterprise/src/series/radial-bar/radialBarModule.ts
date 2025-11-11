@@ -17,7 +17,7 @@ export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOpti
     version: VERSION,
 
     options: radialBarSeriesOptionsDef,
-    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY }],
+    defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, radius: { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY } },
     themeTemplate: RADIAL_BAR_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RadialBarSeries(ctx),

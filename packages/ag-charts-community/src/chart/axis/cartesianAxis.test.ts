@@ -143,10 +143,10 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: NUMERIC_DATA,
             theme: THEME,
-            axes: [
-                { type: 'number', position: 'bottom', crossAt: { value: 0 } },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', crossAt: { value: 0 } },
+                y: { type: 'number', position: 'left' },
+            },
             series: [
                 {
                     type: 'line',
@@ -161,10 +161,10 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: NUMERIC_DATA,
             theme: THEME,
-            axes: [
-                { type: 'number', position: 'bottom' },
-                { type: 'number', position: 'left', crossAt: { value: 0 } },
-            ],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', crossAt: { value: 0 } },
+            },
             series: [
                 {
                     type: 'line',
@@ -179,15 +179,15 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: NUMERIC_DATA,
             theme: THEME,
-            axes: [
-                { type: 'number', position: 'bottom' },
-                {
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: {
                     type: 'number',
                     position: 'left',
                     crossAt: { value: -9.5 },
                     tick: { size: 20, stroke: 'black' },
                 },
-            ],
+            },
             series: [
                 {
                     type: 'line',
@@ -202,13 +202,18 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: NUMERIC_DATA,
             theme: THEME,
-            axes: [
-                { type: 'number', position: 'bottom', crossAt: { value: -9.5 }, tick: { size: 20, stroke: 'black' } },
-                {
+            axes: {
+                x: {
+                    type: 'number',
+                    position: 'bottom',
+                    crossAt: { value: -9.5 },
+                    tick: { size: 20, stroke: 'black' },
+                },
+                y: {
                     type: 'number',
                     position: 'left',
                 },
-            ],
+            },
             series: [
                 {
                     type: 'line',
@@ -223,13 +228,13 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: NUMERIC_DATA,
             theme: THEME,
-            axes: [
-                { type: 'number', position: 'top', crossAt: { value: 10 }, tick: { size: 20, stroke: 'black' } },
-                {
+            axes: {
+                x: { type: 'number', position: 'top', crossAt: { value: 10 }, tick: { size: 20, stroke: 'black' } },
+                y: {
                     type: 'number',
                     position: 'left',
                 },
-            ],
+            },
             series: [
                 {
                     type: 'line',
@@ -244,15 +249,15 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: NUMERIC_DATA,
             theme: THEME,
-            axes: [
-                { type: 'number', position: 'top' },
-                {
+            axes: {
+                x: { type: 'number', position: 'top' },
+                y: {
                     type: 'number',
                     position: 'right',
                     crossAt: { value: 9.5 },
                     tick: { size: 20, stroke: 'black' },
                 },
-            ],
+            },
             series: [
                 {
                     type: 'line',
@@ -267,10 +272,10 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             theme: THEME,
             data: LOG_DATA,
-            axes: [
-                { type: 'number', position: 'bottom' },
-                { type: 'log', position: 'right', crossAt: { value: 0 } },
-            ],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'log', position: 'right', crossAt: { value: 0 } },
+            },
             series: [
                 {
                     type: 'line',
@@ -285,10 +290,10 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             theme: THEME,
             data: LOG_DATA,
-            axes: [
-                { type: 'number', position: 'bottom', crossAt: { value: 100 } },
-                { type: 'log', position: 'right' },
-            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', crossAt: { value: 100 } },
+                y: { type: 'log', position: 'right' },
+            },
             series: [
                 {
                     type: 'line',
@@ -303,10 +308,10 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: TIME_DATA,
             theme: THEME,
-            axes: [
-                { type: 'unit-time', position: 'top', crossAt: { value: 2 } },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'unit-time', position: 'top', crossAt: { value: 2 } },
+                y: { type: 'number', position: 'left' },
+            },
             series: [
                 {
                     type: 'line',
@@ -321,10 +326,10 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: TIME_DATA,
             theme: THEME,
-            axes: [
-                { type: 'unit-time', position: 'top' },
-                { type: 'number', position: 'left', crossAt: { value: new Date('2024-01-03T00:00:00Z') } },
-            ],
+            axes: {
+                x: { type: 'unit-time', position: 'top' },
+                y: { type: 'number', position: 'left', crossAt: { value: new Date('2024-01-03T00:00:00Z') } },
+            },
             series: [
                 {
                     type: 'line',
@@ -339,10 +344,10 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: CATEGORY_DATA,
             theme: THEME,
-            axes: [
-                { type: 'category', position: 'bottom', crossAt: { value: 0 } },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'category', position: 'bottom', crossAt: { value: 0 } },
+                y: { type: 'number', position: 'left' },
+            },
             series: [
                 {
                     type: 'bar',
@@ -358,10 +363,10 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: CATEGORY_DATA,
             theme: THEME,
-            axes: [
-                { type: 'category', position: 'bottom' },
-                { type: 'number', position: 'left', crossAt: { value: 'B' } },
-            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', crossAt: { value: 'B' } },
+            },
             series: [
                 {
                     type: 'bar',
@@ -376,19 +381,19 @@ const validScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: GROUPED_CATEGORY_DATA,
             theme: THEME,
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'grouped-category',
                     position: 'bottom',
                     depthOptions: [{}, { label: { fontWeight: 'bold' } }, { label: { fontSize: 10 } }],
                     crossAt: { value: 40 },
                 },
-                {
+                y: {
                     type: 'number',
                     position: 'left',
                     crossAt: { value: ['North America', 'United States', 'New York'] },
                 },
-            ],
+            },
             series: [
                 {
                     type: 'bar',
@@ -408,10 +413,10 @@ const outOfDomainScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: NUMERIC_DATA,
             theme: THEME,
-            axes: [
-                { type: 'number', position: 'bottom', crossAt: { value: 999 } },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', crossAt: { value: 999 } },
+                y: { type: 'number', position: 'left' },
+            },
             series: [
                 {
                     type: 'line',
@@ -429,10 +434,10 @@ const invalidValueScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: NUMERIC_DATA,
             theme: THEME,
-            axes: [
-                { type: 'number', position: 'bottom', crossAt: { value: 'invalid' } },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', crossAt: { value: 'invalid' } },
+                y: { type: 'number', position: 'left' },
+            },
             series: [
                 {
                     type: 'line',
@@ -447,10 +452,10 @@ const invalidValueScenarios: Scenario[] = [
         optionsFactory: () => ({
             data: CATEGORY_DATA,
             theme: THEME,
-            axes: [
-                { type: 'category', position: 'bottom' },
-                { type: 'number', position: 'left', crossAt: { value: 'Z' } },
-            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', crossAt: { value: 'Z' } },
+            },
             series: [
                 {
                     type: 'bar',
@@ -518,10 +523,10 @@ describe('CartesianAxis crossAt', () => {
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     theme: THEME,
-                    axes: [
-                        { type: 'number', position: 'bottom', crossAt: { value: 15, sticky: true } },
-                        { type: 'number', position: 'left' },
-                    ],
+                    axes: {
+                        x: { type: 'number', position: 'bottom', crossAt: { value: 15, sticky: true } },
+                        y: { type: 'number', position: 'left' },
+                    },
                     series: [
                         {
                             type: 'line',
@@ -536,10 +541,10 @@ describe('CartesianAxis crossAt', () => {
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     theme: THEME,
-                    axes: [
-                        { type: 'number', position: 'bottom', crossAt: { value: 15, sticky: false } },
-                        { type: 'number', position: 'left' },
-                    ],
+                    axes: {
+                        x: { type: 'number', position: 'bottom', crossAt: { value: 15, sticky: false } },
+                        y: { type: 'number', position: 'left' },
+                    },
                     series: [
                         {
                             type: 'line',
@@ -554,10 +559,10 @@ describe('CartesianAxis crossAt', () => {
                 optionsFactory: () => ({
                     data: CATEGORY_DATA,
                     theme: THEME,
-                    axes: [
-                        { type: 'category', position: 'bottom' },
-                        { type: 'number', position: 'left', crossAt: { value: 'Z', sticky: true } },
-                    ],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left', crossAt: { value: 'Z', sticky: true } },
+                    },
                     series: [
                         {
                             type: 'bar',
@@ -572,10 +577,10 @@ describe('CartesianAxis crossAt', () => {
                 optionsFactory: () => ({
                     data: CATEGORY_DATA,
                     theme: THEME,
-                    axes: [
-                        { type: 'category', position: 'bottom' },
-                        { type: 'number', position: 'left', crossAt: { value: 'Z', sticky: false } },
-                    ],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left', crossAt: { value: 'Z', sticky: false } },
+                    },
                     series: [
                         {
                             type: 'bar',
@@ -590,10 +595,10 @@ describe('CartesianAxis crossAt', () => {
                 optionsFactory: () => ({
                     theme: THEME,
                     data: LOG_DATA,
-                    axes: [
-                        { type: 'number', position: 'bottom', crossAt: { value: 200000, sticky: true } },
-                        { type: 'log', position: 'left' },
-                    ],
+                    axes: {
+                        x: { type: 'number', position: 'bottom', crossAt: { value: 200000, sticky: true } },
+                        y: { type: 'log', position: 'left' },
+                    },
                     series: [
                         {
                             type: 'line',
@@ -608,10 +613,10 @@ describe('CartesianAxis crossAt', () => {
                 optionsFactory: () => ({
                     theme: THEME,
                     data: LOG_DATA,
-                    axes: [
-                        { type: 'number', position: 'bottom', crossAt: { value: 200000, sticky: false } },
-                        { type: 'log', position: 'left' },
-                    ],
+                    axes: {
+                        x: { type: 'number', position: 'bottom', crossAt: { value: 200000, sticky: false } },
+                        y: { type: 'log', position: 'left' },
+                    },
                     series: [
                         {
                             type: 'line',
@@ -626,14 +631,14 @@ describe('CartesianAxis crossAt', () => {
                 optionsFactory: () => ({
                     data: TIME_DATA,
                     theme: THEME,
-                    axes: [
-                        { type: 'unit-time', position: 'bottom' },
-                        {
+                    axes: {
+                        x: { type: 'unit-time', position: 'bottom' },
+                        y: {
                             type: 'number',
                             position: 'left',
                             crossAt: { value: new Date('2025-01-01T00:00:00Z'), sticky: true },
                         },
-                    ],
+                    },
                     series: [
                         {
                             type: 'line',
@@ -648,14 +653,14 @@ describe('CartesianAxis crossAt', () => {
                 optionsFactory: () => ({
                     data: TIME_DATA,
                     theme: THEME,
-                    axes: [
-                        { type: 'unit-time', position: 'bottom' },
-                        {
+                    axes: {
+                        x: { type: 'unit-time', position: 'bottom' },
+                        y: {
                             type: 'number',
                             position: 'left',
                             crossAt: { value: new Date('2025-01-01T00:00:00Z'), sticky: false },
                         },
-                    ],
+                    },
                     series: [
                         {
                             type: 'line',
@@ -685,8 +690,8 @@ describe('CartesianAxis crossAt', () => {
             const options: AgCartesianChartOptions = {
                 title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
                 data,
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'number',
                         position: 'bottom',
                         min: -6,
@@ -700,7 +705,7 @@ describe('CartesianAxis crossAt', () => {
                         },
                         crossAt: { value: 0 },
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         min: -6,
@@ -710,7 +715,7 @@ describe('CartesianAxis crossAt', () => {
                         },
                         crossAt: { value: 0 },
                     },
-                ],
+                },
                 legend: {
                     enabled: true,
                 },
@@ -733,8 +738,8 @@ describe('CartesianAxis crossAt', () => {
             const options: AgCartesianChartOptions = {
                 title: { text: 'x Axis crossing at 0', fontWeight: 'bold' },
                 data,
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'number',
                         position: 'bottom',
                         min: -6,
@@ -748,7 +753,7 @@ describe('CartesianAxis crossAt', () => {
                         },
                         crossAt: { value: 0 },
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         min: -6,
@@ -757,7 +762,7 @@ describe('CartesianAxis crossAt', () => {
                             stroke: 'black',
                         },
                     },
-                ],
+                },
                 series: [
                     {
                         type: 'line',
@@ -785,8 +790,8 @@ describe('CartesianAxis crossAt', () => {
                     { x: 3, y: -15 },
                     { x: 4, y: 2 },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'number',
                         position: 'bottom',
                         crossAt: { value: 10 },
@@ -801,8 +806,8 @@ describe('CartesianAxis crossAt', () => {
                             values: [0, 1, 2, 3, 4],
                         },
                     },
-                    { type: 'number', position: 'left', min: -20, max: 20 },
-                ],
+                    y: { type: 'number', position: 'left', min: -20, max: 20 },
+                },
                 series: [
                     {
                         type: 'bar',

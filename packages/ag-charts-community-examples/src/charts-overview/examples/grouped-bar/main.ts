@@ -50,12 +50,12 @@ const options: AgChartOptions = {
       yName: "Annual growth in regular pay",
     },
   ],
-  axes: [
-    {
+  axes: {
+    y: {
       type: "category",
       position: "left",
     },
-    {
+    x: {
       type: "number",
       position: "bottom",
       title: {
@@ -63,7 +63,7 @@ const options: AgChartOptions = {
         text: "%",
       },
     },
-  ],
+  },
 }
 
 AgCharts.create(options)

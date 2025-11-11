@@ -1,7 +1,10 @@
+import type { PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
+    ActionOnSet,
     type Callback,
     type CallbackParam,
     CleanupRegistry,
+    type DistantObject,
     EventEmitter,
     type InternalAgColorType,
     LRUCache,
@@ -9,8 +12,15 @@ import {
     type Point,
     type RequireOptional,
     type SeriesPluginModuleInstance,
+    callWithContext,
     createId,
     isEmptyObject,
+    isGradientFill,
+    isPatternFill,
+    jsonDiff,
+    mergeDefaults,
+    nearestSquared,
+    without,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -39,15 +49,8 @@ import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
-import { isGradientFill, isPatternFill } from '../../scene/util/fill';
-import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
-import { callWithContext } from '../../util/callbackCache';
-import { jsonDiff } from '../../util/json';
-import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { mergeDefaults, without } from '../../util/object';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
-import { ActionOnSet } from '../../util/proxy';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -282,13 +285,12 @@ export abstract class Series<
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new TranslatableGroup({ name: `${this.internalId}-highlight-node` })
+        new Group({ name: `${this.internalId}-highlight-node` })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(
-        new TranslatableGroup({
+        new Group({
             name: `${this.internalId}-highlight-label`,
-            pointerEvents: PointerEvents.None,
             zIndex: SeriesContentZIndexMap.LABEL,
         })
     );
@@ -416,6 +418,8 @@ export abstract class Series<
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
 
+        this.highlightLabelGroup.pointerEvents = PointerEvents.None;
+
         this.cleanup.register(
             this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event))
@@ -529,6 +533,10 @@ export abstract class Series<
         addValues(...keys.map((key) => (this.properties as any)[key]));
 
         return values;
+    }
+
+    getKeyAxis(_direction: ChartAxisDirection): string | undefined {
+        return undefined;
     }
 
     getKeys(direction: ChartAxisDirection): string[] {

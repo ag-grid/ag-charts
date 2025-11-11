@@ -10,6 +10,7 @@ import {
     type ScaleType,
     type SeriesPluginModuleInstance,
     isDefined,
+    mergeDefaults,
 } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
@@ -17,8 +18,7 @@ import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 import { ErrorBarProperties } from './errorBarProperties';
 
-const { fixNumericExtent, groupAccumulativeValueProperty, mergeDefaults, valueProperty, ChartAxisDirection } =
-    _ModuleSupport;
+const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty, ChartAxisDirection } = _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<
     _ModuleSupport.CartesianSeries<

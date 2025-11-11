@@ -14,6 +14,7 @@ import {
 import {
     Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     MockErrorBarStyler,
     clickAction,
     computeLegendBBox,
@@ -286,10 +287,10 @@ describe('ErrorBars', () => {
     it('should render both errorbars on continuous line series as expected', async () => {
         chart = await createEnterpriseChart({
             series: [{ ...SERIES_BOYLESLAW, type: 'line' }],
-            axes: [
-                { type: 'number', position: 'left' },
-                { type: 'number', position: 'bottom' },
-            ],
+            axes: {
+                y: { type: 'number', position: 'left' },
+                x: { type: 'number', position: 'bottom' },
+            },
         });
         await compare();
     });
@@ -596,6 +597,7 @@ describe('ErrorBars', () => {
 
         // Unhighlight Canada (Australia opacity to should be restored)
         await hoverAction(0, 0)(chart);
+        await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
         await compare();
     });
 
@@ -792,7 +794,7 @@ describe('ErrorBars', () => {
 
         // Hover over nothing
         await hoverAction(0, 0)(chart);
-        await waitForChartStability(chart);
+        await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
         expect(result).toStrictEqual([false]);
     });
 
@@ -852,7 +854,7 @@ describe('ErrorBars', () => {
 
         // Hover over nothing
         await hoverAction(x, y - 100)(chart);
-        await waitForChartStability(chart);
+        await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
         expect(getCursor(chart)).toBe('default');
     });
 

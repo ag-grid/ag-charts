@@ -1,8 +1,7 @@
-import { type BoxBounds, type Point, clamp, createElement } from 'ag-charts-core';
+import { type BoxBounds, type Point, clamp, createElement, getIconClassNames } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { getIconClassNames } from '../../util/dom';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { DraggablePopover } from '../popover/draggablePopover';
 import type { PopoverOptions } from '../popover/popover';

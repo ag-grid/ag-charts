@@ -5,7 +5,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, isDefined, normalizeAngle360 } from 'ag-charts-core';
+import { type Point, isDefined, isGradientFill, normalizeAngle360 } from 'ag-charts-core';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { getItemStyle, getStyle } from '../util/radialUtil';
@@ -31,7 +31,6 @@ const {
     CategoryScale,
     motion,
     applyShapeStyle,
-    isGradientFill,
     updateLabelNode,
     getItemStyles,
 } = _ModuleSupport;
@@ -553,6 +552,7 @@ export abstract class RadialColumnSeriesBase<
                         label: radiusName,
                         fallbackLabel: radiusKey,
                         value: this.getAxisValueText(radiusAxis, 'tooltip', radiusValue, datum, radiusKey, undefined),
+                        missing: _ModuleSupport.isTooltipValueMissing(radiusValue),
                     },
                 ],
             },
@@ -592,7 +592,7 @@ export abstract class RadialColumnSeriesBase<
             lineDashOffset,
         };
 
-        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+        if (isGradientFill(markerStyle.fill)) {
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
         }
 

@@ -1,5 +1,6 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer } from 'ag-charts-core';
+import type { PlacedLabel } from 'ag-charts-core';
+import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
 import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -21,7 +22,6 @@ const {
     Selection,
     Text,
     Transformable,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapLineNodeDataContext
@@ -71,19 +71,15 @@ export class MapLineSeries extends TopologySeries<
         this.contentGroup,
         () => this.nodeFactory()
     );
-    private labelSelection: _ModuleSupport.Selection<
-        _ModuleSupport.Text,
-        _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
-    > = Selection.select(this.labelGroup, Text);
+    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
+        Selection.select(this.labelGroup, Text);
     private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
         this.highlightNodeGroup,
         () => this.nodeFactory()
     );
-    private highlightLabelSelection: _ModuleSupport.Selection<
-        _ModuleSupport.Text,
-        _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
-    > = Selection.select(this.highlightLabelGroup, Text);
-    private placedLabelData: _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>[] = [];
+    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
+        Selection.select(this.highlightLabelGroup, Text);
+    private placedLabelData: PlacedLabel<MapLineNodeLabelDatum>[] = [];
 
     public contextNodeData?: MapLineNodeDataContext;
 
@@ -449,14 +445,16 @@ export class MapLineSeries extends TopologySeries<
         const { properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const style = mergeDefaults(highlightStyle, properties.getStyle());
+        const baseStyle = properties.getStyle();
 
-        if (!isHighlight && colorValue != null) {
-            style.stroke = this.isColorScaleValid()
+        if (colorValue != null) {
+            baseStyle.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.stroke;
         }
+
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const style = mergeDefaults(highlightStyle, baseStyle);
 
         if (sizeValue != null) {
             style.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
@@ -526,7 +524,7 @@ export class MapLineSeries extends TopologySeries<
         });
     }
 
-    public override updatePlacedLabelData(labelData: _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>[]) {
+    public override updatePlacedLabelData(labelData: PlacedLabel<MapLineNodeLabelDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection = this.labelSelection.update(labelData, (text) => {
             text.pointerEvents = _ModuleSupport.PointerEvents.None;
@@ -539,10 +537,7 @@ export class MapLineSeries extends TopologySeries<
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<
-            _ModuleSupport.Text,
-            _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
-        >;
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>>;
         isHighlight: boolean;
     }) {
         const { properties } = this;

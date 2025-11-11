@@ -22,18 +22,18 @@ const options: AgChartOptions = {
             radiusName: 'Efficiency',
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
         },
-        {
+        radius: {
             type: 'radius-number',
             positionAngle: 72,
             label: {
                 rotation: -72,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

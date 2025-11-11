@@ -37,19 +37,19 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'SAAR %',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

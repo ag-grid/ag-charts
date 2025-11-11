@@ -3,6 +3,7 @@ import type {
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
+import { Color, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgHighlightOptions,
@@ -13,34 +14,32 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
-import { Color } from '../../util/color';
-import { mapValues } from '../../util/object';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from './constants';
 
 type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
 
-export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]> = [
-    {
-        type: CARTESIAN_AXIS_TYPE.NUMBER,
-        position: {
+export const DIRECTION_SWAP_AXES: WithThemeParams<Record<string, CartesianAxis>> = {
+    x: {
+        position: CARTESIAN_POSITION.BOTTOM,
+        type: {
             $if: [
                 { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
-                CARTESIAN_POSITION.BOTTOM,
-                CARTESIAN_POSITION.LEFT,
+                CARTESIAN_AXIS_TYPE.NUMBER,
+                CARTESIAN_AXIS_TYPE.CATEGORY,
             ],
         },
     },
-    {
-        type: CARTESIAN_AXIS_TYPE.CATEGORY,
-        position: {
+    y: {
+        position: CARTESIAN_POSITION.LEFT,
+        type: {
             $if: [
                 { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
-                CARTESIAN_POSITION.LEFT,
-                CARTESIAN_POSITION.BOTTOM,
+                CARTESIAN_AXIS_TYPE.CATEGORY,
+                CARTESIAN_AXIS_TYPE.NUMBER,
             ],
         },
     },
-];
+};
 
 export const SAFE_FILL_OPERATION: any = {
     $if: [
@@ -387,6 +386,15 @@ export function multiSeriesHighlightStyle(): WithThemeParams<AgMultiSeriesHighli
     };
 }
 
+export function markerSeriesHighlightStyle(): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        enabled: true,
+        unhighlightedSeries: {
+            opacity: 0.2,
+        },
+    };
+}
+
 export function partWholeHighlightStyle(): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
     return {
         enabled: true,
@@ -426,42 +434,40 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
     enabled: false,
     key: 'x',
     segments: {
-        $apply: [
-            {
-                fill: {
-                    $applySwitch: [
-                        { $path: 'type' },
-                        { $path: '../../../fill' },
-                        ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                    ],
-                },
-                stroke: { $path: '../../../stroke' },
-                fillOpacity: { $path: '../../../fillOpacity' },
-                strokeWidth: {
-                    $isUserOption: [
-                        './stroke',
-                        {
-                            $isUserOption: [
-                                '../../../strokeWidth',
-                                { $path: '../../../strokeWidth' },
-                                {
-                                    $if: [
-                                        { $greaterThan: [{ $path: '../../../strokeWidth' }, 0] },
-                                        { $path: '../../../strokeWidth' },
-                                        2,
-                                    ],
-                                },
-                            ],
-                        },
-                        { $path: '../../../strokeWidth' },
-                    ],
-                },
-                strokeOpacity: { $path: '../../../strokeOpacity' },
-                lineDash: { $path: '../../../lineDash' },
-                lineDashOffset: { $path: '../../../lineDashOffset' },
+        $apply: {
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $path: '../../../fill' },
+                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
+                ],
             },
-        ],
+            stroke: { $path: '../../../stroke' },
+            fillOpacity: { $path: '../../../fillOpacity' },
+            strokeWidth: {
+                $isUserOption: [
+                    './stroke',
+                    {
+                        $isUserOption: [
+                            '../../../strokeWidth',
+                            { $path: '../../../strokeWidth' },
+                            {
+                                $if: [
+                                    { $greaterThan: [{ $path: '../../../strokeWidth' }, 0] },
+                                    { $path: '../../../strokeWidth' },
+                                    2,
+                                ],
+                            },
+                        ],
+                    },
+                    { $path: '../../../strokeWidth' },
+                ],
+            },
+            strokeOpacity: { $path: '../../../strokeOpacity' },
+            lineDash: { $path: '../../../lineDash' },
+            lineDashOffset: { $path: '../../../lineDashOffset' },
+        },
     },
 };

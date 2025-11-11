@@ -1,4 +1,7 @@
 import {
+    BaseProperties,
+    Property,
+    ProxyPropertyOnWrite,
     createId,
     isArray,
     isSegmentTruncated,
@@ -13,8 +16,6 @@ import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
-import { BaseProperties, Property } from '../util/properties';
-import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
@@ -138,6 +139,6 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     private handleMouseLeave(moduleCtx: ModuleContext, _event: MouseWidgetEvent<'mouseleave'>) {
-        moduleCtx.tooltipManager.removeTooltip(this.id);
+        moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
     }
 }

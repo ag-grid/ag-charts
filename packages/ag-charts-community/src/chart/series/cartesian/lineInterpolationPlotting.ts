@@ -1,7 +1,6 @@
-import type { Point } from 'ag-charts-core';
+import { type Point, solveBezier, splitBezier2D } from 'ag-charts-core';
 
 import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
-import { solveBezier, splitBezier2D } from '../../../scene/util/bezier';
 import { type CubicSpan, type LinearSpan, type Span, SpanJoin, type StepSpan, spanRange } from './lineInterpolation';
 
 type SpanSupertype = {

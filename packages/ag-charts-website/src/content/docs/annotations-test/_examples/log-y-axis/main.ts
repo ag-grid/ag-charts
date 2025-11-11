@@ -18,8 +18,8 @@ const options: AgCartesianChartOptions = {
             yKey: 'population',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'log',
             position: 'left',
             title: {
@@ -29,14 +29,14 @@ const options: AgCartesianChartOptions = {
                 format: ',.0f',
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

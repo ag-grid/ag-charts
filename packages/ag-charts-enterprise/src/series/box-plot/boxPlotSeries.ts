@@ -5,7 +5,8 @@ import {
     type AgBoxPlotSeriesStylerParams,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DeepRequired } from 'ag-charts-core';
+import type { CallbackParamRules, DeepRequired } from 'ag-charts-core';
+import { deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
@@ -15,7 +16,6 @@ import type { BoxPlotNodeDatum } from './boxPlotTypes';
 const {
     fixNumericExtent,
     keyProperty,
-    mergeDefaults,
     SeriesNodePickMode,
     SMALLEST_KEY_INTERVAL,
     valueProperty,
@@ -276,7 +276,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         return {
             marker: {
-                fill: _ModuleSupport.deepClone(fill),
+                fill: deepClone(fill),
                 fillOpacity,
                 stroke,
                 strokeOpacity,
@@ -357,26 +357,31 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 label: minName,
                 fallbackLabel: minKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', minValue, datum, minKey, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(minValue),
             },
             {
                 label: q1Name,
                 fallbackLabel: q1Key,
                 value: this.getAxisValueText(yAxis, 'tooltip', q1Value, datum, q1Key, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(q1Value),
             },
             {
                 label: medianName,
                 fallbackLabel: medianKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', medianValue, datum, medianKey, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(medianValue),
             },
             {
                 label: q3Name,
                 fallbackLabel: q3Key,
                 value: this.getAxisValueText(yAxis, 'tooltip', q3Value, datum, q3Key, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(q3Value),
             },
             {
                 label: maxName,
                 fallbackLabel: maxKey,
                 value: this.getAxisValueText(yAxis, 'tooltip', maxValue, datum, maxKey, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(maxValue),
             },
         ];
 
@@ -477,7 +482,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         // -   `fill` is a required color property that can be a string or a partial-object.
         // -   `yName` key has no `yKey` fallback like `xName`.
         type T = ReturnType<BoxPlotSeries['makeStylerParams']>;
-        type Rules = _ModuleSupport.CallbackParamRules<DeepRequired<Omit<T, 'yName'>, 'fill'> & Pick<T, 'yName'>>;
+        type Rules = CallbackParamRules<DeepRequired<Omit<T, 'yName'>, 'fill'> & Pick<T, 'yName'>>;
         return {
             cap: { lengthRatio },
             cornerRadius,

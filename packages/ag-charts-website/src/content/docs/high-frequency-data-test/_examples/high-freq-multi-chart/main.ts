@@ -59,8 +59,8 @@ const commonConfig = {
             yName: 'User',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time' as const,
             position: 'bottom' as const,
             nice: false,
@@ -71,7 +71,7 @@ const commonConfig = {
                 size: 3,
             },
         },
-        {
+        y: {
             type: 'number' as const,
             position: 'left' as const,
             title: {
@@ -86,7 +86,7 @@ const commonConfig = {
                 size: 3,
             },
         },
-    ],
+    },
 };
 
 function createChart(index: number): [AgChartOptions, any] {

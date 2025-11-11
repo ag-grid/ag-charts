@@ -34,8 +34,8 @@ const options1: AgCartesianChartOptions = {
     ],
     legend: { enabled: false },
     background: { fill: 'rgb(0, 255, 0)' },
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'category',
             title: { enabled: false },
@@ -54,7 +54,7 @@ const options1: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: { enabled: false },
@@ -73,7 +73,7 @@ const options1: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const options2 = {

@@ -31,6 +31,7 @@ const PORTIONS: AgLineSeriesOptions = {
     xKey: 'year',
     yKey: 'portions',
     yName: 'Portions',
+    yKeyAxis: 'ySecondary',
 };
 
 const BAR_AND_LINE: AgCartesianSeriesOptions[] = [
@@ -52,30 +53,26 @@ const options: AgCartesianChartOptions = {
         text: 'Fruit & Vegetable Consumption',
     },
     series: BAR_AND_LINE,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
-            // primary y axis
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men', 'children', 'adults'],
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
         },
-        {
-            // secondary y axis
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',
             },
         },
-    ] as AgCartesianAxisOptions[],
+    },
 };
 
 const chart = AgCharts.create(options);

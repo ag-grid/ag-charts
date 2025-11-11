@@ -1,11 +1,11 @@
 import { type AgCandlestickSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import { type InternalAgGradientColor, isGradientFill, isImageFill, isPatternFill } from 'ag-charts-core';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { isGradientFill, isPatternFill, isImageFill, applyShapeStyle } = _ModuleSupport;
+const { applyShapeStyle } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<
     CandlestickNode,

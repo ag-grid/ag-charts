@@ -8,8 +8,19 @@ import {
     boxCollides,
     buildDateFormatter,
     cachedTextMeasurer,
+    compareDates,
+    createIdsGenerator,
     dropFirstWhile,
     dropLastWhile,
+    intervalCeil,
+    intervalExtent,
+    intervalFloor,
+    intervalHierarchy,
+    intervalMilliseconds,
+    intervalNext,
+    intervalPrevious,
+    intervalRange,
+    intervalUnit,
     isArray,
     isPlainObject,
     isSegmentTruncated,
@@ -25,20 +36,7 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { compareDates } from '../../util/date';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import { createIdsGenerator } from '../../util/tempUtils';
-import {
-    intervalCeil,
-    intervalExtent,
-    intervalFloor,
-    intervalHierarchy,
-    intervalMilliseconds,
-    intervalNext,
-    intervalPrevious,
-    intervalRange,
-    intervalUnit,
-} from '../../util/time';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
 import type { AxisInterval } from './axisInterval';

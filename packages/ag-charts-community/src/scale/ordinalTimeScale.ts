@@ -1,7 +1,13 @@
-import { type NormalizedDomain, ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from 'ag-charts-core';
+import {
+    type NormalizedDomain,
+    ScaleAlignment,
+    type ScaleTickParams,
+    type ScaleTickResult,
+    datesSortOrder,
+    sortAndUniqueDates,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import { ContinuousScale } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import { getDateTicksForInterval } from './timeScale';

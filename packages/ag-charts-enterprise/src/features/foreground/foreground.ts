@@ -1,9 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { ActionOnSet, type Placement, Property, ProxyPropertyOnWrite } from 'ag-charts-core';
 
 import { Image } from '../image/image';
 
-const { ZIndexMap, ActionOnSet, Property, ProxyPropertyOnWrite } = _ModuleSupport;
-
+const { ZIndexMap } = _ModuleSupport;
 export class Foreground extends _ModuleSupport.Background<Image> {
     @Property
     @ActionOnSet<Foreground>({
@@ -54,7 +54,7 @@ export class Foreground extends _ModuleSupport.Background<Image> {
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
-    private updateTextNode(placement: _ModuleSupport.Placement) {
+    private updateTextNode(placement: Placement) {
         const { textNode } = this;
 
         // match watermark message styles

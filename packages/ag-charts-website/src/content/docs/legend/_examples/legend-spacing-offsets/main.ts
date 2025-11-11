@@ -38,22 +38,22 @@ const options: AgCartesianChartOptions & { legend: { position: AgChartLegendPosi
             marker: { enabled: true, fill: '#1a1a1a' },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Millions of €',
             },
         },
-    ],
+    },
     legend: {
         spacing: 20,
         position: {

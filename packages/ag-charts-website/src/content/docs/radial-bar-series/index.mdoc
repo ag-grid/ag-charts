@@ -58,7 +58,10 @@ This is changed via the `innerRadiusRatio` option on the Radius Category Axis.
 
 ```js format="snippet"
 {
-    axes: [{ type: 'angle-number' }, { type: 'radius-category', innerRadiusRatio: 0.3 }],
+    axes: {
+        angle: { type: 'angle-number' },
+        radius: { type: 'radius-category', innerRadiusRatio: 0.3 },
+    },
 }
 ```
 
@@ -75,10 +78,10 @@ The following options are used to control the padding between different elements
 
 ```js format="snippet"
 {
-    axes: [
-        { type: 'angle-number', groupPaddingInner: 0.5, paddingInner: 0.5 },
-        { type: 'radius-category', groupPaddingInner: 0.5, paddingInner: 0.5, paddingOuter: 0.25 },
-    ],
+    axes: {
+        angle: { type: 'angle-number', groupPaddingInner: 0.5, paddingInner: 0.5 },
+        radius: { type: 'radius-category', groupPaddingInner: 0.5, paddingInner: 0.5, paddingOuter: 0.25 },
+    },
 }
 ```
 
@@ -96,15 +99,15 @@ The following configuration changes the orientation of the Axis Labels to `paral
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-number',
             label: {
                 orientation: 'parallel',
             },
         },
-        { type: 'radius-category' },
-    ],
+        radius: { type: 'radius-category' },
+    },
 }
 ```
 
@@ -116,17 +119,17 @@ To change Angle Axis circumference, use the `startAngle` and `endAngle` properti
 
 ```js format="snippet"
 {
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-number',
             startAngle: -90,
             endAngle: 90,
         },
-        {
+        radius: {
             type: 'radius-category',
             positionAngle: 270, //equivalent to -90
         },
-    ],
+    },
 }
 ```
 

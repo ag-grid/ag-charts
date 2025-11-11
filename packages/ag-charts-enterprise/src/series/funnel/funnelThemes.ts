@@ -37,8 +37,8 @@ const labelOptions = {
     rotation: { $path: ['/series/0/stageLabel/rotation', 0] },
 };
 
-export const FUNNEL_SERIES_AXES: any = [
-    {
+export const FUNNEL_SERIES_AXES: any = {
+    y: {
         type: {
             $if: [isHorizontal, CARTESIAN_AXIS_TYPE.NUMBER, CARTESIAN_AXIS_TYPE.CATEGORY],
         },
@@ -59,7 +59,7 @@ export const FUNNEL_SERIES_AXES: any = [
             $if: [isHorizontal, undefined, labelOptions],
         },
     },
-    {
+    x: {
         type: {
             $if: [isHorizontal, CARTESIAN_AXIS_TYPE.CATEGORY, CARTESIAN_AXIS_TYPE.NUMBER],
         },
@@ -80,7 +80,7 @@ export const FUNNEL_SERIES_AXES: any = [
             $if: [isHorizontal, labelOptions, undefined],
         },
     },
-];
+};
 
 export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
     series: {
@@ -128,7 +128,11 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+        highlight: {
+            unhighlightedItem: {
+                opacity: 0.6,
+            },
+        },
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {
