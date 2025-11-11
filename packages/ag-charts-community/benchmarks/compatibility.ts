@@ -122,7 +122,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     options.theme = baseTestTheme as any;
 
     if (!isAtOrAfterVersion(10, 0, 0)) {
-        options.series = options.series?.map((s) => {
+        (options as any).series = options.series?.map((s: any) => {
             if (s.type === 'scatter' && s.shape != null) {
                 const { shape, ...sOther } = s;
                 return { ...sOther, marker: { ...sOther.marker, shape } };
@@ -130,7 +130,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
             return s;
         });
 
-        (options as any).axes = mapValues((options as any).axes ?? {}, (a) => {
+        (options as any).axes = mapValues((options as any).axes ?? {}, (a: any) => {
             if (a.interval != null) {
                 const { interval, ...aOther } = a;
                 return { ...aOther, tick: { ...aOther.tick, ...interval } };
@@ -142,7 +142,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     if (
         !isAtOrAfterVersion(11, 0, 0) &&
         (options as any).mode === 'integrated' &&
-        Object.values((options as any).axes ?? {}).some((a) => a.type === 'grouped-category')
+        Object.values((options as any).axes ?? {}).some((a: any) => a.type === 'grouped-category')
     ) {
         for (const d of (options as any).data) {
             const labels = d['ag-Grid-AutoColumn'];
