@@ -10,6 +10,7 @@ import {
     AgRadarAreaSeriesStyle,
 } from 'ag-charts-community';
 import {
+    MIN_UNHIGHLIGHT_DELAY,
     MockRadarAreaStyler,
     extractImageData,
     hoverAction,
@@ -18,7 +19,6 @@ import {
     setupMockConsole,
     spyOnAnimationManager,
     testLegendItemName,
-    MIN_UNHIGHLIGHT_DELAY,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { NonNullablePath } from 'ag-charts-core';

@@ -11,13 +11,13 @@ import {
     type Chart,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
     extractImageData,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
-    MIN_TOOLTIP_HIDE_DELAY,
     waitForChartStability,
 } from 'ag-charts-community-test';
 

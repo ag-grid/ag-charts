@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     MockBoxPlotStyler,
     extractImageData,
     hoverAction,
@@ -18,7 +19,6 @@ import {
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
-    MIN_UNHIGHLIGHT_DELAY,
     waitForChartStability,
 } from 'ag-charts-community-test';
 

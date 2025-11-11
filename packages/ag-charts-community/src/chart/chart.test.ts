@@ -13,6 +13,7 @@ import type { AgChartProxy } from './chartProxy';
 import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
 import {
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     createChart,
     deproxy,
@@ -20,7 +21,6 @@ import {
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
-    MIN_TOOLTIP_HIDE_DELAY,
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';

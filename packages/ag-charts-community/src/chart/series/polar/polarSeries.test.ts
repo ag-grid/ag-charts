@@ -14,6 +14,7 @@ import type { PolarTestCase } from '../../test/utils';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
     extractImageData,
@@ -23,7 +24,6 @@ import {
     repeat,
     setupMockCanvas,
     setupMockConsole,
-    MIN_TOOLTIP_HIDE_DELAY,
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';

@@ -14,6 +14,7 @@ import {
 import {
     Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     MockErrorBarStyler,
     clickAction,
     computeLegendBBox,
@@ -23,7 +24,6 @@ import {
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
-    MIN_UNHIGHLIGHT_DELAY,
     waitForChartStability,
 } from 'ag-charts-community-test';
 

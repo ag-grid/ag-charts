@@ -12,6 +12,7 @@ import {
     type Chart,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     SUNBURST_SERIES_LABELS,
     clickAction,
     deproxy,
@@ -20,7 +21,6 @@ import {
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
-    MIN_TOOLTIP_HIDE_DELAY,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
