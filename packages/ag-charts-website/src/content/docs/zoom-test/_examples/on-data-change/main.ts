@@ -1,5 +1,6 @@
 // @ag-skip-fws
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import type { AgCartesianAxisOptions, AgCartesianChartOptions } from 'ag-charts-enterprise';
+import { AgCharts } from 'ag-charts-enterprise';
 
 import type { DatumType } from './data';
 import { getData } from './data';
@@ -28,16 +29,16 @@ const options: AgCartesianChartOptions<DatumType> = {
             yKey: 'y3',
         },
     ],
-    axes: [
-        {
-            type: 'number',
+    axes: {
+        x: {
+            type: 'number' as AgCartesianAxisOptions['type'],
             position: 'bottom',
         },
-        {
-            type: 'number',
+        y: {
+            type: 'number' as AgCartesianAxisOptions['type'],
             position: 'left',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
@@ -48,5 +49,5 @@ function onUpdateData(): void {
 }
 
 function onXAxisTypeChange(value: 'number' | 'category'): void {
-    options.axes![0]!.type = value;
+    options.axes!.x!.type = value;
 }
