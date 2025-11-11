@@ -10,6 +10,7 @@ import {
     AgRadarAreaSeriesStyle,
 } from 'ag-charts-community';
 import {
+    MIN_UNHIGHLIGHT_DELAY,
     MockRadarAreaStyler,
     extractImageData,
     hoverAction,
@@ -690,6 +691,8 @@ describe('RadarAreaSeries', () => {
                     await hover(miss);
                     await hover(legendItem0);
                     await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });

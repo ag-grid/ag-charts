@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import { getDocument } from 'ag-charts-core';
 import { type AgChartOptions } from 'ag-charts-types';
@@ -332,7 +332,7 @@ describe('Tooltip', () => {
         });
 
         it('should not show empty row for missing bubble size', async () => {
-            const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+            const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             try {
                 chart = await createChart({
                     data: [
@@ -429,6 +429,254 @@ describe('Tooltip', () => {
             expect(content).not.toContain('NaN');
             expect(content).not.toContain('∞');
             expect(content).not.toContain('Infinity');
+        });
+    });
+
+    describe('Delayed Tooltip Hiding', () => {
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('tooltip removal is immediate by default', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Manually show tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Test' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Remove tooltip immediately (default)
+            chart.ctx.tooltipManager.removeTooltip('test');
+            await waitForChartStability(chart);
+
+            // Should be immediately hidden (no wait needed)
+            expect(chart.tooltip.isVisible()).toBe(false);
+        });
+
+        it('tooltip removal is delayed when delayed=true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            // Show tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Test' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Request delayed removal
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Should still be visible immediately
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Wait 50ms - still visible (delay is 100ms)
+            jest.advanceTimersByTime(50);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Wait another 75ms (total 125ms) - now hidden
+            jest.advanceTimersByTime(75);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(false);
+        });
+
+        it('new tooltip cancels pending delayed removal', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            // Show first tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'First' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Request delayed removal
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait 50ms (less than 100ms delay)
+            jest.advanceTimersByTime(50);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Show new tooltip before delay completes
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 200, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Second' },
+            ]);
+            await waitForChartStability(chart);
+
+            // Should still be visible with new content
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Wait for original delay to complete (another 75ms)
+            jest.advanceTimersByTime(75);
+            await waitForChartStability(chart);
+
+            // Should STILL be visible (delayed removal was cancelled)
+            expect(chart.tooltip.isVisible()).toBe(true);
+        });
+
+        it('repeated delayed removal calls do not reset countdown', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            // Show tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Test' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // First delayed removal call - starts countdown
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait 50ms (halfway through 100ms countdown)
+            jest.advanceTimersByTime(50);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Second delayed removal call - should NOT reset countdown
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait another 25ms (total 75ms from first call, 25ms from second call)
+            jest.advanceTimersByTime(25);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Third delayed removal call - should still NOT reset countdown
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait another 50ms (total 125ms from first call)
+            jest.advanceTimersByTime(50);
+            await waitForChartStability(chart);
+
+            // Should be hidden now (100ms from FIRST call has elapsed)
+            expect(chart.tooltip.isVisible()).toBe(false);
+        });
+
+        it('immediate removal cancels pending delayed removal', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            // Show tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Test' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Request delayed removal
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait 50ms
+            jest.advanceTimersByTime(50);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Request immediate removal before delay completes
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, false);
+            await waitForChartStability(chart);
+
+            // Should be immediately hidden
+            expect(chart.tooltip.isVisible()).toBe(false);
+
+            // Wait for original delay period to verify no double-hide
+            jest.advanceTimersByTime(75);
+            await waitForChartStability(chart);
+
+            // Should still be hidden (no errors)
+            expect(chart.tooltip.isVisible()).toBe(false);
         });
     });
 });

@@ -13,6 +13,7 @@ import type { AgChartProxy } from './chartProxy';
 import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
 import {
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     createChart,
     deproxy,
@@ -199,9 +200,9 @@ describe('Chart', () => {
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden
+            // Check the tooltip is hidden (wait for delayed removal to complete)
             await hoverAction(0, 0)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });

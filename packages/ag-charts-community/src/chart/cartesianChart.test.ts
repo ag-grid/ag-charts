@@ -259,7 +259,7 @@ describe('CartesianChart', () => {
                 });
             }
 
-            highlightManager.updateHighlight(testee.id);
+            highlightManager.updateHighlight(testee.id, undefined, false); // false = immediate unhighlight
             await compare(testee, {
                 failureThreshold: 2,
                 failureThresholdType: 'pixel',

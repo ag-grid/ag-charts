@@ -235,7 +235,9 @@ export async function waitForChartStability<
         }
         await chart.waitForUpdate(timeoutMs, true);
     } else if (animationAdvanceMs > 0) {
-        throw new Error(`animationAdvancedMs is non-zero, but no animation mocks are present.`);
+        // No animation mocks present - treat as real-time delay
+        await new Promise((resolve) => setTimeout(resolve, animationAdvanceMs));
+        await chart.waitForUpdate(timeoutMs, true);
     }
 }
 
@@ -627,6 +629,10 @@ export async function createChart(options: AgChartOptions<any, any>) {
     await waitForChartStability(chart);
     return chart;
 }
+
+// Minimum delays for delayed removal features (100ms delay + 50ms buffer)
+export const MIN_UNHIGHLIGHT_DELAY = 150;
+export const MIN_TOOLTIP_HIDE_DELAY = 150;
 
 let activeAnimateCb: ((totalDuration: number, ratio: number) => void) | undefined;
 export function spyOnAnimationManager() {

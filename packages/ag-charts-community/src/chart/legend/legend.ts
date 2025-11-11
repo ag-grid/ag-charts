@@ -1175,7 +1175,7 @@ export class Legend extends BaseProperties {
                 { type: 'structured', title: this.getItemLabel(datum) },
             ]);
         } else {
-            this.ctx.tooltipManager.removeTooltip(this.id);
+            this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         }
 
         if (datum?.enabled && series) {
@@ -1192,7 +1192,7 @@ export class Legend extends BaseProperties {
     }
 
     onLeave() {
-        this.ctx.tooltipManager.removeTooltip(this.id);
+        this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         this.updateHighlight();
     }
 
