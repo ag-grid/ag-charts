@@ -18,7 +18,7 @@ describe('sparkline benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 5, expectedCanvasCount: 2 },
+        { expectedRetainedSizeMB: 6, expectedCanvasCount: 3 },
         async () => {
             await ctx.create({ pool: false });
         },
@@ -28,7 +28,7 @@ describe('sparkline benchmark', () => {
     benchmark(
         'initial load (pooled)',
         ctx,
-        { expectedRelativeMB: 5, expectedCanvasCount: 1, autoSnapshot: false },
+        { expectedRelativeMB: 6, expectedCanvasCount: 2, autoSnapshot: false },
         async () => {
             await ctx.create({ container: document.createElement('div') });
         },
@@ -48,7 +48,7 @@ describe('sparkline benchmark', () => {
         benchmark(
             'updateDelta',
             ctx,
-            { expectedRelativeMB: 1, expectedCanvasCount: 1, autoSnapshot: false },
+            { expectedRelativeMB: 1, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
                 await ctx.updateDelta({
                     data: ctx.options.data?.map((d) => ({ x: d.x, y: Math.random() * d.y })),

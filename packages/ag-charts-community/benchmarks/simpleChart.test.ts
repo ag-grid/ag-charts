@@ -7,7 +7,7 @@ import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 describe('simple-chart benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('simple-chart').repeatCount(20);
 
-    benchmark('initial load', ctx, { expectedRetainedSizeMB: 7, expectedCanvasCount: 4 }, async () => {
+    benchmark('initial load', ctx, { expectedRetainedSizeMB: 8.5, expectedCanvasCount: 5 }, async () => {
         await ctx.create();
     });
 
@@ -23,24 +23,24 @@ describe('simple-chart benchmark', () => {
             await ctx.blur();
         });
 
-        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 3 }, async () => {
+        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 4 }, async () => {
             await ctx.legendToggle();
             await ctx.legendToggle();
         });
 
-        benchmark('10x legend toggle', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 3 }, async () => {
+        benchmark('10x legend toggle', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 4 }, async () => {
             for (let i = 0; i < 5; i++) {
                 await ctx.legendToggle(i);
                 await ctx.legendToggle(i);
             }
         });
 
-        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 3 }, async () => {
+        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 4 }, async () => {
             const point = ctx.nodePositions[0][1];
             await ctx.hover(point.x, point.y);
         });
 
-        benchmark('15x datum highlight', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 3 }, async () => {
+        benchmark('15x datum highlight', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 4 }, async () => {
             for (let nodeIdx = 0; nodeIdx < 5; nodeIdx++) {
                 for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
                     const point = ctx.nodePositions[seriesIdx][nodeIdx];

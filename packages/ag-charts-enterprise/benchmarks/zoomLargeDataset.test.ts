@@ -15,7 +15,7 @@ describe('zoom-large-dataset benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 174, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRetainedSizeMB: 174, expectedCanvasCount: 5, autoSnapshot: false },
         async () => {
             await ctx.create();
         }
@@ -29,7 +29,7 @@ describe('zoom-large-dataset benchmark', () => {
         benchmark(
             '100x zoom',
             ctx,
-            { expectedRelativeMB: 1, expectedCanvasCount: 4, autoSnapshot: false },
+            { expectedRelativeMB: 1, expectedCanvasCount: 5, autoSnapshot: false },
             async () => {
                 for (let i = 0; i < 100; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);

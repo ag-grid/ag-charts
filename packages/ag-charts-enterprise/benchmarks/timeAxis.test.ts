@@ -15,7 +15,7 @@ describe('time axis benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 115, expectedCanvasCount: 2, autoSnapshot: false },
+        { expectedRetainedSizeMB: 115, expectedCanvasCount: 3, autoSnapshot: false },
         async () => {
             await ctx.create();
         }
@@ -29,7 +29,7 @@ describe('time axis benchmark', () => {
         benchmark(
             '20x zoom',
             ctx,
-            { expectedRelativeMB: 0, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 0, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 for (let i = 0; i < 20; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
