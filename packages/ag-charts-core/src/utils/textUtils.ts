@@ -1,4 +1,4 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, TextSegment } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight, TextSegment, TextValue } from 'ag-charts-types';
 
 export const EllipsisChar = '\u2026';
 export const LineSplitter = /\r?\n/g;
@@ -27,6 +27,10 @@ export function calcLineHeight(fontSize: number, lineHeightRatio = 1.15) {
     return Math.round(fontSize * lineHeightRatio);
 }
 
+export function toTextString(value: TextValue | undefined): string {
+    return String(value ?? '');
+}
+
 const TrimCharsRegex = /[\s.,;:-]{1,5}$/;
 export function appendEllipsis(text: string) {
     return text.replace(TrimCharsRegex, '') + EllipsisChar;
@@ -45,5 +49,5 @@ export function isTextTruncated(str: string) {
 }
 
 export function isSegmentTruncated(segment: TextSegment | undefined) {
-    return segment?.text.endsWith(EllipsisChar) ?? false;
+    return toTextString(segment?.text).endsWith(EllipsisChar);
 }

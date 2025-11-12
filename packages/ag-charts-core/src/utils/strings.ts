@@ -1,4 +1,7 @@
+import type { TextOrSegments } from 'ag-charts-types';
+
 import { isArray, isString } from './typeGuards';
+import { toTextString } from './textUtils';
 
 /**
  * Joins an array of strings or objects into a formatted string, adding a custom conjunction before the last item.
@@ -123,11 +126,11 @@ export function kebabCase(a: string) {
 // characters.
 const KEBAB_CASE_REGEX = /[A-Z]+(?![a-z])|[A-Z]/g;
 
-export function toPlainText(text?: string | { text: string }[], fallback = ''): string {
+export function toPlainText(text?: TextOrSegments, fallback = ''): string {
     if (text == null) {
         return fallback;
     } else if (isArray(text)) {
-        return text.map((segment) => segment.text).join('');
+        return text.map((segment) => toTextString(segment.text)).join('');
     } else if (isString(text)) {
         return text;
     } else {

@@ -14,6 +14,7 @@ import {
     measureTextSegments,
     mergeDefaults,
     toPlainText,
+    toTextString,
 } from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
@@ -247,7 +248,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const { width, height } = isArray(text)
                 ? measureTextSegments(text, label)
-                : textMeasurer.measureLines(text);
+                : textMeasurer.measureLines(toTextString(text));
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 

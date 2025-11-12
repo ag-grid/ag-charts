@@ -4,9 +4,10 @@ import type { TextOrSegments } from 'ag-charts-types';
 let element: HTMLElement | null = null;
 
 export function sanitizeHtml(text: TextOrSegments): string {
-    if (text === '') return '';
+    const plainText = toPlainText(text);
+    if (plainText === '') return '';
 
     element ??= createElement('div');
-    element.textContent = toPlainText(text);
+    element.textContent = plainText;
     return element.innerHTML.replaceAll('\n', '<br>');
 }

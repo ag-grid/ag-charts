@@ -235,9 +235,11 @@ export interface Visible {
     visible?: boolean;
 }
 
+export type TextValue = string | number | Date;
+
 export interface TextSegment extends FontOptions {
     /** A segment of text. */
-    text: string;
+    text: TextValue;
 }
 
-export type TextOrSegments = string | TextSegment[];
+export type TextOrSegments = TextValue | TextSegment[];

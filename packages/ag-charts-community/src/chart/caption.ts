@@ -7,6 +7,7 @@ import {
     isSegmentTruncated,
     isTextTruncated,
     toPlainText,
+    toTextString,
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
@@ -103,7 +104,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             wrappedText = wrapTextSegments(text, options);
             this.truncated = wrappedText.some(isSegmentTruncated);
         } else {
-            wrappedText = wrapText(text ?? '', options);
+            wrappedText = wrapText(toTextString(text), options);
             this.truncated = isTextTruncated(wrappedText);
         }
         this.node.text = wrappedText;

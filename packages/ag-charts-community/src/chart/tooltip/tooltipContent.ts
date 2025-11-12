@@ -1,4 +1,4 @@
-import { toPlainText } from 'ag-charts-core';
+import { toPlainText, toTextString } from 'ag-charts-core';
 import type { AgTooltipMode, TextOrSegments } from 'ag-charts-types';
 
 import { sanitizeHtml } from '../../util/sanitize';
@@ -46,7 +46,7 @@ function textOrSegmentsIsDefined(value: TextOrSegments | undefined): value is Te
     } else if (Array.isArray(value)) {
         return value.some((segment) => textOrSegmentsIsDefined(segment.text));
     } else {
-        return value.trim() !== '';
+        return toTextString(value).trim() !== '';
     }
 }
 
