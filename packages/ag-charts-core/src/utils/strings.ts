@@ -1,7 +1,7 @@
 import type { TextOrSegments } from 'ag-charts-types';
 
-import { isArray, isString } from './typeGuards';
 import { toTextString } from './textUtils';
+import { isArray, isString } from './typeGuards';
 
 /**
  * Joins an array of strings or objects into a formatted string, adding a custom conjunction before the last item.
