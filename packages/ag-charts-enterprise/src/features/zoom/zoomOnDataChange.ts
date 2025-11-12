@@ -24,9 +24,21 @@ export class ZoomOnDataChange {
         private readonly ctx: ModuleContext,
         eventsCleanup: CleanupRegistry
     ) {
+        // When calling `AgCharts.create`, the data:update event is emitted before the axes ranges/scales are fully
+        // initialised. This causes the 'preserveData' strategy to read an uninitialised (and incorrect) domain, and
+        // this uninitialised domain therefore incorrectly constrains the initial zoom:change-request event.
+        // Fortunately, the ZoomOnDataChange class only needs to worry about data changes, not data initialisation.
+        // Therefore, we'll wait for the initial layout:complete event to be emitted before starting to listen for
+        // data:update events.
+        const onFirstDraw = () => {
+            ctx.eventsHub.off('layout:complete', onFirstDraw);
+            eventsCleanup.register(
+                ctx.eventsHub.on('data:load', (e) => this.onDataLoad(e)),
+                ctx.eventsHub.on('data:update', (e) => this.onDataUpdate(e))
+            );
+        };
         eventsCleanup.register(
-            ctx.eventsHub.on('data:load', (e) => this.onDataLoad(e)),
-            ctx.eventsHub.on('data:update', (e) => this.onDataUpdate(e)),
+            ctx.eventsHub.on('layout:complete', onFirstDraw),
             ctx.eventsHub.on('zoom:change-request', (e) => this.onZoomChangeRequest(e))
         );
     }
