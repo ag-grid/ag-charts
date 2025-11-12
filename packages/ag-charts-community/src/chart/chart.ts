@@ -1054,11 +1054,21 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         const dataController = new DataController(this.mode, this.suppressFieldDotNotation);
-        const seriesPromises = this.series.map((s) => s.processData(dataController));
-        const modulePromises = this.modulesManager.mapModules((m) => m?.processData?.(dataController)).filter(Boolean);
+
+        const promises: Promise<void>[] = [];
+        for (const series of this.series) {
+            promises.push(series.processData(dataController) ?? Promise.resolve());
+        }
+        for (const module of this.modulesManager.modules()) {
+            if (module?.processData) {
+                promises.push(module.processData(dataController) ?? Promise.resolve());
+            }
+        }
+
         this._cachedData = dataController.execute(this._cachedData);
+
         this.updateSplits('🏭');
-        await Promise.all([...seriesPromises, ...modulePromises]);
+        await Promise.all(promises);
 
         this.updateLegends();
     }
