@@ -163,7 +163,7 @@ benchmark() {
 
             log_info "Benchmarking $version ($count of $repeat_count)"
             export AG_LIBRARY_VERSION=$(echo "$1" | sed 's/^origin\///')
-            if [[ $latest_version == "true" && $AG_LIBRARY_VERSION == versions[0] ]] ; then
+            if [[ $latest_version == "true" && $AG_LIBRARY_VERSION == ${versions[0]} ]] ; then
                 export AG_BENCHMARK_LATEST_VERSION=1
             else
                 export AG_BENCHMARK_LATEST_VERSION=0
