@@ -1,7 +1,7 @@
 import { ModuleRegistry } from 'ag-charts-core';
 
-import { AllCommunityAndEnterpriseModules } from './module-bundles/all-with-community';
+import { AllEnterpriseModule } from './module-bundles/all';
 
 export * from './main';
 
-ModuleRegistry.registerModules(AllCommunityAndEnterpriseModules);
+ModuleRegistry.registerModules(AllEnterpriseModule);

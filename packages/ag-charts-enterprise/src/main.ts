@@ -74,8 +74,7 @@ export { AllCartesianEnterpriseModules } from './module-bundles/cartesian';
 export { AllPolarEnterpriseModules } from './module-bundles/polar';
 export { AllStandaloneEnterpriseModules } from './module-bundles/standalone';
 export { AllTopologyEnterpriseModules } from './module-bundles/topology';
-export { AllEnterpriseModules } from './module-bundles/all';
-export { AllCommunityAndEnterpriseModules } from './module-bundles/all-with-community';
+export { AllEnterpriseModule } from './module-bundles/all';
 
 export { LicenseManager, AgChartsEnterpriseModule } from './module-bundles/integrated';
 

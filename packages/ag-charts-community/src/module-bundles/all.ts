@@ -4,7 +4,7 @@ import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } fro
 import { AllCartesianCommunityModules } from './cartesian';
 import { AllPolarCommunityModules } from './polar';
 
-export const AllCommunityModules: ModuleDefinition[] = [
+export const AllCommunityModule: ModuleDefinition[] = [
     ...AllCartesianCommunityModules,
     ...AllPolarCommunityModules,
 

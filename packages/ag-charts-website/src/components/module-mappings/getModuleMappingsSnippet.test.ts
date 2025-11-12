@@ -43,13 +43,13 @@ describe('getModuleMappingsSnippet', () => {
     test('spreads bundle helpers', () => {
         const snippet = getModuleMappingsSnippet({
             selectedModules: {
-                community: ['AllCommunityModules'],
+                community: ['AllCommunityModule'],
                 enterprise: ['AllEnterpriseModules'],
             },
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n              AllCommunityModules,\n          } from 'ag-charts-community';\n          import {\n              AllEnterpriseModules,\n          } from 'ag-charts-enterprise';\n\n          ModuleRegistry.registerModules([\n              ...AllCommunityModules,\n              ...AllEnterpriseModules,\n          ]);"
+          "import {\n              ModuleRegistry,\n              AllCommunityModule,\n          } from 'ag-charts-community';\n          import {\n              AllEnterpriseModules,\n          } from 'ag-charts-enterprise';\n\n          ModuleRegistry.registerModules([\n              ...AllCommunityModule,\n              ...AllEnterpriseModules,\n          ]);"
         `);
     });
 

@@ -3,11 +3,11 @@ import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
-import { AllCommunityAndEnterpriseModules } from './module-bundles/all-with-community';
+import { AllEnterpriseModule } from './module-bundles/all';
 import styles from './styles.css';
 
 export function setupEnterpriseModules() {
-    ModuleRegistry.registerModules(AllCommunityAndEnterpriseModules);
+    ModuleRegistry.registerModules(AllEnterpriseModule);
 
     enterpriseRegistry.styles = styles;
     enterpriseRegistry.licenseManager = (options: AgChartOptions) =>

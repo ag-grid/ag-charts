@@ -6,7 +6,7 @@ import * as _Scene from '../integrated-charts-scene';
 import * as _Theme from '../integrated-charts-theme';
 import * as _Util from '../integrated-charts-util';
 import { VERSION } from '../version';
-import { AllCommunityModules } from './all';
+import { AllCommunityModule } from './all';
 
 export const AgChartsCommunityModule = {
     VERSION,
@@ -15,6 +15,6 @@ export const AgChartsCommunityModule = {
     _Util,
     create: AgCharts.create.bind(AgCharts),
     createSparkline: AgCharts.__createSparkline.bind(AgCharts),
-    setup: () => ModuleRegistry.registerModules(AllCommunityModules),
+    setup: () => ModuleRegistry.registerModules(AllCommunityModule),
     isEnterprise: false,
 } satisfies IntegratedModule;

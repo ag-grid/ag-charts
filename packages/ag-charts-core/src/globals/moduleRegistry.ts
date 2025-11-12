@@ -66,7 +66,7 @@ export function register(
 }
 
 export function registerModules(definitions: ModuleDefinition[]): void {
-    for (const definition of definitions) {
+    for (const definition of definitions.flat()) {
         register(definition);
     }
 }

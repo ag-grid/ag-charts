@@ -38,7 +38,7 @@ export { UnitTimeAxisModule } from './module/axis-modules/unitTimeAxisModule';
 
 export { AllCartesianCommunityModules } from './module-bundles/cartesian';
 export { AllPolarCommunityModules } from './module-bundles/polar';
-export { AllCommunityModules } from './module-bundles/all';
+export { AllCommunityModule } from './module-bundles/all';
 
 // Undocumented APIs used by Integrated Charts.
 export { AgChartsCommunityModule } from './module-bundles/integrated';

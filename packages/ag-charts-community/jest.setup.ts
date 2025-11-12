@@ -13,8 +13,8 @@ if (isAtOrAfterVersion(12, 4, 0)) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { ModuleRegistry } = require('ag-charts-core');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { AllCommunityModules } = require('./src/module-bundles/all');
-    ModuleRegistry.registerModules(AllCommunityModules);
+    const { AllCommunityModule } = require('./src/module-bundles/all');
+    ModuleRegistry.registerModules(AllCommunityModule);
 }
 
 // @ts-expect-error types don't exactly align
