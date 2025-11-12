@@ -637,6 +637,8 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     renderer: callbackOf(
         or(
             string,
+            number,
+            date,
             optionsDefs<AgTooltipRendererResult>(
                 {
                     heading: string,
@@ -661,7 +663,7 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
                     },
                     data: arrayOfDefs<AgTooltipRendererDataRow>({
                         label: required(string),
-                        value: required(string),
+                        value: required(or(string, number, date)),
                     }),
                 },
                 'tooltip renderer result object'

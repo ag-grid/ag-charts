@@ -1,4 +1,4 @@
-import { simpleMemorize } from 'ag-charts-core';
+import { isDate, isNumber, isString, simpleMemorize, toTextString } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgAreaSeriesTooltipRendererParams,
@@ -287,7 +287,10 @@ const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineToo
         const datum = datumKey == null ? params.datum : params.datum[datumKey];
 
         const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
-        if (typeof userContent === 'string') return userContent;
+
+        if (isString(userContent) || isNumber(userContent) || isDate(userContent)) {
+            return toTextString(userContent);
+        }
 
         const content = userContent?.content ?? yValue.toFixed(2);
 

@@ -1,5 +1,5 @@
 import { toPlainText, toTextString } from 'ag-charts-core';
-import type { AgTooltipMode, TextOrSegments } from 'ag-charts-types';
+import type { AgTooltipMode, TextOrSegments, TextValue } from 'ag-charts-types';
 
 import { sanitizeHtml } from '../../util/sanitize';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
@@ -12,8 +12,8 @@ interface LocaleManager {
 }
 
 export type TooltipContentDataRow =
-    | { label: string; fallbackLabel?: string; value: string; missing?: boolean }
-    | { label: undefined; fallbackLabel: string; value: string; missing?: boolean };
+    | { label: string; fallbackLabel?: string; value: TextValue; missing?: boolean }
+    | { label: undefined; fallbackLabel: string; value: TextValue; missing?: boolean };
 
 export type TooltipStructuredContent = {
     heading?: TextOrSegments;
@@ -114,7 +114,7 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
                 for (const datum of i.data) {
                     // Skip data rows that are marked as missing
                     if (datum.missing === true) continue;
-                    ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+                    ariaLabel.push(datum.label ?? datum.fallbackLabel, toTextString(datum.value));
                 }
             }
         }
@@ -167,7 +167,7 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
         for (const datum of content.data) {
             // Skip data rows that are marked as missing
             if (datum.missing === true) continue;
-            html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
+            html += dataHtml(datum.label ?? datum.fallbackLabel, toTextString(datum.value), dataInline);
             html += ' ';
         }
     }
@@ -224,7 +224,7 @@ function tooltipContentHtml(
             for (const datum of singleItem.data) {
                 // Skip data rows that are marked as missing
                 if (datum.missing === true) continue;
-                html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
+                html += dataHtml(datum.label ?? compactFallbackLabel, toTextString(datum.value), false);
                 html += ' ';
             }
         }
