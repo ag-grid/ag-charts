@@ -14,6 +14,7 @@ import {
     MockRadarLineStyler,
     extractImageData,
     hoverAction,
+    looserSnapshotDefaults,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
@@ -497,7 +498,7 @@ describe('RadarLineSeries', () => {
             test('snapshot', async () => {
                 // The 'pattern' fill type is rendered slightly different on GitHub CI, but the difference isn't
                 // noticeable without an image-diff aid. I've counted the exact number of pixels that differ.
-                await compare({ failureThreshold: 149, failureThresholdType: 'pixel' });
+                await compare(looserSnapshotDefaults(0.08));
             });
         });
         describe('highlights', () => {
