@@ -1,4 +1,4 @@
-import { type AgZoomButton, type AgZoomOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     arrayOfDefs,
@@ -6,10 +6,12 @@ import {
     or,
     positiveNumber,
     ratio,
+    strictUnion,
     string,
     undocumented,
     union,
 } from 'ag-charts-core';
+import type { AgZoomButton, AgZoomOnDataChangeStrategy, AgZoomOptions } from 'ag-charts-types';
 
 import { Zoom } from './zoom';
 
@@ -43,6 +45,9 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
             enabled: boolean,
             padding: ratio,
         },
+        onDataChange: {
+            strategy: strictUnion<AgZoomOnDataChangeStrategy>()('preserveDomain', 'reset', 'resize', 'preserveData'),
+        },
         buttons: {
             enabled: boolean,
             buttons: arrayOfDefs<AgZoomButton>(
@@ -72,6 +77,9 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
         autoScaling: {
             enabled: { $eq: [{ $path: '../axes' }, 'x'] },
             padding: 0.05,
+        },
+        onDataChange: {
+            strategy: 'resize', // TODO(olegat): change default to 'preserveDomain'
         },
         anchorPointX: 'end',
         anchorPointY: 'middle',

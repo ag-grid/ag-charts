@@ -1,4 +1,4 @@
-import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ActionOnSet,
@@ -9,12 +9,14 @@ import {
     entries,
     roundTo,
 } from 'ag-charts-core';
+import type { AgZoomAnchorPoint, AgZoomAxisDraggingMode } from 'ag-charts-types';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAutoScaler, ZoomAutoScalingProperties } from './zoomAutoScale';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomContextMenu } from './zoomContextMenu';
 import { ZoomDOMProxy } from './zoomDOMProxy';
+import { ZoomOnDataChange, ZoomOnDataChangeProperties } from './zoomOnDataChange';
 import { type ZoomPanUpdate, ZoomPanner } from './zoomPanner';
 import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
@@ -149,6 +151,9 @@ export class Zoom extends AbstractModuleInstance {
         this.isZoomValid.bind(this)
     );
 
+    @Property
+    public readonly onDataChange: ZoomOnDataChangeProperties = new ZoomOnDataChangeProperties();
+
     // Scenes
     private seriesRect?: _ModuleSupport.BBox;
     private paddedRect?: _ModuleSupport.BBox;
@@ -157,6 +162,7 @@ export class Zoom extends AbstractModuleInstance {
     private readonly axisDragger = new ZoomAxisDragger();
     private readonly autoScaler: ZoomAutoScaler;
     private readonly contextMenu: ZoomContextMenu;
+    private readonly dataChangeHandler: ZoomOnDataChange;
     private readonly panner = new ZoomPanner();
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
@@ -201,6 +207,7 @@ export class Zoom extends AbstractModuleInstance {
             this.updateZoom.bind(this),
             this.isZoomValid.bind(this)
         );
+        this.dataChangeHandler = new ZoomOnDataChange(this.onDataChange, this.ctx, this.cleanup);
 
         this.domProxy = new ZoomDOMProxy({
             onAxisDragStart: (direction) => this.onAxisDragStart(direction),
@@ -242,6 +249,7 @@ export class Zoom extends AbstractModuleInstance {
         this.buttons.destroy();
         this.destroyContextMenuActions?.();
         this.domProxy.destroy();
+        this.dataChangeHandler.destroy();
     }
 
     private onEnabledChange(enabled: boolean) {

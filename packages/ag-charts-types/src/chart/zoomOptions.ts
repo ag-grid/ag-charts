@@ -8,6 +8,7 @@ export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 export type AgZoomDeceleration = 'off' | 'short' | 'long' | Ratio;
 export type AgAutoScaledAxes = Array<'y'>;
 export type AgZoomAxisDraggingMode = 'pan' | 'zoom';
+export type AgZoomOnDataChangeStrategy = 'preserveDomain' | 'reset' | 'resize' | 'preserveData';
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
@@ -57,6 +58,15 @@ export interface AgZoomAutoScaling {
      * Padding to apply between the zoomed data and the boundary of the series.
      */
     padding?: Ratio;
+}
+
+export interface AgZoomOnDataChange {
+    /**
+     * The behavior of how to adjust the zoom when chart data changes.
+     *
+     * Default: `'preserveDomain'`
+     */
+    strategy?: AgZoomOnDataChangeStrategy;
 }
 
 export interface AgZoomOptions {
@@ -168,4 +178,8 @@ export interface AgZoomOptions {
      * Default: `0.1`
      */
     scrollingStep?: Ratio;
+    /**
+     * Configuration for how the zoom-pan should respond to data changes
+     */
+    onDataChange?: AgZoomOnDataChange;
 }
