@@ -172,14 +172,19 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     type: 'reducer',
     property: 'smallestKeyInterval',
     initialValue: Infinity,
-    reducer: () => {
+    reducer() {
         let prevX = Number.NaN;
         return (smallestSoFar, keys) => {
-            const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
-            const interval = Math.abs(nextX - prevX);
+            const key = keys[0];
+            const nextX = typeof key === 'number' ? key : Number(key);
+            if (!Number.isFinite(nextX)) return smallestSoFar;
+            const prevX2 = prevX;
             prevX = nextX;
+            if (!Number.isFinite(prevX)) return smallestSoFar;
+
+            const interval = Math.abs(nextX - prevX2);
             const currentSmallest = smallestSoFar ?? Infinity;
-            if (!Number.isNaN(interval) && interval > 0 && interval < currentSmallest) {
+            if (interval > 0 && interval < currentSmallest) {
                 return interval;
             }
             return currentSmallest;
@@ -191,15 +196,19 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     type: 'reducer',
     property: 'largestKeyInterval',
     initialValue: -Infinity,
-    reducer: () => {
+    reducer() {
         let prevX = Number.NaN;
         return (largestSoFar, keys) => {
-            const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
-
-            const interval = Math.abs(nextX - prevX);
+            const key = keys[0];
+            const nextX = typeof key === 'number' ? key : Number(key);
+            if (!Number.isFinite(nextX)) return largestSoFar;
+            const prevX2 = prevX;
             prevX = nextX;
-            const currentLargest = largestSoFar ?? -Infinity;
-            if (!Number.isNaN(interval) && interval > 0 && interval > currentLargest) {
+            if (!Number.isFinite(prevX)) return largestSoFar;
+
+            const interval = Math.abs(nextX - prevX2);
+            const currentLargest = largestSoFar ?? Infinity;
+            if (interval > 0 && interval > currentLargest) {
                 return interval;
             }
             return currentLargest;
