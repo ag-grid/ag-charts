@@ -9,6 +9,7 @@ import {
     AgInitialStateZoomOptions,
 } from 'ag-charts-community';
 import {
+    MockZoomListener,
     clickAction,
     delay,
     doubleClickAction,
@@ -19,6 +20,7 @@ import {
     mouseDownAction,
     mouseMoveAction,
     mouseUpAction,
+    newFreezableMock,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
@@ -31,6 +33,10 @@ import { DeepReadonly } from 'ag-charts-core';
 import { WheelDeltaMode } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+
+function newFreezableZoomListenerMock() {
+    return newFreezableMock<unknown, unknown, MockZoomListener<unknown, unknown>>();
+}
 
 describe('Zoom', () => {
     setupMockConsole();
@@ -55,6 +61,36 @@ describe('Zoom', () => {
             axes: 'xy',
             scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
             minVisibleItems: 1,
+        },
+    };
+
+    const NUMBER_EXAMPLE_OPTIONS: AgChartOptions = {
+        data: [
+            { x: 0, y: 0 },
+            { x: 1, y: 50 },
+            { x: 2, y: 25 },
+            { x: 3, y: 75 },
+            { x: 4, y: 50 },
+            { x: 5, y: 25 },
+            { x: 6, y: 50 },
+            { x: 7, y: 75 },
+        ],
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        zoom: {
+            enabled: true,
+            axes: 'xy',
+            scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
+            minVisibleItems: 1,
+        },
+        axes: {
+            x: {
+                type: 'number',
+                position: 'bottom',
+            },
+            y: {
+                type: 'number',
+                position: 'left',
+            }
         },
     };
 
@@ -999,6 +1035,41 @@ describe('Zoom', () => {
                 await waitForChartStability(chart);
                 await chart.updateDelta({ data: getData().slice(0, -10) });
                 await compare();
+            });
+        });
+    });
+
+    describe('AG-8627 onDataChange', () => {
+        describe('preserveDomain', () => {
+            describe('numberAxis', () => {
+                let zoomListener: ReturnType<typeof newFreezableZoomListenerMock>;
+                beforeEach(async () => {
+                    zoomListener = newFreezableZoomListenerMock();
+                    await prepareChart(undefined, { rangeX: { start: 2.5, end: 5.75 } }, {
+                        ...NUMBER_EXAMPLE_OPTIONS,
+                        listeners: { zoom: zoomListener.frozen },
+                    }
+                    );
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+                    zoomListener.mock.mockClear();
+                });
+                test('append datum', async () => {
+                    const data = [...NUMBER_EXAMPLE_OPTIONS.data!, { x: 8, y: 80 }];
+                    await chart.updateDelta({ data });
+                    expect(zoomListener.mock).toBeCalledTimes(0);
+                });
+                test('prepend datum', async () => {
+                    const data = [{ x: -1, y: -10 }, ...NUMBER_EXAMPLE_OPTIONS.data!];
+                    await chart.updateDelta({ data });
+                    expect(zoomListener.mock).toBeCalledTimes(0);
+                });
+                test('insert-middle datum', async () => {
+                    const orig = NUMBER_EXAMPLE_OPTIONS.data!;
+                    const data = [...orig.slice(0, 4), { x: 3.5, y: -20 }, ...orig.slice(4)];
+                    await chart.updateDelta({ data });
+                    expect(zoomListener.mock).toBeCalledTimes(0);
+                });
             });
         });
     });

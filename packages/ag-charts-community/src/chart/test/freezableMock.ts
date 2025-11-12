@@ -157,7 +157,6 @@ export type MockOverlayRenderer<TDatum, TContext> = NonNullablePath<
     'noData',
     'renderer'
 >;
-
 export type MockAPICallback<TDatum, TContext> =
     | MockAreaStyler<TDatum, TContext>
     | MockAreaItemStyler<TDatum, TContext>
