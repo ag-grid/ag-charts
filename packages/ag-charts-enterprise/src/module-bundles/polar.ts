@@ -10,11 +10,11 @@ import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
 import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { ForegroundModule } from '../features/foreground/foregroundModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
-import { NightingaleSeriesModule } from '../series/nightingale';
-import { RadarAreaSeriesModule } from '../series/radar-area';
-import { RadarLineSeriesModule } from '../series/radar-line';
-import { RadialBarSeriesModule } from '../series/radial-bar';
-import { RadialColumnSeriesModule } from '../series/radial-column';
+import { NightingaleSeriesModule } from '../series/nightingale/nightingaleModule';
+import { RadarAreaSeriesModule } from '../series/radar-area/radarAreaModule';
+import { RadarLineSeriesModule } from '../series/radar-line/radarLineModule';
+import { RadialBarSeriesModule } from '../series/radial-bar/radialBarModule';
+import { RadialColumnSeriesModule } from '../series/radial-column/radialColumnModule';
 
 export const AllPolarEnterpriseModules: ModuleDefinition[] = [
     AngleNumberAxisModule,

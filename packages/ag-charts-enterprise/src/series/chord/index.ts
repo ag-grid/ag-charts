@@ -1,1 +1,0 @@
-export { ChordSeriesModule } from './chordModule';

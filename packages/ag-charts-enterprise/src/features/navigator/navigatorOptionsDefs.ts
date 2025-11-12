@@ -38,13 +38,13 @@ import type {
     WaterfallIgnoredProperties,
 } from 'ag-charts-types';
 
-import { BoxPlotSeriesModule } from '../../series/box-plot';
-import { CandlestickSeriesModule } from '../../series/candlestick';
-import { HeatmapSeriesModule } from '../../series/heatmap';
-import { OhlcSeriesModule } from '../../series/ohlc';
-import { RangeAreaSeriesModule } from '../../series/range-area';
-import { RangeBarSeriesModule } from '../../series/range-bar';
-import { WaterfallSeriesModule } from '../../series/waterfall';
+import { BoxPlotSeriesModule } from '../../series/box-plot/boxPlotModule';
+import { CandlestickSeriesModule } from '../../series/candlestick/candlestickModule';
+import { HeatmapSeriesModule } from '../../series/heatmap/heatmapModule';
+import { OhlcSeriesModule } from '../../series/ohlc/ohlcModule';
+import { RangeAreaSeriesModule } from '../../series/range-area/rangeAreaModule';
+import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
+import { WaterfallSeriesModule } from '../../series/waterfall/waterfallModule';
 
 const { numberFormatValidator, textOrSegments } = _ModuleSupport;
 

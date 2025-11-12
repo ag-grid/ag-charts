@@ -1,1 +1,0 @@
-export { HeatmapSeriesModule } from './heatmapModule';

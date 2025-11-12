@@ -8,11 +8,11 @@ import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { ForegroundModule } from '../features/foreground/foregroundModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
-import { MapLineSeriesModule } from '../series/map-line';
-import { MapLineBackgroundSeriesModule } from '../series/map-line-background';
-import { MapMarkerSeriesModule } from '../series/map-marker';
-import { MapShapeSeriesModule } from '../series/map-shape';
-import { MapShapeBackgroundSeriesModule } from '../series/map-shape-background';
+import { MapLineBackgroundSeriesModule } from '../series/map-line-background/mapLineBackgroundModule';
+import { MapLineSeriesModule } from '../series/map-line/mapLineModule';
+import { MapMarkerSeriesModule } from '../series/map-marker/mapMarkerModule';
+import { MapShapeBackgroundSeriesModule } from '../series/map-shape-background/mapShapeBackgroundModule';
+import { MapShapeSeriesModule } from '../series/map-shape/mapShapeModule';
 
 export const AllTopologyEnterpriseModules: ModuleDefinition[] = [
     TopologyChartModule,
