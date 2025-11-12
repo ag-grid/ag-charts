@@ -1,17 +1,15 @@
-import { Logger } from 'ag-charts-core';
-
 type MutexCallback = (...args: any[]) => Promise<void> | void;
 
 export class Mutex {
     private available: boolean = true;
-    private readonly acquireQueue: [MutexCallback, () => void][] = [];
+    private readonly acquireQueue: [MutexCallback, () => void, (reason?: any) => void][] = [];
 
     public acquire(cb: MutexCallback): Promise<void> {
-        return new Promise((resolve) => {
-            this.acquireQueue.push([cb, resolve]);
+        return new Promise((resolve, reject) => {
+            this.acquireQueue.push([cb, resolve, reject]);
 
             if (this.available) {
-                this.dispatchNext().catch((e) => Logger.errorOnce(e));
+                this.dispatchNext().catch(reject);
             }
         });
     }
@@ -32,17 +30,16 @@ export class Mutex {
     private async dispatchNext() {
         this.available = false;
 
-        let [next, done] = this.acquireQueue.shift() ?? [];
+        let [next, done, reject] = this.acquireQueue.shift() ?? [];
         while (next) {
             try {
                 await next();
                 done?.();
             } catch (error) {
-                Logger.error('mutex callback error', error);
-                done?.();
+                reject?.(error);
             }
 
-            [next, done] = this.acquireQueue.shift() ?? [];
+            [next, done, reject] = this.acquireQueue.shift() ?? [];
         }
 
         this.available = true;

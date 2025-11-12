@@ -588,17 +588,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
+
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
-        this.updateMutex
-            .acquire(async () => {
-                try {
-                    await this.performUpdate(count);
-                } catch (error: any) {
-                    Logger.error('update error', error, error.stack);
-                }
-            })
-            .catch((e) => Logger.errorOnce(e));
+        this.updateMutex.acquire(() => this.tryPerformUpdate(count)).catch((e) => Logger.errorOnce(e));
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         if (this.destroyed) return;
@@ -659,6 +652,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         splits[splitName] ??= 0;
         splits[splitName] += performance.now() - this._previousSplit;
         this._previousSplit = performance.now();
+    }
+
+    private async tryPerformUpdate(count: number) {
+        try {
+            await this.performUpdate(count);
+        } catch (error: any) {
+            Logger.error('update error', error, error.stack);
+        }
     }
 
     private async performUpdate(count: number) {
