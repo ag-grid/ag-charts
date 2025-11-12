@@ -360,13 +360,22 @@ export class BarSeries extends AbstractBarSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
+            this,
+            isStacked ? `yValue-end` : `yValue-raw`,
+            processedData
+        );
+
         return memoizedAggregateBarData(
             xAxis.scale.type,
             xValues,
             yStartValues,
             yEndValues,
             domain,
-            processedData.reduced?.smallestKeyInterval
+            processedData.reduced?.smallestKeyInterval,
+            xNeedsValueOf,
+            yNeedsValueOf
         );
     }
 
