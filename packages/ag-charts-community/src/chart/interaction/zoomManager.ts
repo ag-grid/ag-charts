@@ -558,8 +558,8 @@ export class ZoomManager extends BaseManager {
             ratioX: Required<AgZoomRatio>;
             ratioY: Required<AgZoomRatio>;
         } = {
-            rangeX: this.getRangeDirection(zoom.x, ChartAxisDirection.X),
-            rangeY: this.getRangeDirection(zoom.y, ChartAxisDirection.Y),
+            rangeX: this.getRangeDirection(ChartAxisDirection.X, zoom.x),
+            rangeY: this.getRangeDirection(ChartAxisDirection.Y, zoom.y),
             ratioX: { start: zoom.x.min, end: zoom.x.max },
             ratioY: { start: zoom.y.min, end: zoom.y.max },
             autoScaledAxes: undefined,
@@ -614,8 +614,15 @@ export class ZoomManager extends BaseManager {
         return changeAccepted;
     }
 
-    private getRangeDirection(ratio: ZoomState, direction: CartesianAxisDirection): AgZoomRange | undefined {
-        const axis = this.getPrimaryAxis(direction);
+    public getRange(axisId: AxisID, ratio: ZoomState): AgZoomRange | undefined {
+        return this.getRangeAxis(this.findAxis(axisId), ratio);
+    }
+
+    private getRangeDirection(direction: CartesianAxisDirection, ratio: ZoomState): AgZoomRange | undefined {
+        return this.getRangeAxis(this.getPrimaryAxis(direction), ratio);
+    }
+
+    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomState): AgZoomRange | undefined {
         if (!axis || (!ContinuousScale.is(axis.scale) && !DiscreteTimeScale.is(axis.scale))) return;
 
         const extents = this.getDomainPixelExtents(axis);
