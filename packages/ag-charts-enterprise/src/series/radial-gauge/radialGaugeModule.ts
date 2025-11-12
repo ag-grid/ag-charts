@@ -1,6 +1,7 @@
 import { type AgRadialGaugePreset, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
 const { FONT_SIZE_RATIO } = _ModuleSupport;
@@ -11,6 +12,7 @@ export const RadialGaugeSeriesModule: SeriesModuleDefinition<AgRadialGaugePreset
     chartType: 'standalone',
     enterprise: true,
     version: VERSION,
+    dependencies: [StandaloneChartModule],
 
     options: _ModuleSupport.radialGaugeSeriesOptionsDef,
     themeTemplate: {

@@ -5,6 +5,8 @@ export { Chart } from './chart/chart';
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export { NumberAxis } from './chart/axis/numberAxis';
+export { CartesianChartModule } from './chart/cartesianChartModule';
+export { PolarChartModule } from './chart/polarChartModule';
 export * from './api/preset/gaugeOptionsDefs';
 export * from './chart/commonOptionsDefs';
 export * from './chart/axesOptionsDefs';

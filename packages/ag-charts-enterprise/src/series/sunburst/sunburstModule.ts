@@ -2,6 +2,7 @@ import { type AgSunburstSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
@@ -77,6 +78,7 @@ export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOption
     enterprise: true,
     solo: true,
     version: VERSION,
+    dependencies: [StandaloneChartModule],
 
     options: sunburstSeriesOptionsDef,
     themeTemplate,

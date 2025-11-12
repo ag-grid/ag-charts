@@ -4,29 +4,6 @@
             "name": "Foundations",
             "children": [
                 {
-                    "moduleName": "CartesianChartModule",
-                    "name": "Cartesian charts",
-                    "path": "create-a-basic-chart"
-                },
-                {
-                    "moduleName": "PolarChartModule",
-                    "name": "Polar charts",
-                    "path": "nightingale-series",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "StandaloneChartModule",
-                    "name": "Standalone charts",
-                    "path": "linear-gauge",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "TopologyChartModule",
-                    "name": "Topology charts",
-                    "path": "map-topology",
-                    "isEnterprise": true
-                },
-                {
                     "moduleName": "LegendModule",
                     "name": "Legend",
                     "path": "legend"

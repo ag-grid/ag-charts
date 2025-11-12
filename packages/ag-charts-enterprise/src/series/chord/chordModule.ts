@@ -1,6 +1,7 @@
 import { type AgChordSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { ChordSeries } from './chordSeries';
 import { chordSeriesOptionsDef } from './chordSeriesOptionsDef';
 
@@ -11,6 +12,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     enterprise: true,
     solo: true,
     version: VERSION,
+    dependencies: [StandaloneChartModule],
 
     options: chordSeriesOptionsDef,
     themeTemplate: {

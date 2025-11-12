@@ -27,8 +27,6 @@ export { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule
 export { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 export { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryAxisModule';
 export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
-export { StandaloneChartModule } from './charts/standaloneChartModule';
-export { TopologyChartModule } from './charts/topologyChartModule';
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
 export { BackgroundModule } from './features/background/backgroundModule';

@@ -8,13 +8,13 @@ describe('getModuleMappingsSnippet', () => {
     test('formats community modules', () => {
         const snippet = getModuleMappingsSnippet({
             selectedModules: {
-                community: ['CartesianChartModule', 'LineSeriesModule'],
+                community: ['LineSeriesModule'],
                 enterprise: [],
             },
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n              CartesianChartModule,\n              LineSeriesModule,\n          } from 'ag-charts-community';\n\n          ModuleRegistry.registerModules([\n              CartesianChartModule,\n              LineSeriesModule,\n          ]);"
+          "import {\n              ModuleRegistry,\n              LineSeriesModule,\n          } from 'ag-charts-community';\n\n          ModuleRegistry.registerModules([\n              LineSeriesModule,\n          ]);"
         `);
     });
 

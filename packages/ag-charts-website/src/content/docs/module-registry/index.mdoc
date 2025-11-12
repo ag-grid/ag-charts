@@ -15,23 +15,13 @@ Enterprise projects can import the same registry from `ag-charts-enterprise`, bu
 
 ## Register modules once
 
-Add your registration call near the bootstrap of your application so it runs exactly once. The example below registers the minimum set of community modules required for a cartesian line chart:
+Add your registration call near the bootstrap of your application so it runs exactly once. Series modules automatically bring in their required chart module dependencies, so you only need to register the series and supporting axes. The example below registers the minimum set of community modules required for a cartesian line chart:
 
 ```js
 import { AgCharts, ModuleRegistry } from 'ag-charts-community';
-import {
-    CartesianChartModule,
-    CategoryAxisModule,
-    LineSeriesModule,
-    NumberAxisModule,
-} from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, NumberAxisModule } from 'ag-charts-community';
 
-ModuleRegistry.registerModules([
-    CartesianChartModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    CategoryAxisModule,
-]);
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, CategoryAxisModule]);
 
 AgCharts.create({
     container: document.getElementById('myChart'),

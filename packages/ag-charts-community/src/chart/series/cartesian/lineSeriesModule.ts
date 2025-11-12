@@ -3,6 +3,7 @@ import type { AgLineSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
+import { CartesianChartModule } from '../../cartesianChartModule';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -72,6 +73,7 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
     chartType: 'cartesian',
     stackable: true,
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: lineSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,

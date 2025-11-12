@@ -1,4 +1,4 @@
-import { type AgRadarLineSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadarLineSeriesOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RADAR_LINE_SERIES_THEME } from '../radar/radarThemes';
@@ -13,6 +13,7 @@ export const RadarLineSeriesModule: SeriesModuleDefinition<AgRadarLineSeriesOpti
     chartType: 'polar',
     enterprise: true,
     version: VERSION,
+    dependencies: [PolarChartModule],
 
     options: radarLineSeriesOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, radius: { type: POLAR_AXIS_TYPE.RADIUS_NUMBER } },

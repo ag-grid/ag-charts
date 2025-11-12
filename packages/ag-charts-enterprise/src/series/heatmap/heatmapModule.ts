@@ -1,4 +1,4 @@
-import { type AgHeatmapSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgHeatmapSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { HeatmapSeries } from './heatmapSeries';
@@ -13,6 +13,7 @@ export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions>
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: heatmapSeriesOptionsDef,
     defaultAxes: {

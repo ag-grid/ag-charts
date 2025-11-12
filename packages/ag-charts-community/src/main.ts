@@ -15,7 +15,6 @@ export { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } fro
 
 export { BackgroundModule } from './chart/background/backgroundModule';
 export { CartesianChartModule } from './chart/cartesianChartModule';
-export { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
 export { LegendModule } from './chart/legend/legendModule';
 export { PolarChartModule } from './chart/polarChartModule';
 export { SeriesAreaModule } from './chart/series-area/seriesAreaModule';

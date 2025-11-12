@@ -3,6 +3,7 @@ import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
+import { CartesianChartModule } from '../../cartesianChartModule';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {
     DIRECTION_SWAP_AXES,
@@ -89,6 +90,7 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     stackable: true,
     groupable: true,
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: barSeriesOptionsDef,
     predictAxis: predictCartesianTimeAxis,

@@ -3,6 +3,7 @@ import type { AgDonutSeriesOptions } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
+import { PolarChartModule } from '../../polarChartModule';
 import { DonutSeries } from './donutSeries';
 import { donutSeriesOptionsDef } from './donutSeriesOptionsDef';
 import { donutTheme } from './donutTheme';
@@ -12,6 +13,7 @@ export const DonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = {
     name: 'donut',
     chartType: 'polar',
     version: VERSION,
+    dependencies: [PolarChartModule],
 
     options: donutSeriesOptionsDef,
     themeTemplate: donutTheme,

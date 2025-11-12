@@ -1,4 +1,4 @@
-import { type AgCandlestickSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgCandlestickSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { CandlestickSeries } from './candlestickSeries';
@@ -14,6 +14,7 @@ export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeries
     enterprise: true,
     groupable: false,
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: candlestickSeriesOptionsDef,
     defaultAxes: {
