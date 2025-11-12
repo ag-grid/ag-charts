@@ -614,6 +614,10 @@ export class ZoomManager extends BaseManager {
         return changeAccepted;
     }
 
+    public getCurrentRange(axisId: AxisID): AgZoomRange | undefined {
+        return this.getRangeAxis(this.findAxis(axisId), this.state.stateValue()[axisId]);
+    }
+
     public getRange(axisId: AxisID, ratio: ZoomState): AgZoomRange | undefined {
         return this.getRangeAxis(this.findAxis(axisId), ratio);
     }
@@ -622,8 +626,8 @@ export class ZoomManager extends BaseManager {
         return this.getRangeAxis(this.getPrimaryAxis(direction), ratio);
     }
 
-    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomState): AgZoomRange | undefined {
-        if (!axis || (!ContinuousScale.is(axis.scale) && !DiscreteTimeScale.is(axis.scale))) return;
+    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomState | undefined): AgZoomRange | undefined {
+        if (!axis || !ratio || (!ContinuousScale.is(axis.scale) && !DiscreteTimeScale.is(axis.scale))) return;
 
         const extents = this.getDomainPixelExtents(axis);
         if (!extents) return;

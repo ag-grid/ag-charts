@@ -1,9 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { BaseProperties, Logger, Property } from 'ag-charts-core';
-import type { CleanupRegistry, DeepRequired } from 'ag-charts-core';
-import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy } from 'ag-charts-types';
+import type { AxisID, CleanupRegistry, DeepRequired } from 'ag-charts-core';
+import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy, AgZoomRange } from 'ag-charts-types';
 
+const { ChartAxisDirection } = _ModuleSupport;
 type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'dataService' | 'eventsHub' | 'zoomManager'>;
+type ZoomChangeState = _ModuleSupport.ZoomChangeState;
+type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
@@ -13,13 +16,19 @@ export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRe
 }
 
 export class ZoomOnDataChange {
+    private readonly callerId = 'zoom-on-data-change';
+    private desiredRanges?: { axisId: AxisID; range: AgZoomRange }[];
+
     constructor(
         private readonly properties: ZoomOnDataChangeProperties,
         private readonly ctx: ModuleContext,
         eventsCleanup: CleanupRegistry
     ) {
-        eventsCleanup.register(ctx.eventsHub.on('data:load', (e) => this.onDataLoad(e)));
-        eventsCleanup.register(ctx.eventsHub.on('data:update', (e) => this.onDataUpdate(e)));
+        eventsCleanup.register(
+            ctx.eventsHub.on('data:load', (e) => this.onDataLoad(e)),
+            ctx.eventsHub.on('data:update', (e) => this.onDataUpdate(e)),
+            ctx.eventsHub.on('zoom:change-request', (e) => this.onZoomChangeRequest(e))
+        );
     }
 
     destroy(): void {}
@@ -32,18 +41,56 @@ export class ZoomOnDataChange {
         this.performUpdateStrategy();
     }
 
+    private onZoomChangeRequest(e: _ModuleSupport.ZoomChangeRequestEvent): void {
+        const changes = this.popDesiredChanges();
+        if (changes) {
+            e.constrainChanges(changes);
+        }
+    }
+
+    private popDesiredChanges(): ZoomChangeState | undefined {
+        const { desiredRanges } = this;
+        this.desiredRanges = undefined;
+
+        if (desiredRanges) {
+            const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
+            for (const entry of desiredRanges) {
+                const ratio = this.ctx.zoomManager.rangeToRatio(entry.axisId, entry.range);
+                if (ratio) {
+                    const { min, max } = ratio;
+                    changes[entry.axisId] = { direction: 'x', min, max };
+                }
+            }
+            return changes;
+        }
+    }
+
     private performUpdateStrategy() {
         switch (this.properties.strategy) {
             case 'reset':
-                return this.ctx.zoomManager.resetZoom('zoom-on-data-change');
+                return this.ctx.zoomManager.resetZoom(this.callerId);
             case 'resize':
                 return; // do nothing (keep ZoomManager min/max ratios unchanged).
             case 'preserveDomain':
+                return this.performPreserveDomain();
             case 'preserveData':
                 return Logger.error(`unimplemented strategy: ${this.properties.strategy}`);
             default:
                 const unreachable = (a: never): never => a;
                 return unreachable(this.properties.strategy);
+        }
+    }
+
+    private performPreserveDomain() {
+        // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
+        // event to these domain:
+        this.desiredRanges = [];
+        const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
+        for (const { id: axisId } of xaxes) {
+            const range = this.ctx.zoomManager.getCurrentRange(axisId);
+            if (range) {
+                this.desiredRanges.push({ axisId, range });
+            }
         }
     }
 }
