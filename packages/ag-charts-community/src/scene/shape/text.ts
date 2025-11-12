@@ -469,7 +469,22 @@ export class Text<D = any> extends Shape<D> {
         if (text == null) return;
         const element = createSvgElement('text');
 
-        if (!isArray(text)) {
+        if (isArray(text)) {
+            for (const segment of text) {
+                const segmentElement = createSvgElement('tspan');
+
+                setSvgFontAttributes(segmentElement, {
+                    fontSize: segment.fontSize ?? this.fontSize,
+                    fontFamily: segment.fontFamily ?? this.fontFamily,
+                    fontWeight: segment.fontWeight ?? this.fontWeight,
+                    fontStyle: segment.fontStyle ?? this.fontStyle,
+                });
+                this.applySvgFillAttributes(segmentElement);
+
+                segmentElement.textContent = toTextString(segment.text);
+                element.append(segmentElement);
+            }
+        } else {
             this.applySvgFillAttributes(element);
             setSvgFontAttributes(element, this);
             element.setAttribute(
@@ -487,28 +502,13 @@ export class Text<D = any> extends Shape<D> {
             element.setAttribute('y', String(this.y));
 
             element.textContent = toTextString(text);
-        } else {
-            for (const segment of text) {
-                const segmentElement = createSvgElement('tspan');
-
-                setSvgFontAttributes(segmentElement, {
-                    fontSize: segment.fontSize ?? this.fontSize,
-                    fontFamily: segment.fontFamily ?? this.fontFamily,
-                    fontWeight: segment.fontWeight ?? this.fontWeight,
-                    fontStyle: segment.fontStyle ?? this.fontStyle,
-                });
-                this.applySvgFillAttributes(segmentElement);
-
-                segmentElement.textContent = toTextString(segment.text);
-                element.append(segmentElement);
-            }
         }
 
         return { elements: [element] };
     }
 
     private hasRenderableText(): boolean {
-        const text = this.text;
+        const { text } = this;
         if (text == null) {
             return false;
         }
