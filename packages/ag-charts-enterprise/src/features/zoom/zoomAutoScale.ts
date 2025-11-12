@@ -109,7 +109,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
             let yAutoScale: boolean | undefined = memento?.autoScaledAxes?.includes('y');
             if (memento?.rangeY) {
                 yAutoScale ??= false;
-                zoom.y = this.zoomManager.rangeToRatio(memento.rangeY, ChartAxisDirection.Y) ?? {
+                zoom.y = this.zoomManager.directionRangeToRatio(ChartAxisDirection.Y, memento.rangeY) ?? {
                     min: 0,
                     max: 1,
                 };

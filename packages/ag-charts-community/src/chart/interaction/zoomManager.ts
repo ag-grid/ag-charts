@@ -265,7 +265,7 @@ export class ZoomManager extends BaseManager {
 
         const zoom = this.getDefinedZoom();
         if (memento?.rangeX) {
-            zoom.x = this.rangeToRatio(memento.rangeX, ChartAxisDirection.X) ?? { min: 0, max: 1 };
+            zoom.x = this.directionRangeToRatio(ChartAxisDirection.X, memento.rangeX) ?? { min: 0, max: 1 };
         } else if (memento?.ratioX) {
             zoom.x = {
                 min: memento.ratioX.start ?? 0,
@@ -279,6 +279,12 @@ export class ZoomManager extends BaseManager {
 
         const changes = this.toCoreZoomState(zoom);
         this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'restoreMemento', changes });
+    }
+
+    private findAxis(axisId: AxisID): CartesianAxisLike | undefined {
+        for (const a of this.axes) {
+            if (a.id === axisId) return a;
+        }
     }
 
     public getAxes() {
@@ -428,7 +434,7 @@ export class ZoomManager extends BaseManager {
         const [, end] = extents;
         const start = fn(end);
 
-        const ratio = this.rangeToRatio({ start }, direction);
+        const ratio = this.axisRangeToRatio(axis, { start });
         if (!ratio) return;
 
         this.updateZoom(callerId, { [direction]: ratio });
@@ -448,7 +454,7 @@ export class ZoomManager extends BaseManager {
         let [start, end] = extents;
         [start, end] = fn(start, end);
 
-        const ratio = this.rangeToRatio({ start, end }, direction);
+        const ratio = this.axisRangeToRatio(axis, { start, end });
         if (!ratio) return;
 
         this.updateZoom(callerId, { [direction]: ratio });
@@ -631,10 +637,17 @@ export class ZoomManager extends BaseManager {
         return { start, end };
     }
 
-    public rangeToRatio(range: AgZoomRange, direction: CartesianAxisDirection): ZoomState | undefined {
-        const axis = this.getPrimaryAxis(direction);
-        if (!axis) return;
+    public rangeToRatio(axisId: AxisID, range: AgZoomRange): ZoomState | undefined {
+        const axis = this.findAxis(axisId);
+        if (axis) return this.axisRangeToRatio(axis, range);
+    }
 
+    public directionRangeToRatio(direction: CartesianAxisDirection, range: AgZoomRange): ZoomState | undefined {
+        const axis = this.getPrimaryAxis(direction);
+        if (axis) return this.axisRangeToRatio(axis, range);
+    }
+
+    private axisRangeToRatio(axis: CartesianAxisLike, range: AgZoomRange): ZoomState | undefined {
         const extents = this.getDomainPixelExtents(axis);
         if (!extents) return;
 
