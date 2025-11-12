@@ -110,6 +110,38 @@ describe('HeatmapSeries', () => {
         await compare();
     });
 
+    describe('AG-16306 - clearing data', () => {
+        it('should clear heatmap when data is updated to empty array', async () => {
+            const options = prepareEnterpriseTestOptions({
+                title: { text: 'Should render empty chart' },
+                data: [
+                    { year: '2018', month: 'Jan', temperature: 4.4 },
+                    { year: '2018', month: 'Apr', temperature: 8.8 },
+                    { year: '2019', month: 'Jan', temperature: 4.4 },
+                    { year: '2019', month: 'Apr', temperature: 8.9 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'month',
+                        yKey: 'year',
+                        colorKey: 'temperature',
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Clear the data
+            await chart.updateDelta({ data: [] });
+            await waitForChartStability(chart);
+
+            // Verify chart is cleared
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
     describe('AG-15645 - colorKey edge cases', () => {
         it('should handle some null color values', async () => {
             const options = prepareEnterpriseTestOptions({

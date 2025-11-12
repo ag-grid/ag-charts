@@ -131,7 +131,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
-        if (!xAxis || !yAxis || !this.data?.data.length) {
+        if (!xAxis || !yAxis) {
             return;
         }
 
@@ -228,7 +228,18 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(data && dataModel && processedData && visible && xAxis && yAxis)) return;
+        if (!(data && visible && xAxis && yAxis)) return;
+
+        // Return empty structure when no data model or processed data
+        if (!dataModel || !processedData) {
+            return {
+                itemId: this.properties.yKey ?? this.id,
+                nodeData: [],
+                labelData: [],
+                scales: this.calculateScaling(),
+                visible: this.visible,
+            };
+        }
 
         if (xAxis.type !== 'category' || yAxis.type !== 'category') {
             Logger.warnOnce(
