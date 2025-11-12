@@ -135,14 +135,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             return;
         }
 
-        // Process empty data to clear the state
-        if (!this.data?.data.length) {
-            await this.requestDataModel<any>(dataController, this.data, {
-                props: [],
-            });
-            return;
-        }
-
         const { xKey, yKey, colorRange, colorKey } = this.properties;
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;

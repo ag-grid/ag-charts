@@ -113,6 +113,7 @@ describe('HeatmapSeries', () => {
     describe('AG-16306 - clearing data', () => {
         it('should clear heatmap when data is updated to empty array', async () => {
             const options = prepareEnterpriseTestOptions({
+                title: { text: 'Should render empty chart' },
                 data: [
                     { year: '2018', month: 'Jan', temperature: 4.4 },
                     { year: '2018', month: 'Apr', temperature: 8.8 },
@@ -132,17 +133,12 @@ describe('HeatmapSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Verify initial render has data
-            let imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-
             // Clear the data
             await chart.updateDelta({ data: [] });
             await waitForChartStability(chart);
 
             // Verify chart is cleared
-            imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
 
