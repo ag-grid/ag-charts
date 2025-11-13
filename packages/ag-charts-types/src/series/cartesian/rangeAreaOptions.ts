@@ -1,6 +1,7 @@
 import type {
     ContextCallbackParams,
     DatumItemCallbackParams,
+    HighlightState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -22,7 +23,7 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams,
+    extends SeriesCallbackParams<HighlightState>,
         ContextCallbackParams<TContext>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         Required<AgRangeAreaSeriesStyle> {}
@@ -55,7 +56,7 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, T
 
 export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
     extends AgRangeAreaSeriesOptionsKeys<TDatum>,
-        DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum>,
+        DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         Required<AgSeriesMarkerStyle> {
     /** The Id to distinguish the type of datum. This can be `high` or `low`. */

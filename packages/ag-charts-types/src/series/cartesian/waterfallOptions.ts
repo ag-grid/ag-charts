@@ -1,4 +1,10 @@
-import type { ContextCallbackParams, DatumItemCallbackParams, Renderer, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumItemCallbackParams,
+    HighlightState,
+    Renderer,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
@@ -12,7 +18,7 @@ export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'sub
 export type AgWaterfallSeriesItemStylerParams<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum> &
+> = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum, HighlightState> &
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
     Required<AgWaterfallSeriesStyle>;

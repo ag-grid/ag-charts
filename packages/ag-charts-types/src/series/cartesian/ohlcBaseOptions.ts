@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, DatumItemCallbackParams } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumItemCallbackParams, HighlightState } from '../../chart/callbackOptions';
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
@@ -35,7 +35,11 @@ export interface AgOhlcSeriesOptionsNames {
     lowName?: string;
 }
 
-type OhlcItemCallbackParams<TDatum = DatumDefault> = DatumItemCallbackParams<AgOhlcSeriesItemType, TDatum>;
+type OhlcItemCallbackParams<TDatum = DatumDefault> = DatumItemCallbackParams<
+    AgOhlcSeriesItemType,
+    TDatum,
+    HighlightState
+>;
 
 export type AgOhlcSeriesBaseItemStylerParams<
     TDatum = DatumDefault,

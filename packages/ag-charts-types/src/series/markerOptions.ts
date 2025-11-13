@@ -1,8 +1,11 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../chart/callbackOptions';
 import type { AgMarkerShape, ContextDefault, DatumDefault, PixelSize } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
-export type AgSeriesMarkerStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<TDatum> &
+export type AgSeriesMarkerStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgSeriesMarkerStyle;
 
