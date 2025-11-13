@@ -816,91 +816,91 @@ describe('Chart', () => {
         });
 
         describe('addIndex validation', () => {
-            it('should reject unsafe integers beyond MAX_SAFE_INTEGER', async () => {
-                await expect(
+            it('should throw synchronously for unsafe integers beyond MAX_SAFE_INTEGER', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: [{ x: 4, y: 40 }],
                         addIndex: Number.MAX_SAFE_INTEGER + 1,
                     })
-                ).rejects.toThrow('safe non-negative integer');
+                ).toThrow('safe non-negative integer');
             });
 
-            it('should reject extremely large numbers', async () => {
-                await expect(
+            it('should throw synchronously for extremely large numbers', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: [{ x: 4, y: 40 }],
                         addIndex: 1e100,
                     })
-                ).rejects.toThrow('safe non-negative integer');
+                ).toThrow('safe non-negative integer');
             });
 
-            it('should reject NaN', async () => {
-                await expect(
+            it('should throw synchronously for NaN', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: [{ x: 4, y: 40 }],
                         addIndex: Number.NaN,
                     })
-                ).rejects.toThrow('safe non-negative integer');
+                ).toThrow('safe non-negative integer');
             });
 
-            it('should reject Infinity', async () => {
-                await expect(
+            it('should throw synchronously for Infinity', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: [{ x: 4, y: 40 }],
                         addIndex: Infinity,
                     })
-                ).rejects.toThrow('safe non-negative integer');
+                ).toThrow('safe non-negative integer');
             });
 
-            it('should reject negative Infinity', async () => {
-                await expect(
+            it('should throw synchronously for negative Infinity', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: [{ x: 4, y: 40 }],
                         addIndex: -Infinity,
                     })
-                ).rejects.toThrow('safe non-negative integer');
+                ).toThrow('safe non-negative integer');
             });
 
-            it('should reject negative numbers', async () => {
-                await expect(
+            it('should throw synchronously for negative numbers', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: [{ x: 4, y: 40 }],
                         addIndex: -1,
                     })
-                ).rejects.toThrow('safe non-negative integer');
+                ).toThrow('safe non-negative integer');
             });
 
-            it('should reject decimal numbers', async () => {
-                await expect(
+            it('should throw synchronously for decimal numbers', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: [{ x: 4, y: 40 }],
                         addIndex: 1.5,
                     })
-                ).rejects.toThrow('safe non-negative integer');
+                ).toThrow('safe non-negative integer');
             });
 
-            it('should reject addIndex without add array', async () => {
-                await expect(chartProxy.applyTransaction({ addIndex: 5 })).rejects.toThrow(
+            it('should throw synchronously for addIndex without add array', () => {
+                expect(() => chartProxy.applyTransaction({ addIndex: 5 })).toThrow(
                     'requires a non-empty "add" array'
                 );
             });
 
-            it('should reject addIndex with null add array', async () => {
-                await expect(
+            it('should throw synchronously for addIndex with null add array', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: null as any,
                         addIndex: 5,
                     })
-                ).rejects.toThrow('requires a non-empty "add" array');
+                ).toThrow('requires a non-empty "add" array');
             });
 
-            it('should reject addIndex with empty add array', async () => {
-                await expect(
+            it('should throw synchronously for addIndex with empty add array', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: [],
                         addIndex: 5,
                     })
-                ).rejects.toThrow('requires a non-empty "add" array');
+                ).toThrow('requires a non-empty "add" array');
             });
 
             it('should accept MAX_SAFE_INTEGER', async () => {
@@ -972,34 +972,51 @@ describe('Chart', () => {
         });
 
         describe('other transaction validation', () => {
-            it('should reject non-object transaction', async () => {
-                await expect(chartProxy.applyTransaction(null as any)).rejects.toThrow(
+            it('should throw synchronously for non-object transaction', () => {
+                expect(() => chartProxy.applyTransaction(null as any)).toThrow(
                     'applyTransaction expects a transaction object'
                 );
             });
 
-            it('should reject non-array add', async () => {
-                await expect(
+            it('should throw synchronously for non-array add', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         add: { x: 4, y: 40 } as any,
                     })
-                ).rejects.toThrow('"add" must be an array');
+                ).toThrow('"add" must be an array');
             });
 
-            it('should reject non-array remove', async () => {
-                await expect(
+            it('should throw synchronously for non-array remove', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         remove: { x: 1, y: 10 } as any,
                     })
-                ).rejects.toThrow('"remove" must be an array');
+                ).toThrow('"remove" must be an array');
             });
 
-            it('should reject non-array update', async () => {
-                await expect(
+            it('should throw synchronously for non-array update', () => {
+                expect(() =>
                     chartProxy.applyTransaction({
                         update: { x: 1, y: 10 } as any,
                     })
-                ).rejects.toThrow('"update" must be an array');
+                ).toThrow('"update" must be an array');
+            });
+
+            it('should throw synchronously for invalid addIndex', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: -1,
+                    })
+                ).toThrow('"addIndex" must be a safe non-negative integer');
+            });
+
+            it('should throw synchronously for addIndex without add', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        addIndex: 0,
+                    })
+                ).toThrow('"addIndex" requires a non-empty "add" array');
             });
 
             it('should accept empty update array', async () => {
@@ -1021,6 +1038,175 @@ describe('Chart', () => {
 
                 // Data unchanged
                 expect(chart.data.data).toHaveLength(3);
+            });
+        });
+
+        describe('getOptions data synchronization', () => {
+            it('should return updated data in getOptions after add transaction', async () => {
+                const initialOptions = chartProxy.getOptions();
+                expect(initialOptions.data).toHaveLength(3);
+
+                await chartProxy.applyTransaction({
+                    add: [{ x: 4, y: 40 }],
+                });
+                await waitForChartStability(chart);
+
+                const updatedOptions = chartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(4);
+                expect(updatedOptions.data![3]).toEqual({ x: 4, y: 40 });
+            });
+
+            it('should return updated data in getOptions after remove transaction', async () => {
+                const initialData = chartProxy.getOptions().data!;
+                const itemToRemove = initialData[0];
+
+                await chartProxy.applyTransaction({
+                    remove: [itemToRemove],
+                });
+                await waitForChartStability(chart);
+
+                const updatedOptions = chartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(2);
+                expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+            });
+
+            it('should return updated data in getOptions after update transaction', async () => {
+                const initialData = chartProxy.getOptions().data!;
+                const itemToUpdate = initialData[1];
+                itemToUpdate.y = 25;
+
+                await chartProxy.applyTransaction({
+                    update: [itemToUpdate],
+                });
+                await waitForChartStability(chart);
+
+                const updatedOptions = chartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(3);
+                expect(updatedOptions.data![1].y).toBe(25);
+            });
+
+            it('should return updated data in getOptions after combined transaction', async () => {
+                const initialData = chartProxy.getOptions().data!;
+                const itemToRemove = initialData[0];
+                const itemToUpdate = initialData[1];
+                itemToUpdate.y = 25;
+
+                await chartProxy.applyTransaction({
+                    remove: [itemToRemove],
+                    update: [itemToUpdate],
+                    add: [{ x: 4, y: 40 }],
+                });
+                await waitForChartStability(chart);
+
+                const updatedOptions = chartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(3);
+                expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+                expect(updatedOptions.data![0].y).toBe(25);
+                expect(updatedOptions.data![2]).toEqual({ x: 4, y: 40 });
+            });
+        });
+
+        describe('pie chart transactions', () => {
+            let pieChartProxy: AgChartProxy;
+            let pieChart: Chart;
+
+            beforeEach(async () => {
+                const pieChartOptions = prepareTestOptions<{
+                    data: { category: string; value: number }[];
+                    series: any[];
+                }>({
+                    data: [
+                        { category: 'A', value: 10 },
+                        { category: 'B', value: 20 },
+                        { category: 'C', value: 30 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'category',
+                        },
+                    ],
+                });
+
+                pieChartProxy = AgCharts.create(pieChartOptions);
+                pieChart = deproxy(pieChartProxy);
+                await waitForChartStability(pieChart);
+            });
+
+            afterEach(() => {
+                if (pieChartProxy) {
+                    pieChartProxy.destroy();
+                }
+            });
+
+            it('should update pie chart data with add transaction', async () => {
+                const initialOptions = pieChartProxy.getOptions();
+                expect(initialOptions.data).toHaveLength(3);
+
+                await pieChartProxy.applyTransaction({
+                    add: [{ category: 'D', value: 40 }],
+                });
+                await waitForChartStability(pieChart);
+
+                const updatedOptions = pieChartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(4);
+                expect(updatedOptions.data![3]).toEqual({ category: 'D', value: 40 });
+            });
+
+            it('should update pie chart data with remove transaction', async () => {
+                const initialData = pieChartProxy.getOptions().data!;
+                const itemToRemove = initialData[0];
+
+                await pieChartProxy.applyTransaction({
+                    remove: [itemToRemove],
+                });
+                await waitForChartStability(pieChart);
+
+                const updatedOptions = pieChartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(2);
+                expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+            });
+
+            it('should update pie chart data with update transaction', async () => {
+                const initialData = pieChartProxy.getOptions().data!;
+                const itemToUpdate = initialData[1];
+                itemToUpdate.value = 25;
+
+                await pieChartProxy.applyTransaction({
+                    update: [itemToUpdate],
+                });
+                await waitForChartStability(pieChart);
+
+                const updatedOptions = pieChartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(3);
+                expect(updatedOptions.data![1].value).toBe(25);
+            });
+
+            it('should not add empty segments when adding valid data', async () => {
+                const initialOptions = pieChartProxy.getOptions();
+                expect(initialOptions.data).toHaveLength(3);
+
+                await pieChartProxy.applyTransaction({
+                    add: [{ category: 'D', value: 40 }],
+                });
+                await waitForChartStability(pieChart);
+
+                const updatedOptions = pieChartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(4);
+                
+                // Verify all data items have valid values (non-zero)
+                for (const item of updatedOptions.data!) {
+                    expect(item.value).toBeGreaterThan(0);
+                }
             });
         });
     });

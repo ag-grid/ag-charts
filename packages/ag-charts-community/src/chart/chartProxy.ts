@@ -109,10 +109,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return this.chart.waitForUpdate();
     }
 
-    async applyTransaction(transaction: AgDataTransaction) {
+    applyTransaction(transaction: AgDataTransaction): Promise<void> {
         if (!this.chart) throw new Error(DESTROYED_ERROR);
 
-        // Validate transaction structure
+        // Validate transaction structure synchronously
         if (transaction == null || typeof transaction !== 'object') {
             throw new Error('AG Charts - applyTransaction expects a transaction object.');
         }
