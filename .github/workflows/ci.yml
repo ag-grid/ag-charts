@@ -36,6 +36,7 @@ env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
+    NX_COMMAND_TYPE: ${{ github.event.inputs.nx_command }}
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
@@ -109,7 +110,7 @@ jobs:
                   matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 6 --ratio 1 --zero ${count})
                   echo "test_matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "test_count=${count}" >> $GITHUB_OUTPUT
-                  echo "Test matrix determined to be: ${matrix}"
+                  echo "Test matrix determined to be: ${matrix} (test_count=${count})"
 
                   pkg_matrix=$(node ./external/ag-shared/scripts/shard/calculate-pkg-shards.js)
                   echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
@@ -125,13 +126,13 @@ jobs:
                   e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max ${{ env.AG_E2E_SHARD_COUNT }} ${e2e_count})
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
-                  echo "E2E matrix determined to be: ${e2e_matrix}"
+                  echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
 
             - name: Prepare Snapshot Branch
               uses: ./.github/actions/snapshot-prepare
               id: snapshot-prepare
 
-            - name: Perist build outputs
+            - name: Persist build outputs
               if: always()
               uses: actions/upload-artifact@v4
               with:
@@ -291,7 +292,7 @@ jobs:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   type: test (shard ${{matrix.shard}})
 
-            - name: Perist test results
+            - name: Persist test results
               if: always()
               uses: actions/upload-artifact@v4
               with:
@@ -348,7 +349,7 @@ jobs:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   type: test:e2e (shard ${{matrix.shard}})
 
-            - name: Perist test results
+            - name: Persist test results
               if: always()
               uses: actions/upload-artifact@v4
               with:

@@ -254,7 +254,7 @@ jobs:
                   EOF
                   curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
 
-            - name: Perist benchmark results
+            - name: Persist benchmark results
               if: always()
               uses: actions/upload-artifact@v4
               with:
