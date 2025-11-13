@@ -28,7 +28,11 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             defaultColorRange: { $palette: 'gradients' },
             defaultPatternFills: _ModuleSupport.SAFE_FILLS_OPERATION,
-            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+            highlight: {
+                unhighlightedItem: {
+                    opacity: 0.5,
+                },
+            },
             label: {
                 ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 fontFamily: { $ref: 'fontFamily' },

@@ -55,7 +55,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
         // @ts-expect-error undocumented option
         highlight: {
             unhighlightedItem: {
-                opacity: 0.6,
+                opacity: 0.4,
             },
         },
     },
