@@ -7,6 +7,7 @@ import {
     AgChartState,
     AgCharts,
     AgInitialStateZoomOptions,
+    AgZoomEvent,
 } from 'ag-charts-community';
 import {
     MockZoomListener,
@@ -1060,6 +1061,7 @@ describe('Zoom', () => {
                 await waitForChartStability(chart);
             }
             describe('preserveDomain', () => {
+                let initialRatioX: Pick<AgZoomEvent, 'ratioX'>;
                 beforeEach(async () => {
                     zoomListener = newFreezableZoomListenerMock();
                     await prepareChart(
@@ -1072,25 +1074,34 @@ describe('Zoom', () => {
                     );
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+
+                    const { ratioX } = zoomListener.mock.mock.calls[0][0];
+                    const { start, end } = ratioX;
+                    initialRatioX = { ratioX: { start, end } };
+
                     zoomListener.mock.mockClear();
                 });
                 test('append datum', async () => {
                     await appendDatum();
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
                 });
                 test('prepend datum', async () => {
                     await prependDatum();
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
                 });
                 test('insert-middle datum', async () => {
                     await insertMiddleDatum();
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
                 });
             });
             describe('resize', () => {
+                let initialRangeX: Pick<AgZoomEvent, 'rangeX'>;
                 beforeEach(async () => {
                     zoomListener = newFreezableZoomListenerMock();
                     await prepareChart(
@@ -1103,22 +1114,31 @@ describe('Zoom', () => {
                     );
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+
+                    const { rangeX } = zoomListener.mock.mock.calls[0][0];
+                    expect(rangeX).toBeDefined();
+                    const { start, end } = rangeX!;
+                    initialRangeX = { rangeX: { start, end } };
+
                     zoomListener.mock.mockClear();
                 });
                 test('append datum', async () => {
                     await appendDatum();
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
                 });
                 test('prepend datum', async () => {
                     await prependDatum();
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
                 });
                 test('insert-middle datum', async () => {
                     await insertMiddleDatum();
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
                 });
             });
         });
