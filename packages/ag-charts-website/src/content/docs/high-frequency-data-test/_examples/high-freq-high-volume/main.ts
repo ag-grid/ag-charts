@@ -150,14 +150,23 @@ function generateValueDatum(index: number): ValueDatum {
     };
 }
 
-function generateOhlcDatum(index: number): OhlcDatum {
+function generateOhlcDatum(index: number, previousBasePrice?: number): { datum: OhlcDatum; basePrice: number } {
     const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
 
-    // Calculate base price using deterministic formula similar to candlestick example
-    let basePrice = 1_000;
-    for (let i = 0; i <= index; i++) {
-        const drift = Math.sin(i / 240) * 40 + Math.cos(i / 80) * 25;
-        basePrice = Number((basePrice + drift * 0.01).toFixed(2));
+    // Calculate base price incrementally from previous value (O(1) instead of O(n))
+    const drift = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
+    let basePrice: number;
+    if (previousBasePrice !== undefined) {
+        basePrice = Number((previousBasePrice + drift * 0.01).toFixed(2));
+    } else {
+        // Fallback: compute cumulative sum (O(n) but only for edge cases)
+        // This should rarely happen in practice as we maintain state
+        let computedBasePrice = 1_000;
+        for (let i = 0; i <= index; i++) {
+            const d = Math.sin(i / 240) * 40 + Math.cos(i / 80) * 25;
+            computedBasePrice = Number((computedBasePrice + d * 0.01).toFixed(2));
+        }
+        basePrice = computedBasePrice;
     }
 
     // Generate realistic OHLC data with volatility
@@ -170,28 +179,34 @@ function generateOhlcDatum(index: number): OhlcDatum {
     const low = Number(Math.min(open, close, basePrice - Math.abs(Math.sin(index / 9)) * volatility * 2).toFixed(2));
 
     return {
-        timestamp,
-        open,
-        high,
-        low,
-        close,
+        datum: {
+            timestamp,
+            open,
+            high,
+            low,
+            close,
+        },
+        basePrice,
     };
 }
 
-function generateDatum(index: number, seriesType: SeriesType = currentSeriesType): Datum {
-    if (seriesType === 'ohlc' || seriesType === 'candlestick') {
-        return generateOhlcDatum(index);
-    } else {
-        return generateValueDatum(index);
-    }
-}
-
-function createSeedData(count: number, seriesType: SeriesType = currentSeriesType): Datum[] {
+function createSeedData(
+    count: number,
+    seriesType: SeriesType = currentSeriesType
+): { data: Datum[]; lastBasePrice?: number } {
     const result: Datum[] = [];
+    let basePrice: number | undefined = undefined;
+
     for (let i = 0; i < count; i++) {
-        result.push(generateDatum(i, seriesType));
+        if (seriesType === 'ohlc' || seriesType === 'candlestick') {
+            const { datum, basePrice: newBasePrice } = generateOhlcDatum(i, basePrice);
+            result.push(datum);
+            basePrice = newBasePrice;
+        } else {
+            result.push(generateValueDatum(i));
+        }
     }
-    return result;
+    return { data: result, lastBasePrice: basePrice };
 }
 
 function isValueDatum(datum: Datum): datum is ValueDatum {
@@ -232,8 +247,11 @@ function convertOhlcToValue(ohlcData: OhlcDatum[]): ValueDatum[] {
     }));
 }
 
-let data: Datum[] = createSeedData(INITIAL_POINTS);
+const seedResult = createSeedData(INITIAL_POINTS);
+let data: Datum[] = seedResult.data;
 let nextIndex = data.length;
+// Track last base price for OHLC generation to maintain O(n) complexity
+let lastBasePrice: number | undefined = seedResult.lastBasePrice;
 
 function createSeriesConfig(seriesType: SeriesType): AgCartesianSeriesOptions[] {
     if (seriesType === 'ohlc' || seriesType === 'candlestick') {
@@ -307,7 +325,13 @@ let seriesTypeUpdateInProgress = false;
 function createBatch(count: number): Datum[] {
     const batch: Datum[] = [];
     for (let i = 0; i < count; i++) {
-        batch.push(generateDatum(nextIndex++, currentSeriesType));
+        if (currentSeriesType === 'ohlc' || currentSeriesType === 'candlestick') {
+            const { datum, basePrice: newBasePrice } = generateOhlcDatum(nextIndex++, lastBasePrice);
+            batch.push(datum);
+            lastBasePrice = newBasePrice;
+        } else {
+            batch.push(generateValueDatum(nextIndex++));
+        }
     }
     return batch;
 }
@@ -498,13 +522,25 @@ async function setSeriesType(newSeriesType: SeriesType) {
             // Convert value-based to OHLC
             const valueData = data.filter(isValueDatum);
             data = convertValueToOhlc(valueData);
+            // Calculate lastBasePrice by running generation up to last index (O(n) but only once)
+            if (data.length > 0) {
+                let computedBasePrice = 1_000;
+                for (let i = 0; i < data.length; i++) {
+                    const drift = Math.sin(i / 240) * 40 + Math.cos(i / 80) * 25;
+                    computedBasePrice = Number((computedBasePrice + drift * 0.01).toFixed(2));
+                }
+                lastBasePrice = computedBasePrice;
+            }
         } else if (wasOhlcBased && isValueBased) {
             // Convert OHLC to value-based
             const ohlcData = data.filter(isOhlcDatum);
             data = convertOhlcToValue(ohlcData);
+            lastBasePrice = undefined;
         } else {
             // Same category (value-based to value-based or OHLC to OHLC), regenerate for consistency
-            data = createSeedData(dataCount, newSeriesType);
+            const seedResult = createSeedData(dataCount, newSeriesType);
+            data = seedResult.data;
+            lastBasePrice = seedResult.lastBasePrice;
         }
 
         // Reset nextIndex to maintain continuity

@@ -215,7 +215,7 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
             if (!Number.isFinite(prevX)) return largestSoFar;
 
             const interval = Math.abs(nextX - prevX2);
-            const currentLargest = largestSoFar ?? Infinity;
+            const currentLargest = largestSoFar ?? -Infinity;
             if (interval > 0 && interval > currentLargest) {
                 return interval;
             }
