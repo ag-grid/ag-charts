@@ -11,6 +11,7 @@ import {
     isArray,
     measureTextSegments,
     toPlainText,
+    toTextString,
 } from 'ag-charts-core';
 import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
@@ -198,7 +199,7 @@ export class AxisTicks {
                 if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
                 const { width: labelWidth } = isArray(data.tickLabel)
                     ? measureTextSegments(data.tickLabel, this.label)
-                    : measurer.measureLines(data.tickLabel);
+                    : measurer.measureLines(toTextString(data.tickLabel));
                 lastTickPosition = data.translation + labelWidth * direction;
                 return true;
             });

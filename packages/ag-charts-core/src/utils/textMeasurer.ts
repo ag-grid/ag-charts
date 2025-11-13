@@ -4,7 +4,7 @@ import { LRUCache } from '../classes/lruCache';
 import type { Writeable } from '../interfaces/globalTypes';
 import type { Size } from '../interfaces/sceneTypes';
 import { createCanvasContext } from './canvas';
-import { type FontOptions, LineSplitter, toFontString } from './textUtils';
+import { type FontOptions, LineSplitter, toFontString, toTextString } from './textUtils';
 
 export interface TextMetricsBox {
     width: number;
@@ -23,7 +23,8 @@ export interface MultilineTextMetricsBox {
     lineMetrics: LineMetricsBox[];
 }
 
-export interface MeasuredSegment extends TextSegment {
+export interface MeasuredSegment extends Omit<TextSegment, 'text'> {
+    text: string;
     fontSize: number;
     textMetrics: TextMetricsBox;
 }
@@ -174,7 +175,7 @@ export function measureTextSegments(
 
         const font = { fontSize, fontStyle, fontWeight, fontFamily };
         const measurer = cachedTextMeasurer(font);
-        const textLines = text.split(LineSplitter);
+        const textLines = toTextString(text).split(LineSplitter);
 
         for (let i = 0; i < textLines.length; i++) {
             const textLine = textLines[i];

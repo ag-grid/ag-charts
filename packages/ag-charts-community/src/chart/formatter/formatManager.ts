@@ -3,10 +3,10 @@ import {
     buildDateFormatter,
     createNumberFormatter,
     formatValue,
-    isArray,
     isPlainObject,
     parseNumberFormat,
     simpleMemorize2,
+    toTextString,
 } from 'ag-charts-core';
 import {
     type AgTimeIntervalUnit,
@@ -15,6 +15,7 @@ import {
     type DateFormatterStyle,
     type FormatterConfiguration,
     type NumberFormatterParams,
+    type TextValue,
 } from 'ag-charts-types';
 
 import { Listeners } from '../../util/listeners';
@@ -26,10 +27,10 @@ export type GlobalContextlessFormatterParams =
     | Omit<CategoryFormatterParams<any, any>, 'context'>;
 
 export type GlobalContextFormatter = (
-    fn: (params: GlobalContextlessFormatterParams) => string | undefined,
+    fn: (params: GlobalContextlessFormatterParams) => TextValue | undefined,
     params: GlobalContextlessFormatterParams,
     contextProvider?: { context?: unknown }
-) => string | undefined;
+) => TextValue | undefined;
 
 type Specifier = Record<AgTimeIntervalUnit, string> | string;
 
@@ -133,7 +134,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
 
         if (typeof propertyFormatter === 'function') {
             const value = formatInContext(propertyFormatter, params);
-            return value == null || isArray(value) ? value : String(value);
+            return value == null ? value : toTextString(value);
         } else if (params.type === 'date') {
             const { unit, style } = params;
             const dateFormatter = this.dateFormatter(propertyFormatter, specifier, unit, style, truncateDate);

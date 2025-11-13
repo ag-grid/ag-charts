@@ -1,3 +1,4 @@
+import type { TextValue } from '../series/cartesian/commonOptions';
 import type { AgTimeIntervalUnit } from './axisOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from './types';
 
@@ -105,7 +106,7 @@ export type FormatterParams<TDatum = DatumDefault, TContext = ContextDefault> =
     | DateFormatterParams<TDatum, TContext>
     | CategoryFormatterParams<TDatum, TContext>;
 
-type FunctionFormatter<TDatum, TContext> = (params: FormatterParams<TDatum, TContext>) => string | undefined;
+type FunctionFormatter<TDatum, TContext> = (params: FormatterParams<TDatum, TContext>) => TextValue | undefined;
 type TimeIntervalFormatter = Record<AgTimeIntervalUnit, string>;
 
 export type FormatterConfiguration<TDatum, TContext = ContextDefault> =
