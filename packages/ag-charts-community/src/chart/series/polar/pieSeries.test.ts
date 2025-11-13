@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -720,7 +720,10 @@ describe('PieSeries', () => {
     });
 
     describe('applyTransaction', () => {
-        test('reprocesses palette entries for new data', async () => {
+        let chartProxy: AgChartProxy;
+        let pieSeries: PieSeries;
+
+        beforeEach(async () => {
             const transactionOptions = prepareTestOptions({
                 theme: {
                     palette: {
@@ -734,11 +737,14 @@ describe('PieSeries', () => {
                 ],
                 series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'food' }],
             });
-            const chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
+            chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
 
-            const pieSeries = chart.series[0] as PieSeries;
+            pieSeries = chart.series[0] as PieSeries;
+        });
+
+        test('reprocesses palette entries for new data', async () => {
             expect(pieSeries.properties.fills).toEqual(['red', 'green']);
 
             await chartProxy.applyTransaction({
@@ -753,6 +759,27 @@ describe('PieSeries', () => {
             expect(pieSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
             expect(nodeData).toHaveLength(4);
             expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
+        });
+
+        test('removes data items correctly', async () => {
+            const initialData = chartProxy.getOptions().data!;
+            expect(initialData).toHaveLength(2);
+            const initialNodeData = pieSeries.getNodeData() ?? [];
+            expect(initialNodeData).toHaveLength(2);
+
+            const itemToRemove = initialData[0];
+            await chartProxy.applyTransaction({
+                remove: [itemToRemove],
+            });
+            await waitForChartStability(chart);
+
+            const updatedOptions = chartProxy.getOptions();
+            expect(updatedOptions.data).toBeDefined();
+            expect(updatedOptions.data!).toHaveLength(1);
+            expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+
+            const nodeData = pieSeries.getNodeData() ?? [];
+            expect(nodeData).toHaveLength(1);
         });
     });
 

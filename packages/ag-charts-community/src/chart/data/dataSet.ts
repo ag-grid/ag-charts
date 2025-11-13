@@ -1,5 +1,3 @@
-import { deepClone } from 'ag-charts-core';
-
 import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
 
 export { DataChangeDescription } from './dataChangeDescription';
