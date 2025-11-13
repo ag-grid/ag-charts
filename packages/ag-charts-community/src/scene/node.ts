@@ -384,7 +384,7 @@ export abstract class Node<TDatum = unknown> {
         this._debugDirtyProperties.clear();
     }
 
-    private static handleNodeZIndexChange(target: Node): void {
+    private static handleNodeZIndexChange(this: void, target: Node): void {
         target.onZIndexChange();
     }
 

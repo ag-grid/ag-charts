@@ -386,11 +386,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         setSvgLineDashAttributes(element, { lineDash, lineDashOffset });
     }
 
-    private static handleFillChange(shape: Shape): void {
+    private static handleFillChange(this: void, shape: Shape): void {
         shape.onFillChange();
     }
 
-    private static handleStrokeChange(shape: Shape): void {
+    private static handleStrokeChange(this: void, shape: Shape): void {
         shape.onStrokeChange();
     }
 }
