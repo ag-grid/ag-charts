@@ -1104,7 +1104,7 @@ describe('Zoom', () => {
                     await insertMiddleDatum();
                     const state = chart.getState();
                     expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                    expect(state.zoom).not.toMatchObject(initialRatioX);
+                    expect(state.zoom).toMatchObject(initialRatioX);
 
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
@@ -1157,7 +1157,7 @@ describe('Zoom', () => {
                     await insertMiddleDatum();
                     const state = chart.getState();
                     expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                    expect(state.zoom).not.toMatchObject(initialRangeX);
+                    expect(state.zoom).toMatchObject(initialRangeX);
 
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
