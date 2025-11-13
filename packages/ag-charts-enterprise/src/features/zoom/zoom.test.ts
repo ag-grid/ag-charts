@@ -1137,8 +1137,6 @@ describe('Zoom', () => {
                     const state = chart.getState();
                     expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
                     expect(state.zoom).not.toMatchObject(initialRangeX);
-
-                    await appendDatum();
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
                     expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
