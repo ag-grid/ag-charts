@@ -89,7 +89,11 @@ export function rowCountProperty<K>(propName: K, opts: Partial<DatumPropertyDefi
         type: 'value',
         valueType: 'range',
         missingValue: 1,
-        processor: () => () => 1,
+        processor: function rowCountResetFn() {
+            return function rowCountGroupResetFn() {
+                return 1;
+            };
+        },
         ...opts,
     };
     return result;
@@ -107,9 +111,9 @@ function processorChain(...chain: ((() => ProcessorFn) | undefined)[]): () => Pr
     if (filteredChain.length === 1) {
         return filteredChain[0];
     }
-    return () => {
+    return function processorChainFn() {
         const processorInstances = filteredChain.map((fn) => fn());
-        return (value, index) => {
+        return function processorChainResultFn(value: any, index: number) {
             return processorInstances.reduce((r, p) => p(r, index), value);
         };
     };
@@ -125,7 +129,11 @@ export function rangedValueProperty<K>(
         property: propName,
         valueType: 'range',
         validation: basicContinuousCheckDatumValidation,
-        processor: processorChain(processor, () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum)),
+        processor: processorChain(processor, function clampFnBuilder() {
+            return function clampFn(datum: any) {
+                return isFiniteNumber(datum) ? clamp(min, datum, max) : datum;
+            };
+        }),
         ...defOpts,
     };
 }
@@ -172,14 +180,19 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     type: 'reducer',
     property: 'smallestKeyInterval',
     initialValue: Infinity,
-    reducer: () => {
+    reducer() {
         let prevX = Number.NaN;
-        return (smallestSoFar, keys) => {
-            const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
-            const interval = Math.abs(nextX - prevX);
+        return function smallestKeyIntervalReducerFn(smallestSoFar, keys) {
+            const key = keys[0];
+            const nextX = typeof key === 'number' ? key : Number(key);
+            if (!Number.isFinite(nextX)) return smallestSoFar;
+            const prevX2 = prevX;
             prevX = nextX;
+            if (!Number.isFinite(prevX)) return smallestSoFar;
+
+            const interval = Math.abs(nextX - prevX2);
             const currentSmallest = smallestSoFar ?? Infinity;
-            if (!Number.isNaN(interval) && interval > 0 && interval < currentSmallest) {
+            if (interval > 0 && interval < currentSmallest) {
                 return interval;
             }
             return currentSmallest;
@@ -191,15 +204,19 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     type: 'reducer',
     property: 'largestKeyInterval',
     initialValue: -Infinity,
-    reducer: () => {
+    reducer() {
         let prevX = Number.NaN;
-        return (largestSoFar, keys) => {
-            const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
-
-            const interval = Math.abs(nextX - prevX);
+        return function largestKeyIntervalReducerFn(largestSoFar, keys) {
+            const key = keys[0];
+            const nextX = typeof key === 'number' ? key : Number(key);
+            if (!Number.isFinite(nextX)) return largestSoFar;
+            const prevX2 = prevX;
             prevX = nextX;
+            if (!Number.isFinite(prevX)) return largestSoFar;
+
+            const interval = Math.abs(nextX - prevX2);
             const currentLargest = largestSoFar ?? -Infinity;
-            if (!Number.isNaN(interval) && interval > 0 && interval > currentLargest) {
+            if (interval > 0 && interval > currentLargest) {
                 return interval;
             }
             return currentLargest;
@@ -210,8 +227,8 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
 export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'> = {
     type: 'processor',
     property: 'sortedGroupDomain',
-    calculate: ({ domain: { groups } }) =>
-        groups?.slice().sort((a, b) => {
+    calculate: function sortedGroupDomainFn({ domain: { groups } }) {
+        return groups?.slice().sort((a, b) => {
             for (let i = 0; i < a.length; i++) {
                 const result = a[i] - b[i];
                 if (result !== 0) {
@@ -219,7 +236,8 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
                 }
             }
             return 0;
-        }),
+        });
+    },
 };
 
 function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
@@ -303,7 +321,7 @@ function normalisePropertyFnBuilder({
     rangeMax?: number;
 }) {
     const normaliseSpan = normaliseTo[1] - normaliseTo[0];
-    const normalise = (val: number, start: number, span: number) => {
+    const normalise = function normaliseFn(val: number, start: number, span: number) {
         const result = normaliseTo[0] + ((val - start) / span) * normaliseSpan;
 
         if (span === 0) {
@@ -316,18 +334,20 @@ function normalisePropertyFnBuilder({
         return result;
     };
 
-    return () => (pData: ProcessedData<any>, pIdx: number) => {
-        let [start, end] = pData.domain.values[pIdx];
-        if (rangeMin != null) start = rangeMin;
-        if (rangeMax != null) end = rangeMax;
-        const span = end - start;
+    return function normalisePropertyResetFn() {
+        return function normalisePropertyResultFn(pData: ProcessedData<any>, pIdx: number) {
+            let [start, end] = pData.domain.values[pIdx];
+            if (rangeMin != null) start = rangeMin;
+            if (rangeMax != null) end = rangeMax;
+            const span = end - start;
 
-        pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
+            pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
 
-        const column = pData.columns[pIdx];
-        for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
-            column[datumIndex] = normalise(column[datumIndex], start, span);
-        }
+            const column = pData.columns[pIdx];
+            for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
+                column[datumIndex] = normalise(column[datumIndex], start, span);
+            }
+        };
     };
 }
 
@@ -423,41 +443,50 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
 }
 
 function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailing'; separateNegative?: boolean }) {
-    return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup, groupIndex: number) => {
-        // Datum scope.
-        const acc = [0, 0];
-        for (const valueIdx of valueIndexes) {
-            const datumIndices = dataGroup.datumIndices[valueIdx];
-            if (datumIndices == null) continue;
+    return function buildGroupAccFnResetFn() {
+        return function buildGroupAccFnGroupResetFn() {
+            return function buildGroupAccFnResultFn(
+                columns: any[][],
+                valueIndexes: number[],
+                dataGroup: DataGroup,
+                groupIndex: number
+            ) {
+                // Datum scope.
+                const acc = [0, 0];
+                for (const valueIdx of valueIndexes) {
+                    const datumIndices = dataGroup.datumIndices[valueIdx];
+                    if (datumIndices == null) continue;
 
-            const stackNegative = acc[0];
-            const stackPositive = acc[1];
+                    const stackNegative = acc[0];
+                    const stackPositive = acc[1];
 
-            const column = columns[valueIdx];
-            let didAccumulate = false;
-            for (const relativeDatumIndex of datumIndices) {
-                // Convert relative datum index to absolute column index
-                // (relative index is offset from group start, absolute is for the entire column)
-                const datumIndex = groupIndex + relativeDatumIndex;
-                const currentVal = column[datumIndex];
-                if (!isFiniteNumber(currentVal)) continue;
+                    const column = columns[valueIdx];
+                    let didAccumulate = false;
+                    for (const relativeDatumIndex of datumIndices) {
+                        // Convert relative datum index to absolute column index
+                        // (relative index is offset from group start, absolute is for the entire column)
+                        const datumIndex = groupIndex + relativeDatumIndex;
+                        const currentVal = column[datumIndex];
+                        if (!isFiniteNumber(currentVal)) continue;
 
-                const useNegative = separateNegative && isNegative(currentVal);
-                const accValue = useNegative ? stackNegative : stackPositive;
-                if (mode === 'normal') {
-                    column[datumIndex] = accValue + currentVal;
-                } else {
-                    column[datumIndex] = accValue;
+                        const useNegative = separateNegative && isNegative(currentVal);
+                        const accValue = useNegative ? stackNegative : stackPositive;
+                        if (mode === 'normal') {
+                            column[datumIndex] = accValue + currentVal;
+                        } else {
+                            column[datumIndex] = accValue;
+                        }
+
+                        if (!didAccumulate) {
+                            const accIndex = useNegative ? 0 : 1;
+                            acc[accIndex] = accValue + currentVal;
+
+                            didAccumulate = true;
+                        }
+                    }
                 }
-
-                if (!didAccumulate) {
-                    const accIndex = useNegative ? 0 : 1;
-                    acc[accIndex] = accValue + currentVal;
-
-                    didAccumulate = true;
-                }
-            }
-        }
+            };
+        };
     };
 }
 

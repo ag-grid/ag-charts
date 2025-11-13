@@ -170,7 +170,7 @@ export class DataSet<T = unknown> {
         let insertionValueIndex = 0;
 
         // Apply transformations using sequential consumption
-        changeDescription.applyToArray(this.data, (destIndex) => {
+        changeDescription.applyToArray(this.data, function applyToArrayResultFn(destIndex: number) {
             if (insertionValueIndex >= allInsertionValues.length) {
                 throw new Error(`AG Charts - Internal error: No insertion value found for index ${destIndex}`);
             }

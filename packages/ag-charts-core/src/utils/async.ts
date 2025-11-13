@@ -6,21 +6,27 @@ export class AsyncAwaitQueue {
 
     /** Await another async process to call notify(). */
     public waitForCompletion(timeout = 50) {
-        return new Promise<boolean>((resolve) => {
-            const successFn = () => {
+        const queue = this.queue;
+
+        function createCompletionPromise(resolve: (value: boolean) => void): void {
+            function successFn(): void {
                 clearTimeout(timeoutHandle);
                 resolve(true);
-            };
-            const timeoutFn = () => {
-                const queueIndex = this.queue.indexOf(successFn);
+            }
+
+            function timeoutFn(): void {
+                const queueIndex = queue.indexOf(successFn);
                 if (queueIndex < 0) return;
 
-                this.queue.splice(queueIndex, 1);
+                queue.splice(queueIndex, 1);
                 resolve(false);
-            };
+            }
+
             const timeoutHandle = setTimeout(timeoutFn, timeout);
-            this.queue.push(successFn);
-        });
+            queue.push(successFn);
+        }
+
+        return new Promise<boolean>(createCompletionPromise);
     }
 
     /** Trigger any await()ing async processes to continue. */
@@ -32,7 +38,9 @@ export class AsyncAwaitQueue {
 }
 
 export function pause(delayMilliseconds = 0) {
-    return new Promise((resolve) => {
+    function resolveAfterDelay(resolve: (_result: any) => void): void {
         setTimeout(resolve, delayMilliseconds);
-    });
+    }
+
+    return new Promise(resolveAfterDelay);
 }

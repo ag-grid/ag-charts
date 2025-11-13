@@ -140,15 +140,19 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             return this;
         }
 
-        this._nodes = this._nodes.filter((node) => {
-            if (this.garbageBin.has(node)) {
-                this._nodesMap.delete(node);
-                this.garbageBin.delete(node);
+        const selection = this;
+
+        function removeGarbage(node: TChild): boolean {
+            if (selection.garbageBin.has(node)) {
+                selection._nodesMap.delete(node);
+                selection.garbageBin.delete(node);
                 node.destroy();
                 return false;
             }
             return true;
-        });
+        }
+
+        this._nodes = this._nodes.filter(removeGarbage);
 
         return this;
     }

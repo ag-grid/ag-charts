@@ -61,7 +61,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
-    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: Shape.handleFillChange })
     fill: ShapeColor | undefined = 'black';
 
     private getGradient(fill: ShapeColor | undefined) {
@@ -131,7 +131,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * The preferred way of making the stroke invisible is setting the `lineWidth` to zero,
      * unless specific looks that is achieved by having an invisible stroke is desired.
      */
-    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onStrokeChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: Shape.handleStrokeChange })
     stroke?: ShapeColor;
 
     protected onStrokeChange() {
@@ -384,5 +384,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this as SvgAttributes;
         setSvgStrokeAttributes(element, { stroke: isString(stroke) ? stroke : undefined, strokeOpacity, strokeWidth });
         setSvgLineDashAttributes(element, { lineDash, lineDashOffset });
+    }
+
+    private static handleFillChange(this: void, shape: Shape): void {
+        shape.onFillChange();
+    }
+
+    private static handleStrokeChange(this: void, shape: Shape): void {
+        shape.onStrokeChange();
     }
 }

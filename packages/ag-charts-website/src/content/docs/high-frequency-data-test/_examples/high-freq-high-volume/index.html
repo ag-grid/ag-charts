@@ -13,6 +13,12 @@
             <option value="applyTransaction">applyTransaction()</option>
             <option value="updateDelta">updateDelta()</option>
         </select>
+        <select id="seriesTypeSelect" onchange="updateSeriesType(this.value)">
+            <option value="line" selected>Line</option>
+            <option value="bar">Bar</option>
+            <option value="ohlc">OHLC</option>
+            <option value="candlestick">Candlestick</option>
+        </select>
         <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
         <span id="dataCount" style="margin-left: 10px">Points: 100000</span>
     </div>
