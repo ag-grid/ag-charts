@@ -320,10 +320,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             } else if (bbox) {
                 const { x, y, width, height } = bbox;
 
-                const canvas = this.prepareSharedCanvas(width, height, pixelRatio);
-                renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
+                // Canvas dimensions are floored, so skip if scaled dimensions would be < 1px
+                const scaledWidth = Math.floor(width * pixelRatio);
+                const scaledHeight = Math.floor(height * pixelRatio);
 
-                image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
+                if (scaledWidth > 0 && scaledHeight > 0) {
+                    const canvas = this.prepareSharedCanvas(width, height, pixelRatio);
+                    renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
+
+                    image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
+                }
             }
 
             this.image = image;

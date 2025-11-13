@@ -12,6 +12,11 @@ function canvasDimensions(width: number, height: number, pixelRatio: number) {
     return [Math.floor(width * pixelRatio), Math.floor(height * pixelRatio)] as const;
 }
 
+let fallbackCanvas: OffscreenCanvas | undefined;
+function getFallbackCanvas(): OffscreenCanvas {
+    return (fallbackCanvas ??= new OffscreenCanvas(1, 1));
+}
+
 /**
  * Wraps the native Canvas element and overrides its CanvasRenderingContext2D to
  * provide resolution independent rendering based on `window.devicePixelRatio`.
@@ -45,6 +50,10 @@ export class HdpiOffscreenCanvas {
     }
 
     transferToImageBitmap(): ImageBitmap {
+        // Return fallback for invalid dimensions to prevent rendering errors
+        if (this.canvas.width < 1 || this.canvas.height < 1) {
+            return getFallbackCanvas().transferToImageBitmap();
+        }
         return this.canvas.transferToImageBitmap();
     }
 
