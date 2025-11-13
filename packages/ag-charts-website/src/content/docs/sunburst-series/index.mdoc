@@ -244,6 +244,41 @@ It is possible to customise the font, colour and padding of the labels by using 
 }
 ```
 
+## Highlighting
+
+{% chartExampleRunner title="Highlighting" name="highlight" type="generated" /%}
+
+Each sunburst highlight state exposes a separate style object:
+
+-   `highlightedItem` – the hovered segment.
+-   `highlightedBranch` – All segments that share the same root node.
+-   `unhighlightedItem` – All segments in the highlightedBranch that are not the highlighted segment.
+-   `unhighlightedBranch` – segments that belong to different branches.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'name',
+            sizeKey: 'value',
+            highlight: {
+                highlightedItem: { stroke: 'green' },
+                highlightedBranch: { strokeWidth: 2 },
+                unhighlightedItem: { opacity: 0.5 },
+                unhighlightedBranch: { opacity: 0.1 },
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+-   Hovered segments get an accent stroke while preserving the default fill.
+-   Sibling segments in the same branch inherit `highlightedBranch` styles (merged with their own highlight state).
+-   Segments in other branches fade based on `unhighlightedBranch`.
+
 ## API Reference
 
 {% tabs %}
