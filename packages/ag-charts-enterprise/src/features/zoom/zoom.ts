@@ -488,6 +488,9 @@ export class Zoom extends AbstractModuleInstance {
                     const newZoom = selector.stop(this.seriesRect, this.paddedRect, this.getZoom());
                     if (newZoom) {
                         this.updateZoom(newZoom);
+                    } else {
+                        // Change rejected (invalid zoom) - redraw canvas to remove the zoom-selection.
+                        this.ctx.updateService.update();
                     }
                 }
                 break;
