@@ -192,14 +192,14 @@ runs:
               fi
 
         - name: yarn install (skipping postinstall)
-          if: inputs.yarn_postinstall == 'false'
+          if: inputs.cache_mode == 'rw' && inputs.yarn_postinstall == 'false'
           id: yarn_install_fast
           shell: bash
           run: |
               yarn check --integrity || yarn install --ci
 
         - name: yarn install (skipping postinstall)
-          if: inputs.yarn_postinstall == 'no-install' && steps.cache_ro.outputs.cache-hit != 'false'
+          if: inputs.cache_mode == 'rw' && inputs.yarn_postinstall == 'no-install' && steps.cache_ro.outputs.cache-hit != 'false'
           id: yarn_install_check
           shell: bash
           run: |
