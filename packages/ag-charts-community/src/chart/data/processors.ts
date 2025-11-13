@@ -241,7 +241,7 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
 };
 
 function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
-    const normalise = function normaliseFn(val: null | number, extent: number) {
+    const normalise = (val: null | number, extent: number) => {
         if (extent === 0) return 0;
         const result = ((val ?? 0) * normaliseTo) / extent;
         if (result >= 0) {
@@ -250,34 +250,25 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
         return Math.max(-normaliseTo, result);
     };
 
-    return function normaliseResetFn() {
-        return function normaliseGroupResetFn() {
-            return function normaliseFn(
-                columns: any[][],
-                valueIndexes: number[],
-                dataGroup: DataGroup,
-                groupIndex: number
-            ) {
-                const extent = normaliseFindExtent(columns, valueIndexes, dataGroup, groupIndex);
-                for (const valueIdx of valueIndexes) {
-                    const datumIndices = dataGroup.datumIndices[valueIdx];
-                    if (datumIndices == null) continue;
+    return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup, groupIndex: number) => {
+        const extent = normaliseFindExtent(columns, valueIndexes, dataGroup, groupIndex);
+        for (const valueIdx of valueIndexes) {
+            const datumIndices = dataGroup.datumIndices[valueIdx];
+            if (datumIndices == null) continue;
 
-                    for (const relativeDatumIndex of datumIndices) {
-                        // Convert relative datum index to absolute column index
-                        // (relative index is offset from group start, absolute is for the entire column)
-                        const datumIndex = groupIndex + relativeDatumIndex;
-                        const column = columns[valueIdx];
-                        const value: null | number = column[datumIndex];
-                        if (value == null) {
-                            column[datumIndex] = undefined;
-                            continue;
-                        }
-                        column[datumIndex] = normalise(value, extent);
-                    }
+            for (const relativeDatumIndex of datumIndices) {
+                // Convert relative datum index to absolute column index
+                // (relative index is offset from group start, absolute is for the entire column)
+                const datumIndex = groupIndex + relativeDatumIndex;
+                const column = columns[valueIdx];
+                const value: null | number = column[datumIndex];
+                if (value == null) {
+                    column[datumIndex] = undefined;
+                    continue;
                 }
-            };
-        };
+                column[datumIndex] = normalise(value, extent);
+            }
+        }
     };
 }
 
@@ -344,20 +335,18 @@ function normalisePropertyFnBuilder({
     };
 
     return function normalisePropertyResetFn() {
-        return function normalisePropertyGroupResetFn() {
-            return function normalisePropertyResultFn(pData: ProcessedData<any>, pIdx: number) {
-                let [start, end] = pData.domain.values[pIdx];
-                if (rangeMin != null) start = rangeMin;
-                if (rangeMax != null) end = rangeMax;
-                const span = end - start;
+        return function normalisePropertyResultFn(pData: ProcessedData<any>, pIdx: number) {
+            let [start, end] = pData.domain.values[pIdx];
+            if (rangeMin != null) start = rangeMin;
+            if (rangeMax != null) end = rangeMax;
+            const span = end - start;
 
-                pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
+            pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
 
-                const column = pData.columns[pIdx];
-                for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
-                    column[datumIndex] = normalise(column[datumIndex], start, span);
-                }
-            };
+            const column = pData.columns[pIdx];
+            for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
+                column[datumIndex] = normalise(column[datumIndex], start, span);
+            }
         };
     };
 }
