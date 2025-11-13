@@ -24,7 +24,65 @@ const UPDATE_INTERVAL_MS = 200;
 const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 
-let currentSeriesType: SeriesType = 'line';
+const STORAGE_KEY = 'high-freq-high-volume-series-type';
+
+function getSeriesTypeFromHash(): SeriesType | null {
+    try {
+        const hash = window.location.hash.slice(1);
+        if (!hash) return null;
+        const params = new URLSearchParams(hash);
+        const seriesType = params.get('seriesType');
+        if (seriesType && ['line', 'bar', 'ohlc', 'candlestick'].includes(seriesType)) {
+            return seriesType as SeriesType;
+        }
+    } catch {
+        // Ignore parsing errors
+    }
+    return null;
+}
+
+function getSeriesTypeFromStorage(): SeriesType | null {
+    try {
+        const stored = sessionStorage.getItem(STORAGE_KEY);
+        if (stored && ['line', 'bar', 'ohlc', 'candlestick'].includes(stored)) {
+            return stored as SeriesType;
+        }
+    } catch {
+        // Ignore storage errors (e.g., in private browsing)
+    }
+    return null;
+}
+
+function getPersistedSeriesType(): SeriesType {
+    return getSeriesTypeFromHash() || getSeriesTypeFromStorage() || 'line';
+}
+
+function persistSeriesType(seriesType: SeriesType) {
+    try {
+        // Always update sessionStorage as fallback
+        sessionStorage.setItem(STORAGE_KEY, seriesType);
+    } catch {
+        // Ignore storage errors (e.g., private browsing)
+    }
+
+    try {
+        // Try to update URL hash (works in full-screen mode, not in iframes)
+        if (window.parent === window) {
+            // Not in iframe, can update hash directly
+            const hash = window.location.hash.slice(1);
+            const params = new URLSearchParams(hash);
+            params.set('seriesType', seriesType);
+            const newHash = params.toString();
+            // Use replaceState to avoid page reload
+            history.replaceState(null, '', `#${newHash}`);
+        }
+        // In iframe, rely on sessionStorage (can't reliably update parent hash)
+    } catch {
+        // Ignore hash update errors
+    }
+}
+
+let currentSeriesType: SeriesType = getPersistedSeriesType();
 
 function generateValueDatum(index: number): ValueDatum {
     const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
@@ -405,6 +463,9 @@ async function setSeriesType(newSeriesType: SeriesType) {
 
         currentSeriesType = newSeriesType;
 
+        // Persist the selection
+        persistSeriesType(currentSeriesType);
+
         // Update selector if it exists
         // The seriesTypeUpdateInProgress flag prevents recursive calls from onchange
         const seriesTypeSelect = document.getElementById('seriesTypeSelect') as HTMLSelectElement | null;
@@ -428,6 +489,20 @@ methodSelect = document.getElementById('methodSelect') as HTMLSelectElement | nu
 if (methodSelect) {
     methodSelect.value = currentUpdateMethod;
 }
+
+// Initialize series type selector with persisted value
+const seriesTypeSelect = document.getElementById('seriesTypeSelect') as HTMLSelectElement | null;
+if (seriesTypeSelect) {
+    seriesTypeSelect.value = currentSeriesType;
+}
+
+// Listen for hash changes (e.g., when switching to full-screen mode)
+window.addEventListener('hashchange', () => {
+    const persistedType = getPersistedSeriesType();
+    if (persistedType !== currentSeriesType && !seriesTypeUpdateInProgress) {
+        void setSeriesType(persistedType);
+    }
+});
 
 (window as any).toggleUpdates = () => {
     handleToggleUpdates();
