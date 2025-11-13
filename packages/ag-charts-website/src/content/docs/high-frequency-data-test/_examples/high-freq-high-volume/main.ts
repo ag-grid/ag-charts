@@ -1,4 +1,4 @@
-import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
 
 (window as any).agChartsDebug = ['scene:stats'];
 
@@ -235,7 +235,7 @@ function convertOhlcToValue(ohlcData: OhlcDatum[]): ValueDatum[] {
 let data: Datum[] = createSeedData(INITIAL_POINTS);
 let nextIndex = data.length;
 
-function createSeriesConfig(seriesType: SeriesType) {
+function createSeriesConfig(seriesType: SeriesType): AgCartesianSeriesOptions[] {
     if (seriesType === 'ohlc' || seriesType === 'candlestick') {
         return [
             {
@@ -250,7 +250,7 @@ function createSeriesConfig(seriesType: SeriesType) {
     } else if (seriesType === 'line') {
         return [
             {
-                type: 'line',
+                type: 'line' as const,
                 xKey: 'timestamp',
                 yKey: 'value',
                 marker: { enabled: false },
@@ -261,7 +261,7 @@ function createSeriesConfig(seriesType: SeriesType) {
         // bar series
         return [
             {
-                type: 'bar',
+                type: 'bar' as const,
                 xKey: 'timestamp',
                 yKey: 'value',
             },
@@ -269,7 +269,7 @@ function createSeriesConfig(seriesType: SeriesType) {
     }
 }
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
     animation: { enabled: false },
