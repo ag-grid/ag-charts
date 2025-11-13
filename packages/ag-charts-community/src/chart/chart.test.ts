@@ -880,9 +880,7 @@ describe('Chart', () => {
             });
 
             it('should throw synchronously for addIndex without add array', () => {
-                expect(() => chartProxy.applyTransaction({ addIndex: 5 })).toThrow(
-                    'requires a non-empty "add" array'
-                );
+                expect(() => chartProxy.applyTransaction({ addIndex: 5 })).toThrow('requires a non-empty "add" array');
             });
 
             it('should throw synchronously for addIndex with null add array', () => {
@@ -1202,7 +1200,7 @@ describe('Chart', () => {
                 const updatedOptions = pieChartProxy.getOptions();
                 expect(updatedOptions.data).toBeDefined();
                 expect(updatedOptions.data!).toHaveLength(4);
-                
+
                 // Verify all data items have valid values (non-zero)
                 for (const item of updatedOptions.data!) {
                     expect(item.value).toBeGreaterThan(0);
