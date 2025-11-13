@@ -25,6 +25,7 @@ const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 
 const STORAGE_KEY = 'high-freq-high-volume-series-type';
+const UPDATES_STATE_KEY = 'high-freq-high-volume-updates-running';
 
 function getSeriesTypeFromHash(): SeriesType | null {
     try {
@@ -72,6 +73,60 @@ function persistSeriesType(seriesType: SeriesType) {
             const hash = window.location.hash.slice(1);
             const params = new URLSearchParams(hash);
             params.set('seriesType', seriesType);
+            const newHash = params.toString();
+            // Use replaceState to avoid page reload
+            history.replaceState(null, '', `#${newHash}`);
+        }
+        // In iframe, rely on sessionStorage (can't reliably update parent hash)
+    } catch {
+        // Ignore hash update errors
+    }
+}
+
+function getUpdatesStateFromHash(): boolean | null {
+    try {
+        const hash = window.location.hash.slice(1);
+        if (!hash) return null;
+        const params = new URLSearchParams(hash);
+        const updatesRunning = params.get('updatesRunning');
+        if (updatesRunning === 'true') return true;
+        if (updatesRunning === 'false') return false;
+    } catch {
+        // Ignore parsing errors
+    }
+    return null;
+}
+
+function getUpdatesStateFromStorage(): boolean | null {
+    try {
+        const stored = sessionStorage.getItem(UPDATES_STATE_KEY);
+        if (stored === 'true') return true;
+        if (stored === 'false') return false;
+    } catch {
+        // Ignore storage errors (e.g., in private browsing)
+    }
+    return null;
+}
+
+function getPersistedUpdatesState(): boolean {
+    return getUpdatesStateFromHash() ?? getUpdatesStateFromStorage() ?? false;
+}
+
+function persistUpdatesState(running: boolean) {
+    try {
+        // Always update sessionStorage as fallback
+        sessionStorage.setItem(UPDATES_STATE_KEY, String(running));
+    } catch {
+        // Ignore storage errors (e.g., private browsing)
+    }
+
+    try {
+        // Try to update URL hash (works in full-screen mode, not in iframes)
+        if (window.parent === window) {
+            // Not in iframe, can update hash directly
+            const hash = window.location.hash.slice(1);
+            const params = new URLSearchParams(hash);
+            params.set('updatesRunning', String(running));
             const newHash = params.toString();
             // Use replaceState to avoid page reload
             history.replaceState(null, '', `#${newHash}`);
@@ -358,6 +413,7 @@ function startUpdates() {
         void runAutoUpdate();
     }, UPDATE_INTERVAL_MS);
     isRunning = true;
+    persistUpdatesState(true);
     const button = document.getElementById('toggleBtn');
     if (button) {
         button.textContent = 'Stop Updates';
@@ -371,6 +427,7 @@ function stopUpdates() {
     }
 
     isRunning = false;
+    persistUpdatesState(false);
     const button = document.getElementById('toggleBtn');
     if (button) {
         button.textContent = 'Start Updates';
@@ -496,11 +553,24 @@ if (seriesTypeSelect) {
     seriesTypeSelect.value = currentSeriesType;
 }
 
+// Restore updates state from persistence
+if (getPersistedUpdatesState()) {
+    startUpdates();
+}
+
 // Listen for hash changes (e.g., when switching to full-screen mode)
 window.addEventListener('hashchange', () => {
     const persistedType = getPersistedSeriesType();
     if (persistedType !== currentSeriesType && !seriesTypeUpdateInProgress) {
         void setSeriesType(persistedType);
+    }
+    const persistedUpdatesState = getPersistedUpdatesState();
+    if (persistedUpdatesState !== isRunning) {
+        if (persistedUpdatesState) {
+            startUpdates();
+        } else {
+            stopUpdates();
+        }
     }
 });
 
