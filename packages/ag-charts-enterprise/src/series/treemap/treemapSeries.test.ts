@@ -155,9 +155,15 @@ describe('TreemapSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            tile: { fill: 'lime' },
-                            group: { fill: 'lime' },
+                        tile: {
+                            highlight: {
+                                highlightedItem: { fill: 'lime' },
+                            },
+                        },
+                        group: {
+                            highlight: {
+                                highlightedItem: { fill: 'lime' },
+                            },
                         },
                         listeners,
                         ...nodeClickRangeParams,
