@@ -1,4 +1,9 @@
-import { type AgSunburstSeriesLabelFormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgSunburstHighlightState,
+    type AgSunburstSeriesLabelFormatterParams,
+    type TextOrSegments,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type InternalAgColorType,
     type Point,
@@ -26,6 +31,7 @@ const {
     BBox,
     applyShapeStyle,
     getLabelStyles,
+    toHierarchyHighlightString,
 } = _ModuleSupport;
 
 class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
@@ -85,6 +91,8 @@ enum TextNodeTag {
     Secondary,
 }
 
+type ItemStyle = Required<AgSunburstSeriesStyle> & { opacity: number };
+
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     _ModuleSupport.Sector,
     AgSunburstSeriesOptions,
@@ -100,8 +108,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group());
-    private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group());
     private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group());
+    private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group());
 
     readonly datumSelection = Selection.select<_ModuleSupport.Sector, SunburstNode>(this.sectorGroup, Sector);
     private readonly labelSelection = Selection.select<_ModuleSupport.Group, SunburstNode>(
@@ -126,7 +134,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     updateSelections() {
-        const highlightedNode: SunburstNode | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        const highlightedNode = this.getActiveHighlightNode();
         this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, (node) =>
             this.getDatumId(node)
         );
@@ -153,19 +161,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
-    protected getItemStyle(
-        nodeDatum: Pick<SunburstNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
-        isHighlight: boolean
-    ) {
+    protected getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
         const { properties, colorScale } = this;
 
         const { itemStyler } = properties;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
 
-        const highlightStyle = isHighlight ? properties.highlightStyle : undefined;
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(rootIndex));
+        const highlightedNode = this.getActiveHighlightNode();
+        const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
+        const highlightStyles = this.getHierarchyHighlightStyles(highlightState, this.properties.highlight);
+        const baseStyle = mergeDefaults(highlightStyles, properties.getStyle(rootIndex));
 
-        if (!isHighlight && nodeDatum.colorValue != null) {
+        if (nodeDatum.colorValue != null && highlightStyles?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
         }
 
@@ -175,7 +182,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    const params = this.makeItemStylerParams(
+                        nodeDatum,
+                        isHighlight,
+                        style,
+                        toHierarchyHighlightString(highlightState)
+                    );
                     return this.callWithContext(itemStyler, params);
                 }
             );
@@ -189,14 +201,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     private makeItemStylerParams(
-        nodeDatum: Pick<SunburstNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        nodeDatum: SunburstNode,
         isHighlight: boolean,
-        style: Required<AgSunburstSeriesStyle>
+        style: ItemStyle,
+        highlightState: AgSunburstHighlightState
     ) {
         const { id: seriesId } = this;
 
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -488,6 +499,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             updateSector(datum, rect, true);
         });
 
+        const highlightedNode = this.getActiveHighlightNode();
+
         const updateText = (
             node: SunburstNode,
             text: _ModuleSupport.TransformableText,
@@ -504,13 +517,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const { labelPlacement, circleQuarter, radius: textRadius, theta } = label;
 
-            let highlightedColor: string | undefined;
-            if (highlighted) {
-                const highlightedLabelStyle = primary
-                    ? this.properties.highlightStyle.label
-                    : this.properties.highlightStyle.secondaryLabel;
-                highlightedColor = highlightedLabelStyle.color;
-            }
+            const highlightState = this.getHierarchyHighlightState(highlighted, highlightedNode, node);
+
+            const { opacity: highlightOpacity } =
+                this.getHierarchyHighlightStyles(highlightState, this.properties.highlight) ?? {};
 
             const params: RequireOptional<AgSunburstSeriesLabelFormatterParams> = {
                 childrenKey: this.properties.childrenKey,
@@ -531,8 +541,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.fontStyle = label.fontStyle;
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
-            text.fill = highlightedColor ?? label.color;
-            text.fillOpacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
+            text.fill = label.color;
+            text.fillOpacity = highlightOpacity ?? 1;
             text.setBoxing(style);
 
             switch (labelPlacement) {
@@ -570,7 +580,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             }
             text.visible = true;
         };
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
+        const highlightedDatum = this.getActiveHighlightNode();
         for (const text of this.labelSelection.selectByClass(TransformableText)) {
             const datum = text.closestDatum();
             updateText(datum, text, text.tag, datum === highlightedDatum);
@@ -627,7 +637,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(datumColor) });
         }
 
-        const format = this.getItemStyle(
+        const format: Required<AgSunburstSeriesStyle> = this.getItemStyle(
             { ...nodeDatum, colorValue: datumColor ?? nodeDatum.colorValue } as SunburstNode,
             false
         );

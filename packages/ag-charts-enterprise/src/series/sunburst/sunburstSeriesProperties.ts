@@ -7,12 +7,13 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Property } from 'ag-charts-core';
+import { BaseProperties, Property } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip } = _ModuleSupport;
-class SunburstSeriesTileHighlightStyle extends HighlightStyle {
+const { HierarchySeriesProperties, makeSeriesTooltip, HighlightProperties } = _ModuleSupport;
+
+class SunburstSeriesHighlightStyle extends BaseProperties {
     @Property
     fill?: string;
 
@@ -29,10 +30,15 @@ class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     strokeOpacity?: number;
 
     @Property
-    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
+    opacity?: number;
+}
+
+class SunburstSeriesHighlight extends HighlightProperties<AgSunburstSeriesOptions> {
+    @Property
+    readonly highlightedBranch = new SunburstSeriesHighlightStyle();
 
     @Property
-    readonly secondaryLabel = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly unhighlightedBranch = new SunburstSeriesHighlightStyle();
 }
 
 export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunburstSeriesOptions> {
@@ -67,7 +73,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;
 
     @Property
-    highlightStyle = new SunburstSeriesTileHighlightStyle();
+    override readonly highlight = new SunburstSeriesHighlight();
 
     @Property
     readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();

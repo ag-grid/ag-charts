@@ -1,4 +1,4 @@
-import { Logger, type Point, StateMachine, arraysEqual, clamp } from 'ag-charts-core';
+import { Logger, type Point, StateMachine, arraysEqual, clamp, mergeDefaults } from 'ag-charts-core';
 import type { FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
@@ -13,7 +13,11 @@ import type { ChartAxisDirection } from '../../chartAxisDirection';
 import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
-import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
+import {
+    HierarchyHighlightState,
+    type HierarchySeriesProperties,
+    toHierarchyHighlightString,
+} from './hierarchySeriesProperties';
 
 type Mutable<T> = {
     -readonly [k in keyof T]: T[k];
@@ -387,6 +391,78 @@ export abstract class HierarchySeries<
 
     datumIndexForCategoryValue(_categoryValue: any): number[] | undefined {
         return;
+    }
+
+    protected getActiveHighlightNode(): TNodeClass | undefined {
+        const highlightedNode = this.ctx.highlightManager?.getActiveHighlight() as TNodeClass | undefined;
+        if (highlightedNode == null || highlightedNode.series !== this) {
+            return undefined;
+        }
+        return highlightedNode;
+    }
+
+    protected getHierarchyHighlightState(
+        isHighlight: boolean,
+        highlightedNode: TNodeClass | undefined,
+        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+    ): HierarchyHighlightState {
+        if (isHighlight) {
+            return HierarchyHighlightState.Item;
+        }
+
+        if (highlightedNode == null) {
+            return HierarchyHighlightState.None;
+        }
+
+        const nodeRoot = nodeDatum.datumIndex?.[0];
+        const highlightRoot = highlightedNode.datumIndex?.[0];
+
+        if (nodeRoot == null || highlightRoot == null) {
+            return HierarchyHighlightState.None;
+        }
+
+        return nodeRoot === highlightRoot ? HierarchyHighlightState.Branch : HierarchyHighlightState.OtherBranch;
+    }
+
+    protected getHierarchyHighlightStyles<TStyle extends Partial<FillOptions & StrokeOptions & { opacity?: number }>>(
+        highlightState: HierarchyHighlightState,
+        highlight: {
+            highlightedItem?: TStyle;
+            unhighlightedItem?: TStyle;
+            highlightedBranch?: TStyle;
+            unhighlightedBranch?: TStyle;
+        }
+    ): TStyle | undefined {
+        switch (highlightState) {
+            case HierarchyHighlightState.Item:
+                return mergeDefaults<TStyle>(highlight.highlightedItem, highlight.highlightedBranch);
+            case HierarchyHighlightState.Branch:
+                return mergeDefaults<TStyle>(highlight.unhighlightedItem, highlight.highlightedBranch);
+            case HierarchyHighlightState.OtherBranch:
+                return highlight.unhighlightedBranch;
+            default:
+                return undefined;
+        }
+    }
+
+    public override getHighlightStateString(
+        _datum: HighlightNodeDatum | undefined,
+        isHighlight?: boolean,
+        datumIndex?: number[],
+        _legendItemValues?: string[]
+    ): ReturnType<typeof toHierarchyHighlightString> {
+        if (datumIndex == null) {
+            return toHierarchyHighlightString(HierarchyHighlightState.None);
+        }
+
+        const nodeDatum = datumIndex.reduce((node, idx) => node?.children[idx], this.rootNode);
+        const highlightedNode = this.getActiveHighlightNode();
+        if (nodeDatum == null) {
+            return toHierarchyHighlightString(HierarchyHighlightState.None);
+        }
+
+        const state = this.getHierarchyHighlightState(isHighlight ?? false, highlightedNode, nodeDatum);
+        return toHierarchyHighlightString(state);
     }
 
     protected abstract getItemStyle(
