@@ -64,7 +64,7 @@ describe('Zoom', () => {
         },
     };
 
-    const NUMBER_EXAMPLE_OPTIONS: AgChartOptions = {
+    const UGLY_NUMBER_EXAMPLE_OPTIONS: AgChartOptions = {
         data: [
             { x: 0, y: 0 },
             { x: 1, y: 50 },
@@ -86,11 +86,12 @@ describe('Zoom', () => {
             x: {
                 type: 'number',
                 position: 'bottom',
+                nice: false,
             },
             y: {
                 type: 'number',
                 position: 'left',
-            }
+            },
         },
     };
 
@@ -1040,35 +1041,84 @@ describe('Zoom', () => {
     });
 
     describe('AG-8627 onDataChange', () => {
-        describe('preserveDomain', () => {
-            describe('numberAxis', () => {
-                let zoomListener: ReturnType<typeof newFreezableZoomListenerMock>;
+        let zoomListener: ReturnType<typeof newFreezableZoomListenerMock>;
+        describe('numberAxis', () => {
+            async function appendDatum() {
+                const data = [...UGLY_NUMBER_EXAMPLE_OPTIONS.data!, { x: 8, y: 80 }];
+                await chart.updateDelta({ data });
+                await waitForChartStability(chart);
+            }
+            async function prependDatum() {
+                const data = [{ x: -1, y: -10 }, ...UGLY_NUMBER_EXAMPLE_OPTIONS.data!];
+                await chart.updateDelta({ data });
+                await waitForChartStability(chart);
+            }
+            async function insertMiddleDatum() {
+                const orig = UGLY_NUMBER_EXAMPLE_OPTIONS.data!;
+                const data = [...orig.slice(0, 4), { x: 3.5, y: -20 }, ...orig.slice(4)];
+                await chart.updateDelta({ data });
+                await waitForChartStability(chart);
+            }
+            describe('preserveDomain', () => {
                 beforeEach(async () => {
                     zoomListener = newFreezableZoomListenerMock();
-                    await prepareChart(undefined, { rangeX: { start: 2.5, end: 5.75 } }, {
-                        ...NUMBER_EXAMPLE_OPTIONS,
-                        listeners: { zoom: zoomListener.frozen },
-                    }
+                    await prepareChart(
+                        { onDataChange: { strategy: 'preserveDomain' } },
+                        { rangeX: { start: 2.5, end: 5.75 } },
+                        {
+                            ...UGLY_NUMBER_EXAMPLE_OPTIONS,
+                            listeners: { zoom: zoomListener.frozen },
+                        }
                     );
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
                     zoomListener.mock.mockClear();
                 });
                 test('append datum', async () => {
-                    const data = [...NUMBER_EXAMPLE_OPTIONS.data!, { x: 8, y: 80 }];
-                    await chart.updateDelta({ data });
-                    expect(zoomListener.mock).toBeCalledTimes(0);
+                    await appendDatum();
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
                 });
                 test('prepend datum', async () => {
-                    const data = [{ x: -1, y: -10 }, ...NUMBER_EXAMPLE_OPTIONS.data!];
-                    await chart.updateDelta({ data });
-                    expect(zoomListener.mock).toBeCalledTimes(0);
+                    await prependDatum();
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
                 });
                 test('insert-middle datum', async () => {
-                    const orig = NUMBER_EXAMPLE_OPTIONS.data!;
-                    const data = [...orig.slice(0, 4), { x: 3.5, y: -20 }, ...orig.slice(4)];
-                    await chart.updateDelta({ data });
-                    expect(zoomListener.mock).toBeCalledTimes(0);
+                    await insertMiddleDatum();
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+                });
+            });
+            describe('resize', () => {
+                beforeEach(async () => {
+                    zoomListener = newFreezableZoomListenerMock();
+                    await prepareChart(
+                        { onDataChange: { strategy: 'resize' } },
+                        { ratioX: { start: 0.25, end: 0.75 } },
+                        {
+                            ...UGLY_NUMBER_EXAMPLE_OPTIONS,
+                            listeners: { zoom: zoomListener.frozen },
+                        }
+                    );
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+                    zoomListener.mock.mockClear();
+                });
+                test('append datum', async () => {
+                    await appendDatum();
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+                });
+                test('prepend datum', async () => {
+                    await prependDatum();
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+                });
+                test('insert-middle datum', async () => {
+                    await insertMiddleDatum();
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
                 });
             });
         });
