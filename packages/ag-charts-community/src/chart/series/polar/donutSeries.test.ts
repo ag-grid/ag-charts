@@ -2,8 +2,10 @@ import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
+import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import { MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
@@ -23,6 +25,7 @@ import {
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
+import { DonutSeries } from './donutSeries';
 
 function* iterLegendMarkerLabels(myChart: Chart) {
     for (const { legend } of deproxy(myChart).modulesManager.legends()) {
@@ -575,6 +578,50 @@ describe('DonutSeries', () => {
                     await compare(`donut-series-test-ts-pie-series-legend-All`);
                 }
             });
+        });
+    });
+
+    describe('applyTransaction', () => {
+        test('reprocesses palette entries for new data', async () => {
+            const transactionOptions = prepareTestOptions({
+                theme: {
+                    palette: {
+                        fills: ['red', 'green'],
+                        strokes: ['black'],
+                    },
+                },
+                data: [
+                    { city: 'Berlin', value: 5 },
+                    { city: 'Munich', value: 3 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        calloutLabelKey: 'city',
+                        innerRadiusRatio: 0.5,
+                    },
+                ],
+            });
+            const chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            const donutSeries = chart.series[0] as DonutSeries;
+            expect(donutSeries.properties.fills).toEqual(['red', 'green']);
+
+            await chartProxy.applyTransaction({
+                add: [
+                    { city: 'Hamburg', value: 4 },
+                    { city: 'Cologne', value: 2 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            expect(donutSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            const nodeData = donutSeries.getNodeData() ?? [];
+            expect(nodeData).toHaveLength(4);
+            expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
         });
     });
 

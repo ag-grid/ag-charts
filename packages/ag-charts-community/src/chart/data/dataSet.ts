@@ -1,3 +1,5 @@
+import { deepClone } from 'ag-charts-core';
+
 import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
 
 export { DataChangeDescription } from './dataChangeDescription';
@@ -96,6 +98,13 @@ export class DataSet<T = unknown> {
         const normalized = this.normalizeTransaction(transaction);
         this.pendingTransactions.push(normalized);
         this.cachedChangeDescription = undefined;
+    }
+
+    /**
+     * @returns A deep clone of the DataSet.
+     */
+    deepClone() {
+        return new DataSet(deepClone(this.data));
     }
 
     /**

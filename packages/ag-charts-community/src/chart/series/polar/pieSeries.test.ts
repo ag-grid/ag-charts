@@ -2,8 +2,10 @@ import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
+import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import { MockPieCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
@@ -714,6 +716,43 @@ describe('PieSeries', () => {
                     await compare(`pie-series-test-ts-pie-series-legend-All`);
                 }
             });
+        });
+    });
+
+    describe('applyTransaction', () => {
+        test('reprocesses palette entries for new data', async () => {
+            const transactionOptions = prepareTestOptions({
+                theme: {
+                    palette: {
+                        fills: ['red', 'green'],
+                        strokes: ['black'],
+                    },
+                },
+                data: [
+                    { food: 'Pizza', value: 3 },
+                    { food: 'Cake', value: 4 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'food' }],
+            });
+            const chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            const pieSeries = chart.series[0] as PieSeries;
+            expect(pieSeries.properties.fills).toEqual(['red', 'green']);
+
+            await chartProxy.applyTransaction({
+                add: [
+                    { food: 'Quiche', value: 5 },
+                    { food: 'Salad', value: 2 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            const nodeData = pieSeries.getNodeData() ?? [];
+            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            expect(nodeData).toHaveLength(4);
+            expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
         });
     });
 
