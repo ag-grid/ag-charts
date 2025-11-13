@@ -1129,7 +1129,7 @@ describe('Zoom', () => {
                     initialRangeX = { rangeX: { start: zoom!.rangeX!.start!, end: zoom!.rangeX!.end! } };
 
                     expect(zoomListener.mock).toBeCalledTimes(1);
-                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 2.5, end: 5.75 } });
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
                     zoomListener.mock.mockClear();
                 });
                 test('append datum', async () => {
