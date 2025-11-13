@@ -104,7 +104,7 @@ export class DataSet<T = unknown> {
      * @returns A deep clone of the DataSet.
      */
     deepClone() {
-        return new DataSet(deepClone(this.data));
+        return new DataSet([...this.data]);
     }
 
     /**
