@@ -1,8 +1,8 @@
 import type { FontOptions, LabelBoxOptions, Toggleable } from '../series/cartesian/commonOptions';
 import type {
     AgChartCallbackParams,
-    HighlightState,
     HierarchyHighlightState,
+    HighlightState,
     RichFormatter,
     Styler,
 } from './callbackOptions';
