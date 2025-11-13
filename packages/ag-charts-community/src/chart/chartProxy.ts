@@ -145,7 +145,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
             throw new Error('AG Charts - transaction "update" must be an array.');
         }
 
-        return this.chart.applyTransaction(transaction);
+        return debug.group('AgChartInstance.applyTransaction()', async () => {
+            debug('transaction', transaction);
+            return await this.chart?.applyTransaction(transaction);
+        });
     }
 
     async download(opts?: DownloadOptions) {

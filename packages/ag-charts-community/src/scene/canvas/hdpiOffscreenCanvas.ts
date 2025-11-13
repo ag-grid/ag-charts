@@ -14,7 +14,8 @@ function canvasDimensions(width: number, height: number, pixelRatio: number) {
 
 let fallbackCanvas: OffscreenCanvas | undefined;
 function getFallbackCanvas(): OffscreenCanvas {
-    return (fallbackCanvas ??= new OffscreenCanvas(1, 1));
+    fallbackCanvas ??= new OffscreenCanvas(1, 1);
+    return fallbackCanvas;
 }
 
 /**
