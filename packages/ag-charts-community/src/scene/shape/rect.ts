@@ -15,13 +15,13 @@ export interface CornerRadii {
     bottomLeft: number;
 }
 
-const cornerEdges = (
+function cornerEdges(
     leadingEdge: number,
     trailingEdge: number,
     leadingInset: number,
     trailingInset: number,
     cornerRadius: number
-) => {
+) {
     let leadingClipped = false;
     let trailingClipped = false;
     let leading0 = trailingInset - Math.sqrt(Math.max(cornerRadius ** 2 - leadingInset ** 2, 0));
@@ -46,9 +46,9 @@ const cornerEdges = (
     }
 
     return { leading0, leading1, trailing0, trailing1, leadingClipped, trailingClipped };
-};
+}
 
-export const clippedRoundRect = (
+export function clippedRoundRect(
     path: ExtendedPath2D,
     x: number,
     y: number,
@@ -56,7 +56,7 @@ export const clippedRoundRect = (
     height: number,
     cornerRadii: CornerRadii,
     clipBBox: BBox | undefined
-) => {
+) {
     let {
         topLeft: topLeftCornerRadius,
         topRight: topRightCornerRadius,
@@ -237,7 +237,7 @@ export const clippedRoundRect = (
         drawCorner(path, bottomLeftCorner, bottomLeftCornerRadius, !didMove);
     }
     path.closePath();
-};
+}
 
 export class Rect<D = any> extends Path<D> implements DistantObject {
     static override readonly className: string = 'Rect';
@@ -416,10 +416,16 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
         // Path's isPointInPath and distanceSquared are expensive computations,
         // so just use a BBox if the corners aren't rounded.
-        if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
+        if ([topLeft, topRight, bottomRight, bottomLeft].every(areCornersZero)) {
             const bbox = this.getBBox();
             this.hittester = bbox.containsPoint.bind(bbox);
-            this.distanceSquared = (hitX: number, hitY: number) => this.getBBox().distanceSquared(hitX, hitY);
+            const rectInstance = this;
+
+            function distanceSquaredFromRect(hitX: number, hitY: number): number {
+                return rectInstance.getBBox().distanceSquared(hitX, hitY);
+            }
+
+            this.distanceSquared = distanceSquaredFromRect;
         } else {
             this.hittester = super.isPointInPath;
             this.distanceCalculator = super.distanceSquaredTransformedPoint;
@@ -490,4 +496,8 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
             ctx.globalAlpha = globalAlpha;
         }
     }
+}
+
+function areCornersZero(cornerRadius: number): boolean {
+    return cornerRadius === 0;
 }

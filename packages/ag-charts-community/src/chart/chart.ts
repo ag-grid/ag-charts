@@ -591,7 +591,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
-        this.updateMutex.acquire(() => this.tryPerformUpdate(count)).catch((e) => Logger.errorOnce(e));
+        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => Logger.errorOnce(e));
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         if (this.destroyed) return;
@@ -958,7 +958,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     protected assignSeriesToAxes() {
         for (const axis of this.axes) {
-            axis.boundSeries = this.series.filter((s) => s.axes[axis.direction] === axis);
+            function seriesPredicateFn(s: Series<DatumIndexType, any, any, any>) {
+                return s.axes[axis.direction] === axis;
+            }
+            axis.boundSeries = this.series.filter(seriesPredicateFn);
         }
     }
 

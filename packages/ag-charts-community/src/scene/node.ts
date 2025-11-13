@@ -133,7 +133,7 @@ export abstract class Node<TDatum = unknown> {
 
     @SceneObjectChangeDetection<Node>({
         equals: objectsEqual,
-        changeCb: (target) => target.onZIndexChange(),
+        changeCb: Node.handleNodeZIndexChange,
     })
     zIndex: ZIndex = 0;
 
@@ -382,6 +382,10 @@ export abstract class Node<TDatum = unknown> {
             }
         }
         this._debugDirtyProperties.clear();
+    }
+
+    private static handleNodeZIndexChange(target: Node): void {
+        target.onZIndexChange();
     }
 
     protected onZIndexChange() {
