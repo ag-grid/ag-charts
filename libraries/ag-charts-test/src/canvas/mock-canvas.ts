@@ -24,8 +24,14 @@ export class ConfiguredCanvas extends Canvas {
 
     transferToImageBitmap() {
         const { width, height } = this;
-        const bitmap = new ConfiguredCanvas(width, height);
-        bitmap.getContext('2d').drawCanvas(this, 0, 0, width, height);
+        const bitmap = new ConfiguredCanvas(Math.max(1, width), Math.max(1, height));
+        if (width > 0 && height > 0) {
+            try {
+                bitmap.getContext('2d').drawCanvas(this, 0, 0, width, height);
+            } catch {
+                // Skia-canvas can throw dimensionless errors even when width/height checks pass
+            }
+        }
         Object.defineProperty(bitmap, 'close', {
             // no-op
             value: () => {},

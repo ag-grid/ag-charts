@@ -1,9 +1,12 @@
-import { afterEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../../api/agCharts';
+import { OptionsGraph } from '../../../module/optionsGraph';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
+import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import { MockPieCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
@@ -714,6 +717,76 @@ describe('PieSeries', () => {
                     await compare(`pie-series-test-ts-pie-series-legend-All`);
                 }
             });
+        });
+    });
+
+    describe('applyTransaction', () => {
+        let chartProxy: AgChartProxy;
+        let pieSeries: PieSeries;
+
+        beforeEach(async () => {
+            OptionsGraph.clearValueCache();
+            const transactionOptions = prepareTestOptions({
+                theme: {
+                    palette: {
+                        fills: ['red', 'green'],
+                        strokes: ['black'],
+                    },
+                },
+                data: [
+                    { food: 'Pizza', value: 3 },
+                    { food: 'Cake', value: 4 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'food' }],
+            });
+            chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            pieSeries = chart.series[0] as PieSeries;
+        });
+
+        afterEach(() => {
+            chartProxy = undefined!;
+            pieSeries = undefined!;
+        });
+
+        test('reprocesses palette entries for new data', async () => {
+            expect(pieSeries.properties.fills).toEqual(['red', 'green']);
+
+            await chartProxy.applyTransaction({
+                add: [
+                    { food: 'Quiche', value: 5 },
+                    { food: 'Salad', value: 2 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            const nodeData = pieSeries.getNodeData() ?? [];
+            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            expect(nodeData).toHaveLength(4);
+            expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
+        });
+
+        test('removes data items correctly', async () => {
+            const initialData = chartProxy.getOptions().data!;
+            expect(initialData).toHaveLength(2);
+            const initialNodeData = pieSeries.getNodeData() ?? [];
+            expect(initialNodeData).toHaveLength(2);
+
+            const itemToRemove = initialData[0];
+            await chartProxy.applyTransaction({
+                remove: [itemToRemove],
+            });
+            await waitForChartStability(chart);
+
+            const updatedOptions = chartProxy.getOptions();
+            expect(updatedOptions.data).toBeDefined();
+            expect(updatedOptions.data!).toHaveLength(1);
+            expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+
+            const nodeData = pieSeries.getNodeData() ?? [];
+            expect(nodeData).toHaveLength(1);
         });
     });
 

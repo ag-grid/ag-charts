@@ -99,6 +99,13 @@ export class DataSet<T = unknown> {
     }
 
     /**
+     * @returns A deep clone of the DataSet.
+     */
+    deepClone() {
+        return new DataSet([...this.data]);
+    }
+
+    /**
      * Converts AG Grid-compatible transaction format to internal format.
      * Maps `add` + `addIndex` to prepend, append, or arbitrary insertion based on the index.
      */

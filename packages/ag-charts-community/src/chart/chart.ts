@@ -282,6 +282,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return this.queuedChartOptions.at(-1) ?? this.chartOptions;
     }
 
+    isDataTransactionSupported() {
+        return true;
+    }
+
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super();
 

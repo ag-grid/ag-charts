@@ -32,6 +32,10 @@ export class PolarChart extends Chart {
         return 'polar' as const;
     }
 
+    override isDataTransactionSupported() {
+        return !this.series.some((s) => s.type === 'pie' || s.type === 'donut');
+    }
+
     protected async performLayout(ctx: LayoutContext) {
         const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
         const seriesRect = ctx.layoutBox.clone().shrink(seriesArea?.getPadding() ?? {});

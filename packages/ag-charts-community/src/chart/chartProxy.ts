@@ -109,10 +109,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return this.chart.waitForUpdate();
     }
 
-    async applyTransaction(transaction: AgDataTransaction) {
-        if (!this.chart) throw new Error(DESTROYED_ERROR);
+    applyTransaction(transaction: AgDataTransaction) {
+        const { chart } = this;
+        if (!chart) throw new Error(DESTROYED_ERROR);
 
-        // Validate transaction structure
+        // Validate transaction structure synchronously
         if (transaction == null || typeof transaction !== 'object') {
             throw new Error('AG Charts - applyTransaction expects a transaction object.');
         }
@@ -145,7 +146,18 @@ export class AgChartInstanceProxy implements AgChartProxy {
             throw new Error('AG Charts - transaction "update" must be an array.');
         }
 
-        return this.chart.applyTransaction(transaction);
+        return debug.group('AgChartInstance.applyTransaction()', async () => {
+            if (!chart.isDataTransactionSupported()) {
+                // Avoid mutating original data set; it will be compared with in options processing.
+                const dataSet = chart.data.deepClone();
+                dataSet.addTransaction(transaction);
+                dataSet.commitPendingTransactions();
+                return this.updateDelta({ data: dataSet.data });
+            }
+
+            debug('transaction', transaction);
+            return await this.chart?.applyTransaction(transaction);
+        });
     }
 
     async download(opts?: DownloadOptions) {
