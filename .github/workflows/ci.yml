@@ -9,13 +9,6 @@ on:
     pull_request:
     workflow_dispatch:
         inputs:
-            # run_e2e:
-            #     type: 'choice'
-            #     required: true
-            #     default: 'false'
-            #     options:
-            #         - 'true'
-            #         - 'false'
             clean_checkout:
                 description: 'Disable all caching'
                 type: 'choice'
@@ -143,12 +136,11 @@ jobs:
                       external/*/dist/
                       packages/ag-charts-website/e2e/generated/
 
-    build_lint:
+    lint:
         runs-on: ubuntu-24.04
-        name: Build & Lint
+        name: Lint & Format Check
         needs: init
         outputs:
-            build: ${{ steps.build.outcome || '' }}
             lint: ${{ steps.lint.outcome || '' }}
             format: ${{ steps.format.outcome || '' }}
         steps:
@@ -185,18 +177,94 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
 
-            - name: nx build
-              id: build
-              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+    generate:
+        runs-on: ubuntu-24.04
+        name: Generate
+        needs: init
+        outputs:
+            generate: ${{ steps.generate.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
               run: |
-                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude all,ag-charts-website
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx generate
               id: generate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }}  -t generate
 
+    build:
+        runs-on: ubuntu-24.04
+        name: Build
+        needs: [init, generate]
+        outputs:
+            build: ${{ steps.build.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx build
+              id: build
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: |
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude all,ag-charts-website
+
+    validate:
+        runs-on: ubuntu-24.04
+        name: Validate Examples
+        needs: [init, build]
+        outputs:
+            validate: ${{ steps.validate.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
             - name: nx run-many -t validate-examples
+              id: validate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --exclude all
 
@@ -410,7 +478,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
-        needs: [init, build_lint, website_build, test, e2e, sonarqube, fw_pkg_test]
+        needs: [init, lint, generate, build, validate, website_build, test, e2e, sonarqube, fw_pkg_test]
         if: cancelled() != true
         steps:
             - name: Checkout
@@ -464,7 +532,13 @@ jobs:
                   WORKFLOW_STATUS="success"
                   if [[ "${{steps.snapshot-notify.outputs.updated}}"  == 'true' ]] ; then
                     WORKFLOW_STATUS="failure"
-                  elif [[ "${{ needs.build_lint.result }}" == "failure" ]] ; then
+                  elif [[ "${{ needs.lint.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.generate.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.build.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.validate.result }}" == "failure" ]] ; then
                     WORKFLOW_STATUS="failure"
                   elif [[ "${{ needs.website_build.result }}" == "failure" ]] ; then
                     WORKFLOW_STATUS="failure"
@@ -523,14 +597,18 @@ jobs:
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''
                   SLACK_MESSAGE: >
-                      Build: ${{ needs.build_lint.outputs.build == 'success' && '✅' || needs.build_lint.outputs.build == 'failure' && '❌' || 'NA' }}
-                      Lint: ${{ needs.build_lint.outputs.lint == 'success' && '✅' || needs.build_lint.outputs.lint == 'failure' && '❌' || 'NA' }}
-                      Format: ${{ needs.build_lint.outputs.format == 'success' && '✅' || needs.build_lint.outputs.format == 'failure' && '❌' || 'NA' }}
-                      Website: ${{ needs.website_build.outputs.build == 'success' && '✅' || needs.website_build.outputs.build == 'failure' && '❌' || 'NA' }}
-                      Test: ${{ needs.test.result == 'success' && '✅' || needs.test.result == 'failure' && '❌' || 'NA' }}
-                      E2E: ${{ needs.e2e.result == 'success' && '✅' || needs.e2e.result == 'failure' && '❌' || 'NA' }}
-                      FW Pkg: ${{ needs.fw_pkg_test.result == 'success' && '✅' || needs.fw_pkg_test.result == 'failure' && '❌' || 'NA' }}
-                      Sonar: ${{ needs.sonarqube.result == 'success' && '✅' || needs.sonarqube.result == 'failure' && '❌' || 'NA' }}
+                      ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && steps.lastJobStatus.outputs.workflowStatus != 'partial' && '✅ CI workflow completed successfully' || '❌ CI workflow failed:' }}
+                      ${{ needs.init.result == 'failure' && '- ❌ Init' || '' }}
+                      ${{ needs.lint.outputs.lint == 'failure' && '- ❌ Lint' || '' }}
+                      ${{ needs.lint.outputs.format == 'failure' && '- ❌ Format' || '' }}
+                      ${{ needs.generate.outputs.generate == 'failure' && '- ❌ Generate' || '' }}
+                      ${{ needs.build.outputs.build == 'failure' && '- ❌ Build' || '' }}
+                      ${{ needs.validate.outputs.validate == 'failure' && '- ❌ Validate' || '' }}
+                      ${{ needs.website_build.outputs.build == 'failure' && '- ❌ Website' || '' }}
+                      ${{ needs.test.result == 'failure' && '- ❌ Test' || '' }}
+                      ${{ needs.e2e.result == 'failure' && '- ❌ E2E' || '' }}
+                      ${{ needs.fw_pkg_test.result == 'failure' && '- ❌ FW Pkg' || '' }}
+                      ${{ needs.sonarqube.result == 'failure' && '- ❌ Sonar' || '' }}
 
                       *Changes:*
 
