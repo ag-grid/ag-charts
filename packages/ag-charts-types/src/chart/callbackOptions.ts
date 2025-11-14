@@ -56,12 +56,12 @@ export interface ContextCallbackParams<TContext> {
 }
 
 export interface DatumItemCallbackParams<
-    ItemType extends string,
+    ItemType extends 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high',
     TDatum,
     THighlightState extends string = HighlightState,
 > extends DatumCallbackParams<TDatum, THighlightState> {
-    /** The unique identifier of the item. */
-    itemId: ItemType;
+    /** The typeunique identifier of the item. */
+    itemType: ItemType;
 }
 
 export type Formatter<P> = (params: P) => TextValue | undefined;
