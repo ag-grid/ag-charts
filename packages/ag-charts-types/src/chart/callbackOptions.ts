@@ -1,11 +1,15 @@
 import type { TextOrSegments, TextValue } from '../series/cartesian/commonOptions';
 import type { ContextDefault, DatumDefault } from './types';
 
+type AgItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
+
 export interface AgChartCallbackParams<TDatum = DatumDefault, TContext = ContextDefault> {
     /** The data point associated with the label. */
     datum: TDatum;
     /** The unique identifier of the item. */
     itemId?: string;
+    /** The type of datum. */
+    itemType?: AgItemType;
     /** The unique identifier of the series. */
     seriesId: string;
     /** Context for this callback. */
@@ -56,7 +60,7 @@ export interface ContextCallbackParams<TContext> {
 }
 
 export interface DatumItemCallbackParams<
-    ItemType extends 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high',
+    ItemType extends AgItemType,
     TDatum,
     THighlightState extends string = HighlightState,
 > extends DatumCallbackParams<TDatum, THighlightState> {
