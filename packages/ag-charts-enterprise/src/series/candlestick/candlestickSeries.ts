@@ -54,7 +54,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
             const baseStyle = datum.isRising ? up : down;
             const style =
                 datum.style ??
-                contextNodeData.styles[datum.itemId][
+                contextNodeData.styles[datum.itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
 

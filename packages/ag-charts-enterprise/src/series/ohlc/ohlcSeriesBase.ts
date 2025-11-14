@@ -43,7 +43,8 @@ const memoizedAggregateOhlcData = simpleMemorize2(aggregateOhlcData);
 interface OhlcCandleStickSeriesStyle extends AgCandlestickSeriesItemOptions, AgOhlcSeriesItemOptions {}
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
-    readonly itemId: AgOhlcSeriesItemType;
+    readonly itemId?: never;
+    readonly itemType: AgOhlcSeriesItemType;
 
     readonly openValue: number;
     readonly closeValue: number;
@@ -306,7 +307,7 @@ export abstract class OhlcSeriesBase<
             const yLow = yAxis.scale.convert(lowValue);
 
             const isRising = closeValue > openValue;
-            const itemId = isRising ? 'up' : 'down';
+            const itemType = isRising ? 'up' : 'down';
 
             const y = Math.min(yHigh, yLow);
             const height = Math.max(yHigh, yLow) - y;
@@ -318,7 +319,7 @@ export abstract class OhlcSeriesBase<
 
             nodeData.push({
                 series: this,
-                itemId,
+                itemType,
                 datum,
                 datumIndex,
                 xKey,
@@ -468,14 +469,14 @@ export abstract class OhlcSeriesBase<
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
-        itemId: 'up' | 'down' = 'up'
+        itemType: 'up' | 'down' = 'up'
     ) {
         const { properties, dataModel, processedData } = this;
         const { itemStyler } = properties;
 
         const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
             this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemType));
 
         let style = baseStyle;
 
@@ -484,9 +485,9 @@ export abstract class OhlcSeriesBase<
             const overrides = this.cachedDatumCallback(
                 createDatumId(createDatumId(xValue), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const params = this.makeItemStylerParams(itemId, datumIndex, isHighlight, style);
+                    const params = this.makeItemStylerParams(itemType, datumIndex, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`, 'item', itemId],
+                        ['series', `${this.declarationOrder}`, 'item', itemType],
                         this.callWithContext(itemStyler, params)
                     );
                 }
@@ -501,7 +502,7 @@ export abstract class OhlcSeriesBase<
     }
 
     private makeItemStylerParams(
-        itemId: 'up' | 'down',
+        itemType: 'up' | 'down',
         datumIndex: number,
         isHighlight: boolean,
         style:
@@ -518,7 +519,7 @@ export abstract class OhlcSeriesBase<
         const params = {
             seriesId,
             datum,
-            itemId,
+            itemType,
             xKey,
             openKey,
             closeKey,
@@ -567,8 +568,8 @@ export abstract class OhlcSeriesBase<
 
         if (xValue == null) return;
 
-        const itemId = closeValue >= openValue ? 'up' : 'down';
-        const item = this.properties.item[itemId];
+        const itemType = closeValue >= openValue ? 'up' : 'down';
+        const item = this.properties.item[itemType];
 
         const format = this.getItemStyle(datumIndex, false);
 
@@ -621,7 +622,7 @@ export abstract class OhlcSeriesBase<
                 seriesId,
                 datum,
                 title: yName,
-                itemId,
+                itemType,
                 xKey,
                 xName,
                 yName,

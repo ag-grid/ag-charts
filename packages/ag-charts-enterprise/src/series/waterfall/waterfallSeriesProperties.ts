@@ -136,9 +136,9 @@ export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWat
     @Property
     readonly tooltip = makeSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
 
-    getStyle(itemId: AgWaterfallSeriesItemType): Required<AgWaterfallSeriesStyle> & { opacity: number } {
+    getStyle(itemType: AgWaterfallSeriesItemType): Required<AgWaterfallSeriesStyle> & { opacity: number } {
         const { fillOpacity, strokeWidth, strokeOpacity, fill, stroke, lineDash, lineDashOffset, cornerRadius } =
-            this.item[itemId === 'subtotal' ? 'total' : itemId];
+            this.item[itemType === 'subtotal' ? 'total' : itemType];
         return {
             fill,
             fillOpacity,

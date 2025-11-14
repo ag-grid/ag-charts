@@ -22,12 +22,10 @@ import { isScaleValid } from './scaling';
 export type AreaFillPathDatum = {
     readonly spans: LinePathSpan[];
     readonly phantomSpans: LinePathSpan[];
-    readonly itemId: string;
 };
 
 export type AreaStrokePathDatum = {
     readonly spans: LinePathSpan[];
-    readonly itemId: string;
 };
 
 export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {

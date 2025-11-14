@@ -873,8 +873,8 @@ export class AreaSeries extends CartesianSeries<
 
         const context: AreaSeriesNodeDataContext = {
             itemId: yKey,
-            fillData: { itemId: yKey, spans: this.fillSpans, phantomSpans: this.phantomSpans },
-            strokeData: { itemId: yKey, spans: this.strokeSpans },
+            fillData: { spans: this.fillSpans, phantomSpans: this.phantomSpans },
+            strokeData: { spans: this.strokeSpans },
             labelData,
             nodeData: markerData,
             scales: this.calculateScaling(),

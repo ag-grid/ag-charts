@@ -13,7 +13,8 @@ interface ChartAxisLike {
 }
 
 export type DatumIndexType = number | object | undefined;
-export type ItemIdType = number | string;
+export type ItemId = number | string;
+export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
 
 export type SeriesNodeEventTypes =
     | 'nodeContextMenuAction'
@@ -88,7 +89,8 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
  */
 export interface SeriesNodeDatum<I extends DatumIndexType> {
     readonly series: ISeries<I, any, any>;
-    readonly itemId?: ItemIdType;
+    readonly itemId?: ItemId;
+    readonly itemType?: ItemType;
     readonly datum: unknown;
     readonly datumIndex: I;
     readonly point?: Readonly<Point> & SizedPoint;

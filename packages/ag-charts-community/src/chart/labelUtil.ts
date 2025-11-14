@@ -76,7 +76,8 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
-            itemId: nodeDatum?.itemId as AgChartLabelStylerParams<never, never>['itemId'] satisfies string | undefined, // FIXME: AG-16068
+            itemId: nodeDatum?.itemId,
+            itemType: nodeDatum?.itemType,
             seriesId: series.id,
             padding: label.padding,
             highlighted,

@@ -158,6 +158,7 @@ export class SeriesNodeEvent<
 
 export type SeriesNodeDataContext<I extends DatumIndexType, S = SeriesNodeDatum<I>, L = S> = {
     itemId: string;
+    //contextItemId: string;
     nodeData: S[];
     labelData: L[];
 };
