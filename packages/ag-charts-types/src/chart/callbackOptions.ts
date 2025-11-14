@@ -7,7 +7,7 @@ export interface AgChartCallbackParams<TDatum = DatumDefault, TContext = Context
     /** The data point associated with the label. */
     datum: TDatum;
     /** The unique identifier of the item. */
-    itemId?: string;
+    itemId?: string | number;
     /** The type of datum. */
     itemType?: AgItemType;
     /** The unique identifier of the series. */
