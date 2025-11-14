@@ -470,6 +470,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.updateLabelNodes({
             labelSelection: stageLabelSelection,
             labelProperties: this.properties.stageLabel,
+            checkActiveHighlight: true,
         });
 
         const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum) ?? [];
@@ -603,20 +604,23 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
         isHighlight?: boolean;
+        checkActiveHighlight?: boolean;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const { labelSelection, labelProperties, isHighlight = false } = opts;
+        const { labelSelection, labelProperties, isHighlight = false, checkActiveHighlight = false } = opts;
 
         labelSelection.each((label, nodeDatum, datumIndex) => {
             const { visible, x, y, text, textAlign, textBaseline } = nodeDatum;
-            const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+            const datumIsHighlighted =
+                isHighlight || (checkActiveHighlight && activeHighlight?.datumIndex === datumIndex);
+            const highlightStyle = this.getHighlightStyle(datumIsHighlighted, datumIndex);
 
             const style = getLabelStyles(
                 this,
                 undefined,
                 this.properties,
                 labelProperties,
-                isHighlight,
+                datumIsHighlighted,
                 activeHighlight
             );
 

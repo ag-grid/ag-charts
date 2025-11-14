@@ -30,7 +30,11 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
             overflowStrategy: 'ellipsis',
         },
         itemPadding: 3,
-        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+        highlight: {
+            unhighlightedItem: {
+                opacity: 0.4,
+            },
+        },
     },
     gradientLegend: {
         enabled: true,
