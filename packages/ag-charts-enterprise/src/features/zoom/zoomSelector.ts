@@ -38,7 +38,7 @@ export class ZoomSelector {
         innerBBox?: _ModuleSupport.BBox,
         bbox?: _ModuleSupport.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
-    ): DefinedZoomState {
+    ): DefinedZoomState | undefined {
         let zoom = definedZoomState();
 
         if (!innerBBox || !bbox) return zoom;
@@ -56,7 +56,9 @@ export class ZoomSelector {
 
         this.reset();
 
-        return zoom;
+        if (this.isZoomValid(zoom)) {
+            return zoom;
+        }
     }
 
     reset(): void {

@@ -124,12 +124,16 @@ describe('Zoom', () => {
         }
     });
 
-    const compare = async () => {
+    // Set the customSnapshotIdentifier string to check for behavioural equivalence
+    // E.g. double-clicking (mouse) or double-tapping (touch) should generate the same 'reset' image-snapshot.
+    const compare = async (customSnapshotIdentifier?: string) => {
         await waitForChartStability(chart);
+
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({
             failureThreshold: 0,
             failureThresholdType: 'percent',
+            customSnapshotIdentifier,
         });
     };
 
@@ -223,19 +227,19 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(cx, cy)(chart);
-            await compare();
+            await compare('reset');
         });
         it('should reset the X axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(400, 578)(chart);
-            await compare();
+            await compare('dblclick-x');
         });
         it('should reset the Y axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(32, 300)(chart);
-            await compare();
+            await compare('dblclick-y');
         });
     });
 
@@ -244,19 +248,19 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(cx, cy)(chart);
-            await compare();
+            await compare('reset');
         });
         it('should reset the X axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(400, 578)(chart);
-            await compare();
+            await compare('dblclick-x');
         });
         it('should reset the Y axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(32, 300)(chart);
-            await compare();
+            await compare('dblclick-y');
         });
     });
 
@@ -329,7 +333,7 @@ describe('Zoom', () => {
 
             it('should not zoom on mouseup', async () => {
                 await mouseUpAction(b.x, b.y)(chart);
-                await compare();
+                await compare('reset');
             });
         });
     });
@@ -484,7 +488,7 @@ describe('Zoom', () => {
         });
 
         test('init zoomed in', async () => {
-            await compare();
+            await compare('two-fingers-init');
         });
 
         test('zoom back out', async () => {
@@ -498,7 +502,7 @@ describe('Zoom', () => {
             await twoFingerStart(3, cx - 250, cy - 250, 4, cx + 250, cy + 250)(chart);
             await twoFingerMove(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
             await twoFingerEnd(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
-            await compare();
+            await compare('reset');
         });
 
         test('zoom and pan', async () => {
@@ -512,7 +516,7 @@ describe('Zoom', () => {
             await twoFingerStart(3, cx - 5, cy - 50, 4, cx + 5, cy + 50)(chart);
 
             await twoFingerMove(3, cx - 100, cy - 50, 4, cx + 100, cy + 50)(chart);
-            await compare(); // no change (clientX average unchanged)
+            await compare('two-fingers-init'); // no change (clientX average unchanged)
 
             await twoFingerMove(3, cx + 20, cy - 50, 4, cx + 100, cy + 50)(chart);
             await compare(); // pans left
@@ -524,7 +528,7 @@ describe('Zoom', () => {
         test('y overlap', async () => {
             await twoFingerStart(3, cx - 50, cy - 5, 4, cx + 50, cy + 5)(chart);
             await twoFingerMove(3, cx - 50, cy - 100, 4, cx + 50, cy + 100)(chart);
-            await compare(); // no change (clientY average unchanged)
+            await compare('two-fingers-init'); // no change (clientY average unchanged)
 
             await twoFingerMove(3, cx - 50, cy + 20, 4, cx + 50, cy + 100)(chart);
             await compare(); // pans down
