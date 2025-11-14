@@ -74,9 +74,9 @@ const options: AgCartesianChartOptions = {
                     const category = params.datum.financials;
 
                     let typeLabel = 'Change';
-                    if (params.itemId === 'total') {
+                    if (params.itemType === 'total') {
                         typeLabel = 'Total Income';
-                    } else if (params.itemId === 'subtotal') {
+                    } else if (params.itemType === 'subtotal') {
                         typeLabel = 'Total Expenditure';
                     } else if (value > 0) {
                         typeLabel = 'Income';

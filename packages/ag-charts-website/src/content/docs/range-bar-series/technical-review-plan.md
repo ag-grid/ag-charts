@@ -33,7 +33,7 @@
 1. **simple-range-bar**: Basic range bar implementation
 2. **multiple-range-bars**: Multiple series with custom names
 3. **range-bar-missing-data**: Missing/invalid data handling
-4. **range-bar-labels**: Label formatting with itemId differentiation
+4. **range-bar-labels**: Label formatting with itemType differentiation
 5. **customising-corner-radius**: Corner radius styling
 6. **horizontal-range-bar**: Horizontal orientation
 7. **multiple-horizontal-range-bars**: (Found in examples but not referenced in docs)
@@ -122,7 +122,7 @@
 
 -   **Documentation claims**:
     -   Labels show both yHighKey and yLowKey values
-    -   Formatter receives itemId to distinguish low/high
+    -   Formatter receives itemType to distinguish low/high
     -   Padding configuration works
     -   Currency formatting with directional arrows
 -   **Expected behaviors**:
@@ -132,7 +132,7 @@
     -   Formatted text displays correctly
 -   **Validation tasks for example-tester**:
     -   Verify labels appear on bars
-    -   Check formatter logic with itemId
+    -   Check formatter logic with itemType
     -   Validate padding visual effect
     -   Confirm formatted strings render
 
@@ -269,7 +269,7 @@
 
 2. **Label customization**:
 
-    - Verify formatter with itemId
+    - Verify formatter with itemType
     - Test label positioning
     - Check padding effect
 
@@ -306,7 +306,7 @@
 -   No console errors in any example
 -   Tooltips and legends show correct custom names
 -   Missing data creates visible gaps
--   Labels format correctly with itemId
+-   Labels format correctly with itemType
 -   Corner radius renders smoothly
 -   Horizontal orientation swaps axes properly
 -   All interactive features work reliably
@@ -329,7 +329,7 @@
 | simple-range-bar               | Basic API usage, data binding              | Vertical bars, tooltips work, no labels |
 | multiple-range-bars            | Legend names, tooltip names, series toggle | Custom names in UI, series interaction  |
 | range-bar-missing-data         | Gap handling, error resilience             | Visible gaps, no crashes                |
-| range-bar-labels               | Formatter logic, itemId usage              | Labels on bars, correct formatting      |
+| range-bar-labels               | Formatter logic, itemType usage            | Labels on bars, correct formatting      |
 | customising-corner-radius      | Visual styling                             | Rounded corners render                  |
 | horizontal-range-bar           | Axis orientation                           | Horizontal bars, swapped axes           |
 | multiple-horizontal-range-bars | Multi-series horizontal                    | Similar to vertical but horizontal      |

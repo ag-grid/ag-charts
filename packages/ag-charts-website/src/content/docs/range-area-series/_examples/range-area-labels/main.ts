@@ -26,8 +26,8 @@ const options: AgChartOptions = {
             },
             label: {
                 padding: 17,
-                formatter: ({ itemId, value }) => {
-                    return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
+                formatter: ({ itemType, value }) => {
+                    return `${itemType === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
                 },
             },
         },

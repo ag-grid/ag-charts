@@ -32,12 +32,12 @@ const options: AgCartesianChartOptions = {
             strokeOpacity: 0.6,
             label: {
                 enabled: true,
-                formatter: ({ datum, yLowKey, yHighKey, itemId }) => {
+                formatter: ({ datum, yLowKey, yHighKey, itemType }) => {
                     const increase = datum[yHighKey] - datum[yLowKey];
-                    if (increase > 50 && itemId === 'high') {
+                    if (increase > 50 && itemType === 'high') {
                         return `↑£${increase}K`;
                     }
-                    if (increase < -50 && itemId === 'low') {
+                    if (increase < -50 && itemType === 'low') {
                         return `↓£${Math.abs(increase)}K`;
                     }
                     return '';

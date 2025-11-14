@@ -27,10 +27,10 @@ const options: AgCartesianChartOptions<DataType> = {
                 itemStyler: (params: AgRangeAreaSeriesItemStylerParams<DataType, unknown>) => {
                     // Highlight datum styling options:
                     if (params.highlightState === 'highlighted-item') {
-                        if (params.itemId === 'high') {
+                        if (params.itemType === 'high') {
                             return { fill: '#53c653' };
                         }
-                        if (params.itemId === 'low') {
+                        if (params.itemType === 'low') {
                             return { fill: '#ff3333' };
                         }
                     }

@@ -90,8 +90,8 @@ Series markers and labels can be enabled using the `marker` and `label` options.
             },
             label: {
                 padding: 17,
-                formatter: ({ itemId, value }) => {
-                    return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
+                formatter: ({ itemType, value }) => {
+                    return `${itemType === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
                 },
             },
         },
@@ -103,7 +103,7 @@ In this configuration:
 
 -   Markers have been enabled using the `marker` options object.
 -   The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
--   The `label.formatter` function uses the `itemId` from the params object to distinguish whether the label is a `low` or `high` value.
+-   The `label.formatter` function uses the `itemType` from the params object to distinguish whether the label is a `low` or `high` value.
 
 ### Inverted Style
 
@@ -156,10 +156,10 @@ Use the `item.high` and `item.low` properties to apply specific overrides.
                 itemStyler: (params) => {
                     // Highlight datum styling options:
                     if (params.highlightState === 'highlighted-item') {
-                        if (params.itemId === 'high') {
+                        if (params.itemType === 'high') {
                             return { fill: '#53c653' };
                         }
-                        if (params.itemId === 'low') {
+                        if (params.itemType === 'low') {
                             return { fill: '#ff3333' };
                         }
                     }

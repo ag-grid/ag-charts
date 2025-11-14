@@ -96,8 +96,8 @@ Series labels can be enabled using the `label` options.
             // ...
             label: {
                 padding: 10,
-                formatter: ({ itemId, value }) => {
-                    return `£${value.toFixed(0)}K ${itemId === 'low' ? '↓' : '↑'}`;
+                formatter: ({ itemType, value }) => {
+                    return `£${value.toFixed(0)}K ${itemType === 'low' ? '↓' : '↑'}`;
                 },
             },
         },
@@ -108,7 +108,7 @@ Series labels can be enabled using the `label` options.
 In this configuration:
 
 -   The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
--   The `label.formatter` function uses the `itemId` from the params object to distinguish whether the label is a `low` or `high` value.
+-   The `label.formatter` function uses the `itemType` from the params object to distinguish whether the label is a `low` or `high` value.
 
 ### Corner Radius
 
