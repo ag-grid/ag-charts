@@ -109,7 +109,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return this.chart.waitForUpdate();
     }
 
-    async applyTransaction(transaction: AgDataTransaction) {
+    applyTransaction(transaction: AgDataTransaction) {
         const { chart } = this;
         if (!chart) throw new Error(DESTROYED_ERROR);
 
