@@ -531,7 +531,7 @@ describe('Enterprise highlight defaults', () => {
                         label: { enabled: true },
                     },
                 ],
-            } as AgChartOptions,
+            },
             seriesIndex: 1,
             datumIndex: 0,
             getDatum: (chartInstance) => (chartInstance.series[1] as any).getNodeData?.()?.[0],
@@ -550,7 +550,7 @@ describe('Enterprise highlight defaults', () => {
                         labelKey: 'name',
                     },
                 ],
-            } as AgChartOptions,
+            },
             seriesIndex: 0,
             datumIndex: 2,
             getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[2],
@@ -572,7 +572,7 @@ describe('Enterprise highlight defaults', () => {
                         label: { enabled: true },
                     },
                 ],
-            } as AgChartOptions,
+            },
             seriesIndex: 1,
             datumIndex: 1,
             getDatum: (chartInstance) => (chartInstance.series[1] as any).getNodeData?.()?.[1],
@@ -660,7 +660,7 @@ describe('Enterprise highlight defaults', () => {
         },
         {
             name: 'sankey',
-            options: sankeyOptions as AgChartOptions,
+            options: sankeyOptions,
             getDatum: (chartInstance) => {
                 const series = chartInstance.series[0] as {
                     contextNodeData?: unknown;
@@ -682,7 +682,7 @@ describe('Enterprise highlight defaults', () => {
         },
         {
             name: 'chord',
-            options: chordOptions as AgChartOptions,
+            options: chordOptions,
             getDatum: (chartInstance) => {
                 const series = chartInstance.series[0] as {
                     contextNodeData?: unknown;
@@ -738,7 +738,7 @@ describe('Enterprise highlight defaults', () => {
         },
         {
             name: 'pyramid',
-            options: pyramidOptions as AgChartOptions,
+            options: pyramidOptions,
             seriesIndex: 0,
             datumIndex: 1,
         },
@@ -758,5 +758,440 @@ describe('Enterprise highlight defaults', () => {
                 await runHighlightSnapshot(testCase);
             });
         }
+    });
+
+    describe('hierarchy series', () => {
+        const hierarchyData = [
+            {
+                name: 'Root A',
+                children: [
+                    { name: 'A-Tile-1', size: 100, value: 10 },
+                    { name: 'A-Tile-2', size: 150, value: 15 },
+                    {
+                        name: 'A-Group-1',
+                        children: [
+                            { name: 'A-G1-Tile-1', size: 80, value: 8 },
+                            { name: 'A-G1-Tile-2', size: 120, value: 12 },
+                        ],
+                    },
+                ],
+            },
+            {
+                name: 'Root B',
+                children: [
+                    { name: 'B-Tile-1', size: 200, value: 20 },
+                    {
+                        name: 'B-Group-1',
+                        children: [
+                            { name: 'B-G1-Tile-1', size: 90, value: 9 },
+                            { name: 'B-G1-Tile-2', size: 110, value: 11 },
+                        ],
+                    },
+                ],
+            },
+        ];
+
+        const getNodeAtPath = (chartInstance: Chart, path: number[]): HighlightNodeDatum | undefined => {
+            const series = chartInstance.series[0] as any;
+            let node = series.rootNode;
+            if (!node) return undefined;
+
+            for (const index of path) {
+                node = node?.children?.[index];
+                if (!node) return undefined;
+            }
+
+            return node as HighlightNodeDatum;
+        };
+
+        describe('treemap', () => {
+            it('tile highlight - same root branch', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                        },
+                    ],
+                });
+
+                // Hover over first tile in Root A (path: [0, 0])
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('tile highlight - different root branch', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                        },
+                    ],
+                });
+
+                // Hover over first tile in Root B (path: [1, 0])
+                const highlightDatum = getNodeAtPath(chart, [1, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('group highlight - tiles inherit only opacity', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            group: {
+                                highlight: {
+                                    highlightedItem: {
+                                        opacity: 1,
+                                        fill: 'red', // Should NOT be inherited by tiles
+                                        stroke: 'darkred', // Should NOT be inherited by tiles
+                                        strokeWidth: 5, // Should NOT be inherited by tiles
+                                    },
+                                    unhighlightedItem: {
+                                        opacity: 0.3,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                // Hover over group in Root A (path: [0, 2])
+                const highlightDatum = getNodeAtPath(chart, [0, 2]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('group highlight - different root branches', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            group: {
+                                highlight: {
+                                    highlightedItem: { opacity: 1 },
+                                    unhighlightedItem: { opacity: 0.1 },
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                // Hover over group in Root B (path: [1, 1])
+                const highlightDatum = getNodeAtPath(chart, [1, 1]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('custom tile highlight - highlightedItem', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            tile: {
+                                highlight: {
+                                    highlightedItem: {
+                                        fill: 'orange',
+                                        fillOpacity: 0.9,
+                                        stroke: 'darkorange',
+                                    },
+                                    unhighlightedItem: {
+                                        fill: 'grey',
+                                    },
+                                    unhighlightedBranch: {
+                                        fill: 'orange',
+                                    },
+                                    highlightedBranch: {
+                                        strokeWidth: 5,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('custom tile highlight - unhighlightedBranch', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            tile: {
+                                highlight: {
+                                    unhighlightedBranch: {
+                                        fill: 'gray',
+                                        fillOpacity: 0.3,
+                                        strokeOpacity: 0.5,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                // Hover tile in Root A to see Root B dimmed
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('colorScale without highlight fill - uses colorScale', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            colorKey: 'value',
+                            colorRange: ['#2196F3', '#FFC107'],
+                            // No highlight.fill configured - should use colorScale
+                        },
+                    ],
+                });
+
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('colorScale with highlight fill - highlight overrides colorScale', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            colorKey: 'value',
+                            colorRange: ['#2196F3', '#FFC107'],
+                            tile: {
+                                highlight: {
+                                    highlightedItem: {
+                                        fill: 'red', // Should override colorScale
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('nested group highlight - opacity inheritance', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            group: {
+                                highlight: {
+                                    highlightedItem: { opacity: 0.5 },
+                                    unhighlightedItem: { opacity: 1 },
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                // Hover over nested group (path: [0, 2])
+                const highlightDatum = getNodeAtPath(chart, [0, 2]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+        });
+
+        describe('sunburst', () => {
+            it('segment highlight - same root branch', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                        },
+                    ],
+                });
+
+                // Hover over first segment in Root A (path: [0, 0])
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('segment highlight - different root branch', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                        },
+                    ],
+                });
+
+                // Hover over first segment in Root B (path: [1, 0])
+                const highlightDatum = getNodeAtPath(chart, [1, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('custom highlight - highlightedItem', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            highlight: {
+                                highlightedItem: {
+                                    fill: 'purple',
+                                    fillOpacity: 0.9,
+                                    stroke: 'darkviolet',
+                                    strokeWidth: 3,
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('custom highlight - unhighlightedBranch', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            highlight: {
+                                unhighlightedBranch: {
+                                    fillOpacity: 0.2,
+                                    strokeOpacity: 0.4,
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                // Hover segment in Root A to see Root B dimmed
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('colorScale without highlight fill - uses colorScale', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            colorKey: 'value',
+                            colorRange: ['#E91E63', '#9C27B0'],
+                            // No highlight.fill configured - should use colorScale
+                        },
+                    ],
+                });
+
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('colorScale with highlight fill - highlight overrides colorScale', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            colorKey: 'value',
+                            colorRange: ['#E91E63', '#9C27B0'],
+                            highlight: {
+                                highlightedItem: {
+                                    fill: 'green', // Should override colorScale
+                                },
+                            },
+                        },
+                    ],
+                });
+
+                const highlightDatum = getNodeAtPath(chart, [0, 0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+
+            it('inner ring highlight - branch highlighting', async () => {
+                chart = await createEnterpriseChart({
+                    data: hierarchyData,
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                        },
+                    ],
+                });
+
+                // Hover over inner ring (parent node) - path: [0]
+                const highlightDatum = getNodeAtPath(chart, [0]);
+                if (!highlightDatum) throw new Error('No highlight datum found');
+                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                await compare();
+            });
+        });
     });
 });

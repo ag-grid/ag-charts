@@ -1,4 +1,5 @@
 import {
+    type AgTreemapHighlightState,
     type AgTreemapSeriesLabelFormatterParams,
     type AgTreemapSeriesOptions,
     type AgTreemapSeriesStyle,
@@ -27,8 +28,19 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { createDatumId, Rect, Group, BBox, Selection, Text, Transformable, applyShapeStyle, getLabelStyles } =
-    _ModuleSupport;
+const {
+    createDatumId,
+    Rect,
+    Group,
+    BBox,
+    Selection,
+    Text,
+    Transformable,
+    applyShapeStyle,
+    getLabelStyles,
+    HierarchyHighlightState,
+    toHierarchyHighlightString,
+} = _ModuleSupport;
 
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
@@ -69,6 +81,7 @@ enum TextNodeTag {
 
 type ItemStyle = Pick<AgTreemapSeriesStyle, 'fill' | 'stroke'> &
     Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'>;
+type HighlightStyle = Partial<ItemStyle> & { opacity?: number };
 
 function nodeSize(node: TreemapNode) {
     return node.children.length > 0 ? node.sumSize - node.sizeValue : node.sizeValue;
@@ -332,10 +345,17 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
         const index = isLeaf ? rootIndex : nodeDatum.depth ?? -1;
 
-        const highlightStyle = isHighlight ? properties.highlightStyle.getStyle(isLeaf) : undefined;
+        const highlightedNode = this.getActiveHighlightNode();
+        const tileHighlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
+        const groupHighlightState = this.getGroupHighlightState(isHighlight, highlightedNode, nodeDatum);
+
+        const highlightState = isLeaf ? tileHighlightState : groupHighlightState;
+        const highlightStyle = isLeaf
+            ? this.getTileHighlightStyle(tileHighlightState, groupHighlightState, highlightedNode)
+            : this.getGroupHighlightStyle(groupHighlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(isLeaf, fills, strokes, index));
 
-        if (!isHighlight && isLeaf && nodeDatum.colorValue != null) {
+        if (isLeaf && nodeDatum.colorValue != null && highlightStyle?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
         }
 
@@ -345,7 +365,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
+                    const params = this.makeItemStylerParams(
+                        nodeDatum,
+                        isHighlight,
+                        style,
+                        toHierarchyHighlightString(highlightState)
+                    );
                     return this.callWithContext(itemStyler, params);
                 }
             );
@@ -359,14 +384,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     private makeItemStylerParams(
-        nodeDatum: Pick<TreemapNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        nodeDatum: Pick<TreemapNode, 'datum' | 'depth'>,
         isHighlight: boolean,
-        style: Required<AgTreemapSeriesStyle>
+        style: Required<ItemStyle>,
+        highlightState: AgTreemapHighlightState
     ) {
         const { id: seriesId } = this;
 
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -381,10 +405,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     override updateSelections() {
-        let highlightedNode: TreemapNode | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedNode != null && !this.properties.group.interactive && highlightedNode.children.length !== 0) {
-            highlightedNode = undefined;
-        }
+        const highlightedNode = this.getActiveHighlightNode();
 
         this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, (node) =>
             this.getDatumId(node)
@@ -408,20 +429,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
+    protected override getActiveHighlightNode(): TreemapNode | undefined {
+        const highlightedNode = super.getActiveHighlightNode();
+        if (highlightedNode?.children.length && !this.properties.group.interactive) {
+            return undefined;
+        }
+        return highlightedNode;
+    }
+
     updateNodes() {
         const { rootNode, data } = this;
-        const {
-            childrenKey,
-            colorKey,
-            colorName,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            sizeName,
-            highlightStyle,
-            tile,
-            group,
-        } = this.properties;
+        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
+            this.properties;
         const { seriesRect } = this.chart ?? {};
 
         if (!seriesRect || !data) return;
@@ -678,17 +697,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             }
             const labelProps = tag === TextNodeTag.Primary ? tile.label : tile.secondaryLabel;
 
-            let highlightedColor: string | undefined;
-            if (highlighted) {
-                const { tile: hTitle, group: hGroup } = highlightStyle;
-
-                highlightedColor = hTitle.secondaryLabel.color;
-                if (!isLeaf) {
-                    highlightedColor = hGroup.label.color;
-                } else if (tag === TextNodeTag.Primary) {
-                    highlightedColor = hTitle.label.color;
-                }
-            }
+            const { opacity: highlightOpacity } = this.getItemStyle(node, isLeaf, highlighted) ?? {};
 
             const params: RequireOptional<AgTreemapSeriesLabelFormatterParams> = {
                 childrenKey: this.properties.childrenKey,
@@ -708,8 +717,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             text.fontStyle = label.fontStyle;
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
-            text.fill = highlightedColor ?? label.color;
-            text.fillOpacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
+            text.fill = label.color;
+            text.fillOpacity = highlightOpacity ?? 1;
             text.textAlign = label.textAlign;
             text.textBaseline = label.verticalAlign;
             text.x = label.x;
@@ -719,11 +728,113 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             text.zIndex = 1;
         };
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
+        const highlightedDatum = this.getActiveHighlightNode();
         for (const text of this.labelSelection.selectByClass(Text)) {
             const datum = text.closestDatum();
             updateLabelFn(datum, text, text.tag, datum === highlightedDatum);
         }
+    }
+
+    private getGroupHighlightState(
+        isHighlight: boolean,
+        highlightedNode: TreemapNode | undefined,
+        nodeDatum: Pick<TreemapNode, 'datumIndex' | 'depth'> & Partial<Pick<TreemapNode, 'children'>>
+    ): _ModuleSupport.HierarchyHighlightState {
+        const nodeIndex = nodeDatum.datumIndex;
+        const highlightedIndex = highlightedNode?.datumIndex;
+        const isDescendant = this.isDescendantDatumIndex(nodeIndex, highlightedIndex);
+
+        // For leaf nodes
+        if (nodeDatum.children?.length === 0) {
+            if (nodeIndex == null || highlightedNode == null || highlightedNode.children?.length === 0) {
+                return HierarchyHighlightState.None;
+            }
+
+            return isDescendant ? HierarchyHighlightState.Item : HierarchyHighlightState.OtherItem;
+        }
+
+        // For group nodes
+        if (highlightedNode == null || highlightedNode.children?.length === 0) {
+            return HierarchyHighlightState.None;
+        }
+
+        const isSibling =
+            nodeDatum.depth != null && highlightedNode.depth != null && nodeDatum.depth === highlightedNode.depth;
+        if (isDescendant && !isSibling) {
+            return HierarchyHighlightState.None;
+        }
+
+        return isHighlight ? HierarchyHighlightState.Item : HierarchyHighlightState.OtherItem;
+    }
+
+    private getTileHighlightStyle(
+        tileHighlightState: _ModuleSupport.HierarchyHighlightState,
+        groupHighlightState: _ModuleSupport.HierarchyHighlightState,
+        highlightedNode: TreemapNode | undefined
+    ): HighlightStyle | undefined {
+        const isGroupHighlighted = highlightedNode?.children && highlightedNode.children.length > 0;
+
+        // When a group is highlighted, tiles only inherit fillOpacity and strokeOpacity from the group highlight style
+        if (isGroupHighlighted) {
+            const groupStyle = this.getGroupHighlightStyle(groupHighlightState);
+            if (groupStyle?.fillOpacity == null && groupStyle?.strokeOpacity == null) {
+                return undefined;
+            }
+            return { fillOpacity: groupStyle.fillOpacity, strokeOpacity: groupStyle.strokeOpacity };
+        }
+
+        return this.getHierarchyHighlightStyles(tileHighlightState, this.properties.tile.highlight);
+    }
+
+    private getGroupHighlightStyle(highlightState: _ModuleSupport.HierarchyHighlightState): HighlightStyle | undefined {
+        const { highlight } = this.properties.group;
+        switch (highlightState) {
+            case HierarchyHighlightState.Item:
+                return highlight.highlightedItem;
+            case HierarchyHighlightState.OtherItem:
+                return highlight.unhighlightedItem;
+            default:
+                return undefined;
+        }
+    }
+
+    public override getHighlightStateString(
+        _datum: _ModuleSupport.HighlightNodeDatum | undefined,
+        isHighlight?: boolean,
+        datumIndex?: number[]
+    ): AgTreemapHighlightState {
+        if (datumIndex == null) {
+            return toHierarchyHighlightString(HierarchyHighlightState.None);
+        }
+        const nodeDatum = datumIndex.reduce((node, idx) => node?.children[idx], this.rootNode);
+        const highlightedNode = this.getActiveHighlightNode();
+        if (nodeDatum == null) {
+            return toHierarchyHighlightString(HierarchyHighlightState.None);
+        }
+
+        const isLeaf = (nodeDatum.children?.length ?? 0) === 0;
+        if (isLeaf) {
+            const tileState = this.getHierarchyHighlightState(isHighlight ?? false, highlightedNode, nodeDatum);
+            return toHierarchyHighlightString(tileState);
+        }
+
+        const groupState = this.getGroupHighlightState(isHighlight ?? false, highlightedNode, nodeDatum);
+        return toHierarchyHighlightString(groupState);
+    }
+
+    private isDescendantDatumIndex(nodeIndex: number[] | undefined, ancestorIndex: number[] | undefined): boolean {
+        if (ancestorIndex == null || ancestorIndex.length === 0) {
+            return true;
+        }
+        if (nodeIndex == null || nodeIndex.length < ancestorIndex.length) {
+            return false;
+        }
+        for (let i = 0; i < ancestorIndex.length; i += 1) {
+            if (nodeIndex[i] !== ancestorIndex[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     override pickNodesExactShape(point: Point): TreemapNode[] {

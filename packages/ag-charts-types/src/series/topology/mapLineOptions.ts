@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, Opacity, PixelSize } from '../../chart/types';
@@ -31,10 +31,10 @@ export type AgMapLineSeriesLabel<TDatum, TContext = ContextDefault> = AgChartLab
 export type AgMapLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames;
 
-export type AgMapLineSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgMapLineSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgMapLineSeriesOptionsKeys<TDatum> &
     Required<AgMapLineSeriesStyle>;

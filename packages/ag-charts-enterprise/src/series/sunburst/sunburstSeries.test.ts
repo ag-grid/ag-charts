@@ -142,8 +142,10 @@ describe('SunburstSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            fill: 'lime',
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'lime',
+                            },
                         },
                         listeners,
                         ...nodeClickRangeParams,

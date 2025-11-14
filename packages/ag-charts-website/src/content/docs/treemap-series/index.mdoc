@@ -295,6 +295,57 @@ It is possible to customise the font, colour and padding of the labels by using 
 }
 ```
 
+## Highlighting
+
+{% chartExampleRunner title="Highlighting" name="highlight" type="generated" /%}
+
+Treemaps leaf tiles are configured via `tile.highlight`, while group rectangles use `group.highlight`.
+
+The leaf tiles support the following states:
+
+-   `highlightedItem` – styles applied to the hovered tile.
+-   `unhighlightedItem` – styles applied to other nodes within the same branch.
+-   `highlightedBranch` – styles inherited by every node that shares the hovered root.
+-   `unhighlightedBranch` – styles applied to nodes in other branches.
+
+The groups support the following states:
+
+-   `highlightedItem` – styles applied to the hovered group.
+-   `unhighlightedItem` – styles applied to other groups.
+
+When a group is hovered, its `fillOpacity` and `strokeOpacity` styles are inherited by its child leaf tiles.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'title',
+            sizeKey: 'total',
+            group: {
+                highlight: {
+                    highlightedItem: { stroke: 'lightgreen', strokeWidth: 4 },
+                    unhighlightedItem: { opacity: 0.1 },
+                },
+            },
+            tile: {
+                highlight: {
+                    highlightedItem: { stroke: 'green' },
+                    highlightedBranch: { strokeWidth: 2 },
+                    unhighlightedBranch: { fill: 'grey' },
+                },
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+-   `group.highlight` only affects the group rectangles.
+-   `tile.highlight` controls the tiles themselves. When a group is hovered, only the `fillOpacity` and `strokeOpacity` styles are inherited by its tiles.
+-   Providing `fill`/`stroke` overrides allows highlight colours to take precedence over colour scales.
+
 ## API Reference
 
 {% tabs %}

@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
@@ -31,10 +31,10 @@ export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & 
 export type AgMapMarkerSeriesLabelFormatterParams<TDatum = DatumDefault> = AgMapMarkerSeriesOptionsKeys<TDatum> &
     AgMapMarkerSeriesOptionsNames;
 
-export type AgMapMarkerSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgMapMarkerSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgMapMarkerSeriesOptionsKeys<TDatum> &
     Required<AgMapMarkerSeriesStyle>;

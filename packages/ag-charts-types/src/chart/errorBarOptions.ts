@@ -1,8 +1,11 @@
 import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from './callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from './callbackOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from './types';
 
-export type AgErrorBarItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<TDatum> &
+export type AgErrorBarItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     SeriesKeyOptions<TDatum> &
     ErrorBarKeyOptions<TDatum> &

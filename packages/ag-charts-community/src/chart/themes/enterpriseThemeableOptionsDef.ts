@@ -88,6 +88,12 @@ import {
     tooltipOptionsDefs,
 } from '../commonOptionsDefs';
 
+const hierarchyHighlightStyleOptionsDef = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    opacity: ratio,
+};
+
 export const boxPlotStyleOptionsDef: OptionsDefs<AgBoxPlotSeriesStyle> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
@@ -606,15 +612,11 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
-    highlightStyle: {
-        label: {
-            color: color,
-        },
-        secondaryLabel: {
-            color: color,
-        },
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
+    highlight: {
+        highlightedItem: hierarchyHighlightStyleOptionsDef,
+        highlightedBranch: hierarchyHighlightStyleOptionsDef,
+        unhighlightedItem: hierarchyHighlightStyleOptionsDef,
+        unhighlightedBranch: hierarchyHighlightStyleOptionsDef,
     },
 };
 
@@ -632,6 +634,10 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         cornerRadius: positiveNumber,
         textAlign: union('left', 'center', 'right'),
         interactive: boolean,
+        highlight: {
+            highlightedItem: hierarchyHighlightStyleOptionsDef,
+            unhighlightedItem: hierarchyHighlightStyleOptionsDef,
+        },
         label: {
             ...seriesLabelOptionsDefs,
             spacing: positiveNumber,
@@ -660,31 +666,17 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             wrapping: union('never', 'always', 'hyphenate', 'on-space'),
             overflowStrategy: union('ellipsis', 'hide'),
         },
+        highlight: {
+            highlightedItem: hierarchyHighlightStyleOptionsDef,
+            highlightedBranch: hierarchyHighlightStyleOptionsDef,
+            unhighlightedItem: hierarchyHighlightStyleOptionsDef,
+            unhighlightedBranch: hierarchyHighlightStyleOptionsDef,
+        },
         ...fillOptionsDef,
         ...strokeOptionsDef,
     },
     tooltip: tooltipOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
-    // TODO Remove in next major version
-    highlightStyle: {
-        group: {
-            label: {
-                color: color,
-            },
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-        },
-        tile: {
-            label: {
-                color: color,
-            },
-            secondaryLabel: {
-                color: color,
-            },
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-        },
-    },
 };
 
 const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
