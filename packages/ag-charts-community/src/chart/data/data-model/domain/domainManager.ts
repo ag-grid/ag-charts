@@ -11,11 +11,7 @@ import { DomainInitializer } from './domainInitializer';
  * Specialized function type for processing property values.
  * Generated per property definition to eliminate branching and optimize hot paths.
  */
-type SpecializedProcessValueFn = (
-    datum: Record<string, any>,
-    idx: number,
-    valueScopes: string | string[]
-) => ProcessedValue;
+export type SpecializedProcessValueFn = (datum: unknown, idx: number, valueScopes: string | string[]) => ProcessedValue;
 
 /**
  * Helper: Tracks missing values for a property definition across scopes.
@@ -276,7 +272,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function optimized for key properties with validation.
      * Eliminates all branching for the most common key property case (~30% of calls).
      */
-    private createSpecializedProcessValue_Key_Validation<K extends string>(
+    private createSpecializedProcessValue_Key_Validation(
         def: InternalDatumPropertyDefinition<K>,
         accessor: ((datum: any) => any) | undefined,
         domain: IDataDomain,
@@ -295,7 +291,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             // Key with accessor (rare case)
             const accessorFn = accessor;
             return function processValue_Key_Validation_Accessor(
-                datum: Record<string, any>,
+                datum: unknown,
                 idx: number,
                 valueScopes: string | string[]
             ): ProcessedValue {
@@ -329,15 +325,15 @@ export class DomainManager<D extends object, K extends keyof D & string> {
 
         // Key without accessor (most common key case)
         return function processValue_Key_Validation_Direct(
-            datum: Record<string, any>,
+            datum: unknown,
             idx: number,
             valueScopes: string | string[]
         ): ProcessedValue {
-            const valueInDatum = property in datum;
-            const value = valueInDatum ? datum[property] : missingValue;
+            const valueInDatum = property in (datum as any);
+            const value = valueInDatum ? (datum as any)[property] : missingValue;
 
             // Keys cannot be null/undefined
-            if (!valueInDatum || value == null || validation(value, datum, idx) === false) {
+            if (!valueInDatum || value == null || validation(value, datum as any, idx) === false) {
                 reusableResult.missing = !valueInDatum;
 
                 if (!valueInDatum && !hasMissingValue) {
@@ -360,7 +356,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function optimized for value properties with validation.
      * Eliminates branching for the most common value property case (~50% of calls).
      */
-    private createSpecializedProcessValue_Value_Validation<K extends string>(
+    private createSpecializedProcessValue_Value_Validation(
         def: InternalDatumPropertyDefinition<K>,
         accessor: ((datum: any) => any) | undefined,
         domain: IDataDomain,
@@ -379,7 +375,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             // Value with accessor
             const accessorFn = accessor;
             return function processValue_Value_Validation_Accessor(
-                datum: Record<string, any>,
+                datum: unknown,
                 idx: number,
                 valueScopes: string | string[]
             ): ProcessedValue {
@@ -413,12 +409,12 @@ export class DomainManager<D extends object, K extends keyof D & string> {
 
         // Value without accessor (most common value case)
         return function processValue_Value_Validation_Direct(
-            datum: Record<string, any>,
+            datum: unknown,
             idx: number,
             valueScopes: string | string[]
         ): ProcessedValue {
-            const valueInDatum = property in datum;
-            const value = valueInDatum ? datum[property] : missingValue;
+            const valueInDatum = property in (datum as any);
+            const value = valueInDatum ? (datum as any)[property] : missingValue;
 
             const validationFailed = processValidationCheck(
                 validation,
@@ -444,7 +440,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function for properties with forceValue.
      * Optimized for invisible series (~5-10% of calls).
      */
-    private createSpecializedProcessValue_ForceValue<K extends string>(
+    private createSpecializedProcessValue_ForceValue(
         def: InternalDatumPropertyDefinition<K>,
         accessor: ((datum: any) => any) | undefined,
         domain: IDataDomain,
@@ -456,7 +452,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         if (accessor) {
             const accessorFn = accessor;
             return function processValue_ForceValue_Accessor(
-                datum: Record<string, any>,
+                datum: unknown,
                 _idx: number,
                 _valueScopes: string | string[]
             ): ProcessedValue {
@@ -479,12 +475,12 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         }
 
         return function processValue_ForceValue_Direct(
-            datum: Record<string, any>,
+            datum: unknown,
             _idx: number,
             _valueScopes: string | string[]
         ): ProcessedValue {
-            const valueInDatum = property in datum;
-            const value = valueInDatum ? datum[property] : undefined;
+            const valueInDatum = property in (datum as any);
+            const value = valueInDatum ? (datum as any)[property] : undefined;
             const valueNegative = valueInDatum && isNegative(value);
             const forcedValue = valueNegative ? -1 * forceValue : forceValue;
 
@@ -500,7 +496,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function for properties with processors.
      * Optimized for data transformations (~5-10% of calls).
      */
-    private createSpecializedProcessValue_Processor<K extends string>(
+    private createSpecializedProcessValue_Processor(
         def: InternalDatumPropertyDefinition<K>,
         accessor: ((datum: any) => any) | undefined,
         domain: IDataDomain,
@@ -520,7 +516,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         if (accessor) {
             const accessorFn = accessor;
             return function processValue_Processor_Accessor(
-                datum: Record<string, any>,
+                datum: unknown,
                 idx: number,
                 valueScopes: string | string[]
             ): ProcessedValue {
@@ -561,12 +557,12 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         }
 
         return function processValue_Processor_Direct(
-            datum: Record<string, any>,
+            datum: unknown,
             idx: number,
             valueScopes: string | string[]
         ): ProcessedValue {
-            const valueInDatum = property in datum;
-            let value = valueInDatum ? datum[property] : missingValue;
+            const valueInDatum = property in (datum as any);
+            let value = valueInDatum ? (datum as any)[property] : missingValue;
 
             const validationFailed = processValidationCheck(
                 validation,
@@ -593,6 +589,100 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             value = processorFn(value, idx);
 
             return setValidResult(value, reusableResult, domain);
+        };
+    }
+
+    /**
+     * Creates the generic fallback processValue implementation used for edge cases
+     * and for skip mode (no domain extension). Generates a per-definition function
+     * so callers can resolve it once and reuse it without additional branching.
+     */
+    private createGenericProcessValue(
+        def: InternalDatumPropertyDefinition<K>,
+        accessor: ((datum: any) => any) | undefined,
+        domain: IDataDomain,
+        processorFns: Map<InternalDatumPropertyDefinition<K>, ProcessorFn>,
+        domainMode: 'extend' | 'skip'
+    ): SpecializedProcessValueFn {
+        const property = def.property;
+        const hasMissingValue = 'missingValue' in def;
+        const missingValue = def.missingValue;
+        const hasInvalidValue = 'invalidValue' in def;
+        const invalidValue = def.invalidValue;
+        const missing = def.missing;
+        const mode = this.ctx.mode;
+        const shouldExtendDomain = domainMode === 'extend';
+        const reusableResult: ProcessedValue = {
+            value: undefined,
+            missing: false,
+            valid: false,
+        };
+
+        return function processValue_Generic(
+            datum: unknown,
+            idx: number,
+            valueScopes: string | string[]
+        ): ProcessedValue {
+            let value;
+            let valueInDatum: boolean;
+
+            if (accessor) {
+                try {
+                    value = accessor(datum);
+                } catch {
+                    // Swallow errors
+                }
+                valueInDatum = value != null;
+            } else {
+                valueInDatum = property in (datum as any);
+                value = valueInDatum ? (datum as any)[property] : missingValue;
+            }
+
+            if (def.forceValue != null) {
+                const valueNegative = valueInDatum && isNegative(value);
+                value = valueNegative ? -1 * def.forceValue : def.forceValue;
+                valueInDatum = true;
+            }
+
+            handleMissingTracking(valueInDatum, hasMissingValue, missing, valueScopes, reusableResult);
+
+            const isKeyWithNullValue = def.type === 'key' && value == null;
+            if (isKeyWithNullValue) {
+                handleInvalidValue(reusableResult, hasInvalidValue, invalidValue, domain, def, value, mode);
+                return reusableResult;
+            }
+
+            const validationFailed = processValidationCheck(
+                def.validation,
+                valueInDatum,
+                value,
+                datum,
+                idx,
+                reusableResult,
+                hasInvalidValue,
+                invalidValue,
+                domain,
+                def,
+                mode
+            );
+            if (validationFailed !== null) return validationFailed;
+
+            reusableResult.valid = true;
+
+            if (def.processor) {
+                let processor = processorFns.get(def);
+                if (processor == null) {
+                    processor = def.processor();
+                    processorFns.set(def, processor);
+                }
+                value = processor(value, idx);
+            }
+
+            if (shouldExtendDomain) {
+                domain.extend(value);
+            }
+            reusableResult.value = value;
+            return reusableResult;
         };
     }
 
@@ -630,20 +720,19 @@ export class DomainManager<D extends object, K extends keyof D & string> {
 
         const accessors = this.scopeCacheManager.buildAccessors(iterate(keyDefs, valueDefs));
 
-        // Create specialized functions for each definition (only in 'extend' mode)
-        const specializedFns = new WeakMap<InternalDatumPropertyDefinition<K>, SpecializedProcessValueFn>();
-        if (domainMode === 'extend') {
-            for (const def of iterate(keyDefs, valueDefs)) {
-                const accessor = accessors.get(def.property);
-                const domain = dataDomain.get(def)!;
-                const reusableResult: ProcessedValue = {
-                    value: undefined,
-                    missing: false,
-                    valid: false,
-                };
+        const processValueFns = new WeakMap<InternalDatumPropertyDefinition<K>, SpecializedProcessValueFn>();
+        for (const def of iterate(keyDefs, valueDefs)) {
+            const accessor = accessors.get(def.property);
+            const domain = dataDomain.get(def)!;
+            const reusableResult: ProcessedValue = {
+                value: undefined,
+                missing: false,
+                valid: false,
+            };
 
-                let specializedFn: SpecializedProcessValueFn;
+            let specializedFn: SpecializedProcessValueFn | null = null;
 
+            if (domainMode === 'extend') {
                 // Select specialized variant based on definition characteristics
                 if (def.forceValue != null) {
                     // ForceValue path (~5-10% of calls)
@@ -684,115 +773,32 @@ export class DomainManager<D extends object, K extends keyof D & string> {
                             def.validation
                         );
                     }
-                } else {
-                    // No validation, no processor, no forceValue - use generic fallback
-                    // This handles edge cases (~5% of calls)
-                    specializedFn = null as any; // Will use generic processValue below
-                }
-
-                if (specializedFn) {
-                    specializedFns.set(def, specializedFn);
                 }
             }
+
+            const processFn =
+                specializedFn ?? this.createGenericProcessValue(def, accessor, domain, processorFns, domainMode);
+            processValueFns.set(def, processFn);
         }
 
-        const reusableResult: ProcessedValue = {
-            value: undefined,
-            missing: false,
-            valid: false,
-        };
-        const processValue = (
+        function getProcessValue(def: InternalDatumPropertyDefinition<K>): SpecializedProcessValueFn {
+            const processFn = processValueFns.get(def);
+            if (!processFn) {
+                throw new Error('AG Charts - missing processValue function for definition');
+            }
+            return processFn;
+        }
+
+        function processValue(
             def: InternalDatumPropertyDefinition<K>,
-            datum: Record<string, any>,
+            datum: unknown,
             idx: number,
             valueScopes: string | string[]
-        ): ProcessedValue => {
-            // Fast path: use specialized function if available
-            const specializedFn = specializedFns.get(def);
-            if (specializedFn) {
-                return specializedFn(datum, idx, valueScopes);
-            }
+        ): ProcessedValue {
+            return getProcessValue(def)(datum, idx, valueScopes);
+        }
 
-            // Fallback to generic implementation for edge cases
-            let valueInDatum: boolean;
-            let value;
-            if (accessors.has(def.property)) {
-                try {
-                    value = accessors.get(def.property)!(datum);
-                } catch {
-                    // Swallow errors - these get reported as missing values to the user later.
-                }
-                valueInDatum = value != null;
-            } else {
-                valueInDatum = def.property in datum;
-                value = valueInDatum ? datum[def.property] : def.missingValue;
-            }
-
-            if (def.forceValue != null) {
-                // Maintain sign of forceValue from actual value, this maybe significant later when
-                // we account for the value falling into positive/negative buckets.
-                const valueNegative = valueInDatum && isNegative(value);
-                value = valueNegative ? -1 * def.forceValue : def.forceValue;
-                valueInDatum = true;
-            }
-            reusableResult.missing = !valueInDatum;
-
-            const missingValueDef = 'missingValue' in def;
-            if (!valueInDatum && !missingValueDef) {
-                if (typeof valueScopes === 'string') {
-                    const missCount = def.missing.get(valueScopes) ?? 0;
-                    def.missing.set(valueScopes, missCount + 1);
-                } else {
-                    for (const scope of valueScopes) {
-                        const missCount = def.missing.get(scope) ?? 0;
-                        def.missing.set(scope, missCount + 1);
-                    }
-                }
-            }
-
-            if (!dataDomain.has(def)) {
-                initDataDomain();
-            }
-
-            // Keys cannot be null/undefined - mark as invalid
-            const isKeyWithNullValue = def.type === 'key' && value == null;
-
-            if ((valueInDatum && def.validation?.(value, datum, idx) === false) || isKeyWithNullValue) {
-                reusableResult.valid = false;
-
-                if ('invalidValue' in def) {
-                    value = def.invalidValue;
-                } else {
-                    if (this.ctx.mode !== 'integrated') {
-                        Logger.warnOnce(
-                            `invalid value of type [${typeof value}] for [${def.scopes} / ${def.id}] ignored:`,
-                            `[${value}]`
-                        );
-                    }
-                    reusableResult.value = undefined;
-                    return reusableResult;
-                }
-            } else {
-                reusableResult.valid = true;
-            }
-
-            if (def.processor) {
-                let processor = processorFns.get(def);
-                if (processor == null) {
-                    processor = def.processor();
-                    processorFns.set(def, processor);
-                }
-                value = processor(value, idx);
-            }
-
-            if (domainMode === 'extend') {
-                dataDomain.get(def)?.extend(value);
-            }
-            reusableResult.value = value;
-            return reusableResult;
-        };
-
-        return { dataDomain, processValue, initDataDomain, scopes, allScopesHaveSameDefs };
+        return { dataDomain, processValue, getProcessValue, initDataDomain, scopes, allScopesHaveSameDefs };
     }
 
     /**

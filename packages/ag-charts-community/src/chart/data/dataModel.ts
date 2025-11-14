@@ -426,11 +426,11 @@ export class DataModel<
             return this.processData(processedData.dataSources)!;
         }
 
-        const { processValue } = this.initDataDomainProcessor('skip');
+        const { getProcessValue } = this.initDataDomainProcessor('skip');
         return this.incrementalProcessor.reprocessData(
             processedData,
             dataSets,
-            processValue,
+            getProcessValue,
             (pd, sc) => this.reprocessGroupProcessors(pd, sc),
             (pd) => this.recomputeDomains(pd),
             (pd, mode) => this.collectOptimizationMetadata(pd, mode)

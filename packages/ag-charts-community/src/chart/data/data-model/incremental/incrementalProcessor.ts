@@ -10,7 +10,6 @@ import type {
     InternalDatumPropertyDefinition,
     ProcessedData,
     ProcessedOutputDiff,
-    ProcessedValue,
     ProcessedValueEntry,
     ScopeId,
 } from '../../dataModelTypes';
@@ -23,7 +22,14 @@ import {
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
+import type { SpecializedProcessValueFn } from '../domain/domainManager';
 import { createArray, toKeyString } from '../utils/helpers';
+
+type DefinitionProcessorEntry<K extends string> = {
+    def: InternalDatumPropertyDefinition<K>;
+    index: number;
+    processValue: SpecializedProcessValueFn;
+};
 
 /**
  * Handles incremental reprocessing of data when DataSets change.
@@ -76,12 +82,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
     reprocessData(
         processedData: ProcessedData<D>,
         dataSets: Map<DataSet<any>, DataChangeDescription | undefined> | undefined,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue,
+        getProcessValue: (def: InternalDatumPropertyDefinition<K>) => SpecializedProcessValueFn,
         reprocessGroupProcessorsFn: (
             processedData: GroupedData<D>,
             scopeChanges: Map<ScopeId, DataChangeDescription>
@@ -97,8 +98,11 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         }
 
         this.commitPendingTransactions(processedData);
-        const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
-        this.processAllUpdates(processedData, scopeChanges, processValue, insertionCaches);
+        const keyProcessors = this.buildDefinitionProcessors(this.ctx.keys, getProcessValue);
+        const valueProcessors = this.buildDefinitionProcessors(this.ctx.values, getProcessValue);
+
+        const insertionCaches = this.processAllInsertions(processedData, scopeChanges, keyProcessors, valueProcessors);
+        this.processAllUpdates(processedData, scopeChanges, keyProcessors, valueProcessors, insertionCaches);
 
         this.updateBandsForChanges(processedData, scopeChanges);
         const removedKeys = this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
@@ -238,25 +242,32 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         }
     }
 
+    private buildDefinitionProcessors(
+        defs: InternalDatumPropertyDefinition<K>[],
+        getProcessValue: (def: InternalDatumPropertyDefinition<K>) => SpecializedProcessValueFn
+    ): DefinitionProcessorEntry<K>[] {
+        return defs.map((def, index) => ({
+            def,
+            index,
+            processValue: getProcessValue(def),
+        }));
+    }
+
     /**
      * Pre-processes all insertions once per scope to avoid redundant computation.
      */
     private processAllInsertions(
         processedData: ProcessedData<D>,
         scopeChanges: Map<ScopeId, DataChangeDescription>,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[]
     ): Map<ScopeId, InsertionCache> {
         const insertionCaches = new Map<ScopeId, InsertionCache>();
         for (const [scope, changeDesc] of scopeChanges) {
             const dataSet = processedData.dataSources.get(scope);
             if (!dataSet) continue;
 
-            const cache = this.processInsertionsOnce(scope, changeDesc, dataSet, processValue);
+            const cache = this.processInsertionsOnce(scope, changeDesc, dataSet, keyProcessors, valueProcessors);
             insertionCaches.set(scope, cache);
         }
         return insertionCaches;
@@ -269,12 +280,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
     private processAllUpdates(
         processedData: ProcessedData<D>,
         scopeChanges: Map<ScopeId, DataChangeDescription>,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue,
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[],
         insertionCaches: Map<ScopeId, InsertionCache>
     ): void {
         for (const [scope, changeDesc] of scopeChanges) {
@@ -309,10 +316,10 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     hasInvalidValue = true;
                 } else {
                     // Process all keys for this scope
-                    for (const [keyDefIndex, keyDef] of this.ctx.keys.entries()) {
+                    for (const { index: keyDefIndex, def: keyDef, processValue: processKeyValue } of keyProcessors) {
                         if (!keyDef.scopes?.includes(scope)) continue;
 
-                        const result = processValue(keyDef, datum, destIndex, scope);
+                        const result = processKeyValue(datum, destIndex, scope);
                         keys.set(keyDefIndex, { value: result.value, valid: result.valid });
 
                         if (!result.valid) {
@@ -321,10 +328,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     }
 
                     // Process all values for this scope
-                    for (const [valueDefIndex, valueDef] of this.ctx.values.entries()) {
+                    for (const {
+                        index: valueDefIndex,
+                        def: valueDef,
+                        processValue: processValueForDef,
+                    } of valueProcessors) {
                         if (!valueDef.scopes?.includes(scope)) continue;
 
-                        const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
+                        const result = processValueForDef(datum, destIndex, valueDef.scopes);
                         values.set(valueDefIndex, { value: result.value, valid: result.valid });
 
                         if (!result.valid) {
@@ -348,12 +359,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         scope: ScopeId,
         changeDesc: DataChangeDescription,
         dataSet: DataSet<unknown>,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[]
     ): InsertionCache {
         const cache = new Map<number, InsertionCacheValue>();
 
@@ -381,10 +388,10 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     hasInvalidValue = true;
                 } else {
                     // Process all keys for this scope
-                    for (const [keyDefIndex, keyDef] of this.ctx.keys.entries()) {
+                    for (const { index: keyDefIndex, def: keyDef, processValue: processKeyValue } of keyProcessors) {
                         if (!keyDef.scopes?.includes(scope)) continue;
 
-                        const result = processValue(keyDef, datum, destIndex, scope);
+                        const result = processKeyValue(datum, destIndex, scope);
                         keys.set(keyDefIndex, { value: result.value, valid: result.valid });
 
                         if (!result.valid) {
@@ -393,10 +400,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     }
 
                     // Process all values for this scope
-                    for (const [valueDefIndex, valueDef] of this.ctx.values.entries()) {
+                    for (const {
+                        index: valueDefIndex,
+                        def: valueDef,
+                        processValue: processValueForDef,
+                    } of valueProcessors) {
                         if (!valueDef.scopes?.includes(scope)) continue;
 
-                        const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
+                        const result = processValueForDef(datum, destIndex, valueDef.scopes);
                         values.set(valueDefIndex, { value: result.value, valid: result.valid });
 
                         if (!result.valid) {
