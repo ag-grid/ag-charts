@@ -24,7 +24,7 @@ export type AgWaterfallSeriesItemStylerParams<
     Required<AgWaterfallSeriesStyle>;
 
 export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
-    AgWaterfallSeriesOptionsNames & { itemItem: AgWaterfallSeriesItemType };
+    AgWaterfallSeriesOptionsNames & { itemType: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -35,7 +35,7 @@ export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, T
     extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgWaterfallSeriesStyle {
     /** The type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
-    itemItem: AgWaterfallSeriesItemType;
+    itemType: AgWaterfallSeriesItemType;
 }
 
 export interface AgWaterfallSeriesItemTooltip<TDatum = DatumDefault, TContext = ContextDefault> {
