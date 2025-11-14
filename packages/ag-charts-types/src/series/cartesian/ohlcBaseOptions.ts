@@ -57,5 +57,5 @@ export interface AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext = Contex
         StrokeOptions,
         LineDashOptions {
     /** Direction of the datum */
-    itemId: 'up' | 'down';
+    itemType: 'up' | 'down';
 }
