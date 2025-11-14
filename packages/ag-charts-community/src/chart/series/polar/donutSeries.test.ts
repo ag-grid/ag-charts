@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { OptionsGraph } from '../../../module/optionsGraph';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
@@ -586,6 +587,7 @@ describe('DonutSeries', () => {
         let donutSeries: DonutSeries;
 
         beforeEach(async () => {
+            OptionsGraph.clearValueCache();
             const transactionOptions = prepareTestOptions({
                 theme: {
                     palette: {
@@ -611,6 +613,11 @@ describe('DonutSeries', () => {
             await waitForChartStability(chart);
 
             donutSeries = chart.series[0] as DonutSeries;
+        });
+
+        afterEach(() => {
+            chartProxy = undefined!;
+            donutSeries = undefined!;
         });
 
         test('reprocesses palette entries for new data', async () => {

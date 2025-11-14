@@ -92,6 +92,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     // A cache of values that persists between chart updates, use sparingly.
     private static readonly valueCache = new Map();
 
+    public static clearValueCache() {
+        OptionsGraph.valueCache.clear();
+    }
+
     public readonly paletteType: PaletteType;
 
     // The current priority order in which to resolve options values.

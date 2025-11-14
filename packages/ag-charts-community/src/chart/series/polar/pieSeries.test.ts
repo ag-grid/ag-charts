@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import type { AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { OptionsGraph } from '../../../module/optionsGraph';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
@@ -724,6 +725,7 @@ describe('PieSeries', () => {
         let pieSeries: PieSeries;
 
         beforeEach(async () => {
+            OptionsGraph.clearValueCache();
             const transactionOptions = prepareTestOptions({
                 theme: {
                     palette: {
@@ -742,6 +744,11 @@ describe('PieSeries', () => {
             await waitForChartStability(chart);
 
             pieSeries = chart.series[0] as PieSeries;
+        });
+
+        afterEach(() => {
+            chartProxy = undefined!;
+            pieSeries = undefined!;
         });
 
         test('reprocesses palette entries for new data', async () => {
