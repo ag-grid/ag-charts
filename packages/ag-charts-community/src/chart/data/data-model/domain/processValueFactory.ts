@@ -10,6 +10,24 @@ import type { DataModelContext } from '../dataModelContext';
  */
 export type SpecializedProcessValueFn = (datum: unknown, idx: number, valueScopes: string | string[]) => ProcessedValue;
 
+type ProcessValueContext<K extends string> = {
+    def: InternalDatumPropertyDefinition<K>;
+    accessor: ((datum: any) => any) | undefined;
+    domain: IDataDomain;
+    reusableResult: ProcessedValue;
+    processorFns: Map<InternalDatumPropertyDefinition<K>, ProcessorFn>;
+    mode: string;
+};
+
+type ValidationMeta = {
+    reusableResult: ProcessedValue;
+    hasInvalidValue: boolean;
+    invalidValue: any;
+    domain: IDataDomain;
+    def: InternalDatumPropertyDefinition<any>;
+    mode: string;
+};
+
 /**
  * Helper: Tracks missing values for a property definition across scopes.
  * Named function for profiler visibility.
@@ -28,30 +46,22 @@ function trackMissingValue(missing: Map<string, number>, valueScopes: string | s
  * Helper: Handles invalid value case - sets result, optionally extends domain, logs warning.
  * Named function for profiler visibility.
  */
-function handleInvalidValue(
-    reusableResult: ProcessedValue,
-    hasInvalidValue: boolean,
-    invalidValue: any,
-    domain: IDataDomain,
-    def: InternalDatumPropertyDefinition<any>,
-    value: any,
-    mode: string
-): void {
-    reusableResult.valid = false;
+function handleInvalidValue(meta: ValidationMeta, value: any): void {
+    meta.reusableResult.valid = false;
 
-    if (hasInvalidValue) {
-        reusableResult.value = invalidValue;
-        domain.extend(invalidValue);
+    if (meta.hasInvalidValue) {
+        meta.reusableResult.value = meta.invalidValue;
+        meta.domain.extend(meta.invalidValue);
         return;
     }
 
-    if (mode !== 'integrated') {
+    if (meta.mode !== 'integrated') {
         Logger.warnOnce(
-            `invalid value of type [${typeof value}] for [${def.scopes} / ${def.id}] ignored:`,
+            `invalid value of type [${typeof value}] for [${meta.def.scopes} / ${meta.def.id}] ignored:`,
             `[${value}]`
         );
     }
-    reusableResult.value = undefined;
+    meta.reusableResult.value = undefined;
 }
 
 /**
@@ -66,17 +76,12 @@ function processValidationCheck(
     value: any,
     datum: any,
     idx: number,
-    reusableResult: ProcessedValue,
-    hasInvalidValue: boolean,
-    invalidValue: any,
-    domain: IDataDomain,
-    def: InternalDatumPropertyDefinition<any>,
-    mode: string
+    meta: ValidationMeta
 ): ProcessedValue | null {
     if (validation && valueInDatum && validation(value, datum, idx) === false) {
-        reusableResult.missing = false;
-        handleInvalidValue(reusableResult, hasInvalidValue, invalidValue, domain, def, value, mode);
-        return reusableResult;
+        meta.reusableResult.missing = false;
+        handleInvalidValue(meta, value);
+        return meta.reusableResult;
     }
     return null;
 }
@@ -126,44 +131,51 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
         processorFns: Map<InternalDatumPropertyDefinition<K>, ProcessorFn>,
         domainMode: 'extend' | 'skip'
     ): SpecializedProcessValueFn {
+        const context: ProcessValueContext<K> = {
+            def,
+            accessor,
+            domain,
+            reusableResult,
+            processorFns,
+            mode: this.ctx.mode,
+        };
         const specializedFn =
-            domainMode === 'extend'
-                ? this.createSpecializedProcessValue(def, accessor, domain, reusableResult, processorFns, def.validation)
-                : null;
+            domainMode === 'extend' ? this.createSpecializedProcessValue(context, def.validation) : null;
 
-        return specializedFn ?? this.createGenericProcessValue(def, accessor, domain, processorFns, domainMode);
+        return specializedFn ?? this.createGenericProcessValue(context, domainMode);
     }
 
     private createSpecializedProcessValue(
-        def: InternalDatumPropertyDefinition<K>,
-        accessor: ((datum: any) => any) | undefined,
-        domain: IDataDomain,
-        reusableResult: ProcessedValue,
-        processorFns: Map<InternalDatumPropertyDefinition<K>, ProcessorFn>,
+        context: ProcessValueContext<K>,
         validation: ((value: any, datum: any, index: number) => boolean) | undefined
     ): SpecializedProcessValueFn | null {
-        if (def.forceValue != null) {
-            return this.createSpecializedProcessValue_ForceValue(def, accessor, domain, reusableResult);
+        if (context.def.forceValue != null) {
+            return this.createSpecializedProcessValue_ForceValue(context);
         }
 
-        if (def.processor) {
-            return this.createSpecializedProcessValue_Processor(
-                def,
-                accessor,
-                domain,
-                reusableResult,
-                processorFns,
-                validation
-            );
+        if (context.def.processor) {
+            return this.createSpecializedProcessValue_Processor(context, validation);
         }
 
         if (validation) {
-            return def.type === 'key'
-                ? this.createSpecializedProcessValue_Key_Validation(def, accessor, domain, reusableResult, validation)
-                : this.createSpecializedProcessValue_Value_Validation(def, accessor, domain, reusableResult, validation);
+            return context.def.type === 'key'
+                ? this.createSpecializedProcessValue_Key_Validation(context, validation)
+                : this.createSpecializedProcessValue_Value_Validation(context, validation);
         }
 
         return null;
+    }
+
+    private createValidationMeta(context: ProcessValueContext<K>): ValidationMeta {
+        const { def, domain, reusableResult, mode } = context;
+        return {
+            reusableResult,
+            hasInvalidValue: 'invalidValue' in def,
+            invalidValue: def.invalidValue,
+            domain,
+            def,
+            mode,
+        };
     }
 
     /**
@@ -171,19 +183,15 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * Eliminates all branching for the most common key property case (~30% of calls).
      */
     private createSpecializedProcessValue_Key_Validation(
-        def: InternalDatumPropertyDefinition<K>,
-        accessor: ((datum: any) => any) | undefined,
-        domain: IDataDomain,
-        reusableResult: ProcessedValue,
+        context: ProcessValueContext<K>,
         validation: (value: any, datum: any, index: number) => boolean
     ): SpecializedProcessValueFn {
+        const { def, accessor, domain, reusableResult } = context;
         const property = def.property;
         const hasMissingValue = 'missingValue' in def;
         const missingValue = def.missingValue;
-        const hasInvalidValue = 'invalidValue' in def;
-        const invalidValue = def.invalidValue;
         const missing = def.missing;
-        const mode = this.ctx.mode;
+        const validationMeta = this.createValidationMeta(context);
 
         if (accessor) {
             // Key with accessor (rare case)
@@ -209,7 +217,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                         trackMissingValue(missing, valueScopes);
                     }
 
-                    handleInvalidValue(reusableResult, hasInvalidValue, invalidValue, domain, def, value, mode);
+                    handleInvalidValue(validationMeta, value);
                     return reusableResult;
                 }
 
@@ -238,7 +246,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                     trackMissingValue(missing, valueScopes);
                 }
 
-                handleInvalidValue(reusableResult, hasInvalidValue, invalidValue, domain, def, value, mode);
+                handleInvalidValue(validationMeta, value);
                 return reusableResult;
             }
 
@@ -255,19 +263,15 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * Eliminates branching for the most common value property case (~50% of calls).
      */
     private createSpecializedProcessValue_Value_Validation(
-        def: InternalDatumPropertyDefinition<K>,
-        accessor: ((datum: any) => any) | undefined,
-        domain: IDataDomain,
-        reusableResult: ProcessedValue,
+        context: ProcessValueContext<K>,
         validation: (value: any, datum: any, index: number) => boolean
     ): SpecializedProcessValueFn {
+        const { def, accessor, domain, reusableResult } = context;
         const property = def.property;
         const hasMissingValue = 'missingValue' in def;
         const missingValue = def.missingValue;
-        const hasInvalidValue = 'invalidValue' in def;
-        const invalidValue = def.invalidValue;
         const missing = def.missing;
-        const mode = this.ctx.mode;
+        const validationMeta = this.createValidationMeta(context);
 
         if (accessor) {
             // Value with accessor
@@ -291,12 +295,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                     value,
                     datum,
                     idx,
-                    reusableResult,
-                    hasInvalidValue,
-                    invalidValue,
-                    domain,
-                    def,
-                    mode
+                    validationMeta
                 );
                 if (validationFailed !== null) return validationFailed;
 
@@ -320,12 +319,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                 value,
                 datum,
                 idx,
-                reusableResult,
-                hasInvalidValue,
-                invalidValue,
-                domain,
-                def,
-                mode
+                validationMeta
             );
             if (validationFailed !== null) return validationFailed;
 
@@ -338,12 +332,8 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function for properties with forceValue.
      * Optimized for invisible series (~5-10% of calls).
      */
-    private createSpecializedProcessValue_ForceValue(
-        def: InternalDatumPropertyDefinition<K>,
-        accessor: ((datum: any) => any) | undefined,
-        domain: IDataDomain,
-        reusableResult: ProcessedValue
-    ): SpecializedProcessValueFn {
+    private createSpecializedProcessValue_ForceValue(context: ProcessValueContext<K>): SpecializedProcessValueFn {
+        const { def, accessor, domain, reusableResult } = context;
         const property = def.property;
         const forceValue = def.forceValue!;
 
@@ -395,21 +385,16 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * Optimized for data transformations (~5-10% of calls).
      */
     private createSpecializedProcessValue_Processor(
-        def: InternalDatumPropertyDefinition<K>,
-        accessor: ((datum: any) => any) | undefined,
-        domain: IDataDomain,
-        reusableResult: ProcessedValue,
-        processorFns: Map<InternalDatumPropertyDefinition<K>, ProcessorFn>,
+        context: ProcessValueContext<K>,
         validation: ((value: any, datum: any, index: number) => boolean) | undefined
     ): SpecializedProcessValueFn {
+        const { def, accessor, domain, reusableResult, processorFns } = context;
         const property = def.property;
         const hasMissingValue = 'missingValue' in def;
         const missingValue = def.missingValue;
-        const hasInvalidValue = 'invalidValue' in def;
-        const invalidValue = def.invalidValue;
         const missing = def.missing;
         const processor = def.processor!;
-        const mode = this.ctx.mode;
+        const validationMeta = this.createValidationMeta(context);
 
         if (accessor) {
             const accessorFn = accessor;
@@ -432,12 +417,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                     value,
                     datum,
                     idx,
-                    reusableResult,
-                    hasInvalidValue,
-                    invalidValue,
-                    domain,
-                    def,
-                    mode
+                    validationMeta
                 );
                 if (validationFailed !== null) return validationFailed;
 
@@ -468,12 +448,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                 value,
                 datum,
                 idx,
-                reusableResult,
-                hasInvalidValue,
-                invalidValue,
-                domain,
-                def,
-                mode
+                validationMeta
             );
             if (validationFailed !== null) return validationFailed;
 
@@ -496,25 +471,17 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * so callers can resolve it once and reuse it without additional branching.
      */
     private createGenericProcessValue(
-        def: InternalDatumPropertyDefinition<K>,
-        accessor: ((datum: any) => any) | undefined,
-        domain: IDataDomain,
-        processorFns: Map<InternalDatumPropertyDefinition<K>, ProcessorFn>,
+        context: ProcessValueContext<K>,
         domainMode: 'extend' | 'skip'
     ): SpecializedProcessValueFn {
+        const { def, accessor, domain, processorFns } = context;
         const property = def.property;
         const hasMissingValue = 'missingValue' in def;
         const missingValue = def.missingValue;
-        const hasInvalidValue = 'invalidValue' in def;
-        const invalidValue = def.invalidValue;
         const missing = def.missing;
-        const mode = this.ctx.mode;
         const shouldExtendDomain = domainMode === 'extend';
-        const reusableResult: ProcessedValue = {
-            value: undefined,
-            missing: false,
-            valid: false,
-        };
+        const reusableResult = context.reusableResult;
+        const validationMeta = this.createValidationMeta(context);
 
         return function processValue_Generic(
             datum: unknown,
@@ -546,7 +513,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
 
             const isKeyWithNullValue = def.type === 'key' && value == null;
             if (isKeyWithNullValue) {
-                handleInvalidValue(reusableResult, hasInvalidValue, invalidValue, domain, def, value, mode);
+                handleInvalidValue(validationMeta, value);
                 return reusableResult;
             }
 
@@ -556,12 +523,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                 value,
                 datum,
                 idx,
-                reusableResult,
-                hasInvalidValue,
-                invalidValue,
-                domain,
-                def,
-                mode
+                validationMeta
             );
             if (validationFailed !== null) return validationFailed;
 
