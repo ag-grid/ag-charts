@@ -10,15 +10,14 @@
  * - PNG_NO_FILTERS constant
  * - toBuffer() method wrapper
  */
-
 import {
-    Canvas as SkiaCanvas,
-    CanvasRenderingContext2D as SkiaCanvasRenderingContext2D,
-    CanvasPattern as SkiaCanvasPattern,
-    DOMMatrix as SkiaDOMMatrix,
-    Image as SkiaImage,
     type ExportFormat,
     type RenderOptions,
+    Canvas as SkiaCanvas,
+    CanvasPattern as SkiaCanvasPattern,
+    CanvasRenderingContext2D as SkiaCanvasRenderingContext2D,
+    DOMMatrix as SkiaDOMMatrix,
+    Image as SkiaImage,
 } from 'skia-canvas';
 
 // Re-export types and classes from skia-canvas
@@ -76,4 +75,3 @@ export function createCanvas(width: number, height: number): Canvas {
 
 // Export Canvas class
 export { Canvas };
-
