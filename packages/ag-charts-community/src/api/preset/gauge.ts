@@ -1,29 +1,32 @@
 import { mergeArrayDefaults, mergeDefaults } from 'ag-charts-core';
 import {
-    type AgBaseGaugePresetOptions,
     type AgChartTooltipOptions,
     type AgGaugeChartOptions,
     type AgGaugeOptions,
     type AgLinearGaugeOptions,
     type AgLinearGaugePreset,
+    type AgLinearGaugeTarget,
     type AgLinearGaugeThemeOverrides,
     type AgRadialGaugeOptions,
     type AgRadialGaugePreset,
+    type AgRadialGaugeTarget,
     type AgRadialGaugeThemeOverrides,
     type AgSeriesTooltip,
 } from 'ag-charts-types';
-
-import { IGNORED_PROP, pickProps } from './presetUtils';
 
 interface UndocumentedProperties {
     overrideDevicePixelRatio?: number;
 }
 
-function tooltipOptions(opts: Exclude<AgRadialGaugeOptions['tooltip'], undefined>) {
+type GaugeTooltip = Exclude<AgGaugeOptions['tooltip'], undefined>;
+type GaugeSeries = AgLinearGaugePreset | AgRadialGaugePreset;
+type GaugeChartResult = AgGaugeChartOptions & UndocumentedProperties & { series: GaugeSeries[] };
+
+function tooltipOptions(opts: GaugeTooltip) {
     const { enabled, mode, showArrow, range, position, pagination, delay, wrapping, interaction, renderer, ...rest } =
         opts;
 
-    const seriesTooltipOptions: AgSeriesTooltip<any> = pickProps<AgSeriesTooltip<any>>(opts, {
+    const seriesTooltipOptions: AgSeriesTooltip<any> = {
         enabled,
         showArrow,
         range,
@@ -31,24 +34,20 @@ function tooltipOptions(opts: Exclude<AgRadialGaugeOptions['tooltip'], undefined
         interaction,
         renderer,
         ...rest,
-    });
+    };
 
-    const chartTooltipOptions: AgChartTooltipOptions = pickProps<AgChartTooltipOptions>(opts, {
-        enabled: IGNORED_PROP,
-        showArrow: IGNORED_PROP,
-        range: IGNORED_PROP,
-        position: IGNORED_PROP,
+    const chartTooltipOptions: AgChartTooltipOptions = {
         mode,
         pagination,
         delay,
         wrapping,
         ...rest,
-    });
+    };
 
     return { chartTooltipOptions, seriesTooltipOptions };
 }
 
-function radialGaugeOptions(opts: AgRadialGaugeOptions) {
+function radialGaugeOptions(opts: AgRadialGaugeOptions): GaugeChartResult {
     const {
         animation,
         background,
@@ -70,7 +69,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         type,
         cursor,
         nodeClickRange,
-        tooltip = {},
+        tooltip: tooltipInput,
         value,
         scale = {},
         startAngle,
@@ -89,12 +88,45 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         label,
         secondaryLabel,
         spacing,
-        ...rest
+        ...seriesRest
     } = opts as AgRadialGaugeOptions & UndocumentedProperties;
 
+    const hasTooltip = tooltipInput != null;
+    const tooltip = (tooltipInput ?? {}) as GaugeTooltip;
     const { chartTooltipOptions, seriesTooltipOptions } = tooltipOptions(tooltip);
 
-    const chartOpts = pickProps<AgBaseGaugePresetOptions & UndocumentedProperties>(opts, {
+    const seriesOpts: AgRadialGaugePreset = {
+        ...seriesRest,
+        type,
+        cursor,
+        context,
+        nodeClickRange,
+        value,
+        scale,
+        startAngle,
+        endAngle,
+        highlight,
+        segmentation,
+        bar,
+        targets,
+        outerRadius,
+        innerRadius,
+        outerRadiusRatio,
+        innerRadiusRatio,
+        cornerRadius,
+        cornerMode,
+        label,
+        secondaryLabel,
+        spacing,
+    };
+    if (hasTooltip) {
+        seriesOpts.tooltip = seriesTooltipOptions;
+    }
+    if (needle != null) {
+        seriesOpts.needle = { enabled: true, ...needle };
+    }
+
+    return {
         animation,
         background,
         container,
@@ -111,44 +143,13 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         subtitle,
         theme,
         title,
-        tooltip: chartTooltipOptions,
         width,
-    });
-
-    const seriesOpts = pickProps<AgRadialGaugePreset>(opts, {
-        needle: needle == null ? IGNORED_PROP : { enabled: true, ...needle },
-        startAngle,
-        endAngle,
-        scale,
-        type,
-        cursor,
-        context,
-        nodeClickRange,
-        tooltip: seriesTooltipOptions,
-        value,
-        highlight,
-        segmentation,
-        bar,
-        targets,
-        outerRadius,
-        innerRadius,
-        outerRadiusRatio,
-        innerRadiusRatio,
-        cornerRadius,
-        cornerMode,
-        label,
-        secondaryLabel,
-        spacing,
-        ...rest,
-    });
-
-    return {
-        ...chartOpts,
+        ...(hasTooltip ? { tooltip: chartTooltipOptions } : {}),
         series: [seriesOpts],
     };
 }
 
-function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
+function linearGaugeOptions(opts: AgLinearGaugeOptions): GaugeChartResult {
     const {
         animation,
         background,
@@ -170,7 +171,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         type,
         cursor,
         nodeClickRange,
-        tooltip = {},
+        tooltip: tooltipInput,
         value,
         scale = {},
         direction = 'vertical',
@@ -182,12 +183,35 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         cornerRadius,
         cornerMode,
         label,
-        ...rest
+        ...seriesRest
     } = opts as AgLinearGaugeOptions & UndocumentedProperties;
 
+    const hasTooltip = tooltipInput != null;
+    const tooltip = (tooltipInput ?? {}) as GaugeTooltip;
     const { chartTooltipOptions, seriesTooltipOptions } = tooltipOptions(tooltip);
 
-    const chartOpts = pickProps<AgBaseGaugePresetOptions & UndocumentedProperties>(opts, {
+    const seriesOpts: AgLinearGaugePreset = {
+        ...seriesRest,
+        type,
+        cursor,
+        nodeClickRange,
+        value,
+        scale,
+        direction,
+        thickness,
+        highlight,
+        segmentation,
+        bar,
+        targets,
+        cornerRadius,
+        cornerMode,
+        label,
+    };
+    if (hasTooltip) {
+        seriesOpts.tooltip = seriesTooltipOptions;
+    }
+
+    return {
         animation,
         background,
         container,
@@ -204,31 +228,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         subtitle,
         theme,
         title,
-        tooltip: chartTooltipOptions,
         width,
-    });
-    const seriesOpts = pickProps<AgLinearGaugePreset>(opts, {
-        scale,
-        type,
-        cursor,
-        context,
-        nodeClickRange,
-        tooltip: seriesTooltipOptions,
-        value,
-        direction,
-        thickness,
-        highlight,
-        segmentation,
-        bar,
-        targets,
-        cornerRadius,
-        cornerMode,
-        label,
-        ...rest,
-    });
-
-    return {
-        ...chartOpts,
+        ...(hasTooltip ? { tooltip: chartTooltipOptions } : {}),
         series: [seriesOpts],
     };
 }
@@ -251,7 +252,11 @@ function applyThemeDefaults(
     opts = mergeDefaults(opts, gaugeTheme);
 
     if (opts.targets != null && targetsTheme != null) {
-        opts.targets = mergeArrayDefaults(opts.targets, targetsTheme) as any[];
+        if (opts.type === 'radial-gauge') {
+            opts.targets = mergeArrayDefaults(opts.targets, targetsTheme as AgRadialGaugeTarget);
+        } else {
+            opts.targets = mergeArrayDefaults(opts.targets, targetsTheme as AgLinearGaugeTarget);
+        }
     }
 
     return opts;
@@ -260,15 +265,15 @@ function applyThemeDefaults(
 export function gauge(
     opts: AgGaugeOptions,
     presetTheme: AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides | undefined
-): AgGaugeChartOptions {
+): GaugeChartResult {
     switch (opts.type) {
         case 'radial-gauge':
-            return radialGaugeOptions(applyThemeDefaults(opts, presetTheme as any));
+            return radialGaugeOptions(applyThemeDefaults(opts, presetTheme as AgRadialGaugeThemeOverrides | undefined));
 
         case 'linear-gauge':
-            return linearGaugeOptions(applyThemeDefaults(opts, presetTheme as any));
+            return linearGaugeOptions(applyThemeDefaults(opts, presetTheme as AgLinearGaugeThemeOverrides | undefined));
 
         default:
-            return {};
+            return { series: [] };
     }
 }
