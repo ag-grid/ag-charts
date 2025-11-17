@@ -174,5 +174,65 @@ describe('BandedReducer', () => {
             // Verify last band ends at dataSize
             expect(bands[bands.length - 1].endIndex).toBe(stats.dataSize);
         });
+
+        it('prevents band splitting on zero-length updates', () => {
+            // Small dataset (10 points) that starts with a single band
+            // When minDataSizeForBanding=1000 (default), 10 points creates just 1 band
+            const manager = new BandedReducer({ targetBandCount: 10 });
+            manager.initializeBands(10);
+
+            const initialBands = manager.getBands();
+            const initialBandCount = initialBands.length;
+
+            // On a small dataset:
+            // - Single band has size 10
+            // - idealBandSize = ceil(10 / 10) = 1
+            // - maxBandSize = ceil(1 * 1.1) = 2
+            // - bandSize (10) > maxBandSize (2) would trigger split without the guard!
+
+            // Simulate repeated zero-length updates (used to mark bands dirty for updates)
+            // This should NOT cause band splitting
+            for (let i = 0; i < 10; i++) {
+                manager.handleInsertion(i, 0);
+            }
+
+            const bands = manager.getBands();
+            const stats = manager.getStats();
+
+            // Band count should remain stable - no splitting on zero-length updates
+            expect(bands.length).toBe(initialBandCount);
+
+            // Data size should remain unchanged
+            expect(stats.dataSize).toBe(10);
+
+            // Bands should be marked dirty (that's the purpose of zero-length handleInsertion)
+            expect(stats.dirtyBands).toBeGreaterThan(0);
+        });
+
+        it('prevents band creation on zero-length updates at end of last band', () => {
+            // Dataset that creates multiple bands
+            const manager = new BandedReducer({ targetBandCount: 10, minDataSizeForBanding: 100 });
+            manager.initializeBands(1000);
+
+            const initialBands = manager.getBands();
+            const initialBandCount = initialBands.length;
+            const lastBandEnd = initialBands[initialBands.length - 1].endIndex;
+
+            // Simulate zero-length update at the end of the last band
+            // This should NOT create a new empty band
+            manager.handleInsertion(lastBandEnd, 0);
+
+            const bands = manager.getBands();
+            const stats = manager.getStats();
+
+            // Band count should remain stable
+            expect(bands.length).toBe(initialBandCount);
+
+            // Data size should remain unchanged
+            expect(stats.dataSize).toBe(1000);
+
+            // Last band should be marked dirty
+            expect(bands[bands.length - 1].isDirty).toBe(true);
+        });
     });
 });

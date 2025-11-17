@@ -306,7 +306,7 @@ export abstract class BandedStructure<TBand extends BandLike> {
             const isLastBand = i === this.bands.length - 1;
 
             // Handle special append case for last band before using shared utility
-            if (insertIndex === band.endIndex && isLastBand) {
+            if (insertIndex === band.endIndex && isLastBand && insertCount > 0) {
                 const currentBandSize = band.endIndex - band.startIndex;
 
                 if (currentBandSize >= idealBandSize) {
@@ -327,7 +327,9 @@ export abstract class BandedStructure<TBand extends BandLike> {
                 band.isDirty = true;
 
                 // Check if band needs splitting after mid-band insertion
-                if (insertIndex < band.endIndex) {
+                // Guard: Only split when actually inserting data (insertCount > 0)
+                // Zero-length updates are used to mark bands dirty without changing structure
+                if (insertCount > 0 && insertIndex < band.endIndex) {
                     const bandSize = band.endIndex - band.startIndex;
                     if (bandSize > maxBandSize) {
                         this.splitBand(i, idealBandSize);
