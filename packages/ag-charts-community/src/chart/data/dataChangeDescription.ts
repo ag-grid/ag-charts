@@ -343,7 +343,9 @@ export class DataChangeDescription {
             // Generate insertion elements if needed
             const insertElements =
                 op.insertCount > 0
-                    ? Array.from({ length: op.insertCount }, (_, j) => processInsertion(op.index + j))
+                    ? Array.from({ length: op.insertCount }, function processOpInsertion(_, j: number) {
+                          return processInsertion(op.index + j);
+                      })
                     : [];
 
             // Apply the splice operation (handles insert, delete, or both)

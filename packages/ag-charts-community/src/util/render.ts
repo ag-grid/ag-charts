@@ -1,6 +1,20 @@
 import { getWindow } from 'ag-charts-core';
 
-type Callback = (params: { count: number }) => Promise<void> | void;
+type VoidCallback = {
+    (): void;
+};
+
+type SchedulerFunction = {
+    (cb: VoidCallback, delayMs?: number): number | void;
+};
+
+type CancelFunction = {
+    (id: number | void): void;
+};
+
+type Callback = {
+    (params: { count: number }): Promise<void> | void;
+};
 
 /**
  * Wrap a function in debouncing trigger function. A requestAnimationFrame() is scheduled
@@ -13,11 +27,16 @@ export function debouncedAnimationFrame(cb: Callback): {
     waitForCompletion(): Promise<void>;
 } {
     const window = getWindow();
-    return buildScheduler(
-        (innerCb, _delayMs) => window.requestAnimationFrame(innerCb),
-        cb,
-        (id) => window.cancelAnimationFrame(id as number)
-    );
+
+    function scheduleWithAnimationFrame(innerCb: VoidCallback, _delayMs?: number): number {
+        return window.requestAnimationFrame(innerCb);
+    }
+
+    function cancelWithAnimationFrame(id: number | void): void {
+        window.cancelAnimationFrame(id as number);
+    }
+
+    return buildScheduler(scheduleWithAnimationFrame, cb, cancelWithAnimationFrame);
 }
 
 export function debouncedCallback(cb: Callback): {
@@ -25,35 +44,34 @@ export function debouncedCallback(cb: Callback): {
     cancel(): void;
     waitForCompletion(): Promise<void>;
 } {
-    return buildScheduler(
-        (innerCb, delayMs = 0) => {
-            if (delayMs === 0) {
-                queueMicrotask(innerCb);
-                return undefined;
-            }
-            return setTimeout(innerCb, delayMs) as unknown as number;
-        },
-        cb,
-        (id) => clearTimeout(id as unknown as ReturnType<typeof setTimeout>)
-    );
+    function scheduleWithDelay(innerCb: VoidCallback, delayMs = 0): number | void {
+        if (delayMs === 0) {
+            queueMicrotask(innerCb);
+            return undefined;
+        }
+
+        return setTimeout(innerCb, delayMs) as unknown as number;
+    }
+
+    function cancelWithTimeout(id: number | void): void {
+        clearTimeout(id as unknown as ReturnType<typeof setTimeout>);
+    }
+
+    return buildScheduler(scheduleWithDelay, cb, cancelWithTimeout);
 }
 
-function buildScheduler(
-    scheduleFn: (cb: () => void, delayMs?: number) => number | void,
-    cb: Callback,
-    cancelFn?: (id: number | void) => void
-) {
+function buildScheduler(scheduleFn: SchedulerFunction, cb: Callback, cancelFn?: CancelFunction) {
     let scheduleCount = 0;
     let promiseRunning = false;
     let awaitingPromise: Promise<void> | undefined;
-    let awaitingDone: (() => void) | undefined;
+    let awaitingDone: VoidCallback | undefined;
     let scheduledId: number | void;
 
-    const busy = () => {
+    function busy(): boolean {
         return promiseRunning;
-    };
+    }
 
-    const done = () => {
+    function done(): void {
         promiseRunning = false;
         scheduledId = undefined;
 
@@ -62,11 +80,11 @@ function buildScheduler(
         awaitingPromise = undefined;
 
         if (scheduleCount > 0) {
-            scheduledId = scheduleFn(scheduleCb);
+            scheduledId = scheduleFn(scheduleCallback);
         }
-    };
+    }
 
-    const scheduleCb = () => {
+    function scheduleCallback(): void {
         const count = scheduleCount;
 
         scheduleCount = 0;
@@ -79,34 +97,42 @@ function buildScheduler(
         }
 
         maybePromise.then(done, done);
-    };
+    }
+
+    function schedule(delayMs?: number): void {
+        if (scheduleCount === 0 && !busy()) {
+            scheduledId = scheduleFn(scheduleCallback, delayMs);
+        }
+        scheduleCount++;
+    }
+
+    function cancel(): void {
+        if (scheduledId != null && cancelFn) {
+            cancelFn(scheduledId);
+            scheduledId = undefined;
+            scheduleCount = 0;
+        }
+    }
+
+    async function waitForCompletion(): Promise<void> {
+        if (!busy()) {
+            return;
+        }
+
+        awaitingPromise ??= new Promise(resolveAwaitingPromise);
+
+        while (busy()) {
+            await awaitingPromise;
+        }
+    }
+
+    function resolveAwaitingPromise(resolve: VoidCallback): void {
+        awaitingDone = resolve;
+    }
 
     return {
-        schedule(delayMs?: number) {
-            if (scheduleCount === 0 && !busy()) {
-                scheduledId = scheduleFn(scheduleCb, delayMs);
-            }
-            scheduleCount++;
-        },
-        cancel() {
-            if (scheduledId != null && cancelFn) {
-                cancelFn(scheduledId);
-                scheduledId = undefined;
-                scheduleCount = 0;
-            }
-        },
-        async waitForCompletion() {
-            if (!busy()) {
-                return;
-            }
-
-            awaitingPromise ??= new Promise((resolve) => {
-                awaitingDone = resolve;
-            });
-
-            while (busy()) {
-                await awaitingPromise;
-            }
-        },
+        schedule,
+        cancel,
+        waitForCompletion,
     };
 }

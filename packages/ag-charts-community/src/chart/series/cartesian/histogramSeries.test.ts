@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { mapValues } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -11,7 +12,6 @@ import {
     deproxy,
     extractImageData,
     hoverAction,
-    mapValues,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,

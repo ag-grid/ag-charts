@@ -57,6 +57,13 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 padding: 4,
                 gap: 2,
                 textAlign: 'left',
+                highlight: {
+                    unhighlightedItem: {
+                        opacity: 0.2,
+                        fillOpacity: 0.2,
+                        strokeOpacity: 0.2,
+                    },
+                },
             },
             tile: {
                 label: {
@@ -89,27 +96,15 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 padding: 3,
                 gap: 1,
-            },
-            // Override defaults
-            highlightStyle: {
-                group: {
-                    label: {
-                        color: { $ref: 'textColor' },
+                highlight: {
+                    unhighlightedItem: {
+                        fillOpacity: 0.6,
+                        strokeOpacity: 0.6,
                     },
-                    fill: 'rgba(255,255,255, 0.33)',
-                    stroke: `rgba(0, 0, 0, 0.4)`,
-                    strokeWidth: 2,
-                },
-                tile: {
-                    label: {
-                        color: { $ref: 'chartBackgroundColor' },
+                    unhighlightedBranch: {
+                        fillOpacity: 0.2,
+                        strokeOpacity: 0.2,
                     },
-                    secondaryLabel: {
-                        color: { $ref: 'chartBackgroundColor' },
-                    },
-                    fill: 'rgba(255,255,255, 0.33)',
-                    stroke: `rgba(0, 0, 0, 0.4)`,
-                    strokeWidth: 2,
                 },
             },
         },

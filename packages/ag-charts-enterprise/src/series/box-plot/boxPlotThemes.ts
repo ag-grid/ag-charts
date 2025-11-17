@@ -3,7 +3,6 @@ import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
-    multiSeriesHighlightStyle,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -41,7 +40,14 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleTheme<'box-plot'> = {
         strokeOpacity: 1,
         lineDash: undefined,
         lineDashOffset: 0,
-        highlight: multiSeriesHighlightStyle(),
+        highlight: {
+            unhighlightedItem: {
+                opacity: 0.5,
+            },
+            unhighlightedSeries: {
+                opacity: 0.1,
+            },
+        },
         segmentation: SEGMENTATION_DEFAULTS,
     },
     axes: {

@@ -1,4 +1,4 @@
-import { Property, cachedTextMeasurer, isArray, measureTextSegments } from 'ag-charts-core';
+import { Property, cachedTextMeasurer, isArray, measureTextSegments, toTextString } from 'ag-charts-core';
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
@@ -63,7 +63,7 @@ export class ChartCaptions {
         if (!caption.text) return;
         const { lineMetrics } = isArray(caption.text)
             ? measureTextSegments(caption.text, caption)
-            : cachedTextMeasurer(caption).measureLines(caption.text);
+            : cachedTextMeasurer(caption).measureLines(toTextString(caption.text));
         const containerHeight = Math.max(lineMetrics[0].height, maxHeight);
         caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.padding;
         caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.padding;

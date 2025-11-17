@@ -53,16 +53,15 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
         },
         sectorSpacing: 2,
         padding: 3,
-        highlightStyle: {
-            label: {
-                color: { $ref: 'chartBackgroundColor' },
+        highlight: {
+            unhighlightedItem: {
+                fillOpacity: 0.6,
+                strokeOpacity: 0.6,
             },
-            secondaryLabel: {
-                color: { $ref: 'chartBackgroundColor' },
+            unhighlightedBranch: {
+                fillOpacity: 0.2,
+                strokeOpacity: 0.2,
             },
-            fill: 'rgba(255,255,255, 0.33)',
-            stroke: `rgba(0, 0, 0, 0.4)`,
-            strokeWidth: 2,
         },
     },
     gradientLegend: {

@@ -27,6 +27,7 @@ import {
     measureTextSegments,
     normalizeAngle360FromDegrees,
     toPlainText,
+    toTextString,
     wrapTextOrSegments,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
@@ -245,7 +246,9 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
-                textMetrics: isSegmented ? measureTextSegments(tickLabel, label) : measurer.measureLines(tickLabel),
+                textMetrics: isSegmented
+                    ? measureTextSegments(tickLabel, label)
+                    : measurer.measureLines(toTextString(tickLabel)),
                 translation: Math.floor(translation),
             });
         }

@@ -63,13 +63,13 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
         requiredOpts
     );
 
-    const getter = function (this: any) {
+    function propertyGetter(this: any) {
         return this[privateKey];
-    };
+    }
 
     Object.defineProperty(target, key, {
         set: setter as (v: unknown) => void,
-        get: getter,
+        get: propertyGetter,
         enumerable: true,
         configurable: true,
     });
@@ -78,9 +78,11 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
 function buildConvertorChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
     const { convertor } = opts;
     if (convertor) {
-        return function (this: any, value: unknown) {
-            setterFn.call(this, convertor(value));
-        };
+        const convertValue = convertor;
+        function convertValueAndSet(this: any, value: unknown) {
+            setterFn.call(this, convertValue(value));
+        }
+        return convertValueAndSet;
     }
 
     return setterFn;
@@ -91,13 +93,15 @@ const NO_CHANGE = Symbol('no-change');
 function buildChangeCallbackChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
     const { changeCb } = opts;
     if (changeCb) {
-        return function (this: any, value: unknown) {
+        const changeCallback = changeCb;
+        function invokeChangeCallback(this: any, value: unknown) {
             const change = setterFn.call(this, value);
             if (change !== NO_CHANGE) {
-                changeCb.call(this, this);
+                changeCallback.call(this, this);
             }
             return change;
-        };
+        }
+        return invokeChangeCallback;
     }
 
     return setterFn;
@@ -106,7 +110,7 @@ function buildChangeCallbackChain(setterFn: Function, opts: SceneChangeDetection
 function buildCheckDirtyChain(privateKey: string, setterFn: Function, opts: SceneChangeDetectionOptions) {
     const { checkDirtyOnAssignment } = opts;
     if (checkDirtyOnAssignment) {
-        return function (this: any, value: undefined | { _dirty: boolean }) {
+        function checkDirtyOnAssignmentFn(this: any, value: undefined | { _dirty: boolean }) {
             const change = setterFn.call(this, value);
 
             if (value?._dirty === true) {
@@ -114,7 +118,8 @@ function buildCheckDirtyChain(privateKey: string, setterFn: Function, opts: Scen
             }
 
             return change;
-        };
+        }
+        return checkDirtyOnAssignmentFn;
     }
 
     return setterFn;
@@ -122,7 +127,7 @@ function buildCheckDirtyChain(privateKey: string, setterFn: Function, opts: Scen
 
 function buildSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
     const { equals = TRIPLE_EQ } = opts;
-    return function (this: Target, value: unknown) {
+    function setWithChangeDetection(this: Target, value: unknown) {
         const oldValue = this[privateKey];
         if (!equals(value, oldValue)) {
             this[privateKey] = value;
@@ -131,5 +136,7 @@ function buildSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
         }
 
         return NO_CHANGE;
-    };
+    }
+
+    return setWithChangeDetection;
 }

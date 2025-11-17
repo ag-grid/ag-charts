@@ -5,6 +5,7 @@ import type {
     ContextDefault,
     Formatter,
     FormatterParams,
+    TextValue,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { BaseProperties, type Point, Property, createId, setAttribute } from 'ag-charts-core';
@@ -44,9 +45,9 @@ export class CrosshairLabelProperties
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
         callWithContext: (
-            formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => string | undefined,
+            formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => TextValue | undefined,
             params: AgCrosshairLabelFormatterParams<ContextDefault>
-        ) => string | undefined,
+        ) => TextValue | undefined,
         type: 'number' | 'date' | 'category',
         value: any,
         params: FormatterParams<any>
@@ -54,7 +55,7 @@ export class CrosshairLabelProperties
         const { formatter, format } = this;
         const { domain, boundSeries } = params;
 
-        let result: string | undefined;
+        let result: TextValue | undefined;
         if (formatter != null) {
             const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
             const unit = params.type === 'date' ? params.unit : undefined;

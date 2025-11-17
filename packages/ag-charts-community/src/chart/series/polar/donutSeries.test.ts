@@ -1,9 +1,12 @@
-import { afterEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../../api/agCharts';
+import { OptionsGraph } from '../../../module/optionsGraph';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
+import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import { MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
@@ -23,6 +26,7 @@ import {
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
+import { DonutSeries } from './donutSeries';
 
 function* iterLegendMarkerLabels(myChart: Chart) {
     for (const { legend } of deproxy(myChart).modulesManager.legends()) {
@@ -575,6 +579,83 @@ describe('DonutSeries', () => {
                     await compare(`donut-series-test-ts-pie-series-legend-All`);
                 }
             });
+        });
+    });
+
+    describe('applyTransaction', () => {
+        let chartProxy: AgChartProxy;
+        let donutSeries: DonutSeries;
+
+        beforeEach(async () => {
+            OptionsGraph.clearValueCache();
+            const transactionOptions = prepareTestOptions({
+                theme: {
+                    palette: {
+                        fills: ['red', 'green'],
+                        strokes: ['black'],
+                    },
+                },
+                data: [
+                    { city: 'Berlin', value: 5 },
+                    { city: 'Munich', value: 3 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        calloutLabelKey: 'city',
+                        innerRadiusRatio: 0.5,
+                    },
+                ],
+            });
+            chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            donutSeries = chart.series[0] as DonutSeries;
+        });
+
+        afterEach(() => {
+            chartProxy = undefined!;
+            donutSeries = undefined!;
+        });
+
+        test('reprocesses palette entries for new data', async () => {
+            expect(donutSeries.properties.fills).toEqual(['red', 'green']);
+
+            await chartProxy.applyTransaction({
+                add: [
+                    { city: 'Hamburg', value: 4 },
+                    { city: 'Cologne', value: 2 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            expect(donutSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            const nodeData = donutSeries.getNodeData() ?? [];
+            expect(nodeData).toHaveLength(4);
+            expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
+        });
+
+        test('removes data items correctly', async () => {
+            const initialData = chartProxy.getOptions().data!;
+            expect(initialData).toHaveLength(2);
+            const initialNodeData = donutSeries.getNodeData() ?? [];
+            expect(initialNodeData).toHaveLength(2);
+
+            const itemToRemove = initialData[0];
+            await chartProxy.applyTransaction({
+                remove: [itemToRemove],
+            });
+            await waitForChartStability(chart);
+
+            const updatedOptions = chartProxy.getOptions();
+            expect(updatedOptions.data).toBeDefined();
+            expect(updatedOptions.data!).toHaveLength(1);
+            expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+
+            const nodeData = donutSeries.getNodeData() ?? [];
+            expect(nodeData).toHaveLength(1);
         });
     });
 

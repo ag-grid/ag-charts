@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, PixelSize } from '../../chart/types';
@@ -15,13 +15,13 @@ export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = Context
 }
 
 export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum>,
+    extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys,
         Required<AgSankeySeriesLinkStyle> {}
 
 export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum>,
+    extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys,
         Required<AgSankeySeriesNodeStyle> {

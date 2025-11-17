@@ -1,4 +1,14 @@
-import { BaseProperties, Property, type RequireOptional, callWithContext, mergeDefaults } from 'ag-charts-core';
+import {
+    BaseProperties,
+    Property,
+    type RequireOptional,
+    callWithContext,
+    isDate,
+    isNumber,
+    isString,
+    mergeDefaults,
+    toTextString,
+} from 'ag-charts-core';
 import type {
     AgSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -45,7 +55,9 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
         params: RequireOptional<P>
     ): TooltipContent {
         const overrides = this.renderer == null ? undefined : callWithContext(callers, this.renderer, params);
-        if (typeof overrides === 'string') return { type: 'raw', rawHtmlString: overrides };
+        if (isString(overrides) || isNumber(overrides) || isDate(overrides)) {
+            return { type: 'raw', rawHtmlString: toTextString(overrides) };
+        }
         if (overrides != null) {
             const symbol: LegendSymbolOptions | undefined =
                 content.symbol || overrides.symbol

@@ -360,13 +360,22 @@ export class BarSeries extends AbstractBarSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
+        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
+            this,
+            isStacked ? `yValue-end` : `yValue-raw`,
+            processedData
+        );
+
         return memoizedAggregateBarData(
             xAxis.scale.type,
             xValues,
             yStartValues,
             yEndValues,
             domain,
-            processedData.reduced?.smallestKeyInterval
+            processedData.reduced?.smallestKeyInterval,
+            xNeedsValueOf,
+            yNeedsValueOf
         );
     }
 
@@ -962,12 +971,16 @@ export class BarSeries extends AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        opts.datumSelection.each((node, datum) => {
+        const series = this;
+
+        function applyDatumStyle(node: BarShape, datum: BarNodeDatum): void {
             if (!opts.datumSelection.isGarbage(node)) {
-                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
+                const highlightState = series.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                datum.style = series.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
             }
-        });
+        }
+
+        opts.datumSelection.each(applyDatumStyle);
     }
 
     protected override updateDatumNodes(opts: {
@@ -987,10 +1000,13 @@ export class BarSeries extends AbstractBarSeries<
 
         const direction = this.getBarDirection();
 
-        opts.datumSelection.each((rect, datum) => {
+        const series = this;
+        const contextStyles = contextNodeData.styles;
+
+        function updateDatumNode(rect: BarShape, datum: BarNodeDatum): void {
             const style =
                 datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
+                contextStyles[series.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
 
             applyShapeStyle(rect, style, fillBBox);
 
@@ -1011,7 +1027,9 @@ export class BarSeries extends AbstractBarSeries<
 
             rect.crisp = datum.crisp;
             rect.fillShadow = shadow;
-        });
+        }
+
+        opts.datumSelection.each(updateDatumNode);
     }
 
     protected override updateLabelSelection(opts: {

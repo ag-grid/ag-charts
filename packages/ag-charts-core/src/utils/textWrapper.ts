@@ -9,6 +9,7 @@ import {
     appendEllipsis,
     guardTextEdges,
     isTextTruncated,
+    toTextString,
     unguardTextEdges,
 } from './textUtils';
 import { isArray, isFiniteNumber } from './typeGuards';
@@ -32,7 +33,7 @@ export function wrapTextOrSegments(text: string, options: WrapOptions): string;
 export function wrapTextOrSegments(segments: TextSegment[], options: WrapOptions): MeasuredSegment[];
 export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions): string | MeasuredSegment[];
 export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions) {
-    return isArray(input) ? wrapTextSegments(input, options) : wrapLines(input, options).join('\n');
+    return isArray(input) ? wrapTextSegments(input, options) : wrapLines(toTextString(input), options).join('\n');
 }
 
 export function wrapText(text: string, options: WrapOptions) {

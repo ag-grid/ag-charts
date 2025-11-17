@@ -1,4 +1,12 @@
-import { BaseProperties, Property, callWithContext, createElement, isArray } from 'ag-charts-core';
+import {
+    BaseProperties,
+    Property,
+    callWithContext,
+    createElement,
+    isArray,
+    toPlainText,
+    toTextString,
+} from 'ag-charts-core';
 import type { AgChartOverlayRendererParams, DatumDefault, TextOrSegments } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
@@ -30,9 +38,9 @@ export class Overlay extends BaseProperties {
 
     getText(localeManager: LocaleManager) {
         if (isArray(this.text)) {
-            return this.text.map((s) => s.text).join('');
+            return toPlainText(this.text);
         }
-        return localeManager.t(this.text ?? this.defaultMessageId);
+        return localeManager.t(toTextString(this.text) || this.defaultMessageId);
     }
 
     getElement(
@@ -81,7 +89,7 @@ export class Overlay extends BaseProperties {
                         fontWeight: String(segment.fontWeight),
                         fontStyle: segment.fontStyle,
                     });
-                    el.innerText = segment.text;
+                    el.innerText = toTextString(segment.text);
                     container.appendChild(el);
                 }
                 content.appendChild(container);

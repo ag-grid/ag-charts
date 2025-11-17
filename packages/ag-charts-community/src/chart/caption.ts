@@ -7,6 +7,7 @@ import {
     isSegmentTruncated,
     isTextTruncated,
     toPlainText,
+    toTextString,
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
@@ -82,6 +83,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     private truncated = false;
     private proxyText?: BoundedTextWidget;
+    private proxyTextListeners?: Array<() => void>;
 
     registerInteraction(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
         return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, where));
@@ -103,7 +105,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             wrappedText = wrapTextSegments(text, options);
             this.truncated = wrappedText.some(isSegmentTruncated);
         } else {
-            wrappedText = wrapText(text ?? '', options);
+            wrappedText = wrapText(toTextString(text), options);
             this.truncated = isTextTruncated(wrappedText);
         }
         this.node.text = wrappedText;
@@ -111,20 +113,24 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     private updateA11yText(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
         const { proxyInteractionService } = moduleCtx;
-        if (this.enabled && this.text) {
-            const bbox = Transformable.toCanvas(this.node);
-            if (bbox) {
-                const { id: domManagerId } = this;
-                this.proxyText ??= proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
-                this.proxyText.textContent = toPlainText(this.text);
-                this.proxyText.setBounds(bbox);
-                this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
-                this.proxyText.addListener('mouseleave', (ev) => this.handleMouseLeave(moduleCtx, ev));
-            }
-        } else {
-            this.proxyText?.destroy();
-            this.proxyText = undefined;
+        if (!this.enabled || !this.text) {
+            this.destroyProxyText();
+            return;
         }
+
+        const bbox = Transformable.toCanvas(this.node);
+        if (!bbox) return;
+
+        const { id: domManagerId } = this;
+        if (this.proxyText == null) {
+            this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
+            this.proxyTextListeners = [
+                this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
+                this.proxyText.addListener('mouseleave', (ev) => this.handleMouseLeave(moduleCtx, ev)),
+            ];
+        }
+        this.proxyText.textContent = toPlainText(this.text);
+        this.proxyText.setBounds(bbox);
     }
 
     private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent<'mousemove'>) {
@@ -140,5 +146,20 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     private handleMouseLeave(moduleCtx: ModuleContext, _event: MouseWidgetEvent<'mouseleave'>) {
         moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
+    }
+
+    destroy() {
+        this.destroyProxyText();
+    }
+
+    private destroyProxyText() {
+        if (this.proxyText == null) return;
+
+        for (const cleanup of this.proxyTextListeners ?? []) {
+            cleanup();
+        }
+        this.proxyTextListeners = undefined;
+        this.proxyText.destroy();
+        this.proxyText = undefined;
     }
 }

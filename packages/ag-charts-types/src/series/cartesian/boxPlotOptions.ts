@@ -1,6 +1,7 @@
 import type {
     ContextCallbackParams,
     DatumCallbackParams,
+    HighlightState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -56,16 +57,16 @@ export interface AgBoxPlotCapOptions {
 
 export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
-export type AgBoxPlotSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgBoxPlotSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     BoxPlotOptionsKeys<TDatum> &
     Required<AgBoxPlotSeriesStyle>;
 
 export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams,
+    extends SeriesCallbackParams<HighlightState>,
         ContextCallbackParams<TContext>,
         BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNamesNoKey,

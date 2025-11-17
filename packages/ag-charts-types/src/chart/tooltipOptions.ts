@@ -1,4 +1,4 @@
-import type { FillOptions, LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
+import type { FillOptions, LineDashOptions, StrokeOptions, TextValue } from '../series/cartesian/commonOptions';
 import type { AgChartCallbackParams, Renderer } from './callbackOptions';
 import type {
     AgMarkerShape,
@@ -77,7 +77,7 @@ export interface AgTooltipPositionOptions {
 
 export interface AgTooltipRendererDataRow {
     label: string;
-    value: string;
+    value: TextValue;
 }
 
 export interface AgTooltipRendererSymbolMarker extends FillOptions, StrokeOptions, LineDashOptions {

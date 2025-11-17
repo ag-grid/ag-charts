@@ -104,7 +104,10 @@ export class DataController {
         const nextCachedData: CachedData = [];
 
         for (const { dataSet, ids, opts, resolves, rejects } of merged) {
-            const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, dataSet, ids, opts));
+            function cachePredicateFn(cacheItem: CachedData[number]) {
+                return canReuseCachedData(cacheItem, dataSet, ids, opts);
+            }
+            const reusableCache = cachedData?.find(cachePredicateFn);
 
             const resolveResult = (dataModel: DataModel<any>, processedData?: UngroupedData<any>) => {
                 if (this.debug.check()) {

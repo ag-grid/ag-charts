@@ -99,6 +99,13 @@ export class DataSet<T = unknown> {
     }
 
     /**
+     * @returns A deep clone of the DataSet.
+     */
+    deepClone() {
+        return new DataSet([...this.data]);
+    }
+
+    /**
      * Converts AG Grid-compatible transaction format to internal format.
      * Maps `add` + `addIndex` to prepend, append, or arbitrary insertion based on the index.
      */
@@ -170,7 +177,7 @@ export class DataSet<T = unknown> {
         let insertionValueIndex = 0;
 
         // Apply transformations using sequential consumption
-        changeDescription.applyToArray(this.data, (destIndex) => {
+        changeDescription.applyToArray(this.data, function applyToArrayResultFn(destIndex: number) {
             if (insertionValueIndex >= allInsertionValues.length) {
                 throw new Error(`AG Charts - Internal error: No insertion value found for index ${destIndex}`);
             }

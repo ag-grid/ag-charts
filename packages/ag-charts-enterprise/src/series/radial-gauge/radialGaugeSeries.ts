@@ -23,6 +23,7 @@ import {
     tickFormat,
     toPlainText,
     toRadians,
+    toTextString,
 } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
@@ -366,7 +367,7 @@ export class RadialGaugeSeries
 
                 const { width, height } = isArray(text)
                     ? measureTextSegments(text, label)
-                    : measurer.measureLines(text);
+                    : measurer.measureLines(toTextString(text));
                 return { index, value, text, width, height };
             })
             .filter((value): value is RadialGaugeTickDatum => value != null);

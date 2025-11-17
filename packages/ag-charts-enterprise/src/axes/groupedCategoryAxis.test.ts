@@ -1,13 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from 'ag-charts-community';
-import {
-    cartesianChartAssertions,
-    mapValues,
-    repeat,
-    reverseAxes,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { cartesianChartAssertions, repeat, reverseAxes, waitForChartStability } from 'ag-charts-community-test';
 import {
     type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -16,6 +10,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
+import { mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,

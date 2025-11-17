@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { AgChartOptions } from 'ag-charts-types';
+import { mapValues } from 'ag-charts-core';
+import type { AgChartOptions } from 'ag-charts-types';
 
-import { mapValues } from '../src/chart/test/utils';
 import { VERSION } from '../src/version';
 
 const PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf8')).version;

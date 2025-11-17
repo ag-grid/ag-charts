@@ -8,10 +8,10 @@ import {
     cachedTextMeasurer,
     createSvgElement,
     isArray,
-    isString,
     measureTextSegments,
     toFontString,
     toPlainText,
+    toTextString,
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
 
@@ -72,12 +72,12 @@ export class Text<D = any> extends Shape<D> {
             this.richText.setScene(this.scene);
             this.richText.append(
                 this.text
-                    .flatMap((s) => (isString(s.text) ? s.text.split(LineSplitter) : String(s.text)))
+                    .flatMap((s) => toTextString(s.text).split(LineSplitter))
                     .filter(Boolean)
                     .map(() => new Text({ trimText: false }))
             );
         } else {
-            const lines = this.text?.split('\n') ?? [];
+            const lines = toTextString(this.text).split(LineSplitter);
             this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
         }
     }
@@ -161,7 +161,7 @@ export class Text<D = any> extends Shape<D> {
 
             return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
         } else {
-            return Text.computeBBox(text?.split(LineSplitter), x, y, options);
+            return Text.computeBBox(toTextString(text).split(LineSplitter), x, y, options);
         }
     }
 
@@ -271,7 +271,7 @@ export class Text<D = any> extends Shape<D> {
     override render(renderCtx: RenderContext): void {
         const { ctx, stats } = renderCtx;
 
-        if (!this.text || !this.layerManager) {
+        if (!this.layerManager || !this.hasRenderableText()) {
             if (stats) stats.nodesSkipped += 1;
             return super.render(renderCtx);
         }
@@ -463,11 +463,28 @@ export class Text<D = any> extends Shape<D> {
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
-        if (!this.visible || !this.text) return;
+        if (!this.visible || !this.hasRenderableText()) return;
 
+        const text = this.text;
+        if (text == null) return;
         const element = createSvgElement('text');
 
-        if (isString(this.text)) {
+        if (isArray(text)) {
+            for (const segment of text) {
+                const segmentElement = createSvgElement('tspan');
+
+                setSvgFontAttributes(segmentElement, {
+                    fontSize: segment.fontSize ?? this.fontSize,
+                    fontFamily: segment.fontFamily ?? this.fontFamily,
+                    fontWeight: segment.fontWeight ?? this.fontWeight,
+                    fontStyle: segment.fontStyle ?? this.fontStyle,
+                });
+                this.applySvgFillAttributes(segmentElement);
+
+                segmentElement.textContent = toTextString(segment.text);
+                element.append(segmentElement);
+            }
+        } else {
             this.applySvgFillAttributes(element);
             setSvgFontAttributes(element, this);
             element.setAttribute(
@@ -484,25 +501,18 @@ export class Text<D = any> extends Shape<D> {
             element.setAttribute('x', String(this.x));
             element.setAttribute('y', String(this.y));
 
-            element.textContent = this.text;
-        } else {
-            for (const segment of this.text) {
-                const segmentElement = createSvgElement('tspan');
-
-                setSvgFontAttributes(segmentElement, {
-                    fontSize: segment.fontSize ?? this.fontSize,
-                    fontFamily: segment.fontFamily ?? this.fontFamily,
-                    fontWeight: segment.fontWeight ?? this.fontWeight,
-                    fontStyle: segment.fontStyle ?? this.fontStyle,
-                });
-                this.applySvgFillAttributes(segmentElement);
-
-                segmentElement.textContent = segment.text;
-                element.append(segmentElement);
-            }
+            element.textContent = toTextString(text);
         }
 
         return { elements: [element] };
+    }
+
+    private hasRenderableText(): boolean {
+        const { text } = this;
+        if (text == null) {
+            return false;
+        }
+        return isArray(text) ? true : toTextString(text) !== '';
     }
 }
 

@@ -9,9 +9,11 @@ const options: AgChartOptions<DataType> = {
         overrides: {
             treemap: {
                 series: {
-                    highlightStyle: {
-                        tile: {
-                            strokeWidth: 3,
+                    tile: {
+                        highlight: {
+                            highlightedItem: {
+                                strokeWidth: 3,
+                            },
                         },
                     },
                 },

@@ -18,6 +18,7 @@ import {
     mergeDefaults,
     tickFormat,
     toRadians,
+    toTextString,
 } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
@@ -444,8 +445,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const linesOrTicks =
             lines ?? ticks?.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
 
-        const labelSize = linesOrTicks.reduce((accum, text) => {
-            const { width } = isArray(text) ? measureTextSegments(text, label) : measurer.measureLines(text);
+        const labelSize = linesOrTicks.reduce<number>((accum, text) => {
+            const { width } = isArray(text)
+                ? measureTextSegments(text, label)
+                : measurer.measureLines(toTextString(text));
             return Math.max(accum, width);
         }, 0);
 
