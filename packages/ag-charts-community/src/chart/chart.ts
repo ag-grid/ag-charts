@@ -13,6 +13,7 @@ import {
     ProxyProperty,
     callWithContext,
     createId,
+    enterpriseRegistry,
     entries,
     getWindow,
     isFiniteNumber,
@@ -57,6 +58,7 @@ import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartCaptions } from './chartCaptions';
+import { Background } from './background/background';
 import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
@@ -79,6 +81,7 @@ import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
+import { SeriesArea } from './series-area/seriesArea';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { DatumIndexType, ISeries } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
@@ -133,6 +136,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
     readonly highlight: ChartHighlight;
+    readonly background: Background<any>;
+    readonly seriesArea: SeriesArea;
+    foreground?: Background<any>;
 
     private readonly debug = Debug.create();
 
@@ -359,6 +365,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.container = container;
 
         const moduleContext = this.getModuleContext();
+        this.background = enterpriseRegistry.createBackground?.(moduleContext) ?? new Background(moduleContext);
+        this.foreground = enterpriseRegistry.createForeground?.(moduleContext);
+        this.seriesArea = new SeriesArea(moduleContext);
 
         // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
         ctx.domManager.setDataBoolean('animating', false);
@@ -527,6 +536,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
         this.overlays.destroy();
         this.modulesManager.destroy();
+        this.background.destroy();
+        this.foreground?.destroy();
+        this.seriesArea.destroy();
 
         if (keepTransferableResources) {
             this.ctx.scene.strip();

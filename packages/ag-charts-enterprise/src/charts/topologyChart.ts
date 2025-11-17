@@ -53,8 +53,7 @@ export class TopologyChart extends Chart {
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
 
-        const seriesAreaModule: any = this.modulesManager.getModule('seriesArea');
-        const seriesRect = ctx.layoutBox.clone().shrink(seriesAreaModule.getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;

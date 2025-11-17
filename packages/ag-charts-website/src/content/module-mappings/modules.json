@@ -1,112 +1,77 @@
 {
     "groups": [
         {
-            "name": "Foundations",
-            "children": [
-                {
-                    "moduleName": "LegendModule",
-                    "name": "Legend",
-                    "path": "legend"
-                },
-                {
-                    "moduleName": "SeriesAreaModule",
-                    "name": "Series area",
-                    "path": "series-highlighting"
-                },
-                {
-                    "moduleName": "BackgroundModule",
-                    "name": "Background",
-                    "path": "background"
-                },
-                {
-                    "moduleName": "LocaleModule",
-                    "name": "Locales",
-                    "path": "localisation"
-                }
-            ]
-        },
-        {
             "name": "Axes",
             "children": [
                 {
-                    "name": "Community axes",
-                    "children": [
-                        {
-                            "moduleName": "NumberAxisModule",
-                            "name": "Number axis",
-                            "path": "axes-types/#number-axis"
-                        },
-                        {
-                            "moduleName": "CategoryAxisModule",
-                            "name": "Category axis",
-                            "path": "axes-types/#category-axis"
-                        },
-                        {
-                            "moduleName": "LogAxisModule",
-                            "name": "Log axis",
-                            "path": "axes-types/#log-axis"
-                        },
-                        {
-                            "moduleName": "TimeAxisModule",
-                            "name": "Time axis",
-                            "path": "axes-time"
-                        },
-                        {
-                            "moduleName": "UnitTimeAxisModule",
-                            "name": "Unit time axis",
-                            "path": "axes-time/#unit-time-axis"
-                        },
-                        {
-                            "moduleName": "GroupedCategoryAxisModule",
-                            "name": "Grouped category axis",
-                            "path": "axes-types/#grouped-category-axis"
-                        }
-                    ]
+                    "moduleName": "CategoryAxisModule",
+                    "name": "Category axis",
+                    "path": "axes-types/#category-axis"
                 },
                 {
-                    "name": "Enterprise axes",
-                    "children": [
-                        {
-                            "moduleName": "OrdinalTimeAxisModule",
-                            "name": "Ordinal time axis",
-                            "path": "axes-time",
-                            "isEnterprise": true
-                        },
-                        {
-                            "moduleName": "AngleNumberAxisModule",
-                            "name": "Angle number axis",
-                            "path": "radial-bar-series",
-                            "isEnterprise": true
-                        },
-                        {
-                            "moduleName": "AngleCategoryAxisModule",
-                            "name": "Angle category axis",
-                            "path": "radial-bar-series",
-                            "isEnterprise": true
-                        },
-                        {
-                            "moduleName": "RadiusNumberAxisModule",
-                            "name": "Radius number axis",
-                            "path": "radial-bar-series",
-                            "isEnterprise": true
-                        },
-                        {
-                            "moduleName": "RadiusCategoryAxisModule",
-                            "name": "Radius category axis",
-                            "path": "radial-bar-series",
-                            "isEnterprise": true
-                        }
-                    ]
+                    "moduleName": "GroupedCategoryAxisModule",
+                    "name": "Grouped category axis",
+                    "path": "axes-types/#grouped-category-axis"
+                },
+                {
+                    "moduleName": "LogAxisModule",
+                    "name": "Log axis",
+                    "path": "axes-types/#log-axis"
+                },
+                {
+                    "moduleName": "NumberAxisModule",
+                    "name": "Number axis",
+                    "path": "axes-types/#number-axis"
+                },
+                {
+                    "moduleName": "TimeAxisModule",
+                    "name": "Time axis",
+                    "path": "axes-time"
+                },
+                {
+                    "moduleName": "UnitTimeAxisModule",
+                    "name": "Unit time axis",
+                    "path": "axes-time/#unit-time-axis"
+                },
+                {
+                    "moduleName": "AngleCategoryAxisModule",
+                    "name": "Angle category axis",
+                    "path": "radial-bar-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "AngleNumberAxisModule",
+                    "name": "Angle number axis",
+                    "path": "radial-bar-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "OrdinalTimeAxisModule",
+                    "name": "Ordinal time axis",
+                    "path": "axes-time",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RadiusCategoryAxisModule",
+                    "name": "Radius category axis",
+                    "path": "radial-bar-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RadiusNumberAxisModule",
+                    "name": "Radius number axis",
+                    "path": "radial-bar-series",
+                    "isEnterprise": true
                 }
             ]
         },
         {
-            "name": "Community series",
+            "name": "Series",
             "children": [
                 {
-                    "moduleName": "LineSeriesModule",
-                    "name": "Line series",
-                    "path": "line-series"
+                    "moduleName": "AreaSeriesModule",
+                    "name": "Area series",
+                    "path": "area-series"
                 },
                 {
                     "moduleName": "BarSeriesModule",
@@ -114,24 +79,19 @@
                     "path": "bar-series"
                 },
                 {
-                    "moduleName": "AreaSeriesModule",
-                    "name": "Area series",
-                    "path": "area-series"
-                },
-                {
-                    "moduleName": "ScatterSeriesModule",
-                    "name": "Scatter series",
-                    "path": "scatter-series"
-                },
-                {
                     "moduleName": "BubbleSeriesModule",
                     "name": "Bubble series",
                     "path": "bubble-series"
                 },
                 {
-                    "moduleName": "HistogramSeriesModule",
-                    "name": "Histogram series",
-                    "path": "histogram-series"
+                    "moduleName": "DonutSeriesModule",
+                    "name": "Donut series",
+                    "path": "donut-series"
+                },
+                {
+                    "moduleName": "LineSeriesModule",
+                    "name": "Line series",
+                    "path": "line-series"
                 },
                 {
                     "moduleName": "PieSeriesModule",
@@ -139,15 +99,10 @@
                     "path": "pie-series"
                 },
                 {
-                    "moduleName": "DonutSeriesModule",
-                    "name": "Donut series",
-                    "path": "donut-series"
-                }
-            ]
-        },
-        {
-            "name": "Enterprise series",
-            "children": [
+                    "moduleName": "ScatterSeriesModule",
+                    "name": "Scatter series",
+                    "path": "scatter-series"
+                },
                 {
                     "moduleName": "BoxPlotSeriesModule",
                     "name": "Box plot series",
@@ -158,6 +113,12 @@
                     "moduleName": "CandlestickSeriesModule",
                     "name": "Candlestick series",
                     "path": "candlestick-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "ChordSeriesModule",
+                    "name": "Chord series",
+                    "path": "chord-series",
                     "isEnterprise": true
                 },
                 {
@@ -179,33 +140,63 @@
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "OhlcSeriesModule",
-                    "name": "OHLC series",
-                    "path": "ohlc-series",
+                    "moduleName": "HistogramSeriesModule",
+                    "name": "Histogram series",
+                    "path": "histogram-series",
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "RangeAreaSeriesModule",
-                    "name": "Range area series",
-                    "path": "range-area-series",
+                    "moduleName": "LinearGaugeSeriesModule",
+                    "name": "Linear gauge",
+                    "path": "linear-gauge",
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "RangeBarSeriesModule",
-                    "name": "Range bar series",
-                    "path": "range-bar-series",
+                    "moduleName": "MapLineBackgroundSeriesModule",
+                    "name": "Map line background",
+                    "path": "map-lines",
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "WaterfallSeriesModule",
-                    "name": "Waterfall series",
-                    "path": "waterfall-series",
+                    "moduleName": "MapLineSeriesModule",
+                    "name": "Map line series",
+                    "path": "map-lines",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "MapMarkerSeriesModule",
+                    "name": "Map marker series",
+                    "path": "map-markers",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "MapShapeBackgroundSeriesModule",
+                    "name": "Map shape background",
+                    "path": "map-shapes",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "MapShapeSeriesModule",
+                    "name": "Map shape series",
+                    "path": "map-shapes",
                     "isEnterprise": true
                 },
                 {
                     "moduleName": "NightingaleSeriesModule",
                     "name": "Nightingale series",
                     "path": "nightingale-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "OhlcSeriesModule",
+                    "name": "OHLC series",
+                    "path": "ohlc-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "PyramidSeriesModule",
+                    "name": "Pyramid series",
+                    "path": "pyramid-series",
                     "isEnterprise": true
                 },
                 {
@@ -233,27 +224,21 @@
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "PyramidSeriesModule",
-                    "name": "Pyramid series",
-                    "path": "pyramid-series",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "LinearGaugeSeriesModule",
-                    "name": "Linear gauge",
-                    "path": "linear-gauge",
-                    "isEnterprise": true
-                },
-                {
                     "moduleName": "RadialGaugeSeriesModule",
                     "name": "Radial gauge",
                     "path": "radial-gauge",
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "ChordSeriesModule",
-                    "name": "Chord series",
-                    "path": "chord-series",
+                    "moduleName": "RangeAreaSeriesModule",
+                    "name": "Range area series",
+                    "path": "range-area-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RangeBarSeriesModule",
+                    "name": "Range bar series",
+                    "path": "range-bar-series",
                     "isEnterprise": true
                 },
                 {
@@ -275,40 +260,26 @@
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "MapLineSeriesModule",
-                    "name": "Map line series",
-                    "path": "map-lines",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "MapLineBackgroundSeriesModule",
-                    "name": "Map line background",
-                    "path": "map-lines",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "MapMarkerSeriesModule",
-                    "name": "Map marker series",
-                    "path": "map-markers",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "MapShapeSeriesModule",
-                    "name": "Map shape series",
-                    "path": "map-shapes",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "MapShapeBackgroundSeriesModule",
-                    "name": "Map shape background",
-                    "path": "map-shapes",
+                    "moduleName": "WaterfallSeriesModule",
+                    "name": "Waterfall series",
+                    "path": "waterfall-series",
                     "isEnterprise": true
                 }
             ]
         },
         {
-            "name": "Enterprise features",
+            "name": "Features",
             "children": [
+                {
+                    "moduleName": "LegendModule",
+                    "name": "Legend",
+                    "path": "legend"
+                },
+                {
+                    "moduleName": "LocaleModule",
+                    "name": "Locales",
+                    "path": "localisation"
+                },
                 {
                     "moduleName": "AnimationModule",
                     "name": "Animation",
@@ -358,12 +329,6 @@
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "ForegroundModule",
-                    "name": "Foreground",
-                    "path": "layout",
-                    "isEnterprise": true
-                },
-                {
                     "moduleName": "GradientLegendModule",
                     "name": "Gradient legend",
                     "path": "legend/#gradient-legend",
@@ -382,12 +347,6 @@
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "StatusBarModule",
-                    "name": "Status bar",
-                    "path": "financial-charts-toolbar",
-                    "isEnterprise": true
-                },
-                {
                     "moduleName": "SyncModule",
                     "name": "Sync",
                     "path": "sync",
@@ -402,17 +361,11 @@
             ]
         },
         {
-            "name": "Presets",
+            "name": "Bundles",
             "children": [
                 {
-                    "moduleName": "GaugePresetModule",
-                    "name": "Gauge preset",
-                    "path": "radial-gauge",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "PriceVolumePresetModule",
-                    "name": "Price-volume preset",
+                    "moduleName": "FinancialChartModule",
+                    "name": "Financial chart",
                     "path": "financial-charts",
                     "isEnterprise": true
                 }

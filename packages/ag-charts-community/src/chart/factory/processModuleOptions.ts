@@ -1,4 +1,4 @@
-import { Logger, ModuleRegistry, ModuleType, isArray, isObject } from 'ag-charts-core';
+import { Logger, ModuleRegistry, ModuleType, enterpriseRegistry, isArray, isObject } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
@@ -33,6 +33,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
     for (const module of ExpectedModules) {
         if (ModuleRegistry.hasModule(module.name)) continue;
         if (chartType && module.chartType && chartType !== module.chartType) continue;
+        if (module.name === 'foreground' && enterpriseRegistry.createForeground != null) continue;
 
         switch (module.type) {
             case 'chart':

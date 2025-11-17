@@ -8,7 +8,6 @@ import { Chart } from './chart';
 import { PolarChartAxes } from './chartAxes';
 import { ChartAxisDirection } from './chartAxisDirection';
 import type { LayoutContext } from './layout/layoutManager';
-import type { SeriesArea } from './series-area/seriesArea';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
 import { ZIndexMap } from './zIndexMap';
 
@@ -37,8 +36,7 @@ export class PolarChart extends Chart {
     }
 
     protected async performLayout(ctx: LayoutContext) {
-        const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
-        const seriesRect = ctx.layoutBox.clone().shrink(seriesArea?.getPadding() ?? {});
+        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;

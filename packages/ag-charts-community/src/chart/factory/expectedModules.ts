@@ -68,9 +68,7 @@ export const ExpectedModules: ModulePlaceholder[] = [
     // Plugins
     { type: 'plugin', name: 'animation', enterprise: true },
     { type: 'plugin', name: 'annotations', chartType: 'cartesian', enterprise: true },
-    { type: 'plugin', name: 'background' },
     { type: 'plugin', name: 'legend' },
-    { type: 'plugin', name: 'seriesArea' },
     { type: 'plugin', name: 'locale' },
     { type: 'plugin', name: 'foreground', enterprise: true },
     { type: 'plugin', name: 'chartToolbar', chartType: 'cartesian', enterprise: true },

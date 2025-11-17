@@ -4,6 +4,8 @@ import type { AgChartOptions } from 'ag-charts-types';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import styles from './styles.css';
+import { Background } from './features/background/background';
+import { Foreground } from './features/foreground/foreground';
 
 export * from 'ag-charts-types';
 export * from 'ag-charts-community';
@@ -15,14 +17,12 @@ export { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryA
 export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
-export { BackgroundModule } from './features/background/backgroundModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
 export { ContextMenuModule } from './features/context-menu/contextMenuModule';
 export { CrosshairModule } from './features/crosshair/crosshairModule';
 export { DataSourceModule } from './features/data-source/dataSourceModule';
 export { ErrorBarsModule } from './features/error-bar/errorBarModule';
-export { ForegroundModule } from './features/foreground/foregroundModule';
 export { NavigatorModule } from './features/navigator/navigatorModule';
 export { RangesModule } from './features/ranges/rangesModule';
 export { StatusBarModule } from './features/status-bar/statusBarModule';
@@ -71,3 +71,5 @@ enterpriseRegistry.styles = styles;
 enterpriseRegistry.licenseManager = (options: AgChartOptions) =>
     new LicenseManager(options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document));
 enterpriseRegistry.injectWatermark = injectWatermark;
+enterpriseRegistry.createBackground = (ctx) => new Background(ctx);
+enterpriseRegistry.createForeground = (ctx) => new Foreground(ctx);
