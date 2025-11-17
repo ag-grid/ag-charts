@@ -65,13 +65,15 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
-    itemId: 'high' | 'low';
+    itemType: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 }
 
+type RangeBarItemId = `${string}-${string}`;
+
 interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>, Readonly<Point> {
     readonly index: number;
-    readonly itemId: string;
+    readonly itemId: RangeBarItemId;
     readonly yLowKey: string;
     readonly yHighKey: string;
     readonly yLowValue: number;
@@ -110,6 +112,7 @@ class RangeBarSeriesNodeEvent<
 
 interface RangeBarSeriesNodeDataContext
     extends _ModuleSupport.AbstractBarSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum> {
+    itemId: RangeBarItemId;
     styles: _ModuleSupport.SeriesNodeStyleContext<AgRangeBarSeriesStyle>;
 }
 
@@ -251,7 +254,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
         const { xKey, yLowKey, yHighKey, strokeWidth } = this.properties;
 
-        const itemId = `${yLowKey}-${yHighKey}`;
+        const itemId = `${yLowKey}-${yHighKey}` as const;
 
         const segments = calculateSegments(
             this.properties.segmentation,
@@ -476,9 +479,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 'y',
                 yDomain,
                 label,
-                { itemId: 'low', value: yLowValue, ...labelParams }
+                { itemType: 'low', value: yLowValue, ...labelParams }
             ),
-            itemId: 'low',
+            itemType: 'low',
             datum,
             series,
         };
@@ -495,9 +498,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 'y',
                 yDomain,
                 label,
-                { itemId: 'high', value: yHighValue, ...labelParams }
+                { itemType: 'high', value: yHighValue, ...labelParams }
             ),
-            itemId: 'high',
+            itemType: 'high',
             datum,
             series,
         };
