@@ -1,10 +1,9 @@
-import { mergeDefaults } from 'ag-charts-core';
+import { mapValues, mergeDefaults } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
 import * as examples from './examples';
-import { mapValues } from './utils';
 
 export const CATEGORY_AXIS_BASIC_EXAMPLE: AgCartesianChartOptions = {
     data: data.DATA_COUNTRY_DIETARY_STATS,

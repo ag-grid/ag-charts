@@ -1,8 +1,8 @@
+import { mapValues } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgCartesianCrossLineOptions } from 'ag-charts-types';
 
 import { DATA_MEAN_SEA_LEVEL } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
-import { mapValues } from '../../test/utils';
 import { DATA_OIL_PETROLEUM } from './data';
 
 const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-bar');
