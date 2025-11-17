@@ -8,13 +8,14 @@ import { DomainManager } from './data-model/domain/domainManager';
 import { DataExtractor } from './data-model/extraction/dataExtractor';
 import { DataGrouper } from './data-model/grouping/dataGrouper';
 import { IncrementalProcessor } from './data-model/incremental/incrementalProcessor';
-import { BandedReducer, type BandedReducerStats } from './data-model/reducers/bandedReducer';
+import { BandedReducer } from './data-model/reducers/bandedReducer';
 import { ReducerManager } from './data-model/reducers/reducerManager';
 import { isScoped, uniqueChangeDescriptions } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
 import type {
     AggregatePropertyDefinition,
+    BandedReducerStats,
     DataGroup,
     DataModelOptions,
     GroupDatumIteratorOutput,

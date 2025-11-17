@@ -1,23 +1,25 @@
 import type { BandedDomainConfig } from '../../dataDomain';
-import type { ReducerOutputPropertyDefinition } from '../../dataModelTypes';
 import { type BandLike, BandedStructure } from '../utils/bandedStructure';
 
 export interface ReducerBand extends BandLike {
     cachedResult: unknown;
 }
 
-export interface BandedReducerStats extends Record<string, number> {
-    totalBands: number;
-    dirtyBands: number;
-    dataSize: number;
-    scanRatio: number;
-    cacheHits: number;
-}
-
 export interface ReducerContext {
     rawData: unknown[];
     keyColumns: unknown[][];
     keysParam: unknown[];
+}
+
+/**
+ * Minimal reducer definition interface for BandedReducer.
+ * This avoids circular dependency with dataModelTypes.ts.
+ */
+export interface ReducerDefinition<T = any> {
+    initialValue?: T;
+    reducer: () => (acc: T, keys: unknown[]) => T;
+    needsOverlap?: boolean;
+    combineResults?: (bandResults: T[]) => T;
 }
 
 /**
@@ -63,7 +65,8 @@ export class BandedReducer extends BandedStructure<ReducerBand> {
 
     /**
      * Gets the array of bands for direct access.
-     * @deprecated Use evaluateFromData() and getResult() instead for symmetry with BandedDomain.
+     * For production code, prefer using evaluateFromData() and getResult() for symmetry with BandedDomain.
+     * This method is primarily for testing and debugging band structure.
      */
     getBands(): ReducerBand[] {
         return this.bands;
@@ -77,11 +80,7 @@ export class BandedReducer extends BandedStructure<ReducerBand> {
      * @param context Reducer context containing raw data and key columns
      * @param reuseCleanBands Whether to reuse cached results for clean bands (default: false)
      */
-    evaluateFromData(
-        def: ReducerOutputPropertyDefinition,
-        context: ReducerContext,
-        reuseCleanBands: boolean = false
-    ): void {
+    evaluateFromData(def: ReducerDefinition, context: ReducerContext, reuseCleanBands: boolean = false): void {
         const reducerFn = def.reducer();
 
         for (const band of this.bands) {
@@ -106,7 +105,7 @@ export class BandedReducer extends BandedStructure<ReducerBand> {
      * @param def Reducer definition with combineResults function
      * @returns Combined result from all bands
      */
-    getResult(def: ReducerOutputPropertyDefinition): unknown {
+    getResult(def: ReducerDefinition): unknown {
         const bandResults = this.bands.map((band) => band.cachedResult);
         return def.combineResults!(bandResults as any[]);
     }
@@ -123,8 +122,8 @@ export class BandedReducer extends BandedStructure<ReducerBand> {
      * @returns Accumulated reducer result for the range
      */
     private evaluateRange(
-        def: ReducerOutputPropertyDefinition,
-        reducer: ReturnType<ReducerOutputPropertyDefinition['reducer']>,
+        def: ReducerDefinition,
+        reducer: ReturnType<ReducerDefinition['reducer']>,
         context: ReducerContext,
         startIndex: number,
         endIndex: number
@@ -159,7 +158,7 @@ export class BandedReducer extends BandedStructure<ReducerBand> {
     /**
      * Returns reducer-specific statistics including cache hits and scan ratio.
      */
-    override getStats(): BandedReducerStats {
+    override getStats() {
         const cleanBands = this.bands.filter((band) => !band.isDirty && band.cachedResult !== undefined);
 
         // If stats haven't been captured yet, compute current state

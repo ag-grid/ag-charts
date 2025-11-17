@@ -1,4 +1,4 @@
-import type { BandedReducer, BandedReducerStats } from './data-model/reducers/bandedReducer';
+import type { BandedReducer } from './data-model/reducers/bandedReducer';
 import type { BandedDomain, BandedDomainConfig } from './dataDomain';
 import type { DataSet } from './dataSet';
 import type { RangeLookup } from './rangeLookup';
@@ -29,6 +29,14 @@ export const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
 export const DOMAIN_RANGES = Symbol('domain-ranges');
 export const DOMAIN_BANDS = Symbol('domain-bands');
 export const REDUCER_BANDS = Symbol('reducer-bands');
+
+export interface BandedReducerStats extends Record<string, number> {
+    totalBands: number;
+    dirtyBands: number;
+    dataSize: number;
+    scanRatio: number;
+    cacheHits: number;
+}
 
 // Memory optimization: Shared frozen array for datumIndices in grouped data
 // when groupsUnique=true. All groups point to same [0] array since each
