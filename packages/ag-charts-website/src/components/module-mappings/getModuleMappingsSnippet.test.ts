@@ -57,17 +57,17 @@ describe('getModuleMappingsSnippet', () => {
         const snippet = getModuleMappingsSnippet({
             selectedModules: {
                 community: [],
-                enterprise: ['AllCommunityAndEnterpriseModules'],
+                enterprise: ['AllEnterpriseModule'],
             },
         });
 
         expect(snippet).toMatchInlineSnapshot(`
           "import {
               ModuleRegistry,
-              AllCommunityAndEnterpriseModules,
+              AllEnterpriseModule,
           } from 'ag-charts-enterprise';
 
-          ModuleRegistry.registerModules(AllCommunityAndEnterpriseModules);"
+          ModuleRegistry.registerModules(AllEnterpriseModule);"
         `);
     });
 });
