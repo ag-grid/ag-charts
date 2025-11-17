@@ -1,6 +1,7 @@
 import { first } from 'ag-charts-core';
 
 import type { InternalDefinition, ProcessedData, ReducerOutputPropertyDefinition, ScopeId } from '../../dataModelTypes';
+import type { BandedReducer } from './bandedReducer';
 import { isScoped } from '../utils/helpers';
 
 export interface ReducerContext {
@@ -51,4 +52,29 @@ export function evaluateReducerRange(
     }
 
     return accValue;
+}
+
+export function evaluateBandedReducer(
+    def: ReducerOutputPropertyDefinition,
+    bandManager: BandedReducer,
+    context: ReducerContext,
+    reuseCleanBands: boolean
+): unknown {
+    const reducerFn = def.reducer();
+    const bandResults: any[] = [];
+
+    for (const band of bandManager.getBands()) {
+        if (reuseCleanBands && !band.isDirty) {
+            bandResults.push(band.cachedResult);
+            continue;
+        }
+
+        const startIndex = def.needsOverlap && band.startIndex > 0 ? Math.max(0, band.startIndex - 1) : band.startIndex;
+        const result = evaluateReducerRange(def, reducerFn, context, startIndex, band.endIndex);
+        band.cachedResult = result;
+        band.isDirty = false;
+        bandResults.push(result);
+    }
+
+    return def.combineResults!(bandResults);
 }

@@ -9,7 +9,7 @@ import { DataExtractor } from './data-model/extraction/dataExtractor';
 import { DataGrouper } from './data-model/grouping/dataGrouper';
 import { IncrementalProcessor } from './data-model/incremental/incrementalProcessor';
 import { BandedReducer, type BandedReducerStats } from './data-model/reducers/bandedReducer';
-import { createReducerContext, evaluateReducerRange } from './data-model/reducers/reducerUtils';
+import { createReducerContext, evaluateBandedReducer, evaluateReducerRange } from './data-model/reducers/reducerUtils';
 import { isScoped } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
@@ -585,18 +585,7 @@ export class DataModel<
         // Capture stats before processing bands
         bandManager.captureStatsBeforeProcessing();
 
-        const reducerFn = def.reducer();
-        const bandResults: any[] = [];
-        for (const band of bandManager.getBands()) {
-            const startIndex =
-                def.needsOverlap && band.startIndex > 0 ? Math.max(0, band.startIndex - 1) : band.startIndex;
-            const result = evaluateReducerRange(def, reducerFn, context, startIndex, band.endIndex);
-            band.cachedResult = result;
-            band.isDirty = false;
-            bandResults.push(result);
-        }
-
-        return def.combineResults!(bandResults);
+        return evaluateBandedReducer(def, bandManager, context, false);
     }
 
     private reduceStandard(

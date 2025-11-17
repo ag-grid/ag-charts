@@ -82,14 +82,14 @@ export class BandedReducer extends BandedStructure<ReducerBand> {
         let dirtyBands: number;
         let scanRatio: number;
 
-        if (!this.statsCaptured) {
+        if (this.statsCaptured) {
+            dirtyBands = this.lastDirtyBandCount;
+            scanRatio = this.lastScanRatio;
+        } else {
             const currentDirtyBands = this.bands.filter((band) => band.isDirty);
             const dirtySpan = currentDirtyBands.reduce((sum, band) => sum + (band.endIndex - band.startIndex), 0);
             dirtyBands = currentDirtyBands.length;
             scanRatio = this.dataSize > 0 ? dirtySpan / this.dataSize : 0;
-        } else {
-            dirtyBands = this.lastDirtyBandCount;
-            scanRatio = this.lastScanRatio;
         }
 
         return {
