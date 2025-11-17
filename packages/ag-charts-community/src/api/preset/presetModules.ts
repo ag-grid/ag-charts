@@ -2,7 +2,6 @@ import {
     type OptionsDefs,
     type PresetModuleDefinition,
     and,
-    array,
     boolean,
     color,
     date,
@@ -18,17 +17,10 @@ import {
     strokeOptionsDef,
     typeUnion,
     undocumented,
-    union,
     without,
 } from 'ag-charts-core';
 import type {
-    AgBaseFinancialPresetOptions,
-    AgBaseGaugePresetOptions,
     AgBaseSparklinePresetOptions,
-    AgChartTooltipOptions,
-    AgGaugeOptions,
-    AgPriceVolumePreset,
-    AgSeriesTooltip,
     AgSparklineAxisOptions,
     AgSparklineBaseAxisOptions,
     AgSparklineBaseThemeableOptions,
@@ -36,71 +28,11 @@ import type {
     AgSparklineOptions,
 } from 'ag-charts-types';
 
-import { commonChartOptionsDefs, tooltipOptionsDefs } from '../../chart/commonOptionsDefs';
 import { areaSeriesOptionsDef } from '../../chart/series/cartesian/areaSeriesOptionsDef';
 import { barSeriesOptionsDef } from '../../chart/series/cartesian/barSeriesOptionsDef';
 import { lineSeriesOptionsDef } from '../../chart/series/cartesian/lineSeriesOptionsDef';
 import { VERSION } from '../../version';
-import { gauge } from './gauge';
-import { linearGaugeSeriesOptionsDef, radialGaugeSeriesOptionsDef } from './gaugeOptionsDefs';
-import { priceVolume } from './priceVolumePreset';
 import { sparkline, sparklineDataPreset } from './sparkline';
-
-const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
-    chartType: union('candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'),
-    dateKey: string,
-    openKey: string,
-    highKey: string,
-    lowKey: string,
-    closeKey: string,
-    volumeKey: string,
-    navigator: boolean,
-    volume: boolean,
-    rangeButtons: boolean,
-    statusBar: boolean,
-    toolbar: boolean,
-    zoom: boolean,
-    sync: boolean,
-    // Valid pass-through options
-    theme: defined,
-    container: defined,
-    width: defined,
-    height: defined,
-    minWidth: defined,
-    minHeight: defined,
-    listeners: defined,
-    initialState: defined,
-    title: defined,
-    data: array,
-    formatter: defined,
-};
-
-const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {
-    // Valid pass-through options
-    theme: defined,
-    container: defined,
-    animation: defined,
-    background: defined,
-    contextMenu: defined,
-    context: () => true,
-    listeners: defined,
-    locale: defined,
-    width: defined,
-    height: defined,
-    minWidth: defined,
-    minHeight: defined,
-    title: defined,
-    subtitle: defined,
-    footnote: defined,
-    padding: defined,
-    tooltip: {
-        ...tooltipOptionsDefs,
-        ...(commonChartOptionsDefs.tooltip as OptionsDefs<AgChartTooltipOptions>),
-    },
-};
-
-// @ts-expect-error undocumented option
-commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
 
 const commonSparklineOmit = [
     'showInLegend',
@@ -176,42 +108,6 @@ const commonSparklineOptionsDef: OptionsDefs<
 
 // @ts-expect-error undocumented option
 commonSparklineOptionsDef.overrideDevicePixelRatio = undocumented(number);
-
-export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
-    type: 'preset',
-    name: 'price-volume',
-    enterprise: true,
-    placeholder: true,
-    version: VERSION,
-
-    options: priceVolumeOptionsDef,
-
-    create: priceVolume,
-};
-
-export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
-    type: 'preset',
-    name: 'gauge-preset',
-    enterprise: true,
-    placeholder: true,
-    version: VERSION,
-
-    options: typeUnion<AgGaugeOptions>(
-        {
-            'linear-gauge': {
-                ...without(linearGaugeSeriesOptionsDef, ['type']),
-                ...commonGaugeOptions,
-            },
-            'radial-gauge': {
-                ...without(radialGaugeSeriesOptionsDef, ['type']),
-                ...commonGaugeOptions,
-            },
-        },
-        'gauge options'
-    ),
-
-    create: gauge,
-};
 
 export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> = {
     type: 'preset',

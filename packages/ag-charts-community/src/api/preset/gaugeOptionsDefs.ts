@@ -46,7 +46,7 @@ import {
     tooltipOptionsDefs,
 } from '../../chart/commonOptionsDefs';
 
-export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
+const fillsOptionsDef: OptionsDefs<FillsOptions> = {
     fills: and(
         arrayLength(2),
         arrayOf(optionsDefs<AgGaugeColorStop>({ color: color, stop: number }, '')),

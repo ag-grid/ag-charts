@@ -11,7 +11,7 @@ export * as _ModuleSupport from './module-support';
 export * as _Widget from './widget/exports';
 
 // Module exports
-export { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
+export { SparklinePresetModule } from './api/preset/presetModules';
 
 export { BackgroundModule } from './chart/background/backgroundModule';
 export { CartesianChartModule } from './chart/cartesianChartModule';

@@ -20,7 +20,8 @@ export {
 } from 'ag-charts-community';
 export * from 'ag-charts-types';
 
-export { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from 'ag-charts-community';
+export { SparklinePresetModule } from 'ag-charts-community';
+export { GaugePresetModule, PriceVolumePresetModule } from './preset/presetModules';
 
 export { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
 export { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
