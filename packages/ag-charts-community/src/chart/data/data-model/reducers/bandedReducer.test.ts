@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { BandManager } from './bandManager';
+import { BandedReducer } from './bandedReducer';
 
-describe('BandManager', () => {
+describe('BandedReducer', () => {
     it('creates a single band for small datasets', () => {
-        const manager = new BandManager();
+        const manager = new BandedReducer();
         manager.initializeBands(500);
 
         const bands = manager.getBands();
@@ -13,7 +13,7 @@ describe('BandManager', () => {
     });
 
     it('splits large datasets into multiple contiguous bands', () => {
-        const manager = new BandManager({ minDataSizeForBanding: 100, targetBandCount: 4 });
+        const manager = new BandedReducer({ minDataSizeForBanding: 100, targetBandCount: 4 });
         manager.initializeBands(2000);
 
         const bands = manager.getBands();
@@ -27,7 +27,7 @@ describe('BandManager', () => {
     });
 
     it('marks only affected bands dirty when inserting data', () => {
-        const manager = new BandManager({ minDataSizeForBanding: 100, targetBandCount: 4 });
+        const manager = new BandedReducer({ minDataSizeForBanding: 100, targetBandCount: 4 });
         manager.initializeBands(400);
         const snapshot = manager.getBands().map((band) => ({ ...band }));
         manager.getBands().forEach((band) => (band.isDirty = false));
@@ -45,7 +45,7 @@ describe('BandManager', () => {
     });
 
     it('marks bands dirty and compacts coverage on removal', () => {
-        const manager = new BandManager({ minDataSizeForBanding: 100, targetBandCount: 4 });
+        const manager = new BandedReducer({ minDataSizeForBanding: 100, targetBandCount: 4 });
         manager.initializeBands(400);
         manager.getBands().forEach((band) => (band.isDirty = false));
 
@@ -65,7 +65,7 @@ describe('BandManager', () => {
     });
 
     it('reports efficient dirty ratios for rolling window updates', () => {
-        const manager = new BandManager({ targetBandCount: 10 });
+        const manager = new BandedReducer({ targetBandCount: 10 });
         manager.initializeBands(10_000);
         manager.getBands().forEach((band) => {
             band.isDirty = false;
@@ -83,7 +83,7 @@ describe('BandManager', () => {
 
     describe('band splitting', () => {
         it('splits oversized bands during insertion', () => {
-            const manager = new BandManager({ targetBandCount: 10, minDataSizeForBanding: 1000 });
+            const manager = new BandedReducer({ targetBandCount: 10, minDataSizeForBanding: 1000 });
             manager.initializeBands(10000);
             const initialBandCount = manager.getBands().length;
 
@@ -97,7 +97,7 @@ describe('BandManager', () => {
         });
 
         it('creates new bands for appends after ideal size', () => {
-            const manager = new BandManager({ targetBandCount: 10, minDataSizeForBanding: 1000 });
+            const manager = new BandedReducer({ targetBandCount: 10, minDataSizeForBanding: 1000 });
             manager.initializeBands(10000);
             const bands = manager.getBands();
 
@@ -131,7 +131,7 @@ describe('BandManager', () => {
         });
 
         it('splits bands when they grow too large', () => {
-            const manager = new BandManager({ targetBandCount: 10, minDataSizeForBanding: 1000 });
+            const manager = new BandedReducer({ targetBandCount: 10, minDataSizeForBanding: 1000 });
             manager.initializeBands(1000);
             const initialBandCount = manager.getBands().length;
 
@@ -150,7 +150,7 @@ describe('BandManager', () => {
         });
 
         it('maintains contiguous coverage after splitting', () => {
-            const manager = new BandManager({ targetBandCount: 10, minDataSizeForBanding: 1000 });
+            const manager = new BandedReducer({ targetBandCount: 10, minDataSizeForBanding: 1000 });
             manager.initializeBands(10000);
 
             // Trigger multiple splits

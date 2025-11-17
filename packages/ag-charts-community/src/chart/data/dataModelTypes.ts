@@ -1,4 +1,4 @@
-import type { BandManager, BandManagerStats } from './data-model/reducers/bandManager';
+import type { BandedReducer, BandedReducerStats } from './data-model/reducers/bandedReducer';
 import type { BandedDomain, BandedDomainConfig } from './dataDomain';
 import type { DataSet } from './dataSet';
 import type { RangeLookup } from './rangeLookup';
@@ -107,7 +107,7 @@ export interface CommonMetadata<D> {
     [KEY_SORT_ORDERS]: Map<number, SortOrderEntry>;
     [COLUMN_SORT_ORDERS]: Map<number, SortOrderEntry>;
     [DOMAIN_BANDS]: Map<InternalDatumPropertyDefinition<any>, BandedDomain>;
-    [REDUCER_BANDS]?: Map<ReducerBandKey, BandManager>;
+    [REDUCER_BANDS]?: Map<ReducerBandKey, BandedReducer>;
 }
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
@@ -190,7 +190,7 @@ export interface OptimizationMetadata {
             property: string;
             applied: boolean;
             reason?: string;
-            stats?: BandManagerStats;
+            stats?: BandedReducerStats;
         }>;
     };
 

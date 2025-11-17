@@ -8,7 +8,7 @@ import { DomainManager } from './data-model/domain/domainManager';
 import { DataExtractor } from './data-model/extraction/dataExtractor';
 import { DataGrouper } from './data-model/grouping/dataGrouper';
 import { IncrementalProcessor } from './data-model/incremental/incrementalProcessor';
-import { BandManager, type BandManagerStats } from './data-model/reducers/bandManager';
+import { BandedReducer, type BandedReducerStats } from './data-model/reducers/bandedReducer';
 import { createReducerContext, evaluateReducerRange } from './data-model/reducers/reducerUtils';
 import { isScoped } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
@@ -534,7 +534,7 @@ export class DataModel<
 
     private reduceData(processedData: ProcessedData<D>) {
         processedData.reduced ??= {};
-        const reducerBands = processedData[REDUCER_BANDS] ?? new Map<ReducerBandKey, BandManager>();
+        const reducerBands = processedData[REDUCER_BANDS] ?? new Map<ReducerBandKey, BandedReducer>();
         processedData[REDUCER_BANDS] = reducerBands;
 
         for (const def of this.reducers) {
@@ -567,7 +567,7 @@ export class DataModel<
     private reduceWithBands(
         def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
         processedData: ProcessedData<D>,
-        reducerBands: Map<ReducerBandKey, BandManager>
+        reducerBands: Map<ReducerBandKey, BandedReducer>
     ) {
         const context = createReducerContext(def, processedData);
         if (!context) {
@@ -577,7 +577,7 @@ export class DataModel<
         const property = def.property as ReducerBandKey;
         let bandManager = reducerBands.get(property);
         if (!bandManager) {
-            bandManager = new BandManager(this.opts.domainBandingConfig ?? {});
+            bandManager = new BandedReducer(this.opts.domainBandingConfig ?? {});
             reducerBands.set(property, bandManager);
         }
         bandManager.initializeBands(context.rawData.length);
@@ -727,7 +727,7 @@ export class DataModel<
      */
     private collectReducerBandingMetadata(
         processedData: ProcessedData<D>,
-        reducerBands: Map<ReducerBandKey, BandManager>
+        reducerBands: Map<ReducerBandKey, BandedReducer>
     ) {
         if (this.reducers.length === 0) return;
 
@@ -737,7 +737,7 @@ export class DataModel<
             property: string;
             applied: boolean;
             reason?: string;
-            stats?: BandManagerStats;
+            stats?: BandedReducerStats;
         }> = [];
 
         for (const def of this.reducers) {
@@ -757,7 +757,7 @@ export class DataModel<
                 }
             }
 
-            let stats: BandManagerStats | undefined;
+            let stats: BandedReducerStats | undefined;
             if (isBanded && bandManager) {
                 stats = bandManager.getStats();
             }

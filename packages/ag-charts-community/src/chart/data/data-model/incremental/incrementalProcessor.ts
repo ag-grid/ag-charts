@@ -25,8 +25,9 @@ import {
 import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
 import type { SpecializedProcessValueFn } from '../domain/domainManager';
-import { BandManager } from '../reducers/bandManager';
+import { BandedReducer } from '../reducers/bandedReducer';
 import { createReducerContext, evaluateReducerRange } from '../reducers/reducerUtils';
+import { applySpliceOperations, markUpdatedIndices } from '../utils/bandOperations';
 import { createArray, toKeyString } from '../utils/helpers';
 
 type DefinitionProcessorEntry<K extends string> = {
@@ -237,7 +238,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         if (bandedReducers.length === 0) return;
 
         processedData.reduced ??= {};
-        const reducerBands = processedData[REDUCER_BANDS] ?? new Map<ReducerBandKey, BandManager>();
+        const reducerBands = processedData[REDUCER_BANDS] ?? new Map<ReducerBandKey, BandedReducer>();
         processedData[REDUCER_BANDS] = reducerBands;
 
         for (const def of bandedReducers) {
@@ -247,7 +248,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             const property = def.property as ReducerBandKey;
             let bandManager = reducerBands.get(property);
             if (!bandManager) {
-                bandManager = new BandManager(this.ctx.bandingConfig ?? {});
+                bandManager = new BandedReducer(this.ctx.bandingConfig ?? {});
                 bandManager.initializeBands(context.rawData.length);
                 reducerBands.set(property, bandManager);
             }
@@ -283,22 +284,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         }
     }
 
-    private applyChangeDescriptionToReducerBand(bandManager: BandManager, changeDesc: DataChangeDescription): void {
+    private applyChangeDescriptionToReducerBand(bandManager: BandedReducer, changeDesc: DataChangeDescription): void {
         const { spliceOps, updatedIndices } = changeDesc.indexMap;
 
-        for (const op of spliceOps) {
-            if (op.insertCount > 0) {
-                bandManager.handleInsertion(op.index, op.insertCount);
-            }
-            if (op.deleteCount > 0) {
-                bandManager.handleRemoval(op.index, op.deleteCount);
-            }
-        }
+        // Use shared utilities for consistent band manipulation
+        applySpliceOperations(bandManager, spliceOps);
 
         if (updatedIndices.size > 0) {
-            for (const index of updatedIndices) {
-                bandManager.handleInsertion(index, 0);
-            }
+            markUpdatedIndices(bandManager, updatedIndices);
         }
     }
 
