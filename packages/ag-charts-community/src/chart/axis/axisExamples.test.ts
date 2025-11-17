@@ -120,42 +120,42 @@ const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
     COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES: {
         options: axesExamples.COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN,
         assertions: cartesianChartAssertions({
-            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING,
         assertions: cartesianChartAssertions({
-            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES,
         assertions: cartesianChartAssertions({
-            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES,
         assertions: cartesianChartAssertions({
-            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
@@ -240,11 +240,11 @@ const EXAMPLES_LAYOUT: Record<string, TestCase> = {
             axisTypes: {
                 x: 'category',
                 y: 'number',
-                ySecondary: 'number',
-                yStart1: 'number',
-                yStart2: 'number',
-                yEnd1: 'number',
-                yEnd2: 'number',
+                __AXIS_ID_2: 'number',
+                __AXIS_ID_3: 'number',
+                __AXIS_ID_4: 'number',
+                __AXIS_ID_5: 'number',
+                __AXIS_ID_6: 'number',
             },
             seriesTypes: ['bar', 'bar', 'line'],
         }),

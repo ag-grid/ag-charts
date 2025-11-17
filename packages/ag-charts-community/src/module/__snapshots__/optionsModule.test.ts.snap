@@ -466,6 +466,58 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
 exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
+    "__AXIS_ID_2": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e8e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "formatter": [Function],
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "position": "right",
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#b4b6b6",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": true,
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Exports (tonnes)",
+      },
+      "type": "number",
+    },
     "x": {
       "gridLine": {
         "enabled": false,
@@ -569,58 +621,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontWeight": 400,
         "spacing": 25,
         "text": "Number of cattle",
-      },
-      "type": "number",
-    },
-    "ySecondary": {
-      "gridLine": {
-        "enabled": true,
-        "style": [
-          {
-            "fillOpacity": 1,
-            "lineDash": [],
-            "stroke": "#e8e8e9",
-            "strokeWidth": 1,
-          },
-        ],
-        "width": 1,
-      },
-      "label": {
-        "avoidCollisions": true,
-        "border": {
-          "enabled": false,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
-        },
-        "color": "#181d1f",
-        "cornerRadius": 4,
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
-        "fontWeight": 400,
-        "formatter": [Function],
-        "spacing": 11,
-      },
-      "line": {
-        "enabled": false,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "position": "right",
-      "tick": {
-        "enabled": false,
-        "size": 6,
-        "stroke": "#b4b6b6",
-        "width": 1,
-      },
-      "title": {
-        "color": "#181d1f",
-        "enabled": true,
-        "fontFamily": "Verdana, sans-serif",
-        "fontSize": 13,
-        "fontWeight": 400,
-        "spacing": 25,
-        "text": "Exports (tonnes)",
       },
       "type": "number",
     },
@@ -904,7 +904,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "xKey": "year",
       "xKeyAxis": "x",
       "yKey": "exportedTonnes",
-      "yKeyAxis": "ySecondary",
+      "yKeyAxis": "__AXIS_ID_2",
       "yName": "Beef exports",
     },
   ],

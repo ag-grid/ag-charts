@@ -185,7 +185,7 @@ describe('HistogramSeries', () => {
             HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: {
                 options: HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
                 assertions: cartesianChartAssertions({
-                    axisTypes: { x: 'number', y: 'number', ySecondary: 'number' },
+                    axisTypes: { x: 'number', y: 'number', __AXIS_ID_2: 'number' },
                     seriesTypes: ['histogram', 'scatter'],
                 }),
             },

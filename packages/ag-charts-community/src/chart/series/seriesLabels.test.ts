@@ -118,14 +118,14 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     LINE_COLUMN_COMBO_SERIES_LABELS: {
         options: examples.LINE_COLUMN_COMBO_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     AREA_COLUMN_COMBO_SERIES_LABELS: {
         options: examples.AREA_COLUMN_COMBO_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: { x: 'category', y: 'number', ySecondary: 'number' },
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['area', 'bar', 'bar'],
         }),
     },
