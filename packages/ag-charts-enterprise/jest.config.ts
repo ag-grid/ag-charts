@@ -1,5 +1,5 @@
 import * as glob from 'glob';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 // Reading the SWC compilation config and remove the "exclude"
 // for the test files to be compiled by SWC
@@ -15,6 +15,19 @@ if (swcJestConfig.swcrc === undefined) {
 // https://nx.dev/packages/jest/documents/overview#global-setup/teardown-with-nx-libraries
 // jest needs EsModule Interop to find the default exported setup/teardown functions
 // swcJestConfig.module.noInterop = false;
+
+// Check if we're running historic benchmarks (before skia-canvas was introduced)
+// Historic benchmarks restore old files that import from 'canvas' instead of 'skia-canvas'
+function isHistoricBenchmark(): boolean {
+    // Check if mockCanvas.ts imports from 'canvas' (historic) vs 'skia-canvas' (current)
+    // Enterprise uses community's mockCanvas, so check that path
+    const mockCanvasPath = `${__dirname}/../ag-charts-community/src/util/test/mockCanvas.ts`;
+    if (!existsSync(mockCanvasPath)) {
+        return false;
+    }
+    const mockCanvasContent = readFileSync(mockCanvasPath, 'utf-8');
+    return mockCanvasContent.includes("from 'canvas'") || mockCanvasContent.includes('from "canvas"');
+}
 
 const pathToGlob = ({ path }: { path: string }) => path.replace('./', '**/');
 
@@ -98,6 +111,11 @@ export default {
             testMatch: benchmarks.map(pathFix),
             runner: 'jest-serial-runner',
             ...commonConfig,
+            // Only add canvas shim for historic benchmarks (when old code imports from 'canvas')
+            moduleNameMapper: {
+                ...commonConfig.moduleNameMapper,
+                ...(isHistoricBenchmark() ? { '^canvas$': '<rootDir>/../../tools/jest/canvas-shim.ts' } : {}),
+            },
         },
     ].filter((test) => test.testMatch.length > 0),
 };
