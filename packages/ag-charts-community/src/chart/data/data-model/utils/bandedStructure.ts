@@ -299,6 +299,14 @@ export abstract class BandedStructure<TBand extends BandLike> {
     }
 
     /**
+     * Returns the number of bands currently in this structure.
+     * Useful for checking if bands need initialization.
+     */
+    getBandCount(): number {
+        return this.bands.length;
+    }
+
+    /**
      * Handles insertion of new data by adjusting band indices.
      * Uses proactive band splitting to maintain optimal band sizes.
      */

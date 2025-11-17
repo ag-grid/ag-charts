@@ -10,7 +10,6 @@ import type {
     ProcessedData,
     ProcessedOutputDiff,
     ProcessedValueEntry,
-    ReducerBandKey,
     ScopeId,
 } from '../../dataModelTypes';
 import {
@@ -18,14 +17,12 @@ import {
     DOMAIN_BANDS,
     DOMAIN_RANGES,
     KEY_SORT_ORDERS,
-    REDUCER_BANDS,
     SHARED_ZERO_INDICES,
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
 import type { SpecializedProcessValueFn } from '../domain/domainManager';
-import { BandedReducer } from '../reducers/bandedReducer';
-import { runBandedReducer } from '../reducers/reducerUtils';
+import { ReducerManager } from '../reducers/reducerManager';
 import { createArray, toKeyString, uniqueChangeDescriptions } from '../utils/helpers';
 
 type DefinitionProcessorEntry<K extends string> = {
@@ -46,7 +43,10 @@ type DefinitionProcessorEntry<K extends string> = {
  * This can reduce processing time by 90%+ for small updates to large datasets
  */
 export class IncrementalProcessor<D extends object, K extends keyof D & string> {
-    constructor(private readonly ctx: DataModelContext<D, K>) {}
+    constructor(
+        private readonly ctx: DataModelContext<D, K>,
+        private readonly reducerManager: ReducerManager
+    ) {}
 
     /**
      * Checks if incremental reprocessing is supported for the given data configuration.
@@ -200,11 +200,9 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         if (bandedReducers.length === 0) return;
 
         processedData.reduced ??= {};
-        const reducerBands = processedData[REDUCER_BANDS] ?? new Map<ReducerBandKey, BandedReducer>();
-        processedData[REDUCER_BANDS] = reducerBands;
 
         for (const def of bandedReducers) {
-            const result = runBandedReducer(def, processedData, reducerBands, this.ctx.bandingConfig ?? {}, {
+            const result = this.reducerManager.evaluate(def, processedData, {
                 reuseCleanBands: true,
                 beforeEvaluate: (bandManager, context) => {
                     if (!context.scopeId) return;

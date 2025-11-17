@@ -9,7 +9,7 @@ import { DataExtractor } from './data-model/extraction/dataExtractor';
 import { DataGrouper } from './data-model/grouping/dataGrouper';
 import { IncrementalProcessor } from './data-model/incremental/incrementalProcessor';
 import { BandedReducer, type BandedReducerStats } from './data-model/reducers/bandedReducer';
-import { createReducerContext, evaluateReducerRange, runBandedReducer } from './data-model/reducers/reducerUtils';
+import { ReducerManager } from './data-model/reducers/reducerManager';
 import { isScoped, uniqueChangeDescriptions } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
@@ -93,6 +93,7 @@ export class DataModel<
     private readonly scopeCacheManager!: ScopeCacheManager<K>;
     private readonly domainInitializer!: DomainInitializer<K>;
     private readonly domainManager!: DomainManager<D, K>;
+    private readonly reducerManager!: ReducerManager;
     private readonly dataExtractor!: DataExtractor<D, K>;
     private readonly dataGrouper!: DataGrouper<D, K>;
     private readonly aggregator!: Aggregator<D, K>;
@@ -216,10 +217,11 @@ export class DataModel<
         this.scopeCacheManager = new ScopeCacheManager(ctx);
         this.domainInitializer = new DomainInitializer(ctx);
         this.domainManager = new DomainManager(ctx, this.domainInitializer, this.scopeCacheManager);
+        this.reducerManager = new ReducerManager(this.opts.domainBandingConfig);
         this.dataExtractor = new DataExtractor(ctx, this.domainManager);
         this.dataGrouper = new DataGrouper(ctx);
         this.aggregator = new Aggregator(ctx, this.scopeCacheManager, this.resolvers);
-        this.incrementalProcessor = new IncrementalProcessor(ctx);
+        this.incrementalProcessor = new IncrementalProcessor(ctx, this.reducerManager);
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
@@ -530,15 +532,11 @@ export class DataModel<
 
     private reduceData(processedData: ProcessedData<D>) {
         processedData.reduced ??= {};
-        const reducerBands = processedData[REDUCER_BANDS] ?? new Map<ReducerBandKey, BandedReducer>();
-        processedData[REDUCER_BANDS] = reducerBands;
-
         for (const def of this.reducers) {
             if (this.shouldUseReducerBanding(def, processedData)) {
                 (processedData.reduced as Record<string, unknown>)[def.property] = this.reduceWithBands(
                     def,
-                    processedData,
-                    reducerBands
+                    processedData
                 );
             } else {
                 (processedData.reduced as Record<string, unknown>)[def.property] = this.reduceStandard(
@@ -562,10 +560,9 @@ export class DataModel<
 
     private reduceWithBands(
         def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
-        processedData: ProcessedData<D>,
-        reducerBands: Map<ReducerBandKey, BandedReducer>
+        processedData: ProcessedData<D>
     ) {
-        const result = runBandedReducer(def, processedData, reducerBands, this.opts.domainBandingConfig ?? {}, {
+        const result = this.reducerManager.evaluate(def, processedData, {
             reuseCleanBands: false,
         });
 
@@ -589,12 +586,19 @@ export class DataModel<
             return accValue;
         }
 
-        const context = createReducerContext(def, processedData);
-        if (!context) {
+        // For ungrouped data without banding, create context and evaluate directly
+        const scopeId = isScoped(def) ? def.scopes[0] : first(processedData.scopes);
+        if (scopeId == null) {
             return def.initialValue;
         }
 
-        return evaluateReducerRange(def, reducer, context, 0, context.rawData.length);
+        const rawData = processedData.dataSources.get(scopeId)?.data ?? [];
+        const keyColumns = processedData.keys
+            .map((column) => column.get(scopeId))
+            .filter((column): column is unknown[] => column != null);
+        const keysParam = keyColumns.map((): unknown => undefined);
+
+        return ReducerManager.evaluateRange(def, reducer, { rawData, keyColumns, keysParam }, 0, rawData.length);
     }
 
     private postProcessData(processedData: ProcessedData<D>) {
