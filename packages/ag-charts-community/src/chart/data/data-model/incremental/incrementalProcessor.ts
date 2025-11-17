@@ -27,7 +27,7 @@ import type { DataModelContext } from '../dataModelContext';
 import type { SpecializedProcessValueFn } from '../domain/domainManager';
 import { BandedReducer } from '../reducers/bandedReducer';
 import { createReducerContext, evaluateBandedReducer } from '../reducers/reducerUtils';
-import { applyIndexMapToBandHandler } from '../utils/bandOperations';
+import { applyIndexMapToBandHandler } from '../utils/bandedStructure';
 import { createArray, toKeyString } from '../utils/helpers';
 
 type DefinitionProcessorEntry<K extends string> = {

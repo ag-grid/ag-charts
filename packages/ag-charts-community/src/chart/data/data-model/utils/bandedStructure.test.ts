@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import type { BandConfig, BandLike } from './bandOperations';
 import {
+    type BandConfig,
+    type BandLike,
     adjustBandForInsertion,
     adjustBandForRemoval,
     calculateIdealBandSize,
@@ -9,7 +10,7 @@ import {
     filterEmptyBands,
     initializeBandArray,
     markBandDirtyAtIndex,
-} from './bandOperations';
+} from './bandedStructure';
 
 // Test helper to create a simple band
 function createBand(startIndex: number, endIndex: number, isDirty = false): BandLike {
