@@ -21,7 +21,12 @@ import { extent, findMinMax, mergeDefaults, simpleMemorize2 } from 'ag-charts-co
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
 import { type RangeAreaMarkerDatum, RangeAreaProperties, type RangeAreaSeriesParams } from './rangeAreaProperties';
-import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
+import {
+    type RangeAreaContext,
+    type RangeAreaItemId,
+    type RangeAreaLabelDatum,
+    prepareRangeAreaPathAnimation,
+} from './rangeAreaUtil';
 
 const {
     valueProperty,
@@ -993,7 +998,7 @@ export class RangeAreaSeries extends BaseSeries {
 
         const { yLowKey, yHighKey, yName, yLowName, yHighName, legendItemName, showInLegend } = this.properties;
         const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
-        const itemId = `${yLowKey}-${yHighKey}`;
+        const itemId: RangeAreaItemId = `${yLowKey}-${yHighKey}`;
         return [
             {
                 legendType: 'category',
