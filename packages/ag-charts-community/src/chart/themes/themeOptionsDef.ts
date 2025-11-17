@@ -44,16 +44,16 @@ import {
     radialGaugeSeriesThemeableOptionsDef,
     radialGaugeTargetOptionsDef,
 } from '../../api/preset/gaugeOptionsDefs';
-import { CategoryAxisModule } from '../../module/axis-modules/categoryAxisModule';
-import { GroupedCategoryAxisModule } from '../../module/axis-modules/groupedCategoryAxisModule';
-import { LogAxisModule } from '../../module/axis-modules/logAxisModule';
-import { NumberAxisModule } from '../../module/axis-modules/numberAxisModule';
-import { TimeAxisModule } from '../../module/axis-modules/timeAxisModule';
-import { UnitTimeAxisModule } from '../../module/axis-modules/unitTimeAxisModule';
 import {
     cartesianCrossLineOptionsDefs,
+    categoryAxisOptionsDefs,
     commonCrossLineLabelOptionsDefs,
     commonCrossLineOptionsDefs,
+    groupedCategoryAxisOptionsDefs,
+    logAxisOptionsDefs,
+    numberAxisOptionsDefs,
+    timeAxisOptionsDefs,
+    unitTimeAxisOptionsDefs,
 } from '../axesOptionsDefs';
 import {
     angleCategoryAxisOptionsDefs,
@@ -172,51 +172,51 @@ const cartesianCrossLineThemeableOptionsDefs = without(cartesianCrossLineOptions
 
 const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
     number: {
-        ...without(NumberAxisModule.options, ['type', 'crossLines']),
-        top: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
-        right: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
-        bottom: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
-        left: without(NumberAxisModule.options, ['type', 'crossLines', 'position']),
+        ...without(numberAxisOptionsDefs, ['type', 'crossLines']),
+        top: without(numberAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        right: without(numberAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        bottom: without(numberAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        left: without(numberAxisOptionsDefs, ['type', 'crossLines', 'position']),
         crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     log: {
-        ...without(LogAxisModule.options, ['type', 'crossLines']),
-        top: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
-        right: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
-        bottom: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
-        left: without(LogAxisModule.options, ['type', 'crossLines', 'position']),
+        ...without(logAxisOptionsDefs, ['type', 'crossLines']),
+        top: without(logAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        right: without(logAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        bottom: without(logAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        left: without(logAxisOptionsDefs, ['type', 'crossLines', 'position']),
         crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     category: {
-        ...without(CategoryAxisModule.options, ['type', 'crossLines']),
-        top: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
-        right: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
-        bottom: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
-        left: without(CategoryAxisModule.options, ['type', 'crossLines', 'position']),
+        ...without(categoryAxisOptionsDefs, ['type', 'crossLines']),
+        top: without(categoryAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        right: without(categoryAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        bottom: without(categoryAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        left: without(categoryAxisOptionsDefs, ['type', 'crossLines', 'position']),
         crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     time: {
-        ...without(TimeAxisModule.options, ['type', 'crossLines']),
-        top: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
-        right: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
-        bottom: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
-        left: without(TimeAxisModule.options, ['type', 'crossLines', 'position']),
+        ...without(timeAxisOptionsDefs, ['type', 'crossLines']),
+        top: without(timeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        right: without(timeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        bottom: without(timeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        left: without(timeAxisOptionsDefs, ['type', 'crossLines', 'position']),
         crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     'unit-time': {
-        ...without(UnitTimeAxisModule.options, ['type', 'crossLines']),
-        top: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
-        right: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
-        bottom: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
-        left: without(UnitTimeAxisModule.options, ['type', 'crossLines', 'position']),
+        ...without(unitTimeAxisOptionsDefs, ['type', 'crossLines']),
+        top: without(unitTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        right: without(unitTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        bottom: without(unitTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        left: without(unitTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
         crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     'grouped-category': {
-        ...without(GroupedCategoryAxisModule.options, ['type']),
-        top: without(GroupedCategoryAxisModule.options, ['type', 'position']),
-        right: without(GroupedCategoryAxisModule.options, ['type', 'position']),
-        bottom: without(GroupedCategoryAxisModule.options, ['type', 'position']),
-        left: without(GroupedCategoryAxisModule.options, ['type', 'position']),
+        ...without(groupedCategoryAxisOptionsDefs, ['type']),
+        top: without(groupedCategoryAxisOptionsDefs, ['type', 'position']),
+        right: without(groupedCategoryAxisOptionsDefs, ['type', 'position']),
+        bottom: without(groupedCategoryAxisOptionsDefs, ['type', 'position']),
+        left: without(groupedCategoryAxisOptionsDefs, ['type', 'position']),
         crossLines: cartesianCrossLineThemeableOptionsDefs,
     },
     'ordinal-time': {
