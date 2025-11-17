@@ -1,5 +1,5 @@
 import type { BandedDomainConfig } from '../../dataDomain';
-import { BandedStructure, type BandLike } from '../utils/bandedStructure';
+import { type BandLike, BandedStructure } from '../utils/bandedStructure';
 
 export interface ReducerBand extends BandLike {
     cachedResult: unknown;

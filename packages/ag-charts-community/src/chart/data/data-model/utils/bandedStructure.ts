@@ -217,10 +217,13 @@ export function markUpdatedIndices(
  * Applies a change description (insertions, deletions, updates) to a band-like structure.
  * Combines splice operations and updated-index handling to keep band dirty-state logic consistent.
  */
-export function applyIndexMapToBandHandler(bandHandler: {
-    handleInsertion(index: number, count: number): void;
-    handleRemoval(index: number, count: number): void;
-}, indexMap: BandIndexMap): void {
+export function applyIndexMapToBandHandler(
+    bandHandler: {
+        handleInsertion(index: number, count: number): void;
+        handleRemoval(index: number, count: number): void;
+    },
+    indexMap: BandIndexMap
+): void {
     applySpliceOperations(bandHandler, indexMap.spliceOps);
 
     if (indexMap.updatedIndices.size > 0) {

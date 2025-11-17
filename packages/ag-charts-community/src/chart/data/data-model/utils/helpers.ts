@@ -4,8 +4,8 @@
  */
 import { isObject } from 'ag-charts-core';
 
-import type { MissMap, ScopeId, ScopeProvider } from '../../dataModelTypes';
 import type { DataChangeDescription } from '../../dataChangeDescription';
+import type { MissMap, ScopeId, ScopeProvider } from '../../dataModelTypes';
 
 /**
  * Converts an array of keys to a string representation.
@@ -53,7 +53,9 @@ export function createArray<T>(length: number, value: T): T[] {
 /**
  * Deduplicate change descriptions (multiple scopes can share the same DataSet/change descriptor).
  */
-export function uniqueChangeDescriptions(scopeChanges: Map<ScopeId, DataChangeDescription>): Set<DataChangeDescription> {
+export function uniqueChangeDescriptions(
+    scopeChanges: Map<ScopeId, DataChangeDescription>
+): Set<DataChangeDescription> {
     const deduped = new Set<DataChangeDescription>();
     for (const changeDesc of scopeChanges.values()) {
         if (changeDesc) {

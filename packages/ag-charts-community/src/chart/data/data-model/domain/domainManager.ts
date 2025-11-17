@@ -875,7 +875,8 @@ export class DomainManager<D extends object, K extends keyof D & string> {
                 if (isBanded && bandedDomain) {
                     // Use pre-scan stats if available (collected before extending domains)
                     const domainStats = preScanDomainStats.get(bandedDomain) ?? bandedDomain.getStats();
-                    const scanRatio = domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
+                    const scanRatio =
+                        domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
                     stats = {
                         totalBands: domainStats.bandCount,
                         dirtyBands: domainStats.dirtyBandCount,

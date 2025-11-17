@@ -1,4 +1,4 @@
-import { BandedStructure, type BandLike } from './data-model/utils/bandedStructure';
+import { type BandLike, BandedStructure } from './data-model/utils/bandedStructure';
 
 export interface IDataDomain<D = any> {
     extend(val: any): void;
