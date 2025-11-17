@@ -1,3 +1,4 @@
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 import { Logger, mergeDefaults } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
@@ -20,7 +21,6 @@ import type {
     DatumDefault,
 } from 'ag-charts-types';
 
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
 import { annotationsTheme } from './priceVolumePresetTheme';
 
 type ChartTheme = _Theme.ChartTheme;

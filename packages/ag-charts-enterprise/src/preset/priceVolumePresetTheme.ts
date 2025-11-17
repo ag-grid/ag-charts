@@ -1,3 +1,4 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AgAnnotationsThemeableOptions,
     AgMeasurerAnnotationStatistics,
@@ -5,8 +6,6 @@ import type {
     FontOptions,
     WithThemeParams,
 } from 'ag-charts-types';
-
-import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     FONT_SIZE_RATIO,
