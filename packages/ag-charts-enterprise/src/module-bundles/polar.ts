@@ -28,6 +28,7 @@ export const AllPolarModule: ModuleDefinition[] = [
     RadarLineSeriesModule,
     RadialBarSeriesModule,
     RadialColumnSeriesModule,
+
     AnimationModule,
     BackgroundModule,
     ContextMenuModule,

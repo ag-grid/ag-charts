@@ -18,7 +18,6 @@ import type {
     AgSeriesTooltip,
 } from 'ag-charts-types';
 
-import { AnnotationsModule } from '../features/annotations/annotationsModule';
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
 import { StatusBarModule } from '../features/status-bar/statusBarModule';
 import { priceVolume } from './priceVolumePreset';
@@ -85,7 +84,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
     type: 'preset',
     name: 'price-volume',
     enterprise: true,
-    dependencies: [AnnotationsModule, ChartToolbarModule, StatusBarModule],
+    dependencies: [ChartToolbarModule, StatusBarModule],
     version: VERSION,
 
     options: priceVolumeOptionsDef,
