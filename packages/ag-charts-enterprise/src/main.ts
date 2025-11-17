@@ -5,23 +5,8 @@ import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import styles from './styles.css';
 
-export {
-    AG_CHARTS_LOCALE_EN_US,
-    AgCharts,
-    AgChartsCommunityModule,
-    ModuleRegistry,
-    VERSION,
-    time,
-    _ModuleSupport,
-    _Scene,
-    _Theme,
-    _Util,
-    _Widget,
-} from 'ag-charts-community';
 export * from 'ag-charts-types';
-
-export { SparklinePresetModule } from 'ag-charts-community';
-export { GaugePresetModule, PriceVolumePresetModule } from './preset/presetModules';
+export * from 'ag-charts-community';
 
 export { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
 export { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
@@ -50,7 +35,7 @@ export { ChordSeriesModule } from './series/chord/chordModule';
 export { ConeFunnelSeriesModule } from './series/cone-funnel/coneFunnelModule';
 export { FunnelSeriesModule } from './series/funnel/funnelModule';
 export { HeatmapSeriesModule } from './series/heatmap/heatmapModule';
-export { LinearGaugeSeriesModule } from './series/linear-gauge/linearGaugeModule';
+export { LinearGaugeModule } from './series/linear-gauge/linearGaugeModule';
 export { MapLineSeriesModule } from './series/map-line/mapLineModule';
 export { MapLineBackgroundSeriesModule } from './series/map-line-background/mapLineBackgroundModule';
 export { MapMarkerSeriesModule } from './series/map-marker/mapMarkerModule';
@@ -63,7 +48,7 @@ export { RadarAreaSeriesModule } from './series/radar-area/radarAreaModule';
 export { RadarLineSeriesModule } from './series/radar-line/radarLineModule';
 export { RadialBarSeriesModule } from './series/radial-bar/radialBarModule';
 export { RadialColumnSeriesModule } from './series/radial-column/radialColumnModule';
-export { RadialGaugeSeriesModule } from './series/radial-gauge/radialGaugeModule';
+export { RadialGaugeModule } from './series/radial-gauge/radialGaugeModule';
 export { RangeAreaSeriesModule } from './series/range-area/rangeAreaModule';
 export { RangeBarSeriesModule } from './series/range-bar/rangeBarModule';
 export { SankeySeriesModule } from './series/sankey/sankeyModule';
@@ -71,13 +56,15 @@ export { SunburstSeriesModule } from './series/sunburst/sunburstModule';
 export { TreemapSeriesModule } from './series/treemap/treemapModule';
 export { WaterfallSeriesModule } from './series/waterfall/waterfallModule';
 
-export { AllCartesianEnterpriseModules } from './module-bundles/cartesian';
-export { AllPolarEnterpriseModules } from './module-bundles/polar';
-export { AllStandaloneEnterpriseModules } from './module-bundles/standalone';
-export { AllTopologyEnterpriseModules } from './module-bundles/topology';
 export { AllEnterpriseModule } from './module-bundles/all';
-
+export { AllCartesianModule } from './module-bundles/cartesian';
+export { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
+export { AllCartesianSeriesModule } from './module-bundles/cartesian-series';
+export { FinancialChartModule } from './module-bundles/financial';
+export { AllGaugeModule } from './module-bundles/gauge';
 export { LicenseManager, AgChartsEnterpriseModule } from './module-bundles/integrated';
+export { AllPolarModule } from './module-bundles/polar';
+export { AllMapSeriesModule } from './module-bundles/topology';
 
 // Globally registered enterprise setup
 enterpriseRegistry.styles = styles;

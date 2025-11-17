@@ -1,60 +1,20 @@
+import { VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     type PresetModuleDefinition,
-    array,
-    boolean,
     defined,
     positiveNumber,
-    string,
     typeUnion,
     undocumented,
-    union,
     without,
 } from 'ag-charts-core';
-import type {
-    AgBaseFinancialPresetOptions,
-    AgBaseGaugePresetOptions,
-    AgChartTooltipOptions,
-    AgGaugeOptions,
-    AgPriceVolumePreset,
-    AgSeriesTooltip,
-} from 'ag-charts-types';
-import { VERSION, _ModuleSupport } from 'ag-charts-community';
+import type { AgBaseGaugePresetOptions, AgChartTooltipOptions, AgGaugeOptions, AgSeriesTooltip } from 'ag-charts-types';
 
-import { gauge } from './gauge';
-import { priceVolume } from './priceVolumePreset';
+import { StandaloneChartModule } from '../charts/standaloneChartModule';
+import { createGauge } from './gaugePreset';
 
 const { commonChartOptionsDefs, tooltipOptionsDefs, linearGaugeSeriesOptionsDef, radialGaugeSeriesOptionsDef } =
     _ModuleSupport;
-
-const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
-    chartType: union('candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'),
-    dateKey: string,
-    openKey: string,
-    highKey: string,
-    lowKey: string,
-    closeKey: string,
-    volumeKey: string,
-    navigator: boolean,
-    volume: boolean,
-    rangeButtons: boolean,
-    statusBar: boolean,
-    toolbar: boolean,
-    zoom: boolean,
-    sync: boolean,
-    // Valid pass-through options
-    theme: defined,
-    container: defined,
-    width: defined,
-    height: defined,
-    minWidth: defined,
-    minHeight: defined,
-    listeners: defined,
-    initialState: defined,
-    title: defined,
-    data: array,
-    formatter: defined,
-};
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {
     // Valid pass-through options
@@ -83,24 +43,12 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
 // @ts-expect-error undocumented option
 commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
 
-export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
-    type: 'preset',
-    name: 'price-volume',
-    enterprise: true,
-    placeholder: true,
-    version: VERSION,
-
-    options: priceVolumeOptionsDef,
-
-    create: priceVolume,
-};
-
 export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',
     name: 'gauge-preset',
     enterprise: true,
-    placeholder: true,
     version: VERSION,
+    dependencies: [StandaloneChartModule],
 
     options: typeUnion<AgGaugeOptions>(
         {
@@ -116,5 +64,5 @@ export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
         'gauge options'
     ),
 
-    create: gauge,
+    create: createGauge,
 };

@@ -21,6 +21,7 @@ import {
     cartesianAxisOptionsDefs,
 } from '../../chart/axesOptionsDefs';
 import { GroupedCategoryAxis } from '../../chart/axis/groupedCategoryAxis';
+import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
 
 export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAxisOptions> = {
@@ -28,6 +29,7 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
     name: 'grouped-category',
     chartType: 'cartesian',
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: {
         ...cartesianAxisOptionsDefs,

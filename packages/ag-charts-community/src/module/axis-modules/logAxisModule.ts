@@ -16,6 +16,7 @@ import {
     continuousAxisOptions,
 } from '../../chart/axesOptionsDefs';
 import { LogAxis } from '../../chart/axis/logAxis';
+import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
 
 export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
@@ -23,6 +24,7 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
     name: 'log',
     chartType: 'cartesian',
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: {
         ...cartesianAxisOptionsDefs,

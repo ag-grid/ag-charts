@@ -36,9 +36,11 @@ export { CategoryAxisModule } from './module/axis-modules/categoryAxisModule';
 export { GroupedCategoryAxisModule } from './module/axis-modules/groupedCategoryAxisModule';
 export { UnitTimeAxisModule } from './module/axis-modules/unitTimeAxisModule';
 
-export { AllCartesianCommunityModules } from './module-bundles/cartesian';
-export { AllPolarCommunityModules } from './module-bundles/polar';
 export { AllCommunityModule } from './module-bundles/all';
+export { AllCartesianModule } from './module-bundles/cartesian';
+export { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
+export { AllCartesianSeriesModule } from './module-bundles/cartesian-series';
+export { AllPolarModule } from './module-bundles/polar';
 
 // Undocumented APIs used by Integrated Charts.
 export { AgChartsCommunityModule } from './module-bundles/integrated';

@@ -1,3 +1,4 @@
+import { AllPolarModule as AllCommunityPolarModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
 import { AngleCategoryAxisModule } from '../axes/angle-category/angleCategoryAxisModule';
@@ -16,7 +17,8 @@ import { RadarLineSeriesModule } from '../series/radar-line/radarLineModule';
 import { RadialBarSeriesModule } from '../series/radial-bar/radialBarModule';
 import { RadialColumnSeriesModule } from '../series/radial-column/radialColumnModule';
 
-export const AllPolarEnterpriseModules: ModuleDefinition[] = [
+export const AllPolarModule: ModuleDefinition[] = [
+    AllCommunityPolarModule,
     AngleNumberAxisModule,
     AngleCategoryAxisModule,
     RadiusNumberAxisModule,
@@ -32,4 +34,4 @@ export const AllPolarEnterpriseModules: ModuleDefinition[] = [
     DataSourceModule,
     ForegroundModule,
     GradientLegendModule,
-];
+].flat();

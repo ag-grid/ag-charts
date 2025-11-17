@@ -1,13 +1,13 @@
 import { type ModuleDefinition } from 'ag-charts-core';
 
 import { SparklinePresetModule } from '../api/preset/presetModules';
-import { AllCartesianCommunityModules } from './cartesian';
-import { AllPolarCommunityModules } from './polar';
+import { AllCartesianModule } from './cartesian';
+import { AllPolarModule } from './polar';
 
 export const AllCommunityModule: ModuleDefinition[] = [
-    ...AllCartesianCommunityModules,
-    ...AllPolarCommunityModules,
+    AllCartesianModule,
+    AllPolarModule,
 
     // Presets
     SparklinePresetModule,
-];
+].flat();

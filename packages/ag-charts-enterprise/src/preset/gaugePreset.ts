@@ -262,7 +262,7 @@ function applyThemeDefaults(
     return opts;
 }
 
-export function gauge(
+export function createGauge(
     opts: AgGaugeOptions,
     presetTheme: AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides | undefined
 ): GaugeChartResult {

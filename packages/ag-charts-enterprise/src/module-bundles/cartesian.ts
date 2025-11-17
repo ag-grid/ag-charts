@@ -1,6 +1,5 @@
 import type { ModuleDefinition } from 'ag-charts-core';
 
-import { OrdinalTimeAxisModule } from '../axes/ordinal/ordinalTimeAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
 import { BackgroundModule } from '../features/background/backgroundModule';
@@ -17,27 +16,13 @@ import { StatusBarModule } from '../features/status-bar/statusBarModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
-import { BoxPlotSeriesModule } from '../series/box-plot/boxPlotModule';
-import { CandlestickSeriesModule } from '../series/candlestick/candlestickModule';
-import { ConeFunnelSeriesModule } from '../series/cone-funnel/coneFunnelModule';
-import { FunnelSeriesModule } from '../series/funnel/funnelModule';
-import { HeatmapSeriesModule } from '../series/heatmap/heatmapModule';
-import { OhlcSeriesModule } from '../series/ohlc/ohlcModule';
-import { RangeAreaSeriesModule } from '../series/range-area/rangeAreaModule';
-import { RangeBarSeriesModule } from '../series/range-bar/rangeBarModule';
-import { WaterfallSeriesModule } from '../series/waterfall/waterfallModule';
+import { AllCartesianAxesModule } from './cartesian-axes';
+import { AllCartesianSeriesModule } from './cartesian-series';
 
-export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
-    OrdinalTimeAxisModule,
-    BoxPlotSeriesModule,
-    CandlestickSeriesModule,
-    ConeFunnelSeriesModule,
-    FunnelSeriesModule,
-    HeatmapSeriesModule,
-    OhlcSeriesModule,
-    RangeAreaSeriesModule,
-    RangeBarSeriesModule,
-    WaterfallSeriesModule,
+export const AllCartesianModule: ModuleDefinition[] = [
+    AllCartesianAxesModule,
+    AllCartesianSeriesModule,
+
     AnimationModule,
     AnnotationsModule,
     BackgroundModule,
@@ -54,4 +39,4 @@ export const AllCartesianEnterpriseModules: ModuleDefinition[] = [
     StatusBarModule,
     SyncModule,
     ZoomModule,
-];
+].flat();

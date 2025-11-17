@@ -9,6 +9,7 @@ import {
     commonAxisIntervalOptionsDefs,
 } from '../../chart/axesOptionsDefs';
 import { CategoryAxis } from '../../chart/axis/categoryAxis';
+import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
 
 export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
@@ -16,6 +17,7 @@ export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
     name: 'category',
     chartType: 'cartesian',
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: {
         ...cartesianAxisOptionsDefs,

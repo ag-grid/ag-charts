@@ -1,18 +1,19 @@
 import { AllCommunityModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
-import { AllCartesianEnterpriseModules } from './cartesian';
-import { AllPolarEnterpriseModules } from './polar';
-import { AllStandaloneEnterpriseModules } from './standalone';
-import { AllTopologyEnterpriseModules } from './topology';
-import { GaugePresetModule, PriceVolumePresetModule } from '../preset/presetModules';
+import { AllCartesianModule } from './cartesian';
+import { FinancialChartModule } from './financial';
+import { AllGaugeModule } from './gauge';
+import { AllPolarModule } from './polar';
+import { AllStandaloneModule } from './standalone';
+import { AllMapSeriesModule } from './topology';
 
 export const AllEnterpriseModule: ModuleDefinition[] = [
-    ...AllCommunityModule,
-    ...AllCartesianEnterpriseModules,
-    ...AllPolarEnterpriseModules,
-    ...AllStandaloneEnterpriseModules,
-    ...AllTopologyEnterpriseModules,
-    PriceVolumePresetModule,
-    GaugePresetModule,
-];
+    AllCommunityModule,
+    AllCartesianModule,
+    AllPolarModule,
+    AllStandaloneModule,
+    AllMapSeriesModule,
+    AllGaugeModule,
+    FinancialChartModule,
+].flat();

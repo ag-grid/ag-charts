@@ -23,6 +23,7 @@ import {
     timeIntervalUnit,
 } from '../../chart/axesOptionsDefs';
 import { UnitTimeAxis } from '../../chart/axis/unitTimeAxis';
+import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
 
 export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
@@ -30,6 +31,7 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
     name: 'unit-time',
     chartType: 'cartesian',
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: {
         ...cartesianAxisOptionsDefs,

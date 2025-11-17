@@ -8,7 +8,7 @@ import { DonutSeriesModule } from '../chart/series/polar/donutSeriesModule';
 import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
 import { LocaleModule } from '../locale/localeModule';
 
-export const AllPolarCommunityModules: ModuleDefinition[] = [
+export const AllPolarModule: ModuleDefinition[] = [
     PolarChartModule,
     DonutSeriesModule,
     PieSeriesModule,
