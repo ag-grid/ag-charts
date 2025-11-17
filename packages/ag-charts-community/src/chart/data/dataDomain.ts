@@ -150,27 +150,10 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
     }
 
     /**
-     * Finds the band(s) that contain the given index range.
-     */
-    private findAffectedBands(startIndex: number, endIndex: number): number[] {
-        const affected: number[] = [];
-        for (let i = 0; i < this.bands.length; i++) {
-            const band = this.bands[i];
-            if (startIndex < band.endIndex && endIndex > band.startIndex) {
-                affected.push(i);
-            }
-        }
-        return affected;
-    }
-
-    /**
      * Marks bands as dirty that need rescanning.
      */
     markBandsDirty(startIndex: number, endIndex: number): void {
-        const affectedBands = this.findAffectedBands(startIndex, endIndex);
-        for (const bandIndex of affectedBands) {
-            this.bands[bandIndex].isDirty = true;
-        }
+        this.markRangeDirty(startIndex, endIndex);
         this.fullDomainCache = null;
     }
 

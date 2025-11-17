@@ -1,7 +1,6 @@
 import { first } from 'ag-charts-core';
 
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from '../../dataChangeDescription';
-import { BandedDomain } from '../../dataDomain';
 import type {
     DataGroup,
     GroupedData,
@@ -26,9 +25,8 @@ import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
 import type { SpecializedProcessValueFn } from '../domain/domainManager';
 import { BandedReducer } from '../reducers/bandedReducer';
-import { createReducerContext, evaluateBandedReducer } from '../reducers/reducerUtils';
-import { applyIndexMapToBandHandler } from '../utils/bandedStructure';
-import { createArray, toKeyString } from '../utils/helpers';
+import { runBandedReducer } from '../reducers/reducerUtils';
+import { createArray, toKeyString, uniqueChangeDescriptions } from '../utils/helpers';
 
 type DefinitionProcessorEntry<K extends string> = {
     def: InternalDatumPropertyDefinition<K>;
@@ -151,20 +149,6 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
     }
 
     /**
-     * Applies an operation to all banded domains in a collection.
-     */
-    private applyOperationToBandedDomains(
-        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
-        operation: (domain: BandedDomain) => void
-    ): void {
-        for (const domain of bandedDomains.values()) {
-            if (domain instanceof BandedDomain) {
-                operation(domain);
-            }
-        }
-    }
-
-    /**
      * Updates banded domains based on pending changes.
      *
      * BANDING OPTIMIZATION:
@@ -187,19 +171,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         const bandedDomains = processedData[DOMAIN_BANDS];
         if (bandedDomains.size === 0) return;
 
-        // Deduplicate change descriptions (multiple scopes can share same DataSet/changeDesc)
-        const processedChangeDescs = new Set<DataChangeDescription>();
+        const processedChangeDescs = uniqueChangeDescriptions(scopeChanges);
 
-        for (const [, changeDesc] of scopeChanges) {
-            // Skip if we've already processed this change description
-            if (processedChangeDescs.has(changeDesc)) continue;
-            processedChangeDescs.add(changeDesc);
-
+        for (const changeDesc of processedChangeDescs) {
             const { indexMap } = changeDesc;
 
-            this.applyOperationToBandedDomains(bandedDomains, (domain) =>
-                applyIndexMapToBandHandler(domain, indexMap)
-            );
+            for (const domain of bandedDomains.values()) {
+                domain.applyIndexMap(indexMap);
+            }
 
             // Note: No need for special append-only or prepend-only handling here.
             // handleInsertion() now properly marks the last band dirty when appending,
@@ -223,38 +202,21 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         processedData[REDUCER_BANDS] = reducerBands;
 
         for (const def of bandedReducers) {
-            const context = createReducerContext(def, processedData);
-            if (!context) continue;
+            const result = runBandedReducer(def, processedData, reducerBands, this.ctx.bandingConfig ?? {}, {
+                reuseCleanBands: true,
+                beforeEvaluate: (bandManager, context) => {
+                    if (!context.scopeId) return;
+                    const changeDesc = scopeChanges.get(context.scopeId);
+                    if (changeDesc) {
+                        bandManager.applyIndexMap(changeDesc.indexMap);
+                    }
+                },
+            });
 
-            const property = def.property as ReducerBandKey;
-            let bandManager = reducerBands.get(property);
-            if (!bandManager) {
-                bandManager = new BandedReducer(this.ctx.bandingConfig ?? {});
-                bandManager.initializeBands(context.rawData.length);
-                reducerBands.set(property, bandManager);
+            if (result !== undefined) {
+                (processedData.reduced as Record<string, unknown>)[def.property] = result;
             }
-
-            if (context.scopeId) {
-                const changeDesc = scopeChanges.get(context.scopeId);
-                if (changeDesc) {
-                    this.applyChangeDescriptionToReducerBand(bandManager, changeDesc);
-                }
-            }
-
-            // Capture stats before processing bands
-            bandManager.captureStatsBeforeProcessing();
-
-            (processedData.reduced as Record<string, unknown>)[def.property] = evaluateBandedReducer(
-                def,
-                bandManager,
-                context,
-                true
-            );
         }
-    }
-
-    private applyChangeDescriptionToReducerBand(bandManager: BandedReducer, changeDesc: DataChangeDescription): void {
-        applyIndexMapToBandHandler(bandManager, changeDesc.indexMap);
     }
 
     /**
@@ -349,13 +311,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     continue; // Skip invalid indices
                 }
 
-                const processed = this.processDatum(
-                    dataSet,
-                    destIndex,
-                    scope,
-                    keyProcessors,
-                    valueProcessors
-                );
+                const processed = this.processDatum(dataSet, destIndex, scope, keyProcessors, valueProcessors);
                 if (processed) {
                     // Store in cache (overwrites any existing insertion at this index)
                     cache.set(destIndex, processed);
@@ -390,13 +346,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     continue; // Skip invalid indices
                 }
 
-                const processed = this.processDatum(
-                    dataSet,
-                    destIndex,
-                    scope,
-                    keyProcessors,
-                    valueProcessors
-                );
+                const processed = this.processDatum(dataSet, destIndex, scope, keyProcessors, valueProcessors);
                 if (processed) {
                     cache.set(destIndex, processed);
                 }

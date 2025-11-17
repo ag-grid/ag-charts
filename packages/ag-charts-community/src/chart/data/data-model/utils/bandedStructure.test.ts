@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
     type BandConfig,
     type BandLike,
+    BandedStructure,
     adjustBandForInsertion,
     adjustBandForRemoval,
     calculateIdealBandSize,
@@ -11,6 +12,16 @@ import {
     initializeBandArray,
     markBandDirtyAtIndex,
 } from './bandedStructure';
+
+class TestBandedStructure extends BandedStructure<BandLike> {
+    getBands() {
+        return this.bands;
+    }
+
+    protected createBand(startIndex: number, endIndex: number): BandLike {
+        return { startIndex, endIndex, isDirty: false };
+    }
+}
 
 // Test helper to create a simple band
 function createBand(startIndex: number, endIndex: number, isDirty = false): BandLike {
@@ -237,7 +248,7 @@ describe('bandOperations', () => {
 
             expect(bands.length).toBeGreaterThan(1);
             expect(bands[0].startIndex).toBe(0);
-            expect(bands[bands.length - 1].endIndex).toBe(10000);
+            expect(bands.at(-1)?.endIndex).toBe(10000);
         });
 
         it('creates contiguous bands with no gaps', () => {
@@ -324,6 +335,29 @@ describe('bandOperations', () => {
             markBandDirtyAtIndex(bands, 50);
 
             expect(bands[0].isDirty).toBe(true);
+        });
+    });
+
+    describe('BandedStructure.applyIndexMap', () => {
+        it('applies splice and update operations consistently', () => {
+            const structure = new TestBandedStructure({
+                enableBanding: true,
+                minDataSizeForBanding: 0,
+                targetBandCount: 2,
+            });
+
+            structure.initializeBands(4); // two bands: [0,2), [2,4)
+
+            structure.applyIndexMap({
+                spliceOps: [{ index: 0, insertCount: 0, deleteCount: 1 }],
+                updatedIndices: new Set([2]),
+            });
+
+            const bands = structure.getBands();
+
+            expect(bands).toHaveLength(2);
+            expect(bands[0]).toMatchObject({ startIndex: 0, endIndex: 1, isDirty: true });
+            expect(bands[1]).toMatchObject({ startIndex: 1, endIndex: 3, isDirty: true });
         });
     });
 });

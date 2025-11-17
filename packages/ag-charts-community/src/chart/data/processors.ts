@@ -24,6 +24,17 @@ import {
 
 const MAX_ANIMATABLE_NODES = 1000;
 
+function combineIntervalBandResults(
+    bandResults: unknown[],
+    fallback: number,
+    combiner: (values: number[]) => number
+): number {
+    const validResults = bandResults.filter(
+        (result): result is number => typeof result === 'number' && Number.isFinite(result)
+    );
+    return validResults.length > 0 ? combiner(validResults) : fallback;
+}
+
 export function processedDataIsAnimatable(processedData: ProcessedData<any>) {
     return processedData.input.count <= MAX_ANIMATABLE_NODES;
 }
@@ -200,10 +211,7 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     },
     supportsBanding: true,
     combineResults(bandResults) {
-        const validResults = bandResults.filter(
-            (result): result is number => typeof result === 'number' && Number.isFinite(result)
-        );
-        return validResults.length > 0 ? Math.min(...validResults) : Infinity;
+        return combineIntervalBandResults(bandResults, Infinity, (values) => Math.min(...values));
     },
     needsOverlap: true,
 };
@@ -232,10 +240,7 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     },
     supportsBanding: true,
     combineResults(bandResults) {
-        const validResults = bandResults.filter(
-            (result): result is number => typeof result === 'number' && Number.isFinite(result)
-        );
-        return validResults.length > 0 ? Math.max(...validResults) : -Infinity;
+        return combineIntervalBandResults(bandResults, -Infinity, (values) => Math.max(...values));
     },
     needsOverlap: true,
 };

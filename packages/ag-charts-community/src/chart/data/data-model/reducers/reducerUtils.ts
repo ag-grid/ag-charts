@@ -1,8 +1,15 @@
 import { first } from 'ag-charts-core';
 
-import type { InternalDefinition, ProcessedData, ReducerOutputPropertyDefinition, ScopeId } from '../../dataModelTypes';
-import type { BandedReducer } from './bandedReducer';
+import type { BandedDomainConfig } from '../../dataDomain';
+import type {
+    InternalDefinition,
+    ProcessedData,
+    ReducerBandKey,
+    ReducerOutputPropertyDefinition,
+    ScopeId,
+} from '../../dataModelTypes';
 import { isScoped } from '../utils/helpers';
+import { BandedReducer } from './bandedReducer';
 
 export interface ReducerContext {
     scopeId: ScopeId | undefined;
@@ -77,4 +84,43 @@ export function evaluateBandedReducer(
     }
 
     return def.combineResults!(bandResults);
+}
+
+interface RunBandedReducerOptions {
+    reuseCleanBands?: boolean;
+    beforeEvaluate?: (bandManager: BandedReducer, context: ReducerContext) => void;
+}
+
+/**
+ * Shared helper used by full processing and incremental reprocessing paths.
+ * Handles context creation, band manager lifecycle, optional change application, and evaluation.
+ */
+export function runBandedReducer(
+    def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
+    processedData: ProcessedData<any>,
+    reducerBands: Map<ReducerBandKey, BandedReducer>,
+    bandingConfig: BandedDomainConfig | undefined,
+    options: RunBandedReducerOptions = {}
+): unknown {
+    const context = createReducerContext(def, processedData);
+    if (!context) {
+        return undefined;
+    }
+
+    const property = def.property as ReducerBandKey;
+    let bandManager = reducerBands.get(property);
+    if (!bandManager) {
+        bandManager = new BandedReducer(bandingConfig ?? {});
+        reducerBands.set(property, bandManager);
+    }
+
+    if (bandManager.getBands().length === 0) {
+        bandManager.initializeBands(context.rawData.length);
+    }
+
+    options.beforeEvaluate?.(bandManager, context);
+
+    bandManager.captureStatsBeforeProcessing();
+
+    return evaluateBandedReducer(def, bandManager, context, options.reuseCleanBands ?? false);
 }

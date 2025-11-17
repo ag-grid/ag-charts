@@ -9,8 +9,8 @@ import { DataExtractor } from './data-model/extraction/dataExtractor';
 import { DataGrouper } from './data-model/grouping/dataGrouper';
 import { IncrementalProcessor } from './data-model/incremental/incrementalProcessor';
 import { BandedReducer, type BandedReducerStats } from './data-model/reducers/bandedReducer';
-import { createReducerContext, evaluateBandedReducer, evaluateReducerRange } from './data-model/reducers/reducerUtils';
-import { isScoped } from './data-model/utils/helpers';
+import { createReducerContext, evaluateReducerRange, runBandedReducer } from './data-model/reducers/reducerUtils';
+import { isScoped, uniqueChangeDescriptions } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
 import type {
@@ -494,11 +494,7 @@ export class DataModel<
         }
 
         // Deduplicate change descriptions (multiple scopes can share same DataSet/changeDesc)
-        const processedChangeDescs = new Set<DataChangeDescription>();
-        for (const [, changeDesc] of scopeChanges) {
-            if (processedChangeDescs.has(changeDesc)) continue;
-            processedChangeDescs.add(changeDesc);
-        }
+        const processedChangeDescs = uniqueChangeDescriptions(scopeChanges);
 
         // Process each group processor
         for (const processor of groupProcessors) {
@@ -569,23 +565,15 @@ export class DataModel<
         processedData: ProcessedData<D>,
         reducerBands: Map<ReducerBandKey, BandedReducer>
     ) {
-        const context = createReducerContext(def, processedData);
-        if (!context) {
+        const result = runBandedReducer(def, processedData, reducerBands, this.opts.domainBandingConfig ?? {}, {
+            reuseCleanBands: false,
+        });
+
+        if (result === undefined) {
             return this.reduceStandard(def, processedData);
         }
 
-        const property = def.property as ReducerBandKey;
-        let bandManager = reducerBands.get(property);
-        if (!bandManager) {
-            bandManager = new BandedReducer(this.opts.domainBandingConfig ?? {});
-            reducerBands.set(property, bandManager);
-        }
-        bandManager.initializeBands(context.rawData.length);
-
-        // Capture stats before processing bands
-        bandManager.captureStatsBeforeProcessing();
-
-        return evaluateBandedReducer(def, bandManager, context, false);
+        return result;
     }
 
     private reduceStandard(

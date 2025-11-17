@@ -259,6 +259,10 @@ export abstract class BandedStructure<TBand extends BandLike> {
         };
     }
 
+    applyIndexMap(indexMap: BandIndexMap): void {
+        applyIndexMapToBandHandler(this, indexMap);
+    }
+
     /**
      * Abstract method to create a band with subclass-specific data.
      * @param startIndex Starting index of the band
@@ -391,5 +395,13 @@ export abstract class BandedStructure<TBand extends BandLike> {
             dirtyBands: dirtyBands.length,
             dataSize: this.dataSize,
         };
+    }
+
+    markRangeDirty(startIndex: number, endIndex: number): void {
+        for (const band of this.bands) {
+            if (startIndex < band.endIndex && endIndex > band.startIndex) {
+                band.isDirty = true;
+            }
+        }
     }
 }
