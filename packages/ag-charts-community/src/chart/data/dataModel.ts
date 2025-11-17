@@ -8,6 +8,8 @@ import { DomainManager } from './data-model/domain/domainManager';
 import { DataExtractor } from './data-model/extraction/dataExtractor';
 import { DataGrouper } from './data-model/grouping/dataGrouper';
 import { IncrementalProcessor } from './data-model/incremental/incrementalProcessor';
+import { BandManager } from './data-model/reducers/bandManager';
+import { createReducerContext, evaluateReducerRange } from './data-model/reducers/reducerUtils';
 import { isScoped } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
@@ -27,11 +29,13 @@ import type {
     PropertyId,
     PropertySelectors,
     PropertyValueProcessorDefinition,
+    ReducerBandKey,
     ReducerOutputPropertyDefinition,
     ScopeId,
     ScopeProvider,
     UngroupedData,
 } from './dataModelTypes';
+import { REDUCER_BANDS } from './dataModelTypes';
 import type { DataChangeDescription, DataSet } from './dataSet';
 import { type SortOrder } from './sortOrder';
 
@@ -530,29 +534,87 @@ export class DataModel<
 
     private reduceData(processedData: ProcessedData<D>) {
         processedData.reduced ??= {};
-        const { dataSources, keys } = processedData;
+        const reducerBands = processedData[REDUCER_BANDS] ?? new Map<ReducerBandKey, BandManager>();
+        processedData[REDUCER_BANDS] = reducerBands;
 
         for (const def of this.reducers) {
-            const reducer = def.reducer();
-            let accValue: any = def.initialValue;
-            if (processedData.type === 'grouped') {
-                for (const group of processedData.groups) {
-                    accValue = reducer(accValue, group.keys);
-                }
+            if (this.shouldUseReducerBanding(def, processedData)) {
+                (processedData.reduced as Record<string, unknown>)[def.property] = this.reduceWithBands(
+                    def,
+                    processedData,
+                    reducerBands
+                );
             } else {
-                const onlyScope = isScoped(def) ? def.scopes[0] : first(dataSources.keys());
-                const keyColumns = keys.map((k) => k.get(onlyScope)).filter((k) => k != null);
-                const keysParam = keyColumns.map((): unknown => undefined!);
-                const rawData = dataSources.get(onlyScope)?.data ?? [];
-                for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
-                    for (let keyIdx = 0; keyIdx < keysParam.length; keyIdx++) {
-                        keysParam[keyIdx] = keyColumns[keyIdx]?.[datumIndex];
-                    }
-                    accValue = reducer(accValue, keysParam);
-                }
+                (processedData.reduced as Record<string, unknown>)[def.property] = this.reduceStandard(
+                    def,
+                    processedData
+                );
             }
-            processedData.reduced[def.property] = accValue;
         }
+    }
+
+    private shouldUseReducerBanding(
+        def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
+        processedData: ProcessedData<D>
+    ): boolean {
+        return (
+            processedData.type === 'ungrouped' &&
+            def.supportsBanding === true &&
+            typeof def.combineResults === 'function'
+        );
+    }
+
+    private reduceWithBands(
+        def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
+        processedData: ProcessedData<D>,
+        reducerBands: Map<ReducerBandKey, BandManager>
+    ) {
+        const context = createReducerContext(def, processedData);
+        if (!context) {
+            return this.reduceStandard(def, processedData);
+        }
+
+        const property = def.property as ReducerBandKey;
+        let bandManager = reducerBands.get(property);
+        if (!bandManager) {
+            bandManager = new BandManager(this.opts.domainBandingConfig ?? {});
+            reducerBands.set(property, bandManager);
+        }
+        bandManager.initializeBands(context.rawData.length);
+
+        const reducerFn = def.reducer();
+        const bandResults: any[] = [];
+        for (const band of bandManager.getBands()) {
+            const startIndex =
+                def.needsOverlap && band.startIndex > 0 ? Math.max(0, band.startIndex - 1) : band.startIndex;
+            const result = evaluateReducerRange(def, reducerFn, context, startIndex, band.endIndex);
+            band.cachedResult = result;
+            band.isDirty = false;
+            bandResults.push(result);
+        }
+
+        return def.combineResults!(bandResults);
+    }
+
+    private reduceStandard(
+        def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
+        processedData: ProcessedData<D>
+    ) {
+        const reducer = def.reducer();
+        if (processedData.type === 'grouped') {
+            let accValue: any = def.initialValue;
+            for (const group of processedData.groups) {
+                accValue = reducer(accValue, group.keys);
+            }
+            return accValue;
+        }
+
+        const context = createReducerContext(def, processedData);
+        if (!context) {
+            return def.initialValue;
+        }
+
+        return evaluateReducerRange(def, reducer, context, 0, context.rawData.length);
     }
 
     private postProcessData(processedData: ProcessedData<D>) {
@@ -609,10 +671,10 @@ export class DataModel<
             if (this.aggregates.length > 0) {
                 reasons.push('has aggregates');
             }
-            if (this.reducers.length > 0) {
+            if (this.reducers.filter((r) => !r.supportsBanding).length > 0) {
                 reasons.push('has reducers');
             }
-            if (this.processors.length > 0) {
+            if (this.processors.filter((p) => p.incrementalCalculate === undefined).length > 0) {
                 reasons.push('has processors');
             }
             if (this.propertyProcessors.length > 0) {

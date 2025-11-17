@@ -1,8 +1,8 @@
 import { Logger, first, iterate } from 'ag-charts-core';
 
 import { ContinuousDomain } from '../../dataDomain';
-import type { InternalDatumPropertyDefinition, ProcessedValue, ScopeId, UngroupedData } from '../../dataModelTypes';
-import { COLUMN_SORT_ORDERS, DOMAIN_BANDS, DOMAIN_RANGES, KEY_SORT_ORDERS } from '../../dataModelTypes';
+import type { InternalDatumPropertyDefinition, ScopeId, UngroupedData } from '../../dataModelTypes';
+import { COLUMN_SORT_ORDERS, DOMAIN_BANDS, DOMAIN_RANGES, KEY_SORT_ORDERS, REDUCER_BANDS } from '../../dataModelTypes';
 import type { DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
 import type { DomainManager, SpecializedProcessValueFn } from '../domain/domainManager';
@@ -88,6 +88,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             [KEY_SORT_ORDERS]: new Map(),
             [COLUMN_SORT_ORDERS]: new Map(),
             [DOMAIN_BANDS]: new Map(),
+            [REDUCER_BANDS]: new Map(),
         } satisfies UngroupedData<D>;
     }
 

@@ -198,6 +198,14 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
             return currentSmallest;
         };
     },
+    supportsBanding: true,
+    combineResults(bandResults) {
+        const validResults = bandResults.filter(
+            (result): result is number => typeof result === 'number' && Number.isFinite(result)
+        );
+        return validResults.length > 0 ? Math.min(...validResults) : Infinity;
+    },
+    needsOverlap: true,
 };
 
 export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyInterval'> = {
@@ -222,6 +230,14 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
             return currentLargest;
         };
     },
+    supportsBanding: true,
+    combineResults(bandResults) {
+        const validResults = bandResults.filter(
+            (result): result is number => typeof result === 'number' && Number.isFinite(result)
+        );
+        return validResults.length > 0 ? Math.max(...validResults) : -Infinity;
+    },
+    needsOverlap: true,
 };
 
 export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'> = {
@@ -392,53 +408,62 @@ function animationValidationProcessKey(
     return validation;
 }
 
-export function animationValidation(valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
-    return {
-        type: 'processor',
-        property: 'animationValidation',
-        calculate(result: ProcessedData<any>) {
-            if (!processedDataIsAnimatable(result)) return;
+function buildAnimationValidationFn(valueKeyIds?: string[]) {
+    return function calculate(result: ProcessedData<any>, _previousValue: any) {
+        if (!processedDataIsAnimatable(result)) return;
 
-            const { keys: keysDefs, values: valuesDef } = result.defs;
-            const {
-                input,
-                domain: { keys: domainKeys, values: domainValues },
-                keys,
-                columns,
-                invalidKeyCount,
-            } = result;
+        const { keys: keysDefs, values: valuesDef } = result.defs;
+        const {
+            input,
+            domain: { keys: domainKeys, values: domainValues },
+            keys,
+            columns,
+            invalidKeyCount,
+        } = result;
 
-            let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
+        let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
 
-            if (input.count !== 0) {
-                for (let i = 0; validation !== 0 && i < keysDefs.length; i++) {
-                    for (const scope of keysDefs[i].scopes) {
-                        const column = keys[i].get(scope)!;
-                        const missingKeys = invalidKeyCount?.get(scope) ?? 0;
-                        const count = column.length - missingKeys;
-                        validation &= animationValidationProcessKey(count, keysDefs[i], domainKeys[i], column);
-                    }
-                }
-
-                for (let i = 0; validation !== 0 && i < valuesDef.length; i++) {
-                    const value = valuesDef[i];
-
-                    if (!valueKeyIds?.includes(value.id as string)) continue;
-
-                    validation &= animationValidationProcessKey(
-                        0 /* Count not used */,
-                        value,
-                        domainValues[i],
-                        columns[i]
-                    );
+        if (input.count !== 0) {
+            for (let i = 0; validation !== 0 && i < keysDefs.length; i++) {
+                for (const scope of keysDefs[i].scopes) {
+                    const column = keys[i].get(scope)!;
+                    const missingKeys = invalidKeyCount?.get(scope) ?? 0;
+                    const count = column.length - missingKeys;
+                    validation &= animationValidationProcessKey(count, keysDefs[i], domainKeys[i], column);
                 }
             }
 
-            return {
-                uniqueKeys: (validation & ANIMATION_VALIDATION_UNIQUE_KEYS) !== 0,
-                orderedKeys: (validation & ANIMATION_VALIDATION_ORDERED_KEYS) !== 0,
-            };
-        },
+            for (let i = 0; validation !== 0 && i < valuesDef.length; i++) {
+                const value = valuesDef[i];
+
+                if (!valueKeyIds?.includes(value.id as string)) continue;
+
+                validation &= animationValidationProcessKey(0 /* Count not used */, value, domainValues[i], columns[i]);
+            }
+        }
+
+        return {
+            uniqueKeys: (validation & ANIMATION_VALIDATION_UNIQUE_KEYS) !== 0,
+            orderedKeys: (validation & ANIMATION_VALIDATION_ORDERED_KEYS) !== 0,
+        };
+    };
+}
+
+function incrementalCalculateAnimationValidation() {
+    return {
+        uniqueKeys: true,
+        orderedKeys: false,
+    };
+}
+
+export function animationValidation(valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
+    const calculate = memo(valueKeyIds, buildAnimationValidationFn);
+
+    return {
+        type: 'processor',
+        property: 'animationValidation',
+        calculate,
+        incrementalCalculate: incrementalCalculateAnimationValidation,
     };
 }
 

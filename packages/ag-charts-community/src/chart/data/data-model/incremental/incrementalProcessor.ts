@@ -11,6 +11,7 @@ import type {
     ProcessedData,
     ProcessedOutputDiff,
     ProcessedValueEntry,
+    ReducerBandKey,
     ScopeId,
 } from '../../dataModelTypes';
 import {
@@ -18,11 +19,14 @@ import {
     DOMAIN_BANDS,
     DOMAIN_RANGES,
     KEY_SORT_ORDERS,
+    REDUCER_BANDS,
     SHARED_ZERO_INDICES,
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
 import type { SpecializedProcessValueFn } from '../domain/domainManager';
+import { BandManager } from '../reducers/bandManager';
+import { createReducerContext, evaluateReducerRange } from '../reducers/reducerUtils';
 import { createArray, toKeyString } from '../utils/helpers';
 
 type DefinitionProcessorEntry<K extends string> = {
@@ -68,8 +72,15 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         // Don't support these features yet (existing constraints)
         if (this.ctx.aggregates.length > 0) return false;
-        if (this.ctx.reducers.length > 0) return false;
-        if (this.ctx.processors.length > 0) return false;
+        const hasUnsupportedReducers = this.ctx.reducers.some(
+            (reducer) => reducer.supportsBanding !== true || typeof reducer.combineResults !== 'function'
+        );
+        if (hasUnsupportedReducers) return false;
+
+        const hasUnsupportedProcessors = this.ctx.processors.some(
+            (processor) => processor.incrementalCalculate === undefined
+        );
+        if (hasUnsupportedProcessors) return false;
         if (this.ctx.propertyProcessors.length > 0) return false;
 
         // Check if all group processors support reprocessing
@@ -108,6 +119,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         const removedKeys = this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
         this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
         this.transformInvalidityArrays(processedData, scopeChanges, insertionCaches);
+
+        this.reprocessBandedReducers(processedData, scopeChanges);
 
         // Transform groups array for grouped data (when groupsUnique=true)
         if (processedData.type === 'grouped') {
@@ -209,6 +222,80 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             // Note: No need for special append-only or prepend-only handling here.
             // handleInsertion() now properly marks the last band dirty when appending,
             // and handleRemoval() marks the first band dirty when removing from start.
+        }
+    }
+
+    private reprocessBandedReducers(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        if (processedData.type !== 'ungrouped') return;
+
+        const bandedReducers = this.ctx.reducers.filter(
+            (reducer) => reducer.supportsBanding && typeof reducer.combineResults === 'function'
+        );
+        if (bandedReducers.length === 0) return;
+
+        processedData.reduced ??= {};
+        const reducerBands = processedData[REDUCER_BANDS] ?? new Map<ReducerBandKey, BandManager>();
+        processedData[REDUCER_BANDS] = reducerBands;
+
+        for (const def of bandedReducers) {
+            const context = createReducerContext(def, processedData);
+            if (!context) continue;
+
+            const property = def.property as ReducerBandKey;
+            let bandManager = reducerBands.get(property);
+            if (!bandManager) {
+                bandManager = new BandManager(this.ctx.bandingConfig ?? {});
+                bandManager.initializeBands(context.rawData.length);
+                reducerBands.set(property, bandManager);
+            }
+
+            if (context.scopeId) {
+                const changeDesc = scopeChanges.get(context.scopeId);
+                if (changeDesc) {
+                    this.applyChangeDescriptionToReducerBand(bandManager, changeDesc);
+                }
+            }
+
+            const reducerFn = def.reducer();
+            const bandResults: any[] = [];
+
+            for (const band of bandManager.getBands()) {
+                if (!band.isDirty) {
+                    bandResults.push(band.cachedResult);
+                    continue;
+                }
+
+                const startIndex =
+                    def.needsOverlap && band.startIndex > 0 ? Math.max(0, band.startIndex - 1) : band.startIndex;
+                const result = evaluateReducerRange(def, reducerFn, context, startIndex, band.endIndex);
+                band.cachedResult = result;
+                band.isDirty = false;
+                bandResults.push(result);
+            }
+
+            (processedData.reduced as Record<string, unknown>)[def.property] = def.combineResults!(bandResults);
+        }
+    }
+
+    private applyChangeDescriptionToReducerBand(bandManager: BandManager, changeDesc: DataChangeDescription): void {
+        const { spliceOps, updatedIndices } = changeDesc.indexMap;
+
+        for (const op of spliceOps) {
+            if (op.insertCount > 0) {
+                bandManager.handleInsertion(op.index, op.insertCount);
+            }
+            if (op.deleteCount > 0) {
+                bandManager.handleRemoval(op.index, op.deleteCount);
+            }
+        }
+
+        if (updatedIndices.size > 0) {
+            for (const index of updatedIndices) {
+                bandManager.handleInsertion(index, 0);
+            }
         }
     }
 

@@ -1,8 +1,8 @@
 import type { AnyFn } from '../interfaces/globalTypes';
 
-const memorizedFns = new WeakMap<Function, Map<string, Function>>();
+const memorizedFns = new WeakMap<Function, Map<string, any>>();
 
-export function memo<T, R>(params: T, fnGenerator: (params: T) => () => R): () => R {
+export function memo<T, R>(params: T, fnGenerator: (params: T) => R): R {
     const serialisedParams = JSON.stringify(params, null, 0);
 
     if (!memorizedFns.has(fnGenerator)) {
@@ -12,7 +12,7 @@ export function memo<T, R>(params: T, fnGenerator: (params: T) => () => R): () =
         memorizedFns.get(fnGenerator)?.set(serialisedParams, fnGenerator(params));
     }
 
-    return memorizedFns.get(fnGenerator)?.get(serialisedParams) as () => R;
+    return memorizedFns.get(fnGenerator)?.get(serialisedParams) as R;
 }
 
 class MemoizeNode {

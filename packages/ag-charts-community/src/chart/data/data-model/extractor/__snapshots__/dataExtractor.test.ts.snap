@@ -135,6 +135,7 @@ exports[`DataExtractor empty data set processing should generated the expected r
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -697,6 +698,7 @@ exports[`DataExtractor missing and invalid data processing - multiple scopes sho
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -1014,5 +1016,6 @@ exports[`DataExtractor missing and invalid data processing should generated the 
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;

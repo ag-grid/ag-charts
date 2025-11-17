@@ -303,6 +303,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -628,6 +629,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -932,6 +934,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -1292,6 +1295,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -2166,6 +2170,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -2650,6 +2655,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -3170,6 +3176,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -3690,6 +3697,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -4168,6 +4176,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -4296,6 +4305,7 @@ exports[`DataModel repeated property processing should generated the expected re
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -4471,6 +4481,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
@@ -5000,5 +5011,6 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;

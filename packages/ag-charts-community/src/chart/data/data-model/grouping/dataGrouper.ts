@@ -8,7 +8,7 @@ import type {
     ScopeId,
     UngroupedData,
 } from '../../dataModelTypes';
-import { DOMAIN_BANDS, SHARED_ZERO_INDICES } from '../../dataModelTypes';
+import { DOMAIN_BANDS, REDUCER_BANDS, SHARED_ZERO_INDICES } from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
 import { createArray, toKeyString } from '../utils/helpers';
 
@@ -184,6 +184,7 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
             groupsUnique,
             optimizations: data.optimizations,
             [DOMAIN_BANDS]: data[DOMAIN_BANDS],
+            [REDUCER_BANDS]: data[REDUCER_BANDS],
         };
     }
 
