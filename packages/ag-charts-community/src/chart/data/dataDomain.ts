@@ -1,4 +1,4 @@
-import { type BandLike, BandedStructure } from './data-model/utils/bandedStructure';
+import { type BandLike, BandedStructure, type BandedStructureConfig } from './data-model/utils/bandedStructure';
 
 export interface IDataDomain<D = any> {
     extend(val: any): void;
@@ -71,17 +71,9 @@ interface DomainBand<T> extends BandLike {
 
 /**
  * Configuration options for BandedDomain optimization.
+ * Extends BandedStructureConfig for backward compatibility.
  */
-export interface BandedDomainConfig {
-    /** Minimum data size to activate banding (default: 1000) */
-    minDataSizeForBanding?: number;
-    /** Target number of bands to create (default: 10) */
-    targetBandCount?: number;
-    /** Maximum items per band before splitting (default: undefined - no limit) */
-    maxBandSize?: number;
-    /** Enable banding optimization (default: true) */
-    enableBanding?: boolean;
-}
+export interface BandedDomainConfig extends BandedStructureConfig {}
 
 /**
  * A domain implementation that divides data into bands for efficient incremental updates.

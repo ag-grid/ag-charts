@@ -1,5 +1,3 @@
-import type { BandedDomainConfig } from '../../dataDomain';
-
 /**
  * Minimal interface for band-like structures.
  * Both domain bands and reducer bands must have these properties.
@@ -17,6 +15,21 @@ export interface BandConfig {
     enableBanding: boolean;
     minDataSizeForBanding: number;
     targetBandCount: number;
+}
+
+/**
+ * Configuration options for banded structures.
+ * This is the base config used by BandedStructure and extended by BandedDomainConfig.
+ */
+export interface BandedStructureConfig {
+    /** Minimum data size to activate banding (default: 1000) */
+    minDataSizeForBanding?: number;
+    /** Target number of bands to create (default: 10) */
+    targetBandCount?: number;
+    /** Maximum items per band before splitting (default: undefined - no limit) */
+    maxBandSize?: number;
+    /** Enable banding optimization (default: true) */
+    enableBanding?: boolean;
 }
 
 /**
@@ -251,9 +264,9 @@ const DEFAULT_TARGET_BAND_COUNT = 10;
 export abstract class BandedStructure<TBand extends BandLike> {
     protected bands: TBand[] = [];
     protected dataSize: number = 0;
-    protected readonly config: Required<BandedDomainConfig>;
+    protected readonly config: Required<BandedStructureConfig>;
 
-    constructor(config: BandedDomainConfig = {}) {
+    constructor(config: BandedStructureConfig = {}) {
         this.config = {
             minDataSizeForBanding: config.minDataSizeForBanding ?? DEFAULT_MIN_DATA_SIZE_FOR_BANDING,
             targetBandCount: config.targetBandCount ?? DEFAULT_TARGET_BAND_COUNT,

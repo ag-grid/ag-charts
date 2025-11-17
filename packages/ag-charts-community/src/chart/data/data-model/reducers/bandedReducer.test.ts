@@ -19,7 +19,7 @@ describe('BandedReducer', () => {
         const bands = manager.getBands();
         expect(bands.length).toBeGreaterThan(1);
         expect(bands[0].startIndex).toBe(0);
-        expect(bands[bands.length - 1].endIndex).toBe(2000);
+        expect(bands.at(-1)!.endIndex).toBe(2000);
 
         for (let i = 1; i < bands.length; i++) {
             expect(bands[i].startIndex).toBe(bands[i - 1].endIndex);
@@ -30,7 +30,9 @@ describe('BandedReducer', () => {
         const manager = new BandedReducer({ minDataSizeForBanding: 100, targetBandCount: 4 });
         manager.initializeBands(400);
         const snapshot = manager.getBands().map((band) => ({ ...band }));
-        manager.getBands().forEach((band) => (band.isDirty = false));
+        for (const band of manager.getBands()) {
+            band.isDirty = false;
+        }
 
         manager.handleInsertion(150, 10);
 
@@ -39,15 +41,17 @@ describe('BandedReducer', () => {
         expect(dirtyBands[0].startIndex).toBeLessThanOrEqual(150);
         expect(dirtyBands[0].endIndex).toBeGreaterThan(150);
 
-        const lastBand = manager.getBands()[manager.getBands().length - 1];
-        const previousLast = snapshot[snapshot.length - 1];
+        const lastBand = manager.getBands().at(-1)!;
+        const previousLast = snapshot.at(-1)!;
         expect(lastBand.endIndex - previousLast.endIndex).toBe(10);
     });
 
     it('marks bands dirty and compacts coverage on removal', () => {
         const manager = new BandedReducer({ minDataSizeForBanding: 100, targetBandCount: 4 });
         manager.initializeBands(400);
-        manager.getBands().forEach((band) => (band.isDirty = false));
+        for (const band of manager.getBands()) {
+            band.isDirty = false;
+        }
 
         manager.handleRemoval(50, 80);
 
@@ -67,10 +71,10 @@ describe('BandedReducer', () => {
     it('reports efficient dirty ratios for rolling window updates', () => {
         const manager = new BandedReducer({ targetBandCount: 10 });
         manager.initializeBands(10_000);
-        manager.getBands().forEach((band) => {
+        for (const band of manager.getBands()) {
             band.isDirty = false;
             band.cachedResult = 0;
-        });
+        }
 
         manager.handleRemoval(0, 100);
         manager.handleInsertion(9900, 100);
@@ -102,13 +106,15 @@ describe('BandedReducer', () => {
             const bands = manager.getBands();
 
             // Mark all clean and cache some results
-            bands.forEach((band, i) => {
+            let bandIndex = 0;
+            for (const band of bands) {
                 band.isDirty = false;
-                band.cachedResult = i * 100;
-            });
+                band.cachedResult = bandIndex * 100;
+                bandIndex++;
+            }
 
             const initialBandCount = bands.length;
-            const lastBandInitialSize = bands[bands.length - 1].endIndex - bands[bands.length - 1].startIndex;
+            const lastBandInitialSize = bands.at(-1)!.endIndex - bands.at(-1)!.startIndex;
 
             // Append many points - should create new bands instead of splitting
             for (let i = 0; i < 200; i++) {
@@ -121,7 +127,7 @@ describe('BandedReducer', () => {
             expect(newBands.length).toBeGreaterThan(initialBandCount);
 
             // New bands should be dirty
-            expect(newBands[newBands.length - 1].isDirty).toBe(true);
+            expect(newBands.at(-1)!.isDirty).toBe(true);
 
             // Original last band should remain clean if it was at ideal size
             if (lastBandInitialSize >= 1000) {
@@ -172,7 +178,7 @@ describe('BandedReducer', () => {
             expect(totalCoverage).toBe(stats.dataSize);
 
             // Verify last band ends at dataSize
-            expect(bands[bands.length - 1].endIndex).toBe(stats.dataSize);
+            expect(bands.at(-1)!.endIndex).toBe(stats.dataSize);
         });
 
         it('prevents band splitting on zero-length updates', () => {
@@ -216,7 +222,7 @@ describe('BandedReducer', () => {
 
             const initialBands = manager.getBands();
             const initialBandCount = initialBands.length;
-            const lastBandEnd = initialBands[initialBands.length - 1].endIndex;
+            const lastBandEnd = initialBands.at(-1)!.endIndex;
 
             // Simulate zero-length update at the end of the last band
             // This should NOT create a new empty band
@@ -232,7 +238,7 @@ describe('BandedReducer', () => {
             expect(stats.dataSize).toBe(1000);
 
             // Last band should be marked dirty
-            expect(bands[bands.length - 1].isDirty).toBe(true);
+            expect(bands.at(-1)!.isDirty).toBe(true);
         });
     });
 });
