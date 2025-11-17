@@ -133,6 +133,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         recomputeDomainsFn(processedData);
 
+        this.reprocessProcessors(processedData);
+
         if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
             this.generateDiffMetadata(processedData, scopeChanges, removedKeys);
         }
@@ -865,6 +867,24 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         for (const [scope, invalidArray] of invalidMap) {
             counts.set(scope, invalidArray.filter(Boolean).length);
+        }
+    }
+
+    /**
+     * Recomputes processor outputs using their incrementalCalculate hook when available.
+     * Falls back to calculate to avoid stale reducer outputs if a processor lacks the hook.
+     */
+    private reprocessProcessors(processedData: ProcessedData<D>): void {
+        if (this.ctx.processors.length === 0) return;
+
+        processedData.reduced ??= {};
+
+        for (const def of this.ctx.processors) {
+            const previousValue = (processedData.reduced as Record<string, unknown>)[def.property];
+            const nextValue =
+                def.incrementalCalculate?.(processedData, previousValue as any) ??
+                def.calculate(processedData, previousValue as any);
+            (processedData.reduced as Record<string, unknown>)[def.property] = nextValue as any;
         }
     }
 
