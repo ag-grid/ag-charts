@@ -149,22 +149,6 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     }
 }
 
-class SeriesHighlightStyle extends BaseProperties {
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    dimOpacity?: number;
-
-    @Property
-    enabled?: boolean;
-}
-
-class TextHighlightStyle extends BaseProperties {
-    @Property
-    color?: string = 'black';
-}
-
 export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {
     @Property
     start?: number;
@@ -320,17 +304,6 @@ export class FillImageDefaults
 
     @Property
     fit: AgImageFillFit = 'contain';
-}
-
-export class HighlightStyle extends BaseProperties {
-    @Property
-    readonly item = new SeriesItemHighlightStyle();
-
-    @Property
-    readonly series = new SeriesHighlightStyle();
-
-    @Property
-    readonly text = new TextHighlightStyle();
 }
 
 export abstract class SeriesProperties<T extends object> extends BaseProperties<T> {
