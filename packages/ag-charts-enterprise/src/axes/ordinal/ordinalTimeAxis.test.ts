@@ -12,13 +12,13 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
-    mapValues,
     reverseAxes,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import type { ChartOrProxy } from 'ag-charts-community-test';
+import { mapValues } from 'ag-charts-core';
 
 import { createEnterpriseChart } from '../../test/utils';
 

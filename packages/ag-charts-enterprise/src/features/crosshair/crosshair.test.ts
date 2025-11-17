@@ -13,11 +13,11 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
     hoverAction,
-    mapValues,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { mapValues } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 

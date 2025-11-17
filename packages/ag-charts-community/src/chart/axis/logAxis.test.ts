@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,
@@ -17,7 +18,6 @@ import {
     createChart,
     deproxy,
     extractImageData,
-    mapValues,
     prepareTestOptions,
     reverseAxes,
     setupMockCanvas,

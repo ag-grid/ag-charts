@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { type AnyFn, type PlainObject, entries, fromPairs, getDocument } from 'ag-charts-core';
+import { type AnyFn, fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -236,7 +236,7 @@ export async function waitForChartStability<
         await chart.waitForUpdate(timeoutMs, true);
     } else if (animationAdvanceMs > 0) {
         // No animation mocks present - treat as real-time delay
-        await new Promise((resolve) => setTimeout(resolve, animationAdvanceMs));
+        await delay(animationAdvanceMs);
         await chart.waitForUpdate(timeoutMs, true);
     }
 }
@@ -735,27 +735,6 @@ export function computeLegendBBox(chart: Chart): BBox {
 export function getCursor(chart: Chart | AgChartProxy): string {
     const ctx = deproxy(chart).getModuleContext();
     return ctx.domManager.getCursor();
-}
-
-export function mapValues<T extends PlainObject, R>(
-    object: T,
-    mapper: (value: T[keyof T], key: keyof T, object: T) => R
-) {
-    const result = {} as Record<keyof T, R>;
-    for (const [key, value] of entries(object)) {
-        result[key] = mapper(value, key, object);
-    }
-    return result;
-}
-
-export function filterBy<T extends PlainObject, R>(object: T, fn: (value: T[keyof T], key: keyof T, object: T) => R) {
-    const clone = { ...object };
-    for (const key of Object.keys(object)) {
-        if (fn(object[key], key, object)) {
-            delete clone[key as keyof object];
-        }
-    }
-    return clone;
 }
 
 export { toMatchImage } from 'ag-charts-test';
