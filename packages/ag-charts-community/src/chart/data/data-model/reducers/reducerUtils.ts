@@ -1,11 +1,6 @@
 import { first } from 'ag-charts-core';
 
-import type {
-    InternalDefinition,
-    ProcessedData,
-    ReducerOutputPropertyDefinition,
-    ScopeId,
-} from '../../dataModelTypes';
+import type { InternalDefinition, ProcessedData, ReducerOutputPropertyDefinition, ScopeId } from '../../dataModelTypes';
 import { isScoped } from '../utils/helpers';
 
 export interface ReducerContext {

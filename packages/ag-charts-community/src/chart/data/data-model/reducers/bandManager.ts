@@ -22,6 +22,9 @@ export class BandManager {
     private bands: ReducerBand[] = [];
     private dataSize: number = 0;
     private readonly config: Required<BandedDomainConfig>;
+    private lastDirtyBandCount: number = 0;
+    private lastScanRatio: number = 0;
+    private statsCaptured: boolean = false;
 
     constructor(config: BandedDomainConfig = {}) {
         this.config = {
@@ -35,6 +38,7 @@ export class BandManager {
     initializeBands(dataSize: number): void {
         this.dataSize = Math.max(0, dataSize);
         this.bands = [];
+        this.statsCaptured = false; // Reset stats capture flag
 
         if (!this.config.enableBanding || this.dataSize < this.config.minDataSizeForBanding) {
             this.bands.push({
@@ -68,16 +72,46 @@ export class BandManager {
             return;
         }
 
+        const targetBandCount = this.getTargetBandCount(this.dataSize);
+        const idealBandSize = Math.ceil(this.dataSize / targetBandCount);
+        const maxBandSize = Math.ceil(idealBandSize * 1.1); // 10% tolerance for mid-band insertions
+
         for (let i = 0; i < this.bands.length; i++) {
             const band = this.bands[i];
             const isLastBand = i === this.bands.length - 1;
 
             if (insertIndex < band.startIndex) {
+                // Insertion before this band - shift boundaries
                 band.startIndex += insertCount;
                 band.endIndex += insertCount;
-            } else if (insertIndex < band.endIndex || (insertIndex === band.endIndex && isLastBand)) {
+            } else if (insertIndex < band.endIndex) {
+                // Mid-band insertion - grow and potentially split
                 band.endIndex += insertCount;
                 band.isDirty = true;
+
+                const bandSize = band.endIndex - band.startIndex;
+                if (bandSize > maxBandSize) {
+                    this.splitBand(i, idealBandSize);
+                }
+            } else if (insertIndex === band.endIndex && isLastBand) {
+                // Append case - check if we should create new band or grow existing
+                const currentBandSize = band.endIndex - band.startIndex;
+
+                if (currentBandSize >= idealBandSize) {
+                    // Band is at ideal size - create new band (zero rescan of existing data!)
+                    this.bands.push({
+                        startIndex: insertIndex,
+                        endIndex: insertIndex + insertCount,
+                        cachedResult: undefined,
+                        isDirty: true,
+                    });
+                } else {
+                    // Band still growing to ideal size - extend it
+                    band.endIndex += insertCount;
+                    band.isDirty = true;
+                }
+                // Break to avoid processing newly created band in this iteration
+                break;
             }
         }
     }
@@ -105,8 +139,9 @@ export class BandManager {
                     band.endIndex = removeIndex;
                 } else if (removeIndex <= band.startIndex) {
                     const deletedFromBand = removeEnd - band.startIndex;
+                    const oldBandSize = band.endIndex - band.startIndex;
                     band.startIndex = removeIndex;
-                    band.endIndex = Math.max(band.startIndex, band.endIndex - deletedFromBand);
+                    band.endIndex = band.startIndex + Math.max(0, oldBandSize - deletedFromBand);
                 } else if (removeEnd >= band.endIndex) {
                     band.endIndex = Math.max(band.startIndex, removeIndex);
                 } else {
@@ -116,72 +151,85 @@ export class BandManager {
         }
 
         this.bands = this.bands.filter((band) => band.endIndex > band.startIndex);
+    }
 
-        if (this.needsReinitialization()) {
-            const oldBands = this.bands.map((band) => ({ ...band }));
-            this.initializeBands(this.dataSize);
-            this.preserveCachedResults(oldBands, this.bands);
-        }
+    /**
+     * Split an oversized band into two smaller bands.
+     * Called when a band exceeds maxBandSize during insertion.
+     *
+     * Strategy:
+     * - Split the band as evenly as possible
+     * - Both halves marked as dirty (need recalculation)
+     * - No cache preservation (splitting indicates data changed)
+     */
+    private splitBand(bandIndex: number, idealSize: number): void {
+        const band = this.bands[bandIndex];
+        const bandSize = band.endIndex - band.startIndex;
+
+        // Calculate split point: try to make both halves close to ideal size
+        const firstHalfSize = Math.min(idealSize, Math.floor(bandSize / 2));
+        const splitPoint = band.startIndex + firstHalfSize;
+
+        // Create two new bands
+        const band1: ReducerBand = {
+            startIndex: band.startIndex,
+            endIndex: splitPoint,
+            cachedResult: undefined,
+            isDirty: true,
+        };
+
+        const band2: ReducerBand = {
+            startIndex: splitPoint,
+            endIndex: band.endIndex,
+            cachedResult: undefined,
+            isDirty: true,
+        };
+
+        // Replace old band with two new bands
+        this.bands.splice(bandIndex, 1, band1, band2);
     }
 
     getBands(): ReducerBand[] {
         return this.bands;
     }
 
-    getStats(): BandManagerStats {
+    /**
+     * Capture the current dirty state before processing.
+     * Call this before marking bands as clean to preserve stats for reporting.
+     */
+    captureStatsBeforeProcessing(): void {
         const dirtyBands = this.bands.filter((band) => band.isDirty);
-        const cleanBands = this.bands.filter((band) => !band.isDirty && band.cachedResult !== undefined);
         const dirtySpan = dirtyBands.reduce((sum, band) => sum + (band.endIndex - band.startIndex), 0);
+
+        this.lastDirtyBandCount = dirtyBands.length;
+        this.lastScanRatio = this.dataSize > 0 ? dirtySpan / this.dataSize : 0;
+        this.statsCaptured = true;
+    }
+
+    getStats(): BandManagerStats {
+        const cleanBands = this.bands.filter((band) => !band.isDirty && band.cachedResult !== undefined);
+
+        // If stats haven't been captured yet, compute current state
+        let dirtyBands: number;
+        let scanRatio: number;
+
+        if (!this.statsCaptured) {
+            const currentDirtyBands = this.bands.filter((band) => band.isDirty);
+            const dirtySpan = currentDirtyBands.reduce((sum, band) => sum + (band.endIndex - band.startIndex), 0);
+            dirtyBands = currentDirtyBands.length;
+            scanRatio = this.dataSize > 0 ? dirtySpan / this.dataSize : 0;
+        } else {
+            dirtyBands = this.lastDirtyBandCount;
+            scanRatio = this.lastScanRatio;
+        }
 
         return {
             totalBands: this.bands.length,
-            dirtyBands: dirtyBands.length,
+            dirtyBands,
             dataSize: this.dataSize,
-            scanRatio: this.dataSize > 0 ? dirtySpan / this.dataSize : 0,
+            scanRatio,
             cacheHits: cleanBands.length,
         };
-    }
-
-    private needsReinitialization(): boolean {
-        if (this.bands.length === 0) {
-            return true;
-        }
-
-        if (this.bands[0].startIndex !== 0) return true;
-
-        for (let i = 0; i < this.bands.length - 1; i++) {
-            if (this.bands[i].endIndex !== this.bands[i + 1].startIndex) {
-                return true;
-            }
-        }
-
-        const lastBand = this.bands[this.bands.length - 1];
-        return lastBand.endIndex !== this.dataSize;
-    }
-
-    private preserveCachedResults(oldBands: ReducerBand[], newBands: ReducerBand[]): void {
-        for (const newBand of newBands) {
-            const overlappingOldBands = oldBands.filter(
-                (oldBand) => oldBand.startIndex < newBand.endIndex && oldBand.endIndex > newBand.startIndex
-            );
-
-            if (overlappingOldBands.length === 1) {
-                const oldBand = overlappingOldBands[0];
-                if (
-                    !oldBand.isDirty &&
-                    oldBand.cachedResult !== undefined &&
-                    oldBand.startIndex <= newBand.startIndex &&
-                    oldBand.endIndex >= newBand.endIndex
-                ) {
-                    newBand.cachedResult = oldBand.cachedResult;
-                    newBand.isDirty = false;
-                    continue;
-                }
-            }
-
-            newBand.cachedResult = undefined;
-            newBand.isDirty = true;
-        }
     }
 
     private getTargetBandCount(dataSize: number): number {

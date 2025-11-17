@@ -54,8 +54,14 @@ describe('BandManager', () => {
         const dirtyBands = manager.getBands().filter((band) => band.isDirty);
         expect(dirtyBands.length).toBeGreaterThan(0);
         expect(manager.getBands()[0].startIndex).toBe(0);
+
+        // Verify dataSize is updated correctly
+        const stats = manager.getStats();
+        expect(stats.dataSize).toBe(320); // 400 - 80
+
+        // Verify total band coverage matches dataSize
         const totalCoverage = manager.getBands().reduce((acc, band) => acc + (band.endIndex - band.startIndex), 0);
-        expect(totalCoverage).toBe(320);
+        expect(totalCoverage).toBe(stats.dataSize);
     });
 
     it('reports efficient dirty ratios for rolling window updates', () => {
@@ -73,5 +79,100 @@ describe('BandManager', () => {
         expect(stats.dirtyBands).toBe(2);
         expect(stats.scanRatio).toBeLessThanOrEqual(0.25);
         expect(stats.cacheHits).toBe(stats.totalBands - stats.dirtyBands);
+    });
+
+    describe('band splitting', () => {
+        it('splits oversized bands during insertion', () => {
+            const manager = new BandManager({ targetBandCount: 10, minDataSizeForBanding: 1000 });
+            manager.initializeBands(10000);
+            const initialBandCount = manager.getBands().length;
+
+            // Simulate many insertions to the last band
+            for (let i = 0; i < 200; i++) {
+                manager.handleInsertion(10000 + i, 1);
+            }
+
+            // Should have created additional bands via splitting
+            expect(manager.getBands().length).toBeGreaterThan(initialBandCount);
+        });
+
+        it('creates new bands for appends after ideal size', () => {
+            const manager = new BandManager({ targetBandCount: 10, minDataSizeForBanding: 1000 });
+            manager.initializeBands(10000);
+            const bands = manager.getBands();
+
+            // Mark all clean and cache some results
+            bands.forEach((band, i) => {
+                band.isDirty = false;
+                band.cachedResult = i * 100;
+            });
+
+            const initialBandCount = bands.length;
+            const lastBandInitialSize = bands[bands.length - 1].endIndex - bands[bands.length - 1].startIndex;
+
+            // Append many points - should create new bands instead of splitting
+            for (let i = 0; i < 200; i++) {
+                manager.handleInsertion(10000 + i, 1);
+            }
+
+            const newBands = manager.getBands();
+
+            // Should have created new bands
+            expect(newBands.length).toBeGreaterThan(initialBandCount);
+
+            // New bands should be dirty
+            expect(newBands[newBands.length - 1].isDirty).toBe(true);
+
+            // Original last band should remain clean if it was at ideal size
+            if (lastBandInitialSize >= 1000) {
+                expect(newBands[initialBandCount - 1].isDirty).toBe(false);
+                expect(newBands[initialBandCount - 1].cachedResult).toBe((initialBandCount - 1) * 100);
+            }
+        });
+
+        it('splits bands when they grow too large', () => {
+            const manager = new BandManager({ targetBandCount: 10, minDataSizeForBanding: 1000 });
+            manager.initializeBands(1000);
+            const initialBandCount = manager.getBands().length;
+
+            // Force a band to grow significantly
+            manager.handleInsertion(1000, 500); // Add 500 points to last band
+
+            const bands = manager.getBands();
+
+            // Split should have occurred
+            expect(bands.length).toBeGreaterThanOrEqual(initialBandCount);
+
+            // Verify all bands have reasonable sizes (no empty bands)
+            for (const band of bands) {
+                expect(band.endIndex).toBeGreaterThan(band.startIndex);
+            }
+        });
+
+        it('maintains contiguous coverage after splitting', () => {
+            const manager = new BandManager({ targetBandCount: 10, minDataSizeForBanding: 1000 });
+            manager.initializeBands(10000);
+
+            // Trigger multiple splits
+            for (let i = 0; i < 500; i++) {
+                manager.handleInsertion(10000 + i, 1);
+            }
+
+            const bands = manager.getBands();
+            const stats = manager.getStats();
+
+            // Verify no gaps in coverage
+            expect(bands[0].startIndex).toBe(0);
+            for (let i = 1; i < bands.length; i++) {
+                expect(bands[i].startIndex).toBe(bands[i - 1].endIndex);
+            }
+
+            // Verify total coverage matches what the manager reports
+            const totalCoverage = bands.reduce((acc, band) => acc + (band.endIndex - band.startIndex), 0);
+            expect(totalCoverage).toBe(stats.dataSize);
+
+            // Verify last band ends at dataSize
+            expect(bands[bands.length - 1].endIndex).toBe(stats.dataSize);
+        });
     });
 });

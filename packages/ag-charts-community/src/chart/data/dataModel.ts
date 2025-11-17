@@ -8,7 +8,7 @@ import { DomainManager } from './data-model/domain/domainManager';
 import { DataExtractor } from './data-model/extraction/dataExtractor';
 import { DataGrouper } from './data-model/grouping/dataGrouper';
 import { IncrementalProcessor } from './data-model/incremental/incrementalProcessor';
-import { BandManager } from './data-model/reducers/bandManager';
+import { BandManager, type BandManagerStats } from './data-model/reducers/bandManager';
 import { createReducerContext, evaluateReducerRange } from './data-model/reducers/reducerUtils';
 import { isScoped } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
@@ -582,6 +582,9 @@ export class DataModel<
         }
         bandManager.initializeBands(context.rawData.length);
 
+        // Capture stats before processing bands
+        bandManager.captureStatsBeforeProcessing();
+
         const reducerFn = def.reducer();
         const bandResults: any[] = [];
         for (const band of bandManager.getBands()) {
@@ -636,8 +639,17 @@ export class DataModel<
      * Only called when debug mode is enabled.
      */
     private collectOptimizationMetadata(processedData: ProcessedData<D>, pathTaken: 'full-process' | 'reprocess') {
-        // Preserve existing domainBanding metadata if it exists (set by collectDomainBandingMetadata)
+        // Preserve existing domainBanding metadata (set by collectDomainBandingMetadata)
         const existingDomainBanding = processedData.optimizations?.domainBanding;
+
+        // Collect reducer banding metadata if reducers exist
+        const reducerBands = processedData[REDUCER_BANDS];
+        if (this.reducers.length > 0 && reducerBands) {
+            this.collectReducerBandingMetadata(processedData, reducerBands);
+        }
+
+        // Capture reducerBanding metadata after collection
+        const reducerBanding = processedData.optimizations?.reducerBanding;
 
         processedData.optimizations = {
             performance: {
@@ -645,6 +657,7 @@ export class DataModel<
                 pathTaken,
             },
             ...(existingDomainBanding && { domainBanding: existingDomainBanding }),
+            ...(reducerBanding && { reducerBanding }),
         };
 
         // Track reprocessing optimization
@@ -706,6 +719,60 @@ export class DataModel<
                 totalGroupCount: processedData.groups.length,
             };
         }
+    }
+
+    /**
+     * Collects reducer banding metadata for debugging purposes.
+     * Tracks which reducers used banding and their performance stats.
+     */
+    private collectReducerBandingMetadata(
+        processedData: ProcessedData<D>,
+        reducerBands: Map<ReducerBandKey, BandManager>
+    ) {
+        if (this.reducers.length === 0) return;
+
+        processedData.optimizations ??= {};
+
+        const reducerMetadata: Array<{
+            property: string;
+            applied: boolean;
+            reason?: string;
+            stats?: BandManagerStats;
+        }> = [];
+
+        for (const def of this.reducers) {
+            const bandManager = reducerBands.get(def.property as ReducerBandKey);
+            const isBanded = this.shouldUseReducerBanding(def, processedData) && bandManager != null;
+
+            let reason: string | undefined;
+            if (!isBanded) {
+                if (def.supportsBanding !== true) {
+                    reason = 'reducer does not support banding';
+                } else if (processedData.type !== 'ungrouped') {
+                    reason = 'grouped data not supported';
+                } else if (def.combineResults === undefined) {
+                    reason = 'missing combineResults function';
+                } else {
+                    reason = 'banding not applied';
+                }
+            }
+
+            let stats: BandManagerStats | undefined;
+            if (isBanded && bandManager) {
+                stats = bandManager.getStats();
+            }
+
+            reducerMetadata.push({
+                property: String(def.property),
+                applied: isBanded,
+                reason,
+                stats,
+            });
+        }
+
+        processedData.optimizations.reducerBanding = {
+            reducers: reducerMetadata,
+        };
     }
 
     buildAccessors(defs: Iterable<{ property: string }>) {

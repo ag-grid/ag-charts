@@ -259,6 +259,9 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                 }
             }
 
+            // Capture stats before processing bands
+            bandManager.captureStatsBeforeProcessing();
+
             const reducerFn = def.reducer();
             const bandResults: any[] = [];
 
