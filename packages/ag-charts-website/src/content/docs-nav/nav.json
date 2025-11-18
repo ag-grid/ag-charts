@@ -83,7 +83,28 @@
             "children": [
                 {
                     "type": "group",
-                    "title": "Axis Configuration",
+                    "title": "Data",
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Data Configuration",
+                            "path": "data-configuration"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Large Datasets",
+                            "path": "large-dataset-interactivity"
+                        },
+                        {
+                            "type": "item",
+                            "title": "High-Frequency Update",
+                            "path": "high-frequency-data"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "title": "Axes",
                     "children": [
                         {
                             "type": "item",
@@ -190,16 +211,6 @@
                             "type": "item",
                             "title": "Accessibility",
                             "path": "accessibility"
-                        },
-                        {
-                            "type": "item",
-                            "title": "High-Frequency Data",
-                            "path": "high-frequency-data"
-                        },
-                        {
-                            "type": "item",
-                            "title": "Large Datasets",
-                            "path": "large-dataset-interactivity"
                         },
                         {
                             "type": "item",
