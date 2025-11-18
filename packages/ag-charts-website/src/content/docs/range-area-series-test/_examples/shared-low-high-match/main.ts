@@ -67,7 +67,7 @@ const series5Style: ItemStyle = {
 const series6Style_shared: ItemStyle = {
     marker: {
         itemStyler: (p: AgRangeAreaSeriesItemStylerParams<DatumType, unknown>) => {
-            if (p.itemId === 'low') {
+            if (p.itemType === 'low') {
                 return { size: 18, shape: 'heart' };
             } else {
                 return { size: 18, shape: 'plus' };

@@ -53,7 +53,8 @@ type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] 
 
 interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    readonly itemId: AgWaterfallSeriesItemType;
+    readonly itemId?: never;
+    readonly itemType: AgWaterfallSeriesItemType;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -412,7 +413,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             pointData.push(pathPoint);
 
-            const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
+            const itemType = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
             const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(
                 value,
                 datum,
@@ -421,7 +422,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 yDomain,
                 label,
                 {
-                    itemId,
+                    itemType,
                     value,
                     datum,
                     xKey,
@@ -435,7 +436,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const nodeDatum: WaterfallNodeDatum = {
                 index: datumIndex,
                 series: this,
-                itemId: seriesItemType,
+                itemType: seriesItemType,
                 datum,
                 datumIndex,
                 cumulativeValue: cumulativeValue ?? 0,
@@ -553,15 +554,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         nodeDatum: Pick<WaterfallNodeDatum, 'datum' | 'datumIndex'> | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
-        itemId: AgWaterfallSeriesItemType = 'total'
+        itemType: AgWaterfallSeriesItemType = 'total'
     ): Required<AgWaterfallSeriesStyle> {
         const { properties } = this;
         const { datumIndex = 0, datum } = nodeDatum ?? {};
 
-        const propertyItemId = itemId === 'subtotal' ? 'total' : itemId;
+        const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
         const item = properties.item[propertyItemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemType));
 
         const { itemStyler } = item;
 
@@ -571,7 +572,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const params = this.makeItemStylerParams(itemId, datumIndex, datum, isHighlight, style);
+                    const params = this.makeItemStylerParams(itemType, datumIndex, datum, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`, 'item', propertyItemId],
                         this.callWithContext(itemStyler, params)
@@ -587,7 +588,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private makeItemStylerParams(
-        itemId: AgWaterfallSeriesItemType,
+        itemType: AgWaterfallSeriesItemType,
         datumIndex: number,
         datum: unknown,
         isHighlight: boolean,
@@ -602,7 +603,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         return {
             seriesId,
-            itemId,
+            itemType,
             datum,
             xKey,
             yKey,
@@ -621,7 +622,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemId);
+            datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemType);
         });
     }
 
@@ -644,7 +645,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection.each((rect, datum) => {
             const style =
                 datum.style ??
-                contextNodeData.styles[datum.itemId][
+                contextNodeData.styles[datum.itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
             applyShapeStyle(rect, style, fillBBox);
@@ -666,7 +667,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const data = labelData.filter((labelDatum) => {
-            const { label } = this.getItemConfig(labelDatum.itemId);
+            const { label } = this.getItemConfig(labelDatum.itemType);
             return label.enabled;
         });
 
@@ -681,7 +682,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {
-            itemId: 'positive',
+            itemType: 'positive',
             xKey: this.properties.xKey,
             xName: this.properties.xName ?? this.properties.xName,
             yKey: this.properties.yKey,
@@ -689,11 +690,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         labelSelection.each((textNode, datum) => {
-            params.itemId = datum.itemId;
+            params.itemType = datum.itemType;
             const styleOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
             textNode.visible = true;
             textNode.fillOpacity = styleOpacity;
-            const label = this.getItemConfig(datum.itemId).label;
+            const label = this.getItemConfig(datum.itemType).label;
             updateLabelNode(this, textNode, params, label, datum.label, isHighlight, activeHighlight);
         });
     }
@@ -739,7 +740,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
-        const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemId);
+        const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -755,7 +756,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     },
                 ],
             },
-            { seriesId, datum, title: yName, itemId: seriesItemType, xKey, xName, yKey, yName, ...format }
+            { seriesId, datum, title: yName, itemType: seriesItemType, xKey, xName, yKey, yName, ...format }
         );
     }
 
@@ -791,7 +792,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             legendData.push({
                 legendType: 'category',
                 id,
-                itemId: item,
+                itemId: createDatumId(item),
                 seriesId: id,
                 enabled: true,
                 label: { text: name ?? capitalise(item) },

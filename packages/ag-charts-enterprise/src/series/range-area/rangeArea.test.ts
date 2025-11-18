@@ -1291,7 +1291,7 @@ describe('RangeAreaSeries', () => {
         });
     });
 
-    describe('AG-15773 itemStyler itemId', () => {
+    describe('AG-15773 itemStyler itemType', () => {
         it('should render high and low markers differently', async () => {
             type D = { month: string; low: number; high: number };
             const options: AgChartOptions<D> = {
@@ -1319,7 +1319,7 @@ describe('RangeAreaSeries', () => {
                         marker: {
                             size: 25,
                             itemStyler: (params) => {
-                                switch (params.itemId) {
+                                switch (params.itemType) {
                                     case 'high':
                                         return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
                                     case 'low':

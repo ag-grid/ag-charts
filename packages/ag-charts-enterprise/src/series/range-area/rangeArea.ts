@@ -21,7 +21,12 @@ import { extent, findMinMax, mergeDefaults, simpleMemorize2 } from 'ag-charts-co
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
 import { type RangeAreaMarkerDatum, RangeAreaProperties, type RangeAreaSeriesParams } from './rangeAreaProperties';
-import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
+import {
+    type RangeAreaContext,
+    type RangeAreaItemId,
+    type RangeAreaLabelDatum,
+    prepareRangeAreaPathAnimation,
+} from './rangeAreaUtil';
 
 const {
     valueProperty,
@@ -273,12 +278,12 @@ export class RangeAreaSeries extends BaseSeries {
 
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined = spanPoints.at(-1);
             if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
-                const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
-                    const { size } = item[id].marker;
+                const appendMarker = (itemType: 'high' | 'low', yValue: any, y: number) => {
+                    const { size } = item[itemType].marker;
                     markerData.push({
                         index: datumIndex,
                         series: this,
-                        itemId: id,
+                        itemType,
                         datum,
                         datumIndex,
                         midPoint: { x, y },
@@ -297,7 +302,7 @@ export class RangeAreaSeries extends BaseSeries {
                         value: yValue,
                         yLowValue,
                         yHighValue,
-                        itemId: id,
+                        itemType,
                         inverted,
                         datum,
                         series: this,
@@ -415,9 +420,9 @@ export class RangeAreaSeries extends BaseSeries {
             itemId: `${yLowKey}-${yHighKey}`,
             labelData,
             nodeData: markerData,
-            fillData: { itemId: 'high', spans: highSpans, phantomSpans: lowSpans },
-            highStrokeData: { itemId: 'high', spans: highSpans },
-            lowStrokeData: { itemId: 'low', spans: lowSpans },
+            fillData: { itemType: 'high', spans: highSpans, phantomSpans: lowSpans },
+            highStrokeData: { itemType: 'high', spans: highSpans },
+            lowStrokeData: { itemType: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
             styles: {
@@ -435,7 +440,7 @@ export class RangeAreaSeries extends BaseSeries {
         datumIndex,
         point,
         value,
-        itemId,
+        itemType,
         inverted,
         datum,
         series,
@@ -445,7 +450,7 @@ export class RangeAreaSeries extends BaseSeries {
         value: any;
         yLowValue: any;
         yHighValue: any;
-        itemId: AgRangeAreaSeriesItemType;
+        itemType: AgRangeAreaSeriesItemType;
         inverted: boolean;
         datum: any;
         series: RangeAreaSeries;
@@ -454,9 +459,9 @@ export class RangeAreaSeries extends BaseSeries {
         const { placement } = label;
         const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
-        let actualItemId = itemId;
+        let actualItemId = itemType;
         if (inverted) {
-            actualItemId = itemId === 'low' ? 'high' : 'low';
+            actualItemId = itemType === 'low' ? 'high' : 'low';
         }
         const direction =
             (placement === 'outside' && actualItemId === 'high') || (placement === 'inside' && actualItemId === 'low')
@@ -469,17 +474,17 @@ export class RangeAreaSeries extends BaseSeries {
             x: point.x,
             y: point.y + spacing * direction,
             series,
-            itemId,
+            itemType,
             datum,
             datumIndex,
             text: this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
                 value,
                 datum,
-                itemId === 'high' ? yHighKey : yLowKey,
+                itemType === 'high' ? yHighKey : yLowKey,
                 'y',
                 yDomain,
                 label,
-                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName }
+                { value, datum, itemType, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName }
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
@@ -643,7 +648,7 @@ export class RangeAreaSeries extends BaseSeries {
                 // Markers only on 1 line (filter out the nodeDatums that we need).
                 resolvedNodeData = [];
                 for (const datum of nodeData) {
-                    if (rules[datum.itemId].marker.enabled) {
+                    if (rules[datum.itemType].marker.enabled) {
                         resolvedNodeData.push(datum);
                     }
                 }
@@ -667,16 +672,16 @@ export class RangeAreaSeries extends BaseSeries {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const stylerStyle = this.getStyle(isHighlight, highlightState);
             const { fill, fillOpacity, item } = stylerStyle;
-            const { stroke, strokeWidth, strokeOpacity } = item[datum.itemId];
-            const { marker } = this.properties.item[datum.itemId];
+            const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
+            const { marker } = this.properties.item[datum.itemType];
 
-            const params = this.makeItemStylerParams(datum.itemId);
+            const params = this.makeItemStylerParams(datum.itemType);
             datum.style = this.getMarkerStyle(
                 marker,
                 datum,
                 params,
-                { isHighlight, highlightState, resolveMarkerSubPath: ['item', datum.itemId, 'marker'] },
-                stylerStyle.item[datum.itemId].marker,
+                { isHighlight, highlightState, resolveMarkerSubPath: ['item', datum.itemType, 'marker'] },
+                stylerStyle.item[datum.itemType].marker,
                 {
                     fill,
                     fillOpacity,
@@ -703,10 +708,12 @@ export class RangeAreaSeries extends BaseSeries {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
-            const { itemId } = datum;
+            const { itemType } = datum;
             const style =
                 datum.style ??
-                contextNodeData.styles[itemId][this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+                contextNodeData.styles[itemType][
+                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
+                ];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
 
@@ -885,16 +892,16 @@ export class RangeAreaSeries extends BaseSeries {
         } satisfies ResultRules;
     }
 
-    private makeItemStylerParams(itemId: AgRangeAreaSeriesItemType): RangeAreaSeriesParams {
+    private makeItemStylerParams(itemType: AgRangeAreaSeriesItemType): RangeAreaSeriesParams {
         const { xKey, yLowKey, yHighKey } = this.properties;
-        return { xKey, yLowKey, yHighKey, itemId };
+        return { xKey, yLowKey, yHighKey, itemType };
     }
 
     override getTooltipContent(
         datumIndex: number,
         removeThisDatum: RangeAreaMarkerDatum | undefined
     ): _ModuleSupport.TooltipContent | undefined {
-        const itemId: AgRangeAreaSeriesItemType = removeThisDatum?.itemId ?? 'high';
+        const itemType: AgRangeAreaSeriesItemType = removeThisDatum?.itemType ?? 'high';
 
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = properties;
@@ -911,13 +918,13 @@ export class RangeAreaSeries extends BaseSeries {
         if (xValue == null) return;
 
         const stylerStyle = this.getStyle(false);
-        const params = this.makeItemStylerParams(itemId);
+        const params = this.makeItemStylerParams(itemType);
         const format = this.getMarkerStyle(
-            this.properties.item[itemId].marker,
+            this.properties.item[itemType].marker,
             { datumIndex, datum },
             params,
-            { isHighlight: false, resolveMarkerSubPath: ['item', itemId, 'marker'] },
-            stylerStyle.item[itemId].marker
+            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
+            stylerStyle.item[itemType].marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
@@ -941,7 +948,7 @@ export class RangeAreaSeries extends BaseSeries {
                 seriesId,
                 datum,
                 title: yName,
-                itemId,
+                itemType,
                 xName,
                 yName,
                 yLowKey,
@@ -991,7 +998,7 @@ export class RangeAreaSeries extends BaseSeries {
 
         const { yLowKey, yHighKey, yName, yLowName, yHighName, legendItemName, showInLegend } = this.properties;
         const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
-        const itemId = `${yLowKey}-${yHighKey}`;
+        const itemId: RangeAreaItemId = `${yLowKey}-${yHighKey}`;
         return [
             {
                 legendType: 'category',
@@ -1136,13 +1143,13 @@ export class RangeAreaSeries extends BaseSeries {
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
         const stylerStyle = this.getStyle(false);
-        const params = this.makeItemStylerParams(datum.itemId);
+        const params = this.makeItemStylerParams(datum.itemType);
 
         return this.getMarkerStyle(
-            this.properties.item[datum.itemId].marker,
+            this.properties.item[datum.itemType].marker,
             datum,
             params,
-            { isHighlight: true, resolveMarkerSubPath: ['item', datum.itemId, 'marker'] },
+            { isHighlight: true, resolveMarkerSubPath: ['item', datum.itemType, 'marker'] },
             undefined,
             stylerStyle
         );

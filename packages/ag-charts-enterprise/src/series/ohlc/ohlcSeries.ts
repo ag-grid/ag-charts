@@ -27,7 +27,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemId);
+            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemType);
         });
     }
 
@@ -59,7 +59,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
 
             const style =
                 datum.style ??
-                contextNodeData.styles[datum.itemId][
+                contextNodeData.styles[datum.itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
 

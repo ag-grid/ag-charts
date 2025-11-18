@@ -16,7 +16,8 @@ import type { InternalAgColorType, SizedPoint } from 'ag-charts-core';
 import { BaseProperties, Property } from 'ag-charts-core';
 
 export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
-    readonly itemId: AgRangeAreaSeriesItemType;
+    readonly itemId?: never;
+    readonly itemType: AgRangeAreaSeriesItemType;
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
@@ -35,7 +36,7 @@ type RangeAreaSeriesLineOptions = NonNullable<RangeAreaSeriesItemOptions[AgRange
 
 export type RangeAreaSeriesParams = Pick<
     AgRangeAreaSeriesItemStylerParams<unknown, unknown>,
-    'xKey' | 'yLowKey' | 'yHighKey' | 'itemId'
+    'xKey' | 'yLowKey' | 'yHighKey' | 'itemType'
 >;
 
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {

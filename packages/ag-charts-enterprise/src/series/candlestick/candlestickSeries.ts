@@ -31,7 +31,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemId);
+            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemType);
         });
     }
 
@@ -54,7 +54,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
             const baseStyle = datum.isRising ? up : down;
             const style =
                 datum.style ??
-                contextNodeData.styles[datum.itemId][
+                contextNodeData.styles[datum.itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
 

@@ -50,8 +50,8 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, T
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
-    /** The Id to distinguish the type of datum. This can be `high` or `low`. */
-    itemId: AgRangeAreaSeriesItemType;
+    /** The type of datum. This can be `high` or `low`. */
+    itemType: AgRangeAreaSeriesItemType;
 }
 
 export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
@@ -59,8 +59,8 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
         DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         Required<AgSeriesMarkerStyle> {
-    /** The Id to distinguish the type of datum. This can be `high` or `low`. */
-    itemId: AgRangeAreaSeriesItemType;
+    /** The type of datum. This can be `high` or `low`. */
+    itemType: AgRangeAreaSeriesItemType;
 }
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>

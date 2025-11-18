@@ -87,7 +87,7 @@ export abstract class OhlcSeriesBaseProperties<
         Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 
     abstract getStyle(
-        itemId: 'up' | 'down'
+        itemType: 'up' | 'down'
     ):
         | (Required<AgOhlcSeriesItemOptions> & { opacity: number })
         | (Required<AgCandlestickSeriesItemOptions> & { opacity: number });
@@ -103,8 +103,8 @@ export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesO
     @Property
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions>;
 
-    getStyle(itemId: 'up' | 'down'): Required<AgOhlcSeriesItemOptions> & { opacity: number } {
-        const { strokeWidth, strokeOpacity, stroke, lineDash, lineDashOffset } = this.item[itemId];
+    getStyle(itemType: 'up' | 'down'): Required<AgOhlcSeriesItemOptions> & { opacity: number } {
+        const { strokeWidth, strokeOpacity, stroke, lineDash, lineDashOffset } = this.item[itemType];
         return {
             stroke,
             strokeWidth,

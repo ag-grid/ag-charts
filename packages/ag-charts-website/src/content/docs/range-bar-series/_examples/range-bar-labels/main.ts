@@ -19,8 +19,8 @@ const options: AgChartOptions = {
             yHighKey: 'high',
             label: {
                 padding: 10,
-                formatter: ({ itemId, value }) => {
-                    return `£${value.toFixed(0)}K ${itemId === 'low' ? '↓' : '↑'}`;
+                formatter: ({ itemType, value }) => {
+                    return `£${value.toFixed(0)}K ${itemType === 'low' ? '↓' : '↑'}`;
                 },
             },
         },
