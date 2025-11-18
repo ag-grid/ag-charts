@@ -438,9 +438,9 @@ export class DataModel<
             processedData,
             dataSets,
             getProcessValue,
-            (pd, sc) => this.reprocessGroupProcessors(pd, sc),
-            (pd) => this.recomputeDomains(pd),
-            (pd, mode) => this.collectOptimizationMetadata(pd, mode)
+            this.reprocessGroupProcessors.bind(this),
+            this.recomputeDomains.bind(this),
+            this.collectOptimizationMetadata.bind(this)
         );
     }
 

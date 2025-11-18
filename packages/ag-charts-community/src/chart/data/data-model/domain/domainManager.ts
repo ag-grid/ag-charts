@@ -104,7 +104,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             (scope) => processedData.invalidData?.get(scope)
         );
 
-        processedData.domain.keys = this.ctx.keys.map((keyDef) => {
+        processedData.domain.keys = this.ctx.keys.map(function mapDomainKeys(keyDef) {
             const domain = keyDomains.get(keyDef)!;
             const result = domain.getDomain();
             // Ignore starting values
@@ -114,7 +114,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             return result;
         });
 
-        processedData.domain.values = this.ctx.values.map((valueDef) => {
+        processedData.domain.values = this.ctx.values.map(function mapDomainValues(valueDef) {
             const domain = valueDomains.get(valueDef)!;
             const result = domain.getDomain();
             // Ignore starting values

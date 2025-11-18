@@ -305,7 +305,7 @@ export abstract class CartesianSeries<
                     skip: 'ready',
                 },
             },
-            () => this.checkProcessedDataAnimatable()
+            this.checkProcessedDataAnimatable.bind(this)
         );
 
         this.cleanup.register(
@@ -398,16 +398,16 @@ export abstract class CartesianSeries<
         const resize = this.checkResize(seriesRect);
         const itemHighlighted = this.updateHighlightSelection();
 
-        this.contentGroup.batchedUpdate(() => {
-            const dataChanged = this.updateSelections();
-            const segments = this.contextNodeData?.segments;
-            if (this.opts.segmentedDataNodes) {
-                this.dataNodeGroup.segments = segments ?? this.dataNodeGroup.segments;
+        const series = this;
+        this.contentGroup.batchedUpdate(function updateSelections() {
+            const dataChanged = series.updateSelections();
+            const segments = series.contextNodeData?.segments;
+            if (series.opts.segmentedDataNodes) {
+                series.dataNodeGroup.segments = segments ?? series.dataNodeGroup.segments;
             } else {
-                this.dataNodeGroup.segments = undefined;
+                series.dataNodeGroup.segments = undefined;
             }
-
-            this.updateNodes(itemHighlighted, resize || dataChanged);
+            series.updateNodes(itemHighlighted, resize || dataChanged);
         });
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
