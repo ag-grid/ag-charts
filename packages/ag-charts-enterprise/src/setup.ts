@@ -1,13 +1,15 @@
 import { type AgChartOptions } from 'ag-charts-community';
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 
+import { Background } from './features/background/background';
+import { Foreground } from './features/foreground/foreground';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
-import { AllCommunityAndEnterpriseModules } from './module-bundles/all-with-community';
+import { AllEnterpriseModule } from './module-bundles/all';
 import styles from './styles.css';
 
 export function setupEnterpriseModules() {
-    ModuleRegistry.registerModules(AllCommunityAndEnterpriseModules);
+    ModuleRegistry.registerModules(AllEnterpriseModule);
 
     enterpriseRegistry.styles = styles;
     enterpriseRegistry.licenseManager = (options: AgChartOptions) =>
@@ -15,4 +17,6 @@ export function setupEnterpriseModules() {
             options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document)
         );
     enterpriseRegistry.injectWatermark = injectWatermark;
+    enterpriseRegistry.createBackground = (ctx) => new Background(ctx);
+    enterpriseRegistry.createForeground = (ctx) => new Foreground(ctx);
 }

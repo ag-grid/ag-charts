@@ -1,14 +1,9 @@
-import { type AxisModuleDefinition, constant, ratio, required, union } from 'ag-charts-core';
+import { type AxisModuleDefinition } from 'ag-charts-core';
 import type { AgCategoryAxisOptions } from 'ag-charts-types';
 
-import {
-    cartesianAxisBandHighlightOptions,
-    cartesianAxisCrosshairOptions,
-    cartesianAxisLabelOptionsDefs,
-    cartesianAxisOptionsDefs,
-    commonAxisIntervalOptionsDefs,
-} from '../../chart/axesOptionsDefs';
+import { categoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { CategoryAxis } from '../../chart/axis/categoryAxis';
+import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
 
 export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
@@ -16,21 +11,9 @@ export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
     name: 'category',
     chartType: 'cartesian',
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
-    options: {
-        ...cartesianAxisOptionsDefs,
-        type: required(constant('category')),
-        label: cartesianAxisLabelOptionsDefs,
-        paddingInner: ratio,
-        paddingOuter: ratio,
-        groupPaddingInner: ratio,
-        crosshair: cartesianAxisCrosshairOptions(),
-        bandHighlight: cartesianAxisBandHighlightOptions,
-        interval: {
-            ...commonAxisIntervalOptionsDefs,
-            placement: union('on', 'between'),
-        },
-    },
+    options: categoryAxisOptionsDefs,
 
     create: (ctx) => new CategoryAxis(ctx),
 };

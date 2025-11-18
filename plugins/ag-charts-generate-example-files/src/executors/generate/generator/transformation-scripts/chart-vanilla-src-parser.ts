@@ -77,7 +77,7 @@ export function parser({
     } else {
         const isEnterprise = exampleSettings.enterprise;
         const packageName = isEnterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
-        const moduleBundle = isEnterprise ? 'AllCommunityAndEnterpriseModules' : 'AllCommunityModules';
+        const moduleBundle = isEnterprise ? 'AllEnterpriseModule' : 'AllCommunityModule';
         const moduleImports = ['ModuleRegistry', moduleBundle];
 
         addImport(bindings, packageName, moduleImports);

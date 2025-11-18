@@ -7,10 +7,12 @@ export interface LicenseManager {
     getLicenseDetails: (licenseKey: string) => object;
 }
 
-interface EnterpriseModuleOptions {
+interface EnterpriseRegistryOptions {
     styles?: string;
     licenseManager?: (options: AgChartOptions) => LicenseManager;
     injectWatermark?: (domManager: any, text: string) => void;
+    createBackground?: (ctx: any) => any;
+    createForeground?: (ctx: any) => any;
 }
 
-export const enterpriseRegistry: EnterpriseModuleOptions = {};
+export const enterpriseRegistry: EnterpriseRegistryOptions = {};

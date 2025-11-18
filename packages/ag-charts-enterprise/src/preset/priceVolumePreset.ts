@@ -1,3 +1,4 @@
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 import { Logger, mergeDefaults } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
@@ -20,9 +21,10 @@ import type {
     DatumDefault,
 } from 'ag-charts-types';
 
-import type { ChartTheme } from '../../chart/themes/chartTheme';
-import { SAFE_STROKE_FILL_OPERATION } from '../../chart/themes/util';
 import { annotationsTheme } from './priceVolumePresetTheme';
+
+type ChartTheme = _Theme.ChartTheme;
+const { SAFE_STROKE_FILL_OPERATION } = _ModuleSupport;
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
 

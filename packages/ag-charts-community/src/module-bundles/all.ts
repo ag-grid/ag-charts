@@ -1,25 +1,13 @@
-import { type ModuleDefinition, ModuleRegistry } from 'ag-charts-core';
+import { type ModuleDefinition } from 'ag-charts-core';
 
 import { SparklinePresetModule } from '../api/preset/presetModules';
-import { GaugePresetModule, PriceVolumePresetModule } from '../api/preset/presetModules';
-import { StandaloneChartModule, TopologyChartModule } from '../chart/enterpriseChartModules';
-import { AllCartesianCommunityModules } from './cartesian';
-import { AllPolarCommunityModules } from './polar';
+import { AllCartesianModule } from './cartesian';
+import { AllPolarModule } from './polar';
 
-export const AllCommunityModules: ModuleDefinition[] = [
-    ...AllCartesianCommunityModules,
-    ...AllPolarCommunityModules,
-
-    // Enterprise placeholders
-    StandaloneChartModule,
-    TopologyChartModule,
+export const AllCommunityModule: ModuleDefinition[] = [
+    AllCartesianModule,
+    AllPolarModule,
 
     // Presets
-    PriceVolumePresetModule,
-    GaugePresetModule,
     SparklinePresetModule,
-];
-
-export function registerAllCommunityModules(): void {
-    ModuleRegistry.registerModules(AllCommunityModules);
-}
+].flat();

@@ -2,6 +2,7 @@ import { type AgLinearGaugePreset, VERSION, _ModuleSupport } from 'ag-charts-com
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
+import { GaugePresetModule } from '../../preset/gaugePresetModule';
 import { LinearGaugeSeries } from './linearGaugeSeries';
 
 const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
@@ -78,11 +79,12 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
     },
 };
 
-export const LinearGaugeSeriesModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
+export const LinearGaugeModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
     type: 'series',
     name: 'linear-gauge',
     chartType: 'standalone',
     enterprise: true,
+    dependencies: [GaugePresetModule],
     version: VERSION,
 
     options: _ModuleSupport.linearGaugeSeriesOptionsDef,

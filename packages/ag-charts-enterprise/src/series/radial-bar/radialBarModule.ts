@@ -1,4 +1,4 @@
-import { type AgRadialBarSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialBarSeriesOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RadialBarSeries } from './radialBarSeries';
@@ -15,6 +15,7 @@ export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOpti
     stackable: true,
     groupable: true,
     version: VERSION,
+    dependencies: [PolarChartModule],
 
     options: radialBarSeriesOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, radius: { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY } },

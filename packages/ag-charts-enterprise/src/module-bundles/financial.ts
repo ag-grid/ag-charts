@@ -1,3 +1,4 @@
+import { BarSeriesModule, LineSeriesModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
 import { AnimationModule } from '../features/animation/animationModule';
@@ -10,16 +11,21 @@ import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { ErrorBarsModule } from '../features/error-bar/errorBarModule';
 import { NavigatorModule } from '../features/navigator/navigatorModule';
 import { RangesModule } from '../features/ranges/rangesModule';
-import { StatusBarModule } from '../features/status-bar/statusBarModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
-import { AllCartesianAxesModule } from './cartesian-axes';
-import { AllCartesianSeriesModule } from './cartesian-series';
+import { PriceVolumePresetModule } from '../preset/priceVolumePresetModules';
+import { CandlestickSeriesModule } from '../series/candlestick/candlestickModule';
+import { OhlcSeriesModule } from '../series/ohlc/ohlcModule';
+import { RangeBarSeriesModule } from '../series/range-bar/rangeBarModule';
 
-export const AllCartesianModule: ModuleDefinition[] = [
-    AllCartesianAxesModule,
-    AllCartesianSeriesModule,
+export const FinancialChartModule: ModuleDefinition[] = [
+    PriceVolumePresetModule,
+    BarSeriesModule,
+    LineSeriesModule,
+    CandlestickSeriesModule,
+    OhlcSeriesModule,
+    RangeBarSeriesModule,
 
     AnimationModule,
     AnnotationsModule,
@@ -32,7 +38,6 @@ export const AllCartesianModule: ModuleDefinition[] = [
     GradientLegendModule,
     NavigatorModule,
     RangesModule,
-    StatusBarModule,
     SyncModule,
     ZoomModule,
-].flat();
+];

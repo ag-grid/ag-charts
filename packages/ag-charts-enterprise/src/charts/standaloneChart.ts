@@ -12,8 +12,7 @@ export class StandaloneChart extends Chart {
 
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
-        const seriesArea = this.modulesManager.getModule('seriesArea') as _ModuleSupport.SeriesArea;
-        const seriesRect = ctx.layoutBox.clone().shrink(seriesArea.getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;

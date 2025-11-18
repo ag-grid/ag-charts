@@ -4,7 +4,7 @@ import sharp from 'sharp';
 import { Canvas, type CanvasRenderingContext2D } from 'skia-canvas';
 
 import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
-import { AllCommunityAndEnterpriseModules, ModuleRegistry } from 'ag-charts-enterprise';
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
 import { mockCanvas } from 'ag-charts-test';
 
@@ -20,7 +20,7 @@ import {
 import { getChartLayout } from './getChartLayout';
 import { patchOptions } from './patchOptions';
 
-ModuleRegistry.registerModules(AllCommunityAndEnterpriseModules);
+ModuleRegistry.registerModules(AllEnterpriseModule);
 
 interface Params {
     example: GeneratedContents;

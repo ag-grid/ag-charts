@@ -1,4 +1,4 @@
-import { type AgRangeAreaSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgRangeAreaSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RangeAreaSeries } from './rangeArea';
@@ -13,6 +13,7 @@ export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOpti
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: rangeAreaSeriesOptionsDef,
     predictAxis: _ModuleSupport.predictCartesianTimeAxis,

@@ -13,6 +13,16 @@ import {
 
 const registeredModules: Map<string, ModuleDefinition> = new Map();
 
+function registerModuleDefinition(def: ModuleDefinition): void {
+    registeredModules.set(def.name, def);
+
+    if (def.dependencies) {
+        for (const dependency of def.dependencies) {
+            register(dependency);
+        }
+    }
+}
+
 export function register(
     def:
         | ModuleDefinition
@@ -29,14 +39,14 @@ export function register(
 
     if (!existingDefinition) {
         // New registration case.
-        registeredModules.set(def.name, def);
+        registerModuleDefinition(def);
         return;
     }
 
     if (existingDefinition.version === def.version) {
         // Enterprise module overwriting community module case.
         if (!existingDefinition.enterprise && def.enterprise) {
-            registeredModules.set(def.name, def);
+            registerModuleDefinition(def);
         }
         return; // Module already registered with the same version - ignore.
     }
@@ -55,8 +65,8 @@ export function register(
     );
 }
 
-export function registerModules(definitions: ModuleDefinition[]): void {
-    for (const definition of definitions) {
+export function registerModules(definitions: Array<ModuleDefinition | ModuleDefinition[]>): void {
+    for (const definition of definitions.flat()) {
         register(definition);
     }
 }

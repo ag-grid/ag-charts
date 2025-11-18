@@ -1,6 +1,7 @@
 import { type AgSankeySeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SankeySeries } from './sankeySeries';
 import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
 
@@ -11,6 +12,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
     enterprise: true,
     solo: true,
     version: VERSION,
+    dependencies: [StandaloneChartModule],
 
     options: sankeySeriesOptionsDef,
     themeTemplate: {

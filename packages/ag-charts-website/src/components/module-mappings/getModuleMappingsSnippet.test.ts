@@ -8,13 +8,13 @@ describe('getModuleMappingsSnippet', () => {
     test('formats community modules', () => {
         const snippet = getModuleMappingsSnippet({
             selectedModules: {
-                community: ['CartesianChartModule', 'LineSeriesModule'],
+                community: ['LineSeriesModule'],
                 enterprise: [],
             },
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n              CartesianChartModule,\n              LineSeriesModule,\n          } from 'ag-charts-community';\n\n          ModuleRegistry.registerModules([\n              CartesianChartModule,\n              LineSeriesModule,\n          ]);"
+          "import {\n              ModuleRegistry,\n              LineSeriesModule,\n          } from 'ag-charts-community';\n\n          ModuleRegistry.registerModules([\n              LineSeriesModule,\n          ]);"
         `);
     });
 
@@ -43,13 +43,13 @@ describe('getModuleMappingsSnippet', () => {
     test('spreads bundle helpers', () => {
         const snippet = getModuleMappingsSnippet({
             selectedModules: {
-                community: ['AllCommunityModules'],
+                community: ['AllCommunityModule'],
                 enterprise: ['AllEnterpriseModules'],
             },
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n              AllCommunityModules,\n          } from 'ag-charts-community';\n          import {\n              AllEnterpriseModules,\n          } from 'ag-charts-enterprise';\n\n          ModuleRegistry.registerModules([\n              ...AllCommunityModules,\n              ...AllEnterpriseModules,\n          ]);"
+          "import {\n              ModuleRegistry,\n              AllCommunityModule,\n          } from 'ag-charts-community';\n          import {\n              AllEnterpriseModules,\n          } from 'ag-charts-enterprise';\n\n          ModuleRegistry.registerModules([\n              ...AllCommunityModule,\n              ...AllEnterpriseModules,\n          ]);"
         `);
     });
 
@@ -57,17 +57,17 @@ describe('getModuleMappingsSnippet', () => {
         const snippet = getModuleMappingsSnippet({
             selectedModules: {
                 community: [],
-                enterprise: ['AllCommunityAndEnterpriseModules'],
+                enterprise: ['AllEnterpriseModule'],
             },
         });
 
         expect(snippet).toMatchInlineSnapshot(`
           "import {
               ModuleRegistry,
-              AllCommunityAndEnterpriseModules,
+              AllEnterpriseModule,
           } from 'ag-charts-enterprise';
 
-          ModuleRegistry.registerModules(AllCommunityAndEnterpriseModules);"
+          ModuleRegistry.registerModules(AllEnterpriseModule);"
         `);
     });
 });

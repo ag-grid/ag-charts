@@ -1,4 +1,4 @@
-import { type AgOhlcSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgOhlcSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -59,6 +59,7 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: ohlcSeriesOptionsDef,
     defaultAxes: {

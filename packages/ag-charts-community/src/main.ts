@@ -11,14 +11,11 @@ export * as _ModuleSupport from './module-support';
 export * as _Widget from './widget/exports';
 
 // Module exports
-export { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
+export { SparklinePresetModule } from './api/preset/presetModules';
 
-export { BackgroundModule } from './chart/background/backgroundModule';
 export { CartesianChartModule } from './chart/cartesianChartModule';
-export { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
 export { LegendModule } from './chart/legend/legendModule';
 export { PolarChartModule } from './chart/polarChartModule';
-export { SeriesAreaModule } from './chart/series-area/seriesAreaModule';
 export { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 export { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';
 export { BubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
@@ -37,9 +34,11 @@ export { CategoryAxisModule } from './module/axis-modules/categoryAxisModule';
 export { GroupedCategoryAxisModule } from './module/axis-modules/groupedCategoryAxisModule';
 export { UnitTimeAxisModule } from './module/axis-modules/unitTimeAxisModule';
 
-export { AllCartesianCommunityModules } from './module-bundles/cartesian';
-export { AllPolarCommunityModules } from './module-bundles/polar';
-export { AllCommunityModules } from './module-bundles/all';
+export { AllCommunityModule } from './module-bundles/all';
+export { AllCartesianModule } from './module-bundles/cartesian';
+export { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
+export { AllCartesianSeriesModule } from './module-bundles/cartesian-series';
+export { AllPolarModule } from './module-bundles/polar';
 
 // Undocumented APIs used by Integrated Charts.
 export { AgChartsCommunityModule } from './module-bundles/integrated';

@@ -1,6 +1,7 @@
 import { type AgMapMarkerSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import { type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
 
+import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
 import { mapMarkerSeriesOptionsDef } from './mapMarkerSeriesOptionsDef';
@@ -11,6 +12,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     chartType: 'topology',
     enterprise: true,
     version: VERSION,
+    dependencies: [TopologyChartModule],
 
     options: mapMarkerSeriesOptionsDef,
     themeTemplate: {

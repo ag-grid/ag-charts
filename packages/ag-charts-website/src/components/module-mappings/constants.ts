@@ -4,21 +4,15 @@ interface Option {
     isEnterprise?: boolean;
 }
 
-export type BundleOptionValue =
-    | ''
-    | typeof ALL_COMMUNITY_MODULE
-    | typeof ALL_ENTERPRISE_MODULE
-    | typeof ALL_COMMUNITY_AND_ENTERPRISE_MODULE;
+export type BundleOptionValue = '' | typeof ALL_COMMUNITY_MODULE | typeof ALL_ENTERPRISE_MODULE;
 
-export const ALL_COMMUNITY_MODULE = 'AllCommunityModules';
-export const ALL_ENTERPRISE_MODULE = 'AllEnterpriseModules';
-export const ALL_COMMUNITY_AND_ENTERPRISE_MODULE = 'AllCommunityAndEnterpriseModules';
+export const ALL_COMMUNITY_MODULE = 'AllCommunityModule';
+export const ALL_ENTERPRISE_MODULE = 'AllEnterpriseModule';
 
 export const BUNDLE_OPTIONS: Option[] = [
     { name: 'None', moduleName: '' },
     { name: 'All Community Modules', moduleName: ALL_COMMUNITY_MODULE },
-    { name: 'All Enterprise Modules', moduleName: ALL_ENTERPRISE_MODULE, isEnterprise: true },
-    { name: 'All Modules', moduleName: ALL_COMMUNITY_AND_ENTERPRISE_MODULE, isEnterprise: true },
+    { name: 'All Modules', moduleName: ALL_ENTERPRISE_MODULE, isEnterprise: true },
 ];
 
 export type ChartModuleName = 'Gauge Preset' | 'Price-Volume Preset';

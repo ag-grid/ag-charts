@@ -24,7 +24,6 @@ import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
 import type { LayoutContext } from './layout/layoutManager';
-import type { SeriesArea } from './series-area/seriesArea';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
 
@@ -157,10 +156,9 @@ export class CartesianChart extends Chart {
         this.lastLayoutWidth = ctx.width;
         this.lastLayoutHeight = ctx.height;
 
-        const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
-        const seriesPaddedRect = seriesRect.clone().grow(seriesArea?.getPadding() ?? {});
+        const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.getPadding());
 
-        const clipRect = seriesArea?.clip || clipSeries ? seriesPaddedRect : undefined;
+        const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 
@@ -239,10 +237,10 @@ export class CartesianChart extends Chart {
 
         let overflows = false;
         let clipSeries = false;
+        const seriesAreaPadding = this.seriesArea.getPadding();
 
         for (const dir of directions) {
-            const seriesArea = this.modulesManager.getModule('seriesArea') as SeriesArea;
-            const padding = seriesArea?.getPadding()[dir] ?? 0;
+            const padding = seriesAreaPadding[dir] ?? 0;
             const axis = this.axes.findLast((a) => a.position === dir);
 
             if (axis) {

@@ -1,1 +1,0 @@
-export { OhlcSeriesModule } from './ohlcModule';

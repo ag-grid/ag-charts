@@ -15,23 +15,13 @@ Enterprise projects can import the same registry from `ag-charts-enterprise`, bu
 
 ## Register modules once
 
-Add your registration call near the bootstrap of your application so it runs exactly once. The example below registers the minimum set of community modules required for a cartesian line chart:
+Add your registration call near the bootstrap of your application so it runs exactly once. Series modules automatically bring in their required chart module dependencies, so you only need to register the series and supporting axes. The example below registers the minimum set of community modules required for a cartesian line chart:
 
 ```js
 import { AgCharts, ModuleRegistry } from 'ag-charts-community';
-import {
-    CartesianChartModule,
-    CategoryAxisModule,
-    LineSeriesModule,
-    NumberAxisModule,
-} from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, NumberAxisModule } from 'ag-charts-community';
 
-ModuleRegistry.registerModules([
-    CartesianChartModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    CategoryAxisModule,
-]);
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, CategoryAxisModule]);
 
 AgCharts.create({
     container: document.getElementById('myChart'),
@@ -53,26 +43,25 @@ Run the example below to see the registration pattern in action.
 Enterprise builds register community modules the same way, then add the premium modules they require:
 
 ```js
-import { AllCommunityModules, ModuleRegistry } from 'ag-charts-community';
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 import { AnimationModule, HeatmapSeriesModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([...AllCommunityModules, HeatmapSeriesModule, AnimationModule]);
+ModuleRegistry.registerModules([AllCommunityModule, HeatmapSeriesModule, AnimationModule]);
 ```
 
 ### Module bundles
 
 Use the provided bundles when you want all modules of a given edition:
 
--   `AllCommunityModules` – every community chart, axis, preset and plugin.
--   `AllEnterpriseModules` – enterprise-only modules.
--   `AllCommunityAndEnterpriseModules` – convenience bundle that merges both sets.
+-   `AllCommunityModule` – every community chart, axis, preset and plugin.
+-   `AllEnterpriseModules` – all enterprise and community modules.
 
 Registering a bundle is identical to manual registration:
 
 ```js
-import { AllCommunityModules, ModuleRegistry } from 'ag-charts-community';
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 
-ModuleRegistry.registerModules(AllCommunityModules);
+ModuleRegistry.registerModules([AllCommunityModule]);
 ```
 
 ## Module reference
@@ -86,10 +75,10 @@ Use the interactive matrix below to find the modules required for a given series
 React, Angular and Vue wrappers do **not** register modules automatically. Import the registry from the relevant package and register modules before mounting framework components. For example, in React:
 
 ```jsx format="reactHooks"
-import { ModuleRegistry, AllCommunityModules } from 'ag-charts-community';
+import { ModuleRegistry, AllCommunityModule } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
-ModuleRegistry.registerModules(AllCommunityModules);
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 export function RevenueChart(props) {
     return <AgCharts options={props.options} />;

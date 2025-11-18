@@ -25,7 +25,7 @@ import { ModuleConfiguration } from './ModuleConfiguration';
 import styles from './ModuleMappings.module.scss';
 import { ModuleNameCellRenderer } from './ModuleNameCellRenderer';
 import { ModuleSearch } from './ModuleSearch';
-import { ALL_COMMUNITY_AND_ENTERPRISE_MODULE, ALL_COMMUNITY_MODULE, ALL_ENTERPRISE_MODULE } from './constants';
+import { ALL_COMMUNITY_MODULE, ALL_ENTERPRISE_MODULE } from './constants';
 import { useModuleConfig } from './useModuleConfig';
 
 ModuleRegistry.registerModules([
@@ -83,7 +83,7 @@ export function ModuleMappings({
         }
         const selectedCommunity: string[] = [];
         const selectedEnterprise: string[] = [];
-        if (bundleOption === ALL_ENTERPRISE_MODULE || bundleOption === ALL_COMMUNITY_AND_ENTERPRISE_MODULE) {
+        if (bundleOption === ALL_ENTERPRISE_MODULE) {
             setSelectedModules({
                 community: [],
                 enterprise: [bundleOption],
@@ -121,9 +121,7 @@ export function ModuleMappings({
 
     const onRowSelected = useCallback(
         (event: RowSelectedEvent) => {
-            if (bundleOption === ALL_ENTERPRISE_MODULE || bundleOption === ALL_COMMUNITY_AND_ENTERPRISE_MODULE) {
-                return;
-            }
+            if (bundleOption === ALL_ENTERPRISE_MODULE) return;
 
             const {
                 node,

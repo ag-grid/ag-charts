@@ -1,6 +1,7 @@
 import { type AgTreemapSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { TreemapSeries } from './treemapSeries';
 import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
 
@@ -13,6 +14,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
     enterprise: true,
     solo: true,
     version: VERSION,
+    dependencies: [StandaloneChartModule],
 
     options: treemapSeriesOptionsDef,
     themeTemplate: {

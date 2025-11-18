@@ -68,7 +68,8 @@ export interface ModuleDefinition<
     readonly name: string;
     readonly version: string;
     readonly enterprise?: boolean;
-    placeholder?: boolean;
+    readonly dependencies?: ModuleDefinition[];
+    readonly placeholder?: boolean;
 
     options?: OptionsDefs<TOptions>; // options definitions validation
     themeTemplate?: ExtensibleTheme<any>; // module's default theme template

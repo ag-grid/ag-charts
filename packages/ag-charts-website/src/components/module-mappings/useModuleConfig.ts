@@ -3,7 +3,6 @@ import type { AgGridReact } from 'ag-grid-react';
 import { type RefObject, useCallback, useMemo, useState } from 'react';
 
 import {
-    ALL_COMMUNITY_AND_ENTERPRISE_MODULE,
     ALL_COMMUNITY_MODULE,
     ALL_ENTERPRISE_MODULE,
     type BundleOptionValue,
@@ -43,7 +42,6 @@ export function useModuleConfig(gridRef: RefObject<AgGridReact>) {
                     }
                     break;
 
-                case ALL_COMMUNITY_AND_ENTERPRISE_MODULE:
                 default:
                     (isEnterprise ? enterprise : community).push(moduleName);
             }
@@ -63,29 +61,11 @@ export function useModuleConfig(gridRef: RefObject<AgGridReact>) {
                 return;
             }
 
-            if (moduleName === ALL_COMMUNITY_AND_ENTERPRISE_MODULE) {
+            if (moduleName === ALL_ENTERPRISE_MODULE) {
                 api.selectAll('all');
                 setSelectedModules({
                     community: [],
                     enterprise: [moduleName],
-                });
-            } else if (moduleName === ALL_ENTERPRISE_MODULE) {
-                const nodesToToggle: IRowNode[] = [];
-
-                api.deselectAll('all');
-                api.forEachLeafNode((child) => {
-                    if (child.data.isEnterprise && child.data.moduleName) {
-                        nodesToToggle.push(child);
-                    }
-                });
-                api.setNodesSelected({
-                    nodes: nodesToToggle,
-                    newValue: true,
-                });
-
-                setSelectedModules({
-                    community: [],
-                    enterprise: [ALL_ENTERPRISE_MODULE],
                 });
             } else if (moduleName === ALL_COMMUNITY_MODULE) {
                 const nodesToToggle: IRowNode[] = [];
