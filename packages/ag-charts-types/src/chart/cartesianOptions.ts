@@ -107,6 +107,20 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
 
 export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault>
     extends Omit<AgBaseAxisLabelOptions<TContext>, 'itemStyler'> {
+    /**
+     * Text wrapping strategy for long text.
+     * - `'always'` will always wrap text to fit within the `maxWidth`.
+     * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'never'` disables text wrapping.
+     *
+     * Default: `'on-space'`
+     */
+    wrapping?: TextWrap;
+    /**
+     * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
+     */
+    truncate?: boolean;
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
